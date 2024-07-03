@@ -252,19 +252,6 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
                 .with_error_code("E099"),
         );
     }
-
-    // Lastly assert that the referenced type is no array, pointer or bit
-    let inner_type = context.index.find_effective_type_by_name(inner_ty_name);
-    if let Some(ty) = inner_type {
-        if ty.is_array() || ty.is_pointer() || ty.is_bit() {
-            validator.push_diagnostic(
-                Diagnostic::new("REFERENCE TO variables can not reference arrays, pointers or bits")
-                    .with_location(&variable.location)
-                    .with_secondary_location(&ty.location)
-                    .with_error_code("E099"),
-            );
-        }
-    }
 }
 
 #[cfg(test)]

@@ -14,7 +14,9 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
+use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::index::ImplementationType;
+use crate::typesystem::VOID_TYPE;
 use crate::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
 use crate::{
     builtins::{self, BuiltIn},
@@ -26,8 +28,6 @@ use crate::{
         DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
     },
 };
-
-use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 
 macro_rules! visit_all_statements {
     ($validator:expr, $context:expr, $last:expr ) => {
@@ -777,24 +777,59 @@ fn validate_ref_assignment<T: AnnotationMap>(
     assignment: &Assignment,
     assignment_location: &SourceLocation,
 ) {
-    let mut assert_reference = |node: &AstNode| {
-        if !node.is_reference() {
-            validator.push_diagnostic(
-                Diagnostic::new("Invalid assignment, expected a reference")
-                    .with_location(&node.location)
-                    .with_error_code("E098"),
-            );
-        }
-    };
-
-    assert_reference(&assignment.left);
-    assert_reference(&assignment.right);
-
-    // Lastly, assert the type the lhs references matches with the rhs
     let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
     let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
     let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
+    let annotation_lhs = context.annotations.get(&assignment.left);
+
+    // Assert that the right-hand side is a reference
+    if !assignment.right.is_reference() {
+        validator.push_diagnostic(
+            Diagnostic::new("Invalid assignment, expected a reference")
+                .with_location(&assignment.right.location)
+                .with_error_code("E098"),
+        );
+    }
+
+    // Assert that the left-hand side is a valid pointer-reference
+    if !annotation_lhs.is_some_and(StatementAnnotation::is_reference_to) && !type_lhs.is_pointer() {
+        validator.push_diagnostic(
+            Diagnostic::new("Invalid assignment, expected a pointer reference")
+                .with_location(&assignment.left.location)
+                .with_error_code("E098"),
+        )
+    }
+
+    if type_info_lhs.is_array() && type_info_rhs.is_array() {
+        let mut messages = Vec::new();
+
+        let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
+        let len_rhs = type_info_rhs.get_array_length(context.index).unwrap_or_default();
+
+        if len_lhs < len_rhs {
+            messages.push(format!("Invalid assignment, array lengths {len_lhs} and {len_rhs} differ"));
+        }
+
+        let inner_ty_name_lhs = type_info_lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
+        let inner_ty_name_rhs = type_info_rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
+        let inner_ty_lhs = context.index.find_effective_type_by_name(inner_ty_name_lhs);
+        let inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
+
+        if inner_ty_lhs != inner_ty_rhs {
+            messages.push(format!(
+                "Invalid assignment, array types {inner_ty_name_lhs} and {inner_ty_name_rhs} differ"
+            ));
+        }
+
+        for message in messages {
+            validator.push_diagnostic(
+                Diagnostic::new(message).with_location(assignment_location).with_error_code("E098"),
+            )
+        }
+
+        return;
+    }
 
     if type_info_lhs != type_info_rhs {
         validator.push_diagnostic(

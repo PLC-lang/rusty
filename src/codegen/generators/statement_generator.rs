@@ -242,13 +242,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ///
     /// Note: Although somewhat similar to the [`generate_assignment_statement`] function, we can't
     /// apply the code here because the left side of a `REF=` assignment is flagged as auto-deref.
-    /// For `REF=` assignments we don't want (and can't) deref without generating incorrect IR.:w
+    /// For `REF=` assignments we don't want (and can't) deref without generating incorrect IR.
     pub fn generate_ref_assignment(&self, left: &AstNode, right: &AstNode) -> Result<(), Diagnostic> {
         let exp = self.create_expr_generator();
         let ref_builtin = self.index.get_builtin_function("REF").expect("REF must exist");
 
         let AstStatement::ReferenceExpr(data) = &left.stmt else {
-            unreachable!("should be covered by a validation? The left-hand side must be a reference")
+            unreachable!("should be covered by a validation")
         };
 
         let left_ptr_val = {

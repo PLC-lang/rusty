@@ -1,6 +1,6 @@
 use crate::{
     parser::tests::{empty_stmt, ref_to},
-    test_utils::tests::parse,
+    test_utils::tests::{parse, parse_and_validate_buffered},
     typesystem::DINT_TYPE,
 };
 use insta::assert_snapshot;

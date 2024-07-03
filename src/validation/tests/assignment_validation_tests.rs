@@ -1219,92 +1219,273 @@ fn void_assignment_validation() {
 }
 
 #[test]
-fn reference_to_variables_and_ref_assignments() {
+fn ref_assignments() {
     let diagnostics = parse_and_validate_buffered(
         "
-        TYPE 
-            AliasedDINT : DINT;
-            AliasedArray : ARRAY[1..5] OF DINT;
-        END_TYPE
+        FUNCTION main
+            VAR
+                localINT    : INT;
+                localDINT   : DINT;
+                localSTRING : STRING;
 
+                localRefTo          : REF_TO        DINT;
+                localReferenceTo    : REFERENCE TO  DINT;
+            END_VAR
+
+            localRefTo          REF= localDINT;
+            localReferenceTo    REF= localDINT;
+
+            // The following are invalid
+            1                   REF= localDINT;
+            localINT            REF= localDINT;
+            localRefTo          REF= 1;
+            localReferenceTo    REF= 1;
+
+            localReferenceTo    REF= localINT;
+            localReferenceTo    REF= localSTRING;
+            localReferenceTo    REF= 'howdy';
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E098]: Invalid assignment, expected a pointer reference
+       ┌─ <internal>:16:13
+       │
+    16 │             1                   REF= localDINT;
+       │             ^ Invalid assignment, expected a pointer reference
+
+    error[E098]: Invalid assignment, expected a pointer reference
+       ┌─ <internal>:17:13
+       │
+    17 │             localINT            REF= localDINT;
+       │             ^^^^^^^^ Invalid assignment, expected a pointer reference
+
+    error[E098]: Invalid assignment, types INT and DINT differ
+       ┌─ <internal>:17:13
+       │
+    17 │             localINT            REF= localDINT;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types INT and DINT differ
+
+    error[E098]: Invalid assignment, expected a reference
+       ┌─ <internal>:18:38
+       │
+    18 │             localRefTo          REF= 1;
+       │                                      ^ Invalid assignment, expected a reference
+
+    error[E098]: Invalid assignment, expected a reference
+       ┌─ <internal>:19:38
+       │
+    19 │             localReferenceTo    REF= 1;
+       │                                      ^ Invalid assignment, expected a reference
+
+    error[E098]: Invalid assignment, types DINT and INT differ
+       ┌─ <internal>:21:13
+       │
+    21 │             localReferenceTo    REF= localINT;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and INT differ
+
+    error[E098]: Invalid assignment, types DINT and STRING differ
+       ┌─ <internal>:22:13
+       │
+    22 │             localReferenceTo    REF= localSTRING;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and STRING differ
+
+    error[E098]: Invalid assignment, expected a reference
+       ┌─ <internal>:23:38
+       │
+    23 │             localReferenceTo    REF= 'howdy';
+       │                                      ^^^^^^^ Invalid assignment, expected a reference
+
+    error[E098]: Invalid assignment, types DINT and STRING differ
+       ┌─ <internal>:23:13
+       │
+    23 │             localReferenceTo    REF= 'howdy';
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and STRING differ
+
+    "###);
+}
+
+#[test]
+fn ref_assignment_with_global_local_variables_and_aliased_types() {
+    let diagnostics = parse_and_validate_buffered(
+        "
         VAR_GLOBAL
             fooGlobal : DINT;
         END_VAR
 
         FUNCTION main
             VAR
-                foo                         : DINT;
-                refToFoo                    : REF_TO DINT;
-                referenceToFoo              : REFERENCE TO DINT;
+                fooLocal                        : DINT;
+                referenceToFooFirstOfHisName    : REFERENCE TO DINT;
+                referenceToFooSecondOfHisName   : REFERENCE TO DINT;
+                referenceToAlias                : REFERENCE TO AliasedDINT;
 
-                // Invalid
-                referenceToFooInitializedVariable   : REFERENCE TO foo;
-                referenceToFooGlobalVariable        : REFERENCE TO fooGlobal;
-                referenceToFooAliasedDINTType       : REFERENCE TO AliasedDINT;
-                referenceToFooAliasedArrayType      : REFERENCE TO AliasedArray;
-                referenceToFooInitializedLiteral    : REFERENCE TO DINT := 5;
-                referenceToFooInitializedArray      : REFERENCE TO ARRAY[1..5] OF DINT;
+                intLocal            : INT;
+                stringLocal         : STRING;
+
+                // Invalid, types should be referenced rather than literals or variables
+                invalidA : REFERENCE TO fooLocal;
+                invalidB : REFERENCE TO fooGlobal;
+                invalidC : REFERENCE TO DINT := 5;
             END_VAR
 
-            refToFoo        REF= foo;
-            referenceToFoo  REF= foo;
+            referenceToFooFirstOfHisName  REF= fooLocal;
+            referenceToFooFirstOfHisName  REF= fooGlobal;
+            referenceToFooFirstOfHisName  REF= referenceToFooFirstOfHisName; // Valid, albeit questionable
+            referenceToFooFirstOfHisName  REF= referenceToFooSecondOfHisName;
 
-            // Invalid
-            1 REF= foo;
-            foo REF= foo;
-            referenceToFoo REF= 0;
-            referenceToFoo REF= referenceToFoo;
+            // Invalid, type mismatch
+            referenceToFooFirstOfHisName  REF= intLocal;
+            referenceToFooFirstOfHisName  REF= stringLocal;
         END_FUNCTION
         ",
     );
 
     assert_snapshot!(diagnostics, @r###"
     error[E099]: REFERENCE TO variables can not reference other variables
-       ┌─ <internal>:18:55
+       ┌─ <internal>:17:28
        │
-    18 │                 referenceToFooInitializedVariable   : REFERENCE TO foo;
-       │                                                       ^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
+    17 │                 invalidA : REFERENCE TO fooLocal;
+       │                            ^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
 
     error[E099]: REFERENCE TO variables can not reference other variables
-       ┌─ <internal>:19:55
+       ┌─ <internal>:18:28
        │
-    19 │                 referenceToFooGlobalVariable        : REFERENCE TO fooGlobal;
-       │                                                       ^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
-
-    error[E099]: REFERENCE TO variables can not reference arrays, pointers or bits
-       ┌─ <internal>:21:17
-       │
-     4 │             AliasedArray : ARRAY[1..5] OF DINT;
-       │             ------------ see also
-       ·
-    21 │                 referenceToFooAliasedArrayType      : REFERENCE TO AliasedArray;
-       │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference arrays, pointers or bits
+    18 │                 invalidB : REFERENCE TO fooGlobal;
+       │                            ^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
 
     error[E099]: Initializations of REFERENCE TO variables are disallowed
-       ┌─ <internal>:22:76
+       ┌─ <internal>:19:49
        │
-    22 │                 referenceToFooInitializedLiteral    : REFERENCE TO DINT := 5;
-       │                                                                            ^ Initializations of REFERENCE TO variables are disallowed
+    19 │                 invalidC : REFERENCE TO DINT := 5;
+       │                                                 ^ Initializations of REFERENCE TO variables are disallowed
 
-    error[E099]: REFERENCE TO variables can not reference arrays, pointers or bits
-       ┌─ <internal>:23:17
+    error[E098]: Invalid assignment, types DINT and INT differ
+       ┌─ <internal>:28:13
        │
-    23 │                 referenceToFooInitializedArray      : REFERENCE TO ARRAY[1..5] OF DINT;
-       │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^        -------------------------------- see also
-       │                 │                                      
-       │                 REFERENCE TO variables can not reference arrays, pointers or bits
+    28 │             referenceToFooFirstOfHisName  REF= intLocal;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and INT differ
 
-    error[E098]: Invalid assignment, expected a reference
-       ┌─ <internal>:30:13
+    error[E098]: Invalid assignment, types DINT and STRING differ
+       ┌─ <internal>:29:13
        │
-    30 │             1 REF= foo;
-       │             ^ Invalid assignment, expected a reference
+    29 │             referenceToFooFirstOfHisName  REF= stringLocal;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and STRING differ
 
-    error[E098]: Invalid assignment, expected a reference
-       ┌─ <internal>:32:33
+    "###);
+}
+
+#[test]
+fn ref_assignment_with_reference_to_array_variable() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                arrSTRING           :               ARRAY[1..6] OF STRING;
+                arrDINT             :               ARRAY[1..5] OF DINT;
+                arrReferenceDINT    : REFERENCE TO  ARRAY[1..5] OF DINT;
+            END_VAR
+
+            arrReferenceDINT REF= arrDINT;
+            arrReferenceDINT REF= arrSTRING;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E098]: Invalid assignment, array lengths 5 and 6 differ
+       ┌─ <internal>:10:13
        │
-    32 │             referenceToFoo REF= 0;
-       │                                 ^ Invalid assignment, expected a reference
+    10 │             arrReferenceDINT REF= arrSTRING;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, array lengths 5 and 6 differ
+
+    error[E098]: Invalid assignment, array types DINT and STRING differ
+       ┌─ <internal>:10:13
+       │
+    10 │             arrReferenceDINT REF= arrSTRING;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, array types DINT and STRING differ
+
+    "###);
+}
+
+#[test]
+fn ref_assignment_with_reference_to_string_variable() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                localCHAR           : CHAR;
+                localSTRING         : STRING;
+                localWSTRING        : WSTRING;
+                referenceToString   : REFERENCE TO STRING;
+            END_VAR
+
+            referenceToString REF= localCHAR;
+            referenceToString REF= localSTRING;
+            referenceToString REF= localWSTRING;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E098]: Invalid assignment, types STRING and CHAR differ
+       ┌─ <internal>:10:13
+       │
+    10 │             referenceToString REF= localCHAR;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types STRING and CHAR differ
+
+    error[E098]: Invalid assignment, types STRING and WSTRING differ
+       ┌─ <internal>:12:13
+       │
+    12 │             referenceToString REF= localWSTRING;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types STRING and WSTRING differ
+
+    "###);
+}
+
+#[test]
+fn invalid_reference_to_declaration() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION foo
+            VAR
+                bar : ARRAY[1..5] OF REFERENCE TO DINT;
+                baz : REFERENCE TO REFERENCE TO DINT;
+                qux : REF_TO REFERENCE TO DINT;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+      ┌─ <internal>:4:38
+      │
+    4 │                 bar : ARRAY[1..5] OF REFERENCE TO DINT;
+      │                                      ^^^^^^^^^^^^ Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'REFERENCE TO DINT'
+      ┌─ <internal>:4:38
+      │
+    4 │                 bar : ARRAY[1..5] OF REFERENCE TO DINT;
+      │                                      ^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'REFERENCE TO DINT'
+
+    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+      ┌─ <internal>:5:36
+      │
+    5 │                 baz : REFERENCE TO REFERENCE TO DINT;
+      │                                    ^^^^^^^^^^^^ Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+
+    error[E007]: Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
+                    qux : REF_TO REFERENCE TO DINT;'
+      ┌─ <internal>:5:36
+      │  
+    5 │                   baz : REFERENCE TO REFERENCE TO DINT;
+      │ ╭────────────────────────────────────^
+    6 │ │                 qux : REF_TO REFERENCE TO DINT;
+      │ ╰───────────────────────────────────────────────^ Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
+                    qux : REF_TO REFERENCE TO DINT;'
 
     "###);
 }
