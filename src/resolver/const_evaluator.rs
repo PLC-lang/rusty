@@ -19,17 +19,21 @@ use crate::{
 
 /// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Debug)]
 pub struct UnresolvableConstant {
     pub id: ConstId,
     pub reason: String,
-    //location
-    //source-file
+    pub kind: Option<UnresolvableKind>, //location
+                                        //source-file
 }
 
 impl UnresolvableConstant {
     pub fn new(id: ConstId, reason: &str) -> Self {
-        UnresolvableConstant { id, reason: reason.to_string() }
+        UnresolvableConstant { id, reason: reason.to_string(), kind: None }
+    }
+
+    pub fn with_kind(self, kind: UnresolvableKind) -> Self {
+        UnresolvableConstant { id: self.id, reason: self.reason, kind: Some(kind) }
     }
 
     pub fn incomplete_initialzation(id: &ConstId) -> Self {
@@ -130,7 +134,9 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     // there was an error during evaluation
                     (Err(kind), _) => {
                         //error during resolving
-                        unresolvable.push(UnresolvableConstant::new(candidate, kind.get_reason()));
+                        unresolvable.push(
+                            UnresolvableConstant::new(candidate, kind.get_reason()).with_kind(kind.clone()),
+                        );
                         index
                             .get_mut_const_expressions()
                             .mark_unresolvable(&candidate, kind)
@@ -560,16 +566,17 @@ fn evaluate_with_target_hint(
             if !matches!(name.to_lowercase().as_str(), "ref" | "adr") {
                 unimplemented!("handle function calls which do not return constants")
             };
-            let Some(arg) = parameters else {
-                unimplemented!("handle adr/ref call without args")
-            };
+            let Some(arg) = parameters else { unimplemented!("handle adr/ref call without args") };
             return match evaluate_with_target_hint(arg, scope, index, target_type) {
                 // arg to ref/adr could not be found in the index => unresolvable
                 Ok(None) => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {arg:#?}"))),
                 // we found a local or global parameter for REF/ADR, but it cannot be resolved as constant since the address is not yet known. Resolve during codegen
-                _ => Err(UnresolvableKind::InitializeWithMemoryAddress),                
-            }
-        },
+                _ => Err(UnresolvableKind::InitLater {
+                    initializer: arg.clone(),
+                    scope: scope.map(|it| it.into()),
+                }),
+            };
+        }
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),
     };
     Ok(literal)

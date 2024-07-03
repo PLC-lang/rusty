@@ -7,11 +7,10 @@ use std::{
 
 use crate::{CompileOptions, LinkOptions};
 use ast::{
-    ast::{pre_process, CompilationUnit, LinkageType},
+    ast::{pre_process, AstNode, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
 
-use plc::index::FxIndexSet;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::Index,
@@ -20,6 +19,9 @@ use plc::{
     resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
     validation::Validator,
     ConfigFormat, Target,
+};
+use plc::{
+    index::{const_expressions::UnresolvableKind, FxIndexSet},
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,
@@ -148,7 +150,18 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
         //Resolve constants
         //TODO: Not sure what we are currently doing with unresolvables //XXX: why are we resolving constants before the annotations?
-        let (mut full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
+        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
+        let init_fn_candidates = unresolvables
+            .into_iter()
+            .filter_map(|it| {
+                if let Some(UnresolvableKind::InitLater { initializer, scope }) = it.kind {
+                    Some((initializer, scope))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<(Box<AstNode>, Option<String>)>>();
+        dbg!(&init_fn_candidates);
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
@@ -178,6 +191,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             units: annotated_units,
             index: full_index,
             annotations,
+            unresolved_initializers: init_fn_candidates,
         }
     }
 
@@ -196,6 +210,7 @@ pub struct AnnotatedProject<T: SourceContainer + Sync> {
     pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
     pub index: Index,
     pub annotations: AstAnnotations,
+    pub unresolved_initializers: Vec<(Box<AstNode>, Option<String>)>,
 }
 
 impl<T: SourceContainer + Sync> AnnotatedProject<T> {
@@ -279,12 +294,14 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types
+        println!("generating llvm_index");
         let llvm_index = code_generator.generate_llvm_index(
             context,
             &self.annotations,
             literals,
             dependencies,
             &self.index,
+            &self.unresolved_initializers,
         )?;
         code_generator.generate(context, unit, &self.annotations, &self.index, &llvm_index)
     }

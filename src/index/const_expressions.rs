@@ -73,7 +73,7 @@ impl ConstExpression {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum UnresolvableKind {
     /// Indicates that the const expression was not resolvable for any reason not listed in [`UnresolvableKind`].
     Misc(String),
@@ -82,14 +82,14 @@ pub enum UnresolvableKind {
     Overflow(String, SourceLocation),
 
     /// Indicates that the const expression is not resolvable before initialization during codegen
-    InitializeWithMemoryAddress
+    InitLater { initializer: Box<AstNode>, scope: Option<String>, /* XXX: target type name might be needed here */ },
 }
 
 impl UnresolvableKind {
     pub fn get_reason(&self) -> &str {
         match self {
             UnresolvableKind::Misc(val) | UnresolvableKind::Overflow(val, ..) => val,
-            UnresolvableKind::InitializeWithMemoryAddress => "",
+            UnresolvableKind::InitLater { .. } => "Init later",
         }
     }
 

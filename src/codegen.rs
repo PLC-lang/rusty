@@ -35,7 +35,7 @@ use inkwell::{
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
-use plc_ast::ast::{CompilationUnit, LinkageType};
+use plc_ast::ast::{AstNode, CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
@@ -104,9 +104,11 @@ impl<'ink> CodeGen<'ink> {
         literals: &StringLiterals,
         dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
+        _unresolvables: &[(Box<AstNode>, Option<String>)],
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
+        println!("generating llvm_type_index");
         //Generate types index, and any global variables associated with them.
         let llvm_type_index = data_type_generator::generate_data_types(
             &llvm,
@@ -121,12 +123,14 @@ impl<'ink> CodeGen<'ink> {
             VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
 
         //Generate global variables
+        println!("generating llvm_gv_index!");
         let llvm_gv_index =
             variable_generator.generate_global_variables(dependencies, &self.module_location)?;
         index.merge(llvm_gv_index);
 
         //Generate opaque functions for implementations and associate them with their types
         let llvm = Llvm::new(context, context.create_builder());
+        println!("generating llvm_impl_index!");
         let llvm_impl_index = pou_generator::generate_implementation_stubs(
             &self.module,
             llvm,

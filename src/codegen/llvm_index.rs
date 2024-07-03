@@ -179,10 +179,9 @@ impl<'ink> LlvmTypedIndex<'ink> {
     pub fn find_loaded_associated_variable_value(&self, qualified_name: &str) -> Option<PointerValue<'ink>> {
         let result =
         // no loaded variable associations, hence lvalue of `s` cannot be found
-            dbg!(&self.loaded_variable_associations).get(&qualified_name.to_lowercase()).copied().or_else(|| {
-                self.parent_index.and_then(|it| it.find_loaded_associated_variable_value(qualified_name))
-            });
-        dbg!(&result);
+        self.loaded_variable_associations.get(&qualified_name.to_lowercase()).copied().or_else(|| {
+            self.parent_index.and_then(|it| it.find_loaded_associated_variable_value(qualified_name))
+        });
 
         //If nothing got associated, see if we have a global we could reuse
         result.or_else(|| {

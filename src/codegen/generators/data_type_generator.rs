@@ -322,7 +322,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Alias { referenced_type, .. } => {
                 self.generate_initial_value_for_type(data_type, referenced_type)
             }
-            
+
             // DataTypeInformation::Pointer { name, inner_type_name, auto_deref } => {
             //     // let initializer = variable
             //     //     .initial_value
@@ -384,10 +384,10 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 self.annotations,
                 &self.types_index,
             );
-            if qualified_name == "bar.ps" {
-                dbg!(initializer);
-            };
-            dbg!(generator.generate_expression(initializer)).map(Some).map_err(|_| {
+            // if qualified_name == "bar.ps" {
+            //     dbg!(initializer);
+            // };
+            generator.generate_expression(initializer).map(Some).map_err(|_| {
                 Diagnostic::cannot_generate_initializer(qualified_name, initializer.get_location())
             })
         } else {
