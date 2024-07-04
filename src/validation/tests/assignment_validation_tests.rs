@@ -1444,6 +1444,8 @@ fn ref_assignment_with_reference_to_string_variable() {
     "###);
 }
 
+// TODO(volsa): Improve the error messages here; these are the default messages returned by the parser
+//              without any modifications.
 #[test]
 fn invalid_reference_to_declaration() {
     let diagnostics = parse_and_validate_buffered(
