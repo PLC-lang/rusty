@@ -38,7 +38,6 @@ pub enum ConstExpression {
         /// e.g. a const-expression inside a POU would use this POU's name as a
         /// qualifier.
         scope: Option<String>,
- 
     },
     Resolved(AstNode),
     Unresolvable {
@@ -83,10 +82,16 @@ pub struct InitingIsHardInnit {
 }
 
 impl InitingIsHardInnit {
-    pub fn new(initializer: &Box<AstNode>, target_type: Option<impl Into<String>>, scope: Option<impl Into<String>>) -> Self {
+    pub fn new(
+        initializer: &Box<AstNode>,
+        target_type: Option<impl Into<String>>,
+        scope: Option<impl Into<String>>,
+    ) -> Self {
         InitingIsHardInnit {
             initializer: initializer.clone(),
-            target_type_name: target_type.map(|it| it.into()).expect("No later init without a valid target type to init to."), // TODO: remove unwrap
+            target_type_name: target_type
+                .map(|it| it.into())
+                .expect("No later init without a valid target type to init to."), // TODO: remove unwrap
             scope: scope.map(|it| it.into()),
         }
     }

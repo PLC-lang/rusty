@@ -10,6 +10,7 @@ use super::{
 };
 use crate::{
     codegen::{
+        const_expressions::InitingIsHardInnit,
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
     },
@@ -49,40 +50,6 @@ pub struct PouGenerator<'ink, 'cg> {
     index: &'cg Index,
     annotations: &'cg AstAnnotations,
     llvm_index: &'cg LlvmTypedIndex<'ink>,
-}
-
-/// Creates opaque implementations for all callable items in the index
-/// Returns a Typed index containing the associated implementations.
-pub fn generate_implementation_stubs<'ink>(
-    module: &Module<'ink>,
-    llvm: Llvm<'ink>,
-    dependencies: &FxIndexSet<Dependency>,
-    index: &Index,
-    annotations: &AstAnnotations,
-    types_index: &LlvmTypedIndex<'ink>,
-    debug: &mut DebugBuilderEnum<'ink>,
-) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
-    let mut llvm_index = LlvmTypedIndex::default();
-    let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
-    let implementations = dependencies
-        .into_iter()
-        .filter_map(|it| {
-            if let Dependency::Call(name) | Dependency::Datatype(name) = it {
-                index.find_implementation_by_name(name).map(|it| (name.as_str(), it))
-            } else {
-                None
-            }
-        })
-        .collect::<FxIndexMap<_, _>>();
-    for (name, implementation) in implementations {
-        if !implementation.is_generic() {
-            let curr_f =
-                pou_generator.generate_implementation_stub(implementation, module, debug, &mut llvm_index)?;
-            llvm_index.associate_implementation(name, curr_f)?;
-        }
-    }
-
-    Ok(llvm_index)
 }
 
 ///Generates a global constant for each initialized pou member
@@ -186,8 +153,38 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         Ok(ctx.mangle())
     }
 
+    /// Creates opaque implementations for all callable items in the index
+    /// Returns a Typed index containing the associated implementations.
+    pub fn generate_implementation_stubs(
+        &self,
+        module: &Module<'ink>,
+        dependencies: &FxIndexSet<Dependency>,
+        debug: &mut DebugBuilderEnum<'ink>,
+    ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
+        let mut llvm_index = LlvmTypedIndex::default();
+        let implementations = dependencies
+            .into_iter()
+            .filter_map(|it| {
+                if let Dependency::Call(name) | Dependency::Datatype(name) = it {
+                    self.index.find_implementation_by_name(name).map(|it| (name.as_str(), it))
+                } else {
+                    None
+                }
+            })
+            .collect::<FxIndexMap<_, _>>();
+        for (name, implementation) in implementations {
+            if !implementation.is_generic() {
+                let curr_f =
+                    self.generate_implementation_stub(implementation, module, debug, &mut llvm_index)?;
+                llvm_index.associate_implementation(name, curr_f)?;
+            }
+        }
+
+        Ok(llvm_index)
+    }
+
     /// generates an empty llvm function for the given implementation, including all parameters and the return type
-    pub fn generate_implementation_stub(
+    fn generate_implementation_stub(
         &self,
         implementation: &ImplementationIndexEntry,
         module: &Module<'ink>,
@@ -304,6 +301,44 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 implementation.get_location().get_line(),
             );
         }
+        Ok(curr_f)
+    }
+
+    pub fn generate_init_fn_stubs(
+        &self,
+        module: &Module<'ink>,
+        dependencies: &FxIndexSet<Dependency>,
+        initializers: &FxIndexMap<String, InitingIsHardInnit>,
+    ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
+        let mut llvm_index = LlvmTypedIndex::default();
+        for (target_name, initializer) in initializers {
+            let dti = self.index.find_effective_type_by_name(&target_name).unwrap().get_type_information();
+            let fn_name = format!("__init_{}", dti.get_name());
+            dbg!(&fn_name);
+            let curr_f = self.generate_init_stub(module, &mut llvm_index, &fn_name, initializer)?;
+            llvm_index.associate_implementation(&fn_name, curr_f)?;
+        }
+
+        Ok(llvm_index)
+    }
+
+    fn generate_init_stub(
+        &self,
+        module: &Module<'ink>,
+        new_llvm_index: &mut LlvmTypedIndex<'ink>,
+        fn_name: &str,
+        initializer: &InitingIsHardInnit,
+    ) -> Result<FunctionValue<'ink>, Diagnostic> {
+        // get instance pointer type from llvm index as parameter
+        let ll_ty = self.llvm_index.find_associated_type(&initializer.target_type_name).unwrap();
+        let function_declaration = self.create_llvm_function_type(vec![ll_ty.into()], None, None)?;
+
+        let curr_f = module.add_function(fn_name, function_declaration, None);
+
+        // do these need to be mangled? skip for now
+        // let section_name = self.mangle_function(implementation)?;
+        // curr_f.set_section(Some(&section_name));
+
         Ok(curr_f)
     }
 

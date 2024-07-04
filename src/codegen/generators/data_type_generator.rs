@@ -56,7 +56,7 @@ pub fn generate_data_types<'ink>(
     dependencies: &FxIndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
-    unresolved_init: &FxIndexMap<String, InitingIsHardInnit>
+    unresolved_init: &FxIndexMap<String, InitingIsHardInnit>,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut types = vec![];
     let mut pou_types = vec![];
@@ -122,6 +122,7 @@ pub fn generate_data_types<'ink>(
 
     let mut tries = 0;
     let mut errors = FxHashMap::default();
+
     // If the tries are equal to the number of types remaining, it means we failed to resolve
     // anything
     while tries < types_to_init.len() {

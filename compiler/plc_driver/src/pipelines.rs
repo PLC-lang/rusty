@@ -11,6 +11,7 @@ use ast::{
     provider::IdProvider,
 };
 
+use plc::index::{const_expressions::UnresolvableKind, FxIndexMap, FxIndexSet};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{const_expressions::InitingIsHardInnit, Index},
@@ -19,9 +20,6 @@ use plc::{
     resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
     validation::Validator,
     ConfigFormat, Target,
-};
-use plc::{
-    index::{const_expressions::UnresolvableKind, FxIndexSet, FxIndexMap},
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,
@@ -154,7 +152,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
         let init_fn_candidates = unresolvables
             .into_iter()
             .filter_map(|it| {
-                if let Some(UnresolvableKind::InitLater (init)) = it.kind {
+                if let Some(UnresolvableKind::InitLater(init)) = it.kind {
                     Some((init.target_type_name.clone(), init))
                 } else {
                     None
@@ -164,6 +162,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
         // XXX: candidates with a scope are members of structs/pous - these also cannot be initialized due to having dependencies on
         // the member-candidates.
         dbg!(&init_fn_candidates);
+
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();

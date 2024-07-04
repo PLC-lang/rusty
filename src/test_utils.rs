@@ -166,7 +166,14 @@ pub mod tests {
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         let llvm_index = code_generator
-            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &FxIndexMap::default())
+            .generate_llvm_index(
+                &context,
+                &annotations,
+                &literals,
+                &dependencies,
+                &index,
+                &FxIndexMap::default(),
+            )
             .map_err(|err| {
                 reporter.handle(&[err]);
                 reporter.buffer().unwrap()
@@ -241,7 +248,7 @@ pub mod tests {
                     &literals,
                     &dependencies,
                     &index,
-                    &FxIndexMap::default()
+                    &FxIndexMap::default(),
                 )?;
 
                 code_generator.generate(context, &unit, &annotations, &index, &llvm_index)
