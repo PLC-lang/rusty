@@ -248,7 +248,7 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
         .annotate(ctxt.provider());
 
     if compile_parameters.output_ast {
-        println!("{:?}", annotated_project.units);
+        println!("{:#?}", annotated_project.units);
         return Ok(());
     }
 
