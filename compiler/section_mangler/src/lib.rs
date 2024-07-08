@@ -44,20 +44,25 @@
 
 use std::fmt;
 
+mod parser;
+
 /// The main builder type of this crate. Use it to create mangling contexts, in
 /// order to encode and decode binary type information.
 // TODO: Add example code for using this builder
+#[derive(Debug, PartialEq, Clone)]
 pub enum SectionMangler {
     Function(FunctionMangler),
     Variable(VariableMangler),
 }
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct FunctionMangler {
     name: String,
     parameters: Vec<FunctionArgument>,
     return_type: Option<Type>,
 }
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct VariableMangler {
     name: String,
     ty: Type,
@@ -72,6 +77,13 @@ impl SectionMangler {
         SectionMangler::Variable(VariableMangler { name: name.into(), ty })
     }
 
+    pub fn name(&self) -> &str {
+        match self {
+            SectionMangler::Function(FunctionMangler { name, .. })
+            | SectionMangler::Variable(VariableMangler { name, .. }) => name,
+        }
+    }
+
     pub fn with_parameter(self, param: FunctionArgument) -> SectionMangler {
         match self {
             SectionMangler::Function(f) => {
@@ -84,9 +96,11 @@ impl SectionMangler {
         }
     }
 
-    pub fn with_return_type(self, return_type: Option<Type>) -> SectionMangler {
+    pub fn with_return_type(self, return_type: Type) -> SectionMangler {
         match self {
-            SectionMangler::Function(f) => SectionMangler::Function(FunctionMangler { return_type, ..f }),
+            SectionMangler::Function(f) => {
+                SectionMangler::Function(FunctionMangler { return_type: Some(return_type), ..f })
+            }
             SectionMangler::Variable(_) => unreachable!("global variables do not have a return type."),
         }
     }
@@ -111,6 +125,7 @@ impl SectionMangler {
 // NOTE: This is called `variable_linkage` in the `MemberInfo` struct.
 
 /// We have to encode this because if it changes, the function needs to be reloaded - this is an ABI breakage
+#[derive(Debug, PartialEq, Clone)]
 pub enum FunctionArgument {
     ByValue(Type),
     ByRef(Type),
@@ -127,6 +142,7 @@ impl fmt::Display for FunctionArgument {
 }
 
 // TODO: Do we have to encode this? Does that affect ABI? Probably
+#[derive(Debug, PartialEq, Clone)]
 pub enum StringEncoding {
     // TODO: Should we encode this differently? this could cause problems compared to encoding unsigned types
     /// Encoded as `8u`
@@ -146,6 +162,7 @@ impl fmt::Display for StringEncoding {
 
 // This maps directly to the [`DataTypeInformation`] enum in RuSTy - we simply remove some fields and add the ability to encode/decode serialize/deserialize
 // TODO: Do we have to handle Generic?
+#[derive(Debug, PartialEq, Clone)]
 pub enum Type {
     /// Encoded as `v`
     Void,
@@ -158,7 +175,9 @@ pub enum Type {
         semantic_size: Option<u32>,
     },
     /// Encoded as `f<size>`
-    Float { size: u32 },
+    Float {
+        size: u32,
+    },
     /// Encoded as `s<encoding><size>`
     String {
         size: usize, // FIXME: Is that okay? will all the constant expressions be folded at that point? Can we have TypeSize::Undetermined still?
@@ -170,23 +189,12 @@ pub enum Type {
         // TODO: Is changing the `auto_deref` mode an ABI break?
         // auto_deref: bool,
     },
-
-    // --- UNIMPLEMENTED
-
-    // FIXME: Do we need any info here? How are structs codegened?
     Struct {
-        // name: TypeId,
-        // members: Vec<VariableIndexEntry>,
-        // source: StructSource,
+        members: Vec<Type>,
     },
-
-    // FIXME: Same here
     Enum {
-        // name: TypeId,
-        // referenced_type: TypeId,
-        // // TODO: Would it make sense to store `VariableIndexEntry`s similar to how the `Struct` variant does?
-        // //       This would allow us to pattern match in the index `find_member` method
-        // elements: Vec<String>,
+        referenced_type: Box<Type>,
+        elements: usize,
     },
     Array {
         inner: Box<Type>,
@@ -224,16 +232,25 @@ impl fmt::Display for Type {
             Type::Float { size } => write!(f, "f{size}"),
             Type::String { size, encoding } => write!(f, "s{encoding}{size}",),
             Type::Pointer { inner } => write!(f, "p{}", inner),
+            Type::Struct { members } => {
+                write!(
+                    f,
+                    "r{}{}",
+                    members.len(),
+                    members.iter().fold(String::new(), |acc, m| format!("{acc}{m}"))
+                )
+            }
+            Type::Enum { referenced_type, elements } => write!(f, "e{elements}{referenced_type}"),
+            Type::Array { inner } => write!(f, "a{inner}"),
             // -- Unimplemented
-            Type::Struct {} => todo!(),
-            Type::Enum {} => todo!(),
-            Type::Array { .. } => todo!(),
             Type::SubRange {} => todo!(),
             Type::Alias {} => todo!(),
             Type::Generic {} => todo!(),
         }
     }
 }
+
+pub const PREFIX: &str = "$RUSTY$";
 
 // TODO: How to encode variadics?
 fn mangle_function(FunctionMangler { name, parameters, return_type }: FunctionMangler) -> String {
@@ -242,9 +259,9 @@ fn mangle_function(FunctionMangler { name, parameters, return_type }: FunctionMa
         /* FIXME: Is that correct? */
         .fold(return_type.unwrap_or(Type::Void).to_string(), |mangled, arg| format!("{mangled}[{arg}]"));
 
-    format!("{name}:{mangled}")
+    format!("{PREFIX}{name}:{mangled}")
 }
 
 fn mangle_variable(VariableMangler { name, ty }: VariableMangler) -> String {
-    format!("{name}:{ty}")
+    format!("{PREFIX}{name}:{ty}")
 }

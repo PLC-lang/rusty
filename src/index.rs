@@ -347,6 +347,12 @@ pub enum VariableType {
     Return,
 }
 
+impl VariableType {
+    pub fn is_output(&self) -> bool {
+        matches!(self, VariableType::Output)
+    }
+}
+
 impl std::fmt::Display for VariableType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -1197,6 +1203,10 @@ impl Index {
             .iter()
             .filter(|it| it.is_parameter() && !it.is_variadic())
             .collect::<Vec<_>>()
+    }
+
+    pub fn has_variadic_parameter(&self, pou_name: &str) -> bool {
+        self.get_pou_members(pou_name).iter().any(|member| member.is_parameter() && member.is_variadic())
     }
 
     /// returns some if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument

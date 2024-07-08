@@ -1,0 +1,2 @@
+RUN: %COMPILE %S/month_to_int.st %S/months.dt && %RUN | %CHECK %s
+CHECK:6

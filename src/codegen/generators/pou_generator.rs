@@ -153,17 +153,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         PouGenerator { llvm, index, annotations, llvm_index }
     }
 
-    fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> String {
+    fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> Result<String, Diagnostic> {
         let ctx = SectionMangler::function(implementation.get_call_name());
 
         let params = self.index.get_declared_parameters(implementation.get_call_name());
 
-        let ctx = params.into_iter().fold(ctx, |ctx, param| {
-            // FIXME: Can we unwrap here?
+        let ctx = params.into_iter().try_fold(ctx, |ctx, param| -> Result<SectionMangler, Diagnostic> {
             let ty = section_names::mangle_type(
                 self.index,
-                self.index.get_effective_type_by_name(&param.data_type_name).unwrap(),
-            );
+                self.index.get_effective_type_by_name(&param.data_type_name)?,
+            )?;
             let parameter = match param.argument_type {
                 // TODO: We need to handle the `VariableType` enum as well - this describes the mode of
                 // argument passing, e.g. inout
@@ -171,15 +170,20 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 index::ArgumentType::ByRef(_) => FunctionArgument::ByRef(ty),
             };
 
-            ctx.with_parameter(parameter)
-        });
+            Ok(ctx.with_parameter(parameter))
+        })?;
 
         let return_ty = self
             .index
             .find_return_type(implementation.get_type_name())
             .map(|ty| section_names::mangle_type(self.index, ty));
 
-        ctx.with_return_type(return_ty).mangle()
+        let ctx = match return_ty {
+            Some(rty) => ctx.with_return_type(rty?),
+            None => ctx,
+        };
+
+        Ok(ctx.mangle())
     }
 
     /// generates an empty llvm function for the given implementation, including all parameters and the return type
@@ -281,7 +285,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let curr_f = module.add_function(implementation.get_call_name(), function_declaration, None);
 
-        let section_name = self.mangle_function(implementation);
+        let section_name = self.mangle_function(implementation)?;
         curr_f.set_section(Some(&section_name));
 
         let pou_name = implementation.get_call_name();
