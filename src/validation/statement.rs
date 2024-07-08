@@ -659,16 +659,40 @@ fn validate_binary_expression<T: AnnotationMap>(
     right: &AstNode,
     context: &ValidationContext<T>,
 ) {
+    if operator.is_comparison_operator() {
+        validate_comparison_operator(validator, statement, operator, left, right, context);
+    }
+}
+
+fn validate_comparison_operator<T: AnnotationMap>(
+    validator: &mut Validator,
+    statement: &AstNode,
+    operator: &Operator,
+    left: &AstNode,
+    right: &AstNode,
+    context: &ValidationContext<T>,
+) {
     let left_type = context.annotations.get_type_or_void(left, context.index).get_type_information();
     let right_type = context.annotations.get_type_or_void(right, context.index).get_type_information();
 
     // if the type is a subrange, check if the intrinsic type is numerical
     let is_numerical = context.index.find_intrinsic_type(left_type).is_numerical();
 
+    if discriminant(left_type) != discriminant(right_type) {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Cannot compare {} with {}",
+                left_type.get_name(),
+                right_type.get_name()
+            ))
+            .with_error_code("E0XX")
+            .with_location(statement.get_location()),
+        );
+    }
+
     if discriminant(left_type) == discriminant(right_type) && !(is_numerical || left_type.is_pointer()) {
         // see if we have the right compare-function (non-numbers are compared using user-defined callback-functions)
-        if operator.is_comparison_operator()
-            && !compare_function_exists(left_type.get_name(), operator, context)
+        if !compare_function_exists(left_type.get_name(), operator, context)
         {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
