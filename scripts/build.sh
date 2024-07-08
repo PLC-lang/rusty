@@ -8,6 +8,7 @@ check_style=0
 build=1
 doc=0
 test=0
+lit=0
 coverage=0
 release=0
 debug=0
@@ -140,6 +141,19 @@ function run_check_style() {
     cargo fmt -- --check
 }
 
+function run_lit_test() {
+    # We need a binary as well as the stdlib and its *.so file before running lit tests
+    run_build
+    run_std_build
+    run_package_std
+
+    if [[ $release -eq 0 ]]; then
+        lit -v -DLIB=$project_location/output -DCOMPILER=$project_location/target/debug/plc tests/lit/
+    else
+        lit -v -DLIB=$project_location/output -DCOMPILER=$project_location/target/release/plc tests/lit/
+    fi
+}
+
 function run_test() {
     CARGO_OPTIONS=$(set_cargo_options)
     log "Running cargo test"
@@ -147,37 +161,25 @@ function run_test() {
         #Delete the test results if they exist
         rm -rf "$project_location/test_results"
         make_dir "$project_location/test_results"
-        # JUnit test should run on nightly
-        log "cargo +nightly test $CARGO_OPTIONS --lib -- --format=junit \
-            -Zunstable-options \
-         | split -l1 - "$project_location"/test_results/unit_tests \
-         -d --additional-suffix=.xml
-        "
-        cargo +nightly test $CARGO_OPTIONS --lib -- --format=junit \
-            -Zunstable-options \
-         | split -l1 - "$project_location"/test_results/unit_tests \
-         -d --additional-suffix=.xml
+        # JUnit test should run via cargo-nextest
+        log "cargo-nextest nextest run $CARGO_OPTIONS --lib --profile ci \ 
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/unit_tests.xml"
+        cargo-nextest nextest run $CARGO_OPTIONS --lib --profile ci
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/unit_tests.xml
 
         # Run only the integration tests
         #https://stackoverflow.com/questions/62447864/how-can-i-run-only-integration-tests
-        log "cargo +nightly test $CARGO_OPTIONS --test '*' -- --format=junit \
-         -Zunstable-options  \
-         | split -l1 - "$project_location"/test_results/integration_tests \
-         -d --additional-suffix=.xml"
-        cargo +nightly test $CARGO_OPTIONS --test '*' -- --format=junit \
-         -Zunstable-options  \
-         | split -l1 - "$project_location"/test_results/integration_tests \
-         -d --additional-suffix=.xml
+        log "cargo-nextest nextest run $CARGO_OPTIONS --profile ci --test '*' \
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/integration_tests.xml "
+        cargo-nextest nextest run $CARGO_OPTIONS --profile ci --test '*'
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/integration_tests.xml
 
         # Run the std integration
-        log "cargo +nightly test $CARGO_OPTIONS -p iec61131std --test '*' -- --format=junit \
-         -Zunstable-options  \
-         | split -l1 - "$project_location"/test_results/std_integration_tests \
-         -d --additional-suffix=.xml"
-        cargo +nightly test $CARGO_OPTIONS -p iec61131std --test '*' -- --format=junit \
-         -Zunstable-options  \
-         | split -l1 - "$project_location"/test_results/std_integration_tests \
-         -d --additional-suffix=.xml
+        log "cargo-nextest nextest run $CARGO_OPTIONS --profile ci -p iec61131std --test '*' \ 
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/std_integration_tests.xml"
+        cargo-nextest nextest run $CARGO_OPTIONS --profile ci -p iec61131std --test '*'
+        mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/std_integration_tests.xml
+        
     else
         cargo test $CARGO_OPTIONS --workspace
     fi
@@ -203,6 +205,8 @@ function set_offline() {
 
 function run_package_std() {
     cc=$(get_compiler)
+    OUTPUT_DIR=$project_location/output
+    make_dir "$OUTPUT_DIR"
     log "Packaging Standard functions"
     log "Removing previous output folder"
     rm -rf $OUTPUT_DIR
@@ -303,6 +307,9 @@ function run_in_container() {
     if [[ $test -ne 0 ]]; then
         params="$params --test"
     fi
+    if [[ $lit -ne 0 ]]; then
+        params="$params --lit"
+    fi
     if [[ $junit -ne 0 ]]; then
         params="$params --junit"
     fi
@@ -342,7 +349,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,test,junit,verbose,container,linux,container-name:,coverage,package,target:
+LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-name:,coverage,package,target:
 
 check_env
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -394,6 +401,9 @@ while true; do
         --test)
             test=1
             ;;
+        --lit)
+            lit=1
+            ;;
         --junit)
             junit=1
             ;;
@@ -429,11 +439,6 @@ if [[ $container -ne 0 ]]; then
     exit 0
 fi
 
-if [[ $package -ne 0 ]]; then
-    OUTPUT_DIR=$project_location/output
-    make_dir "$OUTPUT_DIR"
-fi
-
 if [[ $vendor -ne 0 ]]; then
     generate_sources
     exit 0
@@ -467,6 +472,10 @@ fi
 
 if [[ $test -ne 0 ]]; then
     run_test
+fi
+
+if [[ $lit -ne 0 ]]; then
+    run_lit_test
 fi
 
 if [[ $doc -ne 0 ]]; then

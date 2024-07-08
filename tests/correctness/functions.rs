@@ -1,3 +1,5 @@
+use std::ffi::CStr;
+
 use rusty::codegen::CodegenContext;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
@@ -643,6 +645,41 @@ fn optional_output_assignment_in_functions() {
 }
 
 #[test]
+fn aggregate_var_output_assignment() {
+    #[repr(C)]
+    struct MainType {
+        var1: [u8; 81],
+        var2: [i32; 4],
+    }
+
+    let main = r#"
+        PROGRAM foo
+        VAR_OUTPUT
+            output1 : STRING;
+            output2 : ARRAY[0..3] OF DINT;
+        END_VAR
+            output1 := 'Hello, world!';
+            output2 := [5, 7, 11, 13];
+        END_PROGRAM
+
+        PROGRAM main
+        VAR
+            var1 : STRING;
+            var2 : ARRAY[0..3] OF DINT;
+        END_VAR
+            foo(output1 => var1, output2 => var2);
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var1: [0; 81], var2: [0; 4] };
+    let _: i32 = compile_and_run(main.to_string(), &mut interface);
+
+    let str = CStr::from_bytes_until_nul(&interface.var1).unwrap().to_string_lossy();
+    assert_eq!("Hello, world!", str);
+    assert_eq!([5, 7, 11, 13], interface.var2);
+}
+
+#[test]
 fn direct_call_on_function_block_array_access() {
     #[allow(dead_code)]
     #[derive(Default)]
@@ -872,12 +909,12 @@ fn mux_struct_ref() {
     #[repr(C)]
     #[derive(Default)]
     struct MainType {
-        res: myStruct,
+        res: MyStruct,
     }
 
     #[repr(C)]
     #[derive(Default)]
-    struct myStruct {
+    struct MyStruct {
         a: bool,
         b: bool,
     }
@@ -1026,12 +1063,12 @@ fn sel_struct_ref() {
     #[repr(C)]
     #[derive(Default)]
     struct MainType {
-        res: myStruct,
+        res: MyStruct,
     }
 
     #[repr(C)]
     #[derive(Default)]
-    struct myStruct {
+    struct MyStruct {
         a: bool,
         b: bool,
     }
