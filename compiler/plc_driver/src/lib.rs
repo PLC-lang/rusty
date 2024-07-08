@@ -247,6 +247,11 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
         .index(ctxt.provider())
         .annotate(ctxt.provider());
 
+    if compile_parameters.output_ast {
+        println!("{:?}", annotated_project.units);
+        return Ok(());
+    }
+
     // 4 : Validate
     annotated_project.validate(&ctxt, &mut diagnostician)?;
 

@@ -701,7 +701,7 @@ impl AnnotationMap for AnnotationMapImpl {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct StringLiterals {
     pub utf08: FxHashSet<String>,
     pub utf16: FxHashSet<String>,
