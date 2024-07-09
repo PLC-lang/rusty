@@ -21,13 +21,17 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 
     //Create defined global variables
     for global_vars in &unit.global_vars {
+        // TODO: add global init function to index
         visit_global_var_block(&mut index, global_vars);
     }
 
     //Create types and variables for POUs
     for pou in &unit.units {
+        // TODO: add stateful POU init functions to index
         visit_pou(&mut index, pou);
     }
+
+    // TODO: add __init wrapper function to index
 
     for implementation in &unit.implementations {
         visit_implementation(&mut index, implementation);
@@ -817,4 +821,6 @@ fn visit_struct(
     .set_initial_value(init)
     .set_constant(true);
     index.register_global_initializer(&global_struct_name, variable);
+
+    index.register_initialization_function(name);
 }

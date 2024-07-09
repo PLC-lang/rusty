@@ -831,13 +831,15 @@ pub struct Index {
     global_variables: SymbolMap<String, VariableIndexEntry>,
 
     /// all struct initializers
-    global_initializers: SymbolMap<String, VariableIndexEntry>,
+    global_initializers: SymbolMap<String, VariableIndexEntry>, // XXX: is an init-function per global_initializer sufficient?
 
     /// all enum-members with their names
     enum_global_variables: SymbolMap<String, VariableIndexEntry>,
 
     // all pous,
-    pous: SymbolMap<String, PouIndexEntry>,
+    pous: SymbolMap<String, PouIndexEntry>, // XXX: filter all stateful POUs and also add initializers
+
+    init_functions: SymbolMap<String, PouIndexEntry>, // XXX: keep init fns separate in index? might make life easier down the line, but maybe merging with POUs is cleaner
 
     /// all implementations
     // we keep an IndexMap for implementations since duplication issues regarding implementations
@@ -960,6 +962,13 @@ impl Index {
                 if !ele.is_auto_generated_function() || !self.pous.contains_key(&name) {
                     self.pous.insert(name.clone(), ele);
                 }
+            }
+        }
+
+        //init functions
+        for (name, elements) in other.init_functions.drain(..) {
+            for ele in elements {
+                self.init_functions.insert(name.clone(), ele);
             }
         }
 
@@ -1411,6 +1420,10 @@ impl Index {
         self.pous.get(&pou_name.to_lowercase())
     }
 
+    pub fn find_init_fn(&self, type_name: &str) -> Option<&PouIndexEntry> {
+        self.init_functions.get(&get_init_fn_name(type_name).to_lowercase())
+    }
+
     pub fn register_program(&mut self, name: &str, location: SourceLocation, linkage: LinkageType) {
         let instance_variable =
             VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone()) // TODO: Naming convention (see plc_util/src/convention.rs)
@@ -1422,6 +1435,13 @@ impl Index {
 
     pub fn register_pou(&mut self, entry: PouIndexEntry) {
         self.pous.insert(entry.get_name().to_lowercase(), entry);
+    }
+
+    pub fn register_initialization_function(&mut self, name: &str) {
+        let name = get_init_fn_name(name);
+        let entry = PouIndexEntry::create_generated_function_entry(&name, VOID_TYPE, &[], LinkageType::Internal, false, SourceLocation::internal());
+        // self.register_pou(entry);
+        self.init_functions.insert(entry.get_name().to_lowercase(), entry);
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
@@ -1640,4 +1660,9 @@ impl Index {
 /// Returns a default initialization name for a variable or type
 pub fn get_initializer_name(name: &str) -> String {
     format!("__{name}__init")
+}
+
+// XXX: this seems almost too similar to the function above
+fn get_init_fn_name(name: &str) -> String {
+    format!("__init_{name}")
 }

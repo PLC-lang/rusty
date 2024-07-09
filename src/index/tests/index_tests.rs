@@ -1684,3 +1684,44 @@ fn string_type_alias_without_size_is_indexed() {
     let dt = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("WSTRING", dt.get_name());
 }
+
+#[test]
+fn tmp() {
+    // GIVEN a struct type definition
+    // WHEN it is indexed
+    let (_, index) = index(
+        "
+        TYPE STRUCT1 : STRUCT
+            value : DINT;
+        END_STRUCT END_TYPE
+        ",
+    );
+
+    // THEN we expect a corresponding init function to be declared for it
+    let init = index.find_init_fn("STRUCT1");
+    assert!(init.is_some());
+}
+
+#[test]
+fn tmp2() {
+    // GIVEN a declared PROGRAM
+    // WHEN it is indexed
+    let (_, index) = index(
+        "
+        TYPE STRUCT1 : STRUCT
+            value : DINT;
+        END_STRUCT END_TYPE
+
+        PROGRAM main
+        VAR
+            value : STRUCT1;
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    // THEN we expect a corresponding init function to be declared for it
+    dbg!(&index.init_functions);
+    let init = index.find_init_fn("main");
+    assert!(init.is_some());
+}
