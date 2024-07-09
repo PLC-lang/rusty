@@ -431,6 +431,11 @@
 <a href="#429" id="429">429</a>
 <a href="#430" id="430">430</a>
 <a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -679,6 +684,11 @@
     </span><span class="kw">let </span>annotated_project = pipelines::ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, project, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?
         </span>.index(ctxt.provider())
         .annotate(ctxt.provider());
+
+    <span class="kw">if </span>compile_parameters.output_ast {
+        <span class="macro">println!</span>(<span class="string">"{:#?}"</span>, annotated_project.units);
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+    }
 
     <span class="comment">// 4 : Validate
     </span>annotated_project.validate(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
