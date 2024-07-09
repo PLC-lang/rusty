@@ -107,7 +107,17 @@ fn representation() {
         },
         nature: Any,
         location: SourceLocation {
-            span: None,
+            span: Range(
+                TextLocation {
+                    line: 3,
+                    column: 22,
+                    offset: 79,
+                }..TextLocation {
+                    line: 3,
+                    column: 38,
+                    offset: 95,
+                },
+            ),
         },
     }
     "###);
@@ -163,7 +173,17 @@ fn representation() {
         },
         nature: Any,
         location: SourceLocation {
-            span: None,
+            span: Range(
+                TextLocation {
+                    line: 3,
+                    column: 22,
+                    offset: 79,
+                }..TextLocation {
+                    line: 3,
+                    column: 38,
+                    offset: 95,
+                },
+            ),
         },
     }
     "###);
