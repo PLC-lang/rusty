@@ -1,5 +1,4 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// CHECK: 5
 FUNCTION main : DINT
     VAR
         a : REF_TO DINT;
@@ -7,5 +6,6 @@ FUNCTION main : DINT
     END_VAR
     a REF= b;
 
+    // CHECK: 5
     printf('%d$N', a^);
 END_FUNCTION

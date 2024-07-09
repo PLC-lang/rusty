@@ -1,5 +1,4 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// CHECK: 1, 2, 3
 FUNCTION main: DINT
     VAR
         arr     :               ARRAY[1..3] OF DINT;
@@ -10,5 +9,7 @@ FUNCTION main: DINT
     arr[1] := 3;
     arr[2] := 2;
     arr[3] := 1;
+
+    // CHECK: 1, 2, 3
     printf('%d, %d, %d$N', refArr[3], refArr[2], refArr[1]);
 END_FUNCTION

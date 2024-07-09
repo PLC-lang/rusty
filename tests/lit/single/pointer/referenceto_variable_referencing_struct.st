@@ -1,7 +1,4 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// CHECK: 1
-// CHECK: 5
-// CHECK: whats up
 TYPE Transaction : STRUCT
     id      : DINT;
     amount  : DINT;
@@ -15,7 +12,13 @@ FUNCTION main : DINT
     END_VAR
 
     refTxn REF= txn;
+
+    // CHECK: 1
     printf('%d$N', refTxn.id);
+
+    // CHECK: 5
     printf('%d$N', refTxn.amount);
+
+    // CHECK: whats up
     printf('%s$N', REF(refTxn.message));
 END_FUNCTION
