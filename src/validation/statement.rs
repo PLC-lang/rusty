@@ -678,14 +678,14 @@ fn validate_comparison_operator<T: AnnotationMap>(
     // if the type is a subrange, check if the intrinsic type is numerical
     let is_numerical = context.index.find_intrinsic_type(left_type).is_numerical();
 
-    if discriminant(left_type) != discriminant(right_type) {
+    if left_type != right_type {
         validator.push_diagnostic(
             Diagnostic::new(format!(
-                "Cannot compare {} with {}",
+                "Types do not match. Cannot compare {} with {}",
                 left_type.get_name(),
                 right_type.get_name()
             ))
-            .with_error_code("E0XX")
+            .with_error_code("E098")
             .with_location(statement.get_location()),
         );
     }
