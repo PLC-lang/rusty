@@ -1708,20 +1708,62 @@ fn tmp2() {
     // WHEN it is indexed
     let (_, index) = index(
         "
-        TYPE STRUCT1 : STRUCT
-            value : DINT;
-        END_STRUCT END_TYPE
-
         PROGRAM main
-        VAR
-            value : STRUCT1;
-        END_VAR
         END_PROGRAM
         ",
     );
 
     // THEN we expect a corresponding init function to be declared for it
-    dbg!(&index.init_functions);
     let init = index.find_init_fn("main");
+    assert!(init.is_some());
+}
+
+#[test]
+fn tmp3() {
+    // GIVEN a declared FUNCTION_BLOCK with an ACTION
+    // WHEN it is indexed
+    let (_, index) = index(
+        "
+        FUNCTION_BLOCK foo
+        END_FUNCTION_BLOCK
+
+        ACTION act1
+        END_ACTION
+        ",
+    );
+
+    // THEN we expect a corresponding init function to be declared for the FUNCTION_BLOCK
+    // but not for the ACTION
+    let init = index.find_init_fn("foo");
+    assert!(init.is_some());
+
+    let init = index.find_init_fn("act1");
+    assert!(init.is_none());
+}
+
+#[test]
+fn tmp4() {
+    // GIVEN a declared FUNCTION
+    // WHEN it is indexed
+    let (_, index) = index(
+        "
+        FUNCTION foo
+        END_FUNCTION
+        ",
+    );
+
+    // THEN we DO NOT expect a corresponding init function to be declared for it
+    let init = index.find_init_fn("foo");
+    assert!(init.is_none());
+}
+
+#[test]
+fn tmp5() {
+    // GIVEN nothing
+    // WHEN it is indexed
+    let (_, index) = index("");
+
+    // THEN we expect an `__init` function to be declared regardless
+    let init = index.find_pou("__init");
     assert!(init.is_some());
 }

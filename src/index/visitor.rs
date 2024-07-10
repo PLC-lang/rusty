@@ -21,7 +21,7 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 
     //Create defined global variables
     for global_vars in &unit.global_vars {
-        // TODO: add global init function to index
+        // TODO: add global init function to index | probably not needed, can just be done in body of __init?
         visit_global_var_block(&mut index, global_vars);
     }
 
@@ -31,7 +31,17 @@ pub fn visit(unit: &CompilationUnit) -> Index {
         visit_pou(&mut index, pou);
     }
 
-    // TODO: add __init wrapper function to index
+    // XXX: should this be it's own function?
+    let entry = PouIndexEntry::Function {
+        name: "__init".into(),
+        return_type: VOID_TYPE.into(),
+        generics: vec![],
+        linkage: ast::LinkageType::Internal,
+        is_variadic: false,
+        location: SourceLocation::internal(),
+        is_generated: true,
+    };
+    index.register_pou(entry);
 
     for implementation in &unit.implementations {
         visit_implementation(&mut index, implementation);
@@ -200,6 +210,11 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             index.register_pou_type(datatype);
         }
         _ => {}
+    };
+
+    if !matches!(&pou.pou_type, PouType::Action | PouType::Function) {
+        index.register_initialization_function(&pou.name);
+        // XXX: do i need to register a DataType in the type_index for the init functions?
     };
 }
 

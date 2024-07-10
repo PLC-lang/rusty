@@ -1439,7 +1439,14 @@ impl Index {
 
     pub fn register_initialization_function(&mut self, name: &str) {
         let name = get_init_fn_name(name);
-        let entry = PouIndexEntry::create_generated_function_entry(&name, VOID_TYPE, &[], LinkageType::Internal, false, SourceLocation::internal());
+        let entry = PouIndexEntry::create_generated_function_entry(
+            &name,
+            VOID_TYPE,
+            &[],
+            LinkageType::Internal,
+            false,
+            SourceLocation::internal(),
+        );
         // self.register_pou(entry);
         self.init_functions.insert(entry.get_name().to_lowercase(), entry);
     }

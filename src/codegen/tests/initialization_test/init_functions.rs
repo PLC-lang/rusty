@@ -1,6 +1,25 @@
 use crate::test_utils::tests::codegen;
 
 #[test]
+fn simple() {
+    let result = codegen(
+        r#"
+        FUNCTION main : DINT
+        VAR
+        END_VAR
+        END_FUNCTION
+
+        VAR_GLOBAL
+            s: STRING := 'hello world!';
+            ps: REF_TO STRING := REF(s);
+        END_VAR
+        "#,
+    );
+
+    insta::assert_snapshot!(result, @r###""###);
+}
+
+#[test]
 fn init_fn_test() {
     let result = codegen(
         r#"
