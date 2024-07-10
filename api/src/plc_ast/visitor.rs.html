@@ -714,6 +714,16 @@
 <a href="#712" id="712">712</a>
 <a href="#713" id="713">713</a>
 <a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitor` trait and its associated macros.
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
@@ -1028,6 +1038,15 @@
         stmt.walk(<span class="self">self</span>)
     }
 
+    <span class="doccomment">/// Visits an `RefAssignment` node.
+    /// Make sure to call `walk` on the `Assignment` node to visit its children.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `Assignment` node to visit.
+    /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
+    </span><span class="kw">fn </span>visit_ref_assignment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>Assignment, _node: <span class="kw-2">&amp;</span>AstNode) {
+        stmt.walk(<span class="self">self</span>)
+    }
+
     <span class="doccomment">/// Visits a `CallStatement` node.
     /// Make sure to call `walk` on the `CallStatement` node to visit its children.
     /// # Arguments
@@ -1272,6 +1291,7 @@
             AstStatement::VlaRangeStatement =&gt; visitor.visit_vla_range_statement(node),
             AstStatement::Assignment(stmt) =&gt; visitor.visit_assignment(stmt, node),
             AstStatement::OutputAssignment(stmt) =&gt; visitor.visit_output_assignment(stmt, node),
+            AstStatement::RefAssignment(stmt) =&gt; visitor.visit_ref_assignment(stmt, node),
             AstStatement::CallStatement(stmt) =&gt; visitor.visit_call_statement(stmt, node),
             AstStatement::ControlStatement(stmt) =&gt; visitor.visit_control_statement(stmt, node),
             AstStatement::CaseCondition(stmt) =&gt; visitor.visit_case_condition(stmt, node),

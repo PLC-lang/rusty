@@ -1425,6 +1425,13 @@
 <a href="#1423" id="1423">1423</a>
 <a href="#1424" id="1424">1424</a>
 <a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1523,7 +1530,7 @@
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>DataType {
     <span class="kw">pub </span>name: String,
-    <span class="doccomment">/// the initial value defined on the TYPE-declration
+    <span class="doccomment">/// the initial value defined on the TYPE-declaration
     </span><span class="kw">pub </span>initial_value: <span class="prelude-ty">Option</span>&lt;ConstId&gt;,
     <span class="kw">pub </span>information: DataTypeInformation,
     <span class="kw">pub </span>nature: TypeNature,
@@ -1818,6 +1825,8 @@
         name: TypeId,
         inner_type_name: TypeId,
         auto_deref: bool,
+        <span class="doccomment">/// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
+        </span>is_reference_to: bool,
     },
     Integer {
         name: TypeId,
@@ -1984,6 +1993,11 @@
             DataTypeInformation::Generic { .. } =&gt; <span class="bool-val">true</span>,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
+    }
+
+    <span class="doccomment">/// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
+    </span><span class="kw">pub fn </span>is_reference_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Pointer { is_reference_to: <span class="bool-val">true</span>, .. })
     }
 
     <span class="kw">pub fn </span>is_aggregate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {

@@ -387,6 +387,12 @@
 <a href="#385" id="385">385</a>
 <a href="#386" id="386">386</a>
 <a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>logos::Logos;
 
 <span class="kw">use </span>plc_ast::ast::{DirectAccessType, HardwareAccessType};
@@ -548,6 +554,9 @@
     <span class="attr">#[token(<span class="string">"=&gt;"</span>)]
     </span>KeywordOutputAssignment,
 
+    <span class="attr">#[token(<span class="string">"REF="</span>, ignore(case))]
+    </span>KeywordReferenceAssignment,
+
     <span class="attr">#[token(<span class="string">"("</span>)]
     </span>KeywordParensOpen,
 
@@ -640,6 +649,9 @@
     <span class="attr">#[token(<span class="string">"REF_TO"</span>, ignore(case))]
     #[token(<span class="string">"REFTO"</span>, ignore(case))]
     </span>KeywordRef,
+
+    <span class="attr">#[token(<span class="string">"REFERENCE TO"</span>, ignore(case))]
+    </span>KeywordReferenceTo,
 
     <span class="attr">#[token(<span class="string">"ARRAY"</span>, ignore(case))]
     </span>KeywordArray,

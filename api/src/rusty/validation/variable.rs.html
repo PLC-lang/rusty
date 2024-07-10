@@ -249,11 +249,54 @@
 <a href="#247" id="247">247</a>
 <a href="#248" id="248">248</a>
 <a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
-
-<span class="kw">use </span><span class="kw">crate</span>::typesystem::DataTypeInformation;
-<span class="kw">use crate</span>::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 <span class="kw">use super</span>::{
     array::validate_array_assignment,
@@ -261,6 +304,9 @@
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
+<span class="kw">use </span><span class="kw">crate</span>::index::VariableIndexEntry;
+<span class="kw">use </span><span class="kw">crate</span>::typesystem::DataTypeInformation;
+<span class="kw">use crate</span>::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 <span class="kw">pub fn </span>visit_variable_block&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
@@ -394,6 +440,8 @@
     validate_array_ranges(validator, variable, context);
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(v_entry) = context.index.find_variable(context.qualifier, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>variable.name]) {
+        validate_reference_to_declaration(validator, context, variable, v_entry);
+
         <span class="kw">if let </span><span class="prelude-val">Some</span>(initializer) = <span class="kw-2">&amp;</span>variable.initializer {
             <span class="comment">// Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
             // assignment as a whole whereas the second function call (`visit_statement`) validates the
@@ -449,13 +497,57 @@
         {
             validator.push_diagnostic(
                 Diagnostic::new(<span class="macro">format!</span>(
-                    <span class="string">"Invalid constant {} - Functionblock- and Class-instances cannot be delcared constant"</span>,
+                    <span class="string">"Invalid constant {}, FUNCTION_BLOCK- and CLASS-instances cannot be declared constant"</span>,
                     v_entry.get_name()
                 ))
                 .with_error_code(<span class="string">"E035"</span>)
                 .with_location(<span class="kw-2">&amp;</span>variable.location),
             );
         }
+    }
+}
+
+<span class="doccomment">/// Returns a diagnostic if a `REFERENCE TO` variable is incorrectly declared (or initialized).
+</span><span class="kw">fn </span>validate_reference_to_declaration&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+    variable: <span class="kw-2">&amp;</span>Variable,
+    variable_entry: <span class="kw-2">&amp;</span>VariableIndexEntry,
+) {
+    <span class="kw">let </span><span class="prelude-val">Some</span>(variable_ty) = context.index.find_effective_type_by_name(variable_entry.get_type_name()) <span class="kw">else </span>{
+        <span class="kw">return</span>;
+    };
+
+    <span class="kw">if </span>!variable_ty.get_type_information().is_reference_to() {
+        <span class="kw">return</span>;
+    }
+
+    <span class="kw">let </span><span class="prelude-val">Some</span>(inner_ty_name) = variable_ty.get_type_information().get_inner_pointer_type_name() <span class="kw">else </span>{
+        <span class="macro">unreachable!</span>(<span class="string">"`REFERENCE TO` is defined as a pointer, hence this must exist"</span>)
+    };
+
+    <span class="comment">// Assert that no initializers are present in the `REFERENCE TO` declaration
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>initializer) = variable.initializer {
+        <span class="kw">if </span>variable_ty.get_type_information().is_reference_to() {
+            validator.push_diagnostic(
+                Diagnostic::new(<span class="string">"Initializations of REFERENCE TO variables are disallowed"</span>)
+                    .with_location(<span class="kw-2">&amp;</span>initializer.location)
+                    .with_error_code(<span class="string">"E099"</span>),
+            );
+        }
+    }
+
+    <span class="comment">// Assert that the referenced type is no variable reference
+    </span><span class="kw">let </span>qualifier = context.qualifier.unwrap_or_default();
+    <span class="kw">let </span>inner_ty_is_local_var = context.index.find_member(qualifier, inner_ty_name).is_some();
+    <span class="kw">let </span>inner_ty_is_global_var = context.index.find_global_variable(inner_ty_name).is_some();
+
+    <span class="kw">if </span>inner_ty_is_local_var || inner_ty_is_global_var {
+        validator.push_diagnostic(
+            Diagnostic::new(<span class="string">"REFERENCE TO variables can not reference other variables"</span>)
+                .with_location(<span class="kw-2">&amp;</span>variable_ty.location)
+                .with_error_code(<span class="string">"E099"</span>),
+        );
     }
 }
 

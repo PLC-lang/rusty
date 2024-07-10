@@ -465,6 +465,10 @@
 <a href="#463" id="463">463</a>
 <a href="#464" id="464">464</a>
 <a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -668,14 +672,18 @@
                     .unwrap_or_else(|| member_name)
                     .to_string()
             }
-            <span class="prelude-val">Some</span>(DataTypeInformation::Pointer { name, inner_type_name, auto_deref: <span class="bool-val">true </span>}) =&gt; {
+            <span class="prelude-val">Some</span>(DataTypeInformation::Pointer { name, inner_type_name, auto_deref: <span class="bool-val">true</span>, .. }) =&gt; {
                 <span class="comment">// This is an auto deref pointer (VAR_IN_OUT or VAR_INPUT {ref}) that points to a
                 // generic. We first resolve the generic type, then create a new pointer type of
                 // the combination
                 </span><span class="kw">let </span>inner_type_name = <span class="self">self</span>.find_or_create_datatype(inner_type_name, generics);
                 <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">"{name}__{inner_type_name}"</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
-                </span><span class="kw">let </span>new_type_info =
-                    DataTypeInformation::Pointer { name: name.clone(), inner_type_name, auto_deref: <span class="bool-val">true </span>};
+                </span><span class="kw">let </span>new_type_info = DataTypeInformation::Pointer {
+                    name: name.clone(),
+                    inner_type_name,
+                    auto_deref: <span class="bool-val">true</span>,
+                    is_reference_to: <span class="bool-val">false</span>,
+                };
 
                 <span class="comment">// Registers a new pointer type to the index
                 </span><span class="self">self</span>.annotation_map.new_index.register_type(DataType {

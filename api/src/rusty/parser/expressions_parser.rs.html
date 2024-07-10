@@ -941,6 +941,10 @@
 <a href="#939" id="939">939</a>
 <a href="#940" id="940">940</a>
 <a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{
@@ -1156,17 +1160,21 @@
     };
 
     <span class="kw">match </span>literal_parse_result {
-        <span class="prelude-val">Some</span>(statement) =&gt; {
-            <span class="kw">if </span>lexer.token == KeywordAssignment {
+        <span class="prelude-val">Some</span>(statement) =&gt; <span class="kw">match </span>lexer.token {
+            KeywordAssignment =&gt; {
                 lexer.advance();
                 AstFactory::create_assignment(statement, parse_range_statement(lexer), lexer.next_id())
-            } <span class="kw">else if </span>lexer.token == KeywordOutputAssignment {
+            }
+            KeywordOutputAssignment =&gt; {
                 lexer.advance();
                 AstFactory::create_output_assignment(statement, parse_range_statement(lexer), lexer.next_id())
-            } <span class="kw">else </span>{
-                statement
             }
-        }
+            KeywordReferenceAssignment =&gt; {
+                lexer.advance();
+                AstFactory::create_ref_assignment(statement, parse_range_statement(lexer), lexer.next_id())
+            }
+            <span class="kw">_ </span>=&gt; statement,
+        },
         <span class="prelude-val">None </span>=&gt; {
             <span class="kw">let </span>statement = AstFactory::create_empty_statement(
                 lexer.diagnostics.last().map_or(SourceLocation::undefined(), |d| d.get_location()),

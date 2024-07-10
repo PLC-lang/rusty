@@ -1642,6 +1642,7 @@
 <a href="#1640" id="1640">1640</a>
 <a href="#1641" id="1641">1641</a>
 <a href="#1642" id="1642">1642</a>
+<a href="#1643" id="1643">1643</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
@@ -2774,6 +2775,7 @@
         <span class="kw">if </span>segments.is_empty() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
+
         <span class="comment">//For the first element, if the context does not contain that element, it is possible that the element is also a global variable
         </span><span class="kw">let </span>init = <span class="kw">match </span>context {
             <span class="prelude-val">Some</span>(context) =&gt; <span class="self">self

@@ -2133,6 +2133,24 @@
 <a href="#2131" id="2131">2131</a>
 <a href="#2132" id="2132">2132</a>
 <a href="#2133" id="2133">2133</a>
+<a href="#2134" id="2134">2134</a>
+<a href="#2135" id="2135">2135</a>
+<a href="#2136" id="2136">2136</a>
+<a href="#2137" id="2137">2137</a>
+<a href="#2138" id="2138">2138</a>
+<a href="#2139" id="2139">2139</a>
+<a href="#2140" id="2140">2140</a>
+<a href="#2141" id="2141">2141</a>
+<a href="#2142" id="2142">2142</a>
+<a href="#2143" id="2143">2143</a>
+<a href="#2144" id="2144">2144</a>
+<a href="#2145" id="2145">2145</a>
+<a href="#2146" id="2146">2146</a>
+<a href="#2147" id="2147">2147</a>
+<a href="#2148" id="2148">2148</a>
+<a href="#2149" id="2149">2149</a>
+<a href="#2150" id="2150">2150</a>
+<a href="#2151" id="2151">2151</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2528,6 +2546,8 @@
         </span>argument_type: ArgumentType,
         <span class="doccomment">/// denotes whether this variable-reference should be automatically dereferenced when accessed
         </span>is_auto_deref: bool,
+        <span class="doccomment">/// denotes whether this variable is declared as `REFERENCE TO` (e.g. `foo : REFERENCE TO DINT`)
+        </span>is_reference_to: bool,
     },
     <span class="doccomment">/// a reference to a function
     </span>Function {
@@ -2566,6 +2586,14 @@
             StatementAnnotation::Variable { constant, .. } =&gt; <span class="kw-2">*</span>constant,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
+    }
+
+    <span class="kw">pub fn </span>is_auto_deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, StatementAnnotation::Variable { is_auto_deref: <span class="bool-val">true</span>, .. })
+    }
+
+    <span class="kw">pub fn </span>is_reference_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, StatementAnnotation::Variable { is_reference_to: <span class="bool-val">true</span>, .. })
     }
 
     <span class="kw">pub fn </span>data_type(type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
@@ -3554,7 +3582,7 @@
             AstStatement::RangeStatement(data, ..) =&gt; {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, <span class="kw-2">&amp;</span>data.start, <span class="kw-2">&amp;</span>data.end);
             }
-            AstStatement::Assignment(data, ..) =&gt; {
+            AstStatement::Assignment(data, ..) | AstStatement::RefAssignment(data, ..) =&gt; {
                 <span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx.enter_control(), <span class="kw-2">&amp;</span>data.right);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(lhs) = ctx.lhs {
                     <span class="comment">//special context for left hand side
@@ -3763,7 +3791,7 @@
         <span class="kw">else </span>{
             <span class="macro">unreachable!</span>(<span class="string">"expected a vla reference, but got {statement:#?}"</span>);
         };
-        <span class="kw">if let </span>DataTypeInformation::Pointer { inner_type_name, .. } = <span class="kw-2">&amp;</span><span class="self">self
+        <span class="kw">if let </span>DataTypeInformation::Pointer { inner_type_name, is_reference_to, .. } = <span class="kw-2">&amp;</span><span class="self">self
             </span>.index
             .get_effective_type_or_void_by_name(
                 members.first().expect(<span class="string">"internal VLA struct ALWAYS has this member"</span>).get_type_name(),
@@ -3799,6 +3827,7 @@
                 constant: <span class="bool-val">false</span>,
                 argument_type,
                 is_auto_deref: <span class="bool-val">false</span>,
+                is_reference_to: <span class="kw-2">*</span>is_reference_to,
             };
             <span class="self">self</span>.annotation_map.annotate_type_hint(statement, hint_annotation)
         }
@@ -3884,7 +3913,12 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>annotate_parameters(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: <span class="kw-2">&amp;</span>AstNode, type_name: <span class="kw-2">&amp;</span>str) {
-        <span class="kw">if </span>!<span class="macro">matches!</span>(p.get_stmt(), AstStatement::Assignment(..) | AstStatement::OutputAssignment(..)) {
+        <span class="kw">if </span>!<span class="macro">matches!</span>(
+            p.get_stmt(),
+            AstStatement::Assignment(..)
+                | AstStatement::OutputAssignment(..)
+                | AstStatement::RefAssignment(..)
+        ) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(effective_member_type) = <span class="self">self</span>.index.find_effective_type_by_name(type_name) {
                 <span class="comment">//update the type hint
                 </span><span class="self">self</span>.annotation_map
@@ -4004,10 +4038,11 @@
             name: new_type_name.clone(),
             initial_value: <span class="prelude-val">None</span>,
             nature: TypeNature::Any,
-            information: <span class="kw">crate</span>::typesystem::DataTypeInformation::Pointer {
+            information: DataTypeInformation::Pointer {
                 auto_deref: <span class="bool-val">false</span>,
                 inner_type_name,
                 name: new_type_name.clone(),
+                is_reference_to: <span class="bool-val">false</span>,
             },
             location: SourceLocation::internal(),
         });
@@ -4067,6 +4102,7 @@
         constant: v.is_constant() || constant_override,
         argument_type: v.get_declaration_type(),
         is_auto_deref,
+        is_reference_to: v_type.get_type_information().is_reference_to(),
     }
 }
 
