@@ -76,14 +76,14 @@ impl ConstExpression {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct InitingIsHardInnit {
-    pub initializer: Box<AstNode>,
+    pub initializer: AstNode,
     pub target_type_name: String,
     pub scope: Option<String>,
 }
 
 impl InitingIsHardInnit {
     pub fn new(
-        initializer: &Box<AstNode>,
+        initializer: &AstNode,
         target_type: Option<impl Into<String>>,
         scope: Option<impl Into<String>>,
     ) -> Self {

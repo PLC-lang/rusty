@@ -304,7 +304,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             &self.index,
             &self.unresolved_initializers,
         )?;
-        code_generator.generate(context, unit, &self.annotations, &self.index, &llvm_index)
+        code_generator.generate(context, unit, &self.annotations, &self.index, &llvm_index, &self.unresolved_initializers)
     }
 
     pub fn codegen_single_module<'ctx>(

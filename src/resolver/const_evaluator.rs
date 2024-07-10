@@ -571,7 +571,7 @@ fn evaluate_with_target_hint(
                 // arg to ref/adr could not be found in the index => unresolvable
                 Ok(None) => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {arg:#?}"))),
                 // we found a local or global parameter for REF/ADR, but it cannot be resolved as constant since the address is not yet known. Resolve during codegen
-                _ => Err(UnresolvableKind::InitLater(InitingIsHardInnit::new(arg, target_type, scope))),
+                _ => Err(UnresolvableKind::InitLater(InitingIsHardInnit::new(initial, target_type, scope))),
             };
         }
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),

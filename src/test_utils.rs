@@ -180,7 +180,7 @@ pub mod tests {
             })?;
 
         code_generator
-            .generate(&context, &unit, &annotations, &index, &llvm_index)
+            .generate(&context, &unit, &annotations, &index, &llvm_index, &FxIndexMap::default())
             .map(|module| module.persist_to_string())
             .map_err(|err| {
                 reporter.handle(&[err]);
@@ -251,7 +251,7 @@ pub mod tests {
                     &FxIndexMap::default(),
                 )?;
 
-                code_generator.generate(context, &unit, &annotations, &index, &llvm_index)
+                code_generator.generate(context, &unit, &annotations, &index, &llvm_index, &FxIndexMap::default())
             })
             .collect::<Result<Vec<_>, Diagnostic>>()
     }

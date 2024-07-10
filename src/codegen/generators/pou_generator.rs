@@ -2,7 +2,7 @@
 
 use super::{
     data_type_generator::get_default_for,
-    expression_generator::ExpressionCodeGenerator,
+    expression_generator::{self, ExpressionCodeGenerator},
     llvm::{GlobalValueExt, Llvm},
     section_names,
     statement_generator::{FunctionContext, StatementCodeGenerator},
@@ -307,7 +307,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     pub fn generate_init_fn_stubs(
         &self,
         module: &Module<'ink>,
-        dependencies: &FxIndexSet<Dependency>,
         initializers: &FxIndexMap<String, InitingIsHardInnit>,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let mut llvm_index = LlvmTypedIndex::default();
@@ -315,7 +314,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let dti = self.index.find_effective_type_by_name(&target_name).unwrap().get_type_information();
             let fn_name = format!("__init_{}", dti.get_name());
             dbg!(&fn_name);
-            let curr_f = self.generate_init_stub(module, &mut llvm_index, &fn_name, initializer)?;
+            let curr_f: FunctionValue<'ink> = self.generate_init_stub(module, &fn_name, initializer)?;
             llvm_index.associate_implementation(&fn_name, curr_f)?;
         }
 
@@ -325,13 +324,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn generate_init_stub(
         &self,
         module: &Module<'ink>,
-        new_llvm_index: &mut LlvmTypedIndex<'ink>,
         fn_name: &str,
         initializer: &InitingIsHardInnit,
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
         // get instance pointer type from llvm index as parameter
         let ll_ty = self.llvm_index.find_associated_type(&initializer.target_type_name).unwrap();
-        let function_declaration = self.create_llvm_function_type(vec![ll_ty.into()], None, None)?;
+        let function_declaration = self.create_llvm_function_type(vec![ll_ty.ptr_type(AddressSpace::default()).into()], None, None)?;
 
         let curr_f = module.add_function(fn_name, function_declaration, None);
 
@@ -494,6 +492,19 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         Ok(())
+    }
+
+    pub fn generate_init_implementation(&self, name: &str, initializer: &InitingIsHardInnit) {
+        let fn_name = format!("__init_{name}");
+        let current_function = self.llvm_index.find_associated_implementation(&fn_name).unwrap();
+        dbg!(current_function);
+        let block = self.llvm.context.append_basic_block(current_function, "entry");
+        self.llvm.builder.position_at_end(block);
+        let arg = current_function.get_first_param().unwrap();
+        let expression_generator = ExpressionCodeGenerator::new_context_free(&self.llvm, &self.index, &self.annotations, self.llvm_index);
+        let expr = dbg!(expression_generator.generate_expression(&initializer.initializer)).unwrap();
+        self.llvm.builder.build_store(arg.into_pointer_value(), expr);
+        self.llvm.builder.build_return(None);
     }
 
     /// TODO llvm.rs

@@ -150,7 +150,7 @@ impl<'ink> CodeGen<'ink> {
         let llvm = Llvm::new(context, context.create_builder());
         let pou_generator = PouGenerator::new(llvm, global_index, annotations, &index); // .with_index() builder
         let init_func_index =
-            pou_generator.generate_init_fn_stubs(&self.module, dependencies, unresolved_init)?;
+            pou_generator.generate_init_fn_stubs(&self.module, unresolved_init)?;
         index.merge(init_func_index);
 
         let llvm = Llvm::new(context, context.create_builder());
@@ -210,6 +210,7 @@ impl<'ink> CodeGen<'ink> {
         annotations: &AstAnnotations,
         global_index: &Index,
         llvm_index: &LlvmTypedIndex,
+        unresolved_init: &FxIndexMap<String, InitingIsHardInnit>, // TODO: reevaluate data-structure used
     ) -> Result<GeneratedModule<'ink>, Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
@@ -223,6 +224,11 @@ impl<'ink> CodeGen<'ink> {
                     pou_generator.generate_implementation(implementation, &self.debug)?;
                 }
             }
+        }
+
+        // TODO: for each generated init fn stub, generate implementation
+        for (name, initializer) in unresolved_init {
+            pou_generator.generate_init_implementation(&name, initializer)
         }
 
         self.debug.finalize();
