@@ -1130,6 +1130,7 @@ impl Index {
         if segments.is_empty() {
             return None;
         }
+
         //For the first element, if the context does not contain that element, it is possible that the element is also a global variable
         let init = match context {
             Some(context) => self

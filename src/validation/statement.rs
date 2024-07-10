@@ -1,6 +1,7 @@
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::mem::discriminant;
 
+use plc_ast::ast::Assignment;
 use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
@@ -13,7 +14,9 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
+use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::index::ImplementationType;
+use crate::typesystem::VOID_TYPE;
 use crate::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
 use crate::{
     builtins::{self, BuiltIn},
@@ -25,8 +28,6 @@ use crate::{
         DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
     },
 };
-
-use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 
 macro_rules! visit_all_statements {
     ($validator:expr, $context:expr, $last:expr ) => {
@@ -85,14 +86,20 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
+            validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
             validate_array_assignment(validator, context, statement);
         }
         AstStatement::OutputAssignment(data) => {
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
+            validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
+        }
+        AstStatement::RefAssignment(data) => {
+            visit_statement(validator, &data.left, context);
+            visit_statement(validator, &data.right, context);
+
+            validate_ref_assignment(context, validator, data, &statement.location);
         }
         AstStatement::CallStatement(data) => {
             validate_call(validator, &data.operator, data.parameters.as_deref(), &context.set_is_call());
@@ -759,6 +766,81 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
             .with_error_code("E031")
             .with_location(arg.get_location()),
         ),
+    }
+}
+
+/// Checks if `REF=` assignments are correct, specifically if the left-hand side is a reference declared
+/// as `REFERENCE TO` and the right hand side is a lvalue of the same type that is being referenced.
+fn validate_ref_assignment<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    assignment: &Assignment,
+    assignment_location: &SourceLocation,
+) {
+    let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
+    let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
+    let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
+    let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
+    let annotation_lhs = context.annotations.get(&assignment.left);
+
+    // Assert that the right-hand side is a reference
+    if !assignment.right.is_reference() {
+        validator.push_diagnostic(
+            Diagnostic::new("Invalid assignment, expected a reference")
+                .with_location(&assignment.right.location)
+                .with_error_code("E098"),
+        );
+    }
+
+    // Assert that the left-hand side is a valid pointer-reference
+    if !annotation_lhs.is_some_and(StatementAnnotation::is_reference_to) && !type_lhs.is_pointer() {
+        validator.push_diagnostic(
+            Diagnostic::new("Invalid assignment, expected a pointer reference")
+                .with_location(&assignment.left.location)
+                .with_error_code("E098"),
+        )
+    }
+
+    if type_info_lhs.is_array() && type_info_rhs.is_array() {
+        let mut messages = Vec::new();
+
+        let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
+        let len_rhs = type_info_rhs.get_array_length(context.index).unwrap_or_default();
+
+        if len_lhs < len_rhs {
+            messages.push(format!("Invalid assignment, array lengths {len_lhs} and {len_rhs} differ"));
+        }
+
+        let inner_ty_name_lhs = type_info_lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
+        let inner_ty_name_rhs = type_info_rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
+        let inner_ty_lhs = context.index.find_effective_type_by_name(inner_ty_name_lhs);
+        let inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
+
+        if inner_ty_lhs != inner_ty_rhs {
+            messages.push(format!(
+                "Invalid assignment, array types {inner_ty_name_lhs} and {inner_ty_name_rhs} differ"
+            ));
+        }
+
+        for message in messages {
+            validator.push_diagnostic(
+                Diagnostic::new(message).with_location(assignment_location).with_error_code("E098"),
+            )
+        }
+
+        return;
+    }
+
+    if type_info_lhs != type_info_rhs {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Invalid assignment, types {} and {} differ",
+                get_datatype_name_or_slice(validator.context, type_lhs),
+                get_datatype_name_or_slice(validator.context, type_rhs),
+            ))
+            .with_location(assignment_location)
+            .with_error_code("E098"),
+        );
     }
 }
 

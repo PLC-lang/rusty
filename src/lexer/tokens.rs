@@ -159,6 +159,9 @@ pub enum Token {
     #[token("=>")]
     KeywordOutputAssignment,
 
+    #[token("REF=", ignore(case))]
+    KeywordReferenceAssignment,
+
     #[token("(")]
     KeywordParensOpen,
 
@@ -251,6 +254,9 @@ pub enum Token {
     #[token("REF_TO", ignore(case))]
     #[token("REFTO", ignore(case))]
     KeywordRef,
+
+    #[token("REFERENCE TO", ignore(case))]
+    KeywordReferenceTo,
 
     #[token("ARRAY", ignore(case))]
     KeywordArray,

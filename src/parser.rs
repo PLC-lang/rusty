@@ -676,9 +676,9 @@ fn parse_data_type_definition(
         if expect_keyword_to(lexer).is_some() {
             lexer.advance();
         }
-        parse_pointer_definition(lexer, name, start_pos)
+        parse_pointer_definition(lexer, name, start_pos, false)
     } else if lexer.try_consume(&KeywordRef) {
-        parse_pointer_definition(lexer, name, lexer.last_range.start)
+        parse_pointer_definition(lexer, name, lexer.last_range.start, false)
     } else if lexer.try_consume(&KeywordParensOpen) {
         //enum without datatype
         parse_enum_type_definition(lexer, name)
@@ -701,11 +701,17 @@ fn parse_pointer_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
     start_pos: usize,
+    is_reference_to: bool,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
         (
             DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::PointerType { name, referenced_type: Box::new(decl) },
+                data_type: DataType::PointerType {
+                    name,
+                    referenced_type: Box::new(decl),
+                    auto_deref: is_reference_to,
+                    is_reference_to,
+                },
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
             },
@@ -1108,7 +1114,16 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
 
     // create variables with the same data type for each of the names
     let mut variables = vec![];
-    if let Some((data_type, initializer)) = parse_full_data_type_definition(lexer, None) {
+
+    let parse_definition_opt = if lexer.try_consume(&KeywordReferenceTo) {
+        parse_pointer_definition(lexer, None, lexer.last_range.start, true)
+    } else {
+        parse_full_data_type_definition(lexer, None)
+    };
+
+    lexer.try_consume(&KeywordSemicolon);
+
+    if let Some((data_type, initializer)) = parse_definition_opt {
         for (name, range) in var_names {
             variables.push(Variable {
                 name,
@@ -1119,6 +1134,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
             });
         }
     }
+
     variables
 }
 

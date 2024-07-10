@@ -125,7 +125,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::Assignment(data, ..) => {
                 self.generate_assignment_statement(&data.left, &data.right)?;
             }
-
+            AstStatement::RefAssignment(data, ..) => {
+                self.generate_ref_assignment(&data.left, &data.right)?;
+            }
             AstStatement::ControlStatement(ctl_statement, ..) => {
                 self.generate_control_statement(ctl_statement)?
             }
@@ -232,6 +234,31 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.generate_case_statement(&stmt.selector, &stmt.case_blocks, &stmt.else_block)
             }
         }
+    }
+
+    /// Generates IR for a `REF=` assignment, which is syntactic sugar for an assignment where the
+    /// right-hand side is wrapped in a `REF(...)` call. Specifically `foo REF= bar` and
+    /// `foo := REF(bar)` are the same.
+    ///
+    /// Note: Although somewhat similar to the [`generate_assignment_statement`] function, we can't
+    /// apply the code here because the left side of a `REF=` assignment is flagged as auto-deref.
+    /// For `REF=` assignments we don't want (and can't) deref without generating incorrect IR.
+    pub fn generate_ref_assignment(&self, left: &AstNode, right: &AstNode) -> Result<(), Diagnostic> {
+        let exp = self.create_expr_generator();
+        let ref_builtin = self.index.get_builtin_function("REF").expect("REF must exist");
+
+        let AstStatement::ReferenceExpr(data) = &left.stmt else {
+            unreachable!("should be covered by a validation")
+        };
+
+        let left_ptr_val = {
+            let expr = exp.generate_reference_expression(&data.access, data.base.as_deref(), left)?;
+            expr.get_basic_value_enum().into_pointer_value()
+        };
+        let right_expr_val = ref_builtin.codegen(&exp, &[&right], right.get_location())?;
+
+        self.llvm.builder.build_store(left_ptr_val, right_expr_val.get_basic_value_enum());
+        Ok(())
     }
 
     /// generates an assignment statement _left_ := _right_
