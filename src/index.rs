@@ -845,7 +845,7 @@ pub struct Index {
     implementations: FxIndexMap<String, ImplementationIndexEntry>,
 
     /// an index with all type-information
-    pub type_index: TypeIndex,
+    type_index: TypeIndex,
 
     constant_expressions: ConstExpressions,
 

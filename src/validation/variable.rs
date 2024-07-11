@@ -210,7 +210,7 @@ fn validate_variable<T: AnnotationMap>(
     }
 }
 
-/// Returns a diagnostic if a `REFERENCE TO` variable is incorrectly declared (or initialized).
+/// Returns a diagnostic if a `REFERENCE TO` variable is incorrectly declared.
 fn validate_reference_to_declaration<T: AnnotationMap>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
@@ -244,36 +244,9 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
 
     if let Some(ref initializer) = _variable.initializer {
         let type_lhs = context.index.find_type(inner_ty_name).unwrap();
-        let type_rhs = context.annotations.get_type(initializer, context.index).unwrap();
-        let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
-        let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
+        let type_rhs = context.annotations.get_type(initializer, context.index).unwrap(); // TODO: I think this is wrong, currently `bar : DINT; foo : REFRENCE TO DINT := bar` will return a POINTER_TO_DINT for bar when in reality this is just a DINT?
 
-        if !type_rhs.is_pointer() {
-            todo!("How does this happen? Is it something like `foo : REFERENCE TO DINT := bar` where `bar` is missing a `REF(...)`?");
-        }
-
-        validate_pointer_assignment(
-            context,
-            validator,
-            type_lhs,
-            type_rhs,
-            type_info_lhs,
-            type_info_rhs,
-            &initializer.location,
-        );
-        // dbg!(&type_info_lhs, type_info_rhs);
-        // if type_info_lhs != type_info_rhs {
-        //     validator.push_diagnostic(
-        //         Diagnostic::new(format!(
-        //             "Types differ, expected {} but got {}",
-        //             get_datatype_name_or_slice(&validator.context, type_lhs),
-        //             get_datatype_name_or_slice(&validator.context, type_rhs)
-        //         ))
-        //         .with_location(&_variable.location)
-        //         .with_secondary_location(&initializer.location)
-        //         .with_error_code("E099"),
-        //     );
-        // }
+        validate_pointer_assignment(context, validator, type_lhs, type_rhs, &initializer.location);
     }
 }
 

@@ -9,6 +9,109 @@ use crate::{
 };
 
 #[test]
+fn temp5() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION main
+            VAR
+                foo : DINT;
+                bar : REFERENCE TO DINT := REF(foo);
+            END_VAR
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let initializer_bar = unit.units[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
+    let initializer_bar_annotation = annotations.get(initializer_bar).unwrap();
+
+    assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r###"
+    (
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "REF",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+        Value {
+            resulting_type: "__POINTER_TO_DINT",
+        },
+    )
+    "###);
+}
+
+#[test]
+fn temp4() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION main
+            VAR
+                foo : DINT;
+                bar : REFERENCE TO DINT REF= foo;
+            END_VAR
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let initializer_bar = unit.units[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
+    let initializer_bar_annotation = annotations.get(initializer_bar).unwrap();
+
+    assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r###"
+    (
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "foo",
+                },
+            ),
+            base: None,
+        },
+        ReplacementAst {
+            statement: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "REF",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        },
+    )
+    "###);
+}
+
+#[test]
 fn temp() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(

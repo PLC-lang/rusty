@@ -1261,7 +1261,7 @@ fn ref_assignments() {
     17 │             localINT            REF= localDINT;
        │             ^^^^^^^^ Invalid assignment, expected a pointer reference
 
-    error[E098]: Invalid assignment, types INT and DINT differ
+    error[E037]: Invalid assignment, types INT and DINT differ
        ┌─ <internal>:17:13
        │
     17 │             localINT            REF= localDINT;
@@ -1279,13 +1279,13 @@ fn ref_assignments() {
     19 │             localReferenceTo    REF= 1;
        │                                      ^ Invalid assignment, expected a reference
 
-    error[E098]: Invalid assignment, types DINT and INT differ
+    error[E037]: Invalid assignment, types DINT and INT differ
        ┌─ <internal>:21:13
        │
     21 │             localReferenceTo    REF= localINT;
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and INT differ
 
-    error[E098]: Invalid assignment, types DINT and STRING differ
+    error[E037]: Invalid assignment, types DINT and STRING differ
        ┌─ <internal>:22:13
        │
     22 │             localReferenceTo    REF= localSTRING;
@@ -1297,7 +1297,7 @@ fn ref_assignments() {
     23 │             localReferenceTo    REF= 'howdy';
        │                                      ^^^^^^^ Invalid assignment, expected a reference
 
-    error[E098]: Invalid assignment, types DINT and STRING differ
+    error[E037]: Invalid assignment, types DINT and STRING differ
        ┌─ <internal>:23:13
        │
     23 │             localReferenceTo    REF= 'howdy';
@@ -1355,13 +1355,13 @@ fn ref_assignment_with_global_local_variables_and_aliased_types() {
     18 │                 invalidB : REFERENCE TO fooGlobal;
        │                            ^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
 
-    error[E098]: Invalid assignment, types DINT and INT differ
+    error[E037]: Invalid assignment, types DINT and INT differ
        ┌─ <internal>:28:13
        │
     28 │             referenceToFooFirstOfHisName  REF= intLocal;
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and INT differ
 
-    error[E098]: Invalid assignment, types DINT and STRING differ
+    error[E037]: Invalid assignment, types DINT and STRING differ
        ┌─ <internal>:29:13
        │
     29 │             referenceToFooFirstOfHisName  REF= stringLocal;
@@ -1388,13 +1388,13 @@ fn ref_assignment_with_reference_to_array_variable() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E098]: Invalid assignment, array lengths 5 and 6 differ
+    error[E037]: Invalid assignment, array lengths differ
        ┌─ <internal>:10:13
        │
     10 │             arrReferenceDINT REF= arrSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, array lengths 5 and 6 differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, array lengths differ
 
-    error[E098]: Invalid assignment, array types DINT and STRING differ
+    error[E037]: Invalid assignment, array types DINT and STRING differ
        ┌─ <internal>:10:13
        │
     10 │             arrReferenceDINT REF= arrSTRING;
@@ -1423,13 +1423,13 @@ fn ref_assignment_with_reference_to_string_variable() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E098]: Invalid assignment, types STRING and CHAR differ
+    error[E037]: Invalid assignment, types STRING and CHAR differ
        ┌─ <internal>:10:13
        │
     10 │             referenceToString REF= localCHAR;
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types STRING and CHAR differ
 
-    error[E098]: Invalid assignment, types STRING and WSTRING differ
+    error[E037]: Invalid assignment, types STRING and WSTRING differ
        ┌─ <internal>:12:13
        │
     12 │             referenceToString REF= localWSTRING;

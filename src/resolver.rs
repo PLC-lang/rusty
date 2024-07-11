@@ -1033,34 +1033,31 @@ impl<'i> TypeAnnotator<'i> {
             return;
         }
 
-        if ty.get_type_information().is_reference_to() {
+        // We have to wrap the initializer in a `REF` call when dealing with
+        // 1. aliasing, e.g. `foo AT bar : DINT` where `bar` becomes `foo`s initializer or
+        // 2. assignments calling `REF` directly, e.g. `foo : REFERENCE TO DINT := REF(bar)` or
+        // 3. reference assignment, e.g. `foo : REFERENCE TO DINT REF= bar`
+        // ...but we don't want to wrap a `REF` call when dealing with 2. which would yield REF(REF(...))
+        if ty.get_type_information().is_reference_to() && !initializer.is_call_with_name("REF") {
+            debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
+
             let mut id_provider = ctx.id_provider.clone();
             let location = &initializer.location;
 
-            let operator = AstFactory::create_member_reference(
-                AstFactory::create_identifier("REF", location, id_provider.next_id()),
-                None,
-                id_provider.next_id(),
-            );
-            let parameter = initializer;
-            self.visit_statement(ctx, &operator);
-            self.visit_statement(ctx, parameter);
-            let call = AstFactory::create_call_statement(
-                operator,
-                Some(parameter.clone()),
+            let ref_ident = AstFactory::create_identifier("REF", location, id_provider.next_id());
+            let fn_name = AstFactory::create_member_reference(ref_ident, None, id_provider.next_id());
+            let fn_arg = initializer;
+            self.visit_statement(ctx, &fn_name);
+            self.visit_statement(ctx, fn_arg);
+
+            let fn_call = AstFactory::create_call_statement(
+                fn_name,
+                Some(fn_arg.clone()),
                 id_provider.next_id(),
                 location,
             );
-
-            // annotator.visit_statement(&ctx, &new_statement);
-            // annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), &new_statement);
-            // annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
-            // annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), statement);
-            //
-            // let annotation_fn = get_builtin("REF").unwrap().get_annotation().unwrap();
-            self.visit_statement(ctx, &call);
-            dbg!(&self.annotation_map.get(&call));
-            self.annotate(initializer, StatementAnnotation::ReplacementAst { statement: call });
+            self.visit_statement(ctx, &fn_call);
+            self.annotate(initializer, StatementAnnotation::ReplacementAst { statement: fn_call });
         }
 
         self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(ty.get_name()));

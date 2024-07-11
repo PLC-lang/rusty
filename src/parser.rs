@@ -742,7 +742,11 @@ fn parse_type_reference_type_definition(
     };
 
     let initial_value =
-        if lexer.try_consume(&KeywordAssignment) { Some(parse_expression(lexer)) } else { None };
+        if lexer.try_consume(&KeywordAssignment) || lexer.try_consume(&KeywordReferenceAssignment) {
+            Some(parse_expression(lexer))
+        } else {
+            None
+        };
 
     let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {

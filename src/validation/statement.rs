@@ -770,26 +770,26 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
     }
 }
 
-// TODO: Ideally this isn't neccessary and we can use `validate_array_assignment` instead
 pub fn validate_pointer_assignment<T>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
     type_lhs: &DataType,
     type_rhs: &DataType,
-    type_info_lhs: &DataTypeInformation,
-    type_info_rhs: &DataTypeInformation,
     assignment_location: &SourceLocation,
 ) where
     T: AnnotationMap,
 {
+    let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
+    let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
+
     if type_info_lhs.is_array() && type_info_rhs.is_array() {
         let mut messages = Vec::new();
 
         let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
         let len_rhs = type_info_rhs.get_array_length(context.index).unwrap_or_default();
 
-        if len_lhs < len_rhs {
-            messages.push(format!("Invalid assignment, array lengths {len_lhs} and {len_rhs} differ"));
+        if len_lhs != len_rhs {
+            messages.push("Invalid assignment, array lengths differ".to_string());
         }
 
         let inner_ty_name_lhs = type_info_lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
@@ -805,7 +805,7 @@ pub fn validate_pointer_assignment<T>(
 
         for message in messages {
             validator.push_diagnostic(
-                Diagnostic::new(message).with_location(assignment_location).with_error_code("E098"),
+                Diagnostic::new(message).with_location(assignment_location).with_error_code("E037"),
             )
         }
     } else if type_info_lhs != type_info_rhs {
@@ -816,7 +816,7 @@ pub fn validate_pointer_assignment<T>(
                 get_datatype_name_or_slice(validator.context, type_rhs),
             ))
             .with_location(assignment_location)
-            .with_error_code("E098"),
+            .with_error_code("E037"),
         );
     }
 }
@@ -831,8 +831,6 @@ fn validate_ref_assignment<T: AnnotationMap>(
 ) {
     let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
-    let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
-    let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
     let annotation_lhs = context.annotations.get(&assignment.left);
     let variable_lhs = context.index.find_variable_ast(context.qualifier, &assignment.left);
 
@@ -867,15 +865,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
         )
     }
 
-    validate_pointer_assignment(
-        context,
-        validator,
-        type_lhs,
-        type_rhs,
-        type_info_lhs,
-        type_info_rhs,
-        assignment_location,
-    );
+    validate_pointer_assignment(context, validator, type_lhs, type_rhs, assignment_location);
 }
 
 fn validate_assignment<T: AnnotationMap>(
