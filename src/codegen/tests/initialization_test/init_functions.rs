@@ -4,11 +4,6 @@ use crate::test_utils::tests::codegen;
 fn simple() {
     let result = codegen(
         r#"
-        FUNCTION main : DINT
-        VAR
-        END_VAR
-        END_FUNCTION
-
         VAR_GLOBAL
             s: STRING := 'hello world!';
             ps: REF_TO STRING := REF(s);

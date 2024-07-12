@@ -329,7 +329,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
         // get instance pointer type from llvm index as parameter
         let ll_ty = self.llvm_index.find_associated_type(&initializer.target_type_name).unwrap();
-        let function_declaration = self.create_llvm_function_type(vec![ll_ty.ptr_type(AddressSpace::default()).into()], None, None)?;
+        let function_declaration =
+            self.create_llvm_function_type(vec![ll_ty.ptr_type(AddressSpace::default()).into()], None, None)?;
 
         let curr_f = module.add_function(fn_name, function_declaration, None);
 
@@ -501,7 +502,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let block = self.llvm.context.append_basic_block(current_function, "entry");
         self.llvm.builder.position_at_end(block);
         let arg = current_function.get_first_param().unwrap();
-        let expression_generator = ExpressionCodeGenerator::new_context_free(&self.llvm, &self.index, &self.annotations, self.llvm_index);
+        let expression_generator = ExpressionCodeGenerator::new_context_free(
+            &self.llvm,
+            &self.index,
+            &self.annotations,
+            self.llvm_index,
+        );
         let expr = dbg!(expression_generator.generate_expression(&initializer.initializer)).unwrap();
         self.llvm.builder.build_store(arg.into_pointer_value(), expr);
         self.llvm.builder.build_return(None);

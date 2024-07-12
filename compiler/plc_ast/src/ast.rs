@@ -307,6 +307,11 @@ impl CompilationUnit {
         self
     }
 
+    pub fn with_units(mut self, units: Vec<Pou>) -> Self {
+        self.units = units;
+        self
+    }
+
     /// imports all elements of the other CompilationUnit into this CompilationUnit
     ///
     /// this will import all global_vars, units, implementations and types. The imported
@@ -359,6 +364,34 @@ pub struct VariableBlock {
     pub variable_block_type: VariableBlockType,
     pub linkage: LinkageType,
     pub location: SourceLocation,
+}
+
+impl VariableBlock {
+    pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
+        // let mut block = self;
+        // block.variable_block_type = block_type;
+        self.variable_block_type = block_type;
+        self
+    }
+
+    pub fn with_variables(mut self, variables: Vec<Variable>) -> Self {
+        self.variables = variables;
+        self
+    }
+}
+
+impl Default for VariableBlock {
+    fn default() -> Self {
+        VariableBlock {
+            access: AccessModifier::Internal,
+            constant: false,
+            retain: false,
+            variables: vec![],
+            variable_block_type: VariableBlockType::Local,
+            linkage: LinkageType::Internal,
+            location: SourceLocation::internal(),
+        }
+    }
 }
 
 impl Debug for VariableBlock {

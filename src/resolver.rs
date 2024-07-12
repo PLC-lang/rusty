@@ -10,9 +10,7 @@ use std::hash::Hash;
 
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
-        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
+        self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement, BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Implementation, JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -21,7 +19,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-use crate::index::{FxIndexMap, FxIndexSet};
+use crate::index::{self, const_expressions::InitingIsHardInnit, FxIndexMap, FxIndexSet, ImplementationIndexEntry, ImplementationType};
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -742,6 +740,7 @@ impl<'i> TypeAnnotator<'i> {
         index: &Index,
         unit: &'i CompilationUnit,
         id_provider: IdProvider,
+        unresolved: &FxIndexMap<String, InitingIsHardInnit>,
     ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
@@ -755,16 +754,106 @@ impl<'i> TypeAnnotator<'i> {
             in_control: false,
         };
 
+        dbg!(&unit);
+
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
+            let x = dbg!(index.find_init_fn(&global_variable.name));
             visitor.dependencies.insert(Dependency::Variable(global_variable.name.to_string()));
             visitor.visit_variable(ctx, global_variable);
         }
 
         for pou in &unit.units {
-            visitor.visit_pou(ctx, pou);
+            // if &pou.name == "foo" {
+            //     let x = unit.implementations.iter().filter(|it| it.name == "foo").collect::<Vec<_>>()[0];
+            //     dbg!(x);
+            //     panic!();
+            // }
+
+            if let Some(init) = unresolved.iter().filter_map(|(_, v)| {
+                if v.scope.as_ref().is_some_and(|it| it == &pou.name) {
+                    Some(v)
+                } else {
+                    None
+                }
+            }).collect::<Vec<_>>()
+            .first() {
+            // XXX: could probably also index the function here instead of the index
+            // if let Some(x) = dbg!(index.find_init_fn(&pou.name)) {
+                let name = index::get_init_fn_name(&pou.name);
+                // TODO: add function type to the type_index // create new datatypes for init functions
+                let init_pou = Pou {
+                    name: name.clone(),
+                    variable_blocks: vec![VariableBlock::default().with_block_type(ast::VariableBlockType::InOut).with_variables(vec![
+                        Variable { 
+                            name: "self".into(), 
+                            data_type_declaration: DataTypeDeclaration::DataTypeReference { referenced_type: format!("{}", &pou.name), location: SourceLocation::internal() },
+                            initializer: None, 
+                            address: None, 
+                            location: SourceLocation::internal(), 
+                        }
+                    ])],
+                    pou_type: PouType::Function,
+                    return_type: None,
+                    location: SourceLocation::internal(),
+                    name_location: SourceLocation::internal(),
+                    poly_mode: None,
+                    generics: vec![],
+                    linkage: LinkageType::Internal,
+                    super_class: None,
+                };
+                let impl_entry = ImplementationIndexEntry {
+                    call_name: name.clone(),
+                    type_name: name.clone(), // are these always the same?
+                    associated_class: None,
+                    implementation_type: ImplementationType::Function,
+                    generic: false,
+                    location: SourceLocation::internal(),
+                };
+
+                let mut id_provider = ctx.id_provider.clone();
+                
+                let init_stmt = AstFactory::create_assignment(
+                    AstFactory::create_identifier(
+                        &format!("self"), &SourceLocation::internal(), id_provider.next_id()
+                    ), 
+                    init.initializer.clone(),
+                    id_provider.next_id()
+                );
+
+                let implementation = Implementation {
+                    name: name.clone(),
+                    type_name: name.clone(),
+                    linkage: LinkageType::Internal,
+                    pou_type: PouType::Function,
+                    statements: todo!(),
+                    location: SourceLocation::internal(),
+                    name_location: SourceLocation::internal(),
+                    overriding: false,
+                    generic: false,
+                    access: None,
+                };
+
+                visitor.annotation_map.new_index.register_implementation(&name, &name, None, ImplementationType::Function, false, SourceLocation::internal);    
+               
+                let new_unit = CompilationUnit {
+                    global_vars: vec![],
+                    units: vec![init_pou],
+                    implementations: vec![implementation],
+                    user_types: vec![],
+                    file_name: "__internal".into(),
+                };
+                // collect everything visit unit returns
+                // visitor.annotation_map.new_index.register_pou_type(datatype)
+                // XXX: create new_unit field in annotator. visitor.annotation_map.unit_units.register
+                // visit_unit(new_unit);
+            };
+            visitor.visit_pou(ctx, pou); // too early?
         }
 
         for t in &unit.user_types {
+            if let Some(a) = unresolved.get(&t.data_type.get_name().unwrap_or(VOID_TYPE).to_string()) {
+                println!("found {}", a.target_type_name);
+            };
             visitor.visit_user_type_declaration(t, ctx);
         }
 

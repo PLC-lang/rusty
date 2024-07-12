@@ -251,7 +251,14 @@ pub mod tests {
                     &FxIndexMap::default(),
                 )?;
 
-                code_generator.generate(context, &unit, &annotations, &index, &llvm_index, &FxIndexMap::default())
+                code_generator.generate(
+                    context,
+                    &unit,
+                    &annotations,
+                    &index,
+                    &llvm_index,
+                    &FxIndexMap::default(),
+                )
             })
             .collect::<Result<Vec<_>, Diagnostic>>()
     }

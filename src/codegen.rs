@@ -109,7 +109,6 @@ impl<'ink> CodeGen<'ink> {
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
-        println!("generating llvm_type_index");
         //Generate types index, and any global variables associated with them.
         let llvm_type_index = data_type_generator::generate_data_types(
             &llvm,
@@ -124,34 +123,29 @@ impl<'ink> CodeGen<'ink> {
         // for these with a null-pointer or similar?
         // we also need to make sure to not lose track of any uninitialized members in POUs
         // XXX: can I assume these initializers to be pointers, always? i.e. can i just blanket-init them with null-pointers before calling __init()?
-        println!("done");
         index.merge(llvm_type_index);
 
         let mut variable_generator =
             VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
 
         //Generate global variables
-        println!("generating llvm_gv_index");
         let llvm_gv_index =
             variable_generator.generate_global_variables(dependencies, &self.module_location)?;
-        println!("done");
-        dbg!(&llvm_gv_index);
         index.merge(llvm_gv_index);
 
         //Generate opaque functions for implementations and associate them with their types
         let llvm = Llvm::new(context, context.create_builder());
-        println!("generating llvm_impl_index!");
 
         let pou_generator = PouGenerator::new(llvm, global_index, annotations, &index);
         let llvm_impl_index =
             pou_generator.generate_implementation_stubs(&self.module, dependencies, &mut self.debug)?;
         index.merge(llvm_impl_index);
 
-        let llvm = Llvm::new(context, context.create_builder());
-        let pou_generator = PouGenerator::new(llvm, global_index, annotations, &index); // .with_index() builder
-        let init_func_index =
-            pou_generator.generate_init_fn_stubs(&self.module, unresolved_init)?;
-        index.merge(init_func_index);
+        // let llvm = Llvm::new(context, context.create_builder());
+        // let pou_generator = PouGenerator::new(llvm, global_index, annotations, &index); // .with_index() builder
+        // let init_func_index =
+        //     pou_generator.generate_init_fn_stubs(&self.module, unresolved_init)?;
+        // index.merge(init_func_index);
 
         let llvm = Llvm::new(context, context.create_builder());
         let llvm_values_index = pou_generator::generate_global_constants_for_pou_members(
@@ -226,10 +220,10 @@ impl<'ink> CodeGen<'ink> {
             }
         }
 
-        // TODO: for each generated init fn stub, generate implementation
-        for (name, initializer) in unresolved_init {
-            pou_generator.generate_init_implementation(&name, initializer)
-        }
+        // // TODO: for each generated init fn stub, generate implementation
+        // for (name, initializer) in unresolved_init {
+        //     pou_generator.generate_init_implementation(&name, initializer)
+        // }
 
         self.debug.finalize();
         log::debug!("{}", self.module.to_string());

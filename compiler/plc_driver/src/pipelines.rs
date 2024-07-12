@@ -173,7 +173,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             .into_par_iter()
             .map(|unit| {
                 let (annotation, dependencies, literals) =
-                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
+                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), &init_fn_candidates);
                 (unit, annotation, dependencies, literals)
             })
             .collect::<Vec<_>>();
@@ -304,7 +304,14 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             &self.index,
             &self.unresolved_initializers,
         )?;
-        code_generator.generate(context, unit, &self.annotations, &self.index, &llvm_index, &self.unresolved_initializers)
+        code_generator.generate(
+            context,
+            unit,
+            &self.annotations,
+            &self.index,
+            &llvm_index,
+            &self.unresolved_initializers,
+        )
     }
 
     pub fn codegen_single_module<'ctx>(

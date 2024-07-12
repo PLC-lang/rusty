@@ -1670,6 +1670,6 @@ pub fn get_initializer_name(name: &str) -> String {
 }
 
 // XXX: this seems almost too similar to the function above
-fn get_init_fn_name(name: &str) -> String {
+pub fn get_init_fn_name(name: &str) -> String {
     format!("__init_{name}")
 }
