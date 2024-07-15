@@ -40,7 +40,7 @@ pub fn visit(unit: &CompilationUnit) -> Index {
         location: SourceLocation::internal(),
         is_generated: true,
     };
-    index.register_pou(entry);
+    index.register_pou(entry); //XXX is this done multiple times?
 
     for implementation in &unit.implementations {
         visit_implementation(&mut index, implementation);
@@ -211,9 +211,9 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         _ => {}
     };
 
+    // XXX: this is smelly
     if !matches!(&pou.pou_type, PouType::Action | PouType::Function) {
         index.register_initialization_function(&pou.name);
-        // XXX: do i need to register a DataType in the type_index for the init functions?
     };
 }
 

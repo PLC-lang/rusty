@@ -178,7 +178,10 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             })
             .collect::<Vec<_>>();
 
-        for (unit, annotation, dependencies, literals) in result {
+        for (mut unit, mut annotation, dependencies, literals) in result {
+            std::mem::take(&mut annotation.new_units).into_iter().for_each(|u| unit.import(u));
+            dbg!(&dependencies);
+            dbg!(&unit);
             annotated_units.push((unit, dependencies, literals));
             all_annotations.import(annotation);
         }

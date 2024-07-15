@@ -10,7 +10,10 @@ use std::hash::Hash;
 
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement, BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Implementation, JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock
+        self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
+        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Implementation,
+        JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
+        UserTypeDeclaration, Variable, VariableBlock,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -19,7 +22,10 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-use crate::index::{self, const_expressions::InitingIsHardInnit, FxIndexMap, FxIndexSet, ImplementationIndexEntry, ImplementationType};
+use crate::index::{
+    self, const_expressions::InitingIsHardInnit, FxIndexMap, FxIndexSet, ImplementationIndexEntry,
+    ImplementationType,
+};
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -641,6 +647,7 @@ pub struct AnnotationMapImpl {
 
     //An index of newly created types
     pub new_index: Index,
+    pub new_units: Vec<CompilationUnit>,
 }
 
 impl AnnotationMapImpl {
@@ -654,6 +661,7 @@ impl AnnotationMapImpl {
         self.type_hint_map.extend(other.type_hint_map);
         self.hidden_function_calls.extend(other.hidden_function_calls);
         self.new_index.import(other.new_index);
+        self.new_units.extend(other.new_units);
     }
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name
@@ -769,29 +777,36 @@ impl<'i> TypeAnnotator<'i> {
             //     panic!();
             // }
 
-            if let Some(init) = unresolved.iter().filter_map(|(_, v)| {
-                if v.scope.as_ref().is_some_and(|it| it == &pou.name) {
-                    Some(v)
-                } else {
-                    None
-                }
-            }).collect::<Vec<_>>()
-            .first() {
-            // XXX: could probably also index the function here instead of the index
-            // if let Some(x) = dbg!(index.find_init_fn(&pou.name)) {
+            if let Some(init) =
+                unresolved
+                    .iter()
+                    .filter_map(|(_, v)| {
+                        if v.scope.as_ref().is_some_and(|it| it == &pou.name) {
+                            Some(v)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Vec<_>>()
+                    .first()
+            {
+                // XXX: could probably also index the function here instead of the index
                 let name = index::get_init_fn_name(&pou.name);
-                // TODO: add function type to the type_index // create new datatypes for init functions
+                let mut id_provider = ctx.id_provider.clone();
                 let init_pou = Pou {
                     name: name.clone(),
-                    variable_blocks: vec![VariableBlock::default().with_block_type(ast::VariableBlockType::InOut).with_variables(vec![
-                        Variable { 
-                            name: "self".into(), 
-                            data_type_declaration: DataTypeDeclaration::DataTypeReference { referenced_type: format!("{}", &pou.name), location: SourceLocation::internal() },
-                            initializer: None, 
-                            address: None, 
-                            location: SourceLocation::internal(), 
-                        }
-                    ])],
+                    variable_blocks: vec![VariableBlock::default()
+                        .with_block_type(ast::VariableBlockType::InOut)
+                        .with_variables(vec![Variable {
+                            name: "self".into(),
+                            data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                                referenced_type: format!("{}", &pou.name),
+                                location: SourceLocation::internal(),
+                            },
+                            initializer: None,
+                            address: None,
+                            location: SourceLocation::internal(),
+                        }])],
                     pou_type: PouType::Function,
                     return_type: None,
                     location: SourceLocation::internal(),
@@ -801,23 +816,15 @@ impl<'i> TypeAnnotator<'i> {
                     linkage: LinkageType::Internal,
                     super_class: None,
                 };
-                let impl_entry = ImplementationIndexEntry {
-                    call_name: name.clone(),
-                    type_name: name.clone(), // are these always the same?
-                    associated_class: None,
-                    implementation_type: ImplementationType::Function,
-                    generic: false,
-                    location: SourceLocation::internal(),
-                };
 
-                let mut id_provider = ctx.id_provider.clone();
-                
                 let init_stmt = AstFactory::create_assignment(
                     AstFactory::create_identifier(
-                        &format!("self"), &SourceLocation::internal(), id_provider.next_id()
-                    ), 
+                        &format!("self"),
+                        &SourceLocation::internal(),
+                        id_provider.next_id(),
+                    ),
                     init.initializer.clone(),
-                    id_provider.next_id()
+                    id_provider.next_id(),
                 );
 
                 let implementation = Implementation {
@@ -825,7 +832,7 @@ impl<'i> TypeAnnotator<'i> {
                     type_name: name.clone(),
                     linkage: LinkageType::Internal,
                     pou_type: PouType::Function,
-                    statements: todo!(),
+                    statements: vec![init_stmt],
                     location: SourceLocation::internal(),
                     name_location: SourceLocation::internal(),
                     overriding: false,
@@ -833,8 +840,6 @@ impl<'i> TypeAnnotator<'i> {
                     access: None,
                 };
 
-                visitor.annotation_map.new_index.register_implementation(&name, &name, None, ImplementationType::Function, false, SourceLocation::internal);    
-               
                 let new_unit = CompilationUnit {
                     global_vars: vec![],
                     units: vec![init_pou],
@@ -842,12 +847,16 @@ impl<'i> TypeAnnotator<'i> {
                     user_types: vec![],
                     file_name: "__internal".into(),
                 };
-                // collect everything visit unit returns
-                // visitor.annotation_map.new_index.register_pou_type(datatype)
-                // XXX: create new_unit field in annotator. visitor.annotation_map.unit_units.register
-                // visit_unit(new_unit);
+                let (new_annotations, deps, _stringlits /* these can probably be ignored */) = TypeAnnotator::visit_unit(&index, &new_unit, id_provider, unresolved);
+                // XXX: do I need to merge the new index with the existing index before visiting the new unit? I don't think so, since these values should only be duplicates anyway. need to verify
+                let idx = index::visitor::visit(&new_unit);
+                visitor.annotation_map.new_units.push(new_unit);
+                visitor.annotation_map.new_index.import(idx);
+                // TODO: 
+                // unit.import(new_unit);
+                visitor.dependencies.extend(deps);
+                visitor.annotation_map.import(new_annotations);
             };
-            visitor.visit_pou(ctx, pou); // too early?
         }
 
         for t in &unit.user_types {
