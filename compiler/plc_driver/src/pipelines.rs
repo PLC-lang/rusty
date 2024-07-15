@@ -305,7 +305,6 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             literals,
             dependencies,
             &self.index,
-            &self.unresolved_initializers,
         )?;
         code_generator.generate(
             context,
@@ -313,7 +312,6 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             &self.annotations,
             &self.index,
             &llvm_index,
-            &self.unresolved_initializers,
         )
     }
 

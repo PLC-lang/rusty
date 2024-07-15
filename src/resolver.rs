@@ -10,10 +10,7 @@ use std::hash::Hash;
 
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Implementation,
-        JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
-        UserTypeDeclaration, Variable, VariableBlock,
+        self, flatten_expression_list, pre_process, Assignment, AstFactory, AstId, AstNode, AstStatement, BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Implementation, JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -791,10 +788,10 @@ impl<'i> TypeAnnotator<'i> {
                     .first()
             {
                 // XXX: could probably also index the function here instead of the index
-                let name = index::get_init_fn_name(&pou.name);
+                let init_fn_name = index::get_init_fn_name(&pou.name);
                 let mut id_provider = ctx.id_provider.clone();
                 let init_pou = Pou {
-                    name: name.clone(),
+                    name: init_fn_name.clone(),
                     variable_blocks: vec![VariableBlock::default()
                         .with_block_type(ast::VariableBlockType::InOut)
                         .with_variables(vec![Variable {
@@ -817,19 +814,53 @@ impl<'i> TypeAnnotator<'i> {
                     super_class: None,
                 };
 
-                let init_stmt = AstFactory::create_assignment(
+                /*
+                
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "ps",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "self",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                }
+
+                 */
+
+                // TODO: figure out elegant way to do this
+                let lhs = AstFactory::create_member_reference(
+                    // TODO: has no type annotation and is therefore validated as unresolved reference.
                     AstFactory::create_identifier(
-                        &format!("self"),
+                        &format!("ps"), 
                         &SourceLocation::internal(),
                         id_provider.next_id(),
-                    ),
+                    ), 
+                    Some(AstFactory::create_identifier(
+                                            &format!("foo"), 
+                                            &SourceLocation::internal(),
+                                            id_provider.next_id(),
+                                        )),
+                    id_provider.next_id(),
+                );
+
+                let init_stmt = AstFactory::create_assignment(
+                    lhs,
                     init.initializer.clone(),
                     id_provider.next_id(),
                 );
 
                 let implementation = Implementation {
-                    name: name.clone(),
-                    type_name: name.clone(),
+                    name: init_fn_name.clone(),
+                    type_name: init_fn_name.clone(),
                     linkage: LinkageType::Internal,
                     pou_type: PouType::Function,
                     statements: vec![init_stmt],
@@ -840,21 +871,25 @@ impl<'i> TypeAnnotator<'i> {
                     access: None,
                 };
 
-                let new_unit = CompilationUnit {
+                let mut new_unit = CompilationUnit {
                     global_vars: vec![],
                     units: vec![init_pou],
                     implementations: vec![implementation],
                     user_types: vec![],
                     file_name: "__internal".into(),
                 };
-                let (new_annotations, deps, _stringlits /* these can probably be ignored */) = TypeAnnotator::visit_unit(&index, &new_unit, id_provider, unresolved);
+
+                pre_process(&mut new_unit, id_provider.clone()); // XXX: is this required?
+                let (new_annotations, _, _ /* these can probably be ignored */) = TypeAnnotator::visit_unit(&index, &new_unit, id_provider, unresolved);
                 // XXX: do I need to merge the new index with the existing index before visiting the new unit? I don't think so, since these values should only be duplicates anyway. need to verify
                 let idx = index::visitor::visit(&new_unit);
                 visitor.annotation_map.new_units.push(new_unit);
                 visitor.annotation_map.new_index.import(idx);
-                // TODO: 
-                // unit.import(new_unit);
-                visitor.dependencies.extend(deps);
+                visitor.dependencies.insert(Dependency::Call(init_fn_name.to_string())); // TODO: I'd rather not do this manually. figure out a more idiomatic way to resolve and collect newly added deps
+
+                // TODO: seems kinda convoluted. check how param dependencies are normally resolved/added
+                let init_param = visitor.annotation_map.new_index.find_parameter(&init_fn_name, 0).expect("just created, must exist");
+                visitor.dependencies.insert(Dependency::Datatype(init_param.data_type_name.to_string()));
                 visitor.annotation_map.import(new_annotations);
             };
         }

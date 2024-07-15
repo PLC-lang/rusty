@@ -56,7 +56,6 @@ pub fn generate_data_types<'ink>(
     dependencies: &FxIndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
-    unresolved_init: &FxIndexMap<String, InitingIsHardInnit>,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut types = vec![];
     let mut pou_types = vec![];
@@ -153,20 +152,27 @@ pub fn generate_data_types<'ink>(
     }
     //If we didn't resolve anything this cycle, report the remaining issues and exit
     if !types_to_init.is_empty() {
+        let mut abcd = vec![];
         //Report each error as a new diagnostic, add the type's location as related to the error
-        let diags = types_to_init
+        let diags = dbg!(types_to_init)
             .into_iter()
             .map(|(name, ty)| {
+                if let Some(initfn) = index.find_init_fn(name) {
+                    println!("hacky af"); 
+                    abcd.push(initfn.get_name());
+                }
                 errors
                     .remove(name)
                     .map(|diag| diag.with_secondary_location(&ty.location))
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::<Vec<_>>();
-        //Report the operation failure
-        return Err(Diagnostic::new("Some initial values were not generated")
+        if diags.len() > abcd.len() {
+            //Report the operation failure
+            return Err(Diagnostic::new("Some initial values were not generated")
             .with_error_code("E075")
             .with_sub_diagnostics(diags)); // FIXME: these sub-diagnostics aren't printed to the console
+        }
     }
     Ok(generator.types_index)
 }

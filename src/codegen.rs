@@ -105,7 +105,6 @@ impl<'ink> CodeGen<'ink> {
         literals: &StringLiterals,
         dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
-        unresolved_init: &FxIndexMap<String, InitingIsHardInnit>,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
@@ -116,7 +115,6 @@ impl<'ink> CodeGen<'ink> {
             dependencies,
             global_index,
             annotations,
-            unresolved_init,
         )?;
         // XXX: this is the earliest point to generate init functions for struct-type datatypes, since these functions have a "self" param
         // this means we need to be able to populate the llvm_type_index with these types even if they cannot be initialized yet - replace initializer
@@ -204,7 +202,6 @@ impl<'ink> CodeGen<'ink> {
         annotations: &AstAnnotations,
         global_index: &Index,
         llvm_index: &LlvmTypedIndex,
-        unresolved_init: &FxIndexMap<String, InitingIsHardInnit>, // TODO: reevaluate data-structure used
     ) -> Result<GeneratedModule<'ink>, Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
