@@ -314,6 +314,7 @@ fn enum_literals_target_are_annotated() {
                 argument_type: ArgumentType::ByVal(crate::index::VariableType::Global),
                 is_auto_deref: false,
                 is_reference_to: false,
+                is_aliasing: false,
             }),
             annotations.get(target)
         );

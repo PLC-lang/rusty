@@ -324,6 +324,7 @@ fn reference_to_declaration() {
                         },
                         auto_deref: true,
                         is_reference_to: true,
+                        is_aliasing: false,
                     },
                 },
             },
@@ -365,6 +366,7 @@ fn aliasing_dint_variable() {
                         },
                         auto_deref: true,
                         is_reference_to: true,
+                        is_aliasing: true,
                     },
                 },
                 initializer: Some(

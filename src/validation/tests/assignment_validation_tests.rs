@@ -1549,3 +1549,61 @@ fn temp() {
     ]
     "###);
 }
+
+#[test]
+fn temps() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION main
+            VAR
+                qux : DINT;
+                bar : DINT;
+                foo AT bar : DINT;
+            END_VAR
+
+            foo REF= qux;
+            foo := REF(qux);
+            foo := 0;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E033]: Unresolved constant `foo` variable: `bar` is no const reference
+      ┌─ <internal>:6:24
+      │
+    6 │                 foo AT bar : DINT;
+      │                        ^^^ Unresolved constant `foo` variable: `bar` is no const reference
+
+    error[E001]: re-assigned error
+      ┌─ <internal>:9:13
+      │
+    9 │             foo REF= qux;
+      │             ^^^ re-assigned error
+
+    error[E001]: re-assigned error
+       ┌─ <internal>:10:13
+       │
+    10 │             foo := REF(qux);
+       │             ^^^ re-assigned error
+
+    error[E065]: The type DINT 32 is too small to hold a Pointer
+       ┌─ <internal>:10:13
+       │
+    10 │             foo := REF(qux);
+       │             ^^^^^^^^^^^^^^^ The type DINT 32 is too small to hold a Pointer
+
+    error[E037]: Invalid assignment: cannot assign '__POINTER_TO_DINT' to 'DINT'
+       ┌─ <internal>:10:13
+       │
+    10 │             foo := REF(qux);
+       │             ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign '__POINTER_TO_DINT' to 'DINT'
+
+    error[E001]: re-assigned error
+       ┌─ <internal>:11:13
+       │
+    11 │             foo := 0;
+       │             ^^^ re-assigned error
+
+    "###);
+}

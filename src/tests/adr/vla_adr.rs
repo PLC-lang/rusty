@@ -105,6 +105,7 @@ fn representation() {
             inner_type_name: "__arr_vla_1_dint",
             auto_deref: false,
             is_reference_to: false,
+            is_aliasing: false,
         },
         nature: Any,
         location: SourceLocation {

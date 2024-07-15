@@ -679,9 +679,9 @@ fn parse_data_type_definition(
         if expect_keyword_to(lexer).is_some() {
             lexer.advance();
         }
-        parse_pointer_definition(lexer, name, start_pos, false)
+        parse_pointer_definition(lexer, name, start_pos, false, false)
     } else if lexer.try_consume(&KeywordRef) {
-        parse_pointer_definition(lexer, name, lexer.last_range.start, false)
+        parse_pointer_definition(lexer, name, lexer.last_range.start, false, false)
     } else if lexer.try_consume(&KeywordParensOpen) {
         //enum without datatype
         parse_enum_type_definition(lexer, name)
@@ -705,6 +705,7 @@ fn parse_pointer_definition(
     name: Option<String>,
     start_pos: usize,
     is_reference_to: bool,
+    is_aliasing: bool,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
         (
@@ -714,6 +715,7 @@ fn parse_pointer_definition(
                     referenced_type: Box::new(decl),
                     auto_deref: is_reference_to,
                     is_reference_to,
+                    is_aliasing,
                 },
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
@@ -1083,7 +1085,7 @@ fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> O
         todo!("error handling")
     }
 
-    let datatype = parse_pointer_definition(lexer, None, lexer.last_range.start, true);
+    let datatype = parse_pointer_definition(lexer, None, lexer.last_range.start, true, true);
     if !lexer.try_consume(&KeywordSemicolon) {
         todo!("error handling")
     }
@@ -1153,7 +1155,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     let mut variables = vec![];
 
     let parse_definition_opt = if lexer.try_consume(&KeywordReferenceTo) {
-        parse_pointer_definition(lexer, None, lexer.last_range.start, true)
+        parse_pointer_definition(lexer, None, lexer.last_range.start, true, false)
     } else {
         parse_full_data_type_definition(lexer, None)
     };

@@ -1254,6 +1254,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
             inner_type_name: "INT".to_string(),
             auto_deref: false,
             is_reference_to: false,
+            is_aliasing: false,
         }
     );
 
@@ -1266,6 +1267,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
             inner_type_name: "INT".to_string(),
             auto_deref: true,
             is_reference_to: false,
+            is_aliasing: false,
         }
     );
 }
@@ -1306,6 +1308,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
             inner_type_name: "INT".to_string(),
             auto_deref: false,
             is_reference_to: false,
+            is_aliasing: false,
         }
     );
 
@@ -1318,6 +1321,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
             inner_type_name: "INT".to_string(),
             auto_deref: true,
             is_reference_to: false,
+            is_aliasing: false,
         }
     );
 }

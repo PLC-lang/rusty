@@ -393,6 +393,7 @@ pub enum DataTypeInformation {
         auto_deref: bool,
         /// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
         is_reference_to: bool,
+        is_aliasing: bool,
     },
     Integer {
         name: TypeId,
@@ -564,6 +565,11 @@ impl DataTypeInformation {
     /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
     pub fn is_reference_to(&self) -> bool {
         matches!(self, DataTypeInformation::Pointer { is_reference_to: true, .. })
+    }
+
+    /// Returns true if the variable was declared as an alias, e.g. `foo AT bar : DINT;`
+    pub fn is_aliasing(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { is_aliasing: true, .. })
     }
 
     pub fn is_aggregate(&self) -> bool {

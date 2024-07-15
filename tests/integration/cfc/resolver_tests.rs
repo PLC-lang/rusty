@@ -100,6 +100,7 @@ fn function_block_calls_are_annotated_correctly() {
         ),
         is_auto_deref: false,
         is_reference_to: false,
+        is_aliasing: false,
     }
     "###);
 }

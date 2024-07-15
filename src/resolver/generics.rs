@@ -212,6 +212,7 @@ impl<'i> TypeAnnotator<'i> {
                     inner_type_name,
                     auto_deref: true,
                     is_reference_to: false,
+                    is_aliasing: false,
                 };
 
                 // Registers a new pointer type to the index
