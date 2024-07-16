@@ -832,6 +832,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
     let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
     let annotation_lhs = context.annotations.get(&assignment.left);
+    let variable_lhs = context.index.find_variable_ast(context.qualifier, &assignment.left);
 
     // Assert that the right-hand side is a reference
     if !assignment.right.is_reference() {
@@ -851,24 +852,18 @@ fn validate_ref_assignment<T: AnnotationMap>(
         )
     }
 
-    if annotation_lhs.is_some_and(|opt| opt.is_aliasing()) {
+    // Assert that an initialized `REFERENCE TO` variable is not re-assigned in the body
+    if annotation_lhs.is_some_and(StatementAnnotation::is_reference_to)
+        && variable_lhs.is_some_and(|var| var.initial_value.is_some())
+    {
         validator.push_diagnostic(
-            Diagnostic::new(format!("re-assigned error")).with_location(&assignment.left.location),
-        );
+            Diagnostic::new(
+                "Invalid assignment, can not re-assign already initialized `REFERENCE TO` variable",
+            )
+            .with_location(&assignment.left.location)
+            .with_error_code("E098"), // TODO: E098 content needs to be adjusted
+        )
     }
-
-    // // Assert that an initialized `REFERENCE TO` variable is not re-assigned in the body
-    // if annotation_lhs.is_some_and(StatementAnnotation::is_reference_to)
-    //     && variable_lhs.is_some_and(|var| var.initial_value.is_some())
-    // {
-    //     validator.push_diagnostic(
-    //         Diagnostic::new(
-    //             "Invalid assignment, can not re-assign already initialized `REFERENCE TO` variable",
-    //         )
-    //         .with_location(&assignment.left.location)
-    //         .with_error_code("E098"), // TODO: E098 content needs to be adjusted
-    //     )
-    // }
 
     validate_pointer_assignment(context, validator, type_lhs, type_rhs, assignment_location);
 }
@@ -882,13 +877,8 @@ fn validate_assignment<T: AnnotationMap>(
 ) {
     if let Some(left) = left {
         // Check if we are assigning to a...
-        if let Some(StatementAnnotation::Variable {
-            constant,
-            qualified_name,
-            argument_type,
-            is_aliasing,
-            ..
-        }) = context.annotations.get(left)
+        if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
+            context.annotations.get(left)
         {
             // ...constant variable
             if *constant {
@@ -915,13 +905,6 @@ fn validate_assignment<T: AnnotationMap>(
                     .with_error_code("E042")
                     .with_location(location)
                     );
-            }
-
-            // TODO: Needs a seperate error code?
-            if *is_aliasing {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!("re-assigned error")).with_location(&left.location),
-                );
             }
         }
 

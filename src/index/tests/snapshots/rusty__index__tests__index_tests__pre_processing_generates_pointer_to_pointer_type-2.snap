@@ -12,7 +12,6 @@ UserTypeDeclaration {
         },
         auto_deref: false,
         is_reference_to: false,
-        is_aliasing: false,
     },
     initializer: None,
     scope: None,

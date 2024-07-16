@@ -395,7 +395,6 @@ pub enum StatementAnnotation {
         is_auto_deref: bool,
         /// denotes whether this variable is declared as `REFERENCE TO` (e.g. `foo : REFERENCE TO DINT`)
         is_reference_to: bool,
-        is_aliasing: bool,
     },
     /// a reference to a function
     Function {
@@ -442,10 +441,6 @@ impl StatementAnnotation {
 
     pub fn is_reference_to(&self) -> bool {
         matches!(self, StatementAnnotation::Variable { is_reference_to: true, .. })
-    }
-
-    pub fn is_aliasing(&self) -> bool {
-        matches!(self, StatementAnnotation::Variable { is_aliasing: true, .. })
     }
 
     pub fn data_type(type_name: &str) -> Self {
@@ -1670,7 +1665,7 @@ impl<'i> TypeAnnotator<'i> {
         else {
             unreachable!("expected a vla reference, but got {statement:#?}");
         };
-        if let DataTypeInformation::Pointer { inner_type_name, is_reference_to, is_aliasing, .. } = &self
+        if let DataTypeInformation::Pointer { inner_type_name, is_reference_to, .. } = &self
             .index
             .get_effective_type_or_void_by_name(
                 members.first().expect("internal VLA struct ALWAYS has this member").get_type_name(),
@@ -1707,7 +1702,6 @@ impl<'i> TypeAnnotator<'i> {
                 argument_type,
                 is_auto_deref: false,
                 is_reference_to: *is_reference_to,
-                is_aliasing: *is_aliasing,
             };
             self.annotation_map.annotate_type_hint(statement, hint_annotation)
         }
@@ -1923,7 +1917,6 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> St
                 inner_type_name,
                 name: new_type_name.clone(),
                 is_reference_to: false,
-                is_aliasing: false,
             },
             location: SourceLocation::internal(),
         });
@@ -1984,7 +1977,6 @@ fn to_variable_annotation(
         argument_type: v.get_declaration_type(),
         is_auto_deref,
         is_reference_to: v_type.get_type_information().is_reference_to(),
-        is_aliasing: v_type.get_type_information().is_aliasing(),
     }
 }
 

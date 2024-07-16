@@ -51,7 +51,6 @@ fn references_to_variables_are_annotated() {
             argument_type: ArgumentType::ByVal(VariableType::Local),
             is_auto_deref: false,
             is_reference_to: false,
-            is_aliasing: false,
         }
     );
 
@@ -65,7 +64,6 @@ fn references_to_variables_are_annotated() {
             argument_type: ArgumentType::ByVal(VariableType::Global),
             is_auto_deref: false,
             is_reference_to: false,
-            is_aliasing: false,
         }
     );
 }
@@ -110,7 +108,6 @@ fn different_types_of_annotations() {
             constant: false,                  // whether this variable is a constant or not
             is_auto_deref: false,             // whether this pointerType should be automatically dereferenced
             is_reference_to: false, // whether this pointerType was declared as `REFERENCE TO`, making it auto-deref by default
-            is_aliasing: false, // whether this pointerType was declared as an alias making it auto-deref by default
             argument_type: ArgumentType::ByVal(VariableType::Input), // the type of declaration
         })
     );
@@ -161,7 +158,6 @@ fn different_types_of_annotations() {
             constant: false,
             is_auto_deref: false,
             is_reference_to: false,
-            is_aliasing: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
         })
     );
@@ -175,7 +171,6 @@ fn different_types_of_annotations() {
             constant: false,
             is_auto_deref: false,
             is_reference_to: false,
-            is_aliasing: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
         })
     );

@@ -490,7 +490,6 @@ pub enum DataType {
         auto_deref: bool,
         /// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
         is_reference_to: bool,
-        is_aliasing: bool,
     },
     StringType {
         name: Option<String>,

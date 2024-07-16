@@ -164,7 +164,6 @@ fn cast_expressions_of_enum_with_resolves_types() {
             argument_type: ArgumentType::ByVal(VariableType::Global),
             is_auto_deref: false,
             is_reference_to: false,
-            is_aliasing: false,
         })
     );
 
@@ -182,7 +181,6 @@ fn cast_expressions_of_enum_with_resolves_types() {
             argument_type: ArgumentType::ByVal(VariableType::Global),
             is_auto_deref: false,
             is_reference_to: false,
-            is_aliasing: false,
         })
     );
 }
@@ -1318,7 +1316,6 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
             is_auto_deref: false,
             argument_type: ArgumentType::ByVal(VariableType::Return),
             is_reference_to: false,
-            is_aliasing: false,
         }),
         foo_annotation
     );
@@ -1581,7 +1578,6 @@ fn qualified_expressions_dont_fallback_to_globals() {
             is_auto_deref: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
             is_reference_to: false,
-            is_aliasing: false,
         }),
         annotations.get(&statements[1])
     );
@@ -1824,7 +1820,6 @@ fn method_references_are_resolved() {
             is_auto_deref: false,
             argument_type: ArgumentType::ByVal(VariableType::Return),
             is_reference_to: false,
-            is_aliasing: false,
         }),
         annotation
     );
@@ -2460,7 +2455,6 @@ fn struct_member_explicit_initialization_test() {
             argument_type: ArgumentType::ByVal(VariableType::Input),
             is_auto_deref: false,
             is_reference_to: false,
-            is_aliasing: false,
         }),
         annotations.get(left)
     );
@@ -2476,7 +2470,6 @@ fn struct_member_explicit_initialization_test() {
             argument_type: ArgumentType::ByVal(VariableType::Input),
             is_auto_deref: false,
             is_reference_to: false,
-            is_aliasing: false,
         }),
         annotations.get(left)
     );
@@ -2959,7 +2952,6 @@ fn action_body_gets_resolved() {
                 is_auto_deref: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local),
                 is_reference_to: false,
-                is_aliasing: false,
             }),
             a
         );
@@ -3403,7 +3395,6 @@ fn address_of_is_annotated_correctly() {
             Some(&DataTypeInformation::Pointer {
                 is_reference_to: false,
                 auto_deref: false,
-                is_aliasing: false,
                 inner_type_name: "INT".to_string(),
                 name: "__POINTER_TO_INT".to_string(),
             }),
@@ -3488,7 +3479,6 @@ fn call_explicit_parameter_name_is_resolved() {
             argument_type: ArgumentType::ByVal(VariableType::Input),
             is_auto_deref: false,
             is_reference_to: false,
-            is_aliasing: false,
         }),
         annotations.get(b.as_ref())
     );
@@ -3501,7 +3491,6 @@ fn call_explicit_parameter_name_is_resolved() {
             argument_type: ArgumentType::ByVal(VariableType::Input),
             is_auto_deref: false,
             is_reference_to: false,
-            is_aliasing: false,
         }),
         annotations.get(a)
     );
@@ -3725,7 +3714,6 @@ fn function_block_initialization_test() {
                 argument_type: ArgumentType::ByVal(VariableType::Input),
                 is_auto_deref: false,
                 is_reference_to: false,
-                is_aliasing: false,
             }
         )
     } else {
@@ -3862,7 +3850,6 @@ fn resolve_return_variable_in_nested_call() {
                             argument_type: ArgumentType::ByVal(VariableType::Return),
                             is_auto_deref: false,
                             is_reference_to: false,
-                            is_aliasing: false,
                         }
                     )
                 }
@@ -5108,7 +5095,6 @@ fn annotate_variable_in_parent_class() {
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
                 is_reference_to: false,
-                is_aliasing: false,
             },
             annotation.unwrap()
         );
@@ -5125,7 +5111,6 @@ fn annotate_variable_in_parent_class() {
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
                 is_reference_to: false,
-                is_aliasing: false,
             },
             annotation.unwrap()
         );
@@ -5165,7 +5150,6 @@ fn annotate_variable_in_grandparent_class() {
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
                 is_reference_to: false,
-                is_aliasing: false,
             },
             annotation.unwrap()
         );
@@ -5212,7 +5196,6 @@ fn annotate_variable_in_field() {
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
                 is_reference_to: false,
-                is_aliasing: false,
             },
             annotation.unwrap()
         );
@@ -5271,7 +5254,6 @@ fn annotate_method_in_super() {
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
                 is_reference_to: false,
-                is_aliasing: false,
             },
             annotation.unwrap()
         );
@@ -5288,7 +5270,6 @@ fn annotate_method_in_super() {
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
                 is_reference_to: false,
-                is_aliasing: false,
             },
             annotation.unwrap()
         );
@@ -5305,7 +5286,6 @@ fn annotate_method_in_super() {
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
                 is_reference_to: false,
-                is_aliasing: false,
             },
             annotation.unwrap()
         );
@@ -5322,7 +5302,6 @@ fn annotate_method_in_super() {
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
                 is_reference_to: false,
-                is_aliasing: false,
             },
             annotation.unwrap()
         );
@@ -5339,7 +5318,6 @@ fn annotate_method_in_super() {
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
                 is_auto_deref: false,
                 is_reference_to: false,
-                is_aliasing: false,
             },
             annotation.unwrap()
         );

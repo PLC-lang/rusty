@@ -274,7 +274,6 @@ fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
                 inner_type_name: inner_type_name.to_string(),
                 auto_deref: true,
                 is_reference_to: false,
-                is_aliasing: false,
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),
@@ -402,20 +401,13 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
         DataType::ArrayType { name: Some(name), bounds, referenced_type, .. } => {
             visit_array(bounds, index, scope, referenced_type, name, type_declaration);
         }
-        DataType::PointerType {
-            name: Some(name),
-            referenced_type,
-            auto_deref,
-            is_reference_to,
-            is_aliasing,
-        } => {
+        DataType::PointerType { name: Some(name), referenced_type, auto_deref, is_reference_to } => {
             let inner_type_name = referenced_type.get_name().expect("named datatype");
             let information = DataTypeInformation::Pointer {
                 name: name.clone(),
                 inner_type_name: inner_type_name.into(),
                 auto_deref: *auto_deref,
                 is_reference_to: *is_reference_to,
-                is_aliasing: *is_aliasing,
             };
 
             let init = index.get_mut_const_expressions().maybe_add_constant_expression(
@@ -584,7 +576,6 @@ fn visit_variable_length_array(
                         }),
                         auto_deref: false,
                         is_reference_to: false,
-                        is_aliasing: false,
                     },
                     location: SourceLocation::undefined(),
                     scope: None,
