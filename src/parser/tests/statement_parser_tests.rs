@@ -323,7 +323,7 @@ fn reference_to_declaration() {
                             referenced_type: "DINT",
                         },
                         auto_deref: true,
-                        is_reference_to: true,
+                        kind: ReferenceTo,
                     },
                 },
             },
@@ -364,7 +364,7 @@ fn aliasing_dint_variable() {
                             referenced_type: "DINT",
                         },
                         auto_deref: true,
-                        is_reference_to: true,
+                        kind: Alias,
                     },
                 },
                 initializer: Some(

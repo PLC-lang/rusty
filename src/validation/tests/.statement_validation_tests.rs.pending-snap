@@ -1,0 +1,36 @@
+{"run_id":"1721145291-919972325","line":1618,"new":{"module_name":"rusty__validation__tests__statement_validation_tests","snapshot_name":"action_as_reference_does_not_cause_parentheses_diagnostic","metadata":{"source":"src/validation/tests/statement_validation_tests.rs","assertion_line":1618,"expression":"diagnostics"},"snapshot":"error[E037]: Invalid assignment: cannot assign 'FOO' to 'fb1'\n  ┌─ <internal>:7:28\n  │\n7 │             address := ADR(fb1.FOO);\n  │                            ^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'fb1'\n\nerror[E001]: asd\n  ┌─ <internal>:7:13\n  │\n7 │             address := ADR(fb1.FOO);\n  │             ^^^^^^^^^^^^^^^^^^^^^^^ asd\n\n"},"old":{"module_name":"rusty__validation__tests__statement_validation_tests","metadata":{},"snapshot":"error[E037]: Invalid assignment: cannot assign 'FOO' to 'fb1'\n  ┌─ <internal>:7:28\n  │\n7 │             address := ADR(fb1.FOO);\n  │                            ^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'fb1'"}}
+{"run_id":"1721145291-919972325","line":1655,"new":{"module_name":"rusty__validation__tests__statement_validation_tests","snapshot_name":"action_assignment_attempt_does_not_report_missing_parentheses","metadata":{"source":"src/validation/tests/statement_validation_tests.rs","assertion_line":1655,"expression":"diagnostics"},"snapshot":"error[E095]: A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`\n  ┌─ <internal>:7:28\n  │\n7 │             address := fb1.FOO;\n  │                            ^^^ A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`\n\nerror[E037]: Invalid assignment: cannot assign 'FOO' to 'LWORD'\n  ┌─ <internal>:7:13\n  │\n7 │             address := fb1.FOO;\n  │             ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'LWORD'\n\nerror[E001]: asd\n  ┌─ <internal>:7:13\n  │\n7 │             address := fb1.FOO;\n  │             ^^^^^^^^^^^^^^^^^^ asd\n\n"},"old":{"module_name":"rusty__validation__tests__statement_validation_tests","metadata":{},"snapshot":"error[E095]: A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`\n  ┌─ <internal>:7:28\n  │\n7 │             address := fb1.FOO;\n  │                            ^^^ A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`\n\nerror[E037]: Invalid assignment: cannot assign 'FOO' to 'LWORD'\n  ┌─ <internal>:7:13\n  │\n7 │             address := fb1.FOO;\n  │             ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'LWORD'"}}
+{"run_id":"1721145291-919972325","line":1781,"new":null,"old":null}
+{"run_id":"1721145291-919972325","line":1712,"new":null,"old":null}
+{"run_id":"1721145291-919972325","line":1803,"new":null,"old":null}
+{"run_id":"1721145291-919972325","line":1539,"new":null,"old":null}
+{"run_id":"1721145514-61360762","line":1655,"new":null,"old":null}
+{"run_id":"1721145514-61360762","line":1577,"new":null,"old":null}
+{"run_id":"1721145514-61360762","line":1618,"new":null,"old":null}
+{"run_id":"1721145514-61360762","line":1444,"new":null,"old":null}
+{"run_id":"1721145514-61360762","line":1498,"new":null,"old":null}
+{"run_id":"1721145514-61360762","line":1410,"new":null,"old":null}
+{"run_id":"1721145514-61360762","line":1781,"new":null,"old":null}
+{"run_id":"1721145514-61360762","line":1712,"new":null,"old":null}
+{"run_id":"1721145514-61360762","line":1803,"new":null,"old":null}
+{"run_id":"1721145514-61360762","line":1539,"new":null,"old":null}
+{"run_id":"1721145536-155319394","line":1655,"new":null,"old":null}
+{"run_id":"1721145536-155319394","line":1618,"new":null,"old":null}
+{"run_id":"1721145536-155319394","line":1577,"new":null,"old":null}
+{"run_id":"1721145536-155319394","line":1444,"new":null,"old":null}
+{"run_id":"1721145536-155319394","line":1498,"new":null,"old":null}
+{"run_id":"1721145536-155319394","line":1410,"new":null,"old":null}
+{"run_id":"1721145536-155319394","line":1781,"new":null,"old":null}
+{"run_id":"1721145536-155319394","line":1712,"new":null,"old":null}
+{"run_id":"1721145536-155319394","line":1803,"new":null,"old":null}
+{"run_id":"1721145536-155319394","line":1539,"new":null,"old":null}
+{"run_id":"1721145594-902428766","line":1577,"new":null,"old":null}
+{"run_id":"1721145594-902428766","line":1655,"new":null,"old":null}
+{"run_id":"1721145594-902428766","line":1618,"new":null,"old":null}
+{"run_id":"1721145594-902428766","line":1444,"new":null,"old":null}
+{"run_id":"1721145594-902428766","line":1410,"new":null,"old":null}
+{"run_id":"1721145594-902428766","line":1781,"new":null,"old":null}
+{"run_id":"1721145594-902428766","line":1498,"new":null,"old":null}
+{"run_id":"1721145594-902428766","line":1712,"new":null,"old":null}
+{"run_id":"1721145594-902428766","line":1803,"new":null,"old":null}
+{"run_id":"1721145594-902428766","line":1539,"new":null,"old":null}

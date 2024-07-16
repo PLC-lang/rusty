@@ -6,7 +6,7 @@ use std::{
 };
 
 use plc_ast::{
-    ast::{AstNode, Operator, PouType, TypeNature},
+    ast::{AstNode, Operator, PointerTypeMetadata, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
 use plc_source::source_location::SourceLocation;
@@ -391,8 +391,7 @@ pub enum DataTypeInformation {
         name: TypeId,
         inner_type_name: TypeId,
         auto_deref: bool,
-        /// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
-        is_reference_to: bool,
+        kind: PointerTypeMetadata,
     },
     Integer {
         name: TypeId,
@@ -447,7 +446,7 @@ impl DataTypeInformation {
 
     pub fn get_inner_name(&self) -> &str {
         match self {
-            DataTypeInformation::Pointer { inner_type_name, .. } => &inner_type_name,
+            DataTypeInformation::Pointer { inner_type_name, .. } => inner_type_name,
             _ => self.get_name(),
         }
     }
@@ -570,7 +569,22 @@ impl DataTypeInformation {
 
     /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
     pub fn is_reference_to(&self) -> bool {
-        matches!(self, DataTypeInformation::Pointer { is_reference_to: true, .. })
+        matches!(self, DataTypeInformation::Pointer { kind: PointerTypeMetadata::ReferenceTo, .. })
+    }
+
+    /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
+    pub fn is_alias(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { kind: PointerTypeMetadata::Alias, .. })
+    }
+
+    pub fn is_auto_deref(&self) -> bool {
+        // !matches!(self, DataTypeInformation::Pointer { kind: PointerTypeMetadata::None, .. })
+        matches!(
+            self,
+            DataTypeInformation::Pointer { kind: PointerTypeMetadata::Alias, .. }
+                | DataTypeInformation::Pointer { kind: PointerTypeMetadata::AutoDeref, .. }
+                | DataTypeInformation::Pointer { kind: PointerTypeMetadata::ReferenceTo, .. },
+        )
     }
 
     pub fn is_aggregate(&self) -> bool {

@@ -216,6 +216,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         // generate the expression
+        dbg!(&expression);
         match expression.get_stmt() {
             AstStatement::ReferenceExpr(data) => {
                 let res =
@@ -1297,13 +1298,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             // don't generate param assignments for empty statements, with the exception
             // of VAR_IN_OUT params - they need an address to point to
-            let is_auto_deref = matches!(
-                self.index
-                    .find_effective_type_by_name(parameter.get_type_name())
-                    .map(|var| var.get_type_information())
-                    .unwrap_or_else(|| self.index.get_void_type().get_type_information()),
-                DataTypeInformation::Pointer { auto_deref: true, .. }
-            );
+            let is_auto_deref = self
+                .index
+                .find_effective_type_by_name(parameter.get_type_name())
+                .map(|var| var.get_type_information())
+                .unwrap_or_else(|| self.index.get_void_type().get_type_information())
+                .is_auto_deref();
             if !right.is_empty_statement() || is_auto_deref {
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                     assignment: right,
@@ -1419,9 +1419,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         accessor_ptr: PointerValue<'ink>,
         statement: &AstNode,
     ) -> PointerValue<'ink> {
-        if let Some(StatementAnnotation::Variable { is_auto_deref: true, .. }) =
-            self.annotations.get(statement)
-        {
+        if self.annotations.get(statement).is_some_and(|opt| opt.is_auto_deref()) {
             self.deref(accessor_ptr)
         } else {
             accessor_ptr

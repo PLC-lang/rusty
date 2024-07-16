@@ -12,7 +12,8 @@ use plc_ast::{
     ast::{
         self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
-        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
+        Operator, PointerTypeMetadata, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
+        Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -392,9 +393,7 @@ pub enum StatementAnnotation {
         /// denotes the variable type of this variable, hence whether it is an input, output, etc.
         argument_type: ArgumentType,
         /// denotes whether this variable-reference should be automatically dereferenced when accessed
-        is_auto_deref: bool,
-        /// denotes whether this variable is declared as `REFERENCE TO` (e.g. `foo : REFERENCE TO DINT`)
-        is_reference_to: bool,
+        kind: PointerTypeMetadata,
     },
     /// a reference to a function
     Function {
@@ -435,8 +434,16 @@ impl StatementAnnotation {
         }
     }
 
+    pub fn is_alias(&self) -> bool {
+        matches!(self, StatementAnnotation::Variable { kind: PointerTypeMetadata::Alias, .. })
+    }
+
     pub fn is_auto_deref(&self) -> bool {
-        matches!(self, StatementAnnotation::Variable { is_auto_deref: true, .. })
+        if let StatementAnnotation::Variable { kind, .. } = self {
+            return *kind != PointerTypeMetadata::None;
+        }
+
+        false
     }
 
     pub fn data_type(type_name: &str) -> Self {
@@ -1034,7 +1041,9 @@ impl<'i> TypeAnnotator<'i> {
         // 2. assignments calling `REF` directly, e.g. `foo : REFERENCE TO DINT := REF(bar)` or
         // 3. reference assignment, e.g. `foo : REFERENCE TO DINT REF= bar`
         // ...but we don't want to wrap a `REF` call when dealing with 2. which would yield REF(REF(...))
-        if ty.get_type_information().is_reference_to() && !initializer.is_call_with_name("REF") {
+        if (ty.get_type_information().is_reference_to() || ty.get_type_information().is_alias())
+            && !initializer.is_call_with_name("REF")
+        {
             debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
 
             let mut id_provider = ctx.id_provider.clone();
@@ -1661,7 +1670,7 @@ impl<'i> TypeAnnotator<'i> {
         else {
             unreachable!("expected a vla reference, but got {statement:#?}");
         };
-        if let DataTypeInformation::Pointer { inner_type_name, is_reference_to, .. } = &self
+        if let DataTypeInformation::Pointer { inner_type_name, kind, .. } = &self
             .index
             .get_effective_type_or_void_by_name(
                 members.first().expect("internal VLA struct ALWAYS has this member").get_type_name(),
@@ -1696,8 +1705,7 @@ impl<'i> TypeAnnotator<'i> {
                 qualified_name: qualified_name.to_string(),
                 constant: false,
                 argument_type,
-                is_auto_deref: false,
-                is_reference_to: *is_reference_to,
+                kind: *kind,
             };
             self.annotation_map.annotate_type_hint(statement, hint_annotation)
         }
@@ -1909,10 +1917,10 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> St
             initial_value: None,
             nature: TypeNature::Any,
             information: DataTypeInformation::Pointer {
-                auto_deref: false,
-                inner_type_name,
                 name: new_type_name.clone(),
-                is_reference_to: false,
+                inner_type_name,
+                auto_deref: false,
+                kind: PointerTypeMetadata::None,
             },
             location: SourceLocation::internal(),
         });
@@ -1948,26 +1956,31 @@ fn to_variable_annotation(
     index: &Index,
     constant_override: bool,
 ) -> StatementAnnotation {
-    const AUTO_DEREF: bool = true;
-    const NO_DEREF: bool = false;
     let v_type = index.get_effective_type_or_void_by_name(v.get_type_name());
 
     //see if this is an auto-deref variable
-    let (effective_type_name, is_auto_deref) = match (v_type.get_type_information(), v.is_return()) {
+    let effective_type_name = match (v_type.get_type_information(), v.is_return()) {
         (_, true) if v_type.is_aggregate_type() => {
             // treat a return-aggregate variable like an auto-deref pointer since it got
             // passed by-ref
-            (v_type.get_name().to_string(), AUTO_DEREF)
-        }
-        (DataTypeInformation::Pointer { is_reference_to: true, .. }, _) => {
-            // real auto-deref pointer
-            (v_type.get_name().to_string(), AUTO_DEREF)
+            v_type.get_name().to_string()
         }
         (DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }, _) => {
             // real auto-deref pointer
-            (inner_type_name.clone(), AUTO_DEREF)
+            inner_type_name.clone()
         }
-        _ => (v_type.get_name().to_string(), NO_DEREF),
+        _ => v_type.get_name().to_string(),
+    };
+
+    let kind = match v_type.get_type_information() {
+        DataTypeInformation::Pointer { kind, .. } => *kind,
+        _ => {
+            if v_type.is_aggregate_type() && v.is_return() {
+                PointerTypeMetadata::AutoDeref
+            } else {
+                PointerTypeMetadata::None
+            }
+        }
     };
 
     StatementAnnotation::Variable {
@@ -1975,8 +1988,7 @@ fn to_variable_annotation(
         resulting_type: effective_type_name,
         constant: v.is_constant() || constant_override,
         argument_type: v.get_declaration_type(),
-        is_auto_deref,
-        is_reference_to: v_type.get_type_information().is_reference_to(),
+        kind,
     }
 }
 

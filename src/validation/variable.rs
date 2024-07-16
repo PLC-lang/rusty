@@ -221,7 +221,8 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
         return;
     };
 
-    if !variable_ty.get_type_information().is_reference_to() {
+    if !variable_ty.get_type_information().is_reference_to() && !variable_ty.get_type_information().is_alias()
+    {
         return;
     }
 
@@ -244,7 +245,7 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
 
     if let Some(ref initializer) = _variable.initializer {
         let type_lhs = context.index.find_type(inner_ty_name).unwrap();
-        let type_rhs = context.annotations.get_type(initializer, context.index).unwrap(); // TODO: I think this is wrong, currently `bar : DINT; foo : REFRENCE TO DINT := bar` will return a POINTER_TO_DINT for bar when in reality this is just a DINT?
+        let type_rhs = context.annotations.get_type(initializer, context.index).unwrap();
 
         validate_pointer_assignment(context, validator, type_lhs, type_rhs, &initializer.location);
     }

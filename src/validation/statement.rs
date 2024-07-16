@@ -87,6 +87,7 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.right, context);
 
             validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
+            validate_alias_assignment(validator, context, data, &statement.location);
             validate_array_assignment(validator, context, statement);
         }
         AstStatement::OutputAssignment(data) => {
@@ -100,6 +101,7 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.right, context);
 
             validate_ref_assignment(context, validator, data, &statement.location);
+            validate_alias_assignment(validator, context, data, &statement.location);
             validate_array_assignment(validator, context, statement);
         }
         AstStatement::CallStatement(data) => {
@@ -783,41 +785,30 @@ pub fn validate_pointer_assignment<T>(
     let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
 
     if type_info_lhs.is_array() && type_info_rhs.is_array() {
-        let mut messages = Vec::new();
-
         let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
         let len_rhs = type_info_rhs.get_array_length(context.index).unwrap_or_default();
-
-        if len_lhs != len_rhs {
-            messages.push("Invalid assignment, array lengths differ".to_string());
-        }
 
         let inner_ty_name_lhs = type_info_lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
         let inner_ty_name_rhs = type_info_rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
         let inner_ty_lhs = context.index.find_effective_type_by_name(inner_ty_name_lhs);
         let inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
 
-        if inner_ty_lhs != inner_ty_rhs {
-            messages.push(format!(
-                "Invalid assignment, array types {inner_ty_name_lhs} and {inner_ty_name_rhs} differ"
+        if len_lhs != len_rhs || inner_ty_lhs != inner_ty_rhs {
+            validator.push_diagnostic(Diagnostic::invalid_assignment(
+                &get_datatype_name_or_slice(validator.context, type_rhs),
+                &get_datatype_name_or_slice(validator.context, type_lhs),
+                assignment_location,
             ));
         }
-
-        for message in messages {
-            validator.push_diagnostic(
-                Diagnostic::new(message).with_location(assignment_location).with_error_code("E037"),
-            )
-        }
     } else if type_info_lhs != type_info_rhs {
-        validator.push_diagnostic(
-            Diagnostic::new(format!(
-                "Invalid assignment, types {} and {} differ",
-                get_datatype_name_or_slice(validator.context, type_lhs),
-                get_datatype_name_or_slice(validator.context, type_rhs),
-            ))
-            .with_location(assignment_location)
-            .with_error_code("E037"),
-        );
+        let type_name_lhs = get_datatype_name_or_slice(validator.context, type_lhs);
+        let type_name_rhs = get_datatype_name_or_slice(validator.context, type_rhs);
+
+        validator.push_diagnostic(Diagnostic::invalid_assignment(
+            &type_name_rhs,
+            &type_name_lhs,
+            assignment_location,
+        ));
     }
 }
 
@@ -829,6 +820,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
     assignment: &Assignment,
     assignment_location: &SourceLocation,
 ) {
+    let annotation_lhs = context.annotations.get(&assignment.left);
     let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
 
@@ -842,7 +834,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
     }
 
     // Assert that the left-hand side is a valid pointer-reference
-    if !type_lhs.is_pointer() {
+    if !type_lhs.is_pointer() && !annotation_lhs.is_some_and(|opt| opt.is_auto_deref()) {
         validator.push_diagnostic(
             Diagnostic::new("Invalid assignment, expected a pointer reference")
                 .with_location(&assignment.left.location)
@@ -851,6 +843,19 @@ fn validate_ref_assignment<T: AnnotationMap>(
     }
 
     validate_pointer_assignment(context, validator, type_lhs, type_rhs, assignment_location);
+}
+
+/// Returns a diagnostic if an alias declared variable is re-assigned in the POU body.
+fn validate_alias_assignment<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    assignment: &Assignment,
+    location: &SourceLocation,
+) {
+    // TODO: Error code
+    if context.annotations.get(&assignment.left).is_some_and(|opt| opt.is_alias()) {
+        validator.push_diagnostic(Diagnostic::new("alias re-assign error").with_location(location))
+    }
 }
 
 fn validate_assignment<T: AnnotationMap>(
@@ -947,11 +952,12 @@ fn validate_assignment<T: AnnotationMap>(
                     .with_location(location),
                 );
             } else {
-                validator.push_diagnostic(Diagnostic::invalid_assignment(
-                    &get_datatype_name_or_slice(validator.context, right_type),
-                    &get_datatype_name_or_slice(validator.context, left_type),
-                    location.clone(),
-                ));
+                validate_pointer_assignment(context, validator, left_type, right_type, location);
+                // validator.push_diagnostic(Diagnostic::invalid_assignment(
+                //     &get_datatype_name_or_slice(validator.context, right_type),
+                //     &get_datatype_name_or_slice(validator.context, left_type),
+                //     location.clone(),
+                // ));
             }
         } else {
             validate_assignment_type_sizes(validator, left_type, right, context)
@@ -1146,10 +1152,11 @@ fn is_invalid_pointer_assignment(
         return !typesystem::is_same_type_class(left_type, right_type, index);
     }
     //check if Datatype can hold a Pointer (u64)
-    else if right_type.is_pointer()
+    else if (right_type.is_pointer() && !right_type.is_auto_deref())
         && !left_type.is_pointer()
         && left_type.get_size_in_bits(index) < POINTER_SIZE
     {
+        dbg!(&right_type);
         validator.push_diagnostic(
             Diagnostic::new(format!(
                 "The type {} {} is too small to hold a Pointer",

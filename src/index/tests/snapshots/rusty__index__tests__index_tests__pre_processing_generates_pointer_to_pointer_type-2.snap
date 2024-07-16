@@ -11,7 +11,7 @@ UserTypeDeclaration {
             referenced_type: "__pointer_to_pointer",
         },
         auto_deref: false,
-        is_reference_to: false,
+        kind: None,
     },
     initializer: None,
     scope: None,

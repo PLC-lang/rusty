@@ -462,7 +462,9 @@ impl Debug for UserTypeDeclaration {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PointerTypeMetadata {
+    None,
     AutoDeref,
     /// A
     ReferenceTo,
@@ -496,8 +498,7 @@ pub enum DataType {
         name: Option<String>,
         referenced_type: Box<DataTypeDeclaration>,
         auto_deref: bool,
-        /// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
-        is_reference_to: bool,
+        kind: PointerTypeMetadata,
     },
     StringType {
         name: Option<String>,

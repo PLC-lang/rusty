@@ -201,7 +201,7 @@ impl<'i> TypeAnnotator<'i> {
                     .unwrap_or_else(|| member_name)
                     .to_string()
             }
-            Some(DataTypeInformation::Pointer { name, inner_type_name, auto_deref: true, .. }) => {
+            Some(DataTypeInformation::Pointer { name, inner_type_name, auto_deref: true, kind, .. }) => {
                 // This is an auto deref pointer (VAR_IN_OUT or VAR_INPUT {ref}) that points to a
                 // generic. We first resolve the generic type, then create a new pointer type of
                 // the combination
@@ -211,7 +211,7 @@ impl<'i> TypeAnnotator<'i> {
                     name: name.clone(),
                     inner_type_name,
                     auto_deref: true,
-                    is_reference_to: false,
+                    kind: *kind,
                 };
 
                 // Registers a new pointer type to the index

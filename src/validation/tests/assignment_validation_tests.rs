@@ -1261,11 +1261,11 @@ fn ref_assignments() {
     17 │             localINT            REF= localDINT;
        │             ^^^^^^^^ Invalid assignment, expected a pointer reference
 
-    error[E037]: Invalid assignment, types INT and DINT differ
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'INT'
        ┌─ <internal>:17:13
        │
     17 │             localINT            REF= localDINT;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types INT and DINT differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'INT'
 
     error[E098]: Invalid assignment, expected a reference
        ┌─ <internal>:18:38
@@ -1279,17 +1279,17 @@ fn ref_assignments() {
     19 │             localReferenceTo    REF= 1;
        │                                      ^ Invalid assignment, expected a reference
 
-    error[E037]: Invalid assignment, types REFERENCE TO DINT and INT differ
+    error[E037]: Invalid assignment: cannot assign 'INT' to 'DINT'
        ┌─ <internal>:21:13
        │
     21 │             localReferenceTo    REF= localINT;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO DINT and INT differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'DINT'
 
-    error[E037]: Invalid assignment, types REFERENCE TO DINT and STRING differ
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
        ┌─ <internal>:22:13
        │
     22 │             localReferenceTo    REF= localSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO DINT and STRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
     error[E098]: Invalid assignment, expected a reference
        ┌─ <internal>:23:38
@@ -1297,11 +1297,11 @@ fn ref_assignments() {
     23 │             localReferenceTo    REF= 'howdy';
        │                                      ^^^^^^^ Invalid assignment, expected a reference
 
-    error[E037]: Invalid assignment, types REFERENCE TO DINT and STRING differ
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
        ┌─ <internal>:23:13
        │
     23 │             localReferenceTo    REF= 'howdy';
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO DINT and STRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
     "###);
 }
@@ -1355,17 +1355,17 @@ fn ref_assignment_with_global_local_variables_and_aliased_types() {
     18 │                 invalidB : REFERENCE TO fooGlobal;
        │                            ^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
 
-    error[E037]: Invalid assignment, types REFERENCE TO DINT and INT differ
+    error[E037]: Invalid assignment: cannot assign 'INT' to 'DINT'
        ┌─ <internal>:28:13
        │
     28 │             referenceToFooFirstOfHisName  REF= intLocal;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO DINT and INT differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'DINT'
 
-    error[E037]: Invalid assignment, types REFERENCE TO DINT and STRING differ
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
        ┌─ <internal>:29:13
        │
     29 │             referenceToFooFirstOfHisName  REF= stringLocal;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO DINT and STRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
     "###);
 }
@@ -1388,17 +1388,11 @@ fn ref_assignment_with_reference_to_array_variable() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E037]: Invalid assignment, array lengths differ
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'REFERENCE TO ARRAY[1..5] OF DINT'
        ┌─ <internal>:10:13
        │
     10 │             arrReferenceDINT REF= arrSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, array lengths differ
-
-    error[E037]: Invalid assignment, array types DINT and STRING differ
-       ┌─ <internal>:10:13
-       │
-    10 │             arrReferenceDINT REF= arrSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, array types DINT and STRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'REFERENCE TO ARRAY[1..5] OF DINT'
 
     "###);
 }
@@ -1423,17 +1417,17 @@ fn ref_assignment_with_reference_to_string_variable() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E037]: Invalid assignment, types REFERENCE TO STRING and CHAR differ
+    error[E037]: Invalid assignment: cannot assign 'CHAR' to 'STRING'
        ┌─ <internal>:10:13
        │
     10 │             referenceToString REF= localCHAR;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO STRING and CHAR differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'STRING'
 
-    error[E037]: Invalid assignment, types REFERENCE TO STRING and WSTRING differ
+    error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
        ┌─ <internal>:12:13
        │
     12 │             referenceToString REF= localWSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO STRING and WSTRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
 
     "###);
 }
@@ -1534,18 +1528,18 @@ fn temp() {
     assert_eq!(diagnostics_messages_without_const_error.len(), 12);
     assert_debug_snapshot!(diagnostics_messages_without_const_error, @r###"
     [
-        "Invalid assignment, types DINT and SINT differ",
-        "Invalid assignment, types DINT and STRING differ",
-        "Invalid assignment, types DINT and __foo_arrayDintVar differ",
-        "Invalid assignment, types SINT and DINT differ",
-        "Invalid assignment, types SINT and STRING differ",
-        "Invalid assignment, types SINT and __foo_arrayDintVar differ",
-        "Invalid assignment, types STRING and DINT differ",
-        "Invalid assignment, types STRING and SINT differ",
-        "Invalid assignment, types STRING and __foo_arrayDintVar differ",
-        "Invalid assignment, types : ARRAY[1..5] OF DINT and DINT differ",
-        "Invalid assignment, types : ARRAY[1..5] OF DINT and SINT differ",
-        "Invalid assignment, types : ARRAY[1..5] OF DINT and STRING differ",
+        "Invalid assignment: cannot assign 'SINT' to 'DINT'",
+        "Invalid assignment: cannot assign 'STRING' to 'DINT'",
+        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'DINT'",
+        "Invalid assignment: cannot assign 'DINT' to 'SINT'",
+        "Invalid assignment: cannot assign 'STRING' to 'SINT'",
+        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'SINT'",
+        "Invalid assignment: cannot assign 'DINT' to 'STRING'",
+        "Invalid assignment: cannot assign 'SINT' to 'STRING'",
+        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'STRING'",
+        "Invalid assignment: cannot assign 'DINT' to ': ARRAY[1..5] OF DINT'",
+        "Invalid assignment: cannot assign 'SINT' to ': ARRAY[1..5] OF DINT'",
+        "Invalid assignment: cannot assign 'STRING' to ': ARRAY[1..5] OF DINT'",
     ]
     "###);
 }
