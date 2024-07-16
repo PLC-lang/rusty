@@ -831,8 +831,6 @@ fn validate_ref_assignment<T: AnnotationMap>(
 ) {
     let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
-    let annotation_lhs = context.annotations.get(&assignment.left);
-    let variable_lhs = context.index.find_variable_ast(context.qualifier, &assignment.left);
 
     // Assert that the right-hand side is a reference
     if !assignment.right.is_reference() {
@@ -844,24 +842,11 @@ fn validate_ref_assignment<T: AnnotationMap>(
     }
 
     // Assert that the left-hand side is a valid pointer-reference
-    if !annotation_lhs.is_some_and(StatementAnnotation::is_reference_to) && !type_lhs.is_pointer() {
+    if !type_lhs.is_pointer() {
         validator.push_diagnostic(
             Diagnostic::new("Invalid assignment, expected a pointer reference")
                 .with_location(&assignment.left.location)
                 .with_error_code("E098"),
-        )
-    }
-
-    // Assert that an initialized `REFERENCE TO` variable is not re-assigned in the body
-    if annotation_lhs.is_some_and(StatementAnnotation::is_reference_to)
-        && variable_lhs.is_some_and(|var| var.initial_value.is_some())
-    {
-        validator.push_diagnostic(
-            Diagnostic::new(
-                "Invalid assignment, can not re-assign already initialized `REFERENCE TO` variable",
-            )
-            .with_location(&assignment.left.location)
-            .with_error_code("E098"), // TODO: E098 content needs to be adjusted
         )
     }
 
@@ -1657,7 +1642,7 @@ pub(crate) mod helper {
 
     pub fn get_datatype_name_or_slice(context: &GlobalContext, dt: &DataType) -> String {
         if dt.is_internal() {
-            return dt.get_type_information().get_name().to_string();
+            return dt.get_type_information().get_inner_name().to_string();
         }
 
         context.slice(&dt.location)

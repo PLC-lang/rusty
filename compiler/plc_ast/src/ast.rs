@@ -462,6 +462,14 @@ impl Debug for UserTypeDeclaration {
     }
 }
 
+pub enum PointerTypeMetadata {
+    AutoDeref,
+    /// A
+    ReferenceTo,
+    /// A variable declared like `foo AT bar`
+    Alias,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum DataType {
     StructType {

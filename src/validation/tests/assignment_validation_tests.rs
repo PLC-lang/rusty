@@ -1279,17 +1279,17 @@ fn ref_assignments() {
     19 │             localReferenceTo    REF= 1;
        │                                      ^ Invalid assignment, expected a reference
 
-    error[E037]: Invalid assignment, types DINT and INT differ
+    error[E037]: Invalid assignment, types REFERENCE TO DINT and INT differ
        ┌─ <internal>:21:13
        │
     21 │             localReferenceTo    REF= localINT;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and INT differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO DINT and INT differ
 
-    error[E037]: Invalid assignment, types DINT and STRING differ
+    error[E037]: Invalid assignment, types REFERENCE TO DINT and STRING differ
        ┌─ <internal>:22:13
        │
     22 │             localReferenceTo    REF= localSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and STRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO DINT and STRING differ
 
     error[E098]: Invalid assignment, expected a reference
        ┌─ <internal>:23:38
@@ -1297,11 +1297,11 @@ fn ref_assignments() {
     23 │             localReferenceTo    REF= 'howdy';
        │                                      ^^^^^^^ Invalid assignment, expected a reference
 
-    error[E037]: Invalid assignment, types DINT and STRING differ
+    error[E037]: Invalid assignment, types REFERENCE TO DINT and STRING differ
        ┌─ <internal>:23:13
        │
     23 │             localReferenceTo    REF= 'howdy';
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and STRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO DINT and STRING differ
 
     "###);
 }
@@ -1355,17 +1355,17 @@ fn ref_assignment_with_global_local_variables_and_aliased_types() {
     18 │                 invalidB : REFERENCE TO fooGlobal;
        │                            ^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
 
-    error[E037]: Invalid assignment, types DINT and INT differ
+    error[E037]: Invalid assignment, types REFERENCE TO DINT and INT differ
        ┌─ <internal>:28:13
        │
     28 │             referenceToFooFirstOfHisName  REF= intLocal;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and INT differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO DINT and INT differ
 
-    error[E037]: Invalid assignment, types DINT and STRING differ
+    error[E037]: Invalid assignment, types REFERENCE TO DINT and STRING differ
        ┌─ <internal>:29:13
        │
     29 │             referenceToFooFirstOfHisName  REF= stringLocal;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and STRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO DINT and STRING differ
 
     "###);
 }
@@ -1423,17 +1423,17 @@ fn ref_assignment_with_reference_to_string_variable() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E037]: Invalid assignment, types STRING and CHAR differ
+    error[E037]: Invalid assignment, types REFERENCE TO STRING and CHAR differ
        ┌─ <internal>:10:13
        │
     10 │             referenceToString REF= localCHAR;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types STRING and CHAR differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO STRING and CHAR differ
 
-    error[E037]: Invalid assignment, types STRING and WSTRING differ
+    error[E037]: Invalid assignment, types REFERENCE TO STRING and WSTRING differ
        ┌─ <internal>:12:13
        │
     12 │             referenceToString REF= localWSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types STRING and WSTRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types REFERENCE TO STRING and WSTRING differ
 
     "###);
 }
@@ -1534,18 +1534,18 @@ fn temp() {
     assert_eq!(diagnostics_messages_without_const_error.len(), 12);
     assert_debug_snapshot!(diagnostics_messages_without_const_error, @r###"
     [
-        "Invalid assignment, types DINT and __POINTER_TO_SINT differ",
-        "Invalid assignment, types DINT and __POINTER_TO_STRING differ",
-        "Invalid assignment, types DINT and __POINTER_TO___foo_arrayDintVar differ",
-        "Invalid assignment, types SINT and __POINTER_TO_DINT differ",
-        "Invalid assignment, types SINT and __POINTER_TO_STRING differ",
-        "Invalid assignment, types SINT and __POINTER_TO___foo_arrayDintVar differ",
-        "Invalid assignment, types STRING and __POINTER_TO_DINT differ",
-        "Invalid assignment, types STRING and __POINTER_TO_SINT differ",
-        "Invalid assignment, types STRING and __POINTER_TO___foo_arrayDintVar differ",
-        "Invalid assignment, types : ARRAY[1..5] OF DINT and __POINTER_TO_DINT differ",
-        "Invalid assignment, types : ARRAY[1..5] OF DINT and __POINTER_TO_SINT differ",
-        "Invalid assignment, types : ARRAY[1..5] OF DINT and __POINTER_TO_STRING differ",
+        "Invalid assignment, types DINT and SINT differ",
+        "Invalid assignment, types DINT and STRING differ",
+        "Invalid assignment, types DINT and __foo_arrayDintVar differ",
+        "Invalid assignment, types SINT and DINT differ",
+        "Invalid assignment, types SINT and STRING differ",
+        "Invalid assignment, types SINT and __foo_arrayDintVar differ",
+        "Invalid assignment, types STRING and DINT differ",
+        "Invalid assignment, types STRING and SINT differ",
+        "Invalid assignment, types STRING and __foo_arrayDintVar differ",
+        "Invalid assignment, types : ARRAY[1..5] OF DINT and DINT differ",
+        "Invalid assignment, types : ARRAY[1..5] OF DINT and SINT differ",
+        "Invalid assignment, types : ARRAY[1..5] OF DINT and STRING differ",
     ]
     "###);
 }

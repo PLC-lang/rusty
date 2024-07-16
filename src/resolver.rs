@@ -439,10 +439,6 @@ impl StatementAnnotation {
         matches!(self, StatementAnnotation::Variable { is_auto_deref: true, .. })
     }
 
-    pub fn is_reference_to(&self) -> bool {
-        matches!(self, StatementAnnotation::Variable { is_reference_to: true, .. })
-    }
-
     pub fn data_type(type_name: &str) -> Self {
         StatementAnnotation::Type { type_name: type_name.into() }
     }
@@ -1961,6 +1957,10 @@ fn to_variable_annotation(
         (_, true) if v_type.is_aggregate_type() => {
             // treat a return-aggregate variable like an auto-deref pointer since it got
             // passed by-ref
+            (v_type.get_name().to_string(), AUTO_DEREF)
+        }
+        (DataTypeInformation::Pointer { is_reference_to: true, .. }, _) => {
+            // real auto-deref pointer
             (v_type.get_name().to_string(), AUTO_DEREF)
         }
         (DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }, _) => {

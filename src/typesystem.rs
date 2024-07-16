@@ -445,6 +445,13 @@ impl DataTypeInformation {
         }
     }
 
+    pub fn get_inner_name(&self) -> &str {
+        match self {
+            DataTypeInformation::Pointer { inner_type_name, .. } => &inner_type_name,
+            _ => self.get_name(),
+        }
+    }
+
     pub fn is_void(&self) -> bool {
         matches!(self, DataTypeInformation::Void)
     }
