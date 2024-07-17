@@ -1,4 +1,3 @@
-use plc_ast::ast::PointerTypeMetadata;
 use plc_ast::literals::AstLiteral;
 use plc_ast::{
     ast::{AstStatement, ReferenceAccess, ReferenceExpr, TypeNature},
@@ -313,7 +312,8 @@ fn enum_literals_target_are_annotated() {
                 qualified_name: "Color.Red".into(),
                 constant: true,
                 argument_type: ArgumentType::ByVal(crate::index::VariableType::Global),
-                kind: PointerTypeMetadata::None,
+                is_auto_deref: false,
+                kind: None,
             }),
             annotations.get(target)
         );

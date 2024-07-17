@@ -6,7 +6,7 @@ use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
         DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
-        LinkageType, PointerTypeMetadata, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr,
+        LinkageType, PointerMetadata, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr,
         TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
@@ -679,9 +679,9 @@ fn parse_data_type_definition(
         if expect_keyword_to(lexer).is_some() {
             lexer.advance();
         }
-        parse_pointer_definition(lexer, name, start_pos, PointerTypeMetadata::None)
+        parse_pointer_definition(lexer, name, start_pos, None)
     } else if lexer.try_consume(&KeywordRef) {
-        parse_pointer_definition(lexer, name, lexer.last_range.start, PointerTypeMetadata::None)
+        parse_pointer_definition(lexer, name, lexer.last_range.start, None)
     } else if lexer.try_consume(&KeywordParensOpen) {
         //enum without datatype
         parse_enum_type_definition(lexer, name)
@@ -704,16 +704,15 @@ fn parse_pointer_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
     start_pos: usize,
-    kind: PointerTypeMetadata,
+    kind: Option<PointerMetadata>,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
-    let temp = kind != PointerTypeMetadata::None;
     parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
         (
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::PointerType {
                     name,
                     referenced_type: Box::new(decl),
-                    auto_deref: temp,
+                    auto_deref: kind.is_some(),
                     kind,
                 },
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
@@ -1084,7 +1083,8 @@ fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> O
         todo!("error handling")
     }
 
-    let datatype = parse_pointer_definition(lexer, None, lexer.last_range.start, PointerTypeMetadata::Alias);
+    let datatype =
+        parse_pointer_definition(lexer, None, lexer.last_range.start, Some(PointerMetadata::Alias));
     if !lexer.try_consume(&KeywordSemicolon) {
         todo!("error handling")
     }
@@ -1154,7 +1154,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     let mut variables = vec![];
 
     let parse_definition_opt = if lexer.try_consume(&KeywordReferenceTo) {
-        parse_pointer_definition(lexer, None, lexer.last_range.start, PointerTypeMetadata::ReferenceTo)
+        parse_pointer_definition(lexer, None, lexer.last_range.start, Some(PointerMetadata::Reference))
     } else {
         parse_full_data_type_definition(lexer, None)
     };

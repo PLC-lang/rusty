@@ -1,8 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use insta::assert_debug_snapshot;
 use plc_ast::ast::{
-    pre_process, AstFactory, DataType, GenericBinding, LinkageType, Operator, PointerTypeMetadata,
-    TypeNature, UserTypeDeclaration,
+    pre_process, AstFactory, DataType, GenericBinding, LinkageType, Operator, TypeNature, UserTypeDeclaration,
 };
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
@@ -1254,7 +1253,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
             name: "__main_x".to_string(),
             inner_type_name: "INT".to_string(),
             auto_deref: false,
-            kind: PointerTypeMetadata::None,
+            kind: None,
         }
     );
 
@@ -1266,7 +1265,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
             name: "__auto_pointer_to_INT".to_string(),
             inner_type_name: "INT".to_string(),
             auto_deref: true,
-            kind: PointerTypeMetadata::AutoDeref,
+            kind: None,
         }
     );
 }
@@ -1306,7 +1305,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
             name: "__main_x".to_string(),
             inner_type_name: "INT".to_string(),
             auto_deref: false,
-            kind: PointerTypeMetadata::None,
+            kind: None,
         }
     );
 
@@ -1318,7 +1317,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
             name: "__auto_pointer_to_INT".to_string(),
             inner_type_name: "INT".to_string(),
             auto_deref: true,
-            kind: PointerTypeMetadata::AutoDeref,
+            kind: None,
         }
     );
 }

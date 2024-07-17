@@ -4,8 +4,8 @@ use crate::index::{ArgumentType, Index, MemberInfo};
 use crate::typesystem::{self, *};
 use plc_ast::ast::{
     self, ArgumentProperty, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-    DataTypeDeclaration, Implementation, PointerTypeMetadata, Pou, PouType, RangeStatement, TypeNature,
-    UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+    DataTypeDeclaration, Implementation, Pou, PouType, RangeStatement, TypeNature, UserTypeDeclaration,
+    Variable, VariableBlock, VariableBlockType,
 };
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -272,7 +272,7 @@ fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
             information: DataTypeInformation::Pointer {
                 name: type_name.clone(),
                 inner_type_name: inner_type_name.to_string(),
-                kind: PointerTypeMetadata::AutoDeref,
+                kind: None,
                 auto_deref: true,
             },
             nature: TypeNature::Any,
@@ -574,7 +574,7 @@ fn visit_variable_length_array(
                             referenced_type: dummy_array_name,
                             location: SourceLocation::undefined(),
                         }),
-                        kind: PointerTypeMetadata::None,
+                        kind: None,
                         auto_deref: false,
                     },
                     location: SourceLocation::undefined(),

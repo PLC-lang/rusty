@@ -1543,3 +1543,39 @@ fn temp() {
     ]
     "###);
 }
+
+#[test]
+fn reassigning_of_alias_variables_is_disallowed() {
+    let diagnostics = parse_and_validate(
+        r"
+        FUNCTION main
+            VAR
+                foo AT bar : DINT;
+                bar : DINT;
+            END_VAR
+
+            foo := bar;
+            //foo := REF(bar); // yields another error, because foo auto-derefs on assignments -- not sure if this is an error or not though
+            foo REF= bar;
+        END_FUNCTION
+        ",
+    );
+
+    // Note: This assertion must fail once init functions are implemented and can then also be deleted
+    assert!(diagnostics.iter().any(|diagnostics| diagnostics.get_error_code() == "E033"));
+
+    // TODO: Use parse_and_validate_buffered once above assertion is deleted
+    let diagnostics_messages_without_const_error = diagnostics
+        .iter()
+        .filter(|diagnostic| diagnostic.get_error_code() != "E033")
+        .map(|diagnostic| diagnostic.get_message())
+        .collect::<Vec<_>>();
+
+    assert_eq!(diagnostics_messages_without_const_error.len(), 2);
+    assert_debug_snapshot!(diagnostics_messages_without_const_error, @r###"
+    [
+        "Reassignment of alias variables is disallowed",
+        "Reassignment of alias variables is disallowed",
+    ]
+    "###);
+}

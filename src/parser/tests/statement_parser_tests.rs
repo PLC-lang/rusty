@@ -38,7 +38,7 @@ fn empty_statements_are_parsed_before_a_statement() {
                 empty_stmt(),
                 empty_stmt(),
                 AstFactory::create_member_reference(
-                    AstFactory::create_identifier("x", &SourceLocation::undefined(), 0),
+                    AstFactory::create_identifier("x", SourceLocation::undefined(), 0),
                     None,
                     0
                 ),
@@ -59,7 +59,7 @@ fn empty_statements_are_ignored_after_a_statement() {
     let expected_ast = format!(
         "{:#?}",
         AstFactory::create_member_reference(
-            AstFactory::create_identifier("x", &SourceLocation::undefined(), 0),
+            AstFactory::create_identifier("x", SourceLocation::undefined(), 0),
             None,
             0
         )
@@ -323,7 +323,9 @@ fn reference_to_declaration() {
                             referenced_type: "DINT",
                         },
                         auto_deref: true,
-                        kind: ReferenceTo,
+                        kind: Some(
+                            Reference,
+                        ),
                     },
                 },
             },
@@ -364,7 +366,9 @@ fn aliasing_dint_variable() {
                             referenced_type: "DINT",
                         },
                         auto_deref: true,
-                        kind: Alias,
+                        kind: Some(
+                            Alias,
+                        ),
                     },
                 },
                 initializer: Some(

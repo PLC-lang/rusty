@@ -1,4 +1,4 @@
-use plc_ast::ast::{AstStatement, PointerTypeMetadata, ReferenceAccess, ReferenceExpr};
+use plc_ast::ast::{AstStatement, ReferenceAccess, ReferenceExpr};
 
 use crate::{
     index::{ArgumentType, VariableType},
@@ -49,7 +49,8 @@ fn references_to_variables_are_annotated() {
             qualified_name: "prg.a".into(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Local),
-            kind: PointerTypeMetadata::None,
+            is_auto_deref: false,
+            kind: None,
         }
     );
 
@@ -61,7 +62,8 @@ fn references_to_variables_are_annotated() {
             qualified_name: "gX".into(),
             constant: true,
             argument_type: ArgumentType::ByVal(VariableType::Global),
-            kind: PointerTypeMetadata::None,
+            is_auto_deref: false,
+            kind: None,
         }
     );
 }
@@ -105,7 +107,8 @@ fn different_types_of_annotations() {
             resulting_type: "SINT".into(),    // the variable's type
             constant: false,                  // whether this variable is a constant or not
             argument_type: ArgumentType::ByVal(VariableType::Input), // the type of declaration
-            kind: PointerTypeMetadata::None,  // whether this pointer is auto-deref or not
+            is_auto_deref: false,
+            kind: None,
         })
     );
 
@@ -154,7 +157,8 @@ fn different_types_of_annotations() {
             resulting_type: "INT".into(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            kind: PointerTypeMetadata::None,
+            is_auto_deref: false,
+            kind: None,
         })
     );
 
@@ -166,7 +170,8 @@ fn different_types_of_annotations() {
             resulting_type: "INT".into(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            kind: PointerTypeMetadata::None,
+            is_auto_deref: false,
+            kind: None,
         })
     );
 }

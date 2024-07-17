@@ -12,7 +12,7 @@ use plc_ast::{
     ast::{
         self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
-        Operator, PointerTypeMetadata, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
+        Operator, PointerMetadata, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
         Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
@@ -393,7 +393,8 @@ pub enum StatementAnnotation {
         /// denotes the variable type of this variable, hence whether it is an input, output, etc.
         argument_type: ArgumentType,
         /// denotes whether this variable-reference should be automatically dereferenced when accessed
-        kind: PointerTypeMetadata,
+        is_auto_deref: bool,
+        kind: Option<PointerMetadata>,
     },
     /// a reference to a function
     Function {
@@ -435,12 +436,12 @@ impl StatementAnnotation {
     }
 
     pub fn is_alias(&self) -> bool {
-        matches!(self, StatementAnnotation::Variable { kind: PointerTypeMetadata::Alias, .. })
+        matches!(self, StatementAnnotation::Variable { kind: Some(PointerMetadata::Alias), .. })
     }
 
     pub fn is_auto_deref(&self) -> bool {
-        if let StatementAnnotation::Variable { kind, .. } = self {
-            return *kind != PointerTypeMetadata::None;
+        if let StatementAnnotation::Variable { is_auto_deref: true, .. } = self {
+            return true;
         }
 
         false
@@ -1705,6 +1706,7 @@ impl<'i> TypeAnnotator<'i> {
                 qualified_name: qualified_name.to_string(),
                 constant: false,
                 argument_type,
+                is_auto_deref: false,
                 kind: *kind,
             };
             self.annotation_map.annotate_type_hint(statement, hint_annotation)
@@ -1920,7 +1922,7 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> St
                 name: new_type_name.clone(),
                 inner_type_name,
                 auto_deref: false,
-                kind: PointerTypeMetadata::None,
+                kind: None,
             },
             location: SourceLocation::internal(),
         });
@@ -1956,31 +1958,22 @@ fn to_variable_annotation(
     index: &Index,
     constant_override: bool,
 ) -> StatementAnnotation {
+    const AUTO_DEREF: bool = true;
+    const NO_DEREF: bool = false;
     let v_type = index.get_effective_type_or_void_by_name(v.get_type_name());
 
     //see if this is an auto-deref variable
-    let effective_type_name = match (v_type.get_type_information(), v.is_return()) {
+    let (effective_type_name, is_auto_deref) = match (v_type.get_type_information(), v.is_return()) {
         (_, true) if v_type.is_aggregate_type() => {
             // treat a return-aggregate variable like an auto-deref pointer since it got
             // passed by-ref
-            v_type.get_name().to_string()
+            (v_type.get_name().to_string(), AUTO_DEREF)
         }
         (DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }, _) => {
             // real auto-deref pointer
-            inner_type_name.clone()
+            (inner_type_name.clone(), AUTO_DEREF)
         }
-        _ => v_type.get_name().to_string(),
-    };
-
-    let kind = match v_type.get_type_information() {
-        DataTypeInformation::Pointer { kind, .. } => *kind,
-        _ => {
-            if v_type.is_aggregate_type() && v.is_return() {
-                PointerTypeMetadata::AutoDeref
-            } else {
-                PointerTypeMetadata::None
-            }
-        }
+        _ => (v_type.get_name().to_string(), NO_DEREF),
     };
 
     StatementAnnotation::Variable {
@@ -1988,7 +1981,8 @@ fn to_variable_annotation(
         resulting_type: effective_type_name,
         constant: v.is_constant() || constant_override,
         argument_type: v.get_declaration_type(),
-        kind,
+        is_auto_deref,
+        kind: v_type.get_type_information().get_pointer_type(),
     }
 }
 

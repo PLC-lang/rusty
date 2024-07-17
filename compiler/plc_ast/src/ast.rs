@@ -462,16 +462,6 @@ impl Debug for UserTypeDeclaration {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum PointerTypeMetadata {
-    None,
-    AutoDeref,
-    /// A
-    ReferenceTo,
-    /// A variable declared like `foo AT bar`
-    Alias,
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum DataType {
     StructType {
@@ -498,7 +488,7 @@ pub enum DataType {
         name: Option<String>,
         referenced_type: Box<DataTypeDeclaration>,
         auto_deref: bool,
-        kind: PointerTypeMetadata,
+        kind: Option<PointerMetadata>,
     },
     StringType {
         name: Option<String>,
@@ -514,6 +504,14 @@ pub enum DataType {
         generic_symbol: String,
         nature: TypeNature,
     },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum PointerMetadata {
+    /// A variable declared with `AT`, e.g. `foo AT bar : DINT`
+    Alias,
+    /// A variable declared with `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
+    Reference,
 }
 
 impl DataType {

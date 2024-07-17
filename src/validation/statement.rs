@@ -854,7 +854,11 @@ fn validate_alias_assignment<T: AnnotationMap>(
 ) {
     // TODO: Error code
     if context.annotations.get(&assignment.left).is_some_and(|opt| opt.is_alias()) {
-        validator.push_diagnostic(Diagnostic::new("alias re-assign error").with_location(location))
+        validator.push_diagnostic(
+            Diagnostic::new("Reassignment of alias variables is disallowed")
+                .with_location(location)
+                .with_error_code("E100"),
+        )
     }
 }
 

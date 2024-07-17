@@ -2,8 +2,8 @@
 use crate::{parser::tests::ref_to, test_utils::tests::parse_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
-    AccessModifier, AstFactory, DataType, DataTypeDeclaration, LinkageType, PointerTypeMetadata,
-    UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+    AccessModifier, AstFactory, DataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable,
+    VariableBlock, VariableBlockType,
 };
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
@@ -1129,7 +1129,7 @@ fn pointer_type_without_to_test() {
                 location: SourceLocation::undefined(),
             }),
             auto_deref: false,
-            kind: PointerTypeMetadata::None,
+            kind: None,
         },
         location: SourceLocation::undefined(),
         initializer: None,
@@ -1157,7 +1157,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
                 location: SourceLocation::undefined(),
             }),
             auto_deref: false,
-            kind: PointerTypeMetadata::None,
+            kind: None,
         },
         location: SourceLocation::undefined(),
         initializer: None,

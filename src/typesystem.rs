@@ -6,7 +6,7 @@ use std::{
 };
 
 use plc_ast::{
-    ast::{AstNode, Operator, PointerTypeMetadata, PouType, TypeNature},
+    ast::{AstNode, Operator, PointerMetadata, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
 use plc_source::source_location::SourceLocation;
@@ -391,7 +391,7 @@ pub enum DataTypeInformation {
         name: TypeId,
         inner_type_name: TypeId,
         auto_deref: bool,
-        kind: PointerTypeMetadata,
+        kind: Option<PointerMetadata>,
     },
     Integer {
         name: TypeId,
@@ -569,22 +569,16 @@ impl DataTypeInformation {
 
     /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
     pub fn is_reference_to(&self) -> bool {
-        matches!(self, DataTypeInformation::Pointer { kind: PointerTypeMetadata::ReferenceTo, .. })
+        matches!(self, DataTypeInformation::Pointer { kind: Some(PointerMetadata::Reference), .. })
     }
 
     /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
     pub fn is_alias(&self) -> bool {
-        matches!(self, DataTypeInformation::Pointer { kind: PointerTypeMetadata::Alias, .. })
+        matches!(self, DataTypeInformation::Pointer { kind: Some(PointerMetadata::Alias), .. })
     }
 
     pub fn is_auto_deref(&self) -> bool {
-        // !matches!(self, DataTypeInformation::Pointer { kind: PointerTypeMetadata::None, .. })
-        matches!(
-            self,
-            DataTypeInformation::Pointer { kind: PointerTypeMetadata::Alias, .. }
-                | DataTypeInformation::Pointer { kind: PointerTypeMetadata::AutoDeref, .. }
-                | DataTypeInformation::Pointer { kind: PointerTypeMetadata::ReferenceTo, .. },
-        )
+        matches!(self, DataTypeInformation::Pointer { auto_deref: true, .. })
     }
 
     pub fn is_aggregate(&self) -> bool {
@@ -594,6 +588,14 @@ impl DataTypeInformation {
                 | DataTypeInformation::Array { .. }
                 | DataTypeInformation::String { .. }
         )
+    }
+
+    pub fn get_pointer_type(&self) -> Option<PointerMetadata> {
+        if let DataTypeInformation::Pointer { kind, .. } = self {
+            return *kind;
+        }
+
+        None
     }
 
     pub fn is_date_or_time_type(&self) -> bool {
