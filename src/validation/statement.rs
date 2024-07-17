@@ -87,7 +87,6 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.right, context);
 
             validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
-            validate_alias_assignment(validator, context, data, &statement.location);
             validate_array_assignment(validator, context, statement);
         }
         AstStatement::OutputAssignment(data) => {
@@ -101,7 +100,7 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.right, context);
 
             validate_ref_assignment(context, validator, data, &statement.location);
-            validate_alias_assignment(validator, context, data, &statement.location);
+            validate_alias_assignment(validator, context, statement);
             validate_array_assignment(validator, context, statement);
         }
         AstStatement::CallStatement(data) => {
@@ -845,22 +844,23 @@ fn validate_ref_assignment<T: AnnotationMap>(
     validate_pointer_assignment(context, validator, type_lhs, type_rhs, assignment_location);
 }
 
-/// Returns a diagnostic if an alias declared variable is re-assigned in the POU body.
+/// Returns a diagnostic if an alias declared variables address is re-assigned in the POU body.
 fn validate_alias_assignment<T: AnnotationMap>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
-    assignment: &Assignment,
-    location: &SourceLocation,
+    ref_assignment: &AstNode,
 ) {
-    if context.annotations.get(&assignment.left).is_some_and(|opt| opt.is_alias()) {
-        validator.push_diagnostic(
-            Diagnostic::new(format!(
-                "{} is an immutable alias variable",
-                validator.context.slice(&assignment.left.location)
-            ))
-            .with_location(location)
-            .with_error_code("E100"),
-        )
+    if let AstStatement::RefAssignment(Assignment { left, .. }) = ref_assignment.get_stmt() {
+        if context.annotations.get(left).is_some_and(|opt| opt.is_alias()) {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "{} is an immutable alias variable, can not change the address",
+                    validator.context.slice(&left.location)
+                ))
+                .with_location(&ref_assignment.location)
+                .with_error_code("E100"),
+            )
+        }
     }
 }
 

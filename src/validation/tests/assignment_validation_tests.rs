@@ -1552,11 +1552,12 @@ fn reassignment_of_alias_variables_is_disallowed() {
             VAR
                 foo AT bar : DINT;
                 bar : DINT;
+                baz : DINT;
             END_VAR
 
-            foo := bar;
-            //foo := REF(bar); // yields another error, because foo auto-derefs on assignments -- not sure if this is an error or not though
-            foo REF= bar;
+            foo := bar;         // Valid, the dereferenced value of `foo` is being changed
+            foo := baz;         // Valid, same reason as above
+            foo REF= bar;       // Invalid, the address of `foo` is being changed
         END_FUNCTION
         ",
     );
@@ -1571,11 +1572,10 @@ fn reassignment_of_alias_variables_is_disallowed() {
         .map(|diagnostic| diagnostic.get_message())
         .collect::<Vec<_>>();
 
-    assert_eq!(diagnostics_messages_without_const_error.len(), 2);
+    assert_eq!(diagnostics_messages_without_const_error.len(), 1);
     assert_debug_snapshot!(diagnostics_messages_without_const_error, @r###"
     [
-        "foo is an immutable alias variable",
-        "foo is an immutable alias variable",
+        "foo is an immutable alias variable, can not change the address",
     ]
     "###);
 }
