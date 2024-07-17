@@ -1080,19 +1080,25 @@ fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
 fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> Option<Variable> {
     let reference = parse_reference(lexer);
     if !lexer.try_consume(&KeywordColon) {
-        todo!("error handling")
+        lexer.accept_diagnostic(Diagnostic::missing_token(
+            format!("{KeywordColon:?}").as_str(),
+            lexer.location(),
+        ));
     }
 
     let datatype =
         parse_pointer_definition(lexer, None, lexer.last_range.start, Some(PointerMetadata::Alias));
     if !lexer.try_consume(&KeywordSemicolon) {
-        todo!("error handling")
+        lexer.accept_diagnostic(Diagnostic::missing_token(
+            format!("{KeywordSemicolon:?}").as_str(),
+            lexer.location(),
+        ));
     }
 
     if let Some((data_type, _)) = datatype {
         return Some(Variable {
             name: names.0.clone(),
-            data_type_declaration: data_type.clone(),
+            data_type_declaration: data_type,
             location: lexer.source_range_factory.create_range(names.1.clone()),
             initializer: Some(reference),
             address: None,

@@ -590,7 +590,7 @@ impl DataTypeInformation {
         )
     }
 
-    pub fn get_pointer_type(&self) -> Option<PointerMetadata> {
+    pub fn get_pointer_metadata(&self) -> Option<PointerMetadata> {
         if let DataTypeInformation::Pointer { kind, .. } = self {
             return *kind;
         }

@@ -9,7 +9,7 @@ use crate::{
 };
 
 #[test]
-fn temp5() {
+fn initializer_with_ref_call_annotated_as_pointer() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "
@@ -57,7 +57,7 @@ fn temp5() {
 }
 
 #[test]
-fn temp4() {
+fn initializer_with_refassignment_annotated_with_replacementast() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "
@@ -112,7 +112,7 @@ fn temp4() {
 }
 
 #[test]
-fn temp() {
+fn initializer_of_alias_annotated_with_replacementast() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "
@@ -167,7 +167,7 @@ fn temp() {
 }
 
 #[test]
-fn temp3() {
+fn initializer_of_alias_annotated_with_replacementast_array() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
         "

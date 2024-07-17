@@ -1126,15 +1126,6 @@ impl Index {
         self.find_variable(q.as_deref(), &segments[..])
     }
 
-    // TODO: `node` could be a trait, "NodeName"?
-    pub fn find_variable_ast(&self, context: Option<&str>, node: &AstNode) -> Option<&VariableIndexEntry> {
-        if let Some(name) = node.get_flat_reference_name() {
-            return self.find_variable(context, &[name]);
-        }
-
-        None
-    }
-
     pub fn find_variable(&self, context: Option<&str>, segments: &[&str]) -> Option<&VariableIndexEntry> {
         if segments.is_empty() {
             return None;

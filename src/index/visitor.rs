@@ -272,8 +272,8 @@ fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
             information: DataTypeInformation::Pointer {
                 name: type_name.clone(),
                 inner_type_name: inner_type_name.to_string(),
-                kind: None,
                 auto_deref: true,
+                kind: None,
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),

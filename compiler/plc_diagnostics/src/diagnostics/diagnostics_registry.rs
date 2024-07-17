@@ -201,7 +201,7 @@ lazy_static! {
         E097,   Error,      include_str!("./error_codes/E097.md"),  // Invalid Array Range
         E098,   Error,      include_str!("./error_codes/E098.md"),  // Invalid `REF=` assignment
         E099,   Error,      include_str!("./error_codes/E099.md"),  // Invalid `REFERENCE TO` declaration
-        E100,   Error,      include_str!("./error_codes/E100.md"),  // Reassignment of alias variables
+        E100,   Error,      include_str!("./error_codes/E100.md"),  // Immutable (alias) variable
     );
 }
 

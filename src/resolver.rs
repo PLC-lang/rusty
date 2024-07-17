@@ -1042,9 +1042,9 @@ impl<'i> TypeAnnotator<'i> {
         // 2. assignments calling `REF` directly, e.g. `foo : REFERENCE TO DINT := REF(bar)` or
         // 3. reference assignment, e.g. `foo : REFERENCE TO DINT REF= bar`
         // ...but we don't want to wrap a `REF` call when dealing with 2. which would yield REF(REF(...))
-        if (ty.get_type_information().is_reference_to() || ty.get_type_information().is_alias())
-            && !initializer.is_call_with_name("REF")
-        {
+        let is_alias = ty.get_type_information().is_alias();
+        let is_reference_to = ty.get_type_information().is_reference_to();
+        if (is_alias || is_reference_to) && !initializer.is_call_with_name("REF") {
             debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
 
             let mut id_provider = ctx.id_provider.clone();
@@ -1982,7 +1982,7 @@ fn to_variable_annotation(
         constant: v.is_constant() || constant_override,
         argument_type: v.get_declaration_type(),
         is_auto_deref,
-        kind: v_type.get_type_information().get_pointer_type(),
+        kind: v_type.get_type_information().get_pointer_metadata(),
     }
 }
 

@@ -852,12 +852,14 @@ fn validate_alias_assignment<T: AnnotationMap>(
     assignment: &Assignment,
     location: &SourceLocation,
 ) {
-    // TODO: Error code
     if context.annotations.get(&assignment.left).is_some_and(|opt| opt.is_alias()) {
         validator.push_diagnostic(
-            Diagnostic::new("Reassignment of alias variables is disallowed")
-                .with_location(location)
-                .with_error_code("E100"),
+            Diagnostic::new(format!(
+                "{} is an immutable alias variable",
+                validator.context.slice(&assignment.left.location)
+            ))
+            .with_location(location)
+            .with_error_code("E100"),
         )
     }
 }
@@ -957,11 +959,6 @@ fn validate_assignment<T: AnnotationMap>(
                 );
             } else {
                 validate_pointer_assignment(context, validator, left_type, right_type, location);
-                // validator.push_diagnostic(Diagnostic::invalid_assignment(
-                //     &get_datatype_name_or_slice(validator.context, right_type),
-                //     &get_datatype_name_or_slice(validator.context, left_type),
-                //     location.clone(),
-                // ));
             }
         } else {
             validate_assignment_type_sizes(validator, left_type, right, context)
@@ -1160,7 +1157,6 @@ fn is_invalid_pointer_assignment(
         && !left_type.is_pointer()
         && left_type.get_size_in_bits(index) < POINTER_SIZE
     {
-        dbg!(&right_type);
         validator.push_diagnostic(
             Diagnostic::new(format!(
                 "The type {} {} is too small to hold a Pointer",

@@ -118,7 +118,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ///
     /// - `statement` the statement to be generated
     pub fn generate_statement(&self, statement: &AstNode) -> Result<(), Diagnostic> {
-        dbg!(&statement);
         match statement.get_stmt() {
             AstStatement::EmptyStatement(..) => {
                 //nothing to generate

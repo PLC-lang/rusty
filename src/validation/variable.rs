@@ -214,7 +214,7 @@ fn validate_variable<T: AnnotationMap>(
 fn validate_reference_to_declaration<T: AnnotationMap>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
-    _variable: &Variable,
+    variable: &Variable,
     variable_entry: &VariableIndexEntry,
 ) {
     let Some(variable_ty) = context.index.find_effective_type_by_name(variable_entry.get_type_name()) else {
@@ -243,7 +243,7 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
         );
     }
 
-    if let Some(ref initializer) = _variable.initializer {
+    if let Some(ref initializer) = variable.initializer {
         let type_lhs = context.index.find_type(inner_ty_name).unwrap();
         let type_rhs = context.annotations.get_type(initializer, context.index).unwrap();
 

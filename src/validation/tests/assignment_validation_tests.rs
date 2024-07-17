@@ -1481,7 +1481,7 @@ fn invalid_reference_to_declaration() {
 }
 
 #[test]
-fn temp() {
+fn alias_variable_type_check() {
     let diagnostics = parse_and_validate(
         r"
         FUNCTION foo
@@ -1545,7 +1545,7 @@ fn temp() {
 }
 
 #[test]
-fn reassigning_of_alias_variables_is_disallowed() {
+fn reassignment_of_alias_variables_is_disallowed() {
     let diagnostics = parse_and_validate(
         r"
         FUNCTION main
@@ -1574,8 +1574,8 @@ fn reassigning_of_alias_variables_is_disallowed() {
     assert_eq!(diagnostics_messages_without_const_error.len(), 2);
     assert_debug_snapshot!(diagnostics_messages_without_const_error, @r###"
     [
-        "Reassignment of alias variables is disallowed",
-        "Reassignment of alias variables is disallowed",
+        "foo is an immutable alias variable",
+        "foo is an immutable alias variable",
     ]
     "###);
 }

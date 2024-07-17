@@ -508,9 +508,9 @@ pub enum DataType {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PointerMetadata {
-    /// A variable declared with `AT`, e.g. `foo AT bar : DINT`
+    /// Variable declared as an alias, e.g. `foo AT bar : DINT`
     Alias,
-    /// A variable declared with `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
+    /// Variable declared as an reference, e.g. `foo : REFERENCE TO DINT`
     Reference,
 }
 
