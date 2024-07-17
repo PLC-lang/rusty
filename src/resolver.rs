@@ -768,12 +768,7 @@ impl<'i> TypeAnnotator<'i> {
         }
 
         for pou in &unit.units {
-            // if &pou.name == "foo" {
-            //     let x = unit.implementations.iter().filter(|it| it.name == "foo").collect::<Vec<_>>()[0];
-            //     dbg!(x);
-            //     panic!();
-            // }
-
+            visitor.visit_pou(ctx, pou);
             if let Some(init) =
                 unresolved
                     .iter()
@@ -814,41 +809,22 @@ impl<'i> TypeAnnotator<'i> {
                     super_class: None,
                 };
 
-                /*
-                
-                ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "ps",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "self",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                }
-
-                 */
-
                 // TODO: figure out elegant way to do this
                 let lhs = AstFactory::create_member_reference(
-                    // TODO: has no type annotation and is therefore validated as unresolved reference.
                     AstFactory::create_identifier(
                         &format!("ps"), 
                         &SourceLocation::internal(),
                         id_provider.next_id(),
                     ), 
-                    Some(AstFactory::create_identifier(
-                                            &format!("foo"), 
-                                            &SourceLocation::internal(),
-                                            id_provider.next_id(),
-                                        )),
+                    Some(AstFactory::create_member_reference(
+                        AstFactory::create_identifier(
+                            &format!("self"), 
+                            &SourceLocation::internal(),
+                            id_provider.next_id(),
+                        ),
+                        None, // deeply nested qualified references might be tricky here
+                        id_provider.next_id(),
+                    )),
                     id_provider.next_id(),
                 );
 
@@ -880,8 +856,6 @@ impl<'i> TypeAnnotator<'i> {
                 };
 
                 pre_process(&mut new_unit, id_provider.clone()); // XXX: is this required?
-                let (new_annotations, _, _ /* these can probably be ignored */) = TypeAnnotator::visit_unit(&index, &new_unit, id_provider, unresolved);
-                // XXX: do I need to merge the new index with the existing index before visiting the new unit? I don't think so, since these values should only be duplicates anyway. need to verify
                 let idx = index::visitor::visit(&new_unit);
                 visitor.annotation_map.new_units.push(new_unit);
                 visitor.annotation_map.new_index.import(idx);
@@ -890,7 +864,6 @@ impl<'i> TypeAnnotator<'i> {
                 // TODO: seems kinda convoluted. check how param dependencies are normally resolved/added
                 let init_param = visitor.annotation_map.new_index.find_parameter(&init_fn_name, 0).expect("just created, must exist");
                 visitor.dependencies.insert(Dependency::Datatype(init_param.data_type_name.to_string()));
-                visitor.annotation_map.import(new_annotations);
             };
         }
 
