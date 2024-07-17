@@ -24,7 +24,6 @@ use crate::{
 
 use super::index::*;
 
-use const_expressions::InitingIsHardInnit;
 use inkwell::{
     context::Context,
     execution_engine::{ExecutionEngine, JitFunction},

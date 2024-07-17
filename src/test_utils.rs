@@ -99,7 +99,7 @@ pub mod tests {
         index: &mut Index,
         id_provider: IdProvider,
     ) -> AnnotationMapImpl {
-        let (mut annotations, ..) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
+        let (mut annotations, ..) = TypeAnnotator::visit_unit(index, parse_result, id_provider, &FxIndexMap::default());
         index.import(std::mem::take(&mut annotations.new_index));
         annotations
     }
@@ -125,7 +125,7 @@ pub mod tests {
         let (unit, index, mut diagnostics) = do_index(src, ctxt.provider());
 
         let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, ctxt.provider());
+        let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, ctxt.provider(), &FxIndexMap::default());
         index.import(std::mem::take(&mut annotations.new_index));
 
         let mut validator = Validator::new(&ctxt);
@@ -152,7 +152,7 @@ pub mod tests {
 
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, dependencies, literals) =
-            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
+            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone(), &FxIndexMap::default());
         index.import(std::mem::take(&mut annotations.new_index));
 
         let context = CodegenContext::create();
@@ -172,7 +172,6 @@ pub mod tests {
                 &literals,
                 &dependencies,
                 &index,
-                &FxIndexMap::default(),
             )
             .map_err(|err| {
                 reporter.handle(&[err]);
@@ -180,7 +179,7 @@ pub mod tests {
             })?;
 
         code_generator
-            .generate(&context, &unit, &annotations, &index, &llvm_index, &FxIndexMap::default())
+            .generate(&context, &unit, &annotations, &index, &llvm_index)
             .map(|module| module.persist_to_string())
             .map_err(|err| {
                 reporter.handle(&[err]);
@@ -223,7 +222,7 @@ pub mod tests {
             .into_iter()
             .map(|unit| {
                 let (mut annotation, dependencies, literals) =
-                    TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
+                    TypeAnnotator::visit_unit(&index, &unit, id_provider.clone(), &FxIndexMap::default());
                 index.import(std::mem::take(&mut annotation.new_index));
                 all_annotations.import(annotation);
                 (unit, dependencies, literals)
@@ -248,7 +247,6 @@ pub mod tests {
                     &literals,
                     &dependencies,
                     &index,
-                    &FxIndexMap::default(),
                 )?;
 
                 code_generator.generate(
@@ -257,7 +255,6 @@ pub mod tests {
                     &annotations,
                     &index,
                     &llvm_index,
-                    &FxIndexMap::default(),
                 )
             })
             .collect::<Result<Vec<_>, Diagnostic>>()

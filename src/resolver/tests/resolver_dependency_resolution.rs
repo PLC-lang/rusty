@@ -1,3 +1,4 @@
+use helper::visit_unit;
 use plc_ast::provider::IdProvider;
 use plc_source::SourceCode;
 
@@ -20,7 +21,7 @@ fn primitive_datatypes_resolved() {
         id_provider.clone(),
     );
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
     assert_eq!(dependencies.len(), 2);
@@ -43,7 +44,7 @@ fn implicit_primitive_datatypes_resolved() {
         id_provider.clone(),
     );
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("USINT".into())));
@@ -75,7 +76,7 @@ fn aggregate_type_resolved() {
         id_provider.clone(),
     );
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("__prog_x".into())));
@@ -105,7 +106,7 @@ fn recursive_types_resolved() {
         id_provider.clone(),
     );
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("myStruct".into())));
@@ -139,14 +140,14 @@ fn multiple_units_aggregate_resolved() {
     let mut index = index1;
     index.import(index2);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit1, id_provider.clone());
+    let (_, dependencies, _) = visit_unit(&index, &unit1, id_provider.clone());
     assert!(dependencies.contains(&Dependency::Datatype("__myStruct_z".into())));
     assert!(dependencies.contains(&Dependency::Datatype("INT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("myStruct".into())));
     assert_eq!(dependencies.len(), 4);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit2, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("myStruct".into())));
     assert!(dependencies.contains(&Dependency::Datatype("__myStruct_z".into())));
@@ -181,7 +182,7 @@ fn multiple_units_aggregate_resolved_recursive() {
     let mut index = index1;
     index.import(index2);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit2, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("fb".into())));
     assert!(dependencies.contains(&Dependency::Datatype("myStruct".into())));
     assert!(dependencies.contains(&Dependency::Datatype("__myStruct_y".into())));
@@ -229,7 +230,7 @@ fn enum_dependency_resolution() {
     index.import(index2);
     index.import(index3);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider.clone());
+    let (_, dependencies, _) = visit_unit(&index, &unit2, id_provider.clone());
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("myEnum".into())));
     assert!(dependencies.contains(&Dependency::Datatype("LINT".into())));
@@ -237,7 +238,7 @@ fn enum_dependency_resolution() {
     assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
     assert_eq!(dependencies.len(), 5);
     // Make sure prog2 does not have enum depedencies
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit3, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog2".into())));
     assert_eq!(dependencies.len(), 1);
 }
@@ -265,7 +266,7 @@ fn alias_dependency_resolution() {
     let mut index = index1;
     index.import(index2);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit2, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("myAlias".into())));
     assert!(dependencies.contains(&Dependency::Datatype("LINT".into())));
@@ -297,7 +298,7 @@ fn subrange_dependency_resolution() {
     let mut index = index1;
     index.import(index2);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit2, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("myRange".into())));
     assert!(dependencies.contains(&Dependency::Datatype("LINT".into())));
@@ -326,7 +327,7 @@ fn function_dependency_resolution() {
     let mut index = index1;
     index.import(index2);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit2, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Call("foo".into())));
     assert!(dependencies.contains(&Dependency::Datatype("foo".into())));
@@ -369,7 +370,7 @@ fn function_params_dependency_resolution() {
     let mut index = index1;
     index.import(index2);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit2, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Call("foo".into())));
     assert!(dependencies.contains(&Dependency::Datatype("foo".into())));
@@ -417,7 +418,7 @@ fn program_params_dependency_resolution() {
     let mut index = index1;
     index.import(index2);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit2, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Call("foo".into())));
     assert!(dependencies.contains(&Dependency::Datatype("foo".into())));
@@ -467,7 +468,7 @@ fn function_block_params_dependency_resolution() {
     let mut index = index1;
     index.import(index2);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit2, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("fb".into())));
     assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
@@ -500,7 +501,7 @@ fn action_dependency_resolution() {
     let mut index = index1;
     index.import(index2);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit1, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit1, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog.foo".into())));
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert_eq!(dependencies.len(), 2);
@@ -535,7 +536,7 @@ fn action_dependency_resolution_with_variables() {
     index.import(index2);
     index.import(index3);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog.foo".into())));
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
@@ -568,7 +569,7 @@ fn action_dependency_resolution_with_function_block() {
     let mut index = index1;
     index.import(index2);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("fb".into())));
     assert_eq!(dependencies.len(), 2);
@@ -601,7 +602,7 @@ fn chained_function_dependency_resoltion() {
     index.import(index2);
     index.import(index3);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit3, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Call("foo".into())));
     assert!(dependencies.contains(&Dependency::Datatype("foo".into())));
@@ -633,7 +634,7 @@ fn generic_function_concrete_type_resolved() {
     let mut index = index1;
     index.import(index2);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit2, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Call("foo".into())));
     assert!(dependencies.contains(&Dependency::Datatype("foo".into())));
@@ -675,19 +676,29 @@ fn global_variables_dependencies_resolved() {
     index.import(index2);
     index.import(index3);
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit1, id_provider.clone());
+    let (_, dependencies, _) = visit_unit(&index, &unit1, id_provider.clone());
     assert!(dependencies.contains(&Dependency::Variable("x".into())));
     assert!(dependencies.contains(&Dependency::Datatype("INT".into())));
     assert_eq!(dependencies.len(), 2);
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider.clone());
+    let (_, dependencies, _) = visit_unit(&index, &unit2, id_provider.clone());
     assert!(dependencies.contains(&Dependency::Variable("y".into())));
     assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
     assert_eq!(dependencies.len(), 2);
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    let (_, dependencies, _) = visit_unit(&index, &unit3, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("INT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
     assert!(dependencies.contains(&Dependency::Variable("x".into())));
     assert!(dependencies.contains(&Dependency::Variable("y".into())));
     assert_eq!(dependencies.len(), 5);
+}
+
+mod helper {
+    use plc_ast::{ast::CompilationUnit, provider::IdProvider};
+
+    use crate::{index::{FxIndexMap, FxIndexSet, Index}, resolver::{AnnotationMapImpl, Dependency, StringLiterals, TypeAnnotator}};
+
+    pub(super) fn visit_unit(index: &Index, unit: &CompilationUnit, id_provider: IdProvider) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
+        TypeAnnotator::visit_unit(&index, &unit, id_provider, &FxIndexMap::default())
+    }
 }

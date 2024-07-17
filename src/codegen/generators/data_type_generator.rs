@@ -1,7 +1,5 @@
-use crate::codegen::const_expressions::InitingIsHardInnit;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::codegen::debug::Debug;
-use crate::codegen::FxIndexMap;
 use crate::index::{FxIndexSet, Index, VariableIndexEntry, VariableType};
 use crate::resolver::{AstAnnotations, Dependency};
 use crate::typesystem::{self, DataTypeInformation, Dimension, StringEncoding, StructSource};
