@@ -73,7 +73,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             };
 
             if varargs.is_some() {
-                member_varargs = varargs.clone();
+                member_varargs.clone_from(&varargs);
             }
 
             let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);

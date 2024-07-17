@@ -281,7 +281,7 @@ fn replace_generic_type_name(dt: &mut DataTypeDeclaration, generics: &FxHashMap<
         },
         DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
             if let Some(type_name) = generics.get(referenced_type) {
-                *referenced_type = type_name.clone();
+                referenced_type.clone_from(type_name);
             }
         }
     }

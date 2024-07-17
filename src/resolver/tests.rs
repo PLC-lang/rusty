@@ -8,9 +8,16 @@ mod resolver_dependency_resolution;
 mod helper {
     use plc_ast::{ast::CompilationUnit, provider::IdProvider};
 
-    use crate::{index::{FxIndexMap, FxIndexSet, Index}, resolver::{AnnotationMapImpl, Dependency, StringLiterals, TypeAnnotator}};
+    use crate::{
+        index::{FxIndexMap, FxIndexSet, Index},
+        resolver::{AnnotationMapImpl, Dependency, StringLiterals, TypeAnnotator},
+    };
 
-    pub(super) fn visit_unit(index: &Index, unit: &CompilationUnit, id_provider: IdProvider) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
-        TypeAnnotator::visit_unit(&index, &unit, id_provider, &FxIndexMap::default())
+    pub(super) fn visit_unit(
+        index: &Index,
+        unit: &CompilationUnit,
+        id_provider: IdProvider,
+    ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
+        TypeAnnotator::visit_unit(index, unit, id_provider, &FxIndexMap::default())
     }
 }

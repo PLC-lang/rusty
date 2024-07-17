@@ -60,7 +60,7 @@ impl<'xml> Parseable for Pou<'xml> {
                     let actions: Vec<Action<'_>> = Parseable::visit(reader, Some(tag))?;
                     for mut action in actions.into_iter() {
                         // Copy the action type names
-                        action.type_name = pou.name.clone();
+                        action.type_name.clone_from(&pou.name);
                         pou.actions.push(action);
                     }
                 }

@@ -6,7 +6,7 @@ use plc_ast::{
 
 use crate::{
     assert_type_and_hint,
-    resolver::{tests::helper::visit_unit, AnnotationMap, StatementAnnotation, TypeAnnotator},
+    resolver::{tests::helper::visit_unit, AnnotationMap, StatementAnnotation},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE,

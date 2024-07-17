@@ -99,7 +99,8 @@ pub mod tests {
         index: &mut Index,
         id_provider: IdProvider,
     ) -> AnnotationMapImpl {
-        let (mut annotations, ..) = TypeAnnotator::visit_unit(index, parse_result, id_provider, &FxIndexMap::default());
+        let (mut annotations, ..) =
+            TypeAnnotator::visit_unit(index, parse_result, id_provider, &FxIndexMap::default());
         index.import(std::mem::take(&mut annotations.new_index));
         annotations
     }
@@ -125,7 +126,8 @@ pub mod tests {
         let (unit, index, mut diagnostics) = do_index(src, ctxt.provider());
 
         let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, ctxt.provider(), &FxIndexMap::default());
+        let (mut annotations, ..) =
+            TypeAnnotator::visit_unit(&index, &unit, ctxt.provider(), &FxIndexMap::default());
         index.import(std::mem::take(&mut annotations.new_index));
 
         let mut validator = Validator::new(&ctxt);
@@ -166,13 +168,7 @@ pub mod tests {
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         let llvm_index = code_generator
-            .generate_llvm_index(
-                &context,
-                &annotations,
-                &literals,
-                &dependencies,
-                &index,
-            )
+            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)
             .map_err(|err| {
                 reporter.handle(&[err]);
                 reporter.buffer().unwrap()
@@ -249,13 +245,7 @@ pub mod tests {
                     &index,
                 )?;
 
-                code_generator.generate(
-                    context,
-                    &unit,
-                    &annotations,
-                    &index,
-                    &llvm_index,
-                )
+                code_generator.generate(context, &unit, &annotations, &index, &llvm_index)
             })
             .collect::<Result<Vec<_>, Diagnostic>>()
     }

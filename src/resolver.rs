@@ -10,7 +10,10 @@ use std::hash::Hash;
 
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, pre_process, Assignment, AstFactory, AstId, AstNode, AstStatement, BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Implementation, JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock
+        self, flatten_expression_list, pre_process, Assignment, AstFactory, AstId, AstNode, AstStatement,
+        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Implementation,
+        JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
+        UserTypeDeclaration, Variable, VariableBlock,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -19,10 +22,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-use crate::index::{
-    self, const_expressions::InitingIsHardInnit, FxIndexMap, FxIndexSet, ImplementationIndexEntry,
-    ImplementationType,
-};
+use crate::index::{self, const_expressions::InitingIsHardInnit, FxIndexMap, FxIndexSet};
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -762,7 +762,6 @@ impl<'i> TypeAnnotator<'i> {
         dbg!(&unit);
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
-            let x = dbg!(index.find_init_fn(&global_variable.name));
             visitor.dependencies.insert(Dependency::Variable(global_variable.name.to_string()));
             visitor.visit_variable(ctx, global_variable);
         }
@@ -792,7 +791,7 @@ impl<'i> TypeAnnotator<'i> {
                         .with_variables(vec![Variable {
                             name: "self".into(),
                             data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                                referenced_type: format!("{}", &pou.name),
+                                referenced_type: pou.name.to_string(),
                                 location: SourceLocation::internal(),
                             },
                             initializer: None,
@@ -811,14 +810,10 @@ impl<'i> TypeAnnotator<'i> {
 
                 // TODO: figure out elegant way to do this
                 let lhs = AstFactory::create_member_reference(
-                    AstFactory::create_identifier(
-                        &format!("ps"), 
-                        &SourceLocation::internal(),
-                        id_provider.next_id(),
-                    ), 
+                    AstFactory::create_identifier("ps", &SourceLocation::internal(), id_provider.next_id()),
                     Some(AstFactory::create_member_reference(
                         AstFactory::create_identifier(
-                            &format!("self"), 
+                            "self",
                             &SourceLocation::internal(),
                             id_provider.next_id(),
                         ),
@@ -828,11 +823,8 @@ impl<'i> TypeAnnotator<'i> {
                     id_provider.next_id(),
                 );
 
-                let init_stmt = AstFactory::create_assignment(
-                    lhs,
-                    init.initializer.clone(),
-                    id_provider.next_id(),
-                );
+                let init_stmt =
+                    AstFactory::create_assignment(lhs, init.initializer.clone(), id_provider.next_id());
 
                 let implementation = Implementation {
                     name: init_fn_name.clone(),
@@ -862,7 +854,11 @@ impl<'i> TypeAnnotator<'i> {
                 visitor.dependencies.insert(Dependency::Call(init_fn_name.to_string())); // TODO: I'd rather not do this manually. figure out a more idiomatic way to resolve and collect newly added deps
 
                 // TODO: seems kinda convoluted. check how param dependencies are normally resolved/added
-                let init_param = visitor.annotation_map.new_index.find_parameter(&init_fn_name, 0).expect("just created, must exist");
+                let init_param = visitor
+                    .annotation_map
+                    .new_index
+                    .find_parameter(&init_fn_name, 0)
+                    .expect("just created, must exist");
                 visitor.dependencies.insert(Dependency::Datatype(init_param.data_type_name.to_string()));
             };
         }

@@ -6,7 +6,7 @@ use plc_ast::{
     provider::IdProvider,
 };
 
-use crate::{assert_type_and_hint, test_utils::tests::index_with_ids, TypeAnnotator};
+use crate::{assert_type_and_hint, test_utils::tests::index_with_ids};
 
 use super::helper::visit_unit;
 

@@ -156,7 +156,7 @@ pub fn generate_data_types<'ink>(
             .into_iter()
             .map(|(name, ty)| {
                 if let Some(initfn) = index.find_init_fn(name) {
-                    println!("hacky af"); 
+                    println!("hacky af");
                     abcd.push(initfn.get_name());
                 }
                 errors
@@ -168,8 +168,8 @@ pub fn generate_data_types<'ink>(
         if diags.len() > abcd.len() {
             //Report the operation failure
             return Err(Diagnostic::new("Some initial values were not generated")
-            .with_error_code("E075")
-            .with_sub_diagnostics(diags)); // FIXME: these sub-diagnostics aren't printed to the console
+                .with_error_code("E075")
+                .with_sub_diagnostics(diags)); // FIXME: these sub-diagnostics aren't printed to the console
         }
     }
     Ok(generator.types_index)

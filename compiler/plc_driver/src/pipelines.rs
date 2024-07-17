@@ -179,12 +179,13 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             .collect::<Vec<_>>();
 
         for (mut unit, mut annotation, dependencies, literals) in result {
-                std::mem::take(&mut annotation.new_units).into_iter().for_each(|u| {
-                    full_index.import(std::mem::take(&mut annotation.new_index));
-                    let (a, _, _) = TypeAnnotator::visit_unit(&full_index, &u, id_provider.clone(), &init_fn_candidates);
-                    annotation.import(a);
-                    unit.import(u); 
-                }); 
+            std::mem::take(&mut annotation.new_units).into_iter().for_each(|u| {
+                full_index.import(std::mem::take(&mut annotation.new_index));
+                let (a, _, _) =
+                    TypeAnnotator::visit_unit(&full_index, &u, id_provider.clone(), &init_fn_candidates);
+                annotation.import(a);
+                unit.import(u);
+            });
 
             annotated_units.push((unit, dependencies, literals));
             all_annotations.import(annotation);
@@ -310,13 +311,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             dependencies,
             &self.index,
         )?;
-        code_generator.generate(
-            context,
-            unit,
-            &self.annotations,
-            &self.index,
-            &llvm_index,
-        )
+        code_generator.generate(context, unit, &self.annotations, &self.index, &llvm_index)
     }
 
     pub fn codegen_single_module<'ctx>(
