@@ -1537,9 +1537,9 @@ fn alias_variable_type_check() {
         "Invalid assignment: cannot assign 'DINT' to 'STRING'",
         "Invalid assignment: cannot assign 'SINT' to 'STRING'",
         "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'STRING'",
-        "Invalid assignment: cannot assign 'DINT' to ': ARRAY[1..5] OF DINT'",
-        "Invalid assignment: cannot assign 'SINT' to ': ARRAY[1..5] OF DINT'",
-        "Invalid assignment: cannot assign 'STRING' to ': ARRAY[1..5] OF DINT'",
+        "Invalid assignment: cannot assign 'DINT' to 'ARRAY[1..5] OF DINT'",
+        "Invalid assignment: cannot assign 'SINT' to 'ARRAY[1..5] OF DINT'",
+        "Invalid assignment: cannot assign 'STRING' to 'ARRAY[1..5] OF DINT'",
     ]
     "###);
 }

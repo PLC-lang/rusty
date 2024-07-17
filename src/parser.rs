@@ -1086,8 +1086,8 @@ fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> O
         ));
     }
 
-    let datatype =
-        parse_pointer_definition(lexer, None, lexer.last_range.start, Some(PointerMetadata::Alias));
+    let start = &lexer.location().get_span().to_range().unwrap_or(lexer.last_range.clone()).start;
+    let datatype = parse_pointer_definition(lexer, None, *start, Some(PointerMetadata::Alias));
     if !lexer.try_consume(&KeywordSemicolon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
             format!("{KeywordSemicolon:?}").as_str(),
