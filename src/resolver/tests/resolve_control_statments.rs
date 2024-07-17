@@ -8,6 +8,8 @@ use plc_ast::{
 
 use crate::{assert_type_and_hint, test_utils::tests::index_with_ids, TypeAnnotator};
 
+use super::helper::visit_unit;
+
 #[test]
 fn binary_expressions_resolves_types() {
     let id_provider = IdProvider::default();
@@ -20,7 +22,7 @@ fn binary_expressions_resolves_types() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     if let AstStatement::ControlStatement(AstControlStatement::ForLoop(ForLoopStatement {

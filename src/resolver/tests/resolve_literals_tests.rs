@@ -5,10 +5,11 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
+use crate::resolver::tests::helper::visit_unit;
 use crate::{
     assert_type_and_hint,
     index::ArgumentType,
-    resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
+    resolver::{AnnotationMap, StatementAnnotation},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{DataType, DataTypeInformation, StringEncoding, TypeSize, DINT_TYPE},
 };
@@ -23,7 +24,7 @@ fn bool_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     assert_eq!("BOOL", annotations.get_type_or_void(&statements[0], &index).get_name());
@@ -43,7 +44,7 @@ fn string_literals_are_annotated() {
     );
 
     //WHEN they are annotated
-    let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (mut annotations, ..) = visit_unit(&index, &unit, id_provider);
     index.import(std::mem::take(&mut annotations.new_index));
 
     // THEN we expect them to be annotated with correctly sized string types
@@ -94,7 +95,7 @@ fn int_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT"];
@@ -123,7 +124,7 @@ fn date_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = [
@@ -155,7 +156,7 @@ fn long_date_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = ["TIME", "DATE", "DATE_AND_TIME", "TIME_OF_DAY"];
@@ -174,7 +175,7 @@ fn real_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = ["REAL", "REAL"];
@@ -204,7 +205,7 @@ fn casted_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL"];
@@ -248,7 +249,7 @@ fn enum_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let actual_resolves: Vec<&str> =
@@ -272,7 +273,7 @@ fn enum_literals_target_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = visit_unit(&index, &unit, id_provider);
     let color_red = &unit.implementations[0].statements[0];
 
     let DataTypeInformation::Enum { name, variants, referenced_type } =
@@ -338,7 +339,7 @@ fn casted_inner_literals_are_annotated() {
             END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (annotations, ..) = visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
     let expected_types = vec!["SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL"];
     let actual_types: Vec<&str> = statements

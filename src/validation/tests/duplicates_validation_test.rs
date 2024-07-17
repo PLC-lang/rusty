@@ -9,7 +9,7 @@ use plc_source::source_location::SourceLocationFactory;
 use plc_source::SourceCode;
 
 use crate::{
-    index::{visitor, Index},
+    index::{visitor, FxIndexMap, Index},
     lexer, parser,
     resolver::TypeAnnotator,
     test_utils::tests::parse_and_validate_buffered,
@@ -481,9 +481,9 @@ fn duplicate_with_generic() {
     global_index.import(index3); //import file 3
 
     // AND the resolvers does its job
-    let (mut annotations1, ..) = TypeAnnotator::visit_unit(&global_index, &unit1, ctxt.provider());
-    let (mut annotations2, ..) = TypeAnnotator::visit_unit(&global_index, &unit2, ctxt.provider());
-    let (mut annotations3, ..) = TypeAnnotator::visit_unit(&global_index, &unit3, ctxt.provider());
+    let (mut annotations1, ..) = TypeAnnotator::visit_unit(&global_index, &unit1, ctxt.provider(), &FxIndexMap::default());
+    let (mut annotations2, ..) = TypeAnnotator::visit_unit(&global_index, &unit2, ctxt.provider(), &FxIndexMap::default());
+    let (mut annotations3, ..) = TypeAnnotator::visit_unit(&global_index, &unit3, ctxt.provider(), &FxIndexMap::default());
     global_index.import(std::mem::take(&mut annotations1.new_index));
     global_index.import(std::mem::take(&mut annotations2.new_index));
     global_index.import(std::mem::take(&mut annotations3.new_index));

@@ -1,9 +1,8 @@
-use helper::visit_unit;
 use plc_ast::provider::IdProvider;
 use plc_source::SourceCode;
 
 use crate::{
-    resolver::{Dependency, TypeAnnotator},
+    resolver::{tests::helper::visit_unit, Dependency},
     test_utils::tests::index_with_ids,
 };
 
@@ -691,14 +690,4 @@ fn global_variables_dependencies_resolved() {
     assert!(dependencies.contains(&Dependency::Variable("x".into())));
     assert!(dependencies.contains(&Dependency::Variable("y".into())));
     assert_eq!(dependencies.len(), 5);
-}
-
-mod helper {
-    use plc_ast::{ast::CompilationUnit, provider::IdProvider};
-
-    use crate::{index::{FxIndexMap, FxIndexSet, Index}, resolver::{AnnotationMapImpl, Dependency, StringLiterals, TypeAnnotator}};
-
-    pub(super) fn visit_unit(index: &Index, unit: &CompilationUnit, id_provider: IdProvider) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
-        TypeAnnotator::visit_unit(&index, &unit, id_provider, &FxIndexMap::default())
-    }
 }
