@@ -5,7 +5,7 @@ vendor=0
 offline=0
 check=0
 check_style=0
-build=0
+build=1
 doc=0
 test=0
 lit=0
@@ -128,7 +128,7 @@ function run_doc() {
     log "Building book"
     log "Building preprocessor for the book"
     cargo build --release -p errorcode_book_generator
-    cd book && mdbook build 
+    cd book && mdbook build
     # test is disabled because not all files in the book exist. The pre-processor for error codes adds new files
     # mdbook test
 }
