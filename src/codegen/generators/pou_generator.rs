@@ -161,7 +161,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         debug: &mut DebugBuilderEnum<'ink>,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let mut llvm_index = LlvmTypedIndex::default();
-        let implementations = dbg!(dependencies)
+        let implementations = dependencies
             .into_iter()
             .filter_map(|it| {
                 if let Dependency::Call(name) | Dependency::Datatype(name) = it {

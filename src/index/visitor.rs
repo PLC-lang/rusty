@@ -30,17 +30,6 @@ pub fn visit(unit: &CompilationUnit) -> Index {
         visit_pou(&mut index, pou);
     }
 
-    // XXX: should this be it's own function?
-    let entry = PouIndexEntry::Function {
-        name: "__init".into(),
-        return_type: VOID_TYPE.into(),
-        generics: vec![],
-        linkage: ast::LinkageType::Internal,
-        is_variadic: false,
-        location: SourceLocation::internal(),
-        is_generated: true,
-    };
-    index.register_pou(entry); //XXX is this done multiple times?
 
     for implementation in &unit.implementations {
         visit_implementation(&mut index, implementation);

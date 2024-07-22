@@ -14,7 +14,7 @@ use ast::{
 use plc::index::{const_expressions::UnresolvableKind, FxIndexMap, FxIndexSet};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::{const_expressions::InitingIsHardInnit, Index},
+    index::Index,
     output::FormatOption,
     parser::parse_file,
     resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
@@ -153,15 +153,12 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             .into_iter()
             .filter_map(|it| {
                 if let Some(UnresolvableKind::InitLater(init)) = it.kind {
-                    Some((init.target_type_name.clone(), init))
+                    Some((init.scope.clone().unwrap_or("__global".into()), init)) // todo: only supports one global, needs to be a vec
                 } else {
                     None
                 }
             })
             .collect::<FxIndexMap<_, _>>();
-        // XXX: candidates with a scope are members of structs/pous - these also cannot be initialized due to having dependencies on
-        // the member-candidates.
-        dbg!(&init_fn_candidates);
 
         //Create and call the annotator
         let mut annotated_units = Vec::new();
@@ -189,18 +186,24 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
 
             annotated_units.push((unit, dependencies, literals));
             all_annotations.import(annotation);
-        }
-
+        }      
+        
         full_index.import(std::mem::take(&mut all_annotations.new_index));
 
-        let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+        // TODO: clean up imports
+        let (mut idx, unit, mut init_deps) = TypeAnnotator::create_init_unit(&full_index, &id_provider);
+        full_index.import(std::mem::take(&mut idx));
+        let (a, deps, _) = TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), &init_fn_candidates);
+        init_deps.extend(deps);
+        annotated_units.push((unit, init_deps, StringLiterals::default()));
+        all_annotations.import(a);
 
+        let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
         AnnotatedProject {
             project: self.project.project,
             units: annotated_units,
             index: full_index,
             annotations,
-            unresolved_initializers: init_fn_candidates,
         }
     }
 
@@ -219,7 +222,6 @@ pub struct AnnotatedProject<T: SourceContainer + Sync> {
     pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
     pub index: Index,
     pub annotations: AstAnnotations,
-    pub unresolved_initializers: FxIndexMap<String, InitingIsHardInnit>,
 }
 
 impl<T: SourceContainer + Sync> AnnotatedProject<T> {
@@ -303,7 +305,6 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types
-        println!("generating llvm_index");
         let llvm_index = code_generator.generate_llvm_index(
             context,
             &self.annotations,

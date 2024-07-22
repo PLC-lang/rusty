@@ -152,11 +152,10 @@ pub fn generate_data_types<'ink>(
     if !types_to_init.is_empty() {
         let mut abcd = vec![];
         //Report each error as a new diagnostic, add the type's location as related to the error
-        let diags = dbg!(types_to_init)
+        let diags = types_to_init
             .into_iter()
             .map(|(name, ty)| {
                 if let Some(initfn) = index.find_init_fn(name) {
-                    println!("hacky af");
                     abcd.push(initfn.get_name());
                 }
                 errors

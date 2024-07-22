@@ -759,8 +759,6 @@ impl<'i> TypeAnnotator<'i> {
             in_control: false,
         };
 
-        dbg!(&unit);
-
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
             visitor.dependencies.insert(Dependency::Variable(global_variable.name.to_string()));
             visitor.visit_variable(ctx, global_variable);
@@ -768,36 +766,36 @@ impl<'i> TypeAnnotator<'i> {
 
         for pou in &unit.units {
             visitor.visit_pou(ctx, pou);
-            if let Some(init) =
-                unresolved
-                    .iter()
-                    .filter_map(|(_, v)| {
-                        if v.scope.as_ref().is_some_and(|it| it == &pou.name) {
-                            Some(v)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect::<Vec<_>>()
-                    .first()
-            {
+            if let Some(init) = unresolved.get(&pou.name) {
                 // XXX: could probably also index the function here instead of the index
                 let init_fn_name = index::get_init_fn_name(&pou.name);
                 let mut id_provider = ctx.id_provider.clone();
+
+                let (param, ident) = if pou.pou_type == PouType::Program {
+                    (
+                        vec![],
+                        pou.name.clone()
+                    )
+                } else {
+                    (
+                        vec![VariableBlock::default()
+                            .with_block_type(ast::VariableBlockType::InOut)
+                            .with_variables(vec![Variable {
+                                name: "self".into(),
+                                data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                                    referenced_type: pou.name.to_string(),
+                                    location: SourceLocation::internal(),
+                                },
+                                initializer: None,
+                                address: None,
+                                location: SourceLocation::internal(),
+                            }])],
+                        "self".into()
+                    )
+                };
                 let init_pou = Pou {
                     name: init_fn_name.clone(),
-                    variable_blocks: vec![VariableBlock::default()
-                        .with_block_type(ast::VariableBlockType::InOut)
-                        .with_variables(vec![Variable {
-                            name: "self".into(),
-                            data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                                referenced_type: pou.name.to_string(),
-                                location: SourceLocation::internal(),
-                            },
-                            initializer: None,
-                            address: None,
-                            location: SourceLocation::internal(),
-                        }])],
+                    variable_blocks: param,
                     pou_type: PouType::Function,
                     return_type: None,
                     location: SourceLocation::internal(),
@@ -808,16 +806,19 @@ impl<'i> TypeAnnotator<'i> {
                     super_class: None,
                 };
 
+                let mut target = init.target_type_name.clone();
+                let lhs_name = target.split_off(target.find(&pou.name).unwrap() + pou.name.len() + 1);
+
                 // TODO: figure out elegant way to do this
                 let lhs = AstFactory::create_member_reference(
-                    AstFactory::create_identifier("ps", &SourceLocation::internal(), id_provider.next_id()),
+                    AstFactory::create_identifier(&lhs_name, &SourceLocation::internal(), id_provider.next_id()),
                     Some(AstFactory::create_member_reference(
                         AstFactory::create_identifier(
-                            "self",
+                            &ident,
                             &SourceLocation::internal(),
                             id_provider.next_id(),
                         ),
-                        None, // deeply nested qualified references might be tricky here
+                        None, // deeply nested qualified references might be tricky here -- one nested reference is enough to break things
                         id_provider.next_id(),
                     )),
                     id_provider.next_id(),
@@ -854,19 +855,18 @@ impl<'i> TypeAnnotator<'i> {
                 visitor.dependencies.insert(Dependency::Call(init_fn_name.to_string())); // TODO: I'd rather not do this manually. figure out a more idiomatic way to resolve and collect newly added deps
 
                 // TODO: seems kinda convoluted. check how param dependencies are normally resolved/added
-                let init_param = visitor
-                    .annotation_map
-                    .new_index
-                    .find_parameter(&init_fn_name, 0)
-                    .expect("just created, must exist");
-                visitor.dependencies.insert(Dependency::Datatype(init_param.data_type_name.to_string()));
+                if pou.pou_type != PouType::Program {
+                    let init_param = visitor
+                        .annotation_map
+                        .new_index
+                        .find_parameter(&init_fn_name, 0)
+                        .expect("just created, must exist");
+                    visitor.dependencies.insert(Dependency::Datatype(init_param.data_type_name.to_string()));
+                }                
             };
         }
 
         for t in &unit.user_types {
-            if let Some(a) = unresolved.get(&t.data_type.get_name().unwrap_or(VOID_TYPE).to_string()) {
-                println!("found {}", a.target_type_name);
-            };
             visitor.visit_user_type_declaration(t, ctx);
         }
 
@@ -907,6 +907,80 @@ impl<'i> TypeAnnotator<'i> {
         }
 
         (visitor.annotation_map, visitor.dependencies, visitor.string_literals)
+    }
+
+    pub fn create_init_unit(index: &Index, id_provider: &IdProvider) -> (Index, CompilationUnit, FxIndexSet<Dependency>) {
+        let ident = String::from("__init");
+        let mut id_provider = id_provider.clone();
+    
+        let init_pou = Pou {
+            name: ident.clone(),
+            variable_blocks: vec![],
+            pou_type: PouType::Function,
+            return_type: None,
+            location: SourceLocation::internal(),
+            name_location: SourceLocation::internal(),
+            poly_mode: None,
+            generics: vec![],
+            linkage: LinkageType::Internal,
+            super_class: None,
+        };
+
+        let init_functions = index.get_all_init_function_names();
+        let init_functions = init_functions.iter().map(|it| {
+            (it, index.find_parameter(&it, 0))
+        }).collect::<Vec<_>>();
+
+        fn create_member_reference(name: &str, mut id_provider: IdProvider) -> AstNode {
+            AstFactory::create_member_reference(
+                AstFactory::create_identifier(name, &SourceLocation::internal(), id_provider.next_id()),
+                None,
+                id_provider.next_id(),
+            )
+        }
+       
+        let body = init_functions.iter().map(|(fn_name, param)| {
+            let op = create_member_reference(fn_name, id_provider.clone());
+            let parameters = param.map(|it| create_member_reference(it.get_name(), id_provider.clone()));
+            AstFactory::create_call_statement(op, parameters, id_provider.next_id(), SourceLocation::internal())
+        }).collect::<Vec<_>>();
+    
+        let implementation = Implementation {
+            name: ident.clone(),
+            type_name: ident.clone(),
+            linkage: LinkageType::Internal,
+            pou_type: PouType::Function,
+            statements: body,
+            location: SourceLocation::internal(),
+            name_location: SourceLocation::internal(),
+            overriding: false,
+            generic: false,
+            access: None,
+        };
+    
+        let mut new_unit = CompilationUnit {
+            global_vars: vec![],
+            units: vec![init_pou],
+            implementations: vec![implementation],
+            user_types: vec![],
+            file_name: "__internal_init".into(),
+        };
+    
+        pre_process(&mut new_unit, id_provider.clone()); // XXX: is this required?
+        let mut idx = index::visitor::visit(&new_unit);
+        idx.register_pou(
+            PouIndexEntry::create_generated_function_entry(&ident, VOID_TYPE, &[], LinkageType::Internal, false, SourceLocation::internal())
+        );
+
+        // __init has dependencies on all other init functions and their parameters
+        let mut dependencies = FxIndexSet::default();
+        init_functions.iter().for_each(|(n, p)| {
+            dependencies.insert(Dependency::Call(n.to_string())); // TODO: I'd rather not do this manually. figure out a more idiomatic way to resolve and collect newly added deps
+            if let Some(param) = p {
+                    dependencies.insert(Dependency::Datatype(param.data_type_name.to_string()));
+                }
+        });
+        (idx, new_unit, dependencies)
     }
 
     fn visit_user_type_declaration(&mut self, user_data_type: &UserTypeDeclaration, ctx: &VisitorContext) {

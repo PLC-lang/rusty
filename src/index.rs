@@ -1451,6 +1451,10 @@ impl Index {
         self.init_functions.insert(entry.get_name().to_lowercase(), entry);
     }
 
+    pub fn get_all_init_function_names(&self) -> Vec<&String> {
+        self.init_functions.keys().collect()
+    }
+
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
         self.implementations.get(&call_name.to_lowercase())
     }
