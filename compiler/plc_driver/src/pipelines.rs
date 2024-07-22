@@ -153,7 +153,8 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             .into_iter()
             .filter_map(|it| {
                 if let Some(UnresolvableKind::InitLater(init)) = it.kind {
-                    Some((init.scope.clone().unwrap_or("__global".into()), init)) // todo: only supports one global, needs to be a vec
+                    Some((init.scope.clone().unwrap_or("__global".into()), init))
+                // todo: only supports one global, needs to be a vec
                 } else {
                     None
                 }
@@ -186,14 +187,15 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
 
             annotated_units.push((unit, dependencies, literals));
             all_annotations.import(annotation);
-        }      
-        
+        }
+
         full_index.import(std::mem::take(&mut all_annotations.new_index));
 
         // TODO: clean up imports
         let (mut idx, unit, mut init_deps) = TypeAnnotator::create_init_unit(&full_index, &id_provider);
         full_index.import(std::mem::take(&mut idx));
-        let (a, deps, _) = TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), &init_fn_candidates);
+        let (a, deps, _) =
+            TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), &init_fn_candidates);
         init_deps.extend(deps);
         annotated_units.push((unit, init_deps, StringLiterals::default()));
         all_annotations.import(a);

@@ -22,7 +22,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-use crate::index::{self, const_expressions::InitingIsHardInnit, FxIndexMap, FxIndexSet};
+use crate::index::{self, const_expressions::InitingIsHardInnit, get_init_fn_name, FxIndexMap, FxIndexSet};
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -766,17 +766,14 @@ impl<'i> TypeAnnotator<'i> {
 
         for pou in &unit.units {
             visitor.visit_pou(ctx, pou);
-            if pou.pou_type != PouType::Function {          
+            if pou.pou_type != PouType::Function {
                 if let Some(init) = unresolved.get(&pou.name) {
                     // XXX: could probably also index the function here instead of the index
                     let init_fn_name = index::get_init_fn_name(&pou.name);
                     let mut id_provider = ctx.id_provider.clone();
 
                     let (param, ident) = if pou.pou_type == PouType::Program {
-                        (
-                            vec![],
-                            pou.name.clone()
-                        )
+                        (vec![], pou.name.clone())
                     } else {
                         (
                             vec![VariableBlock::default()
@@ -791,7 +788,7 @@ impl<'i> TypeAnnotator<'i> {
                                     address: None,
                                     location: SourceLocation::internal(),
                                 }])],
-                            "self".into()
+                            "self".into(),
                         )
                     };
                     let init_pou = Pou {
@@ -808,32 +805,43 @@ impl<'i> TypeAnnotator<'i> {
                     };
 
                     let mut target = init.target_type_name.clone();
-                    let lhs_name = target.split_off(target.find(&pou.name).unwrap() + pou.name.len() + 1);
+                    let lhs_name = target.split_off(target.find(&pou.name).unwrap() + pou.name.len() + 1); // TODO: very hacky 
 
-                    // TODO: figure out elegant way to do this
-                    let lhs = AstFactory::create_member_reference(
-                        AstFactory::create_identifier(&lhs_name, &SourceLocation::internal(), id_provider.next_id()),
-                        Some(AstFactory::create_member_reference(
-                            AstFactory::create_identifier(
-                                &ident,
-                                &SourceLocation::internal(),
-                                id_provider.next_id(),
-                            ),
-                            None, // deeply nested qualified references might be tricky here -- one nested reference is enough to break things
-                            id_provider.next_id(),
-                        )),
-                        id_provider.next_id(),
+                    let lhs = create_member_reference(
+                        &lhs_name,
+                        id_provider.clone(),
+                        Some(create_member_reference(&ident, id_provider.clone(), None)),
                     );
-
                     let init_stmt =
                         AstFactory::create_assignment(lhs, init.initializer.clone(), id_provider.next_id());
+                    
+                    let members = index.get_pou_members(&pou.name);
+                    let dependency_calls = members.iter().filter_map(|member| {
+                        let name = &member.get_type_name();
+                        if index.has_init_fn(name) { // TODO: create function which returns Option<InitFnName>. call `.map()` on it instead of if/else here
+                            let op = create_member_reference(&get_init_fn_name(name), id_provider.clone(), None);
+                            // for now, assume these are function blocks and not programs. Not sure if programs can be members
+                            let param = create_member_reference(
+                                &member.get_name(), 
+                                id_provider.clone(), 
+                                Some(create_member_reference(&pou.name, id_provider.clone(), None)) // double check base here
+                            );
+
+                            Some(AstFactory::create_call_statement(op, Some(param), id_provider.next_id(), SourceLocation::internal()))
+                        } else {
+                            None
+                        }
+                    }).collect::<Vec<_>>();
+
+                    let mut statements = vec![init_stmt];
+                    statements.extend(dependency_calls.into_iter());
 
                     let implementation = Implementation {
                         name: init_fn_name.clone(),
                         type_name: init_fn_name.clone(),
                         linkage: LinkageType::Internal,
                         pou_type: PouType::Function,
-                        statements: vec![init_stmt],
+                        statements,
                         location: SourceLocation::internal(),
                         name_location: SourceLocation::internal(),
                         overriding: false,
@@ -862,10 +870,12 @@ impl<'i> TypeAnnotator<'i> {
                             .new_index
                             .find_parameter(&init_fn_name, 0)
                             .expect("just created, must exist");
-                        visitor.dependencies.insert(Dependency::Datatype(init_param.data_type_name.to_string()));
-                    }                
+                        visitor
+                            .dependencies
+                            .insert(Dependency::Datatype(init_param.data_type_name.to_string()));
+                    }
                 };
-            }      
+            }
         }
 
         for t in &unit.user_types {
@@ -911,10 +921,13 @@ impl<'i> TypeAnnotator<'i> {
         (visitor.annotation_map, visitor.dependencies, visitor.string_literals)
     }
 
-    pub fn create_init_unit(index: &Index, id_provider: &IdProvider) -> (Index, CompilationUnit, FxIndexSet<Dependency>) {
+    pub fn create_init_unit(
+        index: &Index,
+        id_provider: &IdProvider,
+    ) -> (Index, CompilationUnit, FxIndexSet<Dependency>) {
         let ident = String::from("__init");
         let mut id_provider = id_provider.clone();
-    
+
         let init_pou = Pou {
             name: ident.clone(),
             variable_blocks: vec![],
@@ -929,28 +942,32 @@ impl<'i> TypeAnnotator<'i> {
         };
 
         let init_functions = index.get_all_init_functions();
-        let init_functions = init_functions.iter().filter_map(|(initfn, origin)| {
-            if index.find_pou(origin).is_some_and(|pou| pou.is_program()) {
-                Some((initfn, index.find_parameter(&initfn, 0)))
-            } else {
-                None
-            }
-        }).collect::<Vec<_>>();
+        let init_functions = init_functions
+            .iter()
+            .filter_map(|(initfn, origin)| {
+                if index.find_pou(origin).is_some_and(|pou| pou.is_program()) {
+                    Some((initfn, index.find_parameter(&initfn, 0)))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
 
-        fn create_member_reference(name: &str, mut id_provider: IdProvider) -> AstNode {
-            AstFactory::create_member_reference(
-                AstFactory::create_identifier(name, &SourceLocation::internal(), id_provider.next_id()),
-                None,
-                id_provider.next_id(),
-            )
-        }
-       
-        let body = init_functions.iter().map(|(fn_name, param)| {
-            let op = create_member_reference(fn_name, id_provider.clone());
-            let parameters = param.map(|it| create_member_reference(it.get_name(), id_provider.clone()));
-            AstFactory::create_call_statement(op, parameters, id_provider.next_id(), SourceLocation::internal())
-        }).collect::<Vec<_>>();
-    
+        let body = init_functions
+            .iter()
+            .map(|(fn_name, param)| {
+                let op = create_member_reference(fn_name, id_provider.clone(), None);
+                let parameters =
+                    param.map(|it| create_member_reference(it.get_name(), id_provider.clone(), None));
+                AstFactory::create_call_statement(
+                    op,
+                    parameters,
+                    id_provider.next_id(),
+                    SourceLocation::internal(),
+                )
+            })
+            .collect::<Vec<_>>();
+
         let implementation = Implementation {
             name: ident.clone(),
             type_name: ident.clone(),
@@ -963,7 +980,7 @@ impl<'i> TypeAnnotator<'i> {
             generic: false,
             access: None,
         };
-    
+
         let mut new_unit = CompilationUnit {
             global_vars: vec![],
             units: vec![init_pou],
@@ -971,10 +988,10 @@ impl<'i> TypeAnnotator<'i> {
             user_types: vec![],
             file_name: "__internal_init".into(),
         };
-    
+
         pre_process(&mut new_unit, id_provider.clone()); // XXX: is this required?
         let idx = index::visitor::visit(&new_unit);
-        
+
         // idx.register_pou(
         //     PouIndexEntry::create_generated_function_entry(&ident, VOID_TYPE, &[], LinkageType::Internal, false, SourceLocation::internal())
         // );
@@ -984,8 +1001,8 @@ impl<'i> TypeAnnotator<'i> {
         init_functions.iter().for_each(|(n, p)| {
             dependencies.insert(Dependency::Call(n.to_string())); // TODO: I'd rather not do this manually. figure out a more idiomatic way to resolve and collect newly added deps
             if let Some(param) = p {
-                    dependencies.insert(Dependency::Datatype(param.data_type_name.to_string()));
-                }
+                dependencies.insert(Dependency::Datatype(param.data_type_name.to_string()));
+            }
         });
         (idx, new_unit, dependencies)
     }
@@ -2151,6 +2168,14 @@ fn get_real_type_name_for(value: &str) -> &'static str {
     }
 
     REAL_TYPE
+}
+
+fn create_member_reference(name: &str, mut id_provider: IdProvider, base: Option<AstNode>) -> AstNode {
+    AstFactory::create_member_reference(
+        AstFactory::create_identifier(name, &SourceLocation::internal(), id_provider.next_id()),
+        base,
+        id_provider.next_id(),
+    )
 }
 
 #[derive(Clone)]
