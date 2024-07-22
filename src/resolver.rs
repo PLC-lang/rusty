@@ -766,104 +766,106 @@ impl<'i> TypeAnnotator<'i> {
 
         for pou in &unit.units {
             visitor.visit_pou(ctx, pou);
-            if let Some(init) = unresolved.get(&pou.name) {
-                // XXX: could probably also index the function here instead of the index
-                let init_fn_name = index::get_init_fn_name(&pou.name);
-                let mut id_provider = ctx.id_provider.clone();
+            if pou.pou_type != PouType::Function {          
+                if let Some(init) = unresolved.get(&pou.name) {
+                    // XXX: could probably also index the function here instead of the index
+                    let init_fn_name = index::get_init_fn_name(&pou.name);
+                    let mut id_provider = ctx.id_provider.clone();
 
-                let (param, ident) = if pou.pou_type == PouType::Program {
-                    (
-                        vec![],
-                        pou.name.clone()
-                    )
-                } else {
-                    (
-                        vec![VariableBlock::default()
-                            .with_block_type(ast::VariableBlockType::InOut)
-                            .with_variables(vec![Variable {
-                                name: "self".into(),
-                                data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                                    referenced_type: pou.name.to_string(),
+                    let (param, ident) = if pou.pou_type == PouType::Program {
+                        (
+                            vec![],
+                            pou.name.clone()
+                        )
+                    } else {
+                        (
+                            vec![VariableBlock::default()
+                                .with_block_type(ast::VariableBlockType::InOut)
+                                .with_variables(vec![Variable {
+                                    name: "self".into(),
+                                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                                        referenced_type: pou.name.to_string(),
+                                        location: SourceLocation::internal(),
+                                    },
+                                    initializer: None,
+                                    address: None,
                                     location: SourceLocation::internal(),
-                                },
-                                initializer: None,
-                                address: None,
-                                location: SourceLocation::internal(),
-                            }])],
-                        "self".into()
-                    )
-                };
-                let init_pou = Pou {
-                    name: init_fn_name.clone(),
-                    variable_blocks: param,
-                    pou_type: PouType::Function,
-                    return_type: None,
-                    location: SourceLocation::internal(),
-                    name_location: SourceLocation::internal(),
-                    poly_mode: None,
-                    generics: vec![],
-                    linkage: LinkageType::Internal,
-                    super_class: None,
-                };
+                                }])],
+                            "self".into()
+                        )
+                    };
+                    let init_pou = Pou {
+                        name: init_fn_name.clone(),
+                        variable_blocks: param,
+                        pou_type: PouType::Function,
+                        return_type: None,
+                        location: SourceLocation::internal(),
+                        name_location: SourceLocation::internal(),
+                        poly_mode: None,
+                        generics: vec![],
+                        linkage: LinkageType::Internal,
+                        super_class: None,
+                    };
 
-                let mut target = init.target_type_name.clone();
-                let lhs_name = target.split_off(target.find(&pou.name).unwrap() + pou.name.len() + 1);
+                    let mut target = init.target_type_name.clone();
+                    let lhs_name = target.split_off(target.find(&pou.name).unwrap() + pou.name.len() + 1);
 
-                // TODO: figure out elegant way to do this
-                let lhs = AstFactory::create_member_reference(
-                    AstFactory::create_identifier(&lhs_name, &SourceLocation::internal(), id_provider.next_id()),
-                    Some(AstFactory::create_member_reference(
-                        AstFactory::create_identifier(
-                            &ident,
-                            &SourceLocation::internal(),
+                    // TODO: figure out elegant way to do this
+                    let lhs = AstFactory::create_member_reference(
+                        AstFactory::create_identifier(&lhs_name, &SourceLocation::internal(), id_provider.next_id()),
+                        Some(AstFactory::create_member_reference(
+                            AstFactory::create_identifier(
+                                &ident,
+                                &SourceLocation::internal(),
+                                id_provider.next_id(),
+                            ),
+                            None, // deeply nested qualified references might be tricky here -- one nested reference is enough to break things
                             id_provider.next_id(),
-                        ),
-                        None, // deeply nested qualified references might be tricky here -- one nested reference is enough to break things
+                        )),
                         id_provider.next_id(),
-                    )),
-                    id_provider.next_id(),
-                );
+                    );
 
-                let init_stmt =
-                    AstFactory::create_assignment(lhs, init.initializer.clone(), id_provider.next_id());
+                    let init_stmt =
+                        AstFactory::create_assignment(lhs, init.initializer.clone(), id_provider.next_id());
 
-                let implementation = Implementation {
-                    name: init_fn_name.clone(),
-                    type_name: init_fn_name.clone(),
-                    linkage: LinkageType::Internal,
-                    pou_type: PouType::Function,
-                    statements: vec![init_stmt],
-                    location: SourceLocation::internal(),
-                    name_location: SourceLocation::internal(),
-                    overriding: false,
-                    generic: false,
-                    access: None,
+                    let implementation = Implementation {
+                        name: init_fn_name.clone(),
+                        type_name: init_fn_name.clone(),
+                        linkage: LinkageType::Internal,
+                        pou_type: PouType::Function,
+                        statements: vec![init_stmt],
+                        location: SourceLocation::internal(),
+                        name_location: SourceLocation::internal(),
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    };
+
+                    let mut new_unit = CompilationUnit {
+                        global_vars: vec![],
+                        units: vec![init_pou],
+                        implementations: vec![implementation],
+                        user_types: vec![],
+                        file_name: "__internal".into(),
+                    };
+
+                    pre_process(&mut new_unit, id_provider.clone()); // XXX: is this required?
+                    let idx = index::visitor::visit(&new_unit);
+                    visitor.annotation_map.new_units.push(new_unit);
+                    visitor.annotation_map.new_index.import(idx);
+                    visitor.dependencies.insert(Dependency::Call(init_fn_name.to_string())); // TODO: I'd rather not do this manually. figure out a more idiomatic way to resolve and collect newly added deps
+
+                    // TODO: seems kinda convoluted. check how param dependencies are normally resolved/added
+                    if pou.pou_type != PouType::Program {
+                        let init_param = visitor
+                            .annotation_map
+                            .new_index
+                            .find_parameter(&init_fn_name, 0)
+                            .expect("just created, must exist");
+                        visitor.dependencies.insert(Dependency::Datatype(init_param.data_type_name.to_string()));
+                    }                
                 };
-
-                let mut new_unit = CompilationUnit {
-                    global_vars: vec![],
-                    units: vec![init_pou],
-                    implementations: vec![implementation],
-                    user_types: vec![],
-                    file_name: "__internal".into(),
-                };
-
-                pre_process(&mut new_unit, id_provider.clone()); // XXX: is this required?
-                let idx = index::visitor::visit(&new_unit);
-                visitor.annotation_map.new_units.push(new_unit);
-                visitor.annotation_map.new_index.import(idx);
-                visitor.dependencies.insert(Dependency::Call(init_fn_name.to_string())); // TODO: I'd rather not do this manually. figure out a more idiomatic way to resolve and collect newly added deps
-
-                // TODO: seems kinda convoluted. check how param dependencies are normally resolved/added
-                if pou.pou_type != PouType::Program {
-                    let init_param = visitor
-                        .annotation_map
-                        .new_index
-                        .find_parameter(&init_fn_name, 0)
-                        .expect("just created, must exist");
-                    visitor.dependencies.insert(Dependency::Datatype(init_param.data_type_name.to_string()));
-                }                
-            };
+            }      
         }
 
         for t in &unit.user_types {
