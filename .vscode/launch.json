@@ -20,9 +20,13 @@
                 }
             },
             "args": [
-                "target/demo.st",
+                "target/demo.st"
             ],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_LOG": "rusty"
+            },
+            "terminal": "integrated"
         },
         {
             "type": "lldb",
@@ -43,7 +47,11 @@
             "args": [
                 "demo"
             ],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_LOG": "rusty"
+            },
+            "terminal": "integrated"
         },
     ]
 }
