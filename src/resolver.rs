@@ -926,9 +926,13 @@ impl<'i> TypeAnnotator<'i> {
             super_class: None,
         };
 
-        let init_functions = index.get_all_init_function_names();
-        let init_functions = init_functions.iter().map(|it| {
-            (it, index.find_parameter(&it, 0))
+        let init_functions = index.get_all_init_functions();
+        let init_functions = init_functions.iter().filter_map(|(initfn, origin)| {
+            if index.find_pou(origin).is_some_and(|pou| pou.is_program()) {
+                Some((initfn, index.find_parameter(&initfn, 0)))
+            } else {
+                None
+            }
         }).collect::<Vec<_>>();
 
         fn create_member_reference(name: &str, mut id_provider: IdProvider) -> AstNode {
@@ -967,10 +971,11 @@ impl<'i> TypeAnnotator<'i> {
         };
     
         pre_process(&mut new_unit, id_provider.clone()); // XXX: is this required?
-        let mut idx = index::visitor::visit(&new_unit);
-        idx.register_pou(
-            PouIndexEntry::create_generated_function_entry(&ident, VOID_TYPE, &[], LinkageType::Internal, false, SourceLocation::internal())
-        );
+        let idx = index::visitor::visit(&new_unit);
+        
+        // idx.register_pou(
+        //     PouIndexEntry::create_generated_function_entry(&ident, VOID_TYPE, &[], LinkageType::Internal, false, SourceLocation::internal())
+        // );
 
         // __init has dependencies on all other init functions and their parameters
         let mut dependencies = FxIndexSet::default();

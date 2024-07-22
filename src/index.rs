@@ -715,12 +715,14 @@ impl PouIndexEntry {
         }
     }
 
-    /// returns true if this pou is an action
     pub fn is_action(&self) -> bool {
         matches!(self, PouIndexEntry::Action { .. })
     }
 
-    /// return true if this pou is a function
+    pub fn is_program(&self) -> bool {
+        matches!(self, PouIndexEntry::Program { .. })
+    }
+
     pub fn is_function(&self) -> bool {
         matches!(self, PouIndexEntry::Function { .. })
     }
@@ -839,7 +841,7 @@ pub struct Index {
     // all pous,
     pous: SymbolMap<String, PouIndexEntry>, // XXX: filter all stateful POUs and also add initializers
 
-    init_functions: SymbolMap<String, PouIndexEntry>, // XXX: keep init fns separate in index? might make life easier down the line, but maybe merging with POUs is cleaner
+    init_functions: FxIndexMap<String, String>, // XXX: keep init fns separate in index? might make life easier down the line, but maybe merging with POUs is cleaner
 
     /// all implementations
     // we keep an IndexMap for implementations since duplication issues regarding implementations
@@ -966,10 +968,8 @@ impl Index {
         }
 
         //init functions
-        for (name, elements) in other.init_functions.drain(..) {
-            for ele in elements {
-                self.init_functions.insert(name.clone(), ele);
-            }
+        for (name, origin) in other.init_functions.drain(..) {
+            self.init_functions.insert(name.clone(), origin.clone());
         }
 
         //labels
@@ -1420,8 +1420,8 @@ impl Index {
         self.pous.get(&pou_name.to_lowercase())
     }
 
-    pub fn find_init_fn(&self, type_name: &str) -> Option<&PouIndexEntry> {
-        self.init_functions.get(&get_init_fn_name(type_name).to_lowercase())
+    pub fn has_init_fn(&self, type_name: &str) -> bool {
+        self.init_functions.get(&get_init_fn_name(type_name)).is_some()
     }
 
     pub fn register_program(&mut self, name: &str, location: SourceLocation, linkage: LinkageType) {
@@ -1438,21 +1438,21 @@ impl Index {
     }
 
     pub fn register_initialization_function(&mut self, name: &str) {
-        let name = get_init_fn_name(name);
-        let entry = PouIndexEntry::create_generated_function_entry(
-            &name,
-            VOID_TYPE,
-            &[],
-            LinkageType::Internal,
-            false,
-            SourceLocation::internal(),
-        );
+        let init_name = get_init_fn_name(name);
+        // let entry = PouIndexEntry::create_generated_function_entry(
+        //     &name,
+        //     VOID_TYPE,
+        //     &[],
+        //     LinkageType::Internal,
+        //     false,
+        //     SourceLocation::internal(),
+        // );
         // self.register_pou(entry);
-        self.init_functions.insert(entry.get_name().to_lowercase(), entry);
+        self.init_functions.insert(init_name, name.to_owned());
     }
 
-    pub fn get_all_init_function_names(&self) -> Vec<&String> {
-        self.init_functions.keys().collect()
+    pub fn get_all_init_functions(&self) -> &FxIndexMap<String, String> {
+        &self.init_functions
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
@@ -1675,5 +1675,5 @@ pub fn get_initializer_name(name: &str) -> String {
 
 // XXX: this seems almost too similar to the function above
 pub fn get_init_fn_name(name: &str) -> String {
-    format!("__init_{name}")
+    format!("__init_{name}").to_lowercase()
 }

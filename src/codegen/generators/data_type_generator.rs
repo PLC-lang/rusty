@@ -150,13 +150,13 @@ pub fn generate_data_types<'ink>(
     }
     //If we didn't resolve anything this cycle, report the remaining issues and exit
     if !types_to_init.is_empty() {
-        let mut abcd = vec![];
+        let mut init_later = 0;
         //Report each error as a new diagnostic, add the type's location as related to the error
         let diags = types_to_init
             .into_iter()
             .map(|(name, ty)| {
-                if let Some(initfn) = index.find_init_fn(name) {
-                    abcd.push(initfn.get_name());
+                if index.has_init_fn(name) {
+                    init_later += 1;
                 }
                 errors
                     .remove(name)
@@ -164,7 +164,7 @@ pub fn generate_data_types<'ink>(
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::<Vec<_>>();
-        if diags.len() > abcd.len() {
+        if diags.len() > init_later {
             //Report the operation failure
             return Err(Diagnostic::new("Some initial values were not generated")
                 .with_error_code("E075")
