@@ -10,7 +10,7 @@ UserTypeDeclaration {
         referenced_type: DataTypeReference {
             referenced_type: "__foo_inline_pointer_",
         },
-        kind: None,
+        auto_deref: None,
     },
     initializer: None,
     scope: Some(

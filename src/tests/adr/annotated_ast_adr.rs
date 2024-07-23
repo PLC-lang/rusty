@@ -49,7 +49,7 @@ fn references_to_variables_are_annotated() {
             qualified_name: "prg.a".into(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Local),
-            kind: None,
+            auto_deref: None,
         }
     );
 
@@ -61,7 +61,7 @@ fn references_to_variables_are_annotated() {
             qualified_name: "gX".into(),
             constant: true,
             argument_type: ArgumentType::ByVal(VariableType::Global),
-            kind: None,
+            auto_deref: None,
         }
     );
 }
@@ -105,7 +105,7 @@ fn different_types_of_annotations() {
             resulting_type: "SINT".into(),    // the variable's type
             constant: false,                  // whether this variable is a constant or not
             argument_type: ArgumentType::ByVal(VariableType::Input), // the type of declaration
-            kind: None,
+            auto_deref: None,
         })
     );
 
@@ -154,7 +154,7 @@ fn different_types_of_annotations() {
             resulting_type: "INT".into(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            kind: None,
+            auto_deref: None,
         })
     );
 
@@ -166,7 +166,7 @@ fn different_types_of_annotations() {
             resulting_type: "INT".into(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            kind: None,
+            auto_deref: None,
         })
     );
 }

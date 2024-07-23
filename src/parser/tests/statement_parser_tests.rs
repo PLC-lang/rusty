@@ -322,7 +322,7 @@ fn reference_to_declaration() {
                         referenced_type: DataTypeReference {
                             referenced_type: "DINT",
                         },
-                        kind: Some(
+                        auto_deref: Some(
                             Reference,
                         ),
                     },
@@ -364,7 +364,7 @@ fn aliasing_dint_variable() {
                         referenced_type: DataTypeReference {
                             referenced_type: "DINT",
                         },
-                        kind: Some(
+                        auto_deref: Some(
                             Alias,
                         ),
                     },

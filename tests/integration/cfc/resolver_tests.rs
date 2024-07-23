@@ -98,7 +98,7 @@ fn function_block_calls_are_annotated_correctly() {
         argument_type: ByVal(
             Local,
         ),
-        kind: None,
+        auto_deref: None,
     }
     "###);
 }

@@ -201,14 +201,17 @@ impl<'i> TypeAnnotator<'i> {
                     .unwrap_or_else(|| member_name)
                     .to_string()
             }
-            Some(DataTypeInformation::Pointer { name, inner_type_name, deref: Some(kind), .. }) => {
+            Some(DataTypeInformation::Pointer { name, inner_type_name, auto_deref: Some(kind), .. }) => {
                 // This is an auto deref pointer (VAR_IN_OUT or VAR_INPUT {ref}) that points to a
                 // generic. We first resolve the generic type, then create a new pointer type of
                 // the combination
                 let inner_type_name = self.find_or_create_datatype(inner_type_name, generics);
                 let name = format!("{name}__{inner_type_name}"); // TODO: Naming convention (see plc_util/src/convention.rs)
-                let new_type_info =
-                    DataTypeInformation::Pointer { name: name.clone(), inner_type_name, deref: Some(*kind) };
+                let new_type_info = DataTypeInformation::Pointer {
+                    name: name.clone(),
+                    inner_type_name,
+                    auto_deref: Some(*kind),
+                };
 
                 // Registers a new pointer type to the index
                 self.annotation_map.new_index.register_type(DataType {

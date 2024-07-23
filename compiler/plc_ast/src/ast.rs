@@ -487,7 +487,7 @@ pub enum DataType {
     PointerType {
         name: Option<String>,
         referenced_type: Box<DataTypeDeclaration>,
-        kind: Option<DerefType>,
+        auto_deref: Option<AutoDerefType>,
     },
     StringType {
         name: Option<String>,
@@ -506,8 +506,8 @@ pub enum DataType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum DerefType {
-    /// A pointer variable with the deref-trait, e.g. VAR_INPUT variables
+pub enum AutoDerefType {
+    /// A plain pointer variable with the auto-deref trait, e.g. VAR_IN_OUT or VAR_INPUT{ref} variables
     Default,
 
     /// An alias pointer variable, e.g. `foo AT bar : DINT`

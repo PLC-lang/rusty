@@ -10,10 +10,9 @@ use std::hash::Hash;
 
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DerefType, DirectAccessType,
-        JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
-        Variable,
+        self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement, AutoDerefType,
+        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
+        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -392,7 +391,8 @@ pub enum StatementAnnotation {
         constant: bool,
         /// denotes the variable type of this variable, hence whether it is an input, output, etc.
         argument_type: ArgumentType,
-        kind: Option<DerefType>,
+        /// denotes wheter this variable has the auto-deref trait and if so what type
+        auto_deref: Option<AutoDerefType>,
     },
     /// a reference to a function
     Function {
@@ -434,15 +434,11 @@ impl StatementAnnotation {
     }
 
     pub fn is_alias(&self) -> bool {
-        matches!(self, StatementAnnotation::Variable { kind: Some(DerefType::Alias), .. })
+        matches!(self, StatementAnnotation::Variable { auto_deref: Some(AutoDerefType::Alias), .. })
     }
 
     pub fn is_auto_deref(&self) -> bool {
-        if let StatementAnnotation::Variable { kind: Some(_), .. } = self {
-            return true;
-        }
-
-        false
+        matches!(self, StatementAnnotation::Variable { auto_deref: Some(_), .. })
     }
 
     pub fn data_type(type_name: &str) -> Self {
@@ -1600,7 +1596,7 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             (ReferenceAccess::Deref, _) => {
-                if let Some(DataTypeInformation::Pointer { inner_type_name, deref: None, .. }) = base
+                if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: None, .. }) = base
                     .map(|base| self.annotation_map.get_type_or_void(base, self.index))
                     .map(|it| it.get_type_information())
                 {
@@ -1685,7 +1681,7 @@ impl<'i> TypeAnnotator<'i> {
         else {
             unreachable!("expected a vla reference, but got {statement:#?}");
         };
-        if let DataTypeInformation::Pointer { inner_type_name, deref: kind, .. } = &self
+        if let DataTypeInformation::Pointer { inner_type_name, auto_deref: kind, .. } = &self
             .index
             .get_effective_type_or_void_by_name(
                 members.first().expect("internal VLA struct ALWAYS has this member").get_type_name(),
@@ -1720,7 +1716,7 @@ impl<'i> TypeAnnotator<'i> {
                 qualified_name: qualified_name.to_string(),
                 constant: false,
                 argument_type,
-                kind: *kind,
+                auto_deref: *kind,
             };
             self.annotation_map.annotate_type_hint(statement, hint_annotation)
         }
@@ -1934,7 +1930,7 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> St
             information: DataTypeInformation::Pointer {
                 name: new_type_name.clone(),
                 inner_type_name,
-                deref: None,
+                auto_deref: None,
             },
             location: SourceLocation::internal(),
         });
@@ -1977,10 +1973,10 @@ fn to_variable_annotation(
         (_, true) if v_type.is_aggregate_type() => {
             // treat a return-aggregate variable like an auto-deref pointer since it got
             // passed by-ref
-            let kind = v_type.get_type_information().get_pointer_metadata().unwrap_or(DerefType::Default);
+            let kind = v_type.get_type_information().get_auto_deref_type().unwrap_or(AutoDerefType::Default);
             (v_type.get_name().to_string(), Some(kind))
         }
-        (DataTypeInformation::Pointer { inner_type_name, deref: Some(deref), .. }, _) => {
+        (DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(deref), .. }, _) => {
             // real auto-deref pointer
             (inner_type_name.clone(), Some(*deref))
         }
@@ -1992,7 +1988,7 @@ fn to_variable_annotation(
         resulting_type: effective_type_name,
         constant: v.is_constant() || constant_override,
         argument_type: v.get_declaration_type(),
-        kind,
+        auto_deref: kind,
     }
 }
 

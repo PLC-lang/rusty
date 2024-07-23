@@ -6,7 +6,7 @@ use std::{
 };
 
 use plc_ast::{
-    ast::{AstNode, Operator, DerefType, PouType, TypeNature},
+    ast::{AstNode, AutoDerefType, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
 use plc_source::source_location::SourceLocation;
@@ -390,7 +390,7 @@ pub enum DataTypeInformation {
     Pointer {
         name: TypeId,
         inner_type_name: TypeId,
-        deref: Option<DerefType>,
+        auto_deref: Option<AutoDerefType>,
     },
     Integer {
         name: TypeId,
@@ -568,16 +568,16 @@ impl DataTypeInformation {
 
     /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
     pub fn is_reference_to(&self) -> bool {
-        matches!(self, DataTypeInformation::Pointer { deref: Some(DerefType::Reference), .. })
+        matches!(self, DataTypeInformation::Pointer { auto_deref: Some(AutoDerefType::Reference), .. })
     }
 
     /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
     pub fn is_alias(&self) -> bool {
-        matches!(self, DataTypeInformation::Pointer { deref: Some(DerefType::Alias), .. })
+        matches!(self, DataTypeInformation::Pointer { auto_deref: Some(AutoDerefType::Alias), .. })
     }
 
     pub fn is_auto_deref(&self) -> bool {
-        matches!(self, DataTypeInformation::Pointer { deref: Some(_), .. })
+        matches!(self, DataTypeInformation::Pointer { auto_deref: Some(_), .. })
     }
 
     pub fn is_aggregate(&self) -> bool {
@@ -589,8 +589,8 @@ impl DataTypeInformation {
         )
     }
 
-    pub fn get_pointer_metadata(&self) -> Option<DerefType> {
-        if let DataTypeInformation::Pointer { deref: kind, .. } = self {
+    pub fn get_auto_deref_type(&self) -> Option<AutoDerefType> {
+        if let DataTypeInformation::Pointer { auto_deref: kind, .. } = self {
             return *kind;
         }
 

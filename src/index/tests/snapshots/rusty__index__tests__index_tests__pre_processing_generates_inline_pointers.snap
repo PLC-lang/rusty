@@ -10,7 +10,7 @@ UserTypeDeclaration {
         referenced_type: DataTypeReference {
             referenced_type: "INT",
         },
-        kind: None,
+        auto_deref: None,
     },
     initializer: None,
     scope: Some(

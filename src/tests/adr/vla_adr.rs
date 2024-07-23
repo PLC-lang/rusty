@@ -103,7 +103,7 @@ fn representation() {
         information: Pointer {
             name: "__ptr_to___arr_vla_1_dint",
             inner_type_name: "__arr_vla_1_dint",
-            deref: None,
+            auto_deref: None,
         },
         nature: Any,
         location: SourceLocation {

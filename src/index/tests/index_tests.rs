@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use insta::assert_debug_snapshot;
 use plc_ast::ast::{
-    pre_process, AstFactory, DataType, GenericBinding, LinkageType, Operator, DerefType, TypeNature,
+    pre_process, AstFactory, AutoDerefType, DataType, GenericBinding, LinkageType, Operator, TypeNature,
     UserTypeDeclaration,
 };
 use plc_ast::provider::IdProvider;
@@ -1253,7 +1253,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
         &DataTypeInformation::Pointer {
             name: "__main_x".to_string(),
             inner_type_name: "INT".to_string(),
-            deref: None,
+            auto_deref: None,
         }
     );
 
@@ -1264,7 +1264,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
         &DataTypeInformation::Pointer {
             name: "__auto_pointer_to_INT".to_string(),
             inner_type_name: "INT".to_string(),
-            deref: Some(DerefType::Default),
+            auto_deref: Some(AutoDerefType::Default),
         }
     );
 }
@@ -1303,7 +1303,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
         &DataTypeInformation::Pointer {
             name: "__main_x".to_string(),
             inner_type_name: "INT".to_string(),
-            deref: None,
+            auto_deref: None,
         }
     );
 
@@ -1314,7 +1314,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
         &DataTypeInformation::Pointer {
             name: "__auto_pointer_to_INT".to_string(),
             inner_type_name: "INT".to_string(),
-            deref: Some(DerefType::Default),
+            auto_deref: Some(AutoDerefType::Default),
         }
     );
 }

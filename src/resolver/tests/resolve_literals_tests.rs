@@ -312,7 +312,7 @@ fn enum_literals_target_are_annotated() {
                 qualified_name: "Color.Red".into(),
                 constant: true,
                 argument_type: ArgumentType::ByVal(crate::index::VariableType::Global),
-                kind: None,
+                auto_deref: None,
             }),
             annotations.get(target)
         );

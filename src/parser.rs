@@ -4,10 +4,10 @@ use std::ops::Range;
 
 use plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
-        LinkageType, DerefType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr,
-        TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
+        DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
+        LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
+        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -704,12 +704,12 @@ fn parse_pointer_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
     start_pos: usize,
-    kind: Option<DerefType>,
+    auto_deref: Option<AutoDerefType>,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
         (
             DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::PointerType { name, referenced_type: Box::new(decl), kind },
+                data_type: DataType::PointerType { name, referenced_type: Box::new(decl), auto_deref },
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
             },
@@ -1082,7 +1082,7 @@ fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> O
     }
 
     let start = &lexer.location().get_span().to_range().unwrap_or(lexer.last_range.clone()).start;
-    let datatype = parse_pointer_definition(lexer, None, *start, Some(DerefType::Alias));
+    let datatype = parse_pointer_definition(lexer, None, *start, Some(AutoDerefType::Alias));
     if !lexer.try_consume(&KeywordSemicolon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
             format!("{KeywordSemicolon:?}").as_str(),
@@ -1155,7 +1155,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     let mut variables = vec![];
 
     let parse_definition_opt = if lexer.try_consume(&KeywordReferenceTo) {
-        parse_pointer_definition(lexer, None, lexer.last_range.start, Some(DerefType::Reference))
+        parse_pointer_definition(lexer, None, lexer.last_range.start, Some(AutoDerefType::Reference))
     } else {
         parse_full_data_type_definition(lexer, None)
     };
