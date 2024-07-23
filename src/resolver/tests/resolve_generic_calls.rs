@@ -716,7 +716,7 @@ fn auto_pointer_of_generic_resolved() {
 
     let member = index.find_member("LEFT_EXT__DINT", "IN").unwrap();
     let dt = index.find_effective_type_info(&member.data_type_name).unwrap();
-    if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } = dt {
+    if let DataTypeInformation::Pointer { inner_type_name, deref: Some(_), .. } = dt {
         assert_eq!(inner_type_name, "DINT")
     } else {
         panic!("Expecting a pointer to dint, found {dt:?}")
@@ -767,7 +767,7 @@ fn string_ref_as_generic_resolved() {
 
     let member = index.find_member("LEFT_EXT__STRING", "IN").unwrap();
     let dt = index.find_effective_type_info(&member.data_type_name).unwrap();
-    if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } = dt {
+    if let DataTypeInformation::Pointer { inner_type_name, deref: Some(_), .. } = dt {
         assert_eq!(inner_type_name, STRING_TYPE)
     } else {
         panic!("Expecting auto deref pointer to string, found {dt:?}")

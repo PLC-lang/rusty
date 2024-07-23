@@ -844,7 +844,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .get(i)
                 .map(|it| {
                     let name = it.get_type_name();
-                    if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }) =
+                    if let Some(DataTypeInformation::Pointer { inner_type_name, deref: Some(_), .. }) =
                         self.index.find_effective_type_info(name)
                     {
                         // for auto_deref pointers (VAR_INPUT {ref}, VAR_IN_OUT) we call generate_argument_by_ref()
@@ -1145,7 +1145,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn get_parameter_type(&self, parameter: &VariableIndexEntry) -> String {
-        if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }) =
+        if let Some(DataTypeInformation::Pointer { inner_type_name, deref: Some(_), .. }) =
             self.index.find_effective_type_info(parameter.get_type_name())
         {
             inner_type_name.into()
@@ -1253,7 +1253,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
 
-            if let DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } = parameter {
+            if let DataTypeInformation::Pointer { deref: Some(_), inner_type_name, .. } = parameter {
                 //this is a VAR_IN_OUT assignment, so don't load the value, assign the pointer
                 //expression may be empty -> generate a local variable for it
                 let generated_exp = if expression.is_empty_statement() {
@@ -1973,7 +1973,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 }
             }
-            DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } => {
+            DataTypeInformation::Pointer { inner_type_name, deref: Some(_), .. } => {
                 let inner_type = self.index.get_type_information_or_void(inner_type_name);
                 self.generate_string_literal_for_type(inner_type, value, location)
             }

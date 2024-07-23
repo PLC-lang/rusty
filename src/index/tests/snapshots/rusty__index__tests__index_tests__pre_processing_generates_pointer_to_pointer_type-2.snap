@@ -10,7 +10,6 @@ UserTypeDeclaration {
         referenced_type: DataTypeReference {
             referenced_type: "__pointer_to_pointer",
         },
-        auto_deref: false,
         kind: None,
     },
     initializer: None,

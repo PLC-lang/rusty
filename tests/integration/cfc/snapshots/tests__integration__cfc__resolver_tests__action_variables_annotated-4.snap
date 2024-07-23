@@ -10,7 +10,6 @@ Some(
         argument_type: ByVal(
             Local,
         ),
-        is_auto_deref: false,
         kind: None,
     },
 )

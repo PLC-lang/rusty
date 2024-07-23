@@ -929,7 +929,7 @@ fn validate_assignment<T: AnnotationMap>(
     if let (Some(right_type), Some(left_type)) = (right_type, left_type) {
         // implicit call parameter assignments are annotated to auto_deref pointers for ´ByRef` parameters
         // we need the inner type
-        let left_type = if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } =
+        let left_type = if let DataTypeInformation::Pointer { inner_type_name, deref: Some(_), .. } =
             left_type.get_type_information()
         {
             context.index.get_effective_type_or_void_by_name(inner_type_name)

@@ -10,7 +10,6 @@ Variable {
             referenced_type: DataTypeReference {
                 referenced_type: "INT",
             },
-            auto_deref: false,
             kind: None,
         },
     },
