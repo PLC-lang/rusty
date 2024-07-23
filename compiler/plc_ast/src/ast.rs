@@ -885,14 +885,6 @@ impl AstNode {
         matches!(self.stmt, AstStatement::CallStatement(..))
     }
 
-    pub fn is_call_with_name(&self, name: &str) -> bool {
-        if let AstStatement::CallStatement(CallStatement { operator, .. }) = &self.stmt {
-            return operator.get_flat_reference_name().is_some_and(|opt| opt == name);
-        }
-
-        false
-    }
-
     pub fn is_hardware_access(&self) -> bool {
         matches!(self.stmt, AstStatement::HardwareAccess(..))
     }

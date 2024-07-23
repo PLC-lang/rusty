@@ -1028,23 +1028,44 @@ impl<'i> TypeAnnotator<'i> {
     fn type_hint_for_variable_initializer(
         &mut self,
         initializer: &AstNode,
-        ty: &typesystem::DataType,
+        variable_ty: &typesystem::DataType,
         ctx: &VisitorContext,
     ) {
         if let AstStatement::ParenExpression(expr) = &initializer.stmt {
-            self.type_hint_for_variable_initializer(expr, ty, ctx);
+            self.type_hint_for_variable_initializer(expr, variable_ty, ctx);
             self.inherit_annotations(initializer, expr);
             return;
         }
 
-        // We have to wrap the initializer in a `REF` call when dealing with
-        // 1. aliasing, e.g. `foo AT bar : DINT` where `bar` becomes `foo`s initializer or
-        // 2. assignments calling `REF` directly, e.g. `foo : REFERENCE TO DINT := REF(bar)` or
-        // 3. reference assignment, e.g. `foo : REFERENCE TO DINT REF= bar`
-        // ...but we don't want to wrap a `REF` call when dealing with 2. which would yield REF(REF(...))
-        let is_alias = ty.get_type_information().is_alias();
-        let is_reference_to = ty.get_type_information().is_reference_to();
-        if (is_alias || is_reference_to) && !initializer.is_call_with_name("REF") {
+        self.replace_reference_pointer_initializer(variable_ty, initializer, ctx);
+
+        self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(&variable_ty.name));
+        self.update_expected_types(variable_ty, initializer);
+
+        self.type_hint_for_array_of_structs(variable_ty, initializer, ctx);
+    }
+
+    /// Wraps the initializer of a reference- or alias-pointer in a `REF` function call.
+    ///
+    /// Initializers already wrapped in a `REF` (or similiar) function call are however excluded, as we do
+    /// not want something like `REF(REF(...))`.
+    fn replace_reference_pointer_initializer(
+        &mut self,
+        variable_ty: &typesystem::DataType,
+        initializer: &AstNode,
+        ctx: &VisitorContext,
+    ) {
+        let variable_is_auto_deref_pointer = {
+            variable_ty.get_type_information().is_alias()
+                || variable_ty.get_type_information().is_reference_to()
+        };
+
+        let initializer_is_not_wrapped_in_ref_call = {
+            !(initializer.is_call()
+                && self.annotation_map.get_type(initializer, self.index).is_some_and(|opt| opt.is_pointer()))
+        };
+
+        if variable_is_auto_deref_pointer && initializer_is_not_wrapped_in_ref_call {
             debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
 
             let mut id_provider = ctx.id_provider.clone();
@@ -1065,11 +1086,6 @@ impl<'i> TypeAnnotator<'i> {
             self.visit_statement(ctx, &fn_call);
             self.annotate(initializer, StatementAnnotation::ReplacementAst { statement: fn_call });
         }
-
-        self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(ty.get_name()));
-        self.update_expected_types(ty, initializer);
-
-        self.type_hint_for_array_of_structs(ty, initializer, ctx);
     }
 
     fn type_hint_for_array_of_structs(
