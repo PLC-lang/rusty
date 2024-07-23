@@ -75,19 +75,19 @@ impl ConstExpression {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct InitingIsHardInnit {
+pub struct InitFunctionData {
     pub initializer: AstNode,
     pub target_type_name: String,
     pub scope: Option<String>,
 }
 
-impl InitingIsHardInnit {
+impl InitFunctionData {
     pub fn new(
         initializer: &AstNode,
         target_type: Option<impl Into<String>>,
         scope: Option<impl Into<String>>,
     ) -> Self {
-        InitingIsHardInnit {
+        InitFunctionData {
             initializer: initializer.clone(),
             target_type_name: target_type
                 .map(|it| it.into())
@@ -106,7 +106,7 @@ pub enum UnresolvableKind {
     Overflow(String, SourceLocation),
 
     /// Indicates that the const expression is not resolvable before initialization during codegen
-    InitLater(InitingIsHardInnit),
+    InitLater(InitFunctionData),
 }
 
 impl UnresolvableKind {

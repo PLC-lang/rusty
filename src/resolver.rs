@@ -22,7 +22,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-use crate::index::{self, const_expressions::InitingIsHardInnit, get_init_fn_name, FxIndexMap, FxIndexSet};
+use crate::index::{self, const_expressions::InitFunctionData, get_init_fn_name, FxIndexMap, FxIndexSet};
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -727,6 +727,38 @@ impl StringLiterals {
     }
 }
 
+
+#[derive(Default, Debug)]
+pub struct InitializerFunctions<'rslv> {
+    candidates: FxIndexMap<String, Vec<&'rslv InitFunctionData>>, /* Scope,  Info */
+    lookup: FxIndexSet<&'rslv str>,
+}
+
+impl<'rslv> InitializerFunctions<'rslv> {
+    pub fn new(candidates: &'rslv [const_evaluator::UnresolvableConstant]) -> Self {
+        let mut res = FxIndexMap::default();
+        let mut lookup = FxIndexSet::default();
+        candidates
+            .iter()
+            .filter_map(|it| {
+                if let Some(index::const_expressions::UnresolvableKind::InitLater(ref init)) = it.kind {
+                    lookup.insert(init.target_type_name.as_str());
+                    Some((init.scope.clone().unwrap_or("__global".into()), init))
+                } else {
+                    None
+                }
+            }).for_each(|(k, v)|{
+                res.entry(k).and_modify(|it: &mut Vec<&InitFunctionData>| it.push(v)).or_insert(vec![v]);
+            });
+        
+        Self {
+            candidates: res,
+            lookup
+        }
+    }
+
+}
+
 impl<'i> TypeAnnotator<'i> {
     /// constructs a new TypeAnnotater that works with the given index for type-lookups
     fn new(index: &'i Index) -> TypeAnnotator<'i> {
@@ -745,7 +777,7 @@ impl<'i> TypeAnnotator<'i> {
         index: &Index,
         unit: &'i CompilationUnit,
         id_provider: IdProvider,
-        unresolved: &FxIndexMap<String, InitingIsHardInnit>,
+        initializers: &InitializerFunctions,
     ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
@@ -767,8 +799,8 @@ impl<'i> TypeAnnotator<'i> {
         for pou in &unit.units {
             visitor.visit_pou(ctx, pou);
             if pou.pou_type != PouType::Function {
-                if let Some(init) = unresolved.get(&pou.name) {
-                    // XXX: could probably also index the function here instead of the index
+                // check if the visited POU needs an init-function. For POUs, one entry is expected at most
+                if let Some(init) = initializers.candidates.get(&pou.name).and_then(|it| it.get(0)) {
                     let init_fn_name = index::get_init_fn_name(&pou.name);
                     let mut id_provider = ctx.id_provider.clone();
 
@@ -817,16 +849,24 @@ impl<'i> TypeAnnotator<'i> {
                     
                     let members = index.get_pou_members(&pou.name);
                     let dependency_calls = members.iter().filter_map(|member| {
-                        let name = &member.get_type_name();
-                        if index.has_init_fn(name) { // TODO: create function which returns Option<InitFnName>. call `.map()` on it instead of if/else here
-                            let op = create_member_reference(&get_init_fn_name(name), id_provider.clone(), None);
-                            // for now, assume these are function blocks and not programs. Not sure if programs can be members
-                            let param = create_member_reference(
-                                &member.get_name(), 
-                                id_provider.clone(), 
-                                Some(create_member_reference(&pou.name, id_provider.clone(), None)) // double check base here
-                            );
+                        let type_name = &member.get_type_name();
 
+                        // if dbg!(index.has_init_fn(name)) && dbg!(initializers.lookup.contains(*name)) { // TODO: create function which returns Option<InitFnName>. call `.map()` on it instead of if/else here
+                        if initializers.candidates.contains_key(*type_name) {
+                            let call_name = get_init_fn_name(type_name);
+                            // TODO: we need to check if any of the POUs members require init functions themselves => these are dependencies and need to be added as call-statements
+                            let op = create_member_reference(&call_name, id_provider.clone(), None);
+                            // for now, assume these are function blocks and not programs. Not sure if programs can be members
+                            let base = if pou.pou_type == PouType::Program {
+                                Some(create_member_reference(&pou.name, id_provider.clone(), None)) // double check base here
+                            } else {
+                                None
+                            };
+                            let param = create_member_reference(
+                                dbg!(&member.get_name()),
+                                id_provider.clone(),
+                                base
+                            );
                             Some(AstFactory::create_call_statement(op, Some(param), id_provider.next_id(), SourceLocation::internal()))
                         } else {
                             None
@@ -991,10 +1031,6 @@ impl<'i> TypeAnnotator<'i> {
 
         pre_process(&mut new_unit, id_provider.clone()); // XXX: is this required?
         let idx = index::visitor::visit(&new_unit);
-
-        // idx.register_pou(
-        //     PouIndexEntry::create_generated_function_entry(&ident, VOID_TYPE, &[], LinkageType::Internal, false, SourceLocation::internal())
-        // );
 
         // __init has dependencies on all other init functions and their parameters
         let mut dependencies = FxIndexSet::default();

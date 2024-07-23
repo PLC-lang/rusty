@@ -211,9 +211,8 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         _ => {}
     };
 
-    // TODO: only register global POUs! for now, only works for PROGRAMs
     if !matches!(&pou.pou_type, PouType::Action | PouType::Function) {
-    // if matches!(&pou.pou_type, PouType::Program) {
+        // XXX: will register an init function in the index regardless of whether or not it is needed later - alternatives?
         index.register_initialization_function(&pou.name);
     };
 }

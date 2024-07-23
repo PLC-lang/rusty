@@ -11,7 +11,7 @@ use ast::{
     provider::IdProvider,
 };
 
-use plc::index::{const_expressions::UnresolvableKind, FxIndexMap, FxIndexSet};
+use plc::{index::FxIndexSet, resolver::InitializerFunctions};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::Index,
@@ -148,22 +148,13 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
         //Resolve constants
         //TODO: Not sure what we are currently doing with unresolvables //XXX: why are we resolving constants before the annotations?
-        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
-        let init_fn_candidates = unresolvables
-            .into_iter()
-            .filter_map(|it| {
-                if let Some(UnresolvableKind::InitLater(init)) = it.kind {
-                    Some((init.scope.clone().unwrap_or("__global".into()), init))
-                // todo: only supports one global, needs to be a vec
-                } else {
-                    None
-                }
-            })
-            .collect::<FxIndexMap<_, _>>();
+        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);        
 
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
+
+        let init_fn_candidates = InitializerFunctions::new(&unresolvables);
 
         let result = self
             .project
@@ -176,13 +167,14 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             })
             .collect::<Vec<_>>();
 
-        for (mut unit, mut annotation, dependencies, literals) in result {
+        for (mut unit, mut annotation, mut dependencies, literals) in result {
             std::mem::take(&mut annotation.new_units).into_iter().for_each(|u| {
                 full_index.import(std::mem::take(&mut annotation.new_index));
-                let (a, _, _) =
-                    TypeAnnotator::visit_unit(&full_index, &u, id_provider.clone(), &init_fn_candidates);
+                unit.import(u); // should the unit be imported into the unit wherein the original POU lies or should all initialize functions be in their own "file"?
+                let (a, dep, _) =
+                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), &init_fn_candidates);
+                dependencies.extend(dep);
                 annotation.import(a);
-                unit.import(u);
             });
 
             annotated_units.push((unit, dependencies, literals));
@@ -369,7 +361,11 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                         let current_dir = env::current_dir()?;
                         let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
                         let unit_location = PathBuf::from(&unit.file_name);
-                        let unit_location = fs::canonicalize(unit_location)?;
+                        let unit_location = if unit_location.exists() {
+                            fs::canonicalize(unit_location)?
+                        } else {
+                            unit_location
+                        };
                         let output_name = if unit_location.starts_with(current_dir) {
                             unit_location.strip_prefix(current_dir).map_err(|it| {
                                 Diagnostic::new(format!(
