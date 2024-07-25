@@ -1156,6 +1156,8 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
 
     let parse_definition_opt = if lexer.try_consume(&KeywordReferenceTo) {
         parse_pointer_definition(lexer, None, lexer.last_range.start, Some(AutoDerefType::Reference))
+    } else if address.is_some() {
+        parse_pointer_definition(lexer, None, lexer.last_range.start, Some(AutoDerefType::Alias))
     } else {
         parse_full_data_type_definition(lexer, None)
     };
