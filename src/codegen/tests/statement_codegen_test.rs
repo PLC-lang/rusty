@@ -1,3 +1,5 @@
+use insta::assert_snapshot;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::codegen;
 
@@ -307,4 +309,61 @@ fn reference_to_string_assignment() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
     "###);
+}
+
+#[test]
+#[ignore = "Not working because of REF(...) initializer; should be resolved with https://github.com/PLC-lang/rusty/pull/1259"]
+fn alias_dint() {
+    let content = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                foo AT bar : DINT;
+                bar : DINT;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(content, @r"");
+}
+
+#[test]
+#[ignore = "Not working because of REF(...) initializer; should be resolved with https://github.com/PLC-lang/rusty/pull/1259"]
+fn alias_string() {
+    let content = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                foo AT bar : STRING;
+                bar : STRING;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(content, @r"");
+}
+
+#[test]
+#[ignore = "Not working because of REF(...) initializer; should be resolved with https://github.com/PLC-lang/rusty/pull/1259"]
+fn alias_struct() {
+    let content = codegen(
+        r#"
+        TYPE Node : STRUCT
+            id      : DINT;
+            child   : REF_TO Node;
+            parent  : REF_TO Node;
+        END_STRUCT END_TYPE
+
+        FUNCTION main
+            VAR
+                foo AT bar : STRING;
+                bar : STRING;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(content, @r"");
 }

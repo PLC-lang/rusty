@@ -194,7 +194,7 @@ impl<'a> StatementWrapper<'a> {
     where
         T: AnnotationMap,
     {
-        match self {
+        let ty = match self {
             StatementWrapper::Statement(statement) => {
                 let AstNode { stmt: AstStatement::Assignment(data), .. } = statement else { return None };
                 context.annotations.get_type(&data.left, context.index).map(|it| it.get_type_information())
@@ -204,6 +204,11 @@ impl<'a> StatementWrapper<'a> {
                 .data_type_declaration
                 .get_referenced_type()
                 .and_then(|it| context.index.find_effective_type_info(&it)),
+        }?;
+
+        match ty {
+            DataTypeInformation::Pointer { .. } => Some(context.index.find_elementary_pointer_type(ty)),
+            _ => Some(ty),
         }
     }
 }

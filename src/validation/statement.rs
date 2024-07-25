@@ -100,6 +100,8 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.right, context);
 
             validate_ref_assignment(context, validator, data, &statement.location);
+            validate_alias_assignment(validator, context, statement);
+            validate_array_assignment(validator, context, statement);
         }
         AstStatement::CallStatement(data) => {
             validate_call(validator, &data.operator, data.parameters.as_deref(), &context.set_is_call());
@@ -769,6 +771,46 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
     }
 }
 
+pub fn validate_pointer_assignment<T>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    type_lhs: &DataType,
+    type_rhs: &DataType,
+    assignment_location: &SourceLocation,
+) where
+    T: AnnotationMap,
+{
+    let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
+    let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
+
+    if type_info_lhs.is_array() && type_info_rhs.is_array() {
+        let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
+        let len_rhs = type_info_rhs.get_array_length(context.index).unwrap_or_default();
+
+        let inner_ty_name_lhs = type_info_lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
+        let inner_ty_name_rhs = type_info_rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
+        let inner_ty_lhs = context.index.find_effective_type_by_name(inner_ty_name_lhs);
+        let inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
+
+        if len_lhs != len_rhs || inner_ty_lhs != inner_ty_rhs {
+            validator.push_diagnostic(Diagnostic::invalid_assignment(
+                &get_datatype_name_or_slice(validator.context, type_rhs),
+                &get_datatype_name_or_slice(validator.context, type_lhs),
+                assignment_location,
+            ));
+        }
+    } else if type_info_lhs != type_info_rhs {
+        let type_name_lhs = get_datatype_name_or_slice(validator.context, type_lhs);
+        let type_name_rhs = get_datatype_name_or_slice(validator.context, type_rhs);
+
+        validator.push_diagnostic(Diagnostic::invalid_assignment(
+            &type_name_rhs,
+            &type_name_lhs,
+            assignment_location,
+        ));
+    }
+}
+
 /// Checks if `REF=` assignments are correct, specifically if the left-hand side is a reference declared
 /// as `REFERENCE TO` and the right hand side is a lvalue of the same type that is being referenced.
 fn validate_ref_assignment<T: AnnotationMap>(
@@ -777,11 +819,9 @@ fn validate_ref_assignment<T: AnnotationMap>(
     assignment: &Assignment,
     assignment_location: &SourceLocation,
 ) {
+    let annotation_lhs = context.annotations.get(&assignment.left);
     let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
-    let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
-    let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
-    let annotation_lhs = context.annotations.get(&assignment.left);
 
     // Assert that the right-hand side is a reference
     if !assignment.right.is_reference() {
@@ -793,7 +833,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
     }
 
     // Assert that the left-hand side is a valid pointer-reference
-    if !annotation_lhs.is_some_and(StatementAnnotation::is_reference_to) && !type_lhs.is_pointer() {
+    if !type_lhs.is_pointer() && !annotation_lhs.is_some_and(|opt| opt.is_auto_deref()) {
         validator.push_diagnostic(
             Diagnostic::new("Invalid assignment, expected a pointer reference")
                 .with_location(&assignment.left.location)
@@ -801,46 +841,26 @@ fn validate_ref_assignment<T: AnnotationMap>(
         )
     }
 
-    if type_info_lhs.is_array() && type_info_rhs.is_array() {
-        let mut messages = Vec::new();
+    validate_pointer_assignment(context, validator, type_lhs, type_rhs, assignment_location);
+}
 
-        let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
-        let len_rhs = type_info_rhs.get_array_length(context.index).unwrap_or_default();
-
-        if len_lhs < len_rhs {
-            messages.push(format!("Invalid assignment, array lengths {len_lhs} and {len_rhs} differ"));
-        }
-
-        let inner_ty_name_lhs = type_info_lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
-        let inner_ty_name_rhs = type_info_rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
-        let inner_ty_lhs = context.index.find_effective_type_by_name(inner_ty_name_lhs);
-        let inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
-
-        if inner_ty_lhs != inner_ty_rhs {
-            messages.push(format!(
-                "Invalid assignment, array types {inner_ty_name_lhs} and {inner_ty_name_rhs} differ"
-            ));
-        }
-
-        for message in messages {
+/// Returns a diagnostic if an alias declared variables address is re-assigned in the POU body.
+fn validate_alias_assignment<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    ref_assignment: &AstNode,
+) {
+    if let AstStatement::RefAssignment(Assignment { left, .. }) = ref_assignment.get_stmt() {
+        if context.annotations.get(left).is_some_and(|opt| opt.is_alias()) {
             validator.push_diagnostic(
-                Diagnostic::new(message).with_location(assignment_location).with_error_code("E098"),
+                Diagnostic::new(format!(
+                    "{} is an immutable alias variable, can not change the address",
+                    validator.context.slice(&left.location)
+                ))
+                .with_location(&ref_assignment.location)
+                .with_error_code("E100"),
             )
         }
-
-        return;
-    }
-
-    if type_info_lhs != type_info_rhs {
-        validator.push_diagnostic(
-            Diagnostic::new(format!(
-                "Invalid assignment, types {} and {} differ",
-                get_datatype_name_or_slice(validator.context, type_lhs),
-                get_datatype_name_or_slice(validator.context, type_rhs),
-            ))
-            .with_location(assignment_location)
-            .with_error_code("E098"),
-        );
     }
 }
 
@@ -909,7 +929,7 @@ fn validate_assignment<T: AnnotationMap>(
     if let (Some(right_type), Some(left_type)) = (right_type, left_type) {
         // implicit call parameter assignments are annotated to auto_deref pointers for ´ByRef` parameters
         // we need the inner type
-        let left_type = if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } =
+        let left_type = if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
             left_type.get_type_information()
         {
             context.index.get_effective_type_or_void_by_name(inner_type_name)
@@ -938,11 +958,7 @@ fn validate_assignment<T: AnnotationMap>(
                     .with_location(location),
                 );
             } else {
-                validator.push_diagnostic(Diagnostic::invalid_assignment(
-                    &get_datatype_name_or_slice(validator.context, right_type),
-                    &get_datatype_name_or_slice(validator.context, left_type),
-                    location.clone(),
-                ));
+                validate_pointer_assignment(context, validator, left_type, right_type, location);
             }
         } else {
             validate_assignment_type_sizes(validator, left_type, right, context)
@@ -1137,7 +1153,7 @@ fn is_invalid_pointer_assignment(
         return !typesystem::is_same_type_class(left_type, right_type, index);
     }
     //check if Datatype can hold a Pointer (u64)
-    else if right_type.is_pointer()
+    else if (right_type.is_pointer() && !right_type.is_auto_deref())
         && !left_type.is_pointer()
         && left_type.get_size_in_bits(index) < POINTER_SIZE
     {
@@ -1595,7 +1611,7 @@ fn validate_argument_count<T: AnnotationMap>(
     }
 }
 
-mod helper {
+pub(crate) mod helper {
     use std::ops::Range;
 
     use plc_ast::ast::{AstNode, DirectAccessType};
@@ -1633,7 +1649,7 @@ mod helper {
 
     pub fn get_datatype_name_or_slice(context: &GlobalContext, dt: &DataType) -> String {
         if dt.is_internal() {
-            return dt.get_type_information().get_name().to_string();
+            return dt.get_type_information().get_inner_name().to_string();
         }
 
         context.slice(&dt.location)

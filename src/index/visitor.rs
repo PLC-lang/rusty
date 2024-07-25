@@ -3,9 +3,9 @@ use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::index::{ArgumentType, Index, MemberInfo};
 use crate::typesystem::{self, *};
 use plc_ast::ast::{
-    self, ArgumentProperty, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-    DataTypeDeclaration, Implementation, Pou, PouType, RangeStatement, TypeNature, UserTypeDeclaration,
-    Variable, VariableBlock, VariableBlockType,
+    self, ArgumentProperty, Assignment, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
+    DataType, DataTypeDeclaration, Implementation, Pou, PouType, RangeStatement, TypeNature,
+    UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
 };
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -272,8 +272,7 @@ fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
             information: DataTypeInformation::Pointer {
                 name: type_name.clone(),
                 inner_type_name: inner_type_name.to_string(),
-                auto_deref: true,
-                is_reference_to: false,
+                auto_deref: Some(AutoDerefType::Default),
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),
@@ -401,13 +400,12 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
         DataType::ArrayType { name: Some(name), bounds, referenced_type, .. } => {
             visit_array(bounds, index, scope, referenced_type, name, type_declaration);
         }
-        DataType::PointerType { name: Some(name), referenced_type, auto_deref, is_reference_to } => {
+        DataType::PointerType { name: Some(name), referenced_type, auto_deref: kind } => {
             let inner_type_name = referenced_type.get_name().expect("named datatype");
             let information = DataTypeInformation::Pointer {
                 name: name.clone(),
                 inner_type_name: inner_type_name.into(),
-                auto_deref: *auto_deref,
-                is_reference_to: *is_reference_to,
+                auto_deref: *kind,
             };
 
             let init = index.get_mut_const_expressions().maybe_add_constant_expression(
@@ -574,8 +572,7 @@ fn visit_variable_length_array(
                             referenced_type: dummy_array_name,
                             location: SourceLocation::undefined(),
                         }),
-                        auto_deref: false,
-                        is_reference_to: false,
+                        auto_deref: None,
                     },
                     location: SourceLocation::undefined(),
                     scope: None,

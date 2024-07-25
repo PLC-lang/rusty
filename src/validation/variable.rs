@@ -3,7 +3,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
     array::validate_array_assignment,
-    statement::{validate_enum_variant_assignment, visit_statement},
+    statement::{validate_enum_variant_assignment, validate_pointer_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
@@ -210,7 +210,7 @@ fn validate_variable<T: AnnotationMap>(
     }
 }
 
-/// Returns a diagnostic if a `REFERENCE TO` variable is incorrectly declared (or initialized).
+/// Returns a diagnostic if a `REFERENCE TO` variable is incorrectly declared.
 fn validate_reference_to_declaration<T: AnnotationMap>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
@@ -221,24 +221,14 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
         return;
     };
 
-    if !variable_ty.get_type_information().is_reference_to() {
+    if !variable_ty.get_type_information().is_reference_to() && !variable_ty.get_type_information().is_alias()
+    {
         return;
     }
 
     let Some(inner_ty_name) = variable_ty.get_type_information().get_inner_pointer_type_name() else {
         unreachable!("`REFERENCE TO` is defined as a pointer, hence this must exist")
     };
-
-    // Assert that no initializers are present in the `REFERENCE TO` declaration
-    if let Some(ref initializer) = variable.initializer {
-        if variable_ty.get_type_information().is_reference_to() {
-            validator.push_diagnostic(
-                Diagnostic::new("Initializations of REFERENCE TO variables are disallowed")
-                    .with_location(&initializer.location)
-                    .with_error_code("E099"),
-            );
-        }
-    }
 
     // Assert that the referenced type is no variable reference
     let qualifier = context.qualifier.unwrap_or_default();
@@ -251,6 +241,13 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
                 .with_location(&variable_ty.location)
                 .with_error_code("E099"),
         );
+    }
+
+    if let Some(ref initializer) = variable.initializer {
+        let type_lhs = context.index.find_type(inner_ty_name).unwrap();
+        let type_rhs = context.annotations.get_type(initializer, context.index).unwrap();
+
+        validate_pointer_assignment(context, validator, type_lhs, type_rhs, &initializer.location);
     }
 }
 
