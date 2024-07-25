@@ -292,15 +292,12 @@
 <a href="#290" id="290">290</a>
 <a href="#291" id="291">291</a>
 <a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="kw">use super</span>::{
     array::validate_array_assignment,
-    statement::{validate_enum_variant_assignment, visit_statement},
+    statement::{validate_enum_variant_assignment, validate_pointer_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
@@ -507,7 +504,7 @@
     }
 }
 
-<span class="doccomment">/// Returns a diagnostic if a `REFERENCE TO` variable is incorrectly declared (or initialized).
+<span class="doccomment">/// Returns a diagnostic if a `REFERENCE TO` variable is incorrectly declared.
 </span><span class="kw">fn </span>validate_reference_to_declaration&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
@@ -518,24 +515,14 @@
         <span class="kw">return</span>;
     };
 
-    <span class="kw">if </span>!variable_ty.get_type_information().is_reference_to() {
+    <span class="kw">if </span>!variable_ty.get_type_information().is_reference_to() &amp;&amp; !variable_ty.get_type_information().is_alias()
+    {
         <span class="kw">return</span>;
     }
 
     <span class="kw">let </span><span class="prelude-val">Some</span>(inner_ty_name) = variable_ty.get_type_information().get_inner_pointer_type_name() <span class="kw">else </span>{
         <span class="macro">unreachable!</span>(<span class="string">"`REFERENCE TO` is defined as a pointer, hence this must exist"</span>)
     };
-
-    <span class="comment">// Assert that no initializers are present in the `REFERENCE TO` declaration
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>initializer) = variable.initializer {
-        <span class="kw">if </span>variable_ty.get_type_information().is_reference_to() {
-            validator.push_diagnostic(
-                Diagnostic::new(<span class="string">"Initializations of REFERENCE TO variables are disallowed"</span>)
-                    .with_location(<span class="kw-2">&amp;</span>initializer.location)
-                    .with_error_code(<span class="string">"E099"</span>),
-            );
-        }
-    }
 
     <span class="comment">// Assert that the referenced type is no variable reference
     </span><span class="kw">let </span>qualifier = context.qualifier.unwrap_or_default();
@@ -548,6 +535,13 @@
                 .with_location(<span class="kw-2">&amp;</span>variable_ty.location)
                 .with_error_code(<span class="string">"E099"</span>),
         );
+    }
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>initializer) = variable.initializer {
+        <span class="kw">let </span>type_lhs = context.index.find_type(inner_ty_name).unwrap();
+        <span class="kw">let </span>type_rhs = context.annotations.get_type(initializer, context.index).unwrap();
+
+        validate_pointer_assignment(context, validator, type_lhs, type_rhs, <span class="kw-2">&amp;</span>initializer.location);
     }
 }
 

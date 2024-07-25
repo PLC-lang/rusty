@@ -2151,6 +2151,45 @@
 <a href="#2149" id="2149">2149</a>
 <a href="#2150" id="2150">2150</a>
 <a href="#2151" id="2151">2151</a>
+<a href="#2152" id="2152">2152</a>
+<a href="#2153" id="2153">2153</a>
+<a href="#2154" id="2154">2154</a>
+<a href="#2155" id="2155">2155</a>
+<a href="#2156" id="2156">2156</a>
+<a href="#2157" id="2157">2157</a>
+<a href="#2158" id="2158">2158</a>
+<a href="#2159" id="2159">2159</a>
+<a href="#2160" id="2160">2160</a>
+<a href="#2161" id="2161">2161</a>
+<a href="#2162" id="2162">2162</a>
+<a href="#2163" id="2163">2163</a>
+<a href="#2164" id="2164">2164</a>
+<a href="#2165" id="2165">2165</a>
+<a href="#2166" id="2166">2166</a>
+<a href="#2167" id="2167">2167</a>
+<a href="#2168" id="2168">2168</a>
+<a href="#2169" id="2169">2169</a>
+<a href="#2170" id="2170">2170</a>
+<a href="#2171" id="2171">2171</a>
+<a href="#2172" id="2172">2172</a>
+<a href="#2173" id="2173">2173</a>
+<a href="#2174" id="2174">2174</a>
+<a href="#2175" id="2175">2175</a>
+<a href="#2176" id="2176">2176</a>
+<a href="#2177" id="2177">2177</a>
+<a href="#2178" id="2178">2178</a>
+<a href="#2179" id="2179">2179</a>
+<a href="#2180" id="2180">2180</a>
+<a href="#2181" id="2181">2181</a>
+<a href="#2182" id="2182">2182</a>
+<a href="#2183" id="2183">2183</a>
+<a href="#2184" id="2184">2184</a>
+<a href="#2185" id="2185">2185</a>
+<a href="#2186" id="2186">2186</a>
+<a href="#2187" id="2187">2187</a>
+<a href="#2188" id="2188">2188</a>
+<a href="#2189" id="2189">2189</a>
+<a href="#2190" id="2190">2190</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2163,7 +2202,7 @@
 
 <span class="kw">use </span>plc_ast::{
     ast::{
-        <span class="self">self</span>, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
+        <span class="self">self</span>, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement, AutoDerefType,
         BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
         Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
@@ -2544,10 +2583,8 @@
         </span>constant: bool,
         <span class="doccomment">/// denotes the variable type of this variable, hence whether it is an input, output, etc.
         </span>argument_type: ArgumentType,
-        <span class="doccomment">/// denotes whether this variable-reference should be automatically dereferenced when accessed
-        </span>is_auto_deref: bool,
-        <span class="doccomment">/// denotes whether this variable is declared as `REFERENCE TO` (e.g. `foo : REFERENCE TO DINT`)
-        </span>is_reference_to: bool,
+        <span class="doccomment">/// denotes wheter this variable has the auto-deref trait and if so what type
+        </span>auto_deref: <span class="prelude-ty">Option</span>&lt;AutoDerefType&gt;,
     },
     <span class="doccomment">/// a reference to a function
     </span>Function {
@@ -2588,12 +2625,12 @@
         }
     }
 
-    <span class="kw">pub fn </span>is_auto_deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, StatementAnnotation::Variable { is_auto_deref: <span class="bool-val">true</span>, .. })
+    <span class="kw">pub fn </span>is_alias(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, StatementAnnotation::Variable { auto_deref: <span class="prelude-val">Some</span>(AutoDerefType::Alias), .. })
     }
 
-    <span class="kw">pub fn </span>is_reference_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, StatementAnnotation::Variable { is_reference_to: <span class="bool-val">true</span>, .. })
+    <span class="kw">pub fn </span>is_auto_deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, StatementAnnotation::Variable { auto_deref: <span class="prelude-val">Some</span>(<span class="kw">_</span>), .. })
     }
 
     <span class="kw">pub fn </span>data_type(type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
@@ -3177,19 +3214,64 @@
     <span class="kw">fn </span>type_hint_for_variable_initializer(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         initializer: <span class="kw-2">&amp;</span>AstNode,
-        ty: <span class="kw-2">&amp;</span>typesystem::DataType,
+        variable_ty: <span class="kw-2">&amp;</span>typesystem::DataType,
         ctx: <span class="kw-2">&amp;</span>VisitorContext,
     ) {
         <span class="kw">if let </span>AstStatement::ParenExpression(expr) = <span class="kw-2">&amp;</span>initializer.stmt {
-            <span class="self">self</span>.type_hint_for_variable_initializer(expr, ty, ctx);
+            <span class="self">self</span>.type_hint_for_variable_initializer(expr, variable_ty, ctx);
             <span class="self">self</span>.inherit_annotations(initializer, expr);
             <span class="kw">return</span>;
         }
 
-        <span class="self">self</span>.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(ty.get_name()));
-        <span class="self">self</span>.update_expected_types(ty, initializer);
+        <span class="self">self</span>.replace_reference_pointer_initializer(variable_ty, initializer, ctx);
 
-        <span class="self">self</span>.type_hint_for_array_of_structs(ty, initializer, ctx);
+        <span class="self">self</span>.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(<span class="kw-2">&amp;</span>variable_ty.name));
+        <span class="self">self</span>.update_expected_types(variable_ty, initializer);
+
+        <span class="self">self</span>.type_hint_for_array_of_structs(variable_ty, initializer, ctx);
+    }
+
+    <span class="doccomment">/// Wraps the initializer of a reference- or alias-pointer in a `REF` function call.
+    ///
+    /// Initializers already wrapped in a `REF` (or similiar) function call are however excluded, as we do
+    /// not want something like `REF(REF(...))`.
+    </span><span class="kw">fn </span>replace_reference_pointer_initializer(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        variable_ty: <span class="kw-2">&amp;</span>typesystem::DataType,
+        initializer: <span class="kw-2">&amp;</span>AstNode,
+        ctx: <span class="kw-2">&amp;</span>VisitorContext,
+    ) {
+        <span class="kw">let </span>variable_is_auto_deref_pointer = {
+            variable_ty.get_type_information().is_alias()
+                || variable_ty.get_type_information().is_reference_to()
+        };
+
+        <span class="kw">let </span>initializer_is_not_wrapped_in_ref_call = {
+            !(initializer.is_call()
+                &amp;&amp; <span class="self">self</span>.annotation_map.get_type(initializer, <span class="self">self</span>.index).is_some_and(|opt| opt.is_pointer()))
+        };
+
+        <span class="kw">if </span>variable_is_auto_deref_pointer &amp;&amp; initializer_is_not_wrapped_in_ref_call {
+            <span class="macro">debug_assert!</span>(builtins::get_builtin(<span class="string">"REF"</span>).is_some(), <span class="string">"REF must exist for this use-case"</span>);
+
+            <span class="kw">let </span><span class="kw-2">mut </span>id_provider = ctx.id_provider.clone();
+            <span class="kw">let </span>location = <span class="kw-2">&amp;</span>initializer.location;
+
+            <span class="kw">let </span>ref_ident = AstFactory::create_identifier(<span class="string">"REF"</span>, location, id_provider.next_id());
+            <span class="kw">let </span>fn_name = AstFactory::create_member_reference(ref_ident, <span class="prelude-val">None</span>, id_provider.next_id());
+            <span class="kw">let </span>fn_arg = initializer;
+            <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>fn_name);
+            <span class="self">self</span>.visit_statement(ctx, fn_arg);
+
+            <span class="kw">let </span>fn_call = AstFactory::create_call_statement(
+                fn_name,
+                <span class="prelude-val">Some</span>(fn_arg.clone()),
+                id_provider.next_id(),
+                location,
+            );
+            <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>fn_call);
+            <span class="self">self</span>.annotate(initializer, StatementAnnotation::ReplacementAst { statement: fn_call });
+        }
     }
 
     <span class="kw">fn </span>type_hint_for_array_of_structs(
@@ -3706,7 +3788,7 @@
                 }
             }
             (ReferenceAccess::Deref, <span class="kw">_</span>) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeInformation::Pointer { inner_type_name, auto_deref: <span class="bool-val">false</span>, .. }) = base
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeInformation::Pointer { inner_type_name, auto_deref: <span class="prelude-val">None</span>, .. }) = base
                     .map(|base| <span class="self">self</span>.annotation_map.get_type_or_void(base, <span class="self">self</span>.index))
                     .map(|it| it.get_type_information())
                 {
@@ -3791,7 +3873,7 @@
         <span class="kw">else </span>{
             <span class="macro">unreachable!</span>(<span class="string">"expected a vla reference, but got {statement:#?}"</span>);
         };
-        <span class="kw">if let </span>DataTypeInformation::Pointer { inner_type_name, is_reference_to, .. } = <span class="kw-2">&amp;</span><span class="self">self
+        <span class="kw">if let </span>DataTypeInformation::Pointer { inner_type_name, auto_deref: kind, .. } = <span class="kw-2">&amp;</span><span class="self">self
             </span>.index
             .get_effective_type_or_void_by_name(
                 members.first().expect(<span class="string">"internal VLA struct ALWAYS has this member"</span>).get_type_name(),
@@ -3826,8 +3908,7 @@
                 qualified_name: qualified_name.to_string(),
                 constant: <span class="bool-val">false</span>,
                 argument_type,
-                is_auto_deref: <span class="bool-val">false</span>,
-                is_reference_to: <span class="kw-2">*</span>is_reference_to,
+                auto_deref: <span class="kw-2">*</span>kind,
             };
             <span class="self">self</span>.annotation_map.annotate_type_hint(statement, hint_annotation)
         }
@@ -4039,10 +4120,9 @@
             initial_value: <span class="prelude-val">None</span>,
             nature: TypeNature::Any,
             information: DataTypeInformation::Pointer {
-                auto_deref: <span class="bool-val">false</span>,
-                inner_type_name,
                 name: new_type_name.clone(),
-                is_reference_to: <span class="bool-val">false</span>,
+                inner_type_name,
+                auto_deref: <span class="prelude-val">None</span>,
             },
             location: SourceLocation::internal(),
         });
@@ -4078,22 +4158,21 @@
     index: <span class="kw-2">&amp;</span>Index,
     constant_override: bool,
 ) -&gt; StatementAnnotation {
-    <span class="kw">const </span>AUTO_DEREF: bool = <span class="bool-val">true</span>;
-    <span class="kw">const </span>NO_DEREF: bool = <span class="bool-val">false</span>;
     <span class="kw">let </span>v_type = index.get_effective_type_or_void_by_name(v.get_type_name());
 
     <span class="comment">//see if this is an auto-deref variable
-    </span><span class="kw">let </span>(effective_type_name, is_auto_deref) = <span class="kw">match </span>(v_type.get_type_information(), v.is_return()) {
+    </span><span class="kw">let </span>(effective_type_name, kind) = <span class="kw">match </span>(v_type.get_type_information(), v.is_return()) {
         (<span class="kw">_</span>, <span class="bool-val">true</span>) <span class="kw">if </span>v_type.is_aggregate_type() =&gt; {
             <span class="comment">// treat a return-aggregate variable like an auto-deref pointer since it got
             // passed by-ref
-            </span>(v_type.get_name().to_string(), AUTO_DEREF)
+            </span><span class="kw">let </span>kind = v_type.get_type_information().get_auto_deref_type().unwrap_or(AutoDerefType::Default);
+            (v_type.get_name().to_string(), <span class="prelude-val">Some</span>(kind))
         }
-        (DataTypeInformation::Pointer { inner_type_name, auto_deref: <span class="bool-val">true</span>, .. }, <span class="kw">_</span>) =&gt; {
+        (DataTypeInformation::Pointer { inner_type_name, auto_deref: <span class="prelude-val">Some</span>(deref), .. }, <span class="kw">_</span>) =&gt; {
             <span class="comment">// real auto-deref pointer
-            </span>(inner_type_name.clone(), AUTO_DEREF)
+            </span>(inner_type_name.clone(), <span class="prelude-val">Some</span>(<span class="kw-2">*</span>deref))
         }
-        <span class="kw">_ </span>=&gt; (v_type.get_name().to_string(), NO_DEREF),
+        <span class="kw">_ </span>=&gt; (v_type.get_name().to_string(), <span class="prelude-val">None</span>),
     };
 
     StatementAnnotation::Variable {
@@ -4101,8 +4180,7 @@
         resulting_type: effective_type_name,
         constant: v.is_constant() || constant_override,
         argument_type: v.get_declaration_type(),
-        is_auto_deref,
-        is_reference_to: v_type.get_type_information().is_reference_to(),
+        auto_deref: kind,
     }
 }
 

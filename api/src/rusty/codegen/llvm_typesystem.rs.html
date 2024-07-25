@@ -482,7 +482,7 @@
         <span class="kw">let </span>value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
 
         <span class="kw">let </span>target_type =
-            <span class="kw">if let </span>DataTypeInformation::Pointer { auto_deref: <span class="bool-val">true</span>, inner_type_name, .. } = target_type {
+            <span class="kw">if let </span>DataTypeInformation::Pointer { auto_deref: <span class="prelude-val">Some</span>(<span class="kw">_</span>), inner_type_name, .. } = target_type {
                 <span class="comment">// Deref auto-deref pointers before casting
                 </span>index.get_intrinsic_type_by_name(inner_type_name.as_str()).get_type_information()
             } <span class="kw">else </span>{

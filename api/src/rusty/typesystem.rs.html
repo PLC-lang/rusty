@@ -1432,6 +1432,28 @@
 <a href="#1430" id="1430">1430</a>
 <a href="#1431" id="1431">1431</a>
 <a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1440,7 +1462,7 @@
 };
 
 <span class="kw">use </span>plc_ast::{
-    ast::{AstNode, Operator, PouType, TypeNature},
+    ast::{AstNode, AutoDerefType, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -1824,9 +1846,7 @@
     Pointer {
         name: TypeId,
         inner_type_name: TypeId,
-        auto_deref: bool,
-        <span class="doccomment">/// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
-        </span>is_reference_to: bool,
+        auto_deref: <span class="prelude-ty">Option</span>&lt;AutoDerefType&gt;,
     },
     Integer {
         name: TypeId,
@@ -1876,6 +1896,13 @@
             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. } =&gt; <span class="string">"STRING"</span>,
             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } =&gt; <span class="string">"WSTRING"</span>,
             DataTypeInformation::Void =&gt; <span class="string">"VOID"</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>get_inner_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            DataTypeInformation::Pointer { inner_type_name, .. } =&gt; inner_type_name,
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>.get_name(),
         }
     }
 
@@ -1997,7 +2024,16 @@
 
     <span class="doccomment">/// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
     </span><span class="kw">pub fn </span>is_reference_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Pointer { is_reference_to: <span class="bool-val">true</span>, .. })
+        <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Pointer { auto_deref: <span class="prelude-val">Some</span>(AutoDerefType::Reference), .. })
+    }
+
+    <span class="doccomment">/// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
+    </span><span class="kw">pub fn </span>is_alias(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Pointer { auto_deref: <span class="prelude-val">Some</span>(AutoDerefType::Alias), .. })
+    }
+
+    <span class="kw">pub fn </span>is_auto_deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Pointer { auto_deref: <span class="prelude-val">Some</span>(<span class="kw">_</span>), .. })
     }
 
     <span class="kw">pub fn </span>is_aggregate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -2008,6 +2044,14 @@
                 | DataTypeInformation::String { .. }
         )
     }
+
+    <span class="kw">pub fn </span>get_auto_deref_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;AutoDerefType&gt; {
+        <span class="kw">if let </span>DataTypeInformation::Pointer { auto_deref: kind, .. } = <span class="self">self </span>{
+            <span class="kw">return </span><span class="kw-2">*</span>kind;
+        }
+
+        <span class="prelude-val">None
+    </span>}
 
     <span class="kw">pub fn </span>is_date_or_time_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.get_name(), DATE_TYPE | DATE_AND_TIME_TYPE | TIME_OF_DAY_TYPE | TIME_TYPE)

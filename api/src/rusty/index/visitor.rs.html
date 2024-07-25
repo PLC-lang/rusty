@@ -817,17 +817,14 @@
 <a href="#815" id="815">815</a>
 <a href="#816" id="816">816</a>
 <a href="#817" id="817">817</a>
-<a href="#818" id="818">818</a>
-<a href="#819" id="819">819</a>
-<a href="#820" id="820">820</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, Index, MemberInfo};
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::{<span class="self">self</span>, <span class="kw-2">*</span>};
 <span class="kw">use </span>plc_ast::ast::{
-    <span class="self">self</span>, ArgumentProperty, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-    DataTypeDeclaration, Implementation, Pou, PouType, RangeStatement, TypeNature, UserTypeDeclaration,
-    Variable, VariableBlock, VariableBlockType,
+    <span class="self">self</span>, ArgumentProperty, Assignment, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
+    DataType, DataTypeDeclaration, Implementation, Pou, PouType, RangeStatement, TypeNature,
+    UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
 };
 <span class="kw">use </span>plc_ast::literals::AstLiteral;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -1094,8 +1091,7 @@
             information: DataTypeInformation::Pointer {
                 name: type_name.clone(),
                 inner_type_name: inner_type_name.to_string(),
-                auto_deref: <span class="bool-val">true</span>,
-                is_reference_to: <span class="bool-val">false</span>,
+                auto_deref: <span class="prelude-val">Some</span>(AutoDerefType::Default),
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),
@@ -1223,13 +1219,12 @@
         DataType::ArrayType { name: <span class="prelude-val">Some</span>(name), bounds, referenced_type, .. } =&gt; {
             visit_array(bounds, index, scope, referenced_type, name, type_declaration);
         }
-        DataType::PointerType { name: <span class="prelude-val">Some</span>(name), referenced_type, auto_deref, is_reference_to } =&gt; {
+        DataType::PointerType { name: <span class="prelude-val">Some</span>(name), referenced_type, auto_deref: kind } =&gt; {
             <span class="kw">let </span>inner_type_name = referenced_type.get_name().expect(<span class="string">"named datatype"</span>);
             <span class="kw">let </span>information = DataTypeInformation::Pointer {
                 name: name.clone(),
                 inner_type_name: inner_type_name.into(),
-                auto_deref: <span class="kw-2">*</span>auto_deref,
-                is_reference_to: <span class="kw-2">*</span>is_reference_to,
+                auto_deref: <span class="kw-2">*</span>kind,
             };
 
             <span class="kw">let </span>init = index.get_mut_const_expressions().maybe_add_constant_expression(
@@ -1396,8 +1391,7 @@
                             referenced_type: dummy_array_name,
                             location: SourceLocation::undefined(),
                         }),
-                        auto_deref: <span class="bool-val">false</span>,
-                        is_reference_to: <span class="bool-val">false</span>,
+                        auto_deref: <span class="prelude-val">None</span>,
                     },
                     location: SourceLocation::undefined(),
                     scope: <span class="prelude-val">None</span>,

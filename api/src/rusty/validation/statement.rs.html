@@ -1678,6 +1678,22 @@
 <a href="#1676" id="1676">1676</a>
 <a href="#1677" id="1677">1677</a>
 <a href="#1678" id="1678">1678</a>
+<a href="#1679" id="1679">1679</a>
+<a href="#1680" id="1680">1680</a>
+<a href="#1681" id="1681">1681</a>
+<a href="#1682" id="1682">1682</a>
+<a href="#1683" id="1683">1683</a>
+<a href="#1684" id="1684">1684</a>
+<a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
+<a href="#1690" id="1690">1690</a>
+<a href="#1691" id="1691">1691</a>
+<a href="#1692" id="1692">1692</a>
+<a href="#1693" id="1693">1693</a>
+<a href="#1694" id="1694">1694</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
@@ -1780,6 +1796,8 @@
             visit_statement(validator, <span class="kw-2">&amp;</span>data.right, context);
 
             validate_ref_assignment(context, validator, data, <span class="kw-2">&amp;</span>statement.location);
+            validate_alias_assignment(validator, context, statement);
+            validate_array_assignment(validator, context, statement);
         }
         AstStatement::CallStatement(data) =&gt; {
             validate_call(validator, <span class="kw-2">&amp;</span>data.operator, data.parameters.as_deref(), <span class="kw-2">&amp;</span>context.set_is_call());
@@ -2449,6 +2467,46 @@
     }
 }
 
+<span class="kw">pub fn </span>validate_pointer_assignment&lt;T&gt;(
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    type_lhs: <span class="kw-2">&amp;</span>DataType,
+    type_rhs: <span class="kw-2">&amp;</span>DataType,
+    assignment_location: <span class="kw-2">&amp;</span>SourceLocation,
+) <span class="kw">where
+    </span>T: AnnotationMap,
+{
+    <span class="kw">let </span>type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
+    <span class="kw">let </span>type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
+
+    <span class="kw">if </span>type_info_lhs.is_array() &amp;&amp; type_info_rhs.is_array() {
+        <span class="kw">let </span>len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
+        <span class="kw">let </span>len_rhs = type_info_rhs.get_array_length(context.index).unwrap_or_default();
+
+        <span class="kw">let </span>inner_ty_name_lhs = type_info_lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
+        <span class="kw">let </span>inner_ty_name_rhs = type_info_rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
+        <span class="kw">let </span>inner_ty_lhs = context.index.find_effective_type_by_name(inner_ty_name_lhs);
+        <span class="kw">let </span>inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
+
+        <span class="kw">if </span>len_lhs != len_rhs || inner_ty_lhs != inner_ty_rhs {
+            validator.push_diagnostic(Diagnostic::invalid_assignment(
+                <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, type_rhs),
+                <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, type_lhs),
+                assignment_location,
+            ));
+        }
+    } <span class="kw">else if </span>type_info_lhs != type_info_rhs {
+        <span class="kw">let </span>type_name_lhs = get_datatype_name_or_slice(validator.context, type_lhs);
+        <span class="kw">let </span>type_name_rhs = get_datatype_name_or_slice(validator.context, type_rhs);
+
+        validator.push_diagnostic(Diagnostic::invalid_assignment(
+            <span class="kw-2">&amp;</span>type_name_rhs,
+            <span class="kw-2">&amp;</span>type_name_lhs,
+            assignment_location,
+        ));
+    }
+}
+
 <span class="doccomment">/// Checks if `REF=` assignments are correct, specifically if the left-hand side is a reference declared
 /// as `REFERENCE TO` and the right hand side is a lvalue of the same type that is being referenced.
 </span><span class="kw">fn </span>validate_ref_assignment&lt;T: AnnotationMap&gt;(
@@ -2457,11 +2515,9 @@
     assignment: <span class="kw-2">&amp;</span>Assignment,
     assignment_location: <span class="kw-2">&amp;</span>SourceLocation,
 ) {
+    <span class="kw">let </span>annotation_lhs = context.annotations.get(<span class="kw-2">&amp;</span>assignment.left);
     <span class="kw">let </span>type_lhs = context.annotations.get_type_or_void(<span class="kw-2">&amp;</span>assignment.left, context.index);
     <span class="kw">let </span>type_rhs = context.annotations.get_type_or_void(<span class="kw-2">&amp;</span>assignment.right, context.index);
-    <span class="kw">let </span>type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
-    <span class="kw">let </span>type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
-    <span class="kw">let </span>annotation_lhs = context.annotations.get(<span class="kw-2">&amp;</span>assignment.left);
 
     <span class="comment">// Assert that the right-hand side is a reference
     </span><span class="kw">if </span>!assignment.right.is_reference() {
@@ -2473,7 +2529,7 @@
     }
 
     <span class="comment">// Assert that the left-hand side is a valid pointer-reference
-    </span><span class="kw">if </span>!annotation_lhs.is_some_and(StatementAnnotation::is_reference_to) &amp;&amp; !type_lhs.is_pointer() {
+    </span><span class="kw">if </span>!type_lhs.is_pointer() &amp;&amp; !annotation_lhs.is_some_and(|opt| opt.is_auto_deref()) {
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"Invalid assignment, expected a pointer reference"</span>)
                 .with_location(<span class="kw-2">&amp;</span>assignment.left.location)
@@ -2481,46 +2537,26 @@
         )
     }
 
-    <span class="kw">if </span>type_info_lhs.is_array() &amp;&amp; type_info_rhs.is_array() {
-        <span class="kw">let </span><span class="kw-2">mut </span>messages = Vec::new();
+    validate_pointer_assignment(context, validator, type_lhs, type_rhs, assignment_location);
+}
 
-        <span class="kw">let </span>len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
-        <span class="kw">let </span>len_rhs = type_info_rhs.get_array_length(context.index).unwrap_or_default();
-
-        <span class="kw">if </span>len_lhs &lt; len_rhs {
-            messages.push(<span class="macro">format!</span>(<span class="string">"Invalid assignment, array lengths {len_lhs} and {len_rhs} differ"</span>));
-        }
-
-        <span class="kw">let </span>inner_ty_name_lhs = type_info_lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
-        <span class="kw">let </span>inner_ty_name_rhs = type_info_rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
-        <span class="kw">let </span>inner_ty_lhs = context.index.find_effective_type_by_name(inner_ty_name_lhs);
-        <span class="kw">let </span>inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
-
-        <span class="kw">if </span>inner_ty_lhs != inner_ty_rhs {
-            messages.push(<span class="macro">format!</span>(
-                <span class="string">"Invalid assignment, array types {inner_ty_name_lhs} and {inner_ty_name_rhs} differ"
-            </span>));
-        }
-
-        <span class="kw">for </span>message <span class="kw">in </span>messages {
+<span class="doccomment">/// Returns a diagnostic if an alias declared variables address is re-assigned in the POU body.
+</span><span class="kw">fn </span>validate_alias_assignment&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+    ref_assignment: <span class="kw-2">&amp;</span>AstNode,
+) {
+    <span class="kw">if let </span>AstStatement::RefAssignment(Assignment { left, .. }) = ref_assignment.get_stmt() {
+        <span class="kw">if </span>context.annotations.get(left).is_some_and(|opt| opt.is_alias()) {
             validator.push_diagnostic(
-                Diagnostic::new(message).with_location(assignment_location).with_error_code(<span class="string">"E098"</span>),
+                Diagnostic::new(<span class="macro">format!</span>(
+                    <span class="string">"{} is an immutable alias variable, can not change the address"</span>,
+                    validator.context.slice(<span class="kw-2">&amp;</span>left.location)
+                ))
+                .with_location(<span class="kw-2">&amp;</span>ref_assignment.location)
+                .with_error_code(<span class="string">"E100"</span>),
             )
         }
-
-        <span class="kw">return</span>;
-    }
-
-    <span class="kw">if </span>type_info_lhs != type_info_rhs {
-        validator.push_diagnostic(
-            Diagnostic::new(<span class="macro">format!</span>(
-                <span class="string">"Invalid assignment, types {} and {} differ"</span>,
-                get_datatype_name_or_slice(validator.context, type_lhs),
-                get_datatype_name_or_slice(validator.context, type_rhs),
-            ))
-            .with_location(assignment_location)
-            .with_error_code(<span class="string">"E098"</span>),
-        );
     }
 }
 
@@ -2589,7 +2625,7 @@
     <span class="kw">if let </span>(<span class="prelude-val">Some</span>(right_type), <span class="prelude-val">Some</span>(left_type)) = (right_type, left_type) {
         <span class="comment">// implicit call parameter assignments are annotated to auto_deref pointers for ´ByRef` parameters
         // we need the inner type
-        </span><span class="kw">let </span>left_type = <span class="kw">if let </span>DataTypeInformation::Pointer { inner_type_name, auto_deref: <span class="bool-val">true</span>, .. } =
+        </span><span class="kw">let </span>left_type = <span class="kw">if let </span>DataTypeInformation::Pointer { inner_type_name, auto_deref: <span class="prelude-val">Some</span>(<span class="kw">_</span>), .. } =
             left_type.get_type_information()
         {
             context.index.get_effective_type_or_void_by_name(inner_type_name)
@@ -2618,11 +2654,7 @@
                     .with_location(location),
                 );
             } <span class="kw">else </span>{
-                validator.push_diagnostic(Diagnostic::invalid_assignment(
-                    <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, right_type),
-                    <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, left_type),
-                    location.clone(),
-                ));
+                validate_pointer_assignment(context, validator, left_type, right_type, location);
             }
         } <span class="kw">else </span>{
             validate_assignment_type_sizes(validator, left_type, right, context)
@@ -2817,7 +2849,7 @@
         <span class="kw">return </span>!typesystem::is_same_type_class(left_type, right_type, index);
     }
     <span class="comment">//check if Datatype can hold a Pointer (u64)
-    </span><span class="kw">else if </span>right_type.is_pointer()
+    </span><span class="kw">else if </span>(right_type.is_pointer() &amp;&amp; !right_type.is_auto_deref())
         &amp;&amp; !left_type.is_pointer()
         &amp;&amp; left_type.get_size_in_bits(index) &lt; POINTER_SIZE
     {
@@ -3275,7 +3307,7 @@
     }
 }
 
-<span class="kw">mod </span>helper {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>helper {
     <span class="kw">use </span>std::ops::Range;
 
     <span class="kw">use </span>plc_ast::ast::{AstNode, DirectAccessType};
@@ -3313,7 +3345,7 @@
 
     <span class="kw">pub fn </span>get_datatype_name_or_slice(context: <span class="kw-2">&amp;</span>GlobalContext, dt: <span class="kw-2">&amp;</span>DataType) -&gt; String {
         <span class="kw">if </span>dt.is_internal() {
-            <span class="kw">return </span>dt.get_type_information().get_name().to_string();
+            <span class="kw">return </span>dt.get_type_information().get_inner_name().to_string();
         }
 
         context.slice(<span class="kw-2">&amp;</span>dt.location)

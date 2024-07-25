@@ -468,7 +468,6 @@
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
 <a href="#468" id="468">468</a>
-<a href="#469" id="469">469</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -672,7 +671,7 @@
                     .unwrap_or_else(|| member_name)
                     .to_string()
             }
-            <span class="prelude-val">Some</span>(DataTypeInformation::Pointer { name, inner_type_name, auto_deref: <span class="bool-val">true</span>, .. }) =&gt; {
+            <span class="prelude-val">Some</span>(DataTypeInformation::Pointer { name, inner_type_name, auto_deref: <span class="prelude-val">Some</span>(kind), .. }) =&gt; {
                 <span class="comment">// This is an auto deref pointer (VAR_IN_OUT or VAR_INPUT {ref}) that points to a
                 // generic. We first resolve the generic type, then create a new pointer type of
                 // the combination
@@ -681,8 +680,7 @@
                 </span><span class="kw">let </span>new_type_info = DataTypeInformation::Pointer {
                     name: name.clone(),
                     inner_type_name,
-                    auto_deref: <span class="bool-val">true</span>,
-                    is_reference_to: <span class="bool-val">false</span>,
+                    auto_deref: <span class="prelude-val">Some</span>(<span class="kw-2">*</span>kind),
                 };
 
                 <span class="comment">// Registers a new pointer type to the index

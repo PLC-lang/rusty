@@ -1640,6 +1640,22 @@
 <a href="#1638" id="1638">1638</a>
 <a href="#1639" id="1639">1639</a>
 <a href="#1640" id="1640">1640</a>
+<a href="#1641" id="1641">1641</a>
+<a href="#1642" id="1642">1642</a>
+<a href="#1643" id="1643">1643</a>
+<a href="#1644" id="1644">1644</a>
+<a href="#1645" id="1645">1645</a>
+<a href="#1646" id="1646">1646</a>
+<a href="#1647" id="1647">1647</a>
+<a href="#1648" id="1648">1648</a>
+<a href="#1649" id="1649">1649</a>
+<a href="#1650" id="1650">1650</a>
+<a href="#1651" id="1651">1651</a>
+<a href="#1652" id="1652">1652</a>
+<a href="#1653" id="1653">1653</a>
+<a href="#1654" id="1654">1654</a>
+<a href="#1655" id="1655">1655</a>
+<a href="#1656" id="1656">1656</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -2129,9 +2145,7 @@
     PointerType {
         name: <span class="prelude-ty">Option</span>&lt;String&gt;,
         referenced_type: Box&lt;DataTypeDeclaration&gt;,
-        auto_deref: bool,
-        <span class="doccomment">/// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
-        </span>is_reference_to: bool,
+        auto_deref: <span class="prelude-ty">Option</span>&lt;AutoDerefType&gt;,
     },
     StringType {
         name: <span class="prelude-ty">Option</span>&lt;String&gt;,
@@ -2147,6 +2161,18 @@
         generic_symbol: String,
         nature: TypeNature,
     },
+}
+
+<span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub enum </span>AutoDerefType {
+    <span class="doccomment">/// A plain pointer variable with the auto-deref trait, e.g. VAR_IN_OUT or VAR_INPUT{ref} variables
+    </span>Default,
+
+    <span class="doccomment">/// An alias pointer variable, e.g. `foo AT bar : DINT`
+    </span>Alias,
+
+    <span class="doccomment">/// A reference pointer variable, e.g. `foo : REFERENCE TO DINT;`
+    </span>Reference,
 }
 
 <span class="kw">impl </span>DataType {
@@ -2937,8 +2963,11 @@
     }
 
     <span class="doccomment">/// creates a new Identifier
-    </span><span class="kw">pub fn </span>create_identifier(name: <span class="kw-2">&amp;</span>str, location: <span class="kw-2">&amp;</span>SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.clone())
+    </span><span class="kw">pub fn </span>create_identifier&lt;T&gt;(name: <span class="kw-2">&amp;</span>str, location: T, id: AstId) -&gt; AstNode
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
+        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.into())
     }
 
     <span class="kw">pub fn </span>create_unary_expression(
@@ -3083,18 +3112,21 @@
         }
     }
 
-    <span class="kw">pub fn </span>create_call_statement(
+    <span class="kw">pub fn </span>create_call_statement&lt;T&gt;(
         operator: AstNode,
         parameters: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
         id: usize,
-        location: SourceLocation,
-    ) -&gt; AstNode {
+        location: T,
+    ) -&gt; AstNode
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
         AstNode {
             stmt: AstStatement::CallStatement(CallStatement {
                 operator: Box::new(operator),
                 parameters: parameters.map(Box::new),
             }),
-            location,
+            location: location.into(),
             id,
         }
     }
