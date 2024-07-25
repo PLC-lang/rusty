@@ -520,9 +520,7 @@ pub enum DataType {
     PointerType {
         name: Option<String>,
         referenced_type: Box<DataTypeDeclaration>,
-        auto_deref: bool,
-        /// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
-        is_reference_to: bool,
+        auto_deref: Option<AutoDerefType>,
     },
     StringType {
         name: Option<String>,
@@ -538,6 +536,18 @@ pub enum DataType {
         generic_symbol: String,
         nature: TypeNature,
     },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum AutoDerefType {
+    /// A plain pointer variable with the auto-deref trait, e.g. VAR_IN_OUT or VAR_INPUT{ref} variables
+    Default,
+
+    /// An alias pointer variable, e.g. `foo AT bar : DINT`
+    Alias,
+
+    /// A reference pointer variable, e.g. `foo : REFERENCE TO DINT;`
+    Reference,
 }
 
 impl DataType {
@@ -1328,8 +1338,11 @@ impl AstFactory {
     }
 
     /// creates a new Identifier
-    pub fn create_identifier(name: &str, location: &SourceLocation, id: AstId) -> AstNode {
-        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.clone())
+    pub fn create_identifier<T>(name: &str, location: T, id: AstId) -> AstNode
+    where
+        T: Into<SourceLocation>,
+    {
+        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.into())
     }
 
     pub fn create_unary_expression(
@@ -1474,18 +1487,21 @@ impl AstFactory {
         }
     }
 
-    pub fn create_call_statement(
+    pub fn create_call_statement<T>(
         operator: AstNode,
         parameters: Option<AstNode>,
         id: usize,
-        location: SourceLocation,
-    ) -> AstNode {
+        location: T,
+    ) -> AstNode
+    where
+        T: Into<SourceLocation>,
+    {
         AstNode {
             stmt: AstStatement::CallStatement(CallStatement {
                 operator: Box::new(operator),
                 parameters: parameters.map(Box::new),
             }),
-            location,
+            location: location.into(),
             id,
         }
     }

@@ -38,7 +38,7 @@ fn empty_statements_are_parsed_before_a_statement() {
                 empty_stmt(),
                 empty_stmt(),
                 AstFactory::create_member_reference(
-                    AstFactory::create_identifier("x", &SourceLocation::undefined(), 0),
+                    AstFactory::create_identifier("x", SourceLocation::undefined(), 0),
                     None,
                     0
                 ),
@@ -59,7 +59,7 @@ fn empty_statements_are_ignored_after_a_statement() {
     let expected_ast = format!(
         "{:#?}",
         AstFactory::create_member_reference(
-            AstFactory::create_identifier("x", &SourceLocation::undefined(), 0),
+            AstFactory::create_identifier("x", SourceLocation::undefined(), 0),
             None,
             0
         )
@@ -322,8 +322,9 @@ fn reference_to_declaration() {
                         referenced_type: DataTypeReference {
                             referenced_type: "DINT",
                         },
-                        auto_deref: true,
-                        is_reference_to: true,
+                        auto_deref: Some(
+                            Reference,
+                        ),
                     },
                 },
             },
@@ -332,6 +333,52 @@ fn reference_to_declaration() {
                 data_type: DataTypeReference {
                     referenced_type: "DINT",
                 },
+            },
+        ],
+        variable_block_type: Local,
+    }
+    "###);
+}
+
+#[test]
+fn aliasing_dint_variable() {
+    let (result, diagnostics) = parse(
+        "
+        FUNCTION main
+            VAR
+                a AT b : DINT; // equivalent to `a : REFERENCE TO DINT REF= b`
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_eq!(diagnostics, vec![]);
+    insta::assert_debug_snapshot!(result.units[0].variable_blocks[0], @r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "a",
+                data_type: DataTypeDefinition {
+                    data_type: PointerType {
+                        name: None,
+                        referenced_type: DataTypeReference {
+                            referenced_type: "DINT",
+                        },
+                        auto_deref: Some(
+                            Alias,
+                        ),
+                    },
+                },
+                initializer: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "b",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
             },
         ],
         variable_block_type: Local,

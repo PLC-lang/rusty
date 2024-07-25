@@ -49,8 +49,7 @@ fn references_to_variables_are_annotated() {
             qualified_name: "prg.a".into(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Local),
-            is_auto_deref: false,
-            is_reference_to: false,
+            auto_deref: None,
         }
     );
 
@@ -62,8 +61,7 @@ fn references_to_variables_are_annotated() {
             qualified_name: "gX".into(),
             constant: true,
             argument_type: ArgumentType::ByVal(VariableType::Global),
-            is_auto_deref: false,
-            is_reference_to: false,
+            auto_deref: None,
         }
     );
 }
@@ -106,9 +104,8 @@ fn different_types_of_annotations() {
             qualified_name: "POINT.x".into(), // the qualified name of the target element
             resulting_type: "SINT".into(),    // the variable's type
             constant: false,                  // whether this variable is a constant or not
-            is_auto_deref: false,             // whether this pointerType should be automatically dereferenced
-            is_reference_to: false, // whether this pointerType was declared as `REFERENCE TO`, making it auto-deref by default
             argument_type: ArgumentType::ByVal(VariableType::Input), // the type of declaration
+            auto_deref: None,
         })
     );
 
@@ -156,9 +153,8 @@ fn different_types_of_annotations() {
             qualified_name: "Main.in".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false,
-            is_reference_to: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
+            auto_deref: None,
         })
     );
 
@@ -169,9 +165,8 @@ fn different_types_of_annotations() {
             qualified_name: "Main.in".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false,
-            is_reference_to: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
+            auto_deref: None,
         })
     );
 }
