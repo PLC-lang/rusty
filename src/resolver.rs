@@ -856,12 +856,12 @@ impl<'i> TypeAnnotator<'i> {
                             let op = create_member_reference(&call_name, id_provider.clone(), None);
                             // for now, assume these are function blocks and not programs. Not sure if programs can be members
                             let base = if pou.pou_type == PouType::Program {
-                                Some(create_member_reference(&pou.name, id_provider.clone(), None)) // double check base here
+                                Some(create_member_reference(&pou.name, id_provider.clone(), None))
                             } else {
-                                None
+                                Some(create_member_reference("self", id_provider.clone(), None))
                             };
                             let param = create_member_reference(
-                                dbg!(&member.get_name()),
+                                &member.get_name(),
                                 id_provider.clone(),
                                 base
                             );
