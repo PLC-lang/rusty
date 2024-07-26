@@ -1132,7 +1132,12 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
                 address = parse_hardware_access(lexer, direction, access_type)
             }
 
-            Identifier => return vec![parse_aliasing(lexer, &var_names[0]).unwrap()],
+            Identifier => {
+                return match parse_aliasing(lexer, &var_names[0]) {
+                    Some(aliased_variable) => vec![aliased_variable],
+                    None => vec![],
+                };
+            }
 
             _ => {
                 lexer.accept_diagnostic(Diagnostic::missing_token(
