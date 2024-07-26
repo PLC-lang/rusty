@@ -1424,6 +1424,10 @@ impl Index {
         self.init_functions.get(&get_init_fn_name(type_name)).is_some()
     }
 
+    pub fn is_init_function(&self, pou_name: &str) -> bool {
+        self.init_functions.get(pou_name).is_some()
+    }
+
     pub fn register_program(&mut self, name: &str, location: SourceLocation, linkage: LinkageType) {
         let instance_variable =
             VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone()) // TODO: Naming convention (see plc_util/src/convention.rs)
