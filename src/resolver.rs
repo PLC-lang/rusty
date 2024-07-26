@@ -152,6 +152,7 @@ pub struct TypeAnnotator<'i> {
     /// A map containing every jump encountered in a file, and the label of where this jump should
     /// point. This is later used to annotate all jumps after the initial visit is done.
     jumps_to_annotate: FxHashMap<String, FxHashMap<String, Vec<AstId>>>,
+    initializers: InitializerFunctions,
 }
 
 impl TypeAnnotator<'_> {
@@ -419,6 +420,7 @@ pub enum StatementAnnotation {
     Label {
         name: String,
     },
+    Alias
 }
 
 impl StatementAnnotation {
@@ -533,7 +535,7 @@ pub trait AnnotationMap {
                 .and_then(|it| self.get_type_name_for_annotation(it)),
             StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } => Some(type_name),
-            StatementAnnotation::Function { .. } | StatementAnnotation::Label { .. } => None,
+            _ => None,
         }
     }
 
@@ -726,35 +728,37 @@ impl StringLiterals {
 }
 
 
-#[derive(Default, Debug)]
-pub struct InitializerFunctions<'rslv> {
-    candidates: FxIndexMap<String, Vec<&'rslv InitFunctionData>>, /* Scope,  Info */
-    lookup: FxIndexSet<&'rslv str>,
+// #[derive(Default, Debug)]
+// pub struct InitializerFunctions<'rslv> {
+//     candidates: FxIndexMap<String, Vec<&'rslv InitFunctionData>>, /* Scope,  Info */
+//     requires_init_fn: IndexSet<>
+// }
+
+pub type InitializerFunctions = FxIndexMap<String, Vec<InitFunctionData>>;
+
+pub trait Init<'rslv> 
+where Self : Sized + Default
+{
+    fn new(candidates: &'rslv [const_evaluator::UnresolvableConstant]) -> Self;
 }
 
-impl<'rslv> InitializerFunctions<'rslv> {
-    pub fn new(candidates: &'rslv [const_evaluator::UnresolvableConstant]) -> Self {
-        let mut res = FxIndexMap::default();
-        let mut lookup = FxIndexSet::default();
+impl<'rslv>  Init<'rslv>  for InitializerFunctions {
+    fn new(candidates: &'rslv [const_evaluator::UnresolvableConstant]) -> Self {
+        let mut res = Self::default();
         candidates
             .iter()
             .filter_map(|it| {
-                if let Some(index::const_expressions::UnresolvableKind::InitLater(ref init)) = it.kind {
-                    lookup.insert(init.target_type_name.as_str());
-                    Some((init.scope.clone().unwrap_or("__global".into()), init))
+                if let Some(index::const_expressions::UnresolvableKind::InitLater(init)) = &it.kind {
+                    Some((init.scope.clone().unwrap_or("__global".into()), init.to_owned()))
                 } else {
                     None
                 }
             }).for_each(|(k, v)|{
-                res.entry(k).and_modify(|it: &mut Vec<&InitFunctionData>| it.push(v)).or_insert(vec![v]);
+                res.entry(k).and_modify(|it| it.push(v.clone() /* refactor clone here */)).or_insert(vec![v]);
             });
         
-        Self {
-            candidates: res,
-            lookup
-        }
+        res
     }
-
 }
 
 impl<'i> TypeAnnotator<'i> {
@@ -766,7 +770,13 @@ impl<'i> TypeAnnotator<'i> {
             dependencies: FxIndexSet::default(),
             string_literals: StringLiterals { utf08: FxHashSet::default(), utf16: FxHashSet::default() },
             jumps_to_annotate: FxHashMap::default(),
+            initializers: InitializerFunctions::default(),
         }
+    }
+
+    fn with_initializers(mut self, initializers: InitializerFunctions) -> Self {
+        self.initializers = initializers;
+        self
     }
 
     /// annotates the given AST elements with the type-name resulting for the statements/expressions.
@@ -775,9 +785,9 @@ impl<'i> TypeAnnotator<'i> {
         index: &Index,
         unit: &'i CompilationUnit,
         id_provider: IdProvider,
-        initializers: &InitializerFunctions,
+        initializers: InitializerFunctions,
     ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
-        let mut visitor = TypeAnnotator::new(index);
+        let mut visitor = TypeAnnotator::new(index).with_initializers(initializers);
         let ctx = &VisitorContext {
             pou: None,
             qualifier: None,
@@ -796,9 +806,10 @@ impl<'i> TypeAnnotator<'i> {
 
         for pou in &unit.units {
             visitor.visit_pou(ctx, pou);
+            // TODO: only collect pous which need init functions, create functions later
             if pou.pou_type != PouType::Function {
                 // check if the visited POU needs an init-function. For POUs, one entry is expected at most
-                if let Some(init) = initializers.candidates.get(&pou.name).and_then(|it| it.get(0)) {
+                if let Some(init) = visitor.initializers.get(&pou.name).and_then(|it| it.get(0)) {
                     let init_fn_name = index::get_init_fn_name(&pou.name);
                     let mut id_provider = ctx.id_provider.clone();
 
@@ -842,15 +853,25 @@ impl<'i> TypeAnnotator<'i> {
                         id_provider.clone(),
                         Some(create_member_reference(&ident, id_provider.clone(), None)),
                     );
-                    let init_stmt =
-                        AstFactory::create_assignment(lhs, init.initializer.clone(), id_provider.next_id());
+
+                    let (create_assignment_fn, node) = &init.initializer.as_ref().map(|it|  {
+                        let func = if let Some(StatementAnnotation::Alias) = visitor.annotation_map.get(&it) {
+                            AstFactory::create_ref_assignment
+                        } else {
+                            AstFactory::create_assignment
+                        };
+                        (func, it.clone())
+                    }).unwrap();
+
+                    let init_stmt = create_assignment_fn(lhs, node.to_owned(), id_provider.next_id());
+
                     
                     let members = index.get_pou_members(&pou.name);
                     let dependency_calls = members.iter().filter_map(|member| {
                         let type_name = &member.get_type_name();
 
                         // if dbg!(index.has_init_fn(name)) && dbg!(initializers.lookup.contains(*name)) { // TODO: create function which returns Option<InitFnName>. call `.map()` on it instead of if/else here
-                        if initializers.candidates.contains_key(*type_name) {
+                        if visitor.initializers.contains_key(*type_name) {
                             let call_name = get_init_fn_name(type_name);
                             // TODO: we need to check if any of the POUs members require init functions themselves => these are dependencies and need to be added as call-statements
                             let op = create_member_reference(&call_name, id_provider.clone(), None);
@@ -962,7 +983,11 @@ impl<'i> TypeAnnotator<'i> {
     pub fn create_init_unit(
         index: &Index,
         id_provider: &IdProvider,
-    ) -> (Index, CompilationUnit, FxIndexSet<Dependency>) {
+        init_fns: &InitializerFunctions
+    ) -> Option<(Index, CompilationUnit, FxIndexSet<Dependency>)> {
+        if init_fns.is_empty() {
+            return None;
+        }
         let ident = String::from("__init");
         let mut id_provider = id_provider.clone();
 
@@ -979,17 +1004,15 @@ impl<'i> TypeAnnotator<'i> {
             super_class: None,
         };
 
-        let init_functions = index.get_all_init_functions();
-        let init_functions = init_functions
-            .iter()
-            .filter_map(|(initfn, origin)| {
-                if index.find_pou(origin).is_some_and(|pou| pou.is_program()) {
-                    Some((initfn, index.find_parameter(&initfn, 0)))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
+        let init_functions = init_fns.iter().filter_map(|(scope, _)| {
+            if index.find_pou(scope).is_some_and(|pou| pou.is_program()) {
+                let init_fn_name = get_init_fn_name(scope);
+                let param = index.find_parameter(&init_fn_name, 0);
+                Some((init_fn_name, param))
+            } else {
+                None
+            }
+        }).collect::<Vec<_>>();
 
         let body = init_functions
             .iter()
@@ -1038,7 +1061,7 @@ impl<'i> TypeAnnotator<'i> {
                 dependencies.insert(Dependency::Datatype(param.data_type_name.to_string()));
             }
         });
-        (idx, new_unit, dependencies)
+        Some((idx, new_unit, dependencies))
     }
 
     fn visit_user_type_declaration(&mut self, user_data_type: &UserTypeDeclaration, ctx: &VisitorContext) {
@@ -1301,20 +1324,27 @@ impl<'i> TypeAnnotator<'i> {
             let mut id_provider = ctx.id_provider.clone();
             let location = &initializer.location;
 
-            let ref_ident = AstFactory::create_identifier("REF", location, id_provider.next_id());
-            let fn_name = AstFactory::create_member_reference(ref_ident, None, id_provider.next_id());
-            let fn_arg = initializer;
-            self.visit_statement(ctx, &fn_name);
-            self.visit_statement(ctx, fn_arg);
+            // let ref_ident = AstFactory::create_identifier("REF", location, id_provider.next_id());
+            // let fn_name = AstFactory::create_member_reference(ref_ident, None, id_provider.next_id());
+            // let fn_arg = initializer;
+            // self.visit_statement(ctx, &fn_name);
+            // self.visit_statement(ctx, fn_arg);
+            self.visit_statement(ctx, &initializer);
 
-            let fn_call = AstFactory::create_call_statement(
-                fn_name,
-                Some(fn_arg.clone()),
-                id_provider.next_id(),
-                location,
-            );
-            self.visit_statement(ctx, &fn_call);
-            self.annotate(initializer, StatementAnnotation::ReplacementAst { statement: fn_call });
+            // let fn_call = AstFactory::create_call_statement(
+            //     fn_name,
+            //     Some(fn_arg.clone()),
+            //     id_provider.next_id(),
+            //     location,
+            // );
+            // self.visit_statement(ctx, &fn_call);
+            self.annotate(initializer, StatementAnnotation::Alias);
+            self.initializers.entry(ctx.pou.unwrap().to_string()).and_modify(|it| {
+                let Some(data) = it.get_mut(0) else {
+                    todo!()
+                };
+                data.initializer = Some(initializer.clone())
+            });
         }
     }
 

@@ -41,7 +41,7 @@ pub fn visit(unit: &CompilationUnit) -> Index {
         is_generated: true,
     };
     index.register_pou(entry); //XXX is this done multiple times?
-    
+
     for implementation in &unit.implementations {
         visit_implementation(&mut index, implementation);
     }

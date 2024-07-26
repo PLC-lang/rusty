@@ -492,7 +492,9 @@ fn validate_reference<T: AnnotationMap>(
                     .and_then(|qualifier| context.index.find_pou(qualifier))
                     .map(|pou| (pou.get_name(), pou.get_container())) // get the container pou (for actions this is the program/fb)
                     .map_or(false, |(pou, container)| {
-                        !qualified_name.starts_with(pou) && !qualified_name.starts_with(container) && !context.index.is_init_function(pou)
+                        !qualified_name.starts_with(pou)
+                            && !qualified_name.starts_with(container)
+                            && !context.index.is_init_function(pou)
                     })
             {
                 validator.push_diagnostic(
@@ -851,7 +853,7 @@ fn validate_alias_assignment<T: AnnotationMap>(
     ref_assignment: &AstNode,
 ) {
     if let AstStatement::RefAssignment(Assignment { left, .. }) = ref_assignment.get_stmt() {
-        if context.annotations.get(left).is_some_and(|opt| opt.is_alias()) {
+        if context.annotations.get(left).is_some_and(|opt| opt.is_alias() && !context.qualifier.is_some_and(|it| context.index.is_init_function(it))) {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
                     "{} is an immutable alias variable, can not change the address",

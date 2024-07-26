@@ -76,19 +76,19 @@ impl ConstExpression {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct InitFunctionData {
-    pub initializer: AstNode,
+    pub initializer: Option<AstNode>,
     pub target_type_name: String,
     pub scope: Option<String>,
 }
 
 impl InitFunctionData {
     pub fn new(
-        initializer: &AstNode,
+        initializer: Option<&AstNode>,
         target_type: Option<impl Into<String>>,
         scope: Option<impl Into<String>>,
     ) -> Self {
         InitFunctionData {
-            initializer: initializer.clone(),
+            initializer: initializer.map(|it| it.clone()),
             target_type_name: target_type
                 .map(|it| it.into())
                 .expect("No later init without a valid target type to init to."), // TODO: remove unwrap

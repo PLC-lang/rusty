@@ -11,16 +11,10 @@ use ast::{
     provider::IdProvider,
 };
 
-use plc::{index::FxIndexSet, resolver::InitializerFunctions};
 use plc::{
-    codegen::{CodegenContext, GeneratedModule},
-    index::Index,
-    output::FormatOption,
-    parser::parse_file,
-    resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
-    validation::Validator,
-    ConfigFormat, Target,
+    codegen::{CodegenContext, GeneratedModule}, index::{Index, PouIndexEntry}, output::FormatOption, parser::parse_file, resolver::{AnnotationMapImpl, AstAnnotations, Dependency, Init, StringLiterals, TypeAnnotator}, typesystem::VOID_TYPE, validation::Validator, ConfigFormat, Target
 };
+use plc::{index::FxIndexSet, resolver::InitializerFunctions};
 use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
@@ -128,6 +122,17 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(&builtins));
 
+
+        let entry = PouIndexEntry::Function {
+            name: "__init".into(),
+            return_type: VOID_TYPE.into(),
+            generics: vec![],
+            linkage: LinkageType::Internal,
+            is_variadic: false,
+            location: SourceLocation::internal(),
+            is_generated: true,
+        };
+        global_index.register_pou(entry);
         IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
     }
 
@@ -147,8 +152,8 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
         //Resolve constants
-        //TODO: Not sure what we are currently doing with unresolvables //XXX: why are we resolving constants before the annotations?
-        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);        
+        //TODO: Not sure what we are currently doing with unresolvables
+        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
 
         //Create and call the annotator
         let mut annotated_units = Vec::new();
@@ -162,7 +167,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             .into_par_iter()
             .map(|unit| {
                 let (annotation, dependencies, literals) =
-                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), &init_fn_candidates);
+                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), init_fn_candidates.clone());
                 (unit, annotation, dependencies, literals)
             })
             .collect::<Vec<_>>();
@@ -172,7 +177,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
                 full_index.import(std::mem::take(&mut annotation.new_index));
                 unit.import(u); // should the unit be imported into the unit wherein the original POU lies or should all initialize functions be in their own "file"?
                 let (a, dep, _) =
-                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), &init_fn_candidates);
+                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), InitializerFunctions::default());
                 dependencies.extend(dep);
                 annotation.import(a);
             });
@@ -184,13 +189,16 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
         full_index.import(std::mem::take(&mut all_annotations.new_index));
 
         // TODO: clean up imports
-        let (mut idx, unit, mut init_deps) = TypeAnnotator::create_init_unit(&full_index, &id_provider);
-        full_index.import(std::mem::take(&mut idx));
-        let (a, deps, _) =
-            TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), &init_fn_candidates);
-        init_deps.extend(deps);
-        annotated_units.push((unit, init_deps, StringLiterals::default()));
-        all_annotations.import(a);
+        if let Some((mut idx, unit, mut init_deps)) =
+            TypeAnnotator::create_init_unit(&full_index, &id_provider, &init_fn_candidates)
+        {
+            full_index.import(std::mem::take(&mut idx));
+            let (a, deps, _) =
+                TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), InitializerFunctions::default());
+            init_deps.extend(deps);
+            annotated_units.push((unit, init_deps, StringLiterals::default()));
+            all_annotations.import(a);
+        }
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
         AnnotatedProject {

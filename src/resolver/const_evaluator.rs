@@ -406,7 +406,7 @@ fn evaluate_with_target_hint(
                                     "Cannot resolve constant enum {enum_name}#{ref_name}."
                                 ))
                             })
-                            .and_then(|v| resolve_const_reference(v, ref_name, index));
+                            .and_then(|v| resolve_const_reference(v, ref_name, index, target_type, scope));
                     } else {
                         return Err(UnresolvableKind::Misc("Cannot resolve unknown constant.".to_string()));
                     }
@@ -425,7 +425,7 @@ fn evaluate_with_target_hint(
                         base.as_ref().and_then(|it| it.get_flat_reference_name()).or(scope),
                         std::slice::from_ref(&name),
                     )
-                    .map(|variable| resolve_const_reference(variable, name, index))
+                    .map(|variable| resolve_const_reference(variable, name, index, target_type, scope))
                     .transpose()?
                     .flatten()
             } else {
@@ -571,7 +571,9 @@ fn evaluate_with_target_hint(
                 // arg to ref/adr could not be found in the index => unresolvable
                 Ok(None) => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {arg:#?}"))),
                 // we found a local or global parameter for REF/ADR, but it cannot be resolved as constant since the address is not yet known. Resolve during codegen
-                _ => Err(UnresolvableKind::InitLater(InitFunctionData::new(initial, target_type, scope))),
+                _ => {
+                    Err(UnresolvableKind::InitLater(InitFunctionData::new(Some(initial), target_type, scope)))
+                }
             };
         }
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),
@@ -586,9 +588,17 @@ fn resolve_const_reference(
     variable: &crate::index::VariableIndexEntry,
     name: &str,
     index: &Index,
+    target_type: Option<&str>,
+    scope: Option<&str>,
 ) -> Result<Option<AstNode>, UnresolvableKind> {
     if !variable.is_constant() {
-        return Err(UnresolvableKind::Misc(format!("`{name}` is no const reference")));
+        if !target_type
+            .is_some_and(|it| index.find_effective_type_by_name(it).is_some_and(|it| it.is_pointer()))
+        {
+            return Err(UnresolvableKind::Misc(format!("`{name}` is no const reference")));
+        } else {
+            return Err(UnresolvableKind::InitLater(InitFunctionData::new(None, target_type, scope)));
+        }
     }
 
     if let Some(ConstExpression::Resolved(statement)) =

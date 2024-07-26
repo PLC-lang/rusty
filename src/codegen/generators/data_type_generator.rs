@@ -155,7 +155,7 @@ pub fn generate_data_types<'ink>(
         let diags = types_to_init
             .into_iter()
             .map(|(name, ty)| {
-                if index.has_init_fn(name) {
+                if index.type_has_init_function(name) {
                     init_later += 1;
                 }
                 errors

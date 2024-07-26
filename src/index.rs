@@ -1420,7 +1420,7 @@ impl Index {
         self.pous.get(&pou_name.to_lowercase())
     }
 
-    pub fn has_init_fn(&self, type_name: &str) -> bool {
+    pub fn type_has_init_function(&self, type_name: &str) -> bool {
         self.init_functions.get(&get_init_fn_name(type_name)).is_some()
     }
 
@@ -1453,10 +1453,6 @@ impl Index {
         // );
         // self.register_pou(entry);
         self.init_functions.insert(init_name, name.to_owned());
-    }
-
-    pub fn get_all_init_functions(&self) -> &FxIndexMap<String, String> {
-        &self.init_functions
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
@@ -1677,7 +1673,6 @@ pub fn get_initializer_name(name: &str) -> String {
     format!("__{name}__init")
 }
 
-// XXX: this seems almost too similar to the function above
 pub fn get_init_fn_name(name: &str) -> String {
     format!("__init_{name}").to_lowercase()
 }
