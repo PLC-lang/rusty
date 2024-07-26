@@ -844,8 +844,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .get(i)
                 .map(|it| {
                     let name = it.get_type_name();
-                    if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }) =
-                        self.index.find_effective_type_info(name)
+                    if let Some(DataTypeInformation::Pointer {
+                        inner_type_name, auto_deref: Some(_), ..
+                    }) = self.index.find_effective_type_info(name)
                     {
                         // for auto_deref pointers (VAR_INPUT {ref}, VAR_IN_OUT) we call generate_argument_by_ref()
                         // we need the inner_type and not pointer to type otherwise we would generate a double pointer
@@ -1145,7 +1146,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn get_parameter_type(&self, parameter: &VariableIndexEntry) -> String {
-        if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }) =
+        if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. }) =
             self.index.find_effective_type_info(parameter.get_type_name())
         {
             inner_type_name.into()
@@ -1253,7 +1254,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
 
-            if let DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } = parameter {
+            if let DataTypeInformation::Pointer { auto_deref: Some(_), inner_type_name, .. } = parameter {
                 //this is a VAR_IN_OUT assignment, so don't load the value, assign the pointer
                 //expression may be empty -> generate a local variable for it
                 let generated_exp = if expression.is_empty_statement() {
@@ -1297,13 +1298,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             // don't generate param assignments for empty statements, with the exception
             // of VAR_IN_OUT params - they need an address to point to
-            let is_auto_deref = matches!(
-                self.index
-                    .find_effective_type_by_name(parameter.get_type_name())
-                    .map(|var| var.get_type_information())
-                    .unwrap_or_else(|| self.index.get_void_type().get_type_information()),
-                DataTypeInformation::Pointer { auto_deref: true, .. }
-            );
+            let is_auto_deref = self
+                .index
+                .find_effective_type_by_name(parameter.get_type_name())
+                .map(|var| var.get_type_information())
+                .unwrap_or(self.index.get_void_type().get_type_information())
+                .is_auto_deref();
             if !right.is_empty_statement() || is_auto_deref {
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                     assignment: right,
@@ -1419,9 +1419,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         accessor_ptr: PointerValue<'ink>,
         statement: &AstNode,
     ) -> PointerValue<'ink> {
-        if let Some(StatementAnnotation::Variable { is_auto_deref: true, .. }) =
-            self.annotations.get(statement)
-        {
+        if self.annotations.get(statement).is_some_and(|opt| opt.is_auto_deref()) {
             self.deref(accessor_ptr)
         } else {
             accessor_ptr
@@ -1976,7 +1974,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 }
             }
-            DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } => {
+            DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } => {
                 let inner_type = self.index.get_type_information_or_void(inner_type_name);
                 self.generate_string_literal_for_type(inner_type, value, location)
             }

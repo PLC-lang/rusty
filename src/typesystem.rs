@@ -6,7 +6,7 @@ use std::{
 };
 
 use plc_ast::{
-    ast::{AstNode, Operator, PouType, TypeNature},
+    ast::{AstNode, AutoDerefType, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
 use plc_source::source_location::SourceLocation;
@@ -390,9 +390,7 @@ pub enum DataTypeInformation {
     Pointer {
         name: TypeId,
         inner_type_name: TypeId,
-        auto_deref: bool,
-        /// Denotes whether the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`
-        is_reference_to: bool,
+        auto_deref: Option<AutoDerefType>,
     },
     Integer {
         name: TypeId,
@@ -442,6 +440,13 @@ impl DataTypeInformation {
             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. } => "STRING",
             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } => "WSTRING",
             DataTypeInformation::Void => "VOID",
+        }
+    }
+
+    pub fn get_inner_name(&self) -> &str {
+        match self {
+            DataTypeInformation::Pointer { inner_type_name, .. } => inner_type_name,
+            _ => self.get_name(),
         }
     }
 
@@ -563,7 +568,16 @@ impl DataTypeInformation {
 
     /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
     pub fn is_reference_to(&self) -> bool {
-        matches!(self, DataTypeInformation::Pointer { is_reference_to: true, .. })
+        matches!(self, DataTypeInformation::Pointer { auto_deref: Some(AutoDerefType::Reference), .. })
+    }
+
+    /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
+    pub fn is_alias(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { auto_deref: Some(AutoDerefType::Alias), .. })
+    }
+
+    pub fn is_auto_deref(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { auto_deref: Some(_), .. })
     }
 
     pub fn is_aggregate(&self) -> bool {
@@ -573,6 +587,14 @@ impl DataTypeInformation {
                 | DataTypeInformation::Array { .. }
                 | DataTypeInformation::String { .. }
         )
+    }
+
+    pub fn get_auto_deref_type(&self) -> Option<AutoDerefType> {
+        if let DataTypeInformation::Pointer { auto_deref: kind, .. } = self {
+            return *kind;
+        }
+
+        None
     }
 
     pub fn is_date_or_time_type(&self) -> bool {

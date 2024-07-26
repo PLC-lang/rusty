@@ -4,8 +4,8 @@ use std::ops::Range;
 
 use plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
+        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
+        DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
         LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
         UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
@@ -23,7 +23,10 @@ use plc_util::convention::qualified_name;
 
 use crate::{
     expect_token,
-    lexer::{self, ParseSession, Token, Token::*},
+    lexer::{
+        self, ParseSession,
+        Token::{self, *},
+    },
     typesystem::DINT_TYPE,
 };
 
@@ -676,9 +679,9 @@ fn parse_data_type_definition(
         if expect_keyword_to(lexer).is_some() {
             lexer.advance();
         }
-        parse_pointer_definition(lexer, name, start_pos, false)
+        parse_pointer_definition(lexer, name, start_pos, None)
     } else if lexer.try_consume(&KeywordRef) {
-        parse_pointer_definition(lexer, name, lexer.last_range.start, false)
+        parse_pointer_definition(lexer, name, lexer.last_range.start, None)
     } else if lexer.try_consume(&KeywordParensOpen) {
         //enum without datatype
         parse_enum_type_definition(lexer, name)
@@ -701,17 +704,12 @@ fn parse_pointer_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
     start_pos: usize,
-    is_reference_to: bool,
+    auto_deref: Option<AutoDerefType>,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
         (
             DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::PointerType {
-                    name,
-                    referenced_type: Box::new(decl),
-                    auto_deref: is_reference_to,
-                    is_reference_to,
-                },
+                data_type: DataType::PointerType { name, referenced_type: Box::new(decl), auto_deref },
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
             },
@@ -739,7 +737,11 @@ fn parse_type_reference_type_definition(
     };
 
     let initial_value =
-        if lexer.try_consume(&KeywordAssignment) { Some(parse_expression(lexer)) } else { None };
+        if lexer.try_consume(&KeywordAssignment) || lexer.try_consume(&KeywordReferenceAssignment) {
+            Some(parse_expression(lexer))
+        } else {
+            None
+        };
 
     let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {
@@ -1070,6 +1072,37 @@ fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
     variables
 }
 
+fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> Option<Variable> {
+    let reference = parse_reference(lexer);
+    if !lexer.try_consume(&KeywordColon) {
+        lexer.accept_diagnostic(Diagnostic::missing_token(
+            format!("{KeywordColon:?}").as_str(),
+            lexer.location(),
+        ));
+    }
+
+    let start = &lexer.location().get_span().to_range().unwrap_or(lexer.last_range.clone()).start;
+    let datatype = parse_pointer_definition(lexer, None, *start, Some(AutoDerefType::Alias));
+    if !lexer.try_consume(&KeywordSemicolon) {
+        lexer.accept_diagnostic(Diagnostic::missing_token(
+            format!("{KeywordSemicolon:?}").as_str(),
+            lexer.location(),
+        ));
+    }
+
+    if let Some((data_type, _)) = datatype {
+        return Some(Variable {
+            name: names.0.clone(),
+            data_type_declaration: data_type,
+            location: lexer.source_range_factory.create_range(names.1.clone()),
+            initializer: Some(reference),
+            address: None,
+        });
+    }
+
+    None
+}
+
 fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     // read in a comma separated list of variable names
     let mut var_names: Vec<(String, Range<usize>)> = vec![];
@@ -1092,16 +1125,27 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     }
 
     //See if there's an AT keyword
-    let address = if lexer.try_consume(&KeywordAt) {
-        //Look for a hardware address
-        if let HardwareAccess((direction, access_type)) = lexer.token {
-            parse_hardware_access(lexer, direction, access_type)
-        } else {
-            lexer.accept_diagnostic(Diagnostic::missing_token("Hardware Access", lexer.location()));
-            None
+    let mut address: Option<AstNode> = None;
+    if lexer.try_consume(&KeywordAt) {
+        match lexer.token {
+            HardwareAccess((direction, access_type)) => {
+                address = parse_hardware_access(lexer, direction, access_type)
+            }
+
+            Identifier => {
+                return match parse_aliasing(lexer, &var_names[0]) {
+                    Some(aliased_variable) => vec![aliased_variable],
+                    None => vec![],
+                };
+            }
+
+            _ => {
+                lexer.accept_diagnostic(Diagnostic::missing_token(
+                    "hardware access or identifier",
+                    lexer.location(),
+                ));
+            }
         }
-    } else {
-        None
     };
 
     // colon has to come before the data type
@@ -1116,7 +1160,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     let mut variables = vec![];
 
     let parse_definition_opt = if lexer.try_consume(&KeywordReferenceTo) {
-        parse_pointer_definition(lexer, None, lexer.last_range.start, true)
+        parse_pointer_definition(lexer, None, lexer.last_range.start, Some(AutoDerefType::Reference))
     } else {
         parse_full_data_type_definition(lexer, None)
     };

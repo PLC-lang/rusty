@@ -162,8 +162,7 @@ fn cast_expressions_of_enum_with_resolves_types() {
             qualified_name: "MyEnum.a".to_string(),
             constant: true,
             argument_type: ArgumentType::ByVal(VariableType::Global),
-            is_auto_deref: false,
-            is_reference_to: false,
+            auto_deref: None,
         })
     );
 
@@ -179,8 +178,7 @@ fn cast_expressions_of_enum_with_resolves_types() {
             qualified_name: "MyEnum.b".to_string(),
             constant: true,
             argument_type: ArgumentType::ByVal(VariableType::Global),
-            is_auto_deref: false,
-            is_reference_to: false,
+            auto_deref: None,
         })
     );
 }
@@ -1313,9 +1311,8 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
             qualified_name: "foo.foo".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false,
             argument_type: ArgumentType::ByVal(VariableType::Return),
-            is_reference_to: false,
+            auto_deref: None,
         }),
         foo_annotation
     );
@@ -1575,9 +1572,8 @@ fn qualified_expressions_dont_fallback_to_globals() {
             qualified_name: "MyStruct.y".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            is_reference_to: false,
+            auto_deref: None,
         }),
         annotations.get(&statements[1])
     );
@@ -1817,9 +1813,8 @@ fn method_references_are_resolved() {
             qualified_name: "cls.foo.foo".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false,
             argument_type: ArgumentType::ByVal(VariableType::Return),
-            is_reference_to: false,
+            auto_deref: None,
         }),
         annotation
     );
@@ -2453,8 +2448,7 @@ fn struct_member_explicit_initialization_test() {
             qualified_name: "myStruct.var1".to_string(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            is_auto_deref: false,
-            is_reference_to: false,
+            auto_deref: None,
         }),
         annotations.get(left)
     );
@@ -2468,8 +2462,7 @@ fn struct_member_explicit_initialization_test() {
             qualified_name: "myStruct.var2".to_string(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            is_auto_deref: false,
-            is_reference_to: false,
+            auto_deref: None,
         }),
         annotations.get(left)
     );
@@ -2949,9 +2942,8 @@ fn action_body_gets_resolved() {
                 qualified_name: "prg.x".to_string(),
                 resulting_type: "DINT".to_string(),
                 constant: false,
-                is_auto_deref: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local),
-                is_reference_to: false,
+                auto_deref: None,
             }),
             a
         );
@@ -3393,10 +3385,9 @@ fn address_of_is_annotated_correctly() {
     if let Some(&StatementAnnotation::Value { resulting_type }) = annotations.get(s).as_ref() {
         assert_eq!(
             Some(&DataTypeInformation::Pointer {
-                is_reference_to: false,
-                auto_deref: false,
                 inner_type_name: "INT".to_string(),
                 name: "__POINTER_TO_INT".to_string(),
+                auto_deref: None,
             }),
             index.find_effective_type_info(resulting_type),
         );
@@ -3477,8 +3468,7 @@ fn call_explicit_parameter_name_is_resolved() {
             qualified_name: "fb.b".to_string(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            is_auto_deref: false,
-            is_reference_to: false,
+            auto_deref: None,
         }),
         annotations.get(b.as_ref())
     );
@@ -3489,8 +3479,7 @@ fn call_explicit_parameter_name_is_resolved() {
             qualified_name: "fb.a".to_string(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            is_auto_deref: false,
-            is_reference_to: false,
+            auto_deref: None,
         }),
         annotations.get(a)
     );
@@ -3712,8 +3701,7 @@ fn function_block_initialization_test() {
                 qualified_name: "TON.PT".into(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Input),
-                is_auto_deref: false,
-                is_reference_to: false,
+                auto_deref: None,
             }
         )
     } else {
@@ -3848,8 +3836,7 @@ fn resolve_return_variable_in_nested_call() {
                             qualified_name: "main.main".to_string(),
                             constant: false,
                             argument_type: ArgumentType::ByVal(VariableType::Return),
-                            is_auto_deref: false,
-                            is_reference_to: false,
+                            auto_deref: None,
                         }
                     )
                 }
@@ -5093,8 +5080,7 @@ fn annotate_variable_in_parent_class() {
                 qualified_name: "cls1.LIGHT".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
-                is_reference_to: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5109,8 +5095,7 @@ fn annotate_variable_in_parent_class() {
                 qualified_name: "cls2.Light2".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
-                is_reference_to: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5148,8 +5133,7 @@ fn annotate_variable_in_grandparent_class() {
                 qualified_name: "cls0.LIGHT".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
-                is_reference_to: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5194,8 +5178,7 @@ fn annotate_variable_in_field() {
                 qualified_name: "cls0.LIGHT".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
-                is_reference_to: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5252,8 +5235,7 @@ fn annotate_method_in_super() {
                 qualified_name: "cls0.LIGHT".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
-                is_reference_to: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5268,8 +5250,7 @@ fn annotate_method_in_super() {
                 qualified_name: "cls1.LIGHT1".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
-                is_reference_to: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5284,8 +5265,7 @@ fn annotate_method_in_super() {
                 qualified_name: "cls0.LIGHT".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
-                is_reference_to: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5300,8 +5280,7 @@ fn annotate_method_in_super() {
                 qualified_name: "cls1.LIGHT1".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
-                is_reference_to: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5316,8 +5295,7 @@ fn annotate_method_in_super() {
                 qualified_name: "cls2.LIGHT2".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
-                is_reference_to: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );

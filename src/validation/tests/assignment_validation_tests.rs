@@ -1,6 +1,6 @@
-use insta::assert_snapshot;
+use insta::{assert_debug_snapshot, assert_snapshot};
 
-use crate::test_utils::tests::parse_and_validate_buffered;
+use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
 
 #[test]
 fn constant_assignment_validation() {
@@ -1261,11 +1261,11 @@ fn ref_assignments() {
     17 │             localINT            REF= localDINT;
        │             ^^^^^^^^ Invalid assignment, expected a pointer reference
 
-    error[E098]: Invalid assignment, types INT and DINT differ
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'INT'
        ┌─ <internal>:17:13
        │
     17 │             localINT            REF= localDINT;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types INT and DINT differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'INT'
 
     error[E098]: Invalid assignment, expected a reference
        ┌─ <internal>:18:38
@@ -1279,17 +1279,17 @@ fn ref_assignments() {
     19 │             localReferenceTo    REF= 1;
        │                                      ^ Invalid assignment, expected a reference
 
-    error[E098]: Invalid assignment, types DINT and INT differ
+    error[E037]: Invalid assignment: cannot assign 'INT' to 'DINT'
        ┌─ <internal>:21:13
        │
     21 │             localReferenceTo    REF= localINT;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and INT differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'DINT'
 
-    error[E098]: Invalid assignment, types DINT and STRING differ
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
        ┌─ <internal>:22:13
        │
     22 │             localReferenceTo    REF= localSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and STRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
     error[E098]: Invalid assignment, expected a reference
        ┌─ <internal>:23:38
@@ -1297,11 +1297,11 @@ fn ref_assignments() {
     23 │             localReferenceTo    REF= 'howdy';
        │                                      ^^^^^^^ Invalid assignment, expected a reference
 
-    error[E098]: Invalid assignment, types DINT and STRING differ
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
        ┌─ <internal>:23:13
        │
     23 │             localReferenceTo    REF= 'howdy';
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and STRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
     "###);
 }
@@ -1355,23 +1355,17 @@ fn ref_assignment_with_global_local_variables_and_aliased_types() {
     18 │                 invalidB : REFERENCE TO fooGlobal;
        │                            ^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
 
-    error[E099]: Initializations of REFERENCE TO variables are disallowed
-       ┌─ <internal>:19:49
-       │
-    19 │                 invalidC : REFERENCE TO DINT := 5;
-       │                                                 ^ Initializations of REFERENCE TO variables are disallowed
-
-    error[E098]: Invalid assignment, types DINT and INT differ
+    error[E037]: Invalid assignment: cannot assign 'INT' to 'DINT'
        ┌─ <internal>:28:13
        │
     28 │             referenceToFooFirstOfHisName  REF= intLocal;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and INT differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'DINT'
 
-    error[E098]: Invalid assignment, types DINT and STRING differ
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
        ┌─ <internal>:29:13
        │
     29 │             referenceToFooFirstOfHisName  REF= stringLocal;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types DINT and STRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
     "###);
 }
@@ -1394,17 +1388,11 @@ fn ref_assignment_with_reference_to_array_variable() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E098]: Invalid assignment, array lengths 5 and 6 differ
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'REFERENCE TO ARRAY[1..5] OF DINT'
        ┌─ <internal>:10:13
        │
     10 │             arrReferenceDINT REF= arrSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, array lengths 5 and 6 differ
-
-    error[E098]: Invalid assignment, array types DINT and STRING differ
-       ┌─ <internal>:10:13
-       │
-    10 │             arrReferenceDINT REF= arrSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, array types DINT and STRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'REFERENCE TO ARRAY[1..5] OF DINT'
 
     "###);
 }
@@ -1429,17 +1417,17 @@ fn ref_assignment_with_reference_to_string_variable() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E098]: Invalid assignment, types STRING and CHAR differ
+    error[E037]: Invalid assignment: cannot assign 'CHAR' to 'STRING'
        ┌─ <internal>:10:13
        │
     10 │             referenceToString REF= localCHAR;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types STRING and CHAR differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'STRING'
 
-    error[E098]: Invalid assignment, types STRING and WSTRING differ
+    error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
        ┌─ <internal>:12:13
        │
     12 │             referenceToString REF= localWSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, types STRING and WSTRING differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
 
     "###);
 }
@@ -1489,5 +1477,105 @@ fn invalid_reference_to_declaration() {
       │ ╰───────────────────────────────────────────────^ Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
                     qux : REF_TO REFERENCE TO DINT;'
 
+    "###);
+}
+
+#[test]
+fn alias_variable_type_check() {
+    let diagnostics = parse_and_validate(
+        r"
+        FUNCTION foo
+            VAR
+                dintVar                         : DINT;
+                sintVar                         : SINT;
+                stringVar                       : STRING;
+                arrayDintVar                    : ARRAY[1..5] OF DINT;
+
+                dintVarRefA AT dintVar          : DINT; // Valid
+                dintVarRefB AT sintVar          : DINT; // Invalid
+                dintVarRefC AT stringVar        : DINT; // Invalid
+                dintVarRefD AT arrayDintVar     : DINT; // Invalid
+
+                sintVarRefA AT dintVar          : SINT; // Invalid
+                sintVarRefB AT sintVar          : SINT; // Valid
+                sintVarRefC AT stringVar        : SINT; // Invalid
+                sintVarRefD AT arrayDintVar     : SINT; // Invalid
+
+                stringVarRefA AT dintVar        : STRING; // Invalid
+                stringVarRefB AT sintVar        : STRING; // Invalid
+                stringVarRefC AT stringVar      : STRING; // Valid
+                stringVarRefD AT arrayDintVar   : STRING; // Invalid
+
+                arrayDintVarRefA AT dintVar        : ARRAY[1..5] OF DINT; // Invalid
+                arrayDintVarRefB AT sintVar        : ARRAY[1..5] OF DINT; // Invalid
+                arrayDintVarRefC AT stringVar      : ARRAY[1..5] OF DINT; // Invalid
+                arrayDintVarRefD AT arrayDintVar   : ARRAY[1..5] OF DINT; // Valid
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    // Note: This assertion must fail once init functions are implemented and can then also be deleted
+    assert!(diagnostics.iter().any(|diagnostics| diagnostics.get_error_code() == "E033"));
+
+    // TODO: Use parse_and_validate_buffered once above assertion is deleted
+    let diagnostics_messages_without_const_error = diagnostics
+        .iter()
+        .filter(|diagnostic| diagnostic.get_error_code() != "E033")
+        .map(|diagnostic| diagnostic.get_message())
+        .collect::<Vec<_>>();
+
+    assert_eq!(diagnostics_messages_without_const_error.len(), 12);
+    assert_debug_snapshot!(diagnostics_messages_without_const_error, @r###"
+    [
+        "Invalid assignment: cannot assign 'SINT' to 'DINT'",
+        "Invalid assignment: cannot assign 'STRING' to 'DINT'",
+        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'DINT'",
+        "Invalid assignment: cannot assign 'DINT' to 'SINT'",
+        "Invalid assignment: cannot assign 'STRING' to 'SINT'",
+        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'SINT'",
+        "Invalid assignment: cannot assign 'DINT' to 'STRING'",
+        "Invalid assignment: cannot assign 'SINT' to 'STRING'",
+        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'STRING'",
+        "Invalid assignment: cannot assign 'DINT' to 'ARRAY[1..5] OF DINT'",
+        "Invalid assignment: cannot assign 'SINT' to 'ARRAY[1..5] OF DINT'",
+        "Invalid assignment: cannot assign 'STRING' to 'ARRAY[1..5] OF DINT'",
+    ]
+    "###);
+}
+
+#[test]
+fn reassignment_of_alias_variables_is_disallowed() {
+    let diagnostics = parse_and_validate(
+        r"
+        FUNCTION main
+            VAR
+                foo AT bar : DINT;
+                bar : DINT;
+                baz : DINT;
+            END_VAR
+
+            foo := bar;         // Valid, the dereferenced value of `foo` is being changed
+            foo := baz;         // Valid, same reason as above
+            foo REF= bar;       // Invalid, the address of `foo` is being changed
+        END_FUNCTION
+        ",
+    );
+
+    // Note: This assertion must fail once init functions are implemented and can then also be deleted
+    assert!(diagnostics.iter().any(|diagnostics| diagnostics.get_error_code() == "E033"));
+
+    // TODO: Use parse_and_validate_buffered once above assertion is deleted
+    let diagnostics_messages_without_const_error = diagnostics
+        .iter()
+        .filter(|diagnostic| diagnostic.get_error_code() != "E033")
+        .map(|diagnostic| diagnostic.get_message())
+        .collect::<Vec<_>>();
+
+    assert_eq!(diagnostics_messages_without_const_error.len(), 1);
+    assert_debug_snapshot!(diagnostics_messages_without_const_error, @r###"
+    [
+        "foo is an immutable alias variable, can not change the address",
+    ]
     "###);
 }

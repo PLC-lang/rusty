@@ -23,7 +23,7 @@ mod variable_parser_tests;
 /// helper function to create references
 pub fn ref_to(name: &str) -> AstNode {
     AstFactory::create_member_reference(
-        AstFactory::create_identifier(name, &SourceLocation::undefined(), 0),
+        AstFactory::create_identifier(name, SourceLocation::undefined(), 0),
         None,
         0,
     )
