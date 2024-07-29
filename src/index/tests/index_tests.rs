@@ -1695,7 +1695,7 @@ fn tmp() {
     );
 
     // THEN we expect a corresponding init function to be declared for it
-    let init = index.has_init_fn("STRUCT1");
+    let init = index.type_has_init_function("STRUCT1");
     assert!(init);
 }
 
@@ -1711,7 +1711,7 @@ fn tmp2() {
     );
 
     // THEN we expect a corresponding init function to be declared for it
-    let init = index.has_init_fn("main");
+    let init = index.type_has_init_function("main");
     assert!(init);
 }
 
@@ -1731,10 +1731,10 @@ fn tmp3() {
 
     // THEN we expect a corresponding init function to be declared for the FUNCTION_BLOCK
     // but not for the ACTION
-    let init = index.has_init_fn("foo");
+    let init = index.type_has_init_function("foo");
     assert!(init);
 
-    let init = index.has_init_fn("act1");
+    let init = index.type_has_init_function("act1");
     assert!(!init);
 }
 
@@ -1750,7 +1750,7 @@ fn tmp4() {
     );
 
     // THEN we DO NOT expect a corresponding init function to be declared for it
-    let init = index.has_init_fn("foo");
+    let init = index.type_has_init_function("foo");
     assert!(!init);
 }
 
