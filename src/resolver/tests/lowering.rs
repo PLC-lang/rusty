@@ -85,28 +85,7 @@ fn initializer_with_refassignment_annotated_with_replacementast() {
             ),
             base: None,
         },
-        ReplacementAst {
-            statement: CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "REF",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "foo",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-        },
+        Alias,
     )
     "###);
 }
@@ -140,28 +119,7 @@ fn initializer_of_alias_annotated_with_replacementast() {
             ),
             base: None,
         },
-        ReplacementAst {
-            statement: CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "REF",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "foo",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-        },
+        Alias,
     )
     "###);
 }
@@ -204,37 +162,7 @@ fn initializer_of_alias_annotated_with_replacementast_array() {
                 },
             ),
         },
-        ReplacementAst {
-            statement: CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "REF",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Index(
-                            LiteralInteger {
-                                value: 1,
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "foo",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                ),
-            },
-        },
+        Alias,
     )
     "###);
 }

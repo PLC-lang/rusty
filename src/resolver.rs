@@ -933,7 +933,7 @@ impl<'i> TypeAnnotator<'i> {
                             Some(create_member_reference(&ident, id_provider.clone(), None)),
                         );
 
-                        let (create_assignment_fn, node) = &initializer
+                        let Some((create_assignment_fn, node)) = &initializer
                             .as_ref()
                             .map(|it| {
                                 let func = if let Some(StatementAnnotation::Alias) = annotations.get(it) {
@@ -943,7 +943,9 @@ impl<'i> TypeAnnotator<'i> {
                                 };
                                 (func, it.clone())
                             })
-                            .unwrap();
+                            else {
+                                unimplemented!()
+                            };
 
                         create_assignment_fn(lhs, node.to_owned(), id_provider.next_id())
                     })

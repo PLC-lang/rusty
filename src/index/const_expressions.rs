@@ -97,7 +97,7 @@ impl InitFunctionData {
             name.to_string().split_off(name.find(scope).unwrap() + scope.len() + 1)
         // TODO: very hacky
         } else {
-            unimplemented!()
+            name.into() // TODO: globals
         }
     }
 }

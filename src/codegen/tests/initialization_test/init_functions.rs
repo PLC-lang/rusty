@@ -43,47 +43,119 @@ fn init_fn_test() {
             ps: REF_TO STRING := REF(s);
             bar: foo;
         END_VAR
-
         "#,
     );
 
-    insta::assert_snapshot!(result, r###""###);
+    insta::assert_snapshot!(result, @r###""###);
 }
 
 #[test]
 fn dependencies() {
     let result = codegen(
         r#"
-        // __PLC_PRG_init => has dependency on __foo_init
-        PROGRAM PLC_PRG
+        VAR_GLOBAL 
+            str : STRING := 'hello';
+        END_VAR
+
+        FUNCTION_BLOCK foo
+        VAR 
+            str_ref : REF_TO STRING := REF(str);
+            b: bar;
+        END_VAR
+            b.print();
+            b();
+        END_FUNCTION_BLOCK
+
+        ACTION foo.print
+            // do something
+        END_ACTION
+
+        FUNCTION_BLOCK bar
+        VAR 
+            str_ref : REF_TO STRING := REF(str);
+            b: baz;
+        END_VAR
+            b.print();
+        END_FUNCTION_BLOCK
+
+        ACTION bar.print
+            // do something
+        END_ACTION
+
+        FUNCTION_BLOCK baz
+        VAR 
+            str_ref : REF_TO STRING := REF(str);
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        ACTION baz.print
+            // do something
+        END_ACTION
+
+        PROGRAM mainProg
         VAR
-            fb: foo;
-        END_VAR    
+            other_ref_to_global: REF_TO STRING := REF(str);
+            f: foo;
+        END_VAR
+            // do something   
         END_PROGRAM
 
-        // __foo_init => has dependency on __bar_init
-        FUNCTION_BLOCK foo
+        PROGRAM sideProg
         VAR
-            fb: bar;
-        END_VAR    
-        END_FUNCTION_BLOCK
+            other_ref_to_global: REF_TO STRING := REF(str);
+            f: foo;
+        END_VAR
+            f();
+            f.print();
+        END_PROGRAM
 
-        // __bar_init => has dependency on __global_ps_init => globals which are not in scope of another POU should be initialized first!
-        FUNCTION_BLOCK bar
+        PROGRAM aliasProg 
         VAR
-            ps2: REF_TO STRING := ps;
+            s2 : REFERENCE TO STRING := str;
+            s AT str : STRING;
         END_VAR
-        END_FUNCTION_BLOCK
-
-        VAR_GLOBAL
-            s: STRING;
-            ps: REF_TO STRING := REF(s);
-
-            // // ... cyclic dependency? ignore for now, will probably need to be validated
-            // fb_global: bar;
-        END_VAR
+            // do something
+        END_PROGRAM
+        
+        FUNCTION main : DINT
+            __init();
+            mainProg();
+            sideProg();
+            aliasProg();
+        END_FUNCTION
         "#,
     );
 
-    insta::assert_snapshot!(result, r###""###);
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %PLC_PRG = type { %foo }
+    %foo = type { %bar }
+    %bar = type { [81 x i8]* }
+
+    @s = global [81 x i8] zeroinitializer, section "var-$RUSTY$s:s8u81"
+    @ps = global [81 x i8]* null, section "var-$RUSTY$ps:ps8u81"
+    @PLC_PRG_instance = global %PLC_PRG zeroinitializer, section "var-$RUSTY$PLC_PRG_instance:r1r1r1ps8u81"
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r1r1ps8u81"
+    @__bar__init = unnamed_addr constant %bar zeroinitializer, section "var-$RUSTY$__bar__init:r1ps8u81"
+
+    define void @PLC_PRG(%PLC_PRG* %0) section "fn-$RUSTY$PLC_PRG:v" {
+    entry:
+      %fb = getelementptr inbounds %PLC_PRG, %PLC_PRG* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+    entry:
+      %fb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @bar(%bar* %0) section "fn-$RUSTY$bar:v" {
+    entry:
+      %ps2 = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      ret void
+    }
+    "###);
 }

@@ -3,7 +3,7 @@ use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::SourceLocation;
 
-use crate::index::const_expressions::ConstExpression;
+use crate::index::const_expressions::{ConstExpression, UnresolvableKind};
 use crate::index::Index;
 
 use crate::resolver::const_evaluator::{evaluate_constants, UnresolvableConstant};
@@ -674,9 +674,14 @@ fn illegal_cast_should_not_be_resolved() {
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN a could not be resolved, because the literal is invalid
+    let expected = UnresolvableConstant::new(global!(index, "a"), "").with_kind(UnresolvableKind::Overflow("This will overflow for type BOOL".into(), SourceLocation::internal()));
     debug_assert_eq!(
-        vec![UnresolvableConstant::new(global!(index, "a"), "This will overflow for type BOOL")],
-        unresolvable
+        expected.id,
+        unresolvable[0].id
+    );
+    debug_assert_eq!(
+        expected.get_reason(),
+        unresolvable[0].get_reason()
     );
 }
 
@@ -1279,11 +1284,11 @@ fn floating_point_type_casting_of_invalid_types_is_unresolvable() {
     let (_, unresolvable) = evaluate_constants(index);
     assert_eq!(unresolvable.len(), 2);
     assert_eq!(
-        unresolvable[0].reason,
-        r#"Expected floating point type, got: Some(LiteralString { value: "abc", is_wide: false })"#
+        unresolvable[0].get_reason(),
+        Some(r#"Expected floating point type, got: Some(LiteralString { value: "abc", is_wide: false })"#)
     );
     assert_eq!(
-        unresolvable[1].reason,
-        r#"Expected floating point type, got: Some(LiteralString { value: "abc", is_wide: true })"#
+        unresolvable[1].get_reason(),
+        Some(r#"Expected floating point type, got: Some(LiteralString { value: "abc", is_wide: true })"#)
     );
 }

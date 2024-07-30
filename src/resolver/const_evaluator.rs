@@ -22,18 +22,18 @@ use crate::{
 #[derive(PartialEq, Debug)]
 pub struct UnresolvableConstant {
     pub id: ConstId,
-    pub reason: String,
-    pub kind: Option<UnresolvableKind>, //location
-                                        //source-file
+    pub kind: Option<UnresolvableKind>, 
+    //location
+    //source-file
 }
 
 impl UnresolvableConstant {
     pub fn new(id: ConstId, reason: &str) -> Self {
-        UnresolvableConstant { id, reason: reason.to_string(), kind: None }
+        UnresolvableConstant { id, kind: Some(UnresolvableKind::Misc(reason.into())) }
     }
 
     pub fn with_kind(self, kind: UnresolvableKind) -> Self {
-        UnresolvableConstant { id: self.id, reason: self.reason, kind: Some(kind) }
+        UnresolvableConstant { id: self.id, kind: Some(kind) }
     }
 
     pub fn incomplete_initialzation(id: &ConstId) -> Self {
@@ -42,6 +42,10 @@ impl UnresolvableConstant {
 
     pub fn no_initial_value(id: &ConstId) -> Self {
         UnresolvableConstant::new(*id, "No initial value")
+    }
+
+    pub fn get_reason(&self) -> Option<&str> {
+        self.kind.as_ref().map(|it| it.get_reason())
     }
 }
 
@@ -561,15 +565,10 @@ fn evaluate_with_target_hint(
             Some(AstFactory::create_range_statement(start, end, id))
         }
         AstStatement::ParenExpression(expr) => evaluate_with_target_hint(expr, scope, index, target_type)?,
-        AstStatement::CallStatement(plc_ast::ast::CallStatement { operator, parameters }) => {
-            let name = operator.get_flat_reference_name().expect("operator without name?");
-            if !matches!(name.to_lowercase().as_str(), "ref" | "adr") {
-                // TODO: if in call, just try to resolve later - re-resolve/validate init-function for legal target types
-                unimplemented!("handle function calls which do not return constants")
-            };
-            let Some(arg) = parameters else { unimplemented!("handle adr/ref call without args") };
+        AstStatement::CallStatement(plc_ast::ast::CallStatement { parameters, .. }) => {
+            let Some(arg) = parameters else { return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {:#?}", initial))) };
             return match evaluate_with_target_hint(arg, scope, index, target_type) {
-                // arg to ref/adr could not be found in the index => unresolvable
+                // arg to const fn call could not be found in the index => unresolvable (only ref/adr are supported for now, must have arg)
                 Ok(None) => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {arg:#?}"))),
                 // we found a local or global parameter for REF/ADR, but it cannot be resolved as constant since the address is not yet known. Resolve during codegen
                 _ => {

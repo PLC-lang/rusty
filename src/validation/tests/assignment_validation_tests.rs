@@ -1,6 +1,6 @@
-use insta::{assert_debug_snapshot, assert_snapshot};
+use insta::assert_snapshot;
 
-use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
+use crate::test_utils::tests::parse_and_validate_buffered;
 
 #[test]
 fn constant_assignment_validation() {
@@ -1482,7 +1482,7 @@ fn invalid_reference_to_declaration() {
 
 #[test]
 fn alias_variable_type_check() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r"
         FUNCTION foo
             VAR
@@ -1514,20 +1514,8 @@ fn alias_variable_type_check() {
         END_FUNCTION
         ",
     );
-
-    // Note: This assertion must fail once init functions are implemented and can then also be deleted
-    assert!(diagnostics.iter().any(|diagnostics| diagnostics.get_error_code() == "E033"));
-
-    // TODO: Use parse_and_validate_buffered once above assertion is deleted
-    let diagnostics_messages_without_const_error = diagnostics
-        .iter()
-        .filter(|diagnostic| diagnostic.get_error_code() != "E033")
-        .map(|diagnostic| diagnostic.get_message())
-        .collect::<Vec<_>>();
-
-    assert_eq!(diagnostics_messages_without_const_error.len(), 12);
-    assert_debug_snapshot!(diagnostics_messages_without_const_error, @r###"
-    [
+   
+    /* FIXME: missing validations:
         "Invalid assignment: cannot assign 'SINT' to 'DINT'",
         "Invalid assignment: cannot assign 'STRING' to 'DINT'",
         "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'DINT'",
@@ -1540,13 +1528,14 @@ fn alias_variable_type_check() {
         "Invalid assignment: cannot assign 'DINT' to 'ARRAY[1..5] OF DINT'",
         "Invalid assignment: cannot assign 'SINT' to 'ARRAY[1..5] OF DINT'",
         "Invalid assignment: cannot assign 'STRING' to 'ARRAY[1..5] OF DINT'",
-    ]
-    "###);
+    */
+    assert_snapshot!(diagnostics, @"");
+    todo!("fix validation")
 }
 
 #[test]
 fn reassignment_of_alias_variables_is_disallowed() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r"
         FUNCTION main
             VAR
@@ -1562,20 +1551,12 @@ fn reassignment_of_alias_variables_is_disallowed() {
         ",
     );
 
-    // Note: This assertion must fail once init functions are implemented and can then also be deleted
-    assert!(diagnostics.iter().any(|diagnostics| diagnostics.get_error_code() == "E033"));
+    assert_snapshot!(diagnostics, @r###"
+    error[E100]: foo is an immutable alias variable, can not change the address
+       ┌─ <internal>:11:13
+       │
+    11 │             foo REF= bar;       // Invalid, the address of `foo` is being changed
+       │             ^^^^^^^^^^^^ foo is an immutable alias variable, can not change the address
 
-    // TODO: Use parse_and_validate_buffered once above assertion is deleted
-    let diagnostics_messages_without_const_error = diagnostics
-        .iter()
-        .filter(|diagnostic| diagnostic.get_error_code() != "E033")
-        .map(|diagnostic| diagnostic.get_message())
-        .collect::<Vec<_>>();
-
-    assert_eq!(diagnostics_messages_without_const_error.len(), 1);
-    assert_debug_snapshot!(diagnostics_messages_without_const_error, @r###"
-    [
-        "foo is an immutable alias variable, can not change the address",
-    ]
     "###);
 }

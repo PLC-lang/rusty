@@ -645,13 +645,13 @@ fn ref_adr_init_in_function() {
         r#"     
         FUNCTION main : DINT 
         VAR
-            // i : DINT;
-            // pi: REF_TO INT := REF(i);
+            i : DINT;
+            pi: REF_TO INT := REF(i);
             s: STRING;
             ps: REF_TO STRING := ADR(s);
-            // ps: LWORD := ADR(s)
-            // pb: REF_TO BOOL := REF(b);
-            // pb2: LWORD := ADR(b2);
+            ps2: LWORD := ADR(s)
+            pb: REF_TO BOOL := REF(b);
+            pb2: LWORD := ADR(b2);
         END_VAR
         END_FUNCTION
         "#,
@@ -680,7 +680,39 @@ fn ref_adr_init_with_non_global_fb_instance() {
         "#,
     );
 
-    insta::assert_snapshot!(res, @r###""###);
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %foo = type { [81 x i8], [81 x i8]* }
+
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r2s8u81ps8u81"
+
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+    entry:
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %ps = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      ret void
+    }
+
+    define i32 @main() section "fn-$RUSTY$main:i32" {
+    entry:
+      %main = alloca i32, align 4
+      %f = alloca %foo, align 8
+      %pf = alloca %foo*, align 8
+      %0 = bitcast %foo* %f to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%foo, %foo* @__foo__init, i32 0, i32 0, i32 0), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      store %foo* %f, %foo** %pf, align 8
+      store i32 0, i32* %main, align 4
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    "###);
 }
 
 #[test]
@@ -721,7 +753,45 @@ fn ref_adr_init_in_stateful_pou() {
         "#,
     );
 
-    insta::assert_snapshot!(res, @r###""###);
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %foo = type { i32, i16*, [81 x i8], [81 x i8]*, i64, i8*, i64 }
+
+    @b = unnamed_addr constant i8 0, section "var-$RUSTY$b:u8"
+    @b2 = global i8 0, section "var-$RUSTY$b2:u8"
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r7i32pi16s8u81ps8u81u64pu8u64"
+
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+    entry:
+      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      %ps = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
+      %ps1 = getelementptr inbounds %foo, %foo* %0, i32 0, i32 4
+      %pb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 5
+      %pb2 = getelementptr inbounds %foo, %foo* %0, i32 0, i32 6
+      ret void
+    }
+
+    define i32 @main() section "fn-$RUSTY$main:i32" {
+    entry:
+      %main = alloca i32, align 4
+      %fb = alloca %foo, align 8
+      %0 = bitcast %foo* %fb to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %main, align 4
+      call void @foo(%foo* %fb)
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    "###);
 }
 
 #[test]

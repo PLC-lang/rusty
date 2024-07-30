@@ -42,7 +42,18 @@ lazy_static! {
                 END_FUNCTION
             ",
                 annotation: None,
-                validation: None,
+                validation: Some(|validator, operator, parameters, _, _| {
+                    let Some(params) = parameters else {
+                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, 0, operator.get_location()));
+                        return;
+                    };
+
+                    let params = flatten_expression_list(params);
+
+                    if params.len() > 1 {
+                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, params.len(), operator.get_location()));
+                    }
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
