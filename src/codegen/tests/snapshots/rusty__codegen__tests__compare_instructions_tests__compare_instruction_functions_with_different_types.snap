@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r13pf32i16i32f32f64i8i16i32i64u8u16u32u64"
 
-define float @foo() section "fn-$RUSTY$foo:f32" {
+define float @foo() {
 entry:
   %foo = alloca float, align 4
   store float 0.000000e+00, float* %foo, align 4
@@ -17,7 +17,7 @@ entry:
   ret float %foo_ret
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %ptr_float = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 1

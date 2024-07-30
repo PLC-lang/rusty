@@ -9,7 +9,7 @@ source_filename = "main"
 
 @____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer, section "var-$RUSTY$____foo_vla__init:r2pai16ai32"
 
-define i16 @foo(%__foo_vla* %0) section "fn-$RUSTY$foo:i16[r2pai16ai32]" {
+define i16 @foo(%__foo_vla* %0) {
 entry:
   %foo = alloca i16, align 2
   %vla = alloca %__foo_vla, align 8
@@ -57,7 +57,7 @@ entry:
   ret i16 %foo_ret
 }
 
-define i32 @main() section "fn-$RUSTY$main:i32" {
+define i32 @main() {
 entry:
   %main = alloca i32, align 4
   %arr = alloca [60 x i16], align 2

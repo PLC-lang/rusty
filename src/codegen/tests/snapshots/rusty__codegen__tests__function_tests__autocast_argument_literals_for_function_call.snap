@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r0"
 
-define i32 @func(i8* %0, i16* %1, i32* %2, i64* %3, float* %4, double* %5) section "fn-$RUSTY$func:i32[pi8][pi16][pi32][pi64][pf32][pf64]" {
+define i32 @func(i8* %0, i16* %1, i32* %2, i64* %3, float* %4, double* %5) {
 entry:
   %func = alloca i32, align 4
   %byInt1 = alloca i8*, align 8
@@ -30,7 +30,7 @@ entry:
   ret i32 %func_ret
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %1 = alloca i8, align 1
   store i8 1, i8* %1, align 1

@@ -1,8 +1,10 @@
 use std::{
+    collections::HashMap,
     env,
     fs::{self, File},
     io::Write,
     path::{Path, PathBuf},
+    sync::Mutex,
 };
 
 use crate::{CompileOptions, LinkOptions};
@@ -32,6 +34,42 @@ use project::{
 };
 use rayon::prelude::*;
 use source_code::{source_location::SourceLocation, SourceContainer};
+
+use serde_json;
+use toml;
+
+pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
+    if !Path::new(location).is_file() {
+        // Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
+        // creating our file when we want to.
+        return Ok(HashMap::new());
+    }
+
+    let s = fs::read_to_string(location)
+        .map_err(|_| Diagnostic::new("GOT layout could not be read from file"))?;
+    match format {
+        ConfigFormat::JSON => serde_json::from_str(&s)
+            .map_err(|_| Diagnostic::new("Could not deserialize GOT layout from JSON")),
+        ConfigFormat::TOML => {
+            toml::de::from_str(&s).map_err(|_| Diagnostic::new("Could not deserialize GOT layout from TOML"))
+        }
+    }
+}
+
+fn write_got_layout(
+    got_entries: HashMap<String, u64>,
+    location: &str,
+    format: ConfigFormat,
+) -> Result<(), Diagnostic> {
+    let s = match format {
+        ConfigFormat::JSON => serde_json::to_string(&got_entries)
+            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to JSON"))?,
+        ConfigFormat::TOML => toml::ser::to_string(&got_entries)
+            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to TOML"))?,
+    };
+
+    fs::write(location, s).map_err(|_| Diagnostic::new("GOT layout could not be written to file"))
+}
 
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
@@ -234,8 +272,15 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             .iter()
             .map(|(unit, dependencies, literals)| {
                 let context = CodegenContext::create();
-                self.generate_module(&context, compile_options, unit, dependencies, literals)
-                    .map(|it| it.persist_to_string())
+                self.generate_module(
+                    &context,
+                    compile_options,
+                    unit,
+                    dependencies,
+                    literals,
+                    todo!("GOT layout for codegen_to_string?"),
+                )
+                .map(|it| it.persist_to_string())
             })
             .collect()
     }
@@ -249,7 +294,14 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             .units
             .iter()
             .map(|(unit, dependencies, literals)| {
-                self.generate_module(context, compile_options, unit, dependencies, literals)
+                self.generate_module(
+                    context,
+                    compile_options,
+                    unit,
+                    dependencies,
+                    literals,
+                    todo!("give GOT layout for single modules?"),
+                )
             })
             .reduce(|a, b| {
                 let a = a?;
@@ -269,13 +321,16 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         unit: &CompilationUnit,
         dependencies: &FxIndexSet<Dependency>,
         literals: &StringLiterals,
+        got_layout: &Mutex<HashMap<String, u64>>,
     ) -> Result<GeneratedModule<'ctx>, Diagnostic> {
         let mut code_generator = plc::codegen::CodeGen::new(
             context,
             compile_options.root.as_deref(),
             &unit.file_name,
+            (compile_options.got_layout_file.clone(), compile_options.got_layout_format),
             compile_options.optimization,
             compile_options.debug_level,
+            compile_options.online_change,
         );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types
@@ -285,8 +340,9 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             literals,
             dependencies,
             &self.index,
+            got_layout,
         )?;
-        code_generator.generate(context, unit, &self.annotations, &self.index, &llvm_index)
+        code_generator.generate(context, unit, &self.annotations, &self.index, llvm_index)
     }
 
     pub fn codegen_single_module<'ctx>(
@@ -331,6 +387,10 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         });
         ensure_compile_dirs(targets, &compile_directory)?;
         let targets = if targets.is_empty() { &[Target::System] } else { targets };
+
+        let got_layout = read_got_layout(&compile_options.got_layout_file, ConfigFormat::JSON)?;
+        let got_layout = Mutex::new(got_layout);
+
         let res = targets
             .par_iter()
             .map(|target| {
@@ -364,8 +424,15 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                         };
 
                         let context = CodegenContext::create(); //Create a build location for the generated object files
-                        let module =
-                            self.generate_module(&context, compile_options, unit, dependencies, literals)?;
+                        let module = self.generate_module(
+                            &context,
+                            compile_options,
+                            unit,
+                            dependencies,
+                            literals,
+                            &got_layout,
+                        )?;
+
                         module
                             .persist(
                                 Some(&compile_directory),
@@ -383,6 +450,8 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                 Ok(GeneratedProject { target: target.clone(), objects })
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
+
+        write_got_layout(got_layout.into_inner().unwrap(), &compile_options.got_layout_file, ConfigFormat::JSON)?;
 
         Ok(res)
     }

@@ -12,7 +12,7 @@ source_filename = "main"
 @gA = global i16 0, section "var-$RUSTY$gA:i16"
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r0"
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   ret void
 }

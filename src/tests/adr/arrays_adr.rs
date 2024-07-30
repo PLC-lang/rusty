@@ -73,7 +73,7 @@ fn assigning_full_arrays() {
     @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }, section "var-$RUSTY$prg_instance:r2ai32ai32"
     @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-$RUSTY$__Data__init:ai32"
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -126,7 +126,7 @@ fn accessing_array_elements() {
     @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-$RUSTY$__Data__init:ai32"
     @__prg.b__init = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

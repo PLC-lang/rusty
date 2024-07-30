@@ -7,7 +7,7 @@ source_filename = "main"
 
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
-define void @func([81 x i8]* %0, [81 x i8]* %1) section "fn-$RUSTY$func:s8u81[ps8u81]" {
+define void @func([81 x i8]* %0, [81 x i8]* %1) {
 entry:
   %func = alloca [81 x i8]*, align 8
   store [81 x i8]* %0, [81 x i8]** %func, align 8

@@ -9,7 +9,7 @@ source_filename = "main"
 
 @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1i32"
 
-define i32 @bar() section "fn-$RUSTY$bar:i32" {
+define i32 @bar() {
 entry:
   %bar = alloca i32, align 4
   store i32 0, i32* %bar, align 4
@@ -18,7 +18,7 @@ entry:
   ret i32 %bar_ret
 }
 
-define i32 @foo(i32 %0) section "fn-$RUSTY$foo:i32[i32]" {
+define i32 @foo(i32 %0) {
 entry:
   %foo = alloca i32, align 4
   %in = alloca i32, align 4
@@ -29,7 +29,7 @@ entry:
   ret i32 %foo_ret
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %call = call i32 @bar()

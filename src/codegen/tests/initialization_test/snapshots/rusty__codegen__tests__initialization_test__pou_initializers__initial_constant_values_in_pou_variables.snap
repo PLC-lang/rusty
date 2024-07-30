@@ -12,7 +12,7 @@ source_filename = "main"
 @LEN = unnamed_addr constant i16 20, section "var-$RUSTY$LEN:i16"
 @prg_instance = global %prg { i16 24, i16 89 }, section "var-$RUSTY$prg_instance:r2i16i16"
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v[i16][i16]" {
+define void @prg(%prg* %0) {
 entry:
   %my_len = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %my_size = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

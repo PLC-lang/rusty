@@ -18,7 +18,7 @@ source_filename = "main"
 @MyEnum3.yellow = unnamed_addr constant i32 26, section "var-$RUSTY$yellow:e3i32"
 @MyEnum3.green = unnamed_addr constant i32 27, section "var-$RUSTY$green:e3i32"
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

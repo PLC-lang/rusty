@@ -143,6 +143,8 @@ impl FromStr for ConfigFormat {
     }
 }
 
+pub const DEFAULT_GOT_LAYOUT_FILE: &str = "online_change_got.json";
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum, Serialize, Deserialize, Default)]
 pub enum ErrorFormat {
     #[default]
@@ -174,6 +176,12 @@ pub enum DebugLevel {
     None,
     VariablesOnly(usize),
     Full(usize),
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum OnlineChange {
+    Enabled,
+    Disabled,
 }
 
 impl From<OptimizationLevel> for inkwell::OptimizationLevel {

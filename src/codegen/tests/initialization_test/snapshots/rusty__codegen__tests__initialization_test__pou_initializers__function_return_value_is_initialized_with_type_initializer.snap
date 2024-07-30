@@ -10,7 +10,7 @@ source_filename = "main"
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r2ai32ai32"
 @__myArray__init = unnamed_addr constant [4 x i32] [i32 1, i32 2, i32 3, i32 4], section "var-$RUSTY$__myArray__init:ai32"
 
-define void @target([4 x i32]* %0) section "fn-$RUSTY$target:ai32" {
+define void @target([4 x i32]* %0) {
 entry:
   %target = alloca [4 x i32]*, align 8
   store [4 x i32]* %0, [4 x i32]** %target, align 8
@@ -23,7 +23,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1

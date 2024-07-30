@@ -19,14 +19,14 @@ source_filename = "main"
 @prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r2pr3u8u8u8pr3u8u8u8"
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r0"
 
-define void @prog(%prog* %0) section "fn-$RUSTY$prog:v[pr3u8u8u8][pr3u8u8u8]" {
+define void @prog(%prog* %0) {
 entry:
   %input1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %input2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   store %STRUCT_params* @global1, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 8
   store %STRUCT_params* @global2, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align 8

@@ -10,7 +10,7 @@ source_filename = "main"
 @const_str = unnamed_addr constant [81 x i8] c"global constant string\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$const_str:s8u81"
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1s8u81"
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %str = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = bitcast [81 x i8]* %str to i8*

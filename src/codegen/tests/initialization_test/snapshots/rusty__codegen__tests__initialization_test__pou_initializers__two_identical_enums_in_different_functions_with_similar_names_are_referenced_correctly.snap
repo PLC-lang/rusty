@@ -14,7 +14,7 @@ source_filename = "main"
 @__bb_position.y = unnamed_addr constant i32 5, section "var-$RUSTY$y:e2i32"
 @__b_position.y = unnamed_addr constant i32 5, section "var-$RUSTY$y:e2i32"
 
-define i32 @a() section "fn-$RUSTY$a:i32" {
+define i32 @a() {
 entry:
   %a = alloca i32, align 4
   %position = alloca i32, align 4
@@ -24,7 +24,7 @@ entry:
   ret i32 %a_ret
 }
 
-define i32 @aa() section "fn-$RUSTY$aa:i32" {
+define i32 @aa() {
 entry:
   %aa = alloca i32, align 4
   %position = alloca i32, align 4
@@ -34,7 +34,7 @@ entry:
   ret i32 %aa_ret
 }
 
-define i32 @bb() section "fn-$RUSTY$bb:i32" {
+define i32 @bb() {
 entry:
   %bb = alloca i32, align 4
   %position = alloca i32, align 4
@@ -44,7 +44,7 @@ entry:
   ret i32 %bb_ret
 }
 
-define i32 @b() section "fn-$RUSTY$b:i32" {
+define i32 @b() {
 entry:
   %b = alloca i32, align 4
   %position = alloca i32, align 4

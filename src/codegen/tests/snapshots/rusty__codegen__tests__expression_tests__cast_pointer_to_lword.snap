@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16 @baz() section "fn-$RUSTY$baz:i16" {
+define i16 @baz() {
 entry:
   %baz = alloca i16, align 2
   %ptr_x = alloca i16*, align 8

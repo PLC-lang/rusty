@@ -11,7 +11,7 @@ source_filename = "main"
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"B\00"
 @utf16_literal_0 = private unnamed_addr constant [2 x i16] [i16 65, i16 0]
 
-define void @mainPROG(%mainPROG* %0) section "fn-$RUSTY$mainPROG:v" {
+define void @mainPROG(%mainPROG* %0) {
 entry:
   %x = getelementptr inbounds %mainPROG, %mainPROG* %0, i32 0, i32 0
   %y = getelementptr inbounds %mainPROG, %mainPROG* %0, i32 0, i32 1

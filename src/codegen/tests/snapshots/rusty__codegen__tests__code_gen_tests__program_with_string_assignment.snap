@@ -11,7 +11,7 @@ source_filename = "main"
 @utf08_literal_0 = private unnamed_addr constant [12 x i8] c"im a genius\00"
 @utf16_literal_0 = private unnamed_addr constant [18 x i16] [i16 105, i16 109, i16 32, i16 97, i16 32, i16 117, i16 116, i16 102, i16 49, i16 54, i16 32, i16 103, i16 101, i16 110, i16 105, i16 117, i16 115, i16 0]
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

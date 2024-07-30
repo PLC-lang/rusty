@@ -318,7 +318,7 @@ fn pass() {
 
     @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer, section "var-$RUSTY$____foo_arr__init:r2pai32ai32"
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %local = alloca [6 x i32], align 4
@@ -340,7 +340,7 @@ fn pass() {
       ret i32 %main_ret
     }
 
-    define i32 @foo(%__foo_arr* %0) section "fn-$RUSTY$foo:i32[pr2pai32ai32]" {
+    define i32 @foo(%__foo_arr* %0) {
     entry:
       %foo = alloca i32, align 4
       %arr = alloca %__foo_arr*, align 8
@@ -384,7 +384,7 @@ fn access() {
 
     @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer, section "var-$RUSTY$____foo_arr__init:r2pai32ai32"
 
-    define i32 @foo(%__foo_arr* %0) section "fn-$RUSTY$foo:i32[pr2pai32ai32]" {
+    define i32 @foo(%__foo_arr* %0) {
     entry:
       %foo = alloca i32, align 4
       %arr = alloca %__foo_arr*, align 8
@@ -442,7 +442,7 @@ fn multi_dimensional() {
 
     @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer, section "var-$RUSTY$____foo_arr__init:r2pai32ai32"
 
-    define i32 @foo(%__foo_arr* %0) section "fn-$RUSTY$foo:i32[pr2pai32ai32]" {
+    define i32 @foo(%__foo_arr* %0) {
     entry:
       %foo = alloca i32, align 4
       %arr = alloca %__foo_arr*, align 8

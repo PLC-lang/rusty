@@ -10,7 +10,7 @@ source_filename = "main"
 @const_arr = unnamed_addr constant [4 x i16] [i16 1, i16 2, i16 3, i16 4], section "var-$RUSTY$const_arr:ai16"
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1ai16"
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %arr = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = bitcast [4 x i16]* %arr to i8*

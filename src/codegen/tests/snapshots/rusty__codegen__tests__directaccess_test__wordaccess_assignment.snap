@@ -5,7 +5,7 @@ expression: prog
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16 @main() section "fn-$RUSTY$main:i16" {
+define i16 @main() {
 entry:
   %main = alloca i16, align 2
   %c = alloca i32, align 4

@@ -11,7 +11,7 @@ source_filename = "main"
 @__prg.s__init = unnamed_addr constant [11 x i8] c"hello\00\00\00\00\00\00"
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
-define i16 @foo(i8* %0) section "fn-$RUSTY$foo:i16[s8u81]" {
+define i16 @foo(i8* %0) {
 entry:
   %foo = alloca i16, align 2
   %s = alloca [81 x i8], align 1
@@ -27,7 +27,7 @@ buffer_block:                                     ; No predecessors!
   ret i16 %foo_ret1
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

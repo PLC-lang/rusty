@@ -10,12 +10,12 @@ source_filename = "main"
 
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "var-$RUSTY$__MyClass__init:r0"
 
-define void @MyClass(%MyClass* %0) section "fn-$RUSTY$MyClass:v" {
+define void @MyClass(%MyClass* %0) {
 entry:
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) section "fn-$RUSTY$MyClass.testMethod:v[i16]" {
+define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
 entry:
   %myMethodArg = getelementptr inbounds %MyClass.testMethod, %MyClass.testMethod* %1, i32 0, i32 0
   %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod, %MyClass.testMethod* %1, i32 0, i32 1

@@ -25,7 +25,7 @@ source_filename = "main"
 @cLDT_SHORT = unnamed_addr constant i64 172799123000000, section "var-$RUSTY$cLDT_SHORT:i64"
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r16i64i64i64i64i64i64i64i64i64i64i64i64i64i64i64i64"
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %t1 = alloca i64, align 8
   %t2 = alloca i64, align 8
