@@ -10,8 +10,8 @@ mod helper {
     use plc_ast::{ast::CompilationUnit, provider::IdProvider};
 
     use crate::{
-        index::{FxIndexMap, FxIndexSet, Index},
-        resolver::{AnnotationMapImpl, Dependency, StringLiterals, TypeAnnotator},
+        index::{FxIndexSet, Index},
+        resolver::{AnnotationMapImpl, Dependency, InitializerFunctions, StringLiterals, TypeAnnotator},
     };
 
     pub(super) fn visit_unit(
@@ -19,6 +19,6 @@ mod helper {
         unit: &CompilationUnit,
         id_provider: IdProvider,
     ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
-        TypeAnnotator::visit_unit(index, unit, id_provider, &FxIndexMap::default())
+        TypeAnnotator::visit_unit(index, unit, id_provider, InitializerFunctions::default())
     }
 }

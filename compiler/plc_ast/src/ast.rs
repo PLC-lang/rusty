@@ -307,11 +307,6 @@ impl CompilationUnit {
         self
     }
 
-    pub fn with_units(mut self, units: Vec<Pou>) -> Self {
-        self.units = units;
-        self
-    }
-
     /// imports all elements of the other CompilationUnit into this CompilationUnit
     ///
     /// this will import all global_vars, units, implementations and types. The imported

@@ -11,7 +11,13 @@ fn simple() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###""###);
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$s:s8u81"
+    @ps = global [81 x i8]* null, section "var-$RUSTY$ps:ps8u81"
+    "###);
 }
 
 #[test]
@@ -21,14 +27,14 @@ fn init_fn_test() {
         PROGRAM PLC_PRG
         VAR
             s: STRING;
-            hard_to_init_innit: REF_TO STRING := REF(s);
+            to_init: REF_TO STRING := REF(s);
         END_VAR    
         END_PROGRAM
 
         FUNCTION_BLOCK foo
         VAR
             s: STRING;
-            hard_to_init_innit: REF_TO STRING := REF(s);
+            to_init: REF_TO STRING := REF(s);
         END_VAR    
         END_FUNCTION_BLOCK
 

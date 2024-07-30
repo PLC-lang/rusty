@@ -664,7 +664,7 @@ fn ref_adr_init_in_function() {
 fn ref_adr_init_with_non_global_fb_instance() {
     let res = codegen(
         r#"
-        FUNCTION_BLCOK foo
+        FUNCTION_BLOCK foo
         VAR
             s: STRING;
             ps: REF_TO STRING := ADR(s);
@@ -733,8 +733,8 @@ fn shenanigans() {
             s: STRING;
         END_VAR
         VAR
-            // pi: REF_TO INT := REF(s); // not an int-pointer
-            // ps: LWORD := ADR(s) // address of an input-variable
+            pi: REF_TO INT := REF(s); // not an int-pointer
+            ps: LWORD := ADR(s) // address of an input-variable
         END_VAR
         END_FUNCTION_BLOCK
 
@@ -752,17 +752,19 @@ fn shenanigans() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %foo = type { [81 x i8] }
+    %foo = type { [81 x i8], i16*, i64 }
 
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r3s8u81pi16u64"
 
-    define void @foo(%foo* %0) section "fn-foo:v[s8u81]" {
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v[s8u81]" {
     entry:
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %ps = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       ret void
     }
 
-    define i32 @main() section "fn-main:i32" {
+    define i32 @main() section "fn-$RUSTY$main:i32" {
     entry:
       %main = alloca i32, align 4
       %fb = alloca %foo, align 8
