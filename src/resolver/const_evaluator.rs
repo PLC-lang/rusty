@@ -564,6 +564,7 @@ fn evaluate_with_target_hint(
         AstStatement::CallStatement(plc_ast::ast::CallStatement { operator, parameters }) => {
             let name = operator.get_flat_reference_name().expect("operator without name?");
             if !matches!(name.to_lowercase().as_str(), "ref" | "adr") {
+                // TODO: if in call, just try to resolve later - re-resolve/validate init-function for legal target types
                 unimplemented!("handle function calls which do not return constants")
             };
             let Some(arg) = parameters else { unimplemented!("handle adr/ref call without args") };

@@ -21,7 +21,6 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 
     //Create defined global variables
     for global_vars in &unit.global_vars {
-        // TODO: add global init function to index | should this just be done in body of __init?
         visit_global_var_block(&mut index, global_vars);
     }
 

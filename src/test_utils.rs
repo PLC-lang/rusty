@@ -18,10 +18,7 @@ pub mod tests {
         codegen::{CodegenContext, GeneratedModule},
         index::{self, Index},
         lexer, parser,
-        resolver::{
-            const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, InitializerFunctions,
-            TypeAnnotator,
-        },
+        resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},
         typesystem::get_builtin_types,
         DebugLevel, Validator,
     };
@@ -102,8 +99,7 @@ pub mod tests {
         index: &mut Index,
         id_provider: IdProvider,
     ) -> AnnotationMapImpl {
-        let (mut annotations, ..) =
-            TypeAnnotator::visit_unit(index, parse_result, id_provider, InitializerFunctions::default());
+        let (mut annotations, ..) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
         index.import(std::mem::take(&mut annotations.new_index));
         annotations
     }
@@ -129,8 +125,7 @@ pub mod tests {
         let (unit, index, mut diagnostics) = do_index(src, ctxt.provider());
 
         let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, ..) =
-            TypeAnnotator::visit_unit(&index, &unit, ctxt.provider(), InitializerFunctions::default());
+        let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, ctxt.provider());
         index.import(std::mem::take(&mut annotations.new_index));
 
         let mut validator = Validator::new(&ctxt);
@@ -157,7 +152,7 @@ pub mod tests {
 
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, dependencies, literals) =
-            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone(), InitializerFunctions::default());
+            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
 
         let context = CodegenContext::create();
@@ -220,12 +215,8 @@ pub mod tests {
         let units = units
             .into_iter()
             .map(|unit| {
-                let (mut annotation, dependencies, literals) = TypeAnnotator::visit_unit(
-                    &index,
-                    &unit,
-                    id_provider.clone(),
-                    InitializerFunctions::default(),
-                );
+                let (mut annotation, dependencies, literals) =
+                    TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
                 index.import(std::mem::take(&mut annotation.new_index));
                 all_annotations.import(annotation);
                 (unit, dependencies, literals)

@@ -152,7 +152,6 @@ pub struct TypeAnnotator<'i> {
     /// A map containing every jump encountered in a file, and the label of where this jump should
     /// point. This is later used to annotate all jumps after the initial visit is done.
     jumps_to_annotate: FxHashMap<String, FxHashMap<String, Vec<AstId>>>,
-    initializers: InitializerFunctions,
 }
 
 impl TypeAnnotator<'_> {
@@ -642,9 +641,9 @@ pub struct AnnotationMapImpl {
     /// x := 10; // a call to `CheckRangeUnsigned` is maped to `10`
     hidden_function_calls: FxIndexMap<AstId, AstNode>,
 
-    //An index of newly created types
+    // newly created types, units and initializers
     pub new_index: Index,
-    pub new_units: Vec<CompilationUnit>,
+    pub new_initializers: InitializerFunctions,
 }
 
 impl AnnotationMapImpl {
@@ -658,7 +657,7 @@ impl AnnotationMapImpl {
         self.type_hint_map.extend(other.type_hint_map);
         self.hidden_function_calls.extend(other.hidden_function_calls);
         self.new_index.import(other.new_index);
-        self.new_units.extend(other.new_units);
+        self.new_initializers.import(other.new_initializers);
     }
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name
@@ -740,6 +739,7 @@ where
     Self: Sized + Default,
 {
     fn new(candidates: &'rslv [const_evaluator::UnresolvableConstant]) -> Self;
+    fn import(&mut self, other: Self);
 }
 
 impl<'rslv> Init<'rslv> for InitializerFunctions {
@@ -764,6 +764,12 @@ impl<'rslv> Init<'rslv> for InitializerFunctions {
             });
 
         res
+    }
+
+    fn import(&mut self, other: Self) {
+        other.into_iter().for_each(|(scope, data)| {
+            self.entry(scope).or_default().extend(data);
+        });
     }
 }
 
@@ -804,13 +810,7 @@ impl<'i> TypeAnnotator<'i> {
             dependencies: FxIndexSet::default(),
             string_literals: StringLiterals { utf08: FxHashSet::default(), utf16: FxHashSet::default() },
             jumps_to_annotate: FxHashMap::default(),
-            initializers: InitializerFunctions::default(),
         }
-    }
-
-    fn with_initializers(mut self, initializers: InitializerFunctions) -> Self {
-        self.initializers = initializers;
-        self
     }
 
     /// annotates the given AST elements with the type-name resulting for the statements/expressions.
@@ -819,9 +819,8 @@ impl<'i> TypeAnnotator<'i> {
         index: &Index,
         unit: &'i CompilationUnit,
         id_provider: IdProvider,
-        initializers: InitializerFunctions,
     ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
-        let mut visitor = TypeAnnotator::new(index).with_initializers(initializers);
+        let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
             pou: None,
             qualifier: None,
@@ -840,146 +839,6 @@ impl<'i> TypeAnnotator<'i> {
 
         for pou in &unit.units {
             visitor.visit_pou(ctx, pou);
-            // TODO: only collect pous which need init functions, create functions later (in pipeline) => dependencies?
-            if pou.pou_type != PouType::Function {
-                // check if the visited POU needs an init-function. TODO: multiple entries per POU possible?
-                if let Some(init) = visitor.initializers.get(&pou.name) {
-                    let init_fn_name = index::get_init_fn_name(&pou.name);
-                    let mut id_provider = ctx.id_provider.clone();
-
-                    // TODO: add 'self' param to program init functions
-                    let (param, ident) = if pou.pou_type == PouType::Program {
-                        (vec![], pou.name.clone())
-                    } else {
-                        (
-                            vec![VariableBlock::default()
-                                .with_block_type(ast::VariableBlockType::InOut)
-                                .with_variables(vec![Variable {
-                                    name: "self".into(),
-                                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                                        referenced_type: pou.name.to_string(),
-                                        location: SourceLocation::internal(),
-                                    },
-                                    initializer: None,
-                                    address: None,
-                                    location: SourceLocation::internal(), // TODO: use source location of initialized POU here
-                                }])],
-                            "self".into(),
-                        )
-                    };
-                    let init_pou = Pou {
-                        name: init_fn_name.clone(),
-                        variable_blocks: param,
-                        pou_type: PouType::Function,
-                        return_type: None,
-                        location: SourceLocation::internal(),
-                        name_location: SourceLocation::internal(),
-                        poly_mode: None,
-                        generics: vec![],
-                        linkage: LinkageType::Internal,
-                        super_class: None,
-                    };
-
-                    let mut statements = init
-                        .iter()
-                        .map(|(lhs_name, initializer)| {
-                            dbg!(&initializer);
-
-                            let lhs = create_member_reference(
-                                lhs_name,
-                                id_provider.clone(),
-                                Some(create_member_reference(&ident, id_provider.clone(), None)),
-                            );
-
-                            let (create_assignment_fn, node) = &initializer
-                                .as_ref()
-                                .map(|it| {
-                                    let func = if let Some(StatementAnnotation::Alias) =
-                                        visitor.annotation_map.get(it)
-                                    {
-                                        AstFactory::create_ref_assignment
-                                    } else {
-                                        AstFactory::create_assignment
-                                    };
-                                    (func, it.clone())
-                                })
-                                .unwrap();
-
-                            create_assignment_fn(lhs, node.to_owned(), id_provider.next_id())
-                        })
-                        .collect::<Vec<_>>();
-
-                    let members = index.get_pou_members(&pou.name);
-                    let dependency_calls = members
-                        .iter()
-                        .filter_map(|member| {
-                            let type_name = &member.get_type_name();
-
-                            if visitor.initializers.contains_key(*type_name) {
-                                let call_name = get_init_fn_name(type_name);
-                                let op = create_member_reference(&call_name, id_provider.clone(), None);
-                                // TODO:
-                                let base = if pou.pou_type == PouType::Program {
-                                    Some(create_member_reference(&pou.name, id_provider.clone(), None))
-                                } else {
-                                    Some(create_member_reference("self", id_provider.clone(), None))
-                                };
-                                let param =
-                                    create_member_reference(member.get_name(), id_provider.clone(), base);
-                                Some(AstFactory::create_call_statement(
-                                    op,
-                                    Some(param),
-                                    id_provider.next_id(),
-                                    SourceLocation::internal(),
-                                ))
-                            } else {
-                                None
-                            }
-                        })
-                        .collect::<Vec<_>>();
-
-                    statements.extend(dependency_calls.into_iter());
-
-                    let implementation = Implementation {
-                        name: init_fn_name.clone(),
-                        type_name: init_fn_name.clone(),
-                        linkage: LinkageType::Internal,
-                        pou_type: PouType::Function,
-                        statements,
-                        location: SourceLocation::internal(),
-                        name_location: SourceLocation::internal(),
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    };
-
-                    let mut new_unit = CompilationUnit {
-                        global_vars: vec![],
-                        units: vec![init_pou],
-                        implementations: vec![implementation],
-                        user_types: vec![],
-                        file_name: "__internal".into(),
-                    };
-
-                    pre_process(&mut new_unit, id_provider.clone()); // XXX: is this required?
-                    let idx = index::visitor::visit(&new_unit);
-                    visitor.annotation_map.new_units.push(new_unit);
-                    visitor.annotation_map.new_index.import(idx);
-                    visitor.dependencies.insert(Dependency::Call(init_fn_name.to_string())); // TODO: I'd rather not do this manually. figure out a more idiomatic way to resolve and collect newly added deps
-
-                    // TODO: also add 'self' param for programs
-                    if pou.pou_type != PouType::Program {
-                        let init_param = visitor
-                            .annotation_map
-                            .new_index
-                            .find_parameter(&init_fn_name, 0)
-                            .expect("just created, must exist");
-                        visitor
-                            .dependencies
-                            .insert(Dependency::Datatype(init_param.data_type_name.to_string()));
-                    }
-                };
-            }
         }
 
         for t in &unit.user_types {
@@ -1025,11 +884,132 @@ impl<'i> TypeAnnotator<'i> {
         (visitor.annotation_map, visitor.dependencies, visitor.string_literals)
     }
 
+    pub fn create_init_units(
+        index: &Index,
+        id_provider: &IdProvider,
+        initializers: &InitializerFunctions,
+        annotations: &AnnotationMapImpl,
+    ) -> Vec<(Index, CompilationUnit)> {
+        initializers
+            .iter()
+            .map(|(scope, init)| {
+                let init_fn_name = index::get_init_fn_name(scope);
+                let mut id_provider = id_provider.clone();
+
+                let (param, ident) = (
+                    vec![VariableBlock::default()
+                        .with_block_type(ast::VariableBlockType::InOut)
+                        .with_variables(vec![Variable {
+                            name: "self".into(),
+                            data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                                referenced_type: scope.to_string(),
+                                location: SourceLocation::internal(),
+                            },
+                            initializer: None,
+                            address: None,
+                            location: SourceLocation::internal(), // TODO: use source location of initialized POU here
+                        }])],
+                    "self".to_string(),
+                );
+                let init_pou = Pou {
+                    name: init_fn_name.clone(),
+                    variable_blocks: param,
+                    pou_type: PouType::Function,
+                    return_type: None,
+                    location: SourceLocation::internal(),
+                    name_location: SourceLocation::internal(),
+                    poly_mode: None,
+                    generics: vec![],
+                    linkage: LinkageType::Internal,
+                    super_class: None,
+                };
+
+                let mut statements = init
+                    .iter()
+                    .map(|(lhs_name, initializer)| {
+                        let lhs = create_member_reference(
+                            lhs_name,
+                            id_provider.clone(),
+                            Some(create_member_reference(&ident, id_provider.clone(), None)),
+                        );
+
+                        let (create_assignment_fn, node) = &initializer
+                            .as_ref()
+                            .map(|it| {
+                                let func = if let Some(StatementAnnotation::Alias) = annotations.get(it) {
+                                    AstFactory::create_ref_assignment
+                                } else {
+                                    AstFactory::create_assignment
+                                };
+                                (func, it.clone())
+                            })
+                            .unwrap();
+
+                        create_assignment_fn(lhs, node.to_owned(), id_provider.next_id())
+                    })
+                    .collect::<Vec<_>>();
+
+                let members = index.get_pou_members(scope);
+                let member_init_calls = members
+                    .iter()
+                    .filter_map(|member| {
+                        let type_name = &member.get_type_name();
+
+                        if initializers.contains_key(*type_name) {
+                            let call_name = get_init_fn_name(type_name);
+                            let op = create_member_reference(&call_name, id_provider.clone(), None);
+                            let param = create_member_reference(
+                                member.get_name(),
+                                id_provider.clone(),
+                                Some(create_member_reference("self", id_provider.clone(), None)),
+                            );
+                            Some(AstFactory::create_call_statement(
+                                op,
+                                Some(param),
+                                id_provider.next_id(),
+                                SourceLocation::internal(),
+                            ))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Vec<_>>();
+
+                statements.extend(member_init_calls);
+
+                let implementation = Implementation {
+                    name: init_fn_name.clone(),
+                    type_name: init_fn_name.clone(),
+                    linkage: LinkageType::Internal,
+                    pou_type: PouType::Function,
+                    statements,
+                    location: SourceLocation::internal(),
+                    name_location: SourceLocation::internal(),
+                    overriding: false,
+                    generic: false,
+                    access: None,
+                };
+
+                let mut new_unit = CompilationUnit {
+                    global_vars: vec![],
+                    units: vec![init_pou],
+                    implementations: vec![implementation],
+                    user_types: vec![],
+                    file_name: "__initializers".into(),
+                };
+
+                pre_process(&mut new_unit, id_provider.clone());
+                let new_index = index::visitor::visit(&new_unit);
+                (new_index, new_unit)
+            })
+            .collect()
+    }
+
     pub fn create_init_unit(
         index: &Index,
         id_provider: &IdProvider,
         init_fns: &InitializerFunctions,
-    ) -> Option<(Index, CompilationUnit, FxIndexSet<Dependency>)> {
+    ) -> Option<(Index, CompilationUnit)> {
         if init_fns.is_empty() {
             return None;
         }
@@ -1054,8 +1034,8 @@ impl<'i> TypeAnnotator<'i> {
             .filter_map(|(scope, _)| {
                 if index.find_pou(scope).is_some_and(|pou| pou.is_program()) {
                     let init_fn_name = get_init_fn_name(scope);
-                    let param = index.find_parameter(&init_fn_name, 0);
-                    Some((init_fn_name, param))
+                    // let param = index.find_parameter(&init_fn_name, 0);
+                    Some((init_fn_name, scope))
                 } else {
                     None
                 }
@@ -1066,11 +1046,12 @@ impl<'i> TypeAnnotator<'i> {
             .iter()
             .map(|(fn_name, param)| {
                 let op = create_member_reference(fn_name, id_provider.clone(), None);
-                let parameters =
-                    param.map(|it| create_member_reference(it.get_name(), id_provider.clone(), None));
+                // let parameters =
+                //     param.map(|it| create_member_reference(it.get_name(), id_provider.clone(), None));
+                let param = create_member_reference(param, id_provider.clone(), None);
                 AstFactory::create_call_statement(
                     op,
-                    parameters,
+                    Some(param),
                     id_provider.next_id(),
                     SourceLocation::internal(),
                 )
@@ -1095,21 +1076,13 @@ impl<'i> TypeAnnotator<'i> {
             units: vec![init_pou],
             implementations: vec![implementation],
             user_types: vec![],
-            file_name: "__internal_init".into(),
+            file_name: "__init_globals".into(),
         };
 
         pre_process(&mut new_unit, id_provider.clone()); // XXX: is this required?
-        let idx = index::visitor::visit(&new_unit);
+        let new_index = index::visitor::visit(&new_unit);
 
-        // __init has dependencies on all other init functions and their parameters
-        let mut dependencies = FxIndexSet::default();
-        init_functions.iter().for_each(|(n, p)| {
-            dependencies.insert(Dependency::Call(n.to_string())); // TODO: I'd rather not do this manually. figure out a more idiomatic way to resolve and collect newly added deps
-            if let Some(param) = p {
-                dependencies.insert(Dependency::Datatype(param.data_type_name.to_string()));
-            }
-        });
-        Some((idx, new_unit, dependencies))
+        Some((new_index, new_unit))
     }
 
     fn visit_user_type_declaration(&mut self, user_data_type: &UserTypeDeclaration, ctx: &VisitorContext) {
@@ -1374,10 +1347,20 @@ impl<'i> TypeAnnotator<'i> {
             debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
             self.visit_statement(ctx, initializer);
             self.annotate(initializer, StatementAnnotation::Alias);
-            self.initializers.entry(ctx.pou.unwrap().to_string()).and_modify(|it| {
-                let _ =
-                    ctx.lhs.map(|key| it.entry(key.into()).and_modify(|it| *it = Some(initializer.clone())));
-            });
+            let Some(lhs) = ctx.lhs else {
+                return;
+            };
+            match self.annotation_map.new_initializers.entry(ctx.pou.unwrap().to_string()) {
+                indexmap::map::Entry::Occupied(mut o) => {
+                    o.get_mut()
+                        .entry(lhs.into())
+                        .and_modify(|it| *it = Some(initializer.clone()))
+                        .or_insert(Some(initializer.clone()));
+                }
+                indexmap::map::Entry::Vacant(v) => {
+                    v.insert(InitAssignment::new(lhs, Some(initializer.clone())));
+                }
+            };
         }
     }
 

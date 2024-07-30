@@ -165,57 +165,60 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
 
-        let init_fn_candidates = InitializerFunctions::new(&unresolvables);
+        let mut init_fn_candidates = InitializerFunctions::new(&unresolvables);
 
         let result = self
             .project
             .units
             .into_par_iter()
             .map(|unit| {
-                let (annotation, dependencies, literals) = TypeAnnotator::visit_unit(
-                    &full_index,
-                    &unit,
-                    id_provider.clone(),
-                    init_fn_candidates.clone(),
-                );
+                let (annotation, dependencies, literals) =
+                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
                 (unit, annotation, dependencies, literals)
             })
             .collect::<Vec<_>>();
 
-        for (mut unit, mut annotation, mut dependencies, literals) in result {
-            std::mem::take(&mut annotation.new_units).into_iter().for_each(|u| {
-                full_index.import(std::mem::take(&mut annotation.new_index));
-                unit.import(u); // should the unit be imported into the unit wherein the original POU lies or should all initialize functions be in their own "file"?
-                let (a, dep, _) = TypeAnnotator::visit_unit(
-                    &full_index,
-                    &unit,
-                    id_provider.clone(),
-                    InitializerFunctions::default(),
-                );
-                dependencies.extend(dep);
-                annotation.import(a);
-            });
-
+        for (unit, annotation, dependencies, literals) in result {
             annotated_units.push((unit, dependencies, literals));
             all_annotations.import(annotation);
         }
 
         full_index.import(std::mem::take(&mut all_annotations.new_index));
+        init_fn_candidates.import(std::mem::take(&mut all_annotations.new_initializers));
+        let res = TypeAnnotator::create_init_units(
+            &full_index,
+            &id_provider,
+            &init_fn_candidates,
+            &all_annotations,
+        );
 
-        // TODO: clean up imports
-        if let Some((mut idx, unit, mut init_deps)) =
-            TypeAnnotator::create_init_unit(&full_index, &id_provider, &init_fn_candidates)
+        if let Some((mut init_index, init_unit)) =
+            res.into_iter().reduce(|(mut acc_index, mut acc_unit), (index, unit)| {
+                acc_unit.import(unit);
+                acc_index.import(index);
+                (acc_index, acc_unit)
+            })
         {
-            full_index.import(std::mem::take(&mut idx));
-            let (a, deps, _) = TypeAnnotator::visit_unit(
-                &full_index,
-                &unit,
-                id_provider.clone(),
-                InitializerFunctions::default(),
-            );
-            init_deps.extend(deps);
-            annotated_units.push((unit, init_deps, StringLiterals::default()));
-            all_annotations.import(a);
+            full_index.import(std::mem::take(&mut init_index));
+            let (annotation, dependencies, literals) =
+                TypeAnnotator::visit_unit(&full_index, &init_unit, id_provider.clone());
+
+            annotated_units.push((init_unit, dependencies, literals));
+            all_annotations.import(annotation);
+
+            full_index.import(std::mem::take(&mut all_annotations.new_index));
+
+            // TODO: clean up imports
+            if let Some((mut new_index, init_unit)) =
+                TypeAnnotator::create_init_unit(&full_index, &id_provider, &init_fn_candidates)
+            {
+                full_index.import(std::mem::take(&mut new_index));
+                let (a, deps, _) = TypeAnnotator::visit_unit(&full_index, &init_unit, id_provider.clone());
+                annotated_units.push((init_unit, deps, StringLiterals::default()));
+                all_annotations.import(a);
+            }
+
+            full_index.import(std::mem::take(&mut all_annotations.new_index));
         }
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
