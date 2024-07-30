@@ -10,10 +10,10 @@ use std::hash::Hash;
 
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, pre_process, Assignment, AstFactory, AstId, AstNode, AstStatement, AutoDerefType,
-        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Implementation,
-        JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
-        UserTypeDeclaration, Variable, VariableBlock,
+        self, flatten_expression_list, pre_process, Assignment, AstFactory, AstId, AstNode, AstStatement,
+        AutoDerefType, BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType,
+        Implementation, JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr,
+        TypeNature, UserTypeDeclaration, Variable, VariableBlock,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -420,7 +420,7 @@ pub enum StatementAnnotation {
     Label {
         name: String,
     },
-    Alias
+    Alias,
 }
 
 impl StatementAnnotation {
@@ -727,7 +727,6 @@ impl StringLiterals {
     }
 }
 
-
 // #[derive(Default, Debug)]
 // pub struct InitializerFunctions<'rslv> {
 //     candidates: FxIndexMap<String, Vec<&'rslv InitFunctionData>>, /* Scope,  Info */
@@ -736,13 +735,14 @@ impl StringLiterals {
 
 pub type InitializerFunctions = FxIndexMap<String, Vec<InitFunctionData>>;
 
-pub trait Init<'rslv> 
-where Self : Sized + Default
+pub trait Init<'rslv>
+where
+    Self: Sized + Default,
 {
     fn new(candidates: &'rslv [const_evaluator::UnresolvableConstant]) -> Self;
 }
 
-impl<'rslv>  Init<'rslv>  for InitializerFunctions {
+impl<'rslv> Init<'rslv> for InitializerFunctions {
     fn new(candidates: &'rslv [const_evaluator::UnresolvableConstant]) -> Self {
         let mut res = Self::default();
         candidates
@@ -753,10 +753,11 @@ impl<'rslv>  Init<'rslv>  for InitializerFunctions {
                 } else {
                     None
                 }
-            }).for_each(|(k, v)|{
+            })
+            .for_each(|(k, v)| {
                 res.entry(k).and_modify(|it| it.push(v.clone() /* refactor clone here */)).or_insert(vec![v]);
             });
-        
+
         res
     }
 }
@@ -806,13 +807,14 @@ impl<'i> TypeAnnotator<'i> {
 
         for pou in &unit.units {
             visitor.visit_pou(ctx, pou);
-            // TODO: only collect pous which need init functions, create functions later
+            // TODO: only collect pous which need init functions, create functions later (in pipeline) => dependencies?
             if pou.pou_type != PouType::Function {
-                // check if the visited POU needs an init-function. For POUs, one entry is expected at most
-                if let Some(init) = visitor.initializers.get(&pou.name).and_then(|it| it.get(0)) {
+                // check if the visited POU needs an init-function. TODO: multiple entries per POU possible?
+                if let Some(init) = visitor.initializers.get(&pou.name).and_then(|it| it.first()) {
                     let init_fn_name = index::get_init_fn_name(&pou.name);
                     let mut id_provider = ctx.id_provider.clone();
 
+                    // TODO: add 'self' param to program init functions
                     let (param, ident) = if pou.pou_type == PouType::Program {
                         (vec![], pou.name.clone())
                     } else {
@@ -846,7 +848,7 @@ impl<'i> TypeAnnotator<'i> {
                     };
 
                     let mut target = init.target_type_name.clone();
-                    let lhs_name = target.split_off(target.find(&pou.name).unwrap() + pou.name.len() + 1); // TODO: very hacky 
+                    let lhs_name = target.split_off(target.find(&pou.name).unwrap() + pou.name.len() + 1); // TODO: very hacky
 
                     let lhs = create_member_reference(
                         &lhs_name,
@@ -854,43 +856,50 @@ impl<'i> TypeAnnotator<'i> {
                         Some(create_member_reference(&ident, id_provider.clone(), None)),
                     );
 
-                    let (create_assignment_fn, node) = &init.initializer.as_ref().map(|it|  {
-                        let func = if let Some(StatementAnnotation::Alias) = visitor.annotation_map.get(&it) {
-                            AstFactory::create_ref_assignment
-                        } else {
-                            AstFactory::create_assignment
-                        };
-                        (func, it.clone())
-                    }).unwrap();
+                    let (create_assignment_fn, node) = &init
+                        .initializer
+                        .as_ref()
+                        .map(|it| {
+                            let func =
+                                if let Some(StatementAnnotation::Alias) = visitor.annotation_map.get(it) {
+                                    AstFactory::create_ref_assignment
+                                } else {
+                                    AstFactory::create_assignment
+                                };
+                            (func, it.clone())
+                        })
+                        .unwrap();
 
                     let init_stmt = create_assignment_fn(lhs, node.to_owned(), id_provider.next_id());
 
-                    
                     let members = index.get_pou_members(&pou.name);
-                    let dependency_calls = members.iter().filter_map(|member| {
-                        let type_name = &member.get_type_name();
+                    let dependency_calls = members
+                        .iter()
+                        .filter_map(|member| {
+                            let type_name = &member.get_type_name();
 
-                        // if dbg!(index.has_init_fn(name)) && dbg!(initializers.lookup.contains(*name)) { // TODO: create function which returns Option<InitFnName>. call `.map()` on it instead of if/else here
-                        if visitor.initializers.contains_key(*type_name) {
-                            let call_name = get_init_fn_name(type_name);
-                            // TODO: we need to check if any of the POUs members require init functions themselves => these are dependencies and need to be added as call-statements
-                            let op = create_member_reference(&call_name, id_provider.clone(), None);
-                            // for now, assume these are function blocks and not programs. Not sure if programs can be members
-                            let base = if pou.pou_type == PouType::Program {
-                                Some(create_member_reference(&pou.name, id_provider.clone(), None))
+                            if visitor.initializers.contains_key(*type_name) {
+                                let call_name = get_init_fn_name(type_name);
+                                let op = create_member_reference(&call_name, id_provider.clone(), None);
+                                // TODO:
+                                let base = if pou.pou_type == PouType::Program {
+                                    Some(create_member_reference(&pou.name, id_provider.clone(), None))
+                                } else {
+                                    Some(create_member_reference("self", id_provider.clone(), None))
+                                };
+                                let param =
+                                    create_member_reference(member.get_name(), id_provider.clone(), base);
+                                Some(AstFactory::create_call_statement(
+                                    op,
+                                    Some(param),
+                                    id_provider.next_id(),
+                                    SourceLocation::internal(),
+                                ))
                             } else {
-                                Some(create_member_reference("self", id_provider.clone(), None))
-                            };
-                            let param = create_member_reference(
-                                &member.get_name(),
-                                id_provider.clone(),
-                                base
-                            );
-                            Some(AstFactory::create_call_statement(op, Some(param), id_provider.next_id(), SourceLocation::internal()))
-                        } else {
-                            None
-                        }
-                    }).collect::<Vec<_>>();
+                                None
+                            }
+                        })
+                        .collect::<Vec<_>>();
 
                     let mut statements = vec![init_stmt];
                     statements.extend(dependency_calls.into_iter());
@@ -922,7 +931,7 @@ impl<'i> TypeAnnotator<'i> {
                     visitor.annotation_map.new_index.import(idx);
                     visitor.dependencies.insert(Dependency::Call(init_fn_name.to_string())); // TODO: I'd rather not do this manually. figure out a more idiomatic way to resolve and collect newly added deps
 
-                    // TODO: seems kinda convoluted. check how param dependencies are normally resolved/added
+                    // TODO: also add 'self' param for programs
                     if pou.pou_type != PouType::Program {
                         let init_param = visitor
                             .annotation_map
@@ -983,7 +992,7 @@ impl<'i> TypeAnnotator<'i> {
     pub fn create_init_unit(
         index: &Index,
         id_provider: &IdProvider,
-        init_fns: &InitializerFunctions
+        init_fns: &InitializerFunctions,
     ) -> Option<(Index, CompilationUnit, FxIndexSet<Dependency>)> {
         if init_fns.is_empty() {
             return None;
@@ -1004,15 +1013,18 @@ impl<'i> TypeAnnotator<'i> {
             super_class: None,
         };
 
-        let init_functions = init_fns.iter().filter_map(|(scope, _)| {
-            if index.find_pou(scope).is_some_and(|pou| pou.is_program()) {
-                let init_fn_name = get_init_fn_name(scope);
-                let param = index.find_parameter(&init_fn_name, 0);
-                Some((init_fn_name, param))
-            } else {
-                None
-            }
-        }).collect::<Vec<_>>();
+        let init_functions = init_fns
+            .iter()
+            .filter_map(|(scope, _)| {
+                if index.find_pou(scope).is_some_and(|pou| pou.is_program()) {
+                    let init_fn_name = get_init_fn_name(scope);
+                    let param = index.find_parameter(&init_fn_name, 0);
+                    Some((init_fn_name, param))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
 
         let body = init_functions
             .iter()
@@ -1320,29 +1332,10 @@ impl<'i> TypeAnnotator<'i> {
 
         if variable_is_auto_deref_pointer && initializer_is_not_wrapped_in_ref_call {
             debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
-
-            let mut id_provider = ctx.id_provider.clone();
-            let location = &initializer.location;
-
-            // let ref_ident = AstFactory::create_identifier("REF", location, id_provider.next_id());
-            // let fn_name = AstFactory::create_member_reference(ref_ident, None, id_provider.next_id());
-            // let fn_arg = initializer;
-            // self.visit_statement(ctx, &fn_name);
-            // self.visit_statement(ctx, fn_arg);
-            self.visit_statement(ctx, &initializer);
-
-            // let fn_call = AstFactory::create_call_statement(
-            //     fn_name,
-            //     Some(fn_arg.clone()),
-            //     id_provider.next_id(),
-            //     location,
-            // );
-            // self.visit_statement(ctx, &fn_call);
+            self.visit_statement(ctx, initializer);
             self.annotate(initializer, StatementAnnotation::Alias);
             self.initializers.entry(ctx.pou.unwrap().to_string()).and_modify(|it| {
-                let Some(data) = it.get_mut(0) else {
-                    todo!()
-                };
+                let Some(data) = it.get_mut(0) else { todo!() };
                 data.initializer = Some(initializer.clone())
             });
         }
@@ -2277,7 +2270,7 @@ fn get_real_type_name_for(value: &str) -> &'static str {
 
 fn create_member_reference(name: &str, mut id_provider: IdProvider, base: Option<AstNode>) -> AstNode {
     AstFactory::create_member_reference(
-        AstFactory::create_identifier(name, &SourceLocation::internal(), id_provider.next_id()),
+        AstFactory::create_identifier(name, SourceLocation::internal(), id_provider.next_id()),
         base,
         id_provider.next_id(),
     )

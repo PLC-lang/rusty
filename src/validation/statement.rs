@@ -853,7 +853,9 @@ fn validate_alias_assignment<T: AnnotationMap>(
     ref_assignment: &AstNode,
 ) {
     if let AstStatement::RefAssignment(Assignment { left, .. }) = ref_assignment.get_stmt() {
-        if context.annotations.get(left).is_some_and(|opt| opt.is_alias() && !context.qualifier.is_some_and(|it| context.index.is_init_function(it))) {
+        if context.annotations.get(left).is_some_and(|opt| {
+            opt.is_alias() && !context.qualifier.is_some_and(|it| context.index.is_init_function(it))
+        }) {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
                     "{} is an immutable alias variable, can not change the address",

@@ -88,7 +88,7 @@ impl InitFunctionData {
         scope: Option<impl Into<String>>,
     ) -> Self {
         InitFunctionData {
-            initializer: initializer.map(|it| it.clone()),
+            initializer: initializer.cloned(),
             target_type_name: target_type
                 .map(|it| it.into())
                 .expect("No later init without a valid target type to init to."), // TODO: remove unwrap

@@ -12,7 +12,14 @@ use ast::{
 };
 
 use plc::{
-    codegen::{CodegenContext, GeneratedModule}, index::{Index, PouIndexEntry}, output::FormatOption, parser::parse_file, resolver::{AnnotationMapImpl, AstAnnotations, Dependency, Init, StringLiterals, TypeAnnotator}, typesystem::VOID_TYPE, validation::Validator, ConfigFormat, Target
+    codegen::{CodegenContext, GeneratedModule},
+    index::{Index, PouIndexEntry},
+    output::FormatOption,
+    parser::parse_file,
+    resolver::{AnnotationMapImpl, AstAnnotations, Dependency, Init, StringLiterals, TypeAnnotator},
+    typesystem::VOID_TYPE,
+    validation::Validator,
+    ConfigFormat, Target,
 };
 use plc::{index::FxIndexSet, resolver::InitializerFunctions};
 use plc_diagnostics::{
@@ -122,7 +129,6 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(&builtins));
 
-
         let entry = PouIndexEntry::Function {
             name: "__init".into(),
             return_type: VOID_TYPE.into(),
@@ -166,8 +172,12 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             .units
             .into_par_iter()
             .map(|unit| {
-                let (annotation, dependencies, literals) =
-                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), init_fn_candidates.clone());
+                let (annotation, dependencies, literals) = TypeAnnotator::visit_unit(
+                    &full_index,
+                    &unit,
+                    id_provider.clone(),
+                    init_fn_candidates.clone(),
+                );
                 (unit, annotation, dependencies, literals)
             })
             .collect::<Vec<_>>();
@@ -176,8 +186,12 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             std::mem::take(&mut annotation.new_units).into_iter().for_each(|u| {
                 full_index.import(std::mem::take(&mut annotation.new_index));
                 unit.import(u); // should the unit be imported into the unit wherein the original POU lies or should all initialize functions be in their own "file"?
-                let (a, dep, _) =
-                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), InitializerFunctions::default());
+                let (a, dep, _) = TypeAnnotator::visit_unit(
+                    &full_index,
+                    &unit,
+                    id_provider.clone(),
+                    InitializerFunctions::default(),
+                );
                 dependencies.extend(dep);
                 annotation.import(a);
             });
@@ -193,8 +207,12 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             TypeAnnotator::create_init_unit(&full_index, &id_provider, &init_fn_candidates)
         {
             full_index.import(std::mem::take(&mut idx));
-            let (a, deps, _) =
-                TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone(), InitializerFunctions::default());
+            let (a, deps, _) = TypeAnnotator::visit_unit(
+                &full_index,
+                &unit,
+                id_provider.clone(),
+                InitializerFunctions::default(),
+            );
             init_deps.extend(deps);
             annotated_units.push((unit, init_deps, StringLiterals::default()));
             all_annotations.import(a);
