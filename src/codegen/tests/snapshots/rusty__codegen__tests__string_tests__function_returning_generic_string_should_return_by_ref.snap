@@ -10,7 +10,7 @@ source_filename = "main"
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r2s8u61s8u81"
 @utf08_literal_0 = private unnamed_addr constant [4 x i8] c"abc\00"
 
-define void @MID__STRING([81 x i8]* %0, i8* %1, i32 %2, i32 %3) section "fn-$RUSTY$MID__STRING:s8u81[ps8u81][i32][i32]" {
+define void @MID__STRING([81 x i8]* %0, i8* %1, i32 %2, i32 %3) {
 entry:
   %MID__STRING = alloca [81 x i8]*, align 8
   store [81 x i8]* %0, [81 x i8]** %MID__STRING, align 8
@@ -29,7 +29,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v[s8u61][s8u81]" {
+define void @main(%main* %0) {
 entry:
   %fmt = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 1

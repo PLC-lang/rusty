@@ -10,7 +10,7 @@ source_filename = "main"
 @__foo_position.y = unnamed_addr constant i32 2, section "var-$RUSTY$y:e2i32"
 @__bar_position.y = unnamed_addr constant i32 4, section "var-$RUSTY$y:e2i32"
 
-define i32 @foo() section "fn-$RUSTY$foo:i32" {
+define i32 @foo() {
 entry:
   %foo = alloca i32, align 4
   %position = alloca i32, align 4
@@ -20,7 +20,7 @@ entry:
   ret i32 %foo_ret
 }
 
-define i32 @bar() section "fn-$RUSTY$bar:i32" {
+define i32 @bar() {
 entry:
   %bar = alloca i32, align 4
   %position = alloca i32, align 4

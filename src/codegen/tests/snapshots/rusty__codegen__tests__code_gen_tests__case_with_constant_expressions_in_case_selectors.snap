@@ -9,7 +9,7 @@ source_filename = "main"
 @UP = unnamed_addr constant i32 8, section "var-$RUSTY$UP:i32"
 @DOWN = unnamed_addr constant i32 15, section "var-$RUSTY$DOWN:i32"
 
-define i32 @drive() section "fn-$RUSTY$drive:i32" {
+define i32 @drive() {
 entry:
   %drive = alloca i32, align 4
   %input = alloca i32, align 4

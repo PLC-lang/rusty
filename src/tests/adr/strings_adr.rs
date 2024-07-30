@@ -70,7 +70,7 @@ fn assigning_strings() {
 
     @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2s8u11s8u11"
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -113,7 +113,7 @@ fn assigning_string_literals() {
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

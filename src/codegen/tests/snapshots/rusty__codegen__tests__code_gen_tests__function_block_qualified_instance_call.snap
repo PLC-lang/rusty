@@ -13,18 +13,18 @@ source_filename = "main"
 @__bar__init = unnamed_addr constant %bar zeroinitializer, section "var-$RUSTY$__bar__init:r0"
 @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1r1r0"
 
-define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+define void @foo(%foo* %0) {
 entry:
   %bar_inst = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   ret void
 }
 
-define void @bar(%bar* %0) section "fn-$RUSTY$bar:v" {
+define void @bar(%bar* %0) {
 entry:
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %foo_inst = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %bar_inst = getelementptr inbounds %foo, %foo* %foo_inst, i32 0, i32 0

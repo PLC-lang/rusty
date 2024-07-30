@@ -11,7 +11,7 @@ source_filename = "main"
 @MainProg_instance = global %MainProg zeroinitializer, section "var-$RUSTY$MainProg_instance:r1r2i32i32"
 @__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-$RUSTY$__MyStruct__init:r2i32i32"
 
-define void @MainProg(%MainProg* %0) section "fn-$RUSTY$MainProg:v" {
+define void @MainProg(%MainProg* %0) {
 entry:
   %Cord = getelementptr inbounds %MainProg, %MainProg* %0, i32 0, i32 0
   %a = getelementptr inbounds %MyStruct, %MyStruct* %Cord, i32 0, i32 0

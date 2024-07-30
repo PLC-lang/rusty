@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16* @func() section "fn-$RUSTY$func:pi16" {
+define i16* @func() {
 entry:
   %func = alloca i16*, align 8
   store i16* null, i16** %func, align 8

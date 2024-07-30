@@ -26,7 +26,7 @@ source_filename = "prog.st"
 @c = external global i32, section "var-$RUSTY$c:i32"
 @x = external global i32, section "var-$RUSTY$x:i32"
 
-define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+define void @prog(%prog* %0) {
 entry:
   store i32 7, i32* @x, align 4
   ret void

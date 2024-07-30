@@ -10,7 +10,7 @@ source_filename = "main"
 @prg_instance = global %prg { [16 x i8] zeroinitializer, [31 x i8] c"xyz\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00" }, section "var-$RUSTY$prg_instance:r2s8u16s8u31"
 @__prg.z__init = unnamed_addr constant [31 x i8] c"xyz\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

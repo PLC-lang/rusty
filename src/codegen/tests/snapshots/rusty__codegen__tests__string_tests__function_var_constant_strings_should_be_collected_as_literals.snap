@@ -10,7 +10,7 @@ source_filename = "main"
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"#\00"
 @utf08_literal_1 = private unnamed_addr constant [2 x i8] c"*\00"
 
-define i64 @FSTRING_TO_DT() section "fn-$RUSTY$FSTRING_TO_DT:i64" {
+define i64 @FSTRING_TO_DT() {
 entry:
   %FSTRING_TO_DT = alloca i64, align 8
   %ignore = alloca [2 x i8], align 1

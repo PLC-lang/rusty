@@ -11,12 +11,12 @@ source_filename = "main"
 @foo_instance = global %foo zeroinitializer, section "var-$RUSTY$foo_instance:r0"
 @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r0"
 
-define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+define void @foo(%foo* %0) {
 entry:
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   call void @foo(%foo* @foo_instance)
   ret void

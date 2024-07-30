@@ -10,9 +10,9 @@ source_filename = "main"
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1s8u81"
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
-declare void @func([81 x i8]*, i8*) section "fn-$RUSTY$func:s8u81[ps8u81]"
+declare void @func([81 x i8]*, i8*)
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %res = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = alloca [81 x i8], align 1

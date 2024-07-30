@@ -11,7 +11,7 @@ source_filename = "main"
 @mainProg_instance = global %mainProg zeroinitializer, section "var-$RUSTY$mainProg_instance:r3r5u8u8pu8u8pu8u8u8"
 @__fb_t__init = unnamed_addr constant %fb_t zeroinitializer, section "var-$RUSTY$__fb_t__init:r5u8u8pu8u8pu8"
 
-define void @mainProg(%mainProg* %0) section "fn-$RUSTY$mainProg:v" {
+define void @mainProg(%mainProg* %0) {
 entry:
   %fb = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 0
   %out1 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 1
@@ -35,7 +35,7 @@ entry:
   ret void
 }
 
-define void @fb_t(%fb_t* %0) section "fn-$RUSTY$fb_t:v[u8][pu8][u8][pu8]" {
+define void @fb_t(%fb_t* %0) {
 entry:
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
@@ -45,7 +45,7 @@ entry:
   ret void
 }
 
-define void @fb_t.foo(%fb_t* %0) section "fn-$RUSTY$fb_t.foo:v" {
+define void @fb_t.foo(%fb_t* %0) {
 entry:
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1

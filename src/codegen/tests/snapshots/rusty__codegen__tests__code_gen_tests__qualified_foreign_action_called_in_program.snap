@@ -11,19 +11,19 @@ source_filename = "main"
 @bar_instance = global %bar zeroinitializer, section "var-$RUSTY$bar_instance:r0"
 @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1i32"
 
-define void @bar(%bar* %0) section "fn-$RUSTY$bar:v" {
+define void @bar(%bar* %0) {
 entry:
   call void @prg.foo(%prg* @prg_instance)
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   ret void
 }
 
-define void @prg.foo(%prg* %0) section "fn-$RUSTY$prg.foo:v" {
+define void @prg.foo(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i32 2, i32* %x, align 4

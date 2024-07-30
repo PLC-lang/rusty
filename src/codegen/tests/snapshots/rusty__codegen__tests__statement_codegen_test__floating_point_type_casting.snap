@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i32 @fn() section "fn-$RUSTY$fn:i32" {
+define i32 @fn() {
 entry:
   %fn = alloca i32, align 4
   %a = alloca float, align 4

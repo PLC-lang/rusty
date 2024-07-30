@@ -9,7 +9,7 @@ source_filename = "main"
 
 @__fbWithConstant__init = unnamed_addr constant %fbWithConstant { i16 0, i16 2 }, section "var-$RUSTY$__fbWithConstant__init:r2i16i16"
 
-define void @fbWithConstant(%fbWithConstant* %0) section "fn-$RUSTY$fbWithConstant:v" {
+define void @fbWithConstant(%fbWithConstant* %0) {
 entry:
   %x = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 0
   %const = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 1

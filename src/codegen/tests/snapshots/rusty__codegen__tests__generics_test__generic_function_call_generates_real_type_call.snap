@@ -9,7 +9,7 @@ source_filename = "main"
 
 @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2i16i16"
 
-define i32 @MAX__DINT(i32 %0, i32 %1) section "fn-$RUSTY$MAX__DINT:i32[i32][i32]" {
+define i32 @MAX__DINT(i32 %0, i32 %1) {
 entry:
   %MAX__DINT = alloca i32, align 4
   %in1 = alloca i32, align 4
@@ -21,7 +21,7 @@ entry:
   ret i32 %MAX__DINT_ret
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -32,4 +32,4 @@ entry:
   ret void
 }
 
-declare i16 @MAX__INT(i16, i16) section "fn-$RUSTY$MAX__INT:i16[i16][i16]"
+declare i16 @MAX__INT(i16, i16)

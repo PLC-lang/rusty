@@ -10,7 +10,7 @@ source_filename = "main"
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1s8u81"
 @utf08_literal_0 = private unnamed_addr constant [4 x i8] c"abc\00"
 
-define void @ret([81 x i8]* %0) section "fn-$RUSTY$ret:s8u81" {
+define void @ret([81 x i8]* %0) {
 entry:
   %ret = alloca [81 x i8]*, align 8
   store [81 x i8]* %0, [81 x i8]** %ret, align 8
@@ -23,7 +23,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %str = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = alloca [81 x i8], align 1

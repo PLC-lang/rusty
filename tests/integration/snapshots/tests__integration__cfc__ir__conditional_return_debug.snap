@@ -2,7 +2,7 @@
 source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
 ---
-define i32 @foo(i32 %0) section "fn-$RUSTY$foo:i32[i32]" !dbg !4 {
+define i32 @foo(i32 %0) !dbg !4 {
 entry:
   %foo = alloca i32, align 4, !dbg !9
   %val = alloca i32, align 4, !dbg !9

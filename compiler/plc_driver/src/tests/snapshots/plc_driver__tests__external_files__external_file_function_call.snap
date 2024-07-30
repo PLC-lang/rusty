@@ -5,7 +5,7 @@ expression: "results.join(\"\\n\")"
 ; ModuleID = 'main.st'
 source_filename = "main.st"
 
-define i16 @main() section "fn-$RUSTY$main:i16" {
+define i16 @main() {
 entry:
   %main = alloca i16, align 2
   store i16 0, i16* %main, align 2
@@ -14,9 +14,9 @@ entry:
   ret i16 %main_ret
 }
 
-declare i16 @external() section "fn-$RUSTY$external:i16"
+declare i16 @external()
 
 ; ModuleID = 'external.st'
 source_filename = "external.st"
 
-declare i16 @external() section "fn-$RUSTY$external:i16"
+declare i16 @external()

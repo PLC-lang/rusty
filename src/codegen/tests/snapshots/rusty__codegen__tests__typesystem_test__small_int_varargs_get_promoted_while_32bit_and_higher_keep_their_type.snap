@@ -8,9 +8,9 @@ source_filename = "main"
 @utf08_literal_0 = private unnamed_addr constant [26 x i8] c"(d) result : %d %d %d %u\0A\00"
 @utf08_literal_1 = private unnamed_addr constant [27 x i8] c"(hd) result : %hd %hd %hd\0A\00"
 
-declare i32 @printf(i8*, ...) section "fn-$RUSTY$printf:i32[ps8u81]"
+declare i32 @printf(i8*, ...)
 
-define i32 @main() section "fn-$RUSTY$main:i32" {
+define i32 @main() {
 entry:
   %main = alloca i32, align 4
   %out1 = alloca i16, align 2

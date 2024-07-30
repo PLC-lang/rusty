@@ -9,7 +9,7 @@ source_filename = "main"
 
 @Main_instance = global %Main zeroinitializer, section "var-$RUSTY$Main_instance:r1i16"
 
-define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) section "fn-$RUSTY$CheckRangeSigned:i16[i16][i16][i16]" {
+define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
   %CheckRangeSigned = alloca i16, align 2
   %value = alloca i16, align 2
@@ -25,7 +25,7 @@ entry:
   ret i16 %CheckRangeSigned_ret
 }
 
-define void @Main(%Main* %0) section "fn-$RUSTY$Main:v" {
+define void @Main(%Main* %0) {
 entry:
   %x = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
   %call = call i16 @CheckRangeSigned(i16 7, i16 0, i16 100)

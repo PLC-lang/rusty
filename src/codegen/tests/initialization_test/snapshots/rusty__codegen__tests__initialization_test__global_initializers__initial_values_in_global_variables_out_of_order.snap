@@ -12,13 +12,13 @@ source_filename = "main"
 @__MyFB__init = unnamed_addr constant %MyFB { i16 77 }, section "var-$RUSTY$__MyFB__init:r1i16"
 @prg_instance = global %prg { %MyFB { i16 77 } }, section "var-$RUSTY$prg_instance:r1r1i16"
 
-define void @MyFB(%MyFB* %0) section "fn-$RUSTY$MyFB:v" {
+define void @MyFB(%MyFB* %0) {
 entry:
   %x = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 0
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   ret void

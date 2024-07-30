@@ -9,7 +9,7 @@ source_filename = "main"
 
 @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r0"
 
-define i64 @TIME() section "fn-$RUSTY$TIME:i64" {
+define i64 @TIME() {
 entry:
   %TIME = alloca i64, align 8
   store i64 0, i64* %TIME, align 4
@@ -17,7 +17,7 @@ entry:
   ret i64 %TIME_ret
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %call = call i64 @TIME()
   ret void

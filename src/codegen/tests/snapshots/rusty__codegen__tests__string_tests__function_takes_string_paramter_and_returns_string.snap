@@ -10,7 +10,7 @@ source_filename = "main"
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1s8u81"
 @utf08_literal_0 = private unnamed_addr constant [154 x i8] c"abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc\00"
 
-define void @read_string([81 x i8]* %0, i8* %1) section "fn-$RUSTY$read_string:s8u81[s8u81]" {
+define void @read_string([81 x i8]* %0, i8* %1) {
 entry:
   %read_string = alloca [81 x i8]*, align 8
   store [81 x i8]* %0, [81 x i8]** %read_string, align 8
@@ -28,7 +28,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %text1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = alloca [81 x i8], align 1

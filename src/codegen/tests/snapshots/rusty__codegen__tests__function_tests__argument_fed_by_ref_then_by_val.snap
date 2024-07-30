@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i32 @main() section "fn-$RUSTY$main:i32" {
+define i32 @main() {
 entry:
   %main = alloca i32, align 4
   %arr = alloca [5 x i32], align 4
@@ -18,7 +18,7 @@ entry:
   ret i32 %main_ret
 }
 
-define i32 @fn_by_ref(i32* %0) section "fn-$RUSTY$fn_by_ref:i32[pau32]" {
+define i32 @fn_by_ref(i32* %0) {
 entry:
   %fn_by_ref = alloca i32, align 4
   %arg_by_ref = alloca i32*, align 8
@@ -30,7 +30,7 @@ entry:
   ret i32 %fn_by_ref_ret
 }
 
-define i32 @fn_by_val(i32* %0) section "fn-$RUSTY$fn_by_val:i32[au32]" {
+define i32 @fn_by_val(i32* %0) {
 entry:
   %fn_by_val = alloca i32, align 4
   %arg_by_val = alloca [5 x i32], align 4

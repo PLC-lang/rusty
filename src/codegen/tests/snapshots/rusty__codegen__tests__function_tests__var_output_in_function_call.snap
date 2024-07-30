@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main { i16 4 }, section "var-$RUSTY$main_instance:r1i16"
 
-define i32 @func(i16* %0) section "fn-$RUSTY$func:i32[pi16]" {
+define i32 @func(i16* %0) {
 entry:
   %func = alloca i32, align 4
   %o = alloca i16*, align 8
@@ -22,7 +22,7 @@ entry:
   ret i32 %func_ret
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %call = call i32 @func(i16* %x)

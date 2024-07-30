@@ -13,7 +13,7 @@ source_filename = "main"
 @utf16_literal_0 = private unnamed_addr constant [19 x i16] [i16 36, i16 52, i16 51, i16 32, i16 36, i16 39, i16 110, i16 111, i16 32, i16 114, i16 101, i16 112, i16 108, i16 97, i16 99, i16 101, i16 36, i16 39, i16 0]
 @utf16_literal_1 = private unnamed_addr constant [41 x i16] [i16 97, i16 10, i16 10, i16 32, i16 98, i16 10, i16 10, i16 32, i16 99, i16 12, i16 12, i16 32, i16 100, i16 13, i16 13, i16 32, i16 101, i16 9, i16 9, i16 32, i16 36, i16 32, i16 34, i16 100, i16 111, i16 117, i16 98, i16 108, i16 101, i16 34, i16 32, i16 87, i16 -10179, i16 -9066, i16 -10179, i16 -9066, i16 0, i16 0, i16 0, i16 0, i16 0]
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %should_replace_s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %should_not_replace_s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

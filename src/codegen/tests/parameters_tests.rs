@@ -711,7 +711,7 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %str = alloca [81 x i8], align 1
@@ -724,7 +724,7 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
       ret i32 %main_ret
     }
 
-    define i32 @foo(i8* %0) section "fn-$RUSTY$foo:i32[s8u81]" {
+    define i32 @foo(i8* %0) {
     entry:
       %foo = alloca i32, align 4
       %val = alloca [81 x i8], align 1
@@ -770,7 +770,7 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %str = alloca [65537 x i8], align 1
@@ -783,7 +783,7 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
       ret i32 %main_ret
     }
 
-    define i32 @foo(i8* %0) section "fn-$RUSTY$foo:i32[s8u65537]" {
+    define i32 @foo(i8* %0) {
     entry:
       %foo = alloca i32, align 4
       %val = alloca [65537 x i8], align 1
@@ -829,7 +829,7 @@ fn by_value_function_arg_arrays_are_memcopied() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %arr = alloca [65537 x i32], align 4
@@ -842,7 +842,7 @@ fn by_value_function_arg_arrays_are_memcopied() {
       ret i32 %main_ret
     }
 
-    define i32 @foo(i32* %0) section "fn-$RUSTY$foo:i32[ai32]" {
+    define i32 @foo(i32* %0) {
     entry:
       %foo = alloca i32, align 4
       %val = alloca [65537 x i32], align 4
@@ -899,7 +899,7 @@ fn by_value_function_arg_structs_are_memcopied() {
 
     @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "var-$RUSTY$__S_TY__init:r2u8u8"
 
-    define i32 @foo(%S_TY* %0) section "fn-$RUSTY$foo:i32[r2u8u8]" {
+    define i32 @foo(%S_TY* %0) {
     entry:
       %foo = alloca i32, align 4
       %val = alloca %S_TY, align 8
@@ -911,7 +911,7 @@ fn by_value_function_arg_structs_are_memcopied() {
       ret i32 %foo_ret
     }
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %s = alloca %S_TY, align 8
@@ -972,7 +972,7 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer, section "var-$RUSTY$__AGGREGATE_COLLECTOR_TY__init:r3ai32s8u65537r2u8u8"
     @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "var-$RUSTY$__S_TY__init:r2u8u8"
 
-    define i32 @foo(%AGGREGATE_COLLECTOR_TY* %0) section "fn-$RUSTY$foo:i32[r3ai32s8u65537r2u8u8]" {
+    define i32 @foo(%AGGREGATE_COLLECTOR_TY* %0) {
     entry:
       %foo = alloca i32, align 4
       %val = alloca %AGGREGATE_COLLECTOR_TY, align 8
@@ -984,7 +984,7 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
       ret i32 %foo_ret
     }
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %s = alloca %AGGREGATE_COLLECTOR_TY, align 8
@@ -1033,7 +1033,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     @__FOO__init = unnamed_addr constant %FOO zeroinitializer, section "var-$RUSTY$__FOO__init:r2s8u65537ai32"
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %str = alloca [65537 x i8], align 1
@@ -1059,7 +1059,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
       ret i32 %main_ret
     }
 
-    define void @FOO(%FOO* %0) section "fn-$RUSTY$FOO:v[s8u65537][ai32]" {
+    define void @FOO(%FOO* %0) {
     entry:
       %val = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
@@ -1125,7 +1125,7 @@ fn var_output_aggregate_types_are_memcopied() {
     @__OUT_TYPE__init = unnamed_addr constant %OUT_TYPE zeroinitializer, section "var-$RUSTY$__OUT_TYPE__init:r1u8"
     @PRG_instance = global %PRG zeroinitializer, section "var-$RUSTY$PRG_instance:r6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81"
 
-    define void @FB(%FB* %0) section "fn-$RUSTY$FB:v[r1u8][ai32][ar1u8][s8u81][s16u81]" {
+    define void @FB(%FB* %0) {
     entry:
       %output = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
       %output2 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
@@ -1135,7 +1135,7 @@ fn var_output_aggregate_types_are_memcopied() {
       ret void
     }
 
-    define void @PRG(%PRG* %0) section "fn-$RUSTY$PRG:v" {
+    define void @PRG(%PRG* %0) {
     entry:
       %out = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 0
       %out2 = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 1
