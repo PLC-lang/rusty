@@ -22,7 +22,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-use crate::index::{self, const_expressions::InitFunctionData, get_init_fn_name, FxIndexMap, FxIndexSet};
+use crate::index::{self, get_init_fn_name, FxIndexMap, FxIndexSet};
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -103,10 +103,10 @@ impl<'s> VisitorContext<'s> {
         ctx
     }
 
-    /// returns a copy of the current context and changes the `lhs_pou` to the given pou
-    fn with_lhs(&self, lhs_pou: &'s str) -> VisitorContext<'s> {
+    /// returns a copy of the current context and changes the `lhs` to the given identifier
+    fn with_lhs(&self, lhs: &'s str) -> VisitorContext<'s> {
         let mut ctx = self.clone();
-        ctx.lhs = Some(lhs_pou);
+        ctx.lhs = Some(lhs);
         ctx.constant = false;
         ctx
     }
@@ -733,7 +733,7 @@ impl StringLiterals {
 //     requires_init_fn: IndexSet<>
 // }
 
-pub type InitializerFunctions = FxIndexMap<String, Vec<InitFunctionData>>;
+pub type InitializerFunctions = FxIndexMap<String, InitAssignment>;
 
 pub trait Init<'rslv>
 where
@@ -754,12 +754,45 @@ impl<'rslv> Init<'rslv> for InitializerFunctions {
                     None
                 }
             })
-            .for_each(|(k, v)| {
-                res.entry(k).and_modify(|it| it.push(v.clone() /* refactor clone here */)).or_insert(vec![v]);
+            .for_each(|(key, value)| match res.entry(key) {
+                indexmap::map::Entry::Occupied(o) => {
+                    o.into_mut().insert(value.target_type_name, value.initializer.clone());
+                }
+                indexmap::map::Entry::Vacant(v) => {
+                    v.insert(InitAssignment::new(&value.target_type_name, value.initializer));
+                }
             });
 
         res
     }
+}
+
+pub type InitAssignment = FxIndexMap<String, Option<AstNode>>;
+trait InitData
+where
+    Self: Sized + Default,
+{
+    fn new(target_type: &str, initializer: Option<AstNode>) -> Self;
+    // fn insert(
+    //     &mut self,
+    //     target_type: &str,
+    //     initializer: Option<&AstNode>,
+    // ) -> Result<Option<AstNode>>;
+}
+
+impl InitData for InitAssignment {
+    fn new(target_type: &str, initializer: Option<AstNode>) -> Self {
+        let mut map = Self::default();
+        map.insert(target_type.into(), initializer);
+        map
+    }
+    // fn insert(
+    //     &mut self,
+    //     target_type: &str,
+    //     initializer: Option<&AstNode>,
+    // ) -> Result<Option<AstNode>> {
+    //     Ok(self.insert(target_type.into(), initializer.cloned()).flatten())
+    // }
 }
 
 impl<'i> TypeAnnotator<'i> {
@@ -810,7 +843,7 @@ impl<'i> TypeAnnotator<'i> {
             // TODO: only collect pous which need init functions, create functions later (in pipeline) => dependencies?
             if pou.pou_type != PouType::Function {
                 // check if the visited POU needs an init-function. TODO: multiple entries per POU possible?
-                if let Some(init) = visitor.initializers.get(&pou.name).and_then(|it| it.first()) {
+                if let Some(init) = visitor.initializers.get(&pou.name) {
                     let init_fn_name = index::get_init_fn_name(&pou.name);
                     let mut id_provider = ctx.id_provider.clone();
 
@@ -829,7 +862,7 @@ impl<'i> TypeAnnotator<'i> {
                                     },
                                     initializer: None,
                                     address: None,
-                                    location: SourceLocation::internal(),
+                                    location: SourceLocation::internal(), // TODO: use source location of initialized POU here
                                 }])],
                             "self".into(),
                         )
@@ -847,30 +880,34 @@ impl<'i> TypeAnnotator<'i> {
                         super_class: None,
                     };
 
-                    let mut target = init.target_type_name.clone();
-                    let lhs_name = target.split_off(target.find(&pou.name).unwrap() + pou.name.len() + 1); // TODO: very hacky
+                    let mut statements = init
+                        .iter()
+                        .map(|(lhs_name, initializer)| {
+                            dbg!(&initializer);
 
-                    let lhs = create_member_reference(
-                        &lhs_name,
-                        id_provider.clone(),
-                        Some(create_member_reference(&ident, id_provider.clone(), None)),
-                    );
+                            let lhs = create_member_reference(
+                                lhs_name,
+                                id_provider.clone(),
+                                Some(create_member_reference(&ident, id_provider.clone(), None)),
+                            );
 
-                    let (create_assignment_fn, node) = &init
-                        .initializer
-                        .as_ref()
-                        .map(|it| {
-                            let func =
-                                if let Some(StatementAnnotation::Alias) = visitor.annotation_map.get(it) {
-                                    AstFactory::create_ref_assignment
-                                } else {
-                                    AstFactory::create_assignment
-                                };
-                            (func, it.clone())
+                            let (create_assignment_fn, node) = &initializer
+                                .as_ref()
+                                .map(|it| {
+                                    let func = if let Some(StatementAnnotation::Alias) =
+                                        visitor.annotation_map.get(it)
+                                    {
+                                        AstFactory::create_ref_assignment
+                                    } else {
+                                        AstFactory::create_assignment
+                                    };
+                                    (func, it.clone())
+                                })
+                                .unwrap();
+
+                            create_assignment_fn(lhs, node.to_owned(), id_provider.next_id())
                         })
-                        .unwrap();
-
-                    let init_stmt = create_assignment_fn(lhs, node.to_owned(), id_provider.next_id());
+                        .collect::<Vec<_>>();
 
                     let members = index.get_pou_members(&pou.name);
                     let dependency_calls = members
@@ -901,7 +938,6 @@ impl<'i> TypeAnnotator<'i> {
                         })
                         .collect::<Vec<_>>();
 
-                    let mut statements = vec![init_stmt];
                     statements.extend(dependency_calls.into_iter());
 
                     let implementation = Implementation {
@@ -1285,7 +1321,11 @@ impl<'i> TypeAnnotator<'i> {
                     self.visit_statement(&ctx, initializer);
                 }
 
-                self.type_hint_for_variable_initializer(initializer, expected_type, &ctx);
+                self.type_hint_for_variable_initializer(
+                    initializer,
+                    expected_type,
+                    &ctx.with_lhs(&variable.name),
+                );
             }
         }
     }
@@ -1335,8 +1375,8 @@ impl<'i> TypeAnnotator<'i> {
             self.visit_statement(ctx, initializer);
             self.annotate(initializer, StatementAnnotation::Alias);
             self.initializers.entry(ctx.pou.unwrap().to_string()).and_modify(|it| {
-                let Some(data) = it.get_mut(0) else { todo!() };
-                data.initializer = Some(initializer.clone())
+                let _ =
+                    ctx.lhs.map(|key| it.entry(key.into()).and_modify(|it| *it = Some(initializer.clone())));
             });
         }
     }

@@ -82,17 +82,22 @@ pub struct InitFunctionData {
 }
 
 impl InitFunctionData {
-    pub fn new(
-        initializer: Option<&AstNode>,
-        target_type: Option<impl Into<String>>,
-        scope: Option<impl Into<String>>,
-    ) -> Self {
+    pub fn new(initializer: Option<&AstNode>, target_type: Option<&str>, scope: Option<&str>) -> Self {
         InitFunctionData {
             initializer: initializer.cloned(),
             target_type_name: target_type
-                .map(|it| it.into())
+                .map(|it| Self::into_flat_reference_name(it, scope))
                 .expect("No later init without a valid target type to init to."), // TODO: remove unwrap
             scope: scope.map(|it| it.into()),
+        }
+    }
+
+    fn into_flat_reference_name(name: &str, scope: Option<&str>) -> String {
+        if let Some(scope) = scope {
+            name.to_string().split_off(name.find(scope).unwrap() + scope.len() + 1)
+        // TODO: very hacky
+        } else {
+            unimplemented!()
         }
     }
 }
