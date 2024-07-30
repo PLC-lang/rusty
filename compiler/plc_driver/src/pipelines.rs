@@ -13,15 +13,14 @@ use ast::{
 
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::{Index, PouIndexEntry},
+    index::{FxIndexSet, Index, PouIndexEntry},
     output::FormatOption,
     parser::parse_file,
-    resolver::{AnnotationMapImpl, AstAnnotations, Dependency, Init, StringLiterals, TypeAnnotator},
+    resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
     typesystem::VOID_TYPE,
     validation::Validator,
     ConfigFormat, Target,
 };
-use plc::{index::FxIndexSet, resolver::InitializerFunctions};
 use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
@@ -165,8 +164,6 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
 
-        let mut init_fn_candidates = InitializerFunctions::new(&unresolvables);
-
         let result = self
             .project
             .units
@@ -184,42 +181,8 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
         }
 
         full_index.import(std::mem::take(&mut all_annotations.new_index));
-        init_fn_candidates.import(std::mem::take(&mut all_annotations.new_initializers));
-        let res = TypeAnnotator::create_init_units(
-            &full_index,
-            &id_provider,
-            &init_fn_candidates,
-            &all_annotations,
-        );
 
-        if let Some((mut init_index, init_unit)) =
-            res.into_iter().reduce(|(mut acc_index, mut acc_unit), (index, unit)| {
-                acc_unit.import(unit);
-                acc_index.import(index);
-                (acc_index, acc_unit)
-            })
-        {
-            full_index.import(std::mem::take(&mut init_index));
-            let (annotation, dependencies, literals) =
-                TypeAnnotator::visit_unit(&full_index, &init_unit, id_provider.clone());
-
-            annotated_units.push((init_unit, dependencies, literals));
-            all_annotations.import(annotation);
-
-            full_index.import(std::mem::take(&mut all_annotations.new_index));
-
-            // TODO: clean up imports
-            if let Some((mut new_index, init_unit)) =
-                TypeAnnotator::create_init_unit(&full_index, &id_provider, &init_fn_candidates)
-            {
-                full_index.import(std::mem::take(&mut new_index));
-                let (a, deps, _) = TypeAnnotator::visit_unit(&full_index, &init_unit, id_provider.clone());
-                annotated_units.push((init_unit, deps, StringLiterals::default()));
-                all_annotations.import(a);
-            }
-
-            full_index.import(std::mem::take(&mut all_annotations.new_index));
-        }
+        TypeAnnotator::lower_init_functions(unresolvables, &mut all_annotations, &mut full_index, &id_provider, &mut annotated_units);
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
         AnnotatedProject {
@@ -227,7 +190,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             units: annotated_units,
             index: full_index,
             annotations,
-        }
+        } //.get_lowered_project() ?
     }
 
     fn get_parsed_project(&self) -> &ParsedProject<T> {

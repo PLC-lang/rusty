@@ -150,11 +150,15 @@ pub mod tests {
         let (unit, index, diagnostics) = do_index(src, id_provider.clone());
         reporter.handle(&diagnostics);
 
-        let (mut index, ..) = evaluate_constants(index);
+        let (mut index, unresolvables) = evaluate_constants(index);
         let (mut annotations, dependencies, literals) =
             TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
 
+        let mut annotated_unit = vec![(unit, dependencies, literals)];
+        TypeAnnotator::lower_init_functions(unresolvables, &mut annotations, &mut index, &id_provider, &mut annotated_unit);
+        let Some((unit, dependencies, literals)) = annotated_unit.get(0)else { unreachable!() };
+        dbg!(&unit);
         let context = CodegenContext::create();
         let path = PathBuf::from_str("src").ok();
         let mut code_generator = crate::codegen::CodeGen::new(

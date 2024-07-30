@@ -5,6 +5,7 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
+use const_evaluator::UnresolvableConstant;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::hash::Hash;
 
@@ -1085,6 +1086,46 @@ impl<'i> TypeAnnotator<'i> {
         let new_index = index::visitor::visit(&new_unit);
 
         Some((new_index, new_unit))
+    }
+
+    pub fn lower_init_functions(unresolvables: Vec<UnresolvableConstant>, all_annotations: &mut AnnotationMapImpl, full_index: &mut Index, id_provider: &IdProvider, annotated_units: &mut Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>) {
+        let mut init_fn_candidates = InitializerFunctions::new(&unresolvables);
+        init_fn_candidates.import(std::mem::take(&mut all_annotations.new_initializers));
+        let res = TypeAnnotator::create_init_units(
+            &*full_index,
+            id_provider,
+            &init_fn_candidates,
+            &*all_annotations,
+        );
+
+        if let Some((mut init_index, init_unit)) =
+            res.into_iter().reduce(|(mut acc_index, mut acc_unit), (index, unit)| {
+                acc_unit.import(unit);
+                acc_index.import(index);
+                (acc_index, acc_unit)
+            })
+        {
+            full_index.import(std::mem::take(&mut init_index));
+            let (annotation, dependencies, literals) =
+                TypeAnnotator::visit_unit(&*full_index, &init_unit, id_provider.clone());
+    
+            annotated_units.push((init_unit, dependencies, literals));
+            all_annotations.import(annotation);
+    
+            full_index.import(std::mem::take(&mut all_annotations.new_index));
+    
+            // TODO: clean up imports
+            if let Some((mut new_index, init_unit)) =
+                TypeAnnotator::create_init_unit(&*full_index, id_provider, &init_fn_candidates)
+            {
+                full_index.import(std::mem::take(&mut new_index));
+                let (a, deps, literals) = TypeAnnotator::visit_unit(&*full_index, &init_unit, id_provider.clone());
+                annotated_units.push((init_unit, deps, literals));
+                all_annotations.import(a);
+            }
+    
+            full_index.import(std::mem::take(&mut all_annotations.new_index));
+        }
     }
 
     fn visit_user_type_declaration(&mut self, user_data_type: &UserTypeDeclaration, ctx: &VisitorContext) {
