@@ -11,7 +11,7 @@ source_filename = "main"
 @myPrg_instance = global %myPrg zeroinitializer, section "var-$RUSTY$myPrg_instance:r3i32i32i32", !dbg !0
 @__myFb__init = unnamed_addr constant %myFb zeroinitializer, section "var-$RUSTY$__myFb__init:r3i32i32i32", !dbg !9
 
-define i32 @myFunc() section "fn-$RUSTY$myFunc:i32" !dbg !20 {
+define i32 @myFunc() !dbg !20 {
 entry:
   %myFunc = alloca i32, align 4, !dbg !24
   %a = alloca i32, align 4, !dbg !24
@@ -29,7 +29,7 @@ entry:
   ret i32 %myFunc_ret, !dbg !24
 }
 
-define void @myPrg(%myPrg* %0) section "fn-$RUSTY$myPrg:v" !dbg !33 {
+define void @myPrg(%myPrg* %0) !dbg !33 {
 entry:
   call void @llvm.dbg.declare(metadata %myPrg* %0, metadata !34, metadata !DIExpression()), !dbg !35
   %a = alloca i32, align 4, !dbg !35
@@ -44,7 +44,7 @@ entry:
   ret void, !dbg !35
 }
 
-define void @myFb(%myFb* %0) section "fn-$RUSTY$myFb:v" !dbg !42 {
+define void @myFb(%myFb* %0) !dbg !42 {
 entry:
   call void @llvm.dbg.declare(metadata %myFb* %0, metadata !43, metadata !DIExpression()), !dbg !44
   %a = alloca i32, align 4, !dbg !44

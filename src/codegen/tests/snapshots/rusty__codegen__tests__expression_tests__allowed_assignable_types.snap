@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r4i16ai16pi16pai16"
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %v = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 1

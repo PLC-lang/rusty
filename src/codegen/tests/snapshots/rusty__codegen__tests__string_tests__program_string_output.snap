@@ -13,7 +13,7 @@ source_filename = "main"
 @utf08_literal_0 = private unnamed_addr constant [7 x i8] c"string\00"
 @utf16_literal_0 = private unnamed_addr constant [8 x i16] [i16 119, i16 115, i16 116, i16 114, i16 105, i16 110, i16 103, i16 0]
 
-define void @prog(%prog* %0) section "fn-$RUSTY$prog:v[s8u81][s16u81]" {
+define void @prog(%prog* %0) {
 entry:
   %output1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %output2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
@@ -24,7 +24,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1

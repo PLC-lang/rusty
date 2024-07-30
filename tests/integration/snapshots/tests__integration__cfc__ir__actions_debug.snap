@@ -6,7 +6,7 @@ expression: output_file_content_without_headers
 
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r2i32i32", !dbg !0
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" !dbg !12 {
+define void @main(%main* %0) !dbg !12 {
 entry:
   call void @llvm.dbg.declare(metadata %main* %0, metadata !16, metadata !DIExpression()), !dbg !17
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !18
@@ -17,7 +17,7 @@ entry:
   ret void, !dbg !20
 }
 
-define void @main.newAction(%main* %0) section "fn-$RUSTY$main.newAction:v" !dbg !21 {
+define void @main.newAction(%main* %0) !dbg !21 {
 entry:
   call void @llvm.dbg.declare(metadata %main* %0, metadata !16, metadata !DIExpression()), !dbg !22
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !23
@@ -28,7 +28,7 @@ entry:
   ret void, !dbg !22
 }
 
-define void @main.newAction2(%main* %0) section "fn-$RUSTY$main.newAction2:v" !dbg !24 {
+define void @main.newAction2(%main* %0) !dbg !24 {
 entry:
   call void @llvm.dbg.declare(metadata %main* %0, metadata !16, metadata !DIExpression()), !dbg !25
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !26

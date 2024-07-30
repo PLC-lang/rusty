@@ -12,7 +12,7 @@ source_filename = "main"
 @MyEnum.yellow = unnamed_addr constant i32 1, section "var-$RUSTY$yellow:e3i32"
 @MyEnum.green = unnamed_addr constant i32 2, section "var-$RUSTY$green:e3i32"
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %color = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   store i32 0, i32* %color, align 4

@@ -14,7 +14,7 @@ source_filename = "main"
 @__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer, section "var-$RUSTY$__STRUCT2__init:r2u8i32"
 @__mainProg.var_str1__init = unnamed_addr constant %STRUCT1 { i16 10, [11 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }
 
-define void @mainProg(%mainProg* %0) section "fn-$RUSTY$mainProg:v" {
+define void @mainProg(%mainProg* %0) {
 entry:
   %var_str1 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 0
   ret void

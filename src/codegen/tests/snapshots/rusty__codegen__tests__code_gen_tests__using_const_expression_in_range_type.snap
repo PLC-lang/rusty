@@ -11,7 +11,7 @@ source_filename = "main"
 @MIN = global i16 7, section "var-$RUSTY$MIN:i16"
 @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1i16"
 
-define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) section "fn-$RUSTY$CheckRangeSigned:i16[i16][i16][i16]" {
+define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
   %CheckRangeSigned = alloca i16, align 2
   %value = alloca i16, align 2
@@ -27,7 +27,7 @@ entry:
   ret i16 %CheckRangeSigned_ret
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %load_MIN = load i16, i16* @MIN, align 2

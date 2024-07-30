@@ -9,7 +9,7 @@ source_filename = "main"
 
 @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r1i16"
 
-define void @func(%myStruct* %0, %myStruct* %1) section "fn-$RUSTY$func:r1i16[pr1i16]" {
+define void @func(%myStruct* %0, %myStruct* %1) {
 entry:
   %func = alloca %myStruct*, align 8
   store %myStruct* %0, %myStruct** %func, align 8

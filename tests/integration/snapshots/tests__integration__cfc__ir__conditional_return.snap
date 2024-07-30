@@ -6,7 +6,7 @@ expression: output_file_content_without_headers
 
 @__conditional_return__init = unnamed_addr constant %conditional_return zeroinitializer, section "var-$RUSTY$__conditional_return__init:r1i32"
 
-define void @conditional_return(%conditional_return* %0) section "fn-$RUSTY$conditional_return:v[i32]" {
+define void @conditional_return(%conditional_return* %0) {
 entry:
   %val = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 0
   %load_val = load i32, i32* %val, align 4

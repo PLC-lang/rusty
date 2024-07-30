@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r2pi16i16"
 
-define i64 @foo() section "fn-$RUSTY$foo:i64" {
+define i64 @foo() {
 entry:
   %foo = alloca i64, align 8
   store i64 0, i64* %foo, align 4
@@ -17,7 +17,7 @@ entry:
   ret i64 %foo_ret
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %pt = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 1

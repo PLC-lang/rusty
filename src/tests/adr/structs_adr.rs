@@ -103,7 +103,7 @@ fn initializing_a_struct() {
     @__prg.rect1__init = unnamed_addr constant %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }
     @__prg.rect2__init = unnamed_addr constant %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } }
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %rect1 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %rect2 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -146,7 +146,7 @@ fn assigning_structs() {
     @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2r2i16i16r2i16i16"
     @__Point__init = unnamed_addr constant %Point zeroinitializer, section "var-$RUSTY$__Point__init:r2i16i16"
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %p1 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %p2 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -204,7 +204,7 @@ fn accessing_struct_members() {
     @__Rect__init = unnamed_addr constant %Rect zeroinitializer, section "var-$RUSTY$__Rect__init:r2r2i16i16r2i16i16"
     @__Point__init = unnamed_addr constant %Point zeroinitializer, section "var-$RUSTY$__Point__init:r2i16i16"
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %rect1 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %rect2 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

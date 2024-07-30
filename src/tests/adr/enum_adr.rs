@@ -129,7 +129,7 @@ fn using_enums() {
     @Door.open = unnamed_addr constant i32 8, section "var-$RUSTY$open:e2i32"
     @Door.closed = unnamed_addr constant i32 16, section "var-$RUSTY$closed:e2i32"
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1

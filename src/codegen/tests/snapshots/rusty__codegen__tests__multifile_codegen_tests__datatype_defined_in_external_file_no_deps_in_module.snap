@@ -16,7 +16,7 @@ source_filename = "prog.st"
 
 @prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r1i32"
 
-define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+define void @prog(%prog* %0) {
 entry:
   %x = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   ret void

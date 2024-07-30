@@ -13,14 +13,14 @@ source_filename = "main"
 @__main.struct1__init = unnamed_addr constant %TON { i16 10, i16 17 }
 @__main.struct2__init = unnamed_addr constant %TON { i16 17, i16 10 }
 
-define void @TON(%TON* %0) section "fn-$RUSTY$TON:v[i16][i16]" {
+define void @TON(%TON* %0) {
 entry:
   %a = getelementptr inbounds %TON, %TON* %0, i32 0, i32 0
   %b = getelementptr inbounds %TON, %TON* %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %TEN = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %struct1 = getelementptr inbounds %main, %main* %0, i32 0, i32 1

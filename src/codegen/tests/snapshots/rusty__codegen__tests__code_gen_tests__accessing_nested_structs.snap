@@ -13,7 +13,7 @@ source_filename = "main"
 @__OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer, section "var-$RUSTY$__OuterStruct__init:r2r2i16i16r2i16i16"
 @__InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer, section "var-$RUSTY$__InnerStruct__init:r2i16i16"
 
-define void @Main(%Main* %0) section "fn-$RUSTY$Main:v" {
+define void @Main(%Main* %0) {
 entry:
   %m = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
   %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 0

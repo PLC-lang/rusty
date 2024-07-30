@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1i32"
 
-define void @foo(i32* %0, i32* %1) section "fn-$RUSTY$foo:v[pi32][pi32]" {
+define void @foo(i32* %0, i32* %1) {
 entry:
   %out1 = alloca i32*, align 8
   store i32* %0, i32** %out1, align 8
@@ -18,7 +18,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = alloca i32, align 4

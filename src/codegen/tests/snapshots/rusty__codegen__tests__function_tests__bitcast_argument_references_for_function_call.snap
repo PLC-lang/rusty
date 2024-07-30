@@ -9,7 +9,7 @@ source_filename = "main"
 
 @main_instance = global %main { i8 1, i8 1, i16 2, i16 2, i32 3, i32 3, i64 4, i64 4, float 5.000000e+00, float 5.000000e+00, double 6.000000e+00, double 6.000000e+00 }, section "var-$RUSTY$main_instance:r12i8i8i16i16i32i32i64i64f32f32f64f64"
 
-define i8 @fn_sint(i8* %0, i8* %1) section "fn-$RUSTY$fn_sint:i8[pi8][pi8]" {
+define i8 @fn_sint(i8* %0, i8* %1) {
 entry:
   %fn_sint = alloca i8, align 1
   %in_ref = alloca i8*, align 8
@@ -21,7 +21,7 @@ entry:
   ret i8 %fn_sint_ret
 }
 
-define i64 @fn_lint(i64* %0, i64* %1) section "fn-$RUSTY$fn_lint:i64[pi64][pi64]" {
+define i64 @fn_lint(i64* %0, i64* %1) {
 entry:
   %fn_lint = alloca i64, align 8
   %in_ref = alloca i64*, align 8
@@ -33,7 +33,7 @@ entry:
   ret i64 %fn_lint_ret
 }
 
-define i64 @fn_real(float* %0, float* %1) section "fn-$RUSTY$fn_real:i64[pf32][pf32]" {
+define i64 @fn_real(float* %0, float* %1) {
 entry:
   %fn_real = alloca i64, align 8
   %in_ref = alloca float*, align 8
@@ -45,7 +45,7 @@ entry:
   ret i64 %fn_real_ret
 }
 
-define i64 @fn_lreal(double* %0, double* %1) section "fn-$RUSTY$fn_lreal:i64[pf64][pf64]" {
+define i64 @fn_lreal(double* %0, double* %1) {
 entry:
   %fn_lreal = alloca i64, align 8
   %in_ref = alloca double*, align 8
@@ -57,7 +57,7 @@ entry:
   ret i64 %fn_lreal_ret
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %var1_sint = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %var2_sint = getelementptr inbounds %main, %main* %0, i32 0, i32 1

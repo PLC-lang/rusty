@@ -6,7 +6,7 @@ expression: output_file_content_without_headers
 
 @__conditional_return__init = constant %conditional_return zeroinitializer, section "var-$RUSTY$__conditional_return__init:r1i32"
 
-define i32 @main() section "fn-$RUSTY$main:i32" {
+define i32 @main() {
 entry:
   %main = alloca i32, align 4
   %my_val = alloca i32, align 4
@@ -29,7 +29,7 @@ entry:
 ; Function Attrs: argmemonly nofree nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
-define void @conditional_return(%conditional_return* %0) section "fn-$RUSTY$conditional_return:v[i32]" {
+define void @conditional_return(%conditional_return* %0) {
 entry:
   %val = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 0
   %load_val = load i32, i32* %val, align 4

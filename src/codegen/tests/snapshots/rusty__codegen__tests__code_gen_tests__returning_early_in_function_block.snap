@@ -9,7 +9,7 @@ source_filename = "main"
 
 @__abcdef__init = unnamed_addr constant %abcdef zeroinitializer, section "var-$RUSTY$__abcdef__init:r1i8"
 
-define void @abcdef(%abcdef* %0) section "fn-$RUSTY$abcdef:v[i8]" {
+define void @abcdef(%abcdef* %0) {
 entry:
   %n = getelementptr inbounds %abcdef, %abcdef* %0, i32 0, i32 0
   %load_n = load i8, i8* %n, align 1

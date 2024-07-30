@@ -12,7 +12,7 @@ source_filename = "main"
 @__Point__init = unnamed_addr constant %Point zeroinitializer, section "var-$RUSTY$__Point__init:r2i16i16"
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1r2i16i16"
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %strct = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = bitcast %Point* %strct to i8*
