@@ -291,7 +291,7 @@ fn ref_assignment() {
 }
 
 #[test]
-fn reference_to_declaration() {
+fn reference_to_dint_declaration() {
     let (result, diagnostics) = parse(
         r"
         FUNCTION foo
@@ -332,6 +332,42 @@ fn reference_to_declaration() {
                 name: "qux",
                 data_type: DataTypeReference {
                     referenced_type: "DINT",
+                },
+            },
+        ],
+        variable_block_type: Local,
+    }
+    "###);
+}
+
+#[test]
+fn reference_to_string_declaration() {
+    let (result, diagnostics) = parse(
+        r"
+        FUNCTION foo
+            VAR
+                foo : REFERENCE TO STRING;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert!(diagnostics.is_empty());
+    insta::assert_debug_snapshot!(result.units[0].variable_blocks[0], @r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "foo",
+                data_type: DataTypeDefinition {
+                    data_type: PointerType {
+                        name: None,
+                        referenced_type: DataTypeReference {
+                            referenced_type: "STRING",
+                        },
+                        auto_deref: Some(
+                            Reference,
+                        ),
+                    },
                 },
             },
         ],

@@ -854,7 +854,10 @@ fn parse_string_type_definition(
         }),
         _ => Some(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }),
     }
-    .zip(Some(lexer.try_consume(&KeywordAssignment).then(|| parse_expression(lexer))))
+    .zip(Some(
+        (lexer.try_consume(&KeywordAssignment) || lexer.try_consume(&KeywordReferenceAssignment))
+            .then(|| parse_expression(lexer)),
+    ))
 }
 
 fn parse_enum_type_definition(
