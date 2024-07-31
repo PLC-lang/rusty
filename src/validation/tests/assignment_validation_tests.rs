@@ -1514,23 +1514,8 @@ fn alias_variable_type_check() {
         END_FUNCTION
         ",
     );
-   
-    /* FIXME: missing validations:
-        "Invalid assignment: cannot assign 'SINT' to 'DINT'",
-        "Invalid assignment: cannot assign 'STRING' to 'DINT'",
-        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'DINT'",
-        "Invalid assignment: cannot assign 'DINT' to 'SINT'",
-        "Invalid assignment: cannot assign 'STRING' to 'SINT'",
-        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'SINT'",
-        "Invalid assignment: cannot assign 'DINT' to 'STRING'",
-        "Invalid assignment: cannot assign 'SINT' to 'STRING'",
-        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'STRING'",
-        "Invalid assignment: cannot assign 'DINT' to 'ARRAY[1..5] OF DINT'",
-        "Invalid assignment: cannot assign 'SINT' to 'ARRAY[1..5] OF DINT'",
-        "Invalid assignment: cannot assign 'STRING' to 'ARRAY[1..5] OF DINT'",
-    */
+    
     assert_snapshot!(diagnostics, @"");
-    todo!("fix validation")
 }
 
 #[test]

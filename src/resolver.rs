@@ -420,7 +420,7 @@ pub enum StatementAnnotation {
     Label {
         name: String,
     },
-    Alias,
+    Alias(AstNode),
 }
 
 impl StatementAnnotation {
@@ -529,7 +529,7 @@ pub trait AnnotationMap {
         match annotation {
             StatementAnnotation::Value { resulting_type } => Some(resulting_type.as_str()),
             StatementAnnotation::Variable { resulting_type, .. } => Some(resulting_type.as_str()),
-            StatementAnnotation::ReplacementAst { statement } => self
+            StatementAnnotation::ReplacementAst { statement } | StatementAnnotation::Alias(statement)=> self
                 .get_hint(statement)
                 .or_else(|| self.get(statement))
                 .and_then(|it| self.get_type_name_for_annotation(it)),
@@ -937,7 +937,7 @@ impl<'i> TypeAnnotator<'i> {
                         let Some((create_assignment_fn, node)) = &initializer
                             .as_ref()
                             .map(|it| {
-                                let func = if let Some(StatementAnnotation::Alias) = annotations.get(it) {
+                                let func = if let Some(StatementAnnotation::Alias(_)) = annotations.get(it) {
                                     AstFactory::create_ref_assignment
                                 } else {
                                     AstFactory::create_assignment
@@ -1390,7 +1390,7 @@ impl<'i> TypeAnnotator<'i> {
         if variable_is_auto_deref_pointer && initializer_is_not_wrapped_in_ref_call {
             debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
             self.visit_statement(ctx, initializer);
-            self.annotate(initializer, StatementAnnotation::Alias);
+            self.annotate(initializer, StatementAnnotation::Alias(initializer.clone()));
             let Some(lhs) = ctx.lhs else {
                 return;
             };
