@@ -115,11 +115,6 @@ impl<'ink> CodeGen<'ink> {
             global_index,
             annotations,
         )?;
-        // XXX: this is the earliest point to generate init functions for struct-type datatypes, since these functions have a "self" param
-        // this means we need to be able to populate the llvm_type_index with these types even if they cannot be initialized yet - replace initializer
-        // for these with a null-pointer or similar?
-        // we also need to make sure to not lose track of any uninitialized members in POUs
-        // XXX: can I assume these initializers to be pointers, always? i.e. can i just blanket-init them with null-pointers before calling __init()?
         index.merge(llvm_type_index);
 
         let mut variable_generator =
@@ -132,19 +127,17 @@ impl<'ink> CodeGen<'ink> {
 
         //Generate opaque functions for implementations and associate them with their types
         let llvm = Llvm::new(context, context.create_builder());
-
-        let pou_generator = PouGenerator::new(llvm, global_index, annotations, &index);
-        let llvm_impl_index =
-            pou_generator.generate_implementation_stubs(&self.module, dependencies, &mut self.debug)?;
-        index.merge(llvm_impl_index);
-
-        // let llvm = Llvm::new(context, context.create_builder());
-        // let pou_generator = PouGenerator::new(llvm, global_index, annotations, &index); // .with_index() builder
-        // let init_func_index =
-        //     pou_generator.generate_init_fn_stubs(&self.module, unresolved_init)?;
-        // index.merge(init_func_index);
-
+        let llvm_impl_index = pou_generator::generate_implementation_stubs(
+            &self.module,
+            llvm,
+            dependencies,
+            global_index,
+            annotations,
+            &index,
+            &mut self.debug,
+        )?;
         let llvm = Llvm::new(context, context.create_builder());
+        index.merge(llvm_impl_index);
         let llvm_values_index = pou_generator::generate_global_constants_for_pou_members(
             &self.module,
             &llvm,
@@ -215,11 +208,6 @@ impl<'ink> CodeGen<'ink> {
                 }
             }
         }
-
-        // // TODO: for each generated init fn stub, generate implementation
-        // for (name, initializer) in unresolved_init {
-        //     pou_generator.generate_init_implementation(&name, initializer)
-        // }
 
         self.debug.finalize();
         log::debug!("{}", self.module.to_string());

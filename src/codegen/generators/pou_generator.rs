@@ -51,6 +51,40 @@ pub struct PouGenerator<'ink, 'cg> {
     llvm_index: &'cg LlvmTypedIndex<'ink>,
 }
 
+/// Creates opaque implementations for all callable items in the index
+/// Returns a Typed index containing the associated implementations.
+pub fn generate_implementation_stubs<'ink>(
+    module: &Module<'ink>,
+    llvm: Llvm<'ink>,
+    dependencies: &FxIndexSet<Dependency>,
+    index: &Index,
+    annotations: &AstAnnotations,
+    types_index: &LlvmTypedIndex<'ink>,
+    debug: &mut DebugBuilderEnum<'ink>,
+) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
+    let mut llvm_index = LlvmTypedIndex::default();
+    let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
+    let implementations = dependencies
+        .into_iter()
+        .filter_map(|it| {
+            if let Dependency::Call(name) | Dependency::Datatype(name) = it {
+                index.find_implementation_by_name(name).map(|it| (name.as_str(), it))
+            } else {
+                None
+            }
+        })
+        .collect::<FxIndexMap<_, _>>();
+    for (name, implementation) in implementations {
+        if !implementation.is_generic() {
+            let curr_f =
+                pou_generator.generate_implementation_stub(implementation, module, debug, &mut llvm_index)?;
+            llvm_index.associate_implementation(name, curr_f)?;
+        }
+    }
+
+    Ok(llvm_index)
+}
+
 ///Generates a global constant for each initialized pou member
 /// The given constant can then be used to initialize the variable using memcpy without re-evaluating the expression
 /// Retrieves the POUs from the index (implementation)
@@ -152,38 +186,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         Ok(ctx.mangle())
     }
 
-    /// Creates opaque implementations for all callable items in the index
-    /// Returns a Typed index containing the associated implementations.
-    pub fn generate_implementation_stubs(
-        &self,
-        module: &Module<'ink>,
-        dependencies: &FxIndexSet<Dependency>,
-        debug: &mut DebugBuilderEnum<'ink>,
-    ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
-        let mut llvm_index = LlvmTypedIndex::default();
-        let implementations = dependencies
-            .into_iter()
-            .filter_map(|it| {
-                if let Dependency::Call(name) | Dependency::Datatype(name) = it {
-                    self.index.find_implementation_by_name(name).map(|it| (name.as_str(), it))
-                } else {
-                    None
-                }
-            })
-            .collect::<FxIndexMap<_, _>>();
-        for (name, implementation) in implementations {
-            if !implementation.is_generic() {
-                let curr_f =
-                    self.generate_implementation_stub(implementation, module, debug, &mut llvm_index)?;
-                llvm_index.associate_implementation(name, curr_f)?;
-            }
-        }
-
-        Ok(llvm_index)
-    }
-
     /// generates an empty llvm function for the given implementation, including all parameters and the return type
-    fn generate_implementation_stub(
+    pub fn generate_implementation_stub(
         &self,
         implementation: &ImplementationIndexEntry,
         module: &Module<'ink>,
