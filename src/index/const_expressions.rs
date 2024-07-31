@@ -38,6 +38,8 @@ pub enum ConstExpression {
         /// e.g. a const-expression inside a POU would use this POU's name as a
         /// qualifier.
         scope: Option<String>,
+        /// the name of the variable this expression is assigned to, if any
+        lhs: Option<String>,
     },
     Resolved(AstNode),
     Unresolvable {
@@ -65,6 +67,13 @@ impl ConstExpression {
         }
     }
 
+    pub fn get_lhs(&self) -> Option<&str> {
+        match &self {
+            ConstExpression::Unresolved { lhs, .. } => lhs.as_ref().map(|it| it.as_str()),
+            _ => None,
+        }
+    }
+
     pub fn is_resolved(&self) -> bool {
         matches!(self, ConstExpression::Resolved(_))
     }
@@ -77,18 +86,26 @@ impl ConstExpression {
 #[derive(Debug, PartialEq, Clone)]
 pub struct InitFunctionData {
     pub initializer: Option<AstNode>,
-    pub target_type_name: String,
+    pub target_type_name: String, // is this even needed?
     pub scope: Option<String>,
+    pub lhs: Option<String>,
 }
 
 impl InitFunctionData {
-    pub fn new(initializer: Option<&AstNode>, target_type: Option<&str>, scope: Option<&str>) -> Self {
+    pub fn new(
+        initializer: Option<&AstNode>,
+        target_type: Option<&str>,
+        scope: Option<&str>,
+        target: Option<&str>,
+    ) -> Self {
         InitFunctionData {
             initializer: initializer.cloned(),
-            target_type_name: target_type
-                .map(|it| Self::into_flat_reference_name(it, scope))
-                .expect("No later init without a valid target type to init to."), // TODO: remove unwrap
+            // target_type_name: target_type
+            //     .map(|it| Self::into_flat_reference_name(it, scope))
+            //     .expect("No later init without a valid target type to init to."), // TODO: remove unwrap
+            target_type_name: target_type.unwrap_or_default().to_string(),
             scope: scope.map(|it| it.into()),
+            lhs: target.map(|it| it.into()),
         }
     }
 
@@ -98,7 +115,6 @@ impl InitFunctionData {
             name.to_string().split_off(name.find(scope).unwrap() + scope.len() + 1)
         } else {
             name.to_string().split_off(name.find("__global_").unwrap() + 9)
-
         }
     }
 }
@@ -151,9 +167,12 @@ impl ConstExpressions {
         statement: AstNode,
         target_type_name: String,
         scope: Option<String>,
+        lhs: Option<String>,
     ) -> ConstId {
-        self.expressions
-            .insert(ConstWrapper { expr: ConstExpression::Unresolved { statement, scope }, target_type_name })
+        self.expressions.insert(ConstWrapper {
+            expr: ConstExpression::Unresolved { statement, scope, lhs },
+            target_type_name,
+        })
     }
 
     /// returns the expression associated with the given `id` together with an optional
@@ -178,13 +197,13 @@ impl ConstExpressions {
     }
 
     /// clones the expression in the ConstExpressions and returns all of its elements
-    pub fn clone(&self, id: &ConstId) -> Option<(AstNode, String, Option<String>)> {
+    pub fn clone(&self, id: &ConstId) -> Option<(AstNode, String, Option<String>, Option<String>)> {
         self.expressions.get(*id).map(|it| match &it.expr {
-            ConstExpression::Unresolved { statement, scope } => {
-                (statement.clone(), it.target_type_name.clone(), scope.clone())
+            ConstExpression::Unresolved { statement, scope, lhs: target } => {
+                (statement.clone(), it.target_type_name.clone(), scope.clone(), target.clone())
             }
             ConstExpression::Resolved(s) | ConstExpression::Unresolvable { statement: s, .. } => {
-                (s.clone(), it.target_type_name.clone(), None)
+                (s.clone(), it.target_type_name.clone(), None, None)
             }
         })
     }
@@ -223,8 +242,9 @@ impl ConstExpressions {
         expr: AstNode,
         target_type: String,
         scope: Option<String>,
+        lhs: Option<String>,
     ) -> ConstId {
-        self.add_expression(expr, target_type, scope)
+        self.add_expression(expr, target_type, scope, lhs)
     }
 
     /// convinience-method to add the constant exression if there is some, otherwhise not
@@ -235,8 +255,9 @@ impl ConstExpressions {
         expr: Option<AstNode>,
         target_type_name: &str,
         scope: Option<String>,
+        lhs: Option<String>,
     ) -> Option<ConstId> {
-        expr.map(|it| self.add_constant_expression(it, target_type_name.to_string(), scope))
+        expr.map(|it| self.add_constant_expression(it, target_type_name.to_string(), scope, lhs))
     }
 
     /// convinience-method to query for an optional constant expression.
@@ -275,6 +296,29 @@ impl ConstExpressions {
         self.expressions.extend(other.expressions)
     }
 }
+
+// impl Clone for ConstExpression {
+//     fn clone(&self) -> Self {
+//         match self {
+//             Self::Unresolved { statement, scope, target } => Self::Unresolved { statement: statement.clone(), scope: scope.clone(), target: target.clone() },
+//             Self::Resolved(arg0) => Self::Resolved(arg0.clone()),
+//             Self::Unresolvable { statement, reason } => Self::Unresolvable { statement: statement.clone(), reason: reason.clone() },
+//         }
+//     }
+
+//         /// clones the expression in the ConstExpressions and returns all of its elements
+//         pub fn clone(&self, id: &ConstId) -> Option<(AstNode, String, Option<String>, Option<String>)> {
+//             self.expressions.get(*id).map(|it| match &it.expr {
+//                 ConstExpression::Unresolved { statement, scope, target } => {
+//                     (statement.clone(), it.target_type_name.clone(), scope.clone(), target.clone())
+//                 }
+//                 ConstExpression::Resolved(s) | ConstExpression::Unresolvable { statement: s, .. } => {
+//                     (s.clone(), it.target_type_name.clone(), None, None)
+//                 }
+//             })
+//         }
+
+// }
 
 impl<'a> IntoIterator for &'a ConstExpressions {
     type Item = (ConstId, &'a AstNode);

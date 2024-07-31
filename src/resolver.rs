@@ -529,7 +529,7 @@ pub trait AnnotationMap {
         match annotation {
             StatementAnnotation::Value { resulting_type } => Some(resulting_type.as_str()),
             StatementAnnotation::Variable { resulting_type, .. } => Some(resulting_type.as_str()),
-            StatementAnnotation::ReplacementAst { statement } | StatementAnnotation::Alias(statement)=> self
+            StatementAnnotation::ReplacementAst { statement } | StatementAnnotation::Alias(statement) => self
                 .get_hint(statement)
                 .or_else(|| self.get(statement))
                 .and_then(|it| self.get_type_name_for_annotation(it)),
@@ -757,10 +757,14 @@ impl<'rslv> Init<'rslv> for InitializerFunctions {
             })
             .for_each(|(key, value)| match res.entry(key) {
                 indexmap::map::Entry::Occupied(o) => {
-                    o.into_mut().insert(value.target_type_name, value.initializer.clone());
+                    o.into_mut()
+                        .insert(value.lhs.unwrap_or(value.target_type_name), value.initializer.clone());
                 }
                 indexmap::map::Entry::Vacant(v) => {
-                    v.insert(InitAssignment::new(&value.target_type_name, value.initializer));
+                    v.insert(InitAssignment::new(
+                        &value.lhs.unwrap_or(value.target_type_name),
+                        value.initializer,
+                    ));
                 }
             });
 
@@ -779,7 +783,7 @@ trait InitData
 where
     Self: Sized + Default,
 {
-    fn new(target_type: &str, initializer: Option<AstNode>) -> Self;
+    fn new(lhs_name: &str, initializer: Option<AstNode>) -> Self;
     // fn insert(
     //     &mut self,
     //     target_type: &str,
@@ -788,9 +792,9 @@ where
 }
 
 impl InitData for InitAssignment {
-    fn new(target_type: &str, initializer: Option<AstNode>) -> Self {
+    fn new(lhs_name: &str, initializer: Option<AstNode>) -> Self {
         let mut map = Self::default();
-        map.insert(target_type.into(), initializer);
+        map.insert(lhs_name.into(), initializer);
         map
     }
     // fn insert(
@@ -922,7 +926,7 @@ impl<'i> TypeAnnotator<'i> {
                         "self".to_string(),
                     )
                 };
-                 
+
                 let init_pou = Pou {
                     name: init_fn_name.clone(),
                     variable_blocks: param,
@@ -945,19 +949,16 @@ impl<'i> TypeAnnotator<'i> {
                             Some(create_member_reference(&ident, id_provider.clone(), None)),
                         );
 
-                        let Some((create_assignment_fn, node)) = &initializer
-                            .as_ref()
-                            .map(|it| {
-                                let func = if let Some(StatementAnnotation::Alias(_)) = annotations.get(it) {
-                                    AstFactory::create_ref_assignment
-                                } else {
-                                    AstFactory::create_assignment
-                                };
-                                (func, it.clone())
-                            })
-                            else {
-                                unimplemented!()
+                        let Some((create_assignment_fn, node)) = &initializer.as_ref().map(|it| {
+                            let func = if let Some(StatementAnnotation::Alias(_)) = annotations.get(it) {
+                                AstFactory::create_ref_assignment
+                            } else {
+                                AstFactory::create_assignment
                             };
+                            (func, it.clone())
+                        }) else {
+                            unimplemented!()
+                        };
 
                         create_assignment_fn(lhs, node.to_owned(), id_provider.next_id())
                     })
@@ -1057,19 +1058,24 @@ impl<'i> TypeAnnotator<'i> {
             })
             .collect::<Vec<_>>();
         let mut globals = if let Some(stmts) = init_fns.get("__global") {
-            stmts.iter().filter_map(|(k, v)| {
-                v.as_ref().map(|it| {
-                    let global = create_member_reference(k, id_provider.clone(), None);
-                    let func = if let Some(StatementAnnotation::Alias(_)) = annotations.get(it) {
-                        AstFactory::create_ref_assignment
-                    } else {
-                        AstFactory::create_assignment
-                    };
-                    
-                    func(global, it.clone(), id_provider.next_id())
-                })                
-            }).collect::<Vec<_>>()
-        } else { vec![] };
+            stmts
+                .iter()
+                .filter_map(|(k, v)| {
+                    v.as_ref().map(|it| {
+                        let global = create_member_reference(k, id_provider.clone(), None);
+                        let func = if let Some(StatementAnnotation::Alias(_)) = annotations.get(it) {
+                            AstFactory::create_ref_assignment
+                        } else {
+                            AstFactory::create_assignment
+                        };
+
+                        func(global, it.clone(), id_provider.next_id())
+                    })
+                })
+                .collect::<Vec<_>>()
+        } else {
+            vec![]
+        };
 
         let body = init_functions
             .iter()
@@ -1114,7 +1120,13 @@ impl<'i> TypeAnnotator<'i> {
         Some((new_index, new_unit))
     }
 
-    pub fn lower_init_functions(unresolvables: Vec<UnresolvableConstant>, all_annotations: &mut AnnotationMapImpl, full_index: &mut Index, id_provider: &IdProvider, annotated_units: &mut Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>) {
+    pub fn lower_init_functions(
+        unresolvables: Vec<UnresolvableConstant>,
+        all_annotations: &mut AnnotationMapImpl,
+        full_index: &mut Index,
+        id_provider: &IdProvider,
+        annotated_units: &mut Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
+    ) {
         let mut init_fn_candidates = InitializerFunctions::new(&unresolvables);
         init_fn_candidates.import(std::mem::take(&mut all_annotations.new_initializers));
         let res = TypeAnnotator::create_init_units(
@@ -1134,10 +1146,10 @@ impl<'i> TypeAnnotator<'i> {
             full_index.import(std::mem::take(&mut init_index));
             let (annotation, dependencies, literals) =
                 TypeAnnotator::visit_unit(&*full_index, &init_unit, id_provider.clone());
-    
+
             annotated_units.push((init_unit, dependencies, literals));
             all_annotations.import(annotation);
-    
+
             full_index.import(std::mem::take(&mut all_annotations.new_index));
         }
 
@@ -1146,7 +1158,8 @@ impl<'i> TypeAnnotator<'i> {
             TypeAnnotator::create_init_unit(&*full_index, &all_annotations, id_provider, &init_fn_candidates)
         {
             full_index.import(std::mem::take(&mut new_index));
-            let (a, deps, literals) = TypeAnnotator::visit_unit(&*full_index, &init_unit, id_provider.clone());
+            let (a, deps, literals) =
+                TypeAnnotator::visit_unit(&*full_index, &init_unit, id_provider.clone());
             annotated_units.push((init_unit, deps, literals));
             all_annotations.import(a);
         }

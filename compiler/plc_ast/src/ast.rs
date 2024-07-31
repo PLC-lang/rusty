@@ -429,6 +429,10 @@ impl Variable {
         };
         std::mem::replace(&mut self.data_type_declaration, new_data_type)
     }
+
+    pub fn get_name(&self) -> &str {
+        &self.name
+    }
 }
 
 #[derive(Clone, PartialEq)]

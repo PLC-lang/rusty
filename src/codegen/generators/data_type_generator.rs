@@ -155,7 +155,8 @@ pub fn generate_data_types<'ink>(
         let diags = types_to_init
             .into_iter()
             .map(|(name, ty)| {
-                if index.type_has_init_function(name) { // XXX: this can cause bugs if failing to generate an initializer in a POU which as an init fn
+                if index.type_has_init_function(name) {
+                    // XXX: this can cause bugs if failing to generate an initializer in a POU which as an init fn
                     init_later += 1;
                 }
                 errors
@@ -379,7 +380,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 self.annotations,
                 &self.types_index,
             );
-            
+
             generator.generate_expression(initializer).map(Some).map_err(|_| {
                 Diagnostic::cannot_generate_initializer(qualified_name, initializer.get_location())
             })

@@ -110,6 +110,7 @@ impl HardwareBinding {
                             expr.clone(),
                             typesystem::DINT_SIZE.to_string(),
                             scope.clone(),
+                            None, // XXX: might be worth adding
                         )
                     })
                     .collect(),
@@ -1014,9 +1015,11 @@ impl Index {
         import_from: &mut ConstExpressions,
         initializer_id: &Option<ConstId>,
     ) -> Option<ConstId> {
-        initializer_id.as_ref().and_then(|it| import_from.clone(it)).map(|(init, target_type, scope)| {
-            self.get_mut_const_expressions().add_constant_expression(init, target_type, scope)
-        })
+        initializer_id.as_ref().and_then(|it| import_from.clone(it)).map(
+            |(init, target_type, scope, target)| {
+                self.get_mut_const_expressions().add_constant_expression(init, target_type, scope, target)
+            },
+        )
     }
 
     /// imports the corresponding TypeSize (according to the given initializer-id) from the given ConstExpressions
@@ -1029,8 +1032,8 @@ impl Index {
             TypeSize::LiteralInteger(_) => Some(*type_size),
             TypeSize::ConstExpression(id) => import_from
                 .clone(id)
-                .map(|(expr, target_type, scope)| {
-                    self.get_mut_const_expressions().add_constant_expression(expr, target_type, scope)
+                .map(|(expr, target_type, scope, lhs)| {
+                    self.get_mut_const_expressions().add_constant_expression(expr, target_type, scope, lhs)
                 })
                 .map(TypeSize::from_expression),
             TypeSize::Undetermined => Some(*type_size),

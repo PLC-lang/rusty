@@ -172,7 +172,13 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
 
         full_index.import(std::mem::take(&mut all_annotations.new_index));
 
-        TypeAnnotator::lower_init_functions(unresolvables, &mut all_annotations, &mut full_index, &id_provider, &mut annotated_units);
+        TypeAnnotator::lower_init_functions(
+            unresolvables,
+            &mut all_annotations,
+            &mut full_index,
+            &id_provider,
+            &mut annotated_units,
+        );
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
         AnnotatedProject {

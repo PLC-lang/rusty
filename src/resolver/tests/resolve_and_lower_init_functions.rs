@@ -27,9 +27,8 @@ fn function_block_init_fn_created() {
     let init_foo = &units[1].implementations[0];
     assert_eq!(init_foo.name, "__init_foo");
 
-    // 
+    //
 }
-
 
 // TODO: rewrite previous index tests to test for hits after lowering - pou init functions are no longer registered in the index before the lowering stage
 // #[test]

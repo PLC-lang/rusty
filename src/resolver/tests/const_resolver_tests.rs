@@ -674,15 +674,12 @@ fn illegal_cast_should_not_be_resolved() {
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN a could not be resolved, because the literal is invalid
-    let expected = UnresolvableConstant::new(global!(index, "a"), "").with_kind(UnresolvableKind::Overflow("This will overflow for type BOOL".into(), SourceLocation::internal()));
-    debug_assert_eq!(
-        expected.id,
-        unresolvable[0].id
-    );
-    debug_assert_eq!(
-        expected.get_reason(),
-        unresolvable[0].get_reason()
-    );
+    let expected = UnresolvableConstant::new(global!(index, "a"), "").with_kind(UnresolvableKind::Overflow(
+        "This will overflow for type BOOL".into(),
+        SourceLocation::internal(),
+    ));
+    debug_assert_eq!(expected.id, unresolvable[0].id);
+    debug_assert_eq!(expected.get_reason(), unresolvable[0].get_reason());
 }
 
 #[test]
