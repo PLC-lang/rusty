@@ -895,33 +895,41 @@ impl<'i> TypeAnnotator<'i> {
             .iter()
             .filter_map(|(scope, init)| {
                 if scope == "__global" {
+                    // globals will be initialized in the `__init` body
                     return None;
-                }        
+                }
                 let init_fn_name = index::get_init_fn_name(scope);
+                let pou = index.find_pou(scope).expect("POU must exist");
+                let location = pou.get_location();
                 let mut id_provider = id_provider.clone();
 
-                let (param, ident) = (
-                    vec![VariableBlock::default()
-                        .with_block_type(ast::VariableBlockType::InOut)
-                        .with_variables(vec![Variable {
-                            name: "self".into(),
-                            data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                                referenced_type: scope.to_string(),
-                                location: SourceLocation::internal(),
-                            },
-                            initializer: None,
-                            address: None,
-                            location: SourceLocation::internal(), // TODO: use source location of initialized POU here
-                        }])],
-                    "self".to_string(),
-                );
+                let (param, ident) = if pou.is_function() {
+                    unimplemented!("function initializers are not yet supported")
+                } else {
+                    (
+                        vec![VariableBlock::default()
+                            .with_block_type(ast::VariableBlockType::InOut)
+                            .with_variables(vec![Variable {
+                                name: "self".into(),
+                                data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                                    referenced_type: scope.to_string(),
+                                    location: location.clone(),
+                                },
+                                initializer: None,
+                                address: None,
+                                location: location.clone(), // TODO: use source location of initialized POU here
+                            }])],
+                        "self".to_string(),
+                    )
+                };
+                 
                 let init_pou = Pou {
                     name: init_fn_name.clone(),
                     variable_blocks: param,
                     pou_type: PouType::Function,
                     return_type: None,
-                    location: SourceLocation::internal(),
-                    name_location: SourceLocation::internal(),
+                    location: location.clone(),
+                    name_location: location.clone(),
                     poly_mode: None,
                     generics: vec![],
                     linkage: LinkageType::Internal,
@@ -973,7 +981,7 @@ impl<'i> TypeAnnotator<'i> {
                                 op,
                                 Some(param),
                                 id_provider.next_id(),
-                                SourceLocation::internal(),
+                                location.clone(),
                             ))
                         } else {
                             None
@@ -989,8 +997,8 @@ impl<'i> TypeAnnotator<'i> {
                     linkage: LinkageType::Internal,
                     pou_type: PouType::Function,
                     statements,
-                    location: SourceLocation::internal(),
-                    name_location: SourceLocation::internal(),
+                    location: location.clone(),
+                    name_location: location.clone(),
                     overriding: false,
                     generic: false,
                     access: None,
@@ -1042,7 +1050,6 @@ impl<'i> TypeAnnotator<'i> {
             .filter_map(|(scope, _)| {
                 if index.find_pou(scope).is_some_and(|pou| pou.is_program()) {
                     let init_fn_name = get_init_fn_name(scope);
-                    // let param = index.find_parameter(&init_fn_name, 0);
                     Some((init_fn_name, scope))
                 } else {
                     None
