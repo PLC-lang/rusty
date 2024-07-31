@@ -1,10 +1,6 @@
-use insta::assert_snapshot;
 use plc_ast::provider::IdProvider;
 
-use crate::{
-    resolver::{const_evaluator, TypeAnnotator},
-    test_utils::tests::{annotate_and_lower_with_ids, index_with_ids},
-};
+use crate::test_utils::tests::{annotate_and_lower_with_ids, index_with_ids};
 
 #[test]
 fn function_block_init_fn_created() {

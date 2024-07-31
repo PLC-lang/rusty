@@ -174,7 +174,6 @@ pub mod tests {
         let mut annotated_unit = vec![(unit, dependencies, literals)];
         TypeAnnotator::lower_init_functions(unresolvables, &mut annotations, &mut index, &id_provider, &mut annotated_unit);
         let Some((unit, dependencies, literals)) = annotated_unit.get(0)else { unreachable!() };
-        dbg!(&unit);
         let context = CodegenContext::create();
         let path = PathBuf::from_str("src").ok();
         let mut code_generator = crate::codegen::CodeGen::new(

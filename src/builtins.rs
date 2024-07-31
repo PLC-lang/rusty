@@ -25,7 +25,7 @@ use crate::{
         generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
+    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider, LWORD_TYPE},
     validation::{Validator, Validators},
 };
 
@@ -35,13 +35,20 @@ lazy_static! {
         (
             "ADR",
             BuiltIn {
-                decl: "FUNCTION ADR<U: ANY> : REF_TO U
+                decl: "FUNCTION ADR<U: ANY> : LWORD
                 VAR_INPUT
                     in : U;
                 END_VAR
                 END_FUNCTION
             ",
                 annotation: None,
+                // annotation: Some(|annotator, _, operator, _, _| {
+                //     annotator.annotate(
+                //         operator, resolver::StatementAnnotation::Function {
+                //             return_type: LWORD_TYPE.into(), qualified_name: "ADR".to_string(), call_name: None
+                //         }
+                //     );
+                // }),
                 validation: Some(|validator, operator, parameters, _, _| {
                     let Some(params) = parameters else {
                         validator.push_diagnostic(Diagnostic::invalid_argument_count(1, 0, operator.get_location()));
@@ -59,8 +66,6 @@ lazy_static! {
                     if let [reference] = params {
                         generator
                             .generate_lvalue(reference)
-                            // .map(|it| ExpressionValue::LValue(it))
-                            // .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
                         Err(Diagnostic::codegen_error(
