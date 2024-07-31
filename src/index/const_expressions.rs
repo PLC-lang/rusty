@@ -108,15 +108,6 @@ impl InitFunctionData {
             lhs: target.map(|it| it.into()),
         }
     }
-
-    fn into_flat_reference_name(name: &str, scope: Option<&str>) -> String {
-        // TODO: very hacky
-        if let Some(scope) = scope {
-            name.to_string().split_off(name.find(scope).unwrap() + scope.len() + 1)
-        } else {
-            name.to_string().split_off(name.find("__global_").unwrap() + 9)
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -296,29 +287,6 @@ impl ConstExpressions {
         self.expressions.extend(other.expressions)
     }
 }
-
-// impl Clone for ConstExpression {
-//     fn clone(&self) -> Self {
-//         match self {
-//             Self::Unresolved { statement, scope, target } => Self::Unresolved { statement: statement.clone(), scope: scope.clone(), target: target.clone() },
-//             Self::Resolved(arg0) => Self::Resolved(arg0.clone()),
-//             Self::Unresolvable { statement, reason } => Self::Unresolvable { statement: statement.clone(), reason: reason.clone() },
-//         }
-//     }
-
-//         /// clones the expression in the ConstExpressions and returns all of its elements
-//         pub fn clone(&self, id: &ConstId) -> Option<(AstNode, String, Option<String>, Option<String>)> {
-//             self.expressions.get(*id).map(|it| match &it.expr {
-//                 ConstExpression::Unresolved { statement, scope, target } => {
-//                     (statement.clone(), it.target_type_name.clone(), scope.clone(), target.clone())
-//                 }
-//                 ConstExpression::Resolved(s) | ConstExpression::Unresolvable { statement: s, .. } => {
-//                     (s.clone(), it.target_type_name.clone(), None, None)
-//                 }
-//             })
-//         }
-
-// }
 
 impl<'a> IntoIterator for &'a ConstExpressions {
     type Item = (ConstId, &'a AstNode);

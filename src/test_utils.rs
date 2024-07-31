@@ -16,11 +16,10 @@ pub mod tests {
     use crate::{
         builtins,
         codegen::{CodegenContext, GeneratedModule},
-        index::{self, FxIndexSet, Index},
+        index::{self, Index},
         lexer, parser,
         resolver::{
-            const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
-            StringLiterals, TypeAnnotator,
+            const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator
         },
         typesystem::get_builtin_types,
         DebugLevel, Validator,
@@ -108,15 +107,17 @@ pub mod tests {
         annotations
     }
 
+    type Lowered = (
+        AnnotationMapImpl,
+        Index,
+        Vec<(CompilationUnit, index::FxIndexSet<Dependency>, StringLiterals)>,
+    );
+
     pub fn annotate_and_lower_with_ids(
         parse_result: CompilationUnit,
         index: Index,
         id_provider: IdProvider,
-    ) -> (
-        AnnotationMapImpl,
-        Index,
-        Vec<(CompilationUnit, index::FxIndexSet<crate::resolver::Dependency>, StringLiterals)>,
-    ) {
+    ) -> Lowered {
         let (mut full_index, unresolvables) = evaluate_constants(index);
 
         let (mut annotations, dependencies, literals) =

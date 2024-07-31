@@ -1155,7 +1155,7 @@ impl<'i> TypeAnnotator<'i> {
 
         // TODO: clean up imports
         if let Some((mut new_index, init_unit)) =
-            TypeAnnotator::create_init_unit(&*full_index, &all_annotations, id_provider, &init_fn_candidates)
+            TypeAnnotator::create_init_unit(&*full_index, all_annotations, id_provider, &init_fn_candidates)
         {
             full_index.import(std::mem::take(&mut new_index));
             let (a, deps, literals) =
