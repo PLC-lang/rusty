@@ -1683,81 +1683,9 @@ fn string_type_alias_without_size_is_indexed() {
 }
 
 #[test]
-fn tmp() {
-    // GIVEN a struct type definition
-    // WHEN it is indexed
-    let (_, index) = index(
-        "
-        TYPE STRUCT1 : STRUCT
-            value : DINT;
-        END_STRUCT END_TYPE
-        ",
-    );
-
-    // THEN we expect a corresponding init function to be declared for it
-    let init = index.type_has_init_function("STRUCT1");
-    assert!(init);
-}
-
-#[test]
-fn tmp2() {
-    // GIVEN a declared PROGRAM
-    // WHEN it is indexed
-    let (_, index) = index(
-        "
-        PROGRAM main
-        END_PROGRAM
-        ",
-    );
-
-    // THEN we expect a corresponding init function to be declared for it
-    let init = index.type_has_init_function("main");
-    assert!(init);
-}
-
-#[test]
-fn tmp3() {
-    // GIVEN a declared FUNCTION_BLOCK with an ACTION
-    // WHEN it is indexed
-    let (_, index) = index(
-        "
-        FUNCTION_BLOCK foo
-        END_FUNCTION_BLOCK
-
-        ACTION act1
-        END_ACTION
-        ",
-    );
-
-    // THEN we expect a corresponding init function to be declared for the FUNCTION_BLOCK
-    // but not for the ACTION
-    let init = index.type_has_init_function("foo");
-    assert!(init);
-
-    let init = index.type_has_init_function("act1");
-    assert!(!init);
-}
-
-#[test]
-fn tmp4() {
-    // GIVEN a declared FUNCTION
-    // WHEN it is indexed
-    let (_, index) = index(
-        "
-        FUNCTION foo
-        END_FUNCTION
-        ",
-    );
-
-    // THEN we DO NOT expect a corresponding init function to be declared for it
-    let init = index.type_has_init_function("foo");
-    assert!(!init);
-}
-
-#[test]
 fn tmp5() {
     // GIVEN nothing
-    // WHEN it is indexed
+    // WHEN indexed
     let (_, index) = index("");
 
     // THEN we expect an `__init` function to be declared regardless

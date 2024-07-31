@@ -1002,7 +1002,8 @@ impl<'i> TypeAnnotator<'i> {
                 };
 
                 pre_process(&mut new_unit, id_provider.clone());
-                let new_index = index::visitor::visit(&new_unit);
+                let mut new_index = index::visitor::visit(&new_unit);
+                new_index.register_init_function(scope);
                 (new_index, new_unit)
             })
             .collect()

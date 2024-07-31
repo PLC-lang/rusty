@@ -1441,9 +1441,22 @@ impl Index {
         self.pous.insert(entry.get_name().to_lowercase(), entry);
     }
 
-    pub fn register_initialization_function(&mut self, name: &str) {
+    pub fn register_init_function(&mut self, name: &str) {
         let init_name = get_init_fn_name(name);
         self.init_functions.insert(init_name, name.to_owned());
+    }
+
+    pub fn register_global_init_function(&mut self) {
+        let entry = PouIndexEntry::Function {
+            name: "__init".into(),
+            return_type: VOID_TYPE.into(),
+            generics: vec![],
+            linkage: LinkageType::Internal,
+            is_variadic: false,
+            location: SourceLocation::internal(),
+            is_generated: true,
+        };
+        self.register_pou(entry);
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {

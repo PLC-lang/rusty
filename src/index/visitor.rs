@@ -197,11 +197,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         }
         _ => {}
     };
-
-    if !matches!(&pou.pou_type, PouType::Action | PouType::Function) {
-        // XXX: will register an init function in the index regardless of whether or not it is needed later - alternatives?
-        index.register_initialization_function(&pou.name);
-    };
 }
 
 /// returns the declaration type (ByRef or ByVal) for the given VariableBlock (VAR_INPUT, VAR_OUTPUT, VAR_INOUT, etc.)
@@ -819,6 +814,4 @@ fn visit_struct(
     .set_initial_value(init)
     .set_constant(true);
     index.register_global_initializer(&global_struct_name, variable);
-
-    index.register_initialization_function(name);
 }

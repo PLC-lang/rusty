@@ -13,11 +13,10 @@ use ast::{
 
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::{FxIndexSet, Index, PouIndexEntry},
+    index::{FxIndexSet, Index},
     output::FormatOption,
     parser::parse_file,
     resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
-    typesystem::VOID_TYPE,
     validation::Validator,
     ConfigFormat, Target,
 };
@@ -127,17 +126,8 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
         // import builtin functions
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(&builtins));
+        global_index.register_global_init_function();
 
-        let entry = PouIndexEntry::Function {
-            name: "__init".into(),
-            return_type: VOID_TYPE.into(),
-            generics: vec![],
-            linkage: LinkageType::Internal,
-            is_variadic: false,
-            location: SourceLocation::internal(),
-            is_generated: true,
-        };
-        global_index.register_pou(entry);
         IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
     }
 
@@ -190,7 +180,16 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             units: annotated_units,
             index: full_index,
             annotations,
-        } //.get_lowered_project() ?
+        } //.lowered() ?
+
+        /*
+        LoweredProject {
+            project
+            units
+            index
+            annotations
+        }
+         */
     }
 
     fn get_parsed_project(&self) -> &ParsedProject<T> {

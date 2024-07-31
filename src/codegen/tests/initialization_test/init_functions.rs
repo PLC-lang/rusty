@@ -1,3 +1,5 @@
+use insta::assert_snapshot;
+
 use crate::test_utils::tests::codegen;
 
 #[test]
@@ -158,4 +160,24 @@ fn dependencies() {
       ret void
     }
     "###);
+}
+
+#[test]
+fn edge_case() {
+    let res = codegen(
+        r#"
+        VAR_GLOBAL 
+            str : STRING;
+        END_VAR
+
+        PROGRAM prg
+        VAR
+            a : DATE := D#2001-02-29; // feb29 on non-leap year should not pass 
+            b : REF_TO STRING := REF(str); // pou has an init function
+        END_VAR
+        END_PROGRAM
+    "#
+    );
+
+    assert_snapshot!(res, @r###""###);
 }
