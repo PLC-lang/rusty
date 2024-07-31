@@ -93,11 +93,12 @@ impl InitFunctionData {
     }
 
     fn into_flat_reference_name(name: &str, scope: Option<&str>) -> String {
+        // TODO: very hacky
         if let Some(scope) = scope {
             name.to_string().split_off(name.find(scope).unwrap() + scope.len() + 1)
-        // TODO: very hacky
         } else {
-            name.into() // TODO: globals
+            name.to_string().split_off(name.find("__global_").unwrap() + 9)
+
         }
     }
 }

@@ -893,7 +893,10 @@ impl<'i> TypeAnnotator<'i> {
     ) -> Vec<(Index, CompilationUnit)> {
         initializers
             .iter()
-            .map(|(scope, init)| {
+            .filter_map(|(scope, init)| {
+                if scope == "__global" {
+                    return None;
+                }        
                 let init_fn_name = index::get_init_fn_name(scope);
                 let mut id_provider = id_provider.clone();
 
@@ -1004,13 +1007,14 @@ impl<'i> TypeAnnotator<'i> {
                 pre_process(&mut new_unit, id_provider.clone());
                 let mut new_index = index::visitor::visit(&new_unit);
                 new_index.register_init_function(scope);
-                (new_index, new_unit)
+                Some((new_index, new_unit))
             })
             .collect()
     }
 
     pub fn create_init_unit(
         index: &Index,
+        annotations: &AnnotationMapImpl,
         id_provider: &IdProvider,
         init_fns: &InitializerFunctions,
     ) -> Option<(Index, CompilationUnit)> {
@@ -1045,13 +1049,25 @@ impl<'i> TypeAnnotator<'i> {
                 }
             })
             .collect::<Vec<_>>();
+        let mut globals = if let Some(stmts) = init_fns.get("__global") {
+            stmts.iter().filter_map(|(k, v)| {
+                v.as_ref().map(|it| {
+                    let global = create_member_reference(k, id_provider.clone(), None);
+                    let func = if let Some(StatementAnnotation::Alias(_)) = annotations.get(it) {
+                        AstFactory::create_ref_assignment
+                    } else {
+                        AstFactory::create_assignment
+                    };
+                    
+                    func(global, it.clone(), id_provider.next_id())
+                })                
+            }).collect::<Vec<_>>()
+        } else { vec![] };
 
         let body = init_functions
             .iter()
             .map(|(fn_name, param)| {
                 let op = create_member_reference(fn_name, id_provider.clone(), None);
-                // let parameters =
-                //     param.map(|it| create_member_reference(it.get_name(), id_provider.clone(), None));
                 let param = create_member_reference(param, id_provider.clone(), None);
                 AstFactory::create_call_statement(
                     op,
@@ -1062,12 +1078,14 @@ impl<'i> TypeAnnotator<'i> {
             })
             .collect::<Vec<_>>();
 
+        globals.extend(body);
+
         let implementation = Implementation {
             name: ident.clone(),
             type_name: ident.clone(),
             linkage: LinkageType::Internal,
             pou_type: PouType::Function,
-            statements: body,
+            statements: globals,
             location: SourceLocation::internal(),
             name_location: SourceLocation::internal(),
             overriding: false,
@@ -1114,19 +1132,19 @@ impl<'i> TypeAnnotator<'i> {
             all_annotations.import(annotation);
     
             full_index.import(std::mem::take(&mut all_annotations.new_index));
-    
-            // TODO: clean up imports
-            if let Some((mut new_index, init_unit)) =
-                TypeAnnotator::create_init_unit(&*full_index, id_provider, &init_fn_candidates)
-            {
-                full_index.import(std::mem::take(&mut new_index));
-                let (a, deps, literals) = TypeAnnotator::visit_unit(&*full_index, &init_unit, id_provider.clone());
-                annotated_units.push((init_unit, deps, literals));
-                all_annotations.import(a);
-            }
-    
-            full_index.import(std::mem::take(&mut all_annotations.new_index));
         }
+
+        // TODO: clean up imports
+        if let Some((mut new_index, init_unit)) =
+            TypeAnnotator::create_init_unit(&*full_index, &all_annotations, id_provider, &init_fn_candidates)
+        {
+            full_index.import(std::mem::take(&mut new_index));
+            let (a, deps, literals) = TypeAnnotator::visit_unit(&*full_index, &init_unit, id_provider.clone());
+            annotated_units.push((init_unit, deps, literals));
+            all_annotations.import(a);
+        }
+
+        full_index.import(std::mem::take(&mut all_annotations.new_index));
     }
 
     fn visit_user_type_declaration(&mut self, user_data_type: &UserTypeDeclaration, ctx: &VisitorContext) {

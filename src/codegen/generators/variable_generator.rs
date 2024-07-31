@@ -139,7 +139,6 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 .initial_value
                 .and_then(|it| self.global_index.get_const_expressions().find_const_expression(&it))
             {
-                println!("init this later");
                 None
             } else if let Some(initializer) = self
                 .global_index
