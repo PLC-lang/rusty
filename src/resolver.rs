@@ -460,7 +460,6 @@ pub enum StatementAnnotation {
     Label {
         name: String,
     },
-    Alias(AstNode),
 }
 
 impl StatementAnnotation {
@@ -573,7 +572,7 @@ pub trait AnnotationMap {
         match annotation {
             StatementAnnotation::Value { resulting_type } => Some(resulting_type.as_str()),
             StatementAnnotation::Variable { resulting_type, .. } => Some(resulting_type.as_str()),
-            StatementAnnotation::ReplacementAst { statement } | StatementAnnotation::Alias(statement) => self
+            StatementAnnotation::ReplacementAst { statement } => self
                 .get_hint(statement)
                 .or_else(|| self.get(statement))
                 .and_then(|it| self.get_type_name_for_annotation(it)),
@@ -937,7 +936,6 @@ impl<'i> TypeAnnotator<'i> {
         index: &Index,
         id_provider: &IdProvider,
         initializers: &InitializerFunctions,
-        annotations: &AnnotationMapImpl,
     ) -> Vec<(Index, CompilationUnit)> {
         initializers
             .iter()
@@ -993,18 +991,11 @@ impl<'i> TypeAnnotator<'i> {
                             Some(create_member_reference(&ident, id_provider.clone(), None)),
                         );
 
-                        let Some((create_assignment_fn, node)) = &initializer.as_ref().map(|it| {
-                            let func = if let Some(StatementAnnotation::Alias(_)) = annotations.get(it) {
-                                AstFactory::create_ref_assignment
-                            } else {
-                                AstFactory::create_assignment
-                            };
-                            (func, it.clone())
-                        }) else {
+                        let Some(node) = initializer else {
                             unimplemented!()
                         };
 
-                        create_assignment_fn(lhs, node.to_owned(), id_provider.next_id())
+                        AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id())
                     })
                     .collect::<Vec<_>>();
 
@@ -1067,7 +1058,6 @@ impl<'i> TypeAnnotator<'i> {
 
     pub fn create_init_unit(
         index: &Index,
-        annotations: &AnnotationMapImpl,
         id_provider: &IdProvider,
         init_fns: &InitializerFunctions,
     ) -> Option<(Index, CompilationUnit)> {
@@ -1106,14 +1096,8 @@ impl<'i> TypeAnnotator<'i> {
                 .iter()
                 .filter_map(|(k, v)| {
                     v.as_ref().map(|it| {
-                        let global = create_member_reference(k, id_provider.clone(), None);
-                        let func = if let Some(StatementAnnotation::Alias(_)) = annotations.get(it) {
-                            AstFactory::create_ref_assignment
-                        } else {
-                            AstFactory::create_assignment
-                        };
-
-                        func(global, it.clone(), id_provider.next_id())
+                        let global = create_member_reference(k, id_provider.clone(), None);               
+                        AstFactory::create_assignment(global, it.clone(), id_provider.next_id())
                     })
                 })
                 .collect::<Vec<_>>()
@@ -1177,7 +1161,6 @@ impl<'i> TypeAnnotator<'i> {
             &*full_index,
             id_provider,
             &init_fn_candidates,
-            &*all_annotations,
         );
 
         if let Some((mut init_index, init_unit)) =
@@ -1199,7 +1182,7 @@ impl<'i> TypeAnnotator<'i> {
 
         // TODO: clean up imports
         if let Some((mut new_index, init_unit)) =
-            TypeAnnotator::create_init_unit(&*full_index, all_annotations, id_provider, &init_fn_candidates)
+            TypeAnnotator::create_init_unit(&*full_index, id_provider, &init_fn_candidates)
         {
             full_index.import(std::mem::take(&mut new_index));
             let (a, deps, literals) =
@@ -1472,7 +1455,7 @@ impl<'i> TypeAnnotator<'i> {
         if variable_is_auto_deref_pointer && initializer_is_not_wrapped_in_ref_call {
             debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
             self.visit_statement(ctx, initializer);
-            self.annotate(initializer, StatementAnnotation::Alias(initializer.clone()));
+            // self.annotate(initializer, StatementAnnotation::Alias(initializer.clone()));
             let Some(lhs) = ctx.lhs else {
                 return;
             };

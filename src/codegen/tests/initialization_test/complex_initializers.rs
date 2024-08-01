@@ -3,7 +3,6 @@ use insta::assert_snapshot;
 use crate::test_utils::tests::codegen;
 
 #[test]
-#[ignore = "VAR_GLOBAL blocks not yet supported"]
 fn simple_global() {
     let result = codegen(
         r#"
@@ -14,8 +13,76 @@ fn simple_global() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###""###);
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$s:s8u81"
+    @ps = global [81 x i8]* null, section "var-$RUSTY$ps:ps8u81"
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      store [81 x i8]* @s, [81 x i8]** @ps, align 8
+      ret void
+    }
+    "###);
 }
+
+#[test]
+fn global_alias() {
+    let result = codegen(
+        r#"
+        VAR_GLOBAL
+            s: STRING := 'hello world!';
+            ps AT s : STRING;
+        END_VAR
+        "#,
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$s:s8u81"
+    @ps = global [81 x i8]* null, section "var-$RUSTY$ps:ps8u81"
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      %deref = load [81 x i8]*, [81 x i8]** @ps, align 8
+      store [81 x i8]* @s, [81 x i8]** @ps, align 8
+      ret void
+    }
+    "###);
+}
+
+
+#[test]
+fn global_reference_to() {
+    let result = codegen(
+      r#"
+      VAR_GLOBAL
+        s: STRING := 'hello world!';
+        ps: REFERENCE TO STRING := REF(s);
+      END_VAR
+        "#,
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$s:s8u81"
+    @ps = global [81 x i8]* null, section "var-$RUSTY$ps:ps8u81"
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      %deref = load [81 x i8]*, [81 x i8]** @ps, align 8
+      store [81 x i8]* @s, [81 x i8]** @ps, align 8
+      ret void
+    }
+    "###);
+}
+
 
 #[test]
 fn init_functions_generated_for_programs() {
@@ -391,76 +458,46 @@ fn edge_case() {
     "###);
 }
 
-
 #[test]
-fn shenanigans() {
+fn local_address() {
     let res = codegen(
-        r#"        
-        FUNCTION_BLOCK foo 
-        VAR_INPUT
-            s: STRING;
-        END_VAR
+        r#"      
+        FUNCTION_BLOCK foo
         VAR
-            pi: REF_TO INT := REF(s); // not an int-pointer
-            ps: LWORD := ADR(s) // address of an input-variable
+            i : INT;
+            pi: REF_TO INT := REF(i);
         END_VAR
         END_FUNCTION_BLOCK
-
-        FUNCTION main : DINT
-        VAR
-            fb: foo;
-            s: STRING;
-        END_VAR
-            fb(s);
-        END_FUNCTION
         "#,
     );
 
-    insta::assert_snapshot!(res, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    insta::assert_snapshot!(res, @r###""###);
+}
 
-    %foo = type { [81 x i8], i16*, i64 }
+#[test]
+fn needs_validation() {
+    let res = codegen(
+        r#"      
+        VAR_GLOBAL
+          s : STRING;
+        END_VAR
 
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r3s8u81pi16u64"
+        FUNCTION_BLOCK foo
+        VAR
+            pi: REF_TO INT := REF(s); // not an int-pointer
+        END_VAR
+        END_FUNCTION_BLOCK
 
-    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v[s8u81]" {
-    entry:
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %ps = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
-      ret void
-    }
+        FUNCTION_BLOCK bar 
+        VAR_INPUT
+            st: STRING;
+        END_VAR
+        VAR
+            ps: LWORD := ADR(st); // address of an input-variable
+        END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
-    entry:
-      %main = alloca i32, align 4
-      %fb = alloca %foo, align 8
-      %s = alloca [81 x i8], align 1
-      %0 = bitcast %foo* %fb to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%foo, %foo* @__foo__init, i32 0, i32 0, i32 0), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
-      %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-      store i32 0, i32* %main, align 4
-      %2 = getelementptr inbounds %foo, %foo* %fb, i32 0, i32 0
-      %3 = bitcast [81 x i8]* %2 to i8*
-      %4 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 %4, i32 80, i1 false)
-      call void @foo(%foo* %fb)
-      %main_ret = load i32, i32* %main, align 4
-      ret i32 %main_ret
-    }
-
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
-
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
-
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
-
-    attributes #0 = { argmemonly nofree nounwind willreturn }
-    attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-    "###);
+    insta::assert_snapshot!(res, @r###""###);
 }
