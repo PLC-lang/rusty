@@ -12,9 +12,9 @@ use std::hash::Hash;
 use plc_ast::{
     ast::{
         self, flatten_expression_list, pre_process, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        AutoDerefType, BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType,
-        Implementation, JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr,
-        TypeNature, UserTypeDeclaration, Variable, VariableBlock,
+        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Implementation,
+        JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
+        UserTypeDeclaration, Variable, VariableBlock,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -169,8 +169,20 @@ impl TypeAnnotator<'_> {
                 self.dependencies
                     .extend(self.get_datatype_dependencies(qualified_name, FxIndexSet::default()));
             }
-            StatementAnnotation::Variable { resulting_type, qualified_name, argument_type, .. } => {
+            StatementAnnotation::Variable {
+                resulting_type,
+                qualified_name,
+                argument_type,
+                auto_deref,
+                ..
+            } => {
                 if matches!(argument_type.get_inner(), VariableType::Global) {
+                    match auto_deref {
+                        Some(AutoDerefType::Alias(inner)) | Some(AutoDerefType::Reference(inner)) => {
+                            self.dependencies.insert(Dependency::Datatype(inner.to_owned()));
+                        }
+                        _ => (),
+                    };
                     self.dependencies
                         .extend(self.get_datatype_dependencies(resulting_type, FxIndexSet::default()));
                     self.dependencies.insert(Dependency::Variable(qualified_name.to_string()));
@@ -377,6 +389,34 @@ impl TypeAnnotator<'_> {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Default)]
+pub enum AutoDerefType {
+    #[default]
+    Default,
+    Alias(String),
+    Reference(String),
+}
+
+impl AutoDerefType {
+    pub fn get_inner(&self) -> Option<String> {
+        match self {
+            AutoDerefType::Default => None,
+            AutoDerefType::Alias(inner) 
+            | AutoDerefType::Reference(inner) => Some(inner.to_owned()),
+        }
+    }
+}
+
+impl From<ast::AutoDerefType> for AutoDerefType {
+    fn from(value: ast::AutoDerefType) -> Self {
+        match value {
+            ast::AutoDerefType::Default => AutoDerefType::Default,
+            ast::AutoDerefType::Alias => AutoDerefType::Alias(String::new()),
+            ast::AutoDerefType::Reference => AutoDerefType::Reference(String::new()),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum StatementAnnotation {
     /// an expression that resolves to a certain type (e.g. `a + b` --> `INT`)
@@ -437,7 +477,11 @@ impl StatementAnnotation {
     }
 
     pub fn is_alias(&self) -> bool {
-        matches!(self, StatementAnnotation::Variable { auto_deref: Some(AutoDerefType::Alias), .. })
+        matches!(self, StatementAnnotation::Variable { auto_deref: Some(AutoDerefType::Alias(_)), .. })
+    }
+
+    pub fn is_reference_to(&self) -> bool {
+        matches!(self, StatementAnnotation::Variable { auto_deref: Some(AutoDerefType::Reference(_)), .. })
     }
 
     pub fn is_auto_deref(&self) -> bool {
@@ -1106,7 +1150,7 @@ impl<'i> TypeAnnotator<'i> {
             access: None,
         };
 
-        let mut new_unit = CompilationUnit {
+        let mut init_unit = CompilationUnit {
             global_vars: vec![],
             units: vec![init_pou],
             implementations: vec![implementation],
@@ -1114,10 +1158,10 @@ impl<'i> TypeAnnotator<'i> {
             file_name: "__init_globals".into(),
         };
 
-        pre_process(&mut new_unit, id_provider.clone()); // XXX: is this required?
-        let new_index = index::visitor::visit(&new_unit);
+        pre_process(&mut init_unit, id_provider.clone()); // XXX: is this required?
+        let new_index = index::visitor::visit(&init_unit);
 
-        Some((new_index, new_unit))
+        Some((new_index, init_unit))
     }
 
     pub fn lower_init_functions(
@@ -1432,7 +1476,7 @@ impl<'i> TypeAnnotator<'i> {
             let Some(lhs) = ctx.lhs else {
                 return;
             };
-            match self.annotation_map.new_initializers.entry(ctx.pou.unwrap().to_string()) {
+            match self.annotation_map.new_initializers.entry(ctx.pou.unwrap_or("__global").to_string()) {
                 indexmap::map::Entry::Occupied(mut o) => {
                     o.get_mut()
                         .entry(lhs.into())
@@ -2080,7 +2124,7 @@ impl<'i> TypeAnnotator<'i> {
                 qualified_name: qualified_name.to_string(),
                 constant: false,
                 argument_type,
-                auto_deref: *kind,
+                auto_deref: kind.map(|it| it.into()),
             };
             self.annotation_map.annotate_type_hint(statement, hint_annotation)
         }
@@ -2337,12 +2381,19 @@ fn to_variable_annotation(
         (_, true) if v_type.is_aggregate_type() => {
             // treat a return-aggregate variable like an auto-deref pointer since it got
             // passed by-ref
-            let kind = v_type.get_type_information().get_auto_deref_type().unwrap_or(AutoDerefType::Default);
+            let kind =
+                v_type.get_type_information().get_auto_deref_type().map(|it| it.into()).unwrap_or_default();
             (v_type.get_name().to_string(), Some(kind))
         }
-        (DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(deref), .. }, _) => {
+        (DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(deref), name }, _) => {
             // real auto-deref pointer
-            (inner_type_name.clone(), Some(*deref))
+            let kind = match deref {
+                ast::AutoDerefType::Default => AutoDerefType::Default,
+                ast::AutoDerefType::Alias => AutoDerefType::Alias(name.to_owned()),
+                ast::AutoDerefType::Reference => AutoDerefType::Reference(name.to_owned()),
+            };
+
+            (inner_type_name.clone(), Some(kind))
         }
         _ => (v_type.get_name().to_string(), None),
     };

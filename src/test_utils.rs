@@ -19,7 +19,8 @@ pub mod tests {
         index::{self, Index},
         lexer, parser,
         resolver::{
-            const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator
+            const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
+            StringLiterals, TypeAnnotator,
         },
         typesystem::get_builtin_types,
         DebugLevel, Validator,
@@ -107,11 +108,8 @@ pub mod tests {
         annotations
     }
 
-    type Lowered = (
-        AnnotationMapImpl,
-        Index,
-        Vec<(CompilationUnit, index::FxIndexSet<Dependency>, StringLiterals)>,
-    );
+    type Lowered =
+        (AnnotationMapImpl, Index, Vec<(CompilationUnit, index::FxIndexSet<Dependency>, StringLiterals)>);
 
     pub fn annotate_and_lower_with_ids(
         parse_result: CompilationUnit,

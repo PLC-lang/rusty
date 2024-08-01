@@ -1460,6 +1460,7 @@ impl Index {
             is_generated: true,
         };
         self.register_pou(entry);
+        self.init_functions.insert("__init".to_string(), String::default());
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {

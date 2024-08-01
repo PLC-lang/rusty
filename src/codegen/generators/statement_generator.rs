@@ -299,6 +299,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let right_statement = range_checked_right_side.unwrap_or(right_statement);
 
+        if self.annotations.get(left_statement).is_some_and(|it| it.is_alias() || it.is_reference_to()) {
+            return self.generate_ref_assignment(left_statement, right_statement);
+        };
+
         exp_gen.generate_store(left, left_type, right_statement)?;
         Ok(())
     }
