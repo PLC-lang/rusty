@@ -1099,6 +1099,11 @@ impl Index {
                 .rfind('.')
                 .map(|p| &container_name[..p])
                 .and_then(|qualifier| self.find_member(qualifier, variable_name)))
+            // 'self' instance of a POUs init function - behaves similar to an action
+            .or(container_name
+                .rfind('_')
+                .map(|p| &container_name[p + 1..])
+                .and_then(|qualifier| self.find_member(qualifier, variable_name)))
     }
 
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
@@ -1446,7 +1451,19 @@ impl Index {
 
     pub fn register_init_function(&mut self, name: &str) {
         let init_name = get_init_fn_name(name);
-        self.init_functions.insert(init_name, name.to_owned());
+        self.init_functions.insert(init_name.clone(), name.to_owned());
+
+        // let datatype = typesystem::DataType {
+        //     name: init_name.to_string(),
+        //     initial_value: None,
+        //     information: DataTypeInformation::Alias {
+        //         name: init_name.clone(),
+        //         referenced_type: name.to_string(),
+        //     },
+        //     nature: TypeNature::Derived,
+        //     location: SourceLocation::internal(), // TODO: add original pou location
+        // };
+        // self.register_pou_type(datatype);
     }
 
     pub fn register_global_init_function(&mut self) {

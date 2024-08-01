@@ -638,24 +638,3 @@ fn skipped_field_members_for_array_of_structs_are_zero_initialized() {
 
     insta::assert_snapshot!(res);
 }
-
-#[test]
-fn ref_adr_init_in_function() {
-    let res = codegen(
-        r#"     
-        FUNCTION main : DINT 
-        VAR
-            i : DINT;
-            pi: REF_TO INT := REF(i);
-            s: STRING;
-            ps: REF_TO STRING := ADR(s);
-            ps2: LWORD := ADR(s)
-            pb: REF_TO BOOL := REF(b);
-            pb2: LWORD := ADR(b2);
-        END_VAR
-        END_FUNCTION
-        "#,
-    );
-
-    insta::assert_snapshot!(res, @r###""###);
-}

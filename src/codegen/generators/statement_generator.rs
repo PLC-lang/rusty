@@ -276,6 +276,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         if left_statement.has_direct_access() {
             return self.generate_assignment_statement_direct_access(left_statement, right_statement);
         }
+
+        if self.annotations.get(left_statement).is_some_and(|it| {
+            // TODO(mhasel): ideally the resolver decides which assignment statement to call when lowering the init functions,
+            // but this requires refactoring of how `aliases` and `reference to` LHS/RHS nodes are annotated. this works for now.
+            self.index.is_init_function(self.function_context.linking_context.get_call_name())
+                && (it.is_alias() || it.is_reference_to())
+        }) {
+            return self.generate_ref_assignment(left_statement, right_statement);
+        };
+
         //TODO: Also hacky but for now we cannot generate assignments for hardware access
         if matches!(left_statement.get_stmt(), AstStatement::HardwareAccess { .. }) {
             return Ok(());
@@ -298,10 +308,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         };
 
         let right_statement = range_checked_right_side.unwrap_or(right_statement);
-
-        if self.annotations.get(left_statement).is_some_and(|it| it.is_alias() || it.is_reference_to()) {
-            return self.generate_ref_assignment(left_statement, right_statement);
-        };
 
         exp_gen.generate_store(left, left_type, right_statement)?;
         Ok(())

@@ -401,8 +401,7 @@ impl AutoDerefType {
     pub fn get_inner(&self) -> Option<String> {
         match self {
             AutoDerefType::Default => None,
-            AutoDerefType::Alias(inner) 
-            | AutoDerefType::Reference(inner) => Some(inner.to_owned()),
+            AutoDerefType::Alias(inner) | AutoDerefType::Reference(inner) => Some(inner.to_owned()),
         }
     }
 }
@@ -991,9 +990,7 @@ impl<'i> TypeAnnotator<'i> {
                             Some(create_member_reference(&ident, id_provider.clone(), None)),
                         );
 
-                        let Some(node) = initializer else {
-                            unimplemented!()
-                        };
+                        let Some(node) = initializer else { unimplemented!() };
 
                         AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id())
                     })
@@ -1096,7 +1093,7 @@ impl<'i> TypeAnnotator<'i> {
                 .iter()
                 .filter_map(|(k, v)| {
                     v.as_ref().map(|it| {
-                        let global = create_member_reference(k, id_provider.clone(), None);               
+                        let global = create_member_reference(k, id_provider.clone(), None);
                         AstFactory::create_assignment(global, it.clone(), id_provider.next_id())
                     })
                 })
@@ -1157,11 +1154,7 @@ impl<'i> TypeAnnotator<'i> {
     ) {
         let mut init_fn_candidates = InitializerFunctions::new(&unresolvables);
         init_fn_candidates.import(std::mem::take(&mut all_annotations.new_initializers));
-        let res = TypeAnnotator::create_init_units(
-            &*full_index,
-            id_provider,
-            &init_fn_candidates,
-        );
+        let res = TypeAnnotator::create_init_units(&*full_index, id_provider, &init_fn_candidates);
 
         if let Some((mut init_index, init_unit)) =
             res.into_iter().reduce(|(mut acc_index, mut acc_unit), (index, unit)| {

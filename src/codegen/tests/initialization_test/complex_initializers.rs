@@ -48,18 +48,16 @@ fn global_alias() {
 
     define void @__init() section "fn-$RUSTY$__init:v" {
     entry:
-      %deref = load [81 x i8]*, [81 x i8]** @ps, align 8
       store [81 x i8]* @s, [81 x i8]** @ps, align 8
       ret void
     }
     "###);
 }
 
-
 #[test]
 fn global_reference_to() {
     let result = codegen(
-      r#"
+        r#"
       VAR_GLOBAL
         s: STRING := 'hello world!';
         ps: REFERENCE TO STRING := REF(s);
@@ -76,13 +74,11 @@ fn global_reference_to() {
 
     define void @__init() section "fn-$RUSTY$__init:v" {
     entry:
-      %deref = load [81 x i8]*, [81 x i8]** @ps, align 8
       store [81 x i8]* @s, [81 x i8]** @ps, align 8
       ret void
     }
     "###);
 }
-
 
 #[test]
 fn init_functions_generated_for_programs() {
