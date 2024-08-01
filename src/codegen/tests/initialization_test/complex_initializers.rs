@@ -390,3 +390,77 @@ fn edge_case() {
     }
     "###);
 }
+
+
+#[test]
+fn shenanigans() {
+    let res = codegen(
+        r#"        
+        FUNCTION_BLOCK foo 
+        VAR_INPUT
+            s: STRING;
+        END_VAR
+        VAR
+            pi: REF_TO INT := REF(s); // not an int-pointer
+            ps: LWORD := ADR(s) // address of an input-variable
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+        VAR
+            fb: foo;
+            s: STRING;
+        END_VAR
+            fb(s);
+        END_FUNCTION
+        "#,
+    );
+
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %foo = type { [81 x i8], i16*, i64 }
+
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r3s8u81pi16u64"
+
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v[s8u81]" {
+    entry:
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %ps = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      ret void
+    }
+
+    define i32 @main() section "fn-$RUSTY$main:i32" {
+    entry:
+      %main = alloca i32, align 4
+      %fb = alloca %foo, align 8
+      %s = alloca [81 x i8], align 1
+      %0 = bitcast %foo* %fb to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%foo, %foo* @__foo__init, i32 0, i32 0, i32 0), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      %1 = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %main, align 4
+      %2 = getelementptr inbounds %foo, %foo* %fb, i32 0, i32 0
+      %3 = bitcast [81 x i8]* %2 to i8*
+      %4 = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 %4, i32 80, i1 false)
+      call void @foo(%foo* %fb)
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+    "###);
+}
