@@ -156,7 +156,6 @@ pub fn generate_data_types<'ink>(
             .into_iter()
             .map(|(name, ty)| {
                 if index.type_has_init_function(name) {
-                    // XXX: this can cause bugs if failing to generate an initializer in a POU which as an init fn
                     init_later += 1;
                 }
                 errors

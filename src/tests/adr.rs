@@ -8,3 +8,4 @@ mod strings_adr;
 mod structs_adr;
 mod util_macros;
 mod vla_adr;
+mod initializer_functions_adr;

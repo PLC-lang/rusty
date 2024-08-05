@@ -1,4 +1,5 @@
-use plc_ast::provider::IdProvider;
+use insta::assert_debug_snapshot;
+use plc_ast::{ast::PouType, provider::IdProvider};
 
 use crate::test_utils::tests::{annotate_and_lower_with_ids, index_with_ids};
 
@@ -22,12 +23,67 @@ fn function_block_init_fn_created() {
 
     // THEN we expect the index to now have a corresponding init function
     assert!(index.find_pou("__init_foo").is_some());
-    // AND we expect a new unit to be created for it
+    // AND we expect a new function to be created for it
     let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
-    let init_foo = &units[1].implementations[0];
-    assert_eq!(init_foo.name, "__init_foo");
+    let init_foo = &units[1];
+    let implementation = &init_foo.implementations[0];
+    assert_eq!(implementation.name, "__init_foo");
+    assert_eq!(implementation.pou_type, PouType::Function);
 
-    //
+    // we expect this function to have a single parameter "self", being an instance of the initialized POU
+    assert_debug_snapshot!(init_foo.units[0].variable_blocks[0].variables[0], @r###"
+    Variable {
+        name: "self",
+        data_type: DataTypeReference {
+            referenced_type: "foo",
+        },
+    }
+    "###);
+    
+    // this init-function is expected to have a single assignment statement in its function body
+    let statements = &implementation.statements;
+    assert_eq!(statements.len(), 1);
+    assert_debug_snapshot!(statements[0], @r###"
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "ps",
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "self",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+        right: CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "REF",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "s",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+    }
+    "###);
 }
 
 // TODO: rewrite previous index tests to test for hits after lowering - pou init functions are no longer registered in the index before the lowering stage

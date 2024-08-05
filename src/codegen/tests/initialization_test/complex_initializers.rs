@@ -247,7 +247,6 @@ fn nested_initializer_pous() {
 
         FUNCTION_BLOCK bar
         VAR 
-            str_ref : REF_TO STRING := REF(str);
             b: baz;
         END_VAR
             b.print();
