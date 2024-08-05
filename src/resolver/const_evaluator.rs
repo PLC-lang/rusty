@@ -412,7 +412,9 @@ fn evaluate_with_target_hint(
                                     "Cannot resolve constant enum {enum_name}#{ref_name}."
                                 ))
                             })
-                            .and_then(|v| resolve_const_reference(v, ref_name, index, target_type, scope, lhs));
+                            .and_then(|v| {
+                                resolve_const_reference(v, ref_name, index, target_type, scope, lhs)
+                            });
                     } else {
                         return Err(UnresolvableKind::Misc("Cannot resolve unknown constant.".to_string()));
                     }
@@ -599,7 +601,7 @@ fn resolve_const_reference(
     index: &Index,
     target_type: Option<&str>,
     scope: Option<&str>,
-    lhs: Option<&str>
+    lhs: Option<&str>,
 ) -> Result<Option<AstNode>, UnresolvableKind> {
     if !variable.is_constant() {
         if !target_type
@@ -607,12 +609,7 @@ fn resolve_const_reference(
         {
             return Err(UnresolvableKind::Misc(format!("`{name}` is no const reference")));
         } else {
-            return Err(UnresolvableKind::Address(AddressInitialization::new(
-                None,
-                target_type,
-                scope,
-                lhs,
-            )));
+            return Err(UnresolvableKind::Address(AddressInitialization::new(None, target_type, scope, lhs)));
         }
     }
 

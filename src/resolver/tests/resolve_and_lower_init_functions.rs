@@ -39,7 +39,7 @@ fn function_block_init_fn_created() {
         },
     }
     "###);
-    
+
     // this init-function is expected to have a single assignment statement in its function body
     let statements = &implementation.statements;
     assert_eq!(statements.len(), 1);

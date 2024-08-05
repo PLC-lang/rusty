@@ -296,17 +296,17 @@ fn nested_initializer_pous() {
     source_filename = "main"
 
     %foo = type { [81 x i8]*, %bar }
-    %bar = type { [81 x i8]*, %baz }
+    %bar = type { %baz }
     %baz = type { [81 x i8]* }
     %mainProg = type { [81 x i8]*, %foo }
     %sideProg = type { [81 x i8]*, %foo }
 
     @str = global [81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$str:s8u81"
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r2ps8u81r2ps8u81r1ps8u81"
-    @__bar__init = unnamed_addr constant %bar zeroinitializer, section "var-$RUSTY$__bar__init:r2ps8u81r1ps8u81"
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r2ps8u81r1r1ps8u81"
+    @__bar__init = unnamed_addr constant %bar zeroinitializer, section "var-$RUSTY$__bar__init:r1r1ps8u81"
     @__baz__init = unnamed_addr constant %baz zeroinitializer, section "var-$RUSTY$__baz__init:r1ps8u81"
-    @mainProg_instance = global %mainProg zeroinitializer, section "var-$RUSTY$mainProg_instance:r2ps8u81r2ps8u81r2ps8u81r1ps8u81"
-    @sideProg_instance = global %sideProg zeroinitializer, section "var-$RUSTY$sideProg_instance:r2ps8u81r2ps8u81r2ps8u81r1ps8u81"
+    @mainProg_instance = global %mainProg zeroinitializer, section "var-$RUSTY$mainProg_instance:r2ps8u81r2ps8u81r1r1ps8u81"
+    @sideProg_instance = global %sideProg zeroinitializer, section "var-$RUSTY$sideProg_instance:r2ps8u81r2ps8u81r1r1ps8u81"
 
     define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
     entry:
@@ -319,8 +319,7 @@ fn nested_initializer_pous() {
 
     define void @bar(%bar* %0) section "fn-$RUSTY$bar:v" {
     entry:
-      %str_ref = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 1
+      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       call void @baz.print(%baz* %b)
       ret void
     }
@@ -360,8 +359,7 @@ fn nested_initializer_pous() {
 
     define void @bar.print(%bar* %0) section "fn-$RUSTY$bar.print:v" {
     entry:
-      %str_ref = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 1
+      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 
@@ -385,7 +383,7 @@ fn nested_initializer_pous() {
       ret void
     }
 
-    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr2ps8u81r2ps8u81r1ps8u81]" {
+    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr2ps8u81r1r1ps8u81]" {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
@@ -395,19 +393,6 @@ fn nested_initializer_pous() {
       %deref1 = load %foo*, %foo** %self, align 8
       %b = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
       call void @__init_bar(%bar* %b)
-      ret void
-    }
-
-    define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr2ps8u81r1ps8u81]" {
-    entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
-      %str_ref = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
-      store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
-      %deref1 = load %bar*, %bar** %self, align 8
-      %b = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 1
-      call void @__init_baz(%baz* %b)
       ret void
     }
 
@@ -421,7 +406,7 @@ fn nested_initializer_pous() {
       ret void
     }
 
-    define void @__init_mainprog(%mainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr2ps8u81r2ps8u81r2ps8u81r1ps8u81]" {
+    define void @__init_mainprog(%mainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr2ps8u81r2ps8u81r1r1ps8u81]" {
     entry:
       %self = alloca %mainProg*, align 8
       store %mainProg* %0, %mainProg** %self, align 8
@@ -434,7 +419,7 @@ fn nested_initializer_pous() {
       ret void
     }
 
-    define void @__init_sideprog(%sideProg* %0) section "fn-$RUSTY$__init_sideprog:v[pr2ps8u81r2ps8u81r2ps8u81r1ps8u81]" {
+    define void @__init_sideprog(%sideProg* %0) section "fn-$RUSTY$__init_sideprog:v[pr2ps8u81r2ps8u81r1r1ps8u81]" {
     entry:
       %self = alloca %sideProg*, align 8
       store %sideProg* %0, %sideProg** %self, align 8
@@ -444,6 +429,16 @@ fn nested_initializer_pous() {
       %deref1 = load %sideProg*, %sideProg** %self, align 8
       %f = getelementptr inbounds %sideProg, %sideProg* %deref1, i32 0, i32 1
       call void @__init_foo(%foo* %f)
+      ret void
+    }
+
+    define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr1r1ps8u81]" {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %b = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__init_baz(%baz* %b)
       ret void
     }
     "###);

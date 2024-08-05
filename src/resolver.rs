@@ -769,12 +769,6 @@ impl StringLiterals {
     }
 }
 
-// #[derive(Default, Debug)]
-// pub struct InitializerFunctions<'rslv> {
-//     candidates: FxIndexMap<String, Vec<&'rslv InitFunctionData>>, /* Scope,  Info */
-//     requires_init_fn: IndexSet<>
-// }
-
 pub type InitializerFunctions = FxIndexMap<String, InitAssignment>;
 
 pub trait Init<'rslv>
@@ -821,31 +815,19 @@ impl<'rslv> Init<'rslv> for InitializerFunctions {
 }
 
 pub type InitAssignment = FxIndexMap<String, Option<AstNode>>;
-trait InitData
+trait InitEntry
 where
     Self: Sized + Default,
 {
     fn new(lhs_name: &str, initializer: Option<AstNode>) -> Self;
-    // fn insert(
-    //     &mut self,
-    //     target_type: &str,
-    //     initializer: Option<&AstNode>,
-    // ) -> Result<Option<AstNode>>;
 }
 
-impl InitData for InitAssignment {
+impl InitEntry for InitAssignment {
     fn new(lhs_name: &str, initializer: Option<AstNode>) -> Self {
         let mut map = Self::default();
         map.insert(lhs_name.into(), initializer);
         map
     }
-    // fn insert(
-    //     &mut self,
-    //     target_type: &str,
-    //     initializer: Option<&AstNode>,
-    // ) -> Result<Option<AstNode>> {
-    //     Ok(self.insert(target_type.into(), initializer.cloned()).flatten())
-    // }
 }
 
 impl<'i> TypeAnnotator<'i> {
@@ -962,7 +944,7 @@ impl<'i> TypeAnnotator<'i> {
                                 },
                                 initializer: None,
                                 address: None,
-                                location: location.clone(), // TODO: use source location of initialized POU here
+                                location: location.clone(),
                             }])],
                         "self".to_string(),
                     )
@@ -1139,7 +1121,7 @@ impl<'i> TypeAnnotator<'i> {
             file_name: "__init_globals".into(),
         };
 
-        pre_process(&mut init_unit, id_provider.clone()); // XXX: is this required?
+        pre_process(&mut init_unit, id_provider.clone());
         let new_index = index::visitor::visit(&init_unit);
 
         Some((new_index, init_unit))
@@ -1153,14 +1135,25 @@ impl<'i> TypeAnnotator<'i> {
         annotated_units: &mut Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
     ) {
         let mut candidates = InitializerFunctions::new(&unresolvables);
-        // revisit all member variables without explicit initializers to find initializer-call-dependencies
+        // revisit all member variables without explicit initializers to find initializer-dependencies
+        // FIXME: order of visitation matters here
         let mut revisit_unit = |unit: &CompilationUnit| {
             for pou in &unit.units {
                 for v in &pou.variable_blocks {
                     for var in &v.variables {
+                        // FIXME: instead of checking each variable, just create init functions for each pou, regardless of whether
+                        // or not it is needed.
                         let dt_name = &var.data_type_declaration.get_name().unwrap_or_default();
-                        if candidates.contains_key(*dt_name) || all_annotations.new_initializers.contains_key(*dt_name){
-                            all_annotations.new_initializers.insert(pou.name.to_string(), InitAssignment::new(var.get_name(), None));
+                        if candidates.contains_key(*dt_name)
+                            || all_annotations.new_initializers.contains_key(*dt_name)
+                        {
+                            all_annotations
+                                .new_initializers
+                                .entry(pou.name.to_string())
+                                .and_modify(|it| {
+                                    it.insert(var.get_name().to_string(), var.initializer.clone());
+                                })
+                                .or_insert(InitAssignment::new(var.get_name(), var.initializer.clone()));
                         }
                     }
                 }
@@ -1171,7 +1164,6 @@ impl<'i> TypeAnnotator<'i> {
             revisit_unit(unit)
         }
         candidates.import(std::mem::take(&mut all_annotations.new_initializers));
-
 
         let res = TypeAnnotator::create_init_units(&*full_index, id_provider, &candidates);
 
