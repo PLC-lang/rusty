@@ -782,8 +782,12 @@ pub fn validate_pointer_assignment<T>(
 ) where
     T: AnnotationMap,
 {
-    let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
-    let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
+    let type_info_lhs = context
+        .index
+        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_lhs.get_type_information()));
+    let type_info_rhs = context
+        .index
+        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_rhs.get_type_information()));
 
     if type_info_lhs.is_array() && type_info_rhs.is_array() {
         let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
