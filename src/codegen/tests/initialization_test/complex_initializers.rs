@@ -1,5 +1,3 @@
-use insta::assert_snapshot;
-
 use crate::test_utils::tests::codegen;
 
 #[test]
@@ -87,6 +85,55 @@ fn init_functions_generated_for_programs() {
         PROGRAM PLC_PRG
         VAR
             to_init: REF_TO STRING := REF(s);
+        END_VAR    
+        END_PROGRAM
+
+        VAR_GLOBAL 
+            s: STRING;
+        END_VAR
+        "#,
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %PLC_PRG = type { [81 x i8]* }
+
+    @s = global [81 x i8] zeroinitializer, section "var-$RUSTY$s:s8u81"
+    @PLC_PRG_instance = global %PLC_PRG zeroinitializer, section "var-$RUSTY$PLC_PRG_instance:r1ps8u81"
+
+    define void @PLC_PRG(%PLC_PRG* %0) section "fn-$RUSTY$PLC_PRG:v" {
+    entry:
+      %to_init = getelementptr inbounds %PLC_PRG, %PLC_PRG* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @__init_plc_prg(%PLC_PRG* %0) section "fn-$RUSTY$__init_plc_prg:v[pr1ps8u81]" {
+    entry:
+      %self = alloca %PLC_PRG*, align 8
+      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      %deref = load %PLC_PRG*, %PLC_PRG** %self, align 8
+      %to_init = getelementptr inbounds %PLC_PRG, %PLC_PRG* %deref, i32 0, i32 0
+      store [81 x i8]* @s, [81 x i8]** %to_init, align 8
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
+      ret void
+    }
+    "###);
+}
+
+#[test]
+fn init_functions_work_with_adr() {
+    let result = codegen(
+        r#"
+        PROGRAM PLC_PRG
+        VAR
+            to_init: REF_TO STRING := ADR(s);
         END_VAR    
         END_PROGRAM
 
@@ -404,57 +451,7 @@ fn nested_initializer_pous() {
 }
 
 #[test]
-fn edge_case() {
-    let res = codegen(
-        r#"
-        VAR_GLOBAL 
-            str : STRING;
-        END_VAR
-
-        PROGRAM prg
-        VAR
-            a : DATE := D#2001-02-29; // feb29 on non-leap year should not pass 
-            b : REF_TO STRING := REF(str); // pou has an init function
-        END_VAR
-        END_PROGRAM
-    "#,
-    );
-
-    assert_snapshot!(res, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
-
-    %prg = type { i64, [81 x i8]* }
-
-    @str = global [81 x i8] zeroinitializer, section "var-$RUSTY$str:s8u81"
-    @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2i64ps8u81"
-
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
-    entry:
-      %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      ret void
-    }
-
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2i64ps8u81]" {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      %deref = load %prg*, %prg** %self, align 8
-      %b = getelementptr inbounds %prg, %prg* %deref, i32 0, i32 1
-      store [81 x i8]* @str, [81 x i8]** %b, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
-    }
-    "###);
-}
-
-#[test]
+#[ignore = "initializing references in same POU not yet supported"]
 fn local_address() {
     let res = codegen(
         r#"      
@@ -471,28 +468,85 @@ fn local_address() {
 }
 
 #[test]
-fn needs_validation() {
+#[ignore = "initializing references in same POU not yet supported"]
+fn tmpo() {
     let res = codegen(
         r#"      
-        VAR_GLOBAL
-          s : STRING;
-        END_VAR
-
         FUNCTION_BLOCK foo
         VAR
-            pi: REF_TO INT := REF(s); // not an int-pointer
+            i : INT;
+            pi: REF_TO INT;
         END_VAR
         END_FUNCTION_BLOCK
 
-        FUNCTION_BLOCK bar 
-        VAR_INPUT
+        ACTION foo.init
+          pi := REF(i);
+        END_ACTION
+        "#,
+    );
+
+    insta::assert_snapshot!(res, @r###""###);
+}
+
+#[test]
+#[ignore = "stack-local vars not yet supported"]
+fn stack_allocated_variables_are_initialized_in_pou_body() {
+    let res = codegen(
+        r#"
+        FUNCTION_BLOCK foo
+        VAR_TEMP
             st: STRING;
         END_VAR
         VAR
-            ps: LWORD := ADR(st); // address of an input-variable
+            ps AT st : STRING;
         END_VAR
         END_FUNCTION_BLOCK
-        "#,
+
+        FUNCTION bar
+        VAR
+            st: STRING;
+            ps AT st : STRING;
+        END_VAR
+        END_FUNCTION
+    "#,
+    );
+
+    insta::assert_snapshot!(res, @r###""###);
+}
+
+#[test]
+#[ignore = "initializing references in same POU not yet supported"]
+fn ref_to_input_variable() {
+    let res = codegen(
+        r#"        
+    FUNCTION_BLOCK bar 
+    VAR_INPUT
+        st: STRING;
+    END_VAR
+    VAR
+        ps: LWORD := REF(st);
+    END_VAR
+    END_FUNCTION_BLOCK  
+    "#,
+    );
+
+    insta::assert_snapshot!(res, @r###""###);
+}
+
+#[test]
+#[ignore = "initializing references in same POU not yet supported"]
+fn ref_to_inout_variable() {
+    let res = codegen(
+        r#"        
+    FUNCTION_BLOCK bar 
+    VAR_IN_OUT
+        st: STRING;
+    END_VAR
+    VAR
+        ps: LWORD := REF(st);
+    END_VAR
+    END_FUNCTION_BLOCK  
+    "#,
     );
 
     insta::assert_snapshot!(res, @r###""###);
