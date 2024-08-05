@@ -1215,6 +1215,9 @@
 <a href="#1213" id="1213">1213</a>
 <a href="#1214" id="1214">1214</a>
 <a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -2071,7 +2074,10 @@
         }),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }),
     }
-    .zip(<span class="prelude-val">Some</span>(lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAssignment).then(|| parse_expression(lexer))))
+    .zip(<span class="prelude-val">Some</span>(
+        (lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAssignment) || lexer.try_consume(<span class="kw-2">&amp;</span>KeywordReferenceAssignment))
+            .then(|| parse_expression(lexer)),
+    ))
 }
 
 <span class="kw">fn </span>parse_enum_type_definition(
