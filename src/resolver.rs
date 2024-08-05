@@ -791,7 +791,7 @@ impl<'rslv> Init<'rslv> for InitializerFunctions {
         candidates
             .iter()
             .filter_map(|it| {
-                if let Some(index::const_expressions::UnresolvableKind::InitLater(init)) = &it.kind {
+                if let Some(index::const_expressions::UnresolvableKind::Address(init)) = &it.kind {
                     Some((init.scope.clone().unwrap_or("__global".into()), init.to_owned()))
                 } else {
                     None
@@ -1028,7 +1028,7 @@ impl<'i> TypeAnnotator<'i> {
                     name: init_fn_name.clone(),
                     type_name: init_fn_name.clone(),
                     linkage: LinkageType::Internal,
-                    pou_type: PouType::Function,
+                    pou_type: PouType::Function, // XXX: would a distinct POU type make sense here, linking this function with the POU to be initialized? (similar to actions)
                     statements,
                     location: location.clone(),
                     name_location: location.clone(),

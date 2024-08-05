@@ -84,25 +84,22 @@ impl ConstExpression {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct InitFunctionData {
+pub struct AddressInitialization {
     pub initializer: Option<AstNode>,
     pub target_type_name: String, // is this even needed?
     pub scope: Option<String>,
     pub lhs: Option<String>,
 }
 
-impl InitFunctionData {
+impl AddressInitialization {
     pub fn new(
         initializer: Option<&AstNode>,
         target_type: Option<&str>,
         scope: Option<&str>,
         target: Option<&str>,
     ) -> Self {
-        InitFunctionData {
+        AddressInitialization {
             initializer: initializer.cloned(),
-            // target_type_name: target_type
-            //     .map(|it| Self::into_flat_reference_name(it, scope))
-            //     .expect("No later init without a valid target type to init to."), // TODO: remove unwrap
             target_type_name: target_type.unwrap_or_default().to_string(),
             scope: scope.map(|it| it.into()),
             lhs: target.map(|it| it.into()),
@@ -119,14 +116,14 @@ pub enum UnresolvableKind {
     Overflow(String, SourceLocation),
 
     /// Indicates that the const expression is not resolvable before initialization during codegen
-    InitLater(InitFunctionData),
+    Address(AddressInitialization),
 }
 
 impl UnresolvableKind {
     pub fn get_reason(&self) -> &str {
         match self {
             UnresolvableKind::Misc(val) | UnresolvableKind::Overflow(val, ..) => val,
-            UnresolvableKind::InitLater { .. } => "Init later",
+            UnresolvableKind::Address { .. } => "Try to re-resolve during codegen",
         }
     }
 

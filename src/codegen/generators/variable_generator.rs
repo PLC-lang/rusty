@@ -133,7 +133,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             global_ir_variable = global_ir_variable.make_external();
         } else {
             let initial_value = if let Some(ConstExpression::Unresolvable {
-                reason: UnresolvableKind::InitLater { .. },
+                reason: UnresolvableKind::Address { .. },
                 ..
             }) = global_variable
                 .initial_value

@@ -11,7 +11,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{
-        const_expressions::{ConstExpression, ConstId, InitFunctionData, UnresolvableKind},
+        const_expressions::{AddressInitialization, ConstExpression, ConstId, UnresolvableKind},
         Index,
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
@@ -412,7 +412,7 @@ fn evaluate_with_target_hint(
                                     "Cannot resolve constant enum {enum_name}#{ref_name}."
                                 ))
                             })
-                            .and_then(|v| resolve_const_reference(v, ref_name, index, target_type, scope));
+                            .and_then(|v| resolve_const_reference(v, ref_name, index, target_type, scope, lhs));
                     } else {
                         return Err(UnresolvableKind::Misc("Cannot resolve unknown constant.".to_string()));
                     }
@@ -431,7 +431,7 @@ fn evaluate_with_target_hint(
                         base.as_ref().and_then(|it| it.get_flat_reference_name()).or(scope),
                         std::slice::from_ref(&name),
                     )
-                    .map(|variable| resolve_const_reference(variable, name, index, target_type, scope))
+                    .map(|variable| resolve_const_reference(variable, name, index, target_type, scope, lhs))
                     .transpose()?
                     .flatten()
             } else {
@@ -577,7 +577,7 @@ fn evaluate_with_target_hint(
                 // arg to const fn call could not be found in the index => unresolvable (only ref/adr are supported for now, must have arg)
                 Ok(None) => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {arg:#?}"))),
                 // we found a local or global parameter for REF/ADR, but it cannot be resolved as constant since the address is not yet known. Resolve during codegen
-                _ => Err(UnresolvableKind::InitLater(InitFunctionData::new(
+                _ => Err(UnresolvableKind::Address(AddressInitialization::new(
                     Some(initial),
                     target_type,
                     scope,
@@ -599,6 +599,7 @@ fn resolve_const_reference(
     index: &Index,
     target_type: Option<&str>,
     scope: Option<&str>,
+    lhs: Option<&str>
 ) -> Result<Option<AstNode>, UnresolvableKind> {
     if !variable.is_constant() {
         if !target_type
@@ -606,11 +607,11 @@ fn resolve_const_reference(
         {
             return Err(UnresolvableKind::Misc(format!("`{name}` is no const reference")));
         } else {
-            return Err(UnresolvableKind::InitLater(InitFunctionData::new(
+            return Err(UnresolvableKind::Address(AddressInitialization::new(
                 None,
                 target_type,
                 scope,
-                Some(name),
+                lhs,
             )));
         }
     }
