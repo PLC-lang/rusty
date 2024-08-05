@@ -983,16 +983,16 @@ impl<'i> TypeAnnotator<'i> {
 
                 let mut statements = init
                     .iter()
-                    .map(|(lhs_name, initializer)| {
+                    .filter_map(|(lhs_name, initializer)| {
                         let lhs = create_member_reference(
                             lhs_name,
                             id_provider.clone(),
                             Some(create_member_reference(&ident, id_provider.clone(), None)),
                         );
 
-                        let Some(node) = initializer else { unimplemented!() };
+                        let Some(node) = initializer else { return None };
 
-                        AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id())
+                        Some(AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
                     })
                     .collect::<Vec<_>>();
 
@@ -1152,9 +1152,28 @@ impl<'i> TypeAnnotator<'i> {
         id_provider: &IdProvider,
         annotated_units: &mut Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
     ) {
-        let mut init_fn_candidates = InitializerFunctions::new(&unresolvables);
-        init_fn_candidates.import(std::mem::take(&mut all_annotations.new_initializers));
-        let res = TypeAnnotator::create_init_units(&*full_index, id_provider, &init_fn_candidates);
+        let mut candidates = InitializerFunctions::new(&unresolvables);
+        // revisit all member variables without explicit initializers to find initializer-call-dependencies
+        let mut revisit_unit = |unit: &CompilationUnit| {
+            for pou in &unit.units {
+                for v in &pou.variable_blocks {
+                    for var in &v.variables {
+                        let dt_name = &var.data_type_declaration.get_name().unwrap_or_default();
+                        if candidates.contains_key(*dt_name) || all_annotations.new_initializers.contains_key(*dt_name){
+                            all_annotations.new_initializers.insert(pou.name.to_string(), InitAssignment::new(var.get_name(), None));
+                        }
+                    }
+                }
+            }
+        };
+
+        for unit in annotated_units.iter().map(|(units, _, _)| units) {
+            revisit_unit(unit)
+        }
+        candidates.import(std::mem::take(&mut all_annotations.new_initializers));
+
+
+        let res = TypeAnnotator::create_init_units(&*full_index, id_provider, &candidates);
 
         if let Some((mut init_index, init_unit)) =
             res.into_iter().reduce(|(mut acc_index, mut acc_unit), (index, unit)| {
@@ -1175,7 +1194,7 @@ impl<'i> TypeAnnotator<'i> {
 
         // TODO: clean up imports
         if let Some((mut new_index, init_unit)) =
-            TypeAnnotator::create_init_unit(&*full_index, id_provider, &init_fn_candidates)
+            TypeAnnotator::create_init_unit(&*full_index, id_provider, &candidates)
         {
             full_index.import(std::mem::take(&mut new_index));
             let (a, deps, literals) =
