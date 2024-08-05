@@ -684,9 +684,10 @@ pub struct AnnotationMapImpl {
     /// x := 10; // a call to `CheckRangeUnsigned` is maped to `10`
     hidden_function_calls: FxIndexMap<AstId, AstNode>,
 
-    // newly created types, units and initializers
+    // An index of newly created types
     pub new_index: Index,
-    pub new_initializers: InitializerFunctions,
+    // Newly encountered initializers
+    pub new_initializers: Initializers,
 }
 
 impl AnnotationMapImpl {
@@ -769,42 +770,46 @@ impl StringLiterals {
     }
 }
 
-pub type InitializerFunctions = FxIndexMap<String, InitAssignment>;
+/// POUs and datatypes which require initialization via generated function call.
+/// The key corresponds to the scope in which the initializers were encountered.
+/// The value corresponds to the assignment data, with the key being the assigned variable name
+/// and value being the initializer `AstNode`.
+pub type Initializers = FxIndexMap<String, InitAssignments>;
 
 pub trait Init<'rslv>
 where
     Self: Sized + Default,
 {
     fn new(candidates: &'rslv [const_evaluator::UnresolvableConstant]) -> Self;
+    fn insert_initializer(&mut self, scope: &str, var_name: &str, initializer: &Option<AstNode>);
     fn import(&mut self, other: Self);
 }
 
-impl<'rslv> Init<'rslv> for InitializerFunctions {
+impl<'rslv> Init<'rslv> for Initializers {
     fn new(candidates: &'rslv [const_evaluator::UnresolvableConstant]) -> Self {
-        let mut res = Self::default();
+        let mut assignments = Self::default();
         candidates
             .iter()
             .filter_map(|it| {
                 if let Some(index::const_expressions::UnresolvableKind::Address(init)) = &it.kind {
-                    Some((init.scope.clone().unwrap_or("__global".into()), init.to_owned()))
+                    Some((init.scope.clone().unwrap_or("__global".to_string()), init))
                 } else {
                     None
                 }
             })
-            .for_each(|(key, value)| match res.entry(key) {
-                indexmap::map::Entry::Occupied(o) => {
-                    o.into_mut()
-                        .insert(value.lhs.unwrap_or(value.target_type_name), value.initializer.clone());
-                }
-                indexmap::map::Entry::Vacant(v) => {
-                    v.insert(InitAssignment::new(
-                        &value.lhs.unwrap_or(value.target_type_name),
-                        value.initializer,
-                    ));
-                }
+            .for_each(|(scope, data)| {
+                assignments.insert_initializer(
+                    &scope,
+                    data.lhs.as_ref().unwrap_or(&data.target_type_name),
+                    &data.initializer,
+                );
             });
 
-        res
+        assignments
+    }
+
+    fn insert_initializer(&mut self, scope: &str, var_name: &str, initializer: &Option<AstNode>) {
+        self.entry(scope.to_string()).or_default().insert(var_name.to_string(), initializer.clone());
     }
 
     fn import(&mut self, other: Self) {
@@ -814,21 +819,7 @@ impl<'rslv> Init<'rslv> for InitializerFunctions {
     }
 }
 
-pub type InitAssignment = FxIndexMap<String, Option<AstNode>>;
-trait InitEntry
-where
-    Self: Sized + Default,
-{
-    fn new(lhs_name: &str, initializer: Option<AstNode>) -> Self;
-}
-
-impl InitEntry for InitAssignment {
-    fn new(lhs_name: &str, initializer: Option<AstNode>) -> Self {
-        let mut map = Self::default();
-        map.insert(lhs_name.into(), initializer);
-        map
-    }
-}
+pub type InitAssignments = FxIndexMap<String, Option<AstNode>>;
 
 impl<'i> TypeAnnotator<'i> {
     /// constructs a new TypeAnnotater that works with the given index for type-lookups
@@ -916,7 +907,7 @@ impl<'i> TypeAnnotator<'i> {
     pub fn create_init_units(
         index: &Index,
         id_provider: &IdProvider,
-        initializers: &InitializerFunctions,
+        initializers: &Initializers,
     ) -> Vec<(Index, CompilationUnit)> {
         initializers
             .iter()
@@ -1038,7 +1029,7 @@ impl<'i> TypeAnnotator<'i> {
     pub fn create_init_unit(
         index: &Index,
         id_provider: &IdProvider,
-        init_fns: &InitializerFunctions,
+        init_fns: &Initializers,
     ) -> Option<(Index, CompilationUnit)> {
         if init_fns.is_empty() {
             return None;
@@ -1134,7 +1125,7 @@ impl<'i> TypeAnnotator<'i> {
         id_provider: &IdProvider,
         annotated_units: &mut Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
     ) {
-        let mut candidates = InitializerFunctions::new(&unresolvables);
+        let mut candidates = Initializers::new(&unresolvables);
         // revisit all member variables without explicit initializers to find initializer-dependencies
         // FIXME: order of visitation matters here
         let mut revisit_unit = |unit: &CompilationUnit| {
@@ -1147,13 +1138,11 @@ impl<'i> TypeAnnotator<'i> {
                         if candidates.contains_key(*dt_name)
                             || all_annotations.new_initializers.contains_key(*dt_name)
                         {
-                            all_annotations
-                                .new_initializers
-                                .entry(pou.name.to_string())
-                                .and_modify(|it| {
-                                    it.insert(var.get_name().to_string(), var.initializer.clone());
-                                })
-                                .or_insert(InitAssignment::new(var.get_name(), var.initializer.clone()));
+                            all_annotations.new_initializers.insert_initializer(
+                                &pou.name,
+                                var.get_name(),
+                                &var.initializer,
+                            );
                         }
                     }
                 }
@@ -1184,7 +1173,6 @@ impl<'i> TypeAnnotator<'i> {
             full_index.import(std::mem::take(&mut all_annotations.new_index));
         }
 
-        // TODO: clean up imports
         if let Some((mut new_index, init_unit)) =
             TypeAnnotator::create_init_unit(&*full_index, id_provider, &candidates)
         {
@@ -1459,21 +1447,15 @@ impl<'i> TypeAnnotator<'i> {
         if variable_is_auto_deref_pointer && initializer_is_not_wrapped_in_ref_call {
             debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
             self.visit_statement(ctx, initializer);
-            // self.annotate(initializer, StatementAnnotation::Alias(initializer.clone()));
+
             let Some(lhs) = ctx.lhs else {
                 return;
             };
-            match self.annotation_map.new_initializers.entry(ctx.pou.unwrap_or("__global").to_string()) {
-                indexmap::map::Entry::Occupied(mut o) => {
-                    o.get_mut()
-                        .entry(lhs.into())
-                        .and_modify(|it| *it = Some(initializer.clone()))
-                        .or_insert(Some(initializer.clone()));
-                }
-                indexmap::map::Entry::Vacant(v) => {
-                    v.insert(InitAssignment::new(lhs, Some(initializer.clone())));
-                }
-            };
+            self.annotation_map.new_initializers.insert_initializer(
+                ctx.pou.unwrap_or("__global"),
+                lhs,
+                &Some(initializer.clone()),
+            );
         }
     }
 

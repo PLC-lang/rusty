@@ -1683,12 +1683,12 @@ fn string_type_alias_without_size_is_indexed() {
 }
 
 #[test]
-fn tmp5() {
+fn __init_function_is_indexed_unconditionally() {
     // GIVEN nothing
     // WHEN indexed
     let (_, index) = index("");
 
-    // THEN we expect an `__init` function to be declared regardless
+    // THEN we expect an `__init` function to be registered regardless
     let init = index.find_pou("__init");
     assert!(init.is_some());
 }

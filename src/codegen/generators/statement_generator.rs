@@ -279,7 +279,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         if self.annotations.get(left_statement).is_some_and(|it| {
             // TODO(mhasel): ideally the resolver decides which assignment statement to call when lowering the init functions,
-            // but this requires refactoring of how `aliases` and `reference to` LHS/RHS nodes are annotated. this works for now.
+            // but that requires refactoring of how `aliases` and `reference to` LHS/RHS nodes are annotated. this is a workaround.
             self.index.is_init_function(self.function_context.linking_context.get_call_name())
                 && (it.is_alias() || it.is_reference_to())
         }) {

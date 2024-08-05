@@ -11,7 +11,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{
-        const_expressions::{AddressInitialization, ConstExpression, ConstId, UnresolvableKind},
+        const_expressions::{ConstExpression, InitData, ConstId, UnresolvableKind},
         Index,
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
@@ -579,12 +579,7 @@ fn evaluate_with_target_hint(
                 // arg to const fn call could not be found in the index => unresolvable (only ref/adr are supported for now, must have arg)
                 Ok(None) => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {arg:#?}"))),
                 // we found a local or global parameter for REF/ADR, but it cannot be resolved as constant since the address is not yet known. Resolve during codegen
-                _ => Err(UnresolvableKind::Address(AddressInitialization::new(
-                    Some(initial),
-                    target_type,
-                    scope,
-                    lhs,
-                ))),
+                _ => Err(UnresolvableKind::Address(InitData::new(Some(initial), target_type, scope, lhs))),
             };
         }
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),
@@ -609,7 +604,7 @@ fn resolve_const_reference(
         {
             return Err(UnresolvableKind::Misc(format!("`{name}` is no const reference")));
         } else {
-            return Err(UnresolvableKind::Address(AddressInitialization::new(None, target_type, scope, lhs)));
+            return Err(UnresolvableKind::Address(InitData::new(None, target_type, scope, lhs)));
         }
     }
 

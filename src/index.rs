@@ -110,7 +110,7 @@ impl HardwareBinding {
                             expr.clone(),
                             typesystem::DINT_SIZE.to_string(),
                             scope.clone(),
-                            None, // XXX: might be worth adding
+                            None,
                         )
                     })
                     .collect(),
@@ -834,16 +834,18 @@ pub struct Index {
     global_variables: SymbolMap<String, VariableIndexEntry>,
 
     /// all struct initializers
-    global_initializers: SymbolMap<String, VariableIndexEntry>, // XXX: is an init-function per global_initializer sufficient?
+    global_initializers: SymbolMap<String, VariableIndexEntry>,
 
     /// all enum-members with their names
     enum_global_variables: SymbolMap<String, VariableIndexEntry>,
 
     // all pous,
-    pous: SymbolMap<String, PouIndexEntry>, // XXX: filter all stateful POUs and also add initializers
+    pous: SymbolMap<String, PouIndexEntry>,
 
-    init_functions: FxIndexMap<String, String>, // XXX: keep init fns separate in index? might make life easier down the line, but maybe merging with POUs is cleaner
-
+    // initializer functions are registered here in addition to the `pous` field. this is because they are
+    // excempt from certain validations/codegen will redirect certain statements and thus a quick lookup is advantageous
+    // init_functions: FxIndexMap<String, String>,
+    init_functions: FxIndexSet<String>,
     /// all implementations
     // we keep an IndexMap for implementations since duplication issues regarding implementations
     // is handled by the `pous` SymbolMap
@@ -969,8 +971,8 @@ impl Index {
         }
 
         //init functions
-        for (name, origin) in other.init_functions.drain(..) {
-            self.init_functions.insert(name.clone(), origin.clone());
+        for name in other.init_functions.drain(..) {
+            self.init_functions.insert(name.clone());
         }
 
         //labels
@@ -1015,11 +1017,9 @@ impl Index {
         import_from: &mut ConstExpressions,
         initializer_id: &Option<ConstId>,
     ) -> Option<ConstId> {
-        initializer_id.as_ref().and_then(|it| import_from.clone(it)).map(
-            |(init, target_type, scope, target)| {
-                self.get_mut_const_expressions().add_constant_expression(init, target_type, scope, target)
-            },
-        )
+        initializer_id.as_ref().and_then(|it| import_from.clone(it)).map(|(init, target_type, scope, lhs)| {
+            self.get_mut_const_expressions().add_constant_expression(init, target_type, scope, lhs)
+        })
     }
 
     /// imports the corresponding TypeSize (according to the given initializer-id) from the given ConstExpressions
@@ -1095,11 +1095,12 @@ impl Index {
             .find_type(container_name)
             .and_then(|it| it.find_member(variable_name))
             .or(self.find_enum_variant_in_pou(container_name, variable_name))
+            // underlying type of an `ACTION`
             .or(container_name
                 .rfind('.')
                 .map(|p| &container_name[..p])
                 .and_then(|qualifier| self.find_member(qualifier, variable_name)))
-            // 'self' instance of a POUs init function - behaves similar to an action
+            // 'self' instance of a POUs init function
             .or(container_name
                 .rfind('_')
                 .map(|p| &container_name[p + 1..])
@@ -1451,19 +1452,7 @@ impl Index {
 
     pub fn register_init_function(&mut self, name: &str) {
         let init_name = get_init_fn_name(name);
-        self.init_functions.insert(init_name.clone(), name.to_owned());
-
-        // let datatype = typesystem::DataType {
-        //     name: init_name.to_string(),
-        //     initial_value: None,
-        //     information: DataTypeInformation::Alias {
-        //         name: init_name.clone(),
-        //         referenced_type: name.to_string(),
-        //     },
-        //     nature: TypeNature::Derived,
-        //     location: SourceLocation::internal(), // TODO: add original pou location
-        // };
-        // self.register_pou_type(datatype);
+        self.init_functions.insert(init_name.clone());
     }
 
     pub fn register_global_init_function(&mut self) {
@@ -1477,7 +1466,7 @@ impl Index {
             is_generated: true,
         };
         self.register_pou(entry);
-        self.init_functions.insert("__init".to_string(), String::default());
+        self.init_functions.insert("__init".to_string());
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {

@@ -808,7 +808,7 @@ fn visit_struct(
         type_declaration.initializer.clone(),
         name,
         scope.clone(),
-        Some(name.into()), // TODO: is this the right name?
+        Some(name.into()),
     );
     index.register_type(typesystem::DataType {
         name: name.to_string(),

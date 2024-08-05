@@ -42,24 +42,8 @@ lazy_static! {
                 END_FUNCTION
             ",
                 annotation: None,
-                // annotation: Some(|annotator, _, operator, _, _| {
-                //     annotator.annotate(
-                //         operator, resolver::StatementAnnotation::Function {
-                //             return_type: LWORD_TYPE.into(), qualified_name: "ADR".to_string(), call_name: None
-                //         }
-                //     );
-                // }),
                 validation: Some(|validator, operator, parameters, _, _| {
-                    let Some(params) = parameters else {
-                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, 0, operator.get_location()));
-                        return;
-                    };
-
-                    let params = flatten_expression_list(params);
-
-                    if params.len() > 1 {
-                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, params.len(), operator.get_location()));
-                    }
+                    validate_argument_count(validator, operator, &parameters, 1);
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -109,16 +93,7 @@ lazy_static! {
                     );
                 }),
                 validation: Some(|validator, operator, parameters, _, _| {
-                    let Some(params) = parameters else {
-                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, 0, operator.get_location()));
-                        return;
-                    };
-
-                    let params = flatten_expression_list(params);
-
-                    if params.len() > 1 {
-                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, params.len(), operator.get_location()));
-                    }
+                    validate_argument_count(validator, operator, &parameters, 1);
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -819,6 +794,28 @@ fn validate_variable_length_array_bound_function(
             validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 1, operator.get_location()))
         }
         _ => unreachable!(),
+    }
+}
+
+fn validate_argument_count(
+    validator: &mut Validator,
+    operator: &AstNode,
+    parameters: &Option<&AstNode>,
+    expected: usize,
+) {
+    let Some(params) = parameters else {
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, 0, operator.get_location()));
+        return;
+    };
+
+    let params = flatten_expression_list(params);
+
+    if params.len() != expected {
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(
+            expected,
+            params.len(),
+            operator.get_location(),
+        ));
     }
 }
 

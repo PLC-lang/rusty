@@ -363,8 +363,6 @@ pub struct VariableBlock {
 
 impl VariableBlock {
     pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
-        // let mut block = self;
-        // block.variable_block_type = block_type;
         self.variable_block_type = block_type;
         self
     }

@@ -83,22 +83,24 @@ impl ConstExpression {
     }
 }
 
+/// Initializers which rely on code-execution/allocated memory addresses and are
+/// therefore not resolvable before the codegen stage
 #[derive(Debug, PartialEq, Clone)]
-pub struct AddressInitialization {
+pub struct InitData {
     pub initializer: Option<AstNode>,
-    pub target_type_name: String, // is this even needed?
+    pub target_type_name: String,
     pub scope: Option<String>,
     pub lhs: Option<String>,
 }
 
-impl AddressInitialization {
+impl InitData {
     pub fn new(
         initializer: Option<&AstNode>,
         target_type: Option<&str>,
         scope: Option<&str>,
         target: Option<&str>,
     ) -> Self {
-        AddressInitialization {
+        InitData {
             initializer: initializer.cloned(),
             target_type_name: target_type.unwrap_or_default().to_string(),
             scope: scope.map(|it| it.into()),
@@ -115,8 +117,8 @@ pub enum UnresolvableKind {
     /// Indicates that the const expression was not resolvable because it would yield an overflow.
     Overflow(String, SourceLocation),
 
-    /// Indicates that the const expression is not resolvable before initialization during codegen
-    Address(AddressInitialization),
+    /// Indicates that the const expression is not resolvable before codegen
+    Address(InitData),
 }
 
 impl UnresolvableKind {

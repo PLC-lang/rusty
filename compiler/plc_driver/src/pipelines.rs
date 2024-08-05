@@ -186,16 +186,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             units: annotated_units,
             index: full_index,
             annotations,
-        } //.lowered() ?
-
-        /*
-        LoweredProject {
-            project
-            units
-            index
-            annotations
         }
-         */
     }
 
     fn get_parsed_project(&self) -> &ParsedProject<T> {
