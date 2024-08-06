@@ -963,9 +963,9 @@ impl<'i> TypeAnnotator<'i> {
                             Some(create_member_reference(&ident, id_provider.clone(), None)),
                         );
 
-                        let Some(node) = initializer else { return None };
-
-                        Some(AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
+                        initializer.as_ref().map(|node| {
+                            AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id())
+                        })
                     })
                     .collect::<Vec<_>>();
 
