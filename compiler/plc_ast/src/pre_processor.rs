@@ -7,7 +7,7 @@ use plc_util::convention::internal_type_name;
 use crate::{
     ast::{
         flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable,
+        DataTypeDeclaration, HardwareAccess, Operator, Pou, UserTypeDeclaration, Variable, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -21,13 +21,13 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         let generic_types = preprocess_generic_structs(pou);
         unit.user_types.extend(generic_types);
 
-        let all_variables = pou
+        let local_variables = pou
             .variable_blocks
             .iter_mut()
             .flat_map(|it| it.variables.iter_mut())
             .filter(|it| should_generate_implicit_type(it));
 
-        for var in all_variables {
+        for var in local_variables {
             pre_process_variable_data_type(pou.name.as_str(), var, &mut unit.user_types)
         }
 
@@ -36,15 +36,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     }
 
     //process all variables from GVLs
-    let all_variables = unit
-        .global_vars
-        .iter_mut()
-        .flat_map(|gv| gv.variables.iter_mut())
-        .filter(|it| should_generate_implicit_type(it));
-
-    for var in all_variables {
-        pre_process_variable_data_type("global", var, &mut unit.user_types)
-    }
+    process_global_variables(unit, &mut id_provider);
 
     //process all variables in dataTypes
     let mut new_types = vec![];
@@ -148,6 +140,61 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         }
     }
     unit.user_types.append(&mut new_types);
+}
+
+fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProvider) {
+    let mut mangled_globals = Vec::new();
+
+    for global_var in unit.global_vars.iter_mut().flat_map(|block| block.variables.iter_mut()) {
+        let ref_ty = global_var.data_type_declaration.get_inner_pointer_ty();
+
+        if should_generate_implicit_type(global_var) {
+            pre_process_variable_data_type("global", global_var, &mut unit.user_types)
+        }
+
+        // In any case, we have to inject initializers into aliased hardware access variables
+        if let Some(ref node) = global_var.address {
+            if let AstStatement::HardwareAccess(HardwareAccess { address, .. }) = &node.stmt {
+                let mut name = address
+                    .iter()
+                    .flat_map(|node| node.get_literal_integer_value())
+                    .map(|val| val.to_string())
+                    .collect::<Vec<_>>()
+                    .join(".");
+
+                // I think "a AT %I*: DWORD;" should trigger this
+                if name.is_empty() {
+                    name = "FIXME".to_string();
+                }
+
+                let mangled_initializer = AstFactory::create_member_reference(
+                    AstFactory::create_identifier(&name, SourceLocation::internal(), id_provider.next_id()),
+                    None,
+                    id_provider.next_id(),
+                );
+
+                global_var.initializer = Some(mangled_initializer);
+
+                let internal_mangled_var = Variable {
+                    name,
+                    data_type_declaration: ref_ty.unwrap_or(global_var.data_type_declaration.clone()),
+                    initializer: None,
+                    address: None,
+                    location: SourceLocation::internal(),
+                };
+                dbg!(&internal_mangled_var);
+                mangled_globals.push(internal_mangled_var);
+            }
+        }
+    }
+
+    if let Some(block) =
+        unit.global_vars.iter_mut().find(|block| block.variable_block_type == VariableBlockType::Global)
+    {
+        for new_var in mangled_globals {
+            block.variables.push(new_var);
+        }
+    }
 }
 
 fn build_enum_initializer(

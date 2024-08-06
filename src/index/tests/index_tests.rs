@@ -1681,3 +1681,156 @@ fn string_type_alias_without_size_is_indexed() {
     let dt = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("WSTRING", dt.get_name());
 }
+
+#[test]
+fn aliased_hardware_access_variable_is_indexed() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL 
+            foo AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    let foo = index.find_global_variable("foo").unwrap();
+    let foo_init_id = foo.initial_value.unwrap();
+
+    // Although foo has no initial value in its declaration, we inject one in the pre-processor
+    assert_debug_snapshot!(index.find_global_variable("foo").unwrap(), @r###"
+    VariableIndexEntry {
+        name: "foo",
+        qualified_name: "foo",
+        initial_value: Some(
+            Index {
+                index: 0,
+                generation: 0,
+            },
+        ),
+        argument_type: ByVal(
+            Global,
+        ),
+        is_constant: false,
+        data_type_name: "__global_foo",
+        location_in_parent: 0,
+        linkage: Internal,
+        binding: Some(
+            HardwareBinding {
+                direction: Input,
+                access: Bit,
+                entries: [
+                    Index {
+                        index: 1,
+                        generation: 0,
+                    },
+                    Index {
+                        index: 2,
+                        generation: 0,
+                    },
+                    Index {
+                        index: 3,
+                        generation: 0,
+                    },
+                    Index {
+                        index: 4,
+                        generation: 0,
+                    },
+                ],
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 2,
+                            column: 16,
+                            offset: 41,
+                        }..TextLocation {
+                            line: 2,
+                            column: 29,
+                            offset: 54,
+                        },
+                    ),
+                },
+            },
+        ),
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 2,
+                    column: 12,
+                    offset: 37,
+                }..TextLocation {
+                    line: 2,
+                    column: 15,
+                    offset: 40,
+                },
+            ),
+        },
+        varargs: None,
+    }
+    "###);
+
+    // ...the injected initial value is simply the internally created global mangled variabled
+    assert_debug_snapshot!(index.get_const_expressions().get_constant_statement(&foo_init_id), @r###"
+    Some(
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "1.2.3.4",
+                },
+            ),
+            base: None,
+        },
+    )
+    "###);
+
+    assert_debug_snapshot!(index.find_global_variable("1.2.3.4").unwrap(), @r###"
+    VariableIndexEntry {
+        name: "1.2.3.4",
+        qualified_name: "1.2.3.4",
+        initial_value: None,
+        argument_type: ByVal(
+            Global,
+        ),
+        is_constant: false,
+        data_type_name: "BOOL",
+        location_in_parent: 0,
+        linkage: Internal,
+        binding: None,
+        source_location: SourceLocation {
+            span: None,
+        },
+        varargs: None,
+    }
+    "###);
+
+    assert_debug_snapshot!(index.find_type("__global_foo"), @r###"
+    Some(
+        DataType {
+            name: "__global_foo",
+            initial_value: None,
+            information: Pointer {
+                name: "__global_foo",
+                inner_type_name: "BOOL",
+                auto_deref: Some(
+                    Alias,
+                ),
+            },
+            nature: Any,
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 30,
+                        offset: 55,
+                    }..TextLocation {
+                        line: 2,
+                        column: 36,
+                        offset: 61,
+                    },
+                ),
+            },
+        },
+    )
+    "###);
+}
