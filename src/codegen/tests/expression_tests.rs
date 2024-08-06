@@ -290,7 +290,7 @@ fn builtin_function_call_adr() {
         ",
     );
     // WHEN compiled
-    // We expect a direct conversion to lword and subsequent assignment (no call)
+    // We expect the same behaviour as if REF was called, due to the assignee being a pointer
     insta::assert_snapshot!(result);
 }
 

@@ -18,7 +18,10 @@ pub mod tests {
         codegen::{CodegenContext, GeneratedModule},
         index::{self, Index},
         lexer, parser,
-        resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},
+        resolver::{
+            const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
+            StringLiterals, TypeAnnotator,
+        },
         typesystem::get_builtin_types,
         DebugLevel, Validator,
     };
@@ -80,6 +83,7 @@ pub mod tests {
 
         pre_process(&mut unit, id_provider);
         index.import(index::visitor::visit(&unit));
+        index.register_global_init_function();
         (unit, index, diagnostics)
     }
 
@@ -102,6 +106,31 @@ pub mod tests {
         let (mut annotations, ..) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
         index.import(std::mem::take(&mut annotations.new_index));
         annotations
+    }
+
+    type Lowered =
+        (AnnotationMapImpl, Index, Vec<(CompilationUnit, index::FxIndexSet<Dependency>, StringLiterals)>);
+
+    pub fn annotate_and_lower_with_ids(
+        parse_result: CompilationUnit,
+        index: Index,
+        id_provider: IdProvider,
+    ) -> Lowered {
+        let (mut full_index, unresolvables) = evaluate_constants(index);
+
+        let (mut annotations, dependencies, literals) =
+            TypeAnnotator::visit_unit(&full_index, &parse_result, id_provider.clone());
+        full_index.import(std::mem::take(&mut annotations.new_index));
+        let mut annotated_units = vec![(parse_result, dependencies, literals)];
+        TypeAnnotator::lower_init_functions(
+            unresolvables,
+            &mut annotations,
+            &mut full_index,
+            &id_provider,
+            &mut annotated_units,
+        );
+
+        (annotations, full_index, annotated_units)
     }
 
     pub fn parse_and_validate_buffered(src: &str) -> String {
@@ -150,10 +179,31 @@ pub mod tests {
         let (unit, index, diagnostics) = do_index(src, id_provider.clone());
         reporter.handle(&diagnostics);
 
-        let (mut index, ..) = evaluate_constants(index);
+        let (mut index, unresolvables) = evaluate_constants(index);
         let (mut annotations, dependencies, literals) =
             TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
+
+        let mut annotated_units = vec![(unit, dependencies, literals)];
+        TypeAnnotator::lower_init_functions(
+            unresolvables,
+            &mut annotations,
+            &mut index,
+            &id_provider,
+            &mut annotated_units,
+        );
+
+        let (unit, dependencies, literals) = annotated_units
+            .into_iter()
+            .reduce(|acc, ele| {
+                let (mut unit1, mut set1, mut lit1) = acc;
+                let (unit2, set2, lit2) = ele;
+                unit1.import(unit2);
+                set1.extend(set2);
+                lit1.import(lit2);
+                (unit1, set1, lit1)
+            })
+            .unwrap();
 
         let context = CodegenContext::create();
         let path = PathBuf::from_str("src").ok();
@@ -190,7 +240,7 @@ pub mod tests {
     }
 
     pub fn codegen(src: &str) -> String {
-        codegen_without_unwrap(src).unwrap()
+        codegen_without_unwrap(src).map_err(|it| panic!("{it}")).unwrap()
     }
 
     fn codegen_into_modules<T: Compilable>(

@@ -3,7 +3,7 @@ use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::SourceLocation;
 
-use crate::index::const_expressions::ConstExpression;
+use crate::index::const_expressions::{ConstExpression, UnresolvableKind};
 use crate::index::Index;
 
 use crate::resolver::const_evaluator::{evaluate_constants, UnresolvableConstant};
@@ -674,10 +674,12 @@ fn illegal_cast_should_not_be_resolved() {
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN a could not be resolved, because the literal is invalid
-    debug_assert_eq!(
-        vec![UnresolvableConstant::new(global!(index, "a"), "This will overflow for type BOOL")],
-        unresolvable
-    );
+    let expected = UnresolvableConstant::new(global!(index, "a"), "").with_kind(UnresolvableKind::Overflow(
+        "This will overflow for type BOOL".into(),
+        SourceLocation::internal(),
+    ));
+    debug_assert_eq!(expected.id, unresolvable[0].id);
+    debug_assert_eq!(expected.get_reason(), unresolvable[0].get_reason());
 }
 
 #[test]
@@ -1279,11 +1281,125 @@ fn floating_point_type_casting_of_invalid_types_is_unresolvable() {
     let (_, unresolvable) = evaluate_constants(index);
     assert_eq!(unresolvable.len(), 2);
     assert_eq!(
-        unresolvable[0].reason,
-        r#"Expected floating point type, got: Some(LiteralString { value: "abc", is_wide: false })"#
+        unresolvable[0].get_reason(),
+        Some(r#"Expected floating point type, got: Some(LiteralString { value: "abc", is_wide: false })"#)
     );
     assert_eq!(
-        unresolvable[1].reason,
-        r#"Expected floating point type, got: Some(LiteralString { value: "abc", is_wide: true })"#
+        unresolvable[1].get_reason(),
+        Some(r#"Expected floating point type, got: Some(LiteralString { value: "abc", is_wide: true })"#)
     );
+}
+
+#[test]
+fn ref_initializer_is_marked_as_resolve_later() {
+    let (_, index) = index(
+        r#"
+        FUNCTION_BLOCK foo
+        VAR
+            s : STRING;
+            ps: REF_TO STRING := REF(s);
+        END_VAR
+        END_FUNCTION_BLOCK
+       "#,
+    );
+
+    let (_, unresolvable) = evaluate_constants(index);
+    assert_eq!(unresolvable.len(), 1);
+    assert_eq!(unresolvable[0].get_reason(), Some(r#"Try to re-resolve during codegen"#));
+
+    let Some(UnresolvableKind::Address(ref init)) = unresolvable[0].kind else { panic!() };
+
+    assert_eq!(init.scope, Some("foo".into()));
+    assert_eq!(init.lhs, Some("ps".into()));
+    assert_eq!(init.target_type_name, "__foo_ps".to_string());
+}
+
+#[test]
+fn adr_initializer_is_marked_as_resolve_later() {
+    let (_, index) = index(
+        r#"
+        VAR_GLOBAL
+            s : STRING;
+        END_VAR
+
+        PROGRAM foo
+        VAR
+            ps: REF_TO STRING := ADR(s);
+        END_VAR
+        END_PROGRAM
+       "#,
+    );
+
+    let (_, unresolvable) = evaluate_constants(index);
+    assert_eq!(unresolvable.len(), 1);
+    assert_eq!(unresolvable[0].get_reason(), Some(r#"Try to re-resolve during codegen"#));
+
+    let Some(UnresolvableKind::Address(ref init)) = unresolvable[0].kind else { panic!() };
+
+    assert_eq!(init.scope, Some("foo".into()));
+    assert_eq!(init.lhs, Some("ps".into()));
+    assert_eq!(init.target_type_name, "__foo_ps".to_string());
+}
+
+#[test]
+fn alias_initializer_is_marked_as_resolve_later() {
+    let (_, index) = index(
+        r#"
+        VAR_GLOBAL
+            gs : STRING;
+        END_VAR
+
+        PROGRAM foo
+        VAR
+            s : STRING;
+            ps1 AT s : STRING;
+            ps2 AT gs : STRING;
+        END_VAR
+        END_PROGRAM
+       "#,
+    );
+
+    let (_, unresolvable) = evaluate_constants(index);
+    assert_eq!(unresolvable.len(), 2);
+    assert_eq!(unresolvable[0].get_reason(), Some(r#"Try to re-resolve during codegen"#));
+    assert_eq!(unresolvable[1].get_reason(), Some(r#"Try to re-resolve during codegen"#));
+
+    let Some(UnresolvableKind::Address(ref init)) = unresolvable[0].kind else { panic!() };
+
+    assert_eq!(init.scope, Some("foo".into()));
+    assert_eq!(init.lhs, Some("ps1".into()));
+    assert_eq!(init.target_type_name, "__foo_ps1".to_string());
+
+    let Some(UnresolvableKind::Address(ref init)) = unresolvable[1].kind else { panic!() };
+
+    assert_eq!(init.scope, Some("foo".into()));
+    assert_eq!(init.lhs, Some("ps2".into()));
+    assert_eq!(init.target_type_name, "__foo_ps2".to_string());
+}
+
+#[test]
+fn reference_to_initializer_is_marked_as_resolve_later() {
+    let (_, index) = index(
+        r#"
+        VAR_GLOBAL
+            s : STRING;
+        END_VAR
+
+        PROGRAM foo
+        VAR
+            ps : REFERENCE TO STRING := REF(s);
+        END_VAR
+        END_PROGRAM
+       "#,
+    );
+
+    let (_, unresolvable) = evaluate_constants(index);
+    assert_eq!(unresolvable.len(), 1);
+    assert_eq!(unresolvable[0].get_reason(), Some(r#"Try to re-resolve during codegen"#));
+
+    let Some(UnresolvableKind::Address(ref init)) = unresolvable[0].kind else { panic!() };
+
+    assert_eq!(init.scope, Some("foo".into()));
+    assert_eq!(init.lhs, Some("ps".into()));
+    assert_eq!(init.target_type_name, "__foo_ps".to_string());
 }

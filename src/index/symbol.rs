@@ -25,18 +25,18 @@ where
 {
     /// returns the first element associated with the given key or None if
     /// this key was never associated with an element
-    pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+    pub fn get<Q>(&self, key: &Q) -> Option<&V>
     where
-        Q: Hash + Equivalent<K>,
+        Q: Hash + Equivalent<K> + ?Sized,
     {
         self.get_all(key).and_then(|it| it.first())
     }
 
     /// returns all elements associated with the given key or None if
     /// this key was never associated with an element
-    pub fn get_all<Q: ?Sized>(&self, key: &Q) -> Option<&Vec<V>>
+    pub fn get_all<Q>(&self, key: &Q) -> Option<&Vec<V>>
     where
-        Q: Hash + Equivalent<K>,
+        Q: Hash + Equivalent<K> + ?Sized,
     {
         self.inner_map.get(key)
     }
