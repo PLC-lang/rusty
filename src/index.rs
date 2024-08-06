@@ -1598,16 +1598,13 @@ impl Index {
         &'idx self,
         initial_type: &'idx DataTypeInformation,
     ) -> &'idx DataTypeInformation {
-        match initial_type {
-            DataTypeInformation::Pointer { inner_type_name, .. } => {
-                let inner_type = self
-                    .find_effective_type_info(inner_type_name)
-                    .map(|t| self.find_intrinsic_type(t))
-                    .unwrap_or_else(|| initial_type);
-                self.find_elementary_pointer_type(inner_type)
+        if let DataTypeInformation::Pointer { inner_type_name, .. } = initial_type {
+            if let Some(ty) = self.find_effective_type_info(inner_type_name) {
+                return self.find_elementary_pointer_type(self.find_intrinsic_type(ty));
             }
-            _ => initial_type,
         }
+
+        initial_type
     }
 
     /// Creates an iterator over all instances in the index
