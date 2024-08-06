@@ -1640,9 +1640,6 @@
 <a href="#1638" id="1638">1638</a>
 <a href="#1639" id="1639">1639</a>
 <a href="#1640" id="1640">1640</a>
-<a href="#1641" id="1641">1641</a>
-<a href="#1642" id="1642">1642</a>
-<a href="#1643" id="1643">1643</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
@@ -3198,16 +3195,13 @@
         <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
         initial_type: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataTypeInformation,
     ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataTypeInformation {
-        <span class="kw">match </span>initial_type {
-            DataTypeInformation::Pointer { inner_type_name, .. } =&gt; {
-                <span class="kw">let </span>inner_type = <span class="self">self
-                    </span>.find_effective_type_info(inner_type_name)
-                    .map(|t| <span class="self">self</span>.find_intrinsic_type(t))
-                    .unwrap_or_else(|| initial_type);
-                <span class="self">self</span>.find_elementary_pointer_type(inner_type)
+        <span class="kw">if let </span>DataTypeInformation::Pointer { inner_type_name, .. } = initial_type {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ty) = <span class="self">self</span>.find_effective_type_info(inner_type_name) {
+                <span class="kw">return </span><span class="self">self</span>.find_elementary_pointer_type(<span class="self">self</span>.find_intrinsic_type(ty));
             }
-            <span class="kw">_ </span>=&gt; initial_type,
         }
+
+        initial_type
     }
 
     <span class="doccomment">/// Creates an iterator over all instances in the index
