@@ -133,6 +133,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
                         .make_constant()
                         .set_initial_value(Some(value), variable_type);
                     local_llvm_index.associate_global(&name, global_value)?;
+                    local_llvm_index.insert_new_got_index(&name)?;
                 }
             }
         }
@@ -154,7 +155,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     }
 
     fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> Result<String, Diagnostic> {
-        let ctx = SectionMangler::function(implementation.get_call_name());
+        let ctx = SectionMangler::function(implementation.get_call_name().to_lowercase());
 
         let params = self.index.get_declared_parameters(implementation.get_call_name());
 

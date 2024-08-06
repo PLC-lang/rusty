@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod tests {
 
-    use std::{path::PathBuf, str::FromStr};
+    use std::{path::PathBuf, str::FromStr, sync::Mutex};
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
@@ -161,19 +161,23 @@ pub mod tests {
             &context,
             path.as_deref(),
             "main",
+            None,
             crate::OptimizationLevel::None,
             debug_level,
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
+
+        let got_layout = Mutex::new(None);
+
         let llvm_index = code_generator
-            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)
+            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout)
             .map_err(|err| {
                 reporter.handle(&[err]);
                 reporter.buffer().unwrap()
             })?;
 
         code_generator
-            .generate(&context, &unit, &annotations, &index, &llvm_index)
+            .generate(&context, &unit, &annotations, &index, llvm_index)
             .map(|module| module.persist_to_string())
             .map_err(|err| {
                 reporter.handle(&[err]);
@@ -232,18 +236,22 @@ pub mod tests {
                     context,
                     path.as_deref(),
                     &unit.file_name,
+                    None,
                     crate::OptimizationLevel::None,
                     debug_level,
                 );
+                let got_layout = Mutex::new(None);
+
                 let llvm_index = code_generator.generate_llvm_index(
                     context,
                     &annotations,
                     &literals,
                     &dependencies,
                     &index,
+                    &got_layout,
                 )?;
 
-                code_generator.generate(context, &unit, &annotations, &index, &llvm_index)
+                code_generator.generate(context, &unit, &annotations, &index, llvm_index)
             })
             .collect::<Result<Vec<_>, Diagnostic>>()
     }
