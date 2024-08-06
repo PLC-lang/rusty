@@ -844,8 +844,8 @@ pub struct Index {
 
     // initializer functions are registered here in addition to the `pous` field. this is because they are
     // excempt from certain validations/codegen will redirect certain statements and thus a quick lookup is advantageous
-    // init_functions: FxIndexMap<String, String>,
     init_functions: FxIndexSet<String>,
+
     /// all implementations
     // we keep an IndexMap for implementations since duplication issues regarding implementations
     // is handled by the `pous` SymbolMap

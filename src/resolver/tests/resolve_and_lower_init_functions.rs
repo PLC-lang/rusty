@@ -6,7 +6,7 @@ use crate::test_utils::tests::{annotate_and_lower_with_ids, index_with_ids};
 #[test]
 fn function_block_init_fn_created() {
     let id_provider = IdProvider::default();
-    // GIVEN a function block with a complex initializer
+    // GIVEN a function block with a ref initializer
     // WHEN lowered
     let (unit, index) = index_with_ids(
         "
@@ -15,6 +15,7 @@ fn function_block_init_fn_created() {
             s : STRING;
             ps: REF_TO STRING := REF(s);
         END_VAR
+        END_FUNCTION_BLOCK
         ",
         id_provider.clone(),
     );
@@ -86,75 +87,228 @@ fn function_block_init_fn_created() {
     "###);
 }
 
-// TODO: rewrite previous index tests to test for hits after lowering - pou init functions are no longer registered in the index before the lowering stage
-// #[test]
-// fn tmp() {
-//     // GIVEN a struct type definition
-//     // WHEN it is indexed
-//     let (_, index) = index(
-//         "
-//         TYPE STRUCT1 : STRUCT
-//             value : DINT;
-//         END_STRUCT END_TYPE
-//         ",
-//     );
+#[test]
+fn program_init_fn_created() {
+    let id_provider = IdProvider::default();
+    // GIVEN a program with a ref initializer
+    // WHEN lowered
+    let (unit, index) = index_with_ids(
+        "
+        PROGRAM foo
+        VAR
+            s : STRING;
+            ps: REF_TO STRING := REF(s);
+        END_VAR
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
 
-//     // THEN we expect a corresponding init function to be declared for it
-//     let init = index.type_has_init_function("STRUCT1");
-//     assert!(init);
-// }
+    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-// #[test]
-// fn tmp2() {
-//     // GIVEN a declared PROGRAM
-//     // WHEN it is indexed
-//     let (_, index) = index(
-//         "
-//         PROGRAM main
-//         END_PROGRAM
-//         ",
-//     );
+    // THEN we expect the index to now have a corresponding init function
+    assert!(index.find_pou("__init_foo").is_some());
+    // AND we expect a new function to be created for it
+    let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
+    let init_foo = &units[1];
+    let implementation = &init_foo.implementations[0];
+    assert_eq!(implementation.name, "__init_foo");
+    assert_eq!(implementation.pou_type, PouType::Function);
 
-//     // THEN we expect a corresponding init function to be declared for it
-//     let init = index.type_has_init_function("main");
-//     assert!(init);
-// }
+    // we expect this function to have a single parameter "self", being an instance of the initialized POU
+    assert_debug_snapshot!(init_foo.units[0].variable_blocks[0].variables[0], @r###"
+    Variable {
+        name: "self",
+        data_type: DataTypeReference {
+            referenced_type: "foo",
+        },
+    }
+    "###);
 
-// #[test]
-// fn tmp3() {
-//     // GIVEN a declared FUNCTION_BLOCK with an ACTION
-//     // WHEN it is indexed
-//     let (_, index) = index(
-//         "
-//         FUNCTION_BLOCK foo
-//         END_FUNCTION_BLOCK
+    // this init-function is expected to have a single assignment statement in its function body
+    let statements = &implementation.statements;
+    assert_eq!(statements.len(), 1);
+    assert_debug_snapshot!(statements[0], @r###"
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "ps",
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "self",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+        right: CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "REF",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "s",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+    }
+    "###);
+}
 
-//         ACTION act1
-//         END_ACTION
-//         ",
-//     );
+#[test]
+fn init_wrapper_function_created() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        VAR_GLOBAL
+            s : STRING;
+            gs : REFERENCE TO STRING := REF(s);
+        END_VAR
 
-//     // THEN we expect a corresponding init function to be declared for the FUNCTION_BLOCK
-//     // but not for the ACTION
-//     let init = index.type_has_init_function("foo");
-//     assert!(init);
+        FUNCTION_BLOCK bar
+        VAR
+            ps AT s : STRING;
+        END_VAR
+        END_FUNCTION_BLOCK
 
-//     let init = index.type_has_init_function("act1");
-//     assert!(!init);
-// }
+        PROGRAM foo
+        VAR
+            fb: bar;
+        END_VAR
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
 
-// #[test]
-// fn tmp4() {
-//     // GIVEN a declared FUNCTION
-//     // WHEN it is indexed
-//     let (_, index) = index(
-//         "
-//         FUNCTION foo
-//         END_FUNCTION
-//         ",
-//     );
+    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
+    let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
 
-//     // THEN we DO NOT expect a corresponding init function to be declared for it
-//     let init = index.type_has_init_function("foo");
-//     assert!(!init);
-// }
+    // we expect there to be 3 `CompilationUnit`s, one for the original source, one with pou initializer functions, and finally
+    // one for the `__init` wrapper
+    assert_eq!(units.len(), 3);
+
+    // we expect the index to now have an `__init` function
+    assert!(index.find_pou("__init").is_some());
+
+    // we expect a new function to be created for it
+    let init = &units[2];
+    let implementation = &init.implementations[0];
+    assert_eq!(implementation.name, "__init");
+    assert_eq!(implementation.pou_type, PouType::Function);
+
+    // we expect this function to have no parameters
+    assert!(init.units[0].variable_blocks.is_empty());
+
+    // we expect to the body to have 2 statements
+    let statements = &implementation.statements;
+    assert_eq!(statements.len(), 2);
+
+    // we expect the first statement in the function-body to assign `REF(s)` to `gs`, since
+    // global variables are to be initialized first
+    assert_debug_snapshot!(statements[0], @r###"
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "gs",
+                },
+            ),
+            base: None,
+        },
+        right: CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "REF",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "s",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+    }
+    "###);
+
+    // we expect the second statement to call `__init_foo`, passing its global instance
+    assert_debug_snapshot!(statements[1], @r###"
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "__init_foo",
+                },
+            ),
+            base: None,
+        },
+        parameters: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "foo",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    }
+    "###);
+
+    // since `foo` has a member-instance of `bar`, we expect its initializer to call/propagate to `__init_bar` with its local member
+    let init_foo = &units[1].implementations[1];
+    assert_debug_snapshot!(init_foo.statements[0], @r###"
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "__init_bar",
+                },
+            ),
+            base: None,
+        },
+        parameters: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "fb",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "self",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ),
+    }
+    "###);
+}
