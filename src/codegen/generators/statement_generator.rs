@@ -6,6 +6,7 @@ use super::{
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
+        diagnostics::CodegenDiagnostic,
         llvm_typesystem::cast_if_needed,
         LlvmTypedIndex,
     },
@@ -145,7 +146,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 if let Some(block) = self.function_context.blocks.get(name) {
                     //unconditionally jump to the label
                     self.register_debug_location(statement);
-                    self.llvm.builder.build_unconditional_branch(*block);
+                    self.llvm.builder.build_unconditional_branch(*block).map_err(CodegenDiagnostic::from)?;
                     //Place the current instert block at the label statement
                     self.llvm.builder.position_at_end(*block);
                 }
@@ -173,18 +174,20 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 let condition = expression_generator.generate_expression(condition)?;
 
                 self.register_debug_location(statement);
-                self.llvm.builder.build_conditional_branch(
-                    condition.into_int_value(),
-                    *then_block,
-                    else_block,
-                );
+                self.llvm
+                    .builder
+                    .build_conditional_branch(condition.into_int_value(), *then_block, else_block)
+                    .map_err(CodegenDiagnostic::from)?;
                 // Make sure further code is at the else block
                 self.llvm.builder.position_at_end(else_block);
             }
             AstStatement::ExitStatement(_) => {
                 if let Some(exit_block) = &self.current_loop_exit {
                     self.register_debug_location(statement);
-                    self.llvm.builder.build_unconditional_branch(*exit_block);
+                    self.llvm
+                        .builder
+                        .build_unconditional_branch(*exit_block)
+                        .map_err(CodegenDiagnostic::from)?;
                     self.generate_buffer_block();
                 } else {
                     return Err(Diagnostic::codegen_error(
@@ -195,7 +198,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
             AstStatement::ContinueStatement(_) => {
                 if let Some(cont_block) = &self.current_loop_continue {
-                    self.llvm.builder.build_unconditional_branch(*cont_block);
+                    self.llvm
+                        .builder
+                        .build_unconditional_branch(*cont_block)
+                        .map_err(CodegenDiagnostic::from)?;
                     self.generate_buffer_block();
                 } else {
                     return Err(Diagnostic::codegen_error(
@@ -257,7 +263,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         };
         let right_expr_val = ref_builtin.codegen(&exp, &[&right], right.get_location())?;
 
-        self.llvm.builder.build_store(left_ptr_val, right_expr_val.get_basic_value_enum());
+        self.llvm
+            .builder
+            .build_store(left_ptr_val, right_expr_val.get_basic_value_enum())
+            .map_err(CodegenDiagnostic::from)?;
         Ok(())
     }
 
@@ -321,7 +330,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             unreachable!("Invalid direct-access expression: {left_statement:#?}")
         };
         let left_expr_value = exp_gen.generate_expression_value(base)?;
-        let left_value = left_expr_value.as_r_value(self.llvm, None).into_int_value();
+        let left_value = left_expr_value.as_r_value(self.llvm, None)?.into_int_value();
         let left_pointer = left_expr_value.get_basic_value_enum().into_pointer_value();
 
         // Generate an expression for the right size
@@ -372,7 +381,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 || self.llvm.create_const_numeric(&cast_target_llty, "1", SourceLocation::undefined()),
                 |step_ty| {
                     let step = exp_gen.generate_expression(by_step.as_ref().unwrap())?;
-                    Ok(cast_if_needed!(exp_gen, cast_target_ty, step_ty, step, None))
+                    Ok(cast_if_needed!(exp_gen, cast_target_ty, step_ty, step, None)?)
                 },
             )
         };
@@ -390,39 +399,49 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         // XXX(mhasel): IR could possibly be improved by generating phi instructions.
         //              Candidate for frontend optimization for builds without optimization when `STEP`
         //              is a compile-time constant
-        let is_incrementing = builder.build_int_compare(
-            inkwell::IntPredicate::SGT,
-            eval_step()?.into_int_value(),
-            self.llvm
-                .create_const_numeric(&cast_target_llty, "0", SourceLocation::undefined())?
-                .into_int_value(),
-            "is_incrementing",
-        );
-        builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
+        let is_incrementing = builder
+            .build_int_compare(
+                inkwell::IntPredicate::SGT,
+                eval_step()?.into_int_value(),
+                self.llvm
+                    .create_const_numeric(&cast_target_llty, "0", SourceLocation::undefined())?
+                    .into_int_value(),
+                "is_incrementing",
+            )
+            .map_err(CodegenDiagnostic::from)?;
+        builder
+            .build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing)
+            .map_err(CodegenDiagnostic::from)?;
         // generate predicates for incrementing and decrementing counters
-        let generate_predicate = |predicate| {
+        let generate_predicate = |predicate| -> Result<(), Diagnostic> {
             builder.position_at_end(match predicate {
                 inkwell::IntPredicate::SLE => predicate_incrementing,
                 inkwell::IntPredicate::SGE => predicate_decrementing,
                 _ => unreachable!(),
             });
 
-            let end = exp_gen.generate_expression_value(end).unwrap();
+            let end = exp_gen.generate_expression_value(end)?;
             let end_value = match end {
-                ExpressionValue::LValue(ptr) => builder.build_load(ptr, ""),
+                ExpressionValue::LValue(ptr) => {
+                    builder.build_load(ptr, "").map_err(CodegenDiagnostic::from)?
+                }
                 ExpressionValue::RValue(val) => val,
             };
-            let counter_value = builder.build_load(counter, "");
-            let cmp = builder.build_int_compare(
-                predicate,
-                cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None).into_int_value(),
-                cast_if_needed!(exp_gen, cast_target_ty, end_ty, end_value, None).into_int_value(),
-                "condition",
-            );
-            builder.build_conditional_branch(cmp, loop_body, afterloop);
+            let counter_value = builder.build_load(counter, "").map_err(CodegenDiagnostic::from)?;
+            let cmp = builder
+                .build_int_compare(
+                    predicate,
+                    cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?
+                        .into_int_value(),
+                    cast_if_needed!(exp_gen, cast_target_ty, end_ty, end_value, None)?.into_int_value(),
+                    "condition",
+                )
+                .map_err(CodegenDiagnostic::from)?;
+            builder.build_conditional_branch(cmp, loop_body, afterloop).map_err(CodegenDiagnostic::from)?;
+            Ok(())
         };
-        generate_predicate(inkwell::IntPredicate::SLE);
-        generate_predicate(inkwell::IntPredicate::SGE);
+        generate_predicate(inkwell::IntPredicate::SLE)?;
+        generate_predicate(inkwell::IntPredicate::SGE)?;
 
         // generate loop body
         builder.position_at_end(loop_body);
@@ -436,21 +455,30 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         body_builder.generate_body(body)?;
 
         // increment counter
-        builder.build_unconditional_branch(increment);
+        builder.build_unconditional_branch(increment).map_err(CodegenDiagnostic::from)?;
         builder.position_at_end(increment);
-        let counter_value = builder.build_load(counter, "");
-        let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
-            eval_step()?.into_int_value(),
-            cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None).into_int_value(),
-            "next",
-        ));
-        builder.build_store(
-            counter,
-            cast_if_needed!(exp_gen, counter_ty, cast_target_ty, inc, None).into_int_value(),
+        let counter_value = builder.build_load(counter, "").map_err(CodegenDiagnostic::from)?;
+        let inc = inkwell::values::BasicValue::as_basic_value_enum(
+            &builder
+                .build_int_add(
+                    eval_step()?.into_int_value(),
+                    cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?
+                        .into_int_value(),
+                    "next",
+                )
+                .map_err(CodegenDiagnostic::from)?,
         );
+        builder
+            .build_store(
+                counter,
+                cast_if_needed!(exp_gen, counter_ty, cast_target_ty, inc, None)?.into_int_value(),
+            )
+            .map_err(CodegenDiagnostic::from)?;
 
         // check condition
-        builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
+        builder
+            .build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing)
+            .map_err(CodegenDiagnostic::from)?;
         // continue
         builder.position_at_end(afterloop);
         Ok(())
@@ -514,17 +542,19 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             builder.position_at_end(case_block);
             self.generate_body(&conditional_block.body)?;
             // skiop all other case-bodies
-            builder.build_unconditional_branch(continue_block);
+            builder.build_unconditional_branch(continue_block).map_err(CodegenDiagnostic::from)?;
         }
         // current-else is the last else-block generated by the range-expressions
         builder.position_at_end(current_else_block);
         self.generate_body(else_body)?;
-        builder.build_unconditional_branch(continue_block);
+        builder.build_unconditional_branch(continue_block).map_err(CodegenDiagnostic::from)?;
         continue_block.move_after(current_else_block).expect(INTERNAL_LLVM_ERROR);
 
         // now that we collected all cases, go back to the initial block and generate the switch-statement
         builder.position_at_end(basic_block);
-        builder.build_switch(selector_statement.into_int_value(), else_block, &cases);
+        builder
+            .build_switch(selector_statement.into_int_value(), else_block, &cases)
+            .map_err(CodegenDiagnostic::from)?;
 
         builder.position_at_end(continue_block);
         Ok(())
@@ -551,28 +581,24 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let start_val = exp_gen.generate_expression(start)?;
             self.register_debug_location(selector);
             let selector_val = exp_gen.generate_expression(selector)?;
-            exp_gen.create_llvm_int_binary_expression(&Operator::GreaterOrEqual, selector_val, start_val)
+            exp_gen.create_llvm_int_binary_expression(&Operator::GreaterOrEqual, selector_val, start_val)?
         };
 
         //jmp to continue if the value is smaller than start
-        builder.build_conditional_branch(
-            to_i1(lower_bound.into_int_value(), builder),
-            range_then,
-            range_else,
-        );
+        builder
+            .build_conditional_branch(to_i1(lower_bound.into_int_value(), builder)?, range_then, range_else)
+            .map_err(CodegenDiagnostic::from)?;
         builder.position_at_end(range_then);
         let upper_bound = {
             self.register_debug_location(end);
             let end_val = exp_gen.generate_expression(end)?;
             self.register_debug_location(selector);
             let selector_val = exp_gen.generate_expression(selector)?;
-            exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val)
+            exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val)?
         };
-        builder.build_conditional_branch(
-            to_i1(upper_bound.into_int_value(), builder),
-            match_block,
-            range_else,
-        );
+        builder
+            .build_conditional_branch(to_i1(upper_bound.into_int_value(), builder)?, match_block, range_else)
+            .map_err(CodegenDiagnostic::from)?;
         Ok(range_else)
     }
 
@@ -592,7 +618,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
         builder.position_at_end(basic_block);
-        builder.build_unconditional_branch(condition_block);
+        builder.build_unconditional_branch(condition_block).map_err(CodegenDiagnostic::from)?;
 
         builder.position_at_end(continue_block);
         Ok(())
@@ -622,7 +648,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
         builder.position_at_end(basic_block);
-        builder.build_unconditional_branch(while_block);
+        builder.build_unconditional_branch(while_block).map_err(CodegenDiagnostic::from)?;
 
         builder.position_at_end(continue_block);
         Ok(())
@@ -643,11 +669,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(condition_check);
         self.register_debug_location(condition);
         let condition_value = self.create_expr_generator().generate_expression(condition)?;
-        builder.build_conditional_branch(
-            to_i1(condition_value.into_int_value(), builder),
-            while_body,
-            continue_block,
-        );
+        builder
+            .build_conditional_branch(
+                to_i1(condition_value.into_int_value(), builder)?,
+                while_body,
+                continue_block,
+            )
+            .map_err(CodegenDiagnostic::from)?;
 
         //Enter the for loop
         builder.position_at_end(while_body);
@@ -660,7 +688,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         };
         body_generator.generate_body(body)?;
         //Loop back
-        builder.build_unconditional_branch(condition_check);
+        builder.build_unconditional_branch(condition_check).map_err(CodegenDiagnostic::from)?;
 
         //Continue
         builder.position_at_end(continue_block);
@@ -704,24 +732,26 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let conditional_block = context.prepend_basic_block(else_block, "condition_body");
 
             //Generate if statement condition
-            builder.build_conditional_branch(
-                to_i1(condition.into_int_value(), builder),
-                conditional_block,
-                else_block,
-            );
+            builder
+                .build_conditional_branch(
+                    to_i1(condition.into_int_value(), builder)?,
+                    conditional_block,
+                    else_block,
+                )
+                .map_err(CodegenDiagnostic::from)?;
 
             //Generate if statement content
 
             builder.position_at_end(conditional_block);
             self.generate_body(&block.body)?;
-            builder.build_unconditional_branch(continue_block);
+            builder.build_unconditional_branch(continue_block).map_err(CodegenDiagnostic::from)?;
         }
         //Else
 
         if let Some(else_block) = else_block {
             builder.position_at_end(else_block);
             self.generate_body(else_body)?;
-            builder.build_unconditional_branch(continue_block);
+            builder.build_unconditional_branch(continue_block).map_err(CodegenDiagnostic::from)?;
         }
         //Continue
         builder.position_at_end(continue_block);
@@ -742,7 +772,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 .unwrap_or(false)
             {
                 //generate return void
-                self.llvm.builder.build_return(None);
+                self.llvm.builder.build_return(None).map_err(CodegenDiagnostic::from)?;
             } else {
                 // renerate return statement
                 let call_name = self.function_context.linking_context.get_call_name();
@@ -755,11 +785,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                             SourceLocation::undefined(),
                         )
                     })?;
-                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());
-                self.llvm.builder.build_return(Some(&loaded_value));
+                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str())?;
+                self.llvm.builder.build_return(Some(&loaded_value)).map_err(CodegenDiagnostic::from)?;
             }
         } else {
-            self.llvm.builder.build_return(None);
+            self.llvm.builder.build_return(None).map_err(CodegenDiagnostic::from)?;
         }
         Ok(())
     }
@@ -779,11 +809,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let then_block = self.llvm.context.append_basic_block(self.function_context.function, "then_block");
         let else_block = self.llvm.context.append_basic_block(self.function_context.function, "else_block");
 
-        self.llvm.builder.build_conditional_branch(
-            to_i1(condition.into_int_value(), &self.llvm.builder),
-            then_block,
-            else_block,
-        );
+        self.llvm
+            .builder
+            .build_conditional_branch(
+                to_i1(condition.into_int_value(), &self.llvm.builder)?,
+                then_block,
+                else_block,
+            )
+            .map_err(CodegenDiagnostic::from)?;
 
         self.llvm.builder.position_at_end(then_block);
         self.register_debug_location(statement);

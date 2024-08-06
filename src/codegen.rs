@@ -28,7 +28,7 @@ use inkwell::{
     context::Context,
     execution_engine::{ExecutionEngine, JitFunction},
     memory_buffer::MemoryBuffer,
-    types::BasicType,
+    types::{BasicType, FunctionType},
 };
 use inkwell::{
     module::Module,
@@ -40,6 +40,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 mod debug;
+pub(crate) mod diagnostics;
 pub(crate) mod generators;
 mod llvm_index;
 mod llvm_typesystem;
@@ -107,6 +108,14 @@ impl<'ink> CodeGen<'ink> {
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
+        //Create an init function and position builder there
+        //TODO: This will conflict with the planned init function
+        let init_module = llvm.context.create_module("Init");
+        let void_type = llvm.context.void_type();
+        let fn_type = void_type.fn_type(&[], false);
+        let init_func = init_module.add_function("__init", fn_type, None);
+        let basic_block = llvm.context.append_basic_block(init_func, "entry");
+        llvm.builder.position_at_end(basic_block);
         //Generate types index, and any global variables associated with them.
         let llvm_type_index = data_type_generator::generate_data_types(
             &llvm,
@@ -120,6 +129,7 @@ impl<'ink> CodeGen<'ink> {
         let mut variable_generator =
             VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
 
+        //Create a block for the inittializers
         //Generate global variables
         let llvm_gv_index =
             variable_generator.generate_global_variables(dependencies, &self.module_location)?;

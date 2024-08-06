@@ -264,7 +264,10 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
     // 5 : Codegen
     if !compile_parameters.is_check() {
         let res = generate(&compile_options, &link_options, compile_parameters.target, annotated_project)
-            .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
+            .map_err(|err| {
+                Diagnostic::codegen_error(err.get_message(), err.get_location())
+                    .with_internal_error(err.into())
+            });
         if let Err(res) = res {
             diagnostician.handle(&[res]);
             return Err(Diagnostic::new("Compilation aborted due to previous errors")

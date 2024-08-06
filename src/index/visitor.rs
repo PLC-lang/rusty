@@ -682,6 +682,7 @@ fn visit_array(
                 })
             }
 
+            //TODO: that's not a codegen error
             _ => Err(Diagnostic::codegen_error(
                 "Invalid array definition: RangeStatement expected",
                 it.get_location(),
