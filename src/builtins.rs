@@ -17,6 +17,7 @@ use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 use rustc_hash::FxHashMap;
 
 use crate::{
+    codegen::diagnostics::CodegenDiagnostic,
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
     index::Index,
     lexer, parser,
@@ -48,7 +49,7 @@ lazy_static! {
                     if let [reference] = params {
                         generator
                             .generate_lvalue(reference)
-                            .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
+                            .and_then(|it| Ok(ExpressionValue::RValue(generator.ptr_as_value(it)?)))
                     } else {
                         Err(Diagnostic::codegen_error(
                             "Expected exactly one parameter for REF",
@@ -145,7 +146,7 @@ lazy_static! {
                         .and_then(|it| generator.get_type_hint_info_for(it))?;
                         //Create a temp var
                         let result_type = generator.llvm_index.get_associated_type(type_hint.get_name())?;
-                        let result_var = generator.llvm.create_local_variable("", &result_type);
+                        let result_var = generator.llvm.create_local_variable("", &result_type)?;
                         let k = generator.generate_expression(k)?;
 
                         let mut blocks = vec![];
@@ -159,12 +160,12 @@ lazy_static! {
                             let value = context.i32_type().const_int(index as u64, false);
                             builder.position_at_end(block);
                             generator.generate_store(result_var, type_hint.get_type_information(), it)?;
-                            builder.build_unconditional_branch(continue_block);
+                            builder.build_unconditional_branch(continue_block).map_err(CodegenDiagnostic::from)?;
                             Ok((value,block))
                         }).collect::<Result<Vec<_>,_>>()?;
 
                         builder.position_at_end(insert_block);
-                        builder.build_switch(k.into_int_value(), continue_block, &cases);
+                        builder.build_switch(k.into_int_value(), continue_block, &cases).map_err(CodegenDiagnostic::from)?;
                         builder.position_at_end(continue_block);
                         Ok(ExpressionValue::LValue(result_var))
                     } else {
@@ -190,7 +191,7 @@ lazy_static! {
                 code: |generator, params, location| {
                     if let &[g,in0,in1] = params {
                         // evaluate the parameters
-                        let cond = expression_generator::to_i1(generator.generate_expression(g)?.into_int_value(), &generator.llvm.builder);
+                        let cond = expression_generator::to_i1(generator.generate_expression(g)?.into_int_value(), &generator.llvm.builder)?;
                         // for aggregate types we need a ptr to perform memcpy
                         // use generate_expression_value(), this will return a gep
                         // generate_expression() would load the ptr
@@ -205,7 +206,7 @@ lazy_static! {
                             generator.generate_expression(in1)?
                         };
                         // generate an llvm select instruction
-                        let sel = generator.llvm.builder.build_select(cond, in1, in0, "");
+                        let sel = generator.llvm.builder.build_select(cond, in1, in0, "").map_err(CodegenDiagnostic::from)?;
 
                         if sel.is_pointer_value(){
                             Ok(ExpressionValue::LValue(sel.into_pointer_value()))
@@ -853,26 +854,35 @@ fn generate_variable_length_array_bound_function<'ink>(
                 todo!()
             };
             // this operation mirrors the offset calculation of literal ints, but at runtime
-            let offset = builder.build_int_mul(
-                llvm.i32_type().const_int(2, false),
-                builder.build_int_sub(
-                    expression_value.into_int_value(),
-                    llvm.i32_type().const_int(1, false),
+            let offset = builder
+                .build_int_mul(
+                    llvm.i32_type().const_int(2, false),
+                    builder
+                        .build_int_sub(
+                            expression_value.into_int_value(),
+                            llvm.i32_type().const_int(1, false),
+                            "",
+                        )
+                        .map_err(CodegenDiagnostic::from)?,
                     "",
-                ),
-                "",
-            );
+                )
+                .map_err(CodegenDiagnostic::from)?;
             if !is_lower {
-                builder.build_int_add(offset, llvm.i32_type().const_int(1, false), "")
+                builder
+                    .build_int_add(offset, llvm.i32_type().const_int(1, false), "")
+                    .map_err(CodegenDiagnostic::from)?
             } else {
                 offset
             }
         }
     };
 
-    let gep_bound =
-        unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
-    let bound = llvm.builder.build_load(gep_bound, "");
+    let gep_bound = unsafe {
+        llvm.builder
+            .build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "")
+            .map_err(CodegenDiagnostic::from)?
+    };
+    let bound = llvm.builder.build_load(gep_bound, "").map_err(CodegenDiagnostic::from)?;
 
     Ok(ExpressionValue::RValue(bound))
 }

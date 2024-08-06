@@ -1,3 +1,4 @@
+use crate::codegen::diagnostics::CodegenDiagnostic;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::typesystem::{CHAR_TYPE, WCHAR_TYPE};
 use inkwell::types::ArrayType;
@@ -83,8 +84,12 @@ impl<'a> Llvm<'a> {
     ///
     /// - `name` the name of the local variable
     /// - `data_type` the variable's datatype
-    pub fn create_local_variable(&self, name: &str, data_type: &BasicTypeEnum<'a>) -> PointerValue<'a> {
-        self.builder.build_alloca(*data_type, name)
+    pub fn create_local_variable(
+        &self,
+        name: &str,
+        data_type: &BasicTypeEnum<'a>,
+    ) -> Result<PointerValue<'a>, CodegenDiagnostic> {
+        self.builder.build_alloca(*data_type, name).map_err(Into::into)
     }
 
     /// sets a const-zero initializer for the given global_value according to the given type
@@ -114,8 +119,12 @@ impl<'a> Llvm<'a> {
         pointer_to_array_instance: PointerValue<'a>,
         accessor_sequence: &[IntValue<'a>],
         name: &str,
-    ) -> Result<PointerValue<'a>, Diagnostic> {
-        unsafe { Ok(self.builder.build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name)) }
+    ) -> Result<PointerValue<'a>, CodegenDiagnostic> {
+        unsafe {
+            self.builder
+                .build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name)
+                .map_err(Into::into)
+        }
     }
 
     /// creates a pointervalue that points to a member of a struct
@@ -129,22 +138,21 @@ impl<'a> Llvm<'a> {
         pointer_to_struct_instance: PointerValue<'a>,
         member_index: u32,
         name: &str,
-        offset: &SourceLocation,
-    ) -> Result<PointerValue<'a>, Diagnostic> {
-        self.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(|_| {
-            Diagnostic::codegen_error(
-                format!("Cannot generate qualified reference for {name:}"),
-                offset.clone(),
-            )
-        })
+        _offset: &SourceLocation,
+    ) -> Result<PointerValue<'a>, CodegenDiagnostic> {
+        self.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(Into::into)
     }
 
     /// loads the value behind the given pointer
     ///
     /// - `lvalue` the pointer and it's datatype
     /// - `name` the name of the temporary variable
-    pub fn load_pointer(&self, lvalue: &PointerValue<'a>, name: &str) -> BasicValueEnum<'a> {
-        self.builder.build_load(lvalue.to_owned(), name)
+    pub fn load_pointer(
+        &self,
+        lvalue: &PointerValue<'a>,
+        name: &str,
+    ) -> Result<BasicValueEnum<'a>, CodegenDiagnostic> {
+        self.builder.build_load(lvalue.to_owned(), name).map_err(Into::into)
     }
 
     /// creates a placeholder datatype for a struct with the given name
@@ -187,7 +195,9 @@ impl<'a> Llvm<'a> {
                 .ok_or_else(|| Diagnostic::codegen_error(format!("Cannot parse {value} as int"), location))
                 .map(BasicValueEnum::IntValue),
             BasicTypeEnum::FloatType { 0: float_type } => {
-                let value = float_type.const_float_from_string(value);
+                //todo: this is unsafe for now because llvm does no validaton, if we rely on the
+                //parsing having been done correctly we cound ignore the unsafe
+                let value = unsafe { float_type.const_float_from_string(value) };
                 Ok(BasicValueEnum::FloatValue(value))
             }
             _ => Err(Diagnostic::codegen_error("expected numeric type", location)),

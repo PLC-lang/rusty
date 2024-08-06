@@ -24,7 +24,6 @@ plc_diagnostics = { path = "./compiler/plc_diagnostics" }
 plc_index = { path = "./compiler/plc_index" }
 section_mangler = { path = "./compiler/section_mangler" }
 logos = "0.12.0"
-thiserror = "1.0"
 clap = { version = "3.0", features = ["derive"] }
 indexmap = "2.0"
 generational-arena = "0.2.8"
@@ -35,6 +34,7 @@ lld_rs = "140.0.0"
 which = "4.2.5"
 log.workspace = true
 inkwell.workspace = true
+thiserror.workspace = true
 chrono.workspace = true
 itertools.workspace = true
 anyhow.workspace = true
@@ -80,7 +80,7 @@ members = [
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 
 [workspace.dependencies]
-inkwell = { version = "0.2", features = ["llvm14-0"] }
+inkwell = { version = "0.5", features = ["llvm14-0"] }
 encoding_rs = "0.8"
 encoding_rs_io = "0.1"
 log = "0.4"
@@ -92,3 +92,4 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 toml = "0.5"
 rustc-hash = "1.1.0"
+thiserror = "1.0"

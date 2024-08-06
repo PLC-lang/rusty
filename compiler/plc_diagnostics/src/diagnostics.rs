@@ -27,7 +27,7 @@ pub enum Severity {
 /// The `Diagnostics` struct describes an issue encountered during compile time.
 /// The issue is defined by an `error_code` and had a defined `severity`
 /// Diagnostic severity can be overridden when being reported.
-#[derive(Debug)]
+#[derive(thiserror::Error, Debug)]
 pub struct Diagnostic {
     /// The Description of the error being reported.
     message: String,
@@ -40,13 +40,8 @@ pub struct Diagnostic {
     /// Children of the current diagnostic
     sub_diagnostics: Vec<Diagnostic>,
     /// If the diagnostic is caused by an error, this field contains the original error
+    #[source]
     internal_error: Option<anyhow::Error>,
-}
-
-impl std::error::Error for Diagnostic {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        self.internal_error.as_ref().and_then(|it| it.source())
-    }
 }
 
 impl From<std::io::Error> for Diagnostic {

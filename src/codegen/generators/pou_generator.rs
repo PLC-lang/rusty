@@ -11,6 +11,7 @@ use super::{
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
+        diagnostics::CodegenDiagnostic,
         llvm_index::LlvmTypedIndex,
     },
     index::{self, ImplementationType},
@@ -39,7 +40,7 @@ use inkwell::{
     values::PointerValue,
 };
 use plc_ast::ast::{AstNode, Implementation, PouType};
-use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
 use section_mangler::{FunctionArgument, SectionMangler};
@@ -535,12 +536,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let accessor = self.llvm.create_local_variable(
                     ret_v.get_name(),
                     &return_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).as_basic_type_enum(),
-                );
-                self.llvm.builder.build_store(accessor, parameter);
+                )?;
+                self.llvm.builder.build_store(accessor, parameter).map_err(CodegenDiagnostic::from)?;
                 accessor
             } else {
                 // function return is a real return
-                self.llvm.create_local_variable(type_name, &return_type)
+                self.llvm.create_local_variable(type_name, &return_type)?
             };
             index.associate_loaded_local_variable(type_name, ret_v.get_name(), return_variable)?;
         }
@@ -556,7 +557,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let member_type_name = m.get_type_name();
                 let type_info = self.index.get_type_information_or_void(member_type_name);
                 let ty = index.get_associated_type(member_type_name)?;
-                let ptr = self.llvm.create_local_variable(m.get_name(), &ty);
+                let ptr = self.llvm.create_local_variable(m.get_name(), &ty)?;
                 if let Some(block) = self.llvm.builder.get_insert_block() {
                     debug.add_variable_declaration(
                         m.get_qualified_name(),
@@ -579,7 +580,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     } else {
                         ty.into_struct_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                     };
-                    let bitcast = self.llvm.builder.build_bitcast(ptr, ty, "bitcast").into_pointer_value();
+                    let bitcast = self
+                        .llvm
+                        .builder
+                        .build_bit_cast(ptr, ty, "bitcast")
+                        .map_err(CodegenDiagnostic::from)?
+                        .into_pointer_value();
                     let (size, alignment) = if let DataTypeInformation::String { size, encoding } = type_info
                     {
                         // since passed string args might be larger than the local acceptor, we need to first memset the local variable to 0
@@ -595,7 +601,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                                 self.llvm.context.i8_type().const_zero(),
                                 self.llvm.context.i64_type().const_int(size * char_width as u64, true),
                             )
-                            .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
+                            .map_err(|e| {
+                                Diagnostic::from(CodegenDiagnostic::from(e))
+                                    .with_location(m.source_location.clone())
+                            })?;
                         (
                             // we then reduce the amount of bytes to be memcopied by the equivalent of one grapheme in bytes to preserve the null-terminator
                             self.llvm.context.i64_type().const_int((size - 1) * char_width as u64, true),
@@ -614,15 +623,18 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     self.llvm
                         .builder
                         .build_memcpy(bitcast, alignment, ptr_value.into_pointer_value(), alignment, size)
-                        .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
+                        .map_err(|e| {
+                            Diagnostic::from(CodegenDiagnostic::from(e))
+                                .with_location(m.source_location.clone())
+                        })?;
                 } else {
-                    self.llvm.builder.build_store(ptr, ptr_value);
+                    self.llvm.builder.build_store(ptr, ptr_value).map_err(CodegenDiagnostic::from)?;
                 };
 
                 (parameter_name, ptr)
             } else {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
-                let value = self.llvm.create_local_variable(parameter_name, &temp_type);
+                let value = self.llvm.create_local_variable(parameter_name, &temp_type)?;
                 (parameter_name, value)
             };
 
@@ -668,13 +680,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
             let (name, variable) = if m.is_temp() || m.is_return() {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
-                (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type))
+                (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type)?)
             } else {
                 let ptr = self
                     .llvm
                     .builder
                     .build_struct_gep(param_pointer, var_count as u32, parameter_name)
-                    .expect(INTERNAL_LLVM_ERROR);
+                    .map_err(CodegenDiagnostic::from)?;
 
                 var_count += 1;
 
@@ -784,7 +796,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let is_aggregate_type = variable_data_type.is_aggregate_type();
         let variable_to_initialize = if variable.is_return() && is_aggregate_type {
             //if this is an out-pointer we need to deref it first
-            self.llvm.builder.build_load(variable_to_initialize, "deref").into_pointer_value()
+            self.llvm
+                .builder
+                .build_load(variable_to_initialize, "deref")
+                .map_err(CodegenDiagnostic::from)?
+                .into_pointer_value()
         } else {
             variable_to_initialize
         };
@@ -793,7 +809,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         if is_aggregate_type {
             // for arrays/structs, we prefere a memcpy, not a store operation
             // we assume that we got a global variable with the initial value that we can copy from
-            let init_result: Result<(), &str> = if value.is_pointer_value() {
+            let init_result: Result<(), CodegenDiagnostic> = if value.is_pointer_value() {
                 // mem-copy from an global constant variable
                 self.llvm
                     .builder
@@ -805,6 +821,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         type_size?,
                     )
                     .map(|_| ())
+                    .map_err(|it| CodegenDiagnostic::from(it).with_location(variable.source_location.clone()))
             } else if value.is_int_value() {
                 // mem-set the value (usually 0) over the whole memory-area
                 self.llvm
@@ -816,12 +833,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         type_size?,
                     )
                     .map(|_| ())
+                    .map_err(|it| CodegenDiagnostic::from(it).with_location(variable.source_location.clone()))
             } else {
                 unreachable!("initializing an array should be memcpy-able or memset-able");
             };
-            init_result.map_err(|msg| Diagnostic::codegen_error(msg, variable.source_location.clone()))?;
+            init_result?;
         } else {
-            self.llvm.builder.build_store(variable_to_initialize, value);
+            self.llvm.builder.build_store(variable_to_initialize, value).map_err(CodegenDiagnostic::from)?;
         }
         Ok(())
     }
