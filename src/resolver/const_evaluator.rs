@@ -11,7 +11,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{
-        const_expressions::{ConstExpression, InitData, ConstId, UnresolvableKind},
+        const_expressions::{ConstExpression, ConstId, InitData, UnresolvableKind},
         Index,
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
