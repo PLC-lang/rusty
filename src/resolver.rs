@@ -798,7 +798,7 @@ impl<'rslv> Init<'rslv> for Initializers {
             .iter()
             .filter_map(|it| {
                 if let Some(index::const_expressions::UnresolvableKind::Address(init)) = &it.kind {
-                    Some((init.scope.clone().unwrap_or("__global".to_string()), init))
+                    Some((init.scope.clone().unwrap_or("__global".to_string()), init)) // TODO: not automatically global, might be a struct-member initializer
                 } else {
                     None
                 }
@@ -1199,6 +1199,7 @@ impl<'i> TypeAnnotator<'i> {
                     let Some(name) = name else {
                         continue;
                     };
+                    dbg!(full_index.get_container_members(name).iter().map(|it| &it.data_type_name).any(|it| candidates.get("__global").is_some_and(|other| other.contains_key(it))));
                     all_annotations.new_initializers.maybe_insert_initializer(
                         &name,
                         &name,
@@ -1535,7 +1536,7 @@ impl<'i> TypeAnnotator<'i> {
                 return;
             };
             self.annotation_map.new_initializers.maybe_insert_initializer(
-                ctx.pou.unwrap_or("__global"),
+                ctx.pou.or(ctx.qualifier.as_deref()).as_ref().unwrap_or(&"__global"),
                 lhs,
                 variable_ty.get_name(),
                 &Some(initializer.clone()),
