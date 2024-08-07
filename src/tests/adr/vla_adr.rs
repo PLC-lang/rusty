@@ -350,6 +350,11 @@ fn pass() {
       ret i32 %foo_ret
     }
 
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      ret void
+    }
+
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
@@ -403,6 +408,11 @@ fn access() {
       store i32 12345, i32* %arr_val, align 4
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      ret void
     }
     "###);
 }
@@ -487,6 +497,11 @@ fn multi_dimensional() {
       store i32 12345, i32* %arr_val, align 4
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      ret void
     }
     "###);
 }

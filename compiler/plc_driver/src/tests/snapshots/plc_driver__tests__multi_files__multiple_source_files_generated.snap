@@ -31,3 +31,36 @@ define void @mainProg(%mainProg* %0) section "fn-$RUSTY$mainProg:v" {
 entry:
   ret void
 }
+
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%mainProg = type {}
+
+@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r0"
+
+define void @__init_mainprog(%mainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr0]" {
+entry:
+  %self = alloca %mainProg*, align 8
+  store %mainProg* %0, %mainProg** %self, align 8
+  ret void
+}
+
+declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+
+; ModuleID = '__init_globals'
+source_filename = "__init_globals"
+
+%mainProg = type {}
+
+@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r0"
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  call void @__init_mainprog(%mainProg* @mainProg_instance)
+  ret void
+}
+
+declare void @__init_mainprog(%mainProg*) section "fn-$RUSTY$__init_mainprog:v[pr0]"
+
+declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"

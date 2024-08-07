@@ -139,5 +139,18 @@ fn using_enums() {
       store i32 16, i32* %z, align 4
       ret void
     }
+
+    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr3i32i32i32]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      call void @__init_prg(%prg* @prg_instance)
+      ret void
+    }
     "###);
 }

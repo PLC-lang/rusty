@@ -25,6 +25,18 @@ fn declaring_a_struct() {
     %Person = type { [81 x i8], [81 x i8], i16, i8 }
 
     @__Person__init = unnamed_addr constant %Person zeroinitializer, section "var-$RUSTY$__Person__init:r4s8u81s8u81i16u8"
+
+    define void @__init_person(%Person* %0) section "fn-$RUSTY$__init_person:v[pr4s8u81s8u81i16u8]" {
+    entry:
+      %self = alloca %Person*, align 8
+      store %Person* %0, %Person** %self, align 8
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 
@@ -56,6 +68,18 @@ fn default_values_of_a_struct() {
 
     @p = global %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }, section "var-$RUSTY$p:r4s8u6s8u6i16u8"
     @__Person__init = unnamed_addr constant %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }, section "var-$RUSTY$__Person__init:r4s8u6s8u6i16u8"
+
+    define void @__init_person(%Person* %0) section "fn-$RUSTY$__init_person:v[pr4s8u6s8u6i16u8]" {
+    entry:
+      %self = alloca %Person*, align 8
+      store %Person* %0, %Person** %self, align 8
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 
@@ -156,6 +180,32 @@ fn assigning_structs() {
       ret void
     }
 
+    define void @__init_point(%Point* %0) section "fn-$RUSTY$__init_point:v[pr2i16i16]" {
+    entry:
+      %self = alloca %Point*, align 8
+      store %Point* %0, %Point** %self, align 8
+      ret void
+    }
+
+    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2r2i16i16r2i16i16]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      %deref = load %prg*, %prg** %self, align 8
+      %p1 = getelementptr inbounds %prg, %prg* %deref, i32 0, i32 0
+      call void @__init_point(%Point* %p1)
+      %deref1 = load %prg*, %prg** %self, align 8
+      %p2 = getelementptr inbounds %prg, %prg* %deref1, i32 0, i32 1
+      call void @__init_point(%Point* %p2)
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      call void @__init_prg(%prg* @prg_instance)
+      ret void
+    }
+
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
@@ -214,6 +264,45 @@ fn accessing_struct_members() {
       %x1 = getelementptr inbounds %Point, %Point* %bottomRight, i32 0, i32 0
       %load_x = load i16, i16* %x1, align 2
       store i16 %load_x, i16* %x, align 2
+      ret void
+    }
+
+    define void @__init_point(%Point* %0) section "fn-$RUSTY$__init_point:v[pr2i16i16]" {
+    entry:
+      %self = alloca %Point*, align 8
+      store %Point* %0, %Point** %self, align 8
+      ret void
+    }
+
+    define void @__init_rect(%Rect* %0) section "fn-$RUSTY$__init_rect:v[pr2r2i16i16r2i16i16]" {
+    entry:
+      %self = alloca %Rect*, align 8
+      store %Rect* %0, %Rect** %self, align 8
+      %deref = load %Rect*, %Rect** %self, align 8
+      %topLeft = getelementptr inbounds %Rect, %Rect* %deref, i32 0, i32 0
+      call void @__init_point(%Point* %topLeft)
+      %deref1 = load %Rect*, %Rect** %self, align 8
+      %bottomRight = getelementptr inbounds %Rect, %Rect* %deref1, i32 0, i32 1
+      call void @__init_point(%Point* %bottomRight)
+      ret void
+    }
+
+    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2r2r2i16i16r2i16i16r2r2i16i16r2i16i16]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      %deref = load %prg*, %prg** %self, align 8
+      %rect1 = getelementptr inbounds %prg, %prg* %deref, i32 0, i32 0
+      call void @__init_rect(%Rect* %rect1)
+      %deref1 = load %prg*, %prg** %self, align 8
+      %rect2 = getelementptr inbounds %prg, %prg* %deref1, i32 0, i32 1
+      call void @__init_rect(%Rect* %rect2)
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      call void @__init_prg(%prg* @prg_instance)
       ret void
     }
     "###);

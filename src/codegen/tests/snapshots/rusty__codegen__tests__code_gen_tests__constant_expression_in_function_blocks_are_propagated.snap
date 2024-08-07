@@ -16,3 +16,15 @@ entry:
   store i16 2, i16* %x, align 2
   ret void
 }
+
+define void @__init_fbwithconstant(%fbWithConstant* %0) section "fn-$RUSTY$__init_fbwithconstant:v[pr2i16i16]" {
+entry:
+  %self = alloca %fbWithConstant*, align 8
+  store %fbWithConstant* %0, %fbWithConstant** %self, align 8
+  ret void
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  ret void
+}

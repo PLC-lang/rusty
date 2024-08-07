@@ -29,3 +29,24 @@ entry:
   store i32 2, i32* %x, align 4
   ret void
 }
+
+define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr0]" {
+entry:
+  %self = alloca %bar*, align 8
+  store %bar* %0, %bar** %self, align 8
+  ret void
+}
+
+define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr1i32]" {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  ret void
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  call void @__init_bar(%bar* @bar_instance)
+  call void @__init_prg(%prg* @prg_instance)
+  ret void
+}

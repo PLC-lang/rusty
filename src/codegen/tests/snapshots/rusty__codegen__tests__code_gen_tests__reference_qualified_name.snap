@@ -38,3 +38,34 @@ entry:
   store i32 %load_x1, i32* %x, align 4
   ret void
 }
+
+define void @__init_fb(%fb* %0) section "fn-$RUSTY$__init_fb:v[pr1i32]" {
+entry:
+  %self = alloca %fb*, align 8
+  store %fb* %0, %fb** %self, align 8
+  ret void
+}
+
+define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr3i32i32r1i32]" {
+entry:
+  %self = alloca %foo*, align 8
+  store %foo* %0, %foo** %self, align 8
+  %deref = load %foo*, %foo** %self, align 8
+  %baz = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
+  call void @__init_fb(%fb* %baz)
+  ret void
+}
+
+define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr1i32]" {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  ret void
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  call void @__init_foo(%foo* @foo_instance)
+  call void @__init_prg(%prg* @prg_instance)
+  ret void
+}

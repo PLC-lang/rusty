@@ -32,3 +32,8 @@ entry:
 }
 
 declare i16 @MAX__INT(i32, i16*) section "fn-$RUSTY$MAX__INT:i16"
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  ret void
+}

@@ -12,3 +12,8 @@ entry:
   %func_ret = load i16*, i16** %func, align 8
   ret i16* %func_ret
 }
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  ret void
+}

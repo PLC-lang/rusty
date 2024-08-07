@@ -21,3 +21,15 @@ entry:
   %main_ret = load i32, i32* %main, align 4
   ret i32 %main_ret
 }
+
+define void @__init_struct1(%STRUCT1* %0) section "fn-$RUSTY$__init_struct1:v[pr1i32]" {
+entry:
+  %self = alloca %STRUCT1*, align 8
+  store %STRUCT1* %0, %STRUCT1** %self, align 8
+  ret void
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  ret void
+}

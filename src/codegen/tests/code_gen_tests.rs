@@ -1224,6 +1224,19 @@ fn for_statement_with_binary_expressions() {
     continue:                                         ; preds = %predicate_sge, %predicate_sle
       ret void
     }
+
+    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr4i32i32i32i32]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      call void @__init_prg(%prg* @prg_instance)
+      ret void
+    }
     "###);
 }
 
@@ -1289,6 +1302,11 @@ fn for_statement_type_casting() {
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     continue:                                         ; preds = %predicate_sge, %predicate_sle
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
       ret void
     }
     "###);

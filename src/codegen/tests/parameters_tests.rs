@@ -736,6 +736,11 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
       ret i32 %foo_ret
     }
 
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      ret void
+    }
+
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
@@ -793,6 +798,11 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
       store i32 0, i32* %foo, align 4
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      ret void
     }
 
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
@@ -853,6 +863,11 @@ fn by_value_function_arg_arrays_are_memcopied() {
       store i32 0, i32* %foo, align 4
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      ret void
     }
 
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
@@ -921,6 +936,18 @@ fn by_value_function_arg_structs_are_memcopied() {
       %call = call i32 @foo(%S_TY* %s)
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
+    }
+
+    define void @__init_s_ty(%S_TY* %0) section "fn-$RUSTY$__init_s_ty:v[pr2u8u8]" {
+    entry:
+      %self = alloca %S_TY*, align 8
+      store %S_TY* %0, %S_TY** %self, align 8
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      ret void
     }
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
@@ -996,6 +1023,28 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
       ret i32 %main_ret
     }
 
+    define void @__init_s_ty(%S_TY* %0) section "fn-$RUSTY$__init_s_ty:v[pr2u8u8]" {
+    entry:
+      %self = alloca %S_TY*, align 8
+      store %S_TY* %0, %S_TY** %self, align 8
+      ret void
+    }
+
+    define void @__init_aggregate_collector_ty(%AGGREGATE_COLLECTOR_TY* %0) section "fn-$RUSTY$__init_aggregate_collector_ty:v[pr3ai32s8u65537r2u8u8]" {
+    entry:
+      %self = alloca %AGGREGATE_COLLECTOR_TY*, align 8
+      store %AGGREGATE_COLLECTOR_TY* %0, %AGGREGATE_COLLECTOR_TY** %self, align 8
+      %deref = load %AGGREGATE_COLLECTOR_TY*, %AGGREGATE_COLLECTOR_TY** %self, align 8
+      %v3 = getelementptr inbounds %AGGREGATE_COLLECTOR_TY, %AGGREGATE_COLLECTOR_TY* %deref, i32 0, i32 2
+      call void @__init_s_ty(%S_TY* %v3)
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      ret void
+    }
+
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
@@ -1063,6 +1112,18 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     entry:
       %val = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @__init_foo(%FOO* %0) section "fn-$RUSTY$__init_foo:v[pr2s8u65537ai32]" {
+    entry:
+      %self = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %self, align 8
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
       ret void
     }
 
@@ -1164,6 +1225,42 @@ fn var_output_aggregate_types_are_memcopied() {
       %14 = bitcast [81 x i16]* %out5 to i8*
       %15 = bitcast [81 x i16]* %13 to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %14, i8* align 2 %15, i32 160, i1 false)
+      ret void
+    }
+
+    define void @__init_out_type(%OUT_TYPE* %0) section "fn-$RUSTY$__init_out_type:v[pr1u8]" {
+    entry:
+      %self = alloca %OUT_TYPE*, align 8
+      store %OUT_TYPE* %0, %OUT_TYPE** %self, align 8
+      ret void
+    }
+
+    define void @__init_fb(%FB* %0) section "fn-$RUSTY$__init_fb:v[pr5r1u8ai32ar1u8s8u81s16u81]" {
+    entry:
+      %self = alloca %FB*, align 8
+      store %FB* %0, %FB** %self, align 8
+      %deref = load %FB*, %FB** %self, align 8
+      %output = getelementptr inbounds %FB, %FB* %deref, i32 0, i32 0
+      call void @__init_out_type(%OUT_TYPE* %output)
+      ret void
+    }
+
+    define void @__init_prg(%PRG* %0) section "fn-$RUSTY$__init_prg:v[pr6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81]" {
+    entry:
+      %self = alloca %PRG*, align 8
+      store %PRG* %0, %PRG** %self, align 8
+      %deref = load %PRG*, %PRG** %self, align 8
+      %out = getelementptr inbounds %PRG, %PRG* %deref, i32 0, i32 0
+      call void @__init_out_type(%OUT_TYPE* %out)
+      %deref1 = load %PRG*, %PRG** %self, align 8
+      %station = getelementptr inbounds %PRG, %PRG* %deref1, i32 0, i32 5
+      call void @__init_fb(%FB* %station)
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      call void @__init_prg(%PRG* @PRG_instance)
       ret void
     }
 

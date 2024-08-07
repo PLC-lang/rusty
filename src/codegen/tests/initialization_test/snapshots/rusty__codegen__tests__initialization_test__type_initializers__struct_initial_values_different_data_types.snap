@@ -9,3 +9,15 @@ source_filename = "main"
 
 @x = global %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }, section "var-$RUSTY$x:r14u8i8u8u16i16u16u32i32u32u64i64u64f32f64"
 @__MyStruct__init = unnamed_addr constant %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }, section "var-$RUSTY$__MyStruct__init:r14u8i8u8u16i16u16u32i32u32u64i64u64f32f64"
+
+define void @__init_mystruct(%MyStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr14u8i8u8u16i16u16u32i32u32u64i64u64f32f64]" {
+entry:
+  %self = alloca %MyStruct*, align 8
+  store %MyStruct* %0, %MyStruct** %self, align 8
+  ret void
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  ret void
+}

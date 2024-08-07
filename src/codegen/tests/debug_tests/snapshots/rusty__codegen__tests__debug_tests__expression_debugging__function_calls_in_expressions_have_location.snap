@@ -16,6 +16,11 @@ entry:
   ret i32 %myFunc_ret, !dbg !12
 }
 
+define void @__init() section "fn-$RUSTY$__init:v" !dbg !13 {
+entry:
+  ret void, !dbg !14
+}
+
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
@@ -37,3 +42,5 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !11 = !DILocation(line: 2, column: 17, scope: !4)
 !12 = !DILocation(line: 3, column: 16, scope: !4)
+!13 = distinct !DISubprogram(name: "__init", linkageName: "__init", scope: !3, file: !3, type: !5, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+!14 = !DILocation(line: 0, scope: !13)

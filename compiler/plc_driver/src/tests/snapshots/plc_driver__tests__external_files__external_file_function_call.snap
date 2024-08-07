@@ -20,3 +20,11 @@ declare i16 @external() section "fn-$RUSTY$external:i16"
 source_filename = "external.st"
 
 declare i16 @external() section "fn-$RUSTY$external:i16"
+
+; ModuleID = '__init_globals'
+source_filename = "__init_globals"
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  ret void
+}

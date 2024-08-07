@@ -20,3 +20,16 @@ entry:
   store i8* %mb, i8** %ptr, align 8
   ret void
 }
+
+define void @__init_baz(%baz* %0) section "fn-$RUSTY$__init_baz:v[pr4pu8u8i8u8]" {
+entry:
+  %self = alloca %baz*, align 8
+  store %baz* %0, %baz** %self, align 8
+  ret void
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  call void @__init_baz(%baz* @baz_instance)
+  ret void
+}

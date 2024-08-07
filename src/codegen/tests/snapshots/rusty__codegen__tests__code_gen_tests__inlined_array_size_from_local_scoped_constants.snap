@@ -20,3 +20,16 @@ entry:
   %arr2 = getelementptr inbounds %aaa, %aaa* %0, i32 0, i32 3
   ret void
 }
+
+define void @__init_aaa(%aaa* %0) section "fn-$RUSTY$__init_aaa:v[pr4i16i16au8au8]" {
+entry:
+  %self = alloca %aaa*, align 8
+  store %aaa* %0, %aaa** %self, align 8
+  ret void
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  call void @__init_aaa(%aaa* @aaa_instance)
+  ret void
+}

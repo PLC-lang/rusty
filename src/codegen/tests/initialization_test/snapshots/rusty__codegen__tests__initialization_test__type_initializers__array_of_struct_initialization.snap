@@ -15,10 +15,32 @@ source_filename = "main"
 @main_instance = global %main { [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }], [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }] }, section "var-$RUSTY$main_instance:r2ar3i32i32ai32ar3i32i32ai32"
 @__main.arr__init = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
 @__main.alias_arr__init = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
+@__main.arr__init.1 = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
+@__main.alias_arr__init.2 = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
 
 define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %arr = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %alias_arr = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  ret void
+}
+
+define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr3i32i32ai32]" {
+entry:
+  %self = alloca %myStruct*, align 8
+  store %myStruct* %0, %myStruct** %self, align 8
+  ret void
+}
+
+define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr2ar3i32i32ai32ar3i32i32ai32]" {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  call void @__init_main(%main* @main_instance)
   ret void
 }

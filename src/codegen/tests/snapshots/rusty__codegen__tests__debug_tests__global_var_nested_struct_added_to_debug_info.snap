@@ -12,6 +12,35 @@ source_filename = "main"
 @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r2i32r2i32f64", !dbg !13
 @__myStruct2__init = unnamed_addr constant %myStruct2 zeroinitializer, section "var-$RUSTY$__myStruct2__init:r2i32f64", !dbg !15
 
+define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2i32r2i32f64]" !dbg !21 {
+entry:
+  %self = alloca %myStruct*, align 8, !dbg !26
+  call void @llvm.dbg.declare(metadata %myStruct** %self, metadata !27, metadata !DIExpression()), !dbg !26
+  store %myStruct* %0, %myStruct** %self, align 8, !dbg !26
+  %deref = load %myStruct*, %myStruct** %self, align 8, !dbg !26
+  %b = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1, !dbg !26
+  call void @__init_mystruct2(%myStruct2* %b), !dbg !28
+  ret void, !dbg !28
+}
+
+define void @__init_mystruct2(%myStruct2* %0) section "fn-$RUSTY$__init_mystruct2:v[pr2i32f64]" !dbg !29 {
+entry:
+  %self = alloca %myStruct2*, align 8, !dbg !33
+  call void @llvm.dbg.declare(metadata %myStruct2** %self, metadata !34, metadata !DIExpression()), !dbg !33
+  store %myStruct2* %0, %myStruct2** %self, align 8, !dbg !33
+  ret void, !dbg !33
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" !dbg !35 {
+entry:
+  ret void, !dbg !38
+}
+
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
 !llvm.module.flags = !{!17, !18}
 !llvm.dbg.cu = !{!19}
 
@@ -36,3 +65,21 @@ source_filename = "main"
 !18 = !{i32 2, !"Debug Info Version", i32 3}
 !19 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !20, splitDebugInlining: false)
 !20 = !{!0, !13, !15}
+!21 = distinct !DISubprogram(name: "__init_mystruct", linkageName: "__init_mystruct", scope: !2, file: !2, line: 2, type: !22, scopeLine: 2, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !19, retainedNodes: !25)
+!22 = !DISubroutineType(flags: DIFlagPublic, types: !23)
+!23 = !{null, !24}
+!24 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_myStruct", baseType: !3, size: 64, align: 64, dwarfAddressSpace: 1)
+!25 = !{}
+!26 = !DILocation(line: 2, column: 9, scope: !21)
+!27 = !DILocalVariable(name: "self", scope: !21, file: !2, line: 2, type: !24)
+!28 = !DILocation(line: 0, scope: !21)
+!29 = distinct !DISubprogram(name: "__init_mystruct2", linkageName: "__init_mystruct2", scope: !2, file: !2, line: 8, type: !30, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !19, retainedNodes: !25)
+!30 = !DISubroutineType(flags: DIFlagPublic, types: !31)
+!31 = !{null, !32}
+!32 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_myStruct2", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+!33 = !DILocation(line: 8, column: 9, scope: !29)
+!34 = !DILocalVariable(name: "self", scope: !29, file: !2, line: 8, type: !32)
+!35 = distinct !DISubprogram(name: "__init", linkageName: "__init", scope: !2, file: !2, type: !36, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !19, retainedNodes: !25)
+!36 = !DISubroutineType(flags: DIFlagPublic, types: !37)
+!37 = !{null}
+!38 = !DILocation(line: 0, scope: !35)

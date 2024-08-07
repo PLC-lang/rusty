@@ -42,3 +42,16 @@ entry:
   store i16 %load_tmpVar14, i16* %tmpVar11, align 2
   ret void
 }
+
+define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr4i16ai16api16pai16]" {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  ret void
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  call void @__init_prg(%prg* @prg_instance)
+  ret void
+}

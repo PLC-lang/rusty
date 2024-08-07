@@ -22,6 +22,11 @@ entry:
   ret i16 %func_ret
 }
 
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  ret void
+}
+
 ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 

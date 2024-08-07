@@ -19,3 +19,16 @@ entry:
   %zz = getelementptr inbounds %Main, %Main* %0, i32 0, i32 5
   ret void
 }
+
+define void @__init_main(%Main* %0) section "fn-$RUSTY$__init_main:v[pr6i16i16u8u8f32f32]" {
+entry:
+  %self = alloca %Main*, align 8
+  store %Main* %0, %Main** %self, align 8
+  ret void
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  call void @__init_main(%Main* @Main_instance)
+  ret void
+}

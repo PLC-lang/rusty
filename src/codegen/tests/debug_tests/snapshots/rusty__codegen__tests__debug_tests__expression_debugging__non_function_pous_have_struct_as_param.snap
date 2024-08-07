@@ -31,6 +31,28 @@ entry:
   ret void, !dbg !24
 }
 
+define void @__init_myprog(%myProg* %0) section "fn-$RUSTY$__init_myprog:v[pr1i32]" !dbg !25 {
+entry:
+  %self = alloca %myProg*, align 8, !dbg !29
+  call void @llvm.dbg.declare(metadata %myProg** %self, metadata !30, metadata !DIExpression()), !dbg !29
+  store %myProg* %0, %myProg** %self, align 8, !dbg !29
+  ret void, !dbg !29
+}
+
+define void @__init_fb(%fb* %0) section "fn-$RUSTY$__init_fb:v[pr1i32]" !dbg !31 {
+entry:
+  %self = alloca %fb*, align 8, !dbg !35
+  call void @llvm.dbg.declare(metadata %fb** %self, metadata !36, metadata !DIExpression()), !dbg !35
+  store %fb* %0, %fb** %self, align 8, !dbg !35
+  ret void, !dbg !35
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" !dbg !37 {
+entry:
+  call void @__init_myprog(%myProg* @myProg_instance), !dbg !40
+  ret void, !dbg !40
+}
+
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
@@ -42,7 +64,7 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "myProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "main", directory: "src")
-!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myProg", scope: !2, file: !2, line: 2, size: 32, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myProg")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myprog", scope: !2, file: !2, line: 2, size: 32, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myprog")
 !4 = !{!5}
 !5 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 4, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
 !6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
@@ -64,3 +86,19 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !22 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 9, type: !17, scopeLine: 13, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !19)
 !23 = !DILocalVariable(name: "fb", scope: !22, file: !2, line: 9, type: !9)
 !24 = !DILocation(line: 13, column: 12, scope: !22)
+!25 = distinct !DISubprogram(name: "__init_myprog", linkageName: "__init_myprog", scope: !2, file: !2, line: 2, type: !26, scopeLine: 2, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !19)
+!26 = !DISubroutineType(flags: DIFlagPublic, types: !27)
+!27 = !{null, !28}
+!28 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_myProg", baseType: !3, size: 64, align: 64, dwarfAddressSpace: 1)
+!29 = !DILocation(line: 2, column: 16, scope: !25)
+!30 = !DILocalVariable(name: "self", scope: !25, file: !2, line: 2, type: !28)
+!31 = distinct !DISubprogram(name: "__init_fb", linkageName: "__init_fb", scope: !2, file: !2, line: 9, type: !32, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !19)
+!32 = !DISubroutineType(flags: DIFlagPublic, types: !33)
+!33 = !{null, !34}
+!34 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_fb", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
+!35 = !DILocation(line: 9, column: 23, scope: !31)
+!36 = !DILocalVariable(name: "self", scope: !31, file: !2, line: 9, type: !34)
+!37 = distinct !DISubprogram(name: "__init", linkageName: "__init", scope: !2, file: !2, type: !38, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !19)
+!38 = !DISubroutineType(flags: DIFlagPublic, types: !39)
+!39 = !{null}
+!40 = !DILocation(line: 0, scope: !37)

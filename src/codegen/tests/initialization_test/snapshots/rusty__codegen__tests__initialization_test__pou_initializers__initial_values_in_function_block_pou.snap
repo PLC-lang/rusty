@@ -27,3 +27,26 @@ entry:
   %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   ret void
 }
+
+define void @__init_fb(%FB* %0) section "fn-$RUSTY$__init_fb:v[pr6i16i16u8u8f32f32]" {
+entry:
+  %self = alloca %FB*, align 8
+  store %FB* %0, %FB** %self, align 8
+  ret void
+}
+
+define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr1r6i16i16u8u8f32f32]" {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  %deref = load %main*, %main** %self, align 8
+  %fb = getelementptr inbounds %main, %main* %deref, i32 0, i32 0
+  call void @__init_fb(%FB* %fb)
+  ret void
+}
+
+define void @__init() section "fn-$RUSTY$__init:v" {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
