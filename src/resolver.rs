@@ -985,11 +985,12 @@ impl<'i> TypeAnnotator<'i> {
             })
             .unwrap_or_else(|| (InitFnType::Struct, &index.get_type_or_panic(container).location));
 
+        if matches!(init_type, InitFnType::Function) {
+            return None; // TODO: handle functions
+        };
         let mut id_provider = id_provider.clone();
 
-        let (param, ident) = if matches!(init_type, InitFnType::Function) {
-            unimplemented!("function initializers are not yet supported")
-        } else {
+        let (param, ident) = 
             (
                 vec![VariableBlock::default().with_block_type(ast::VariableBlockType::InOut).with_variables(
                     vec![Variable {
@@ -1005,7 +1006,7 @@ impl<'i> TypeAnnotator<'i> {
                 )],
                 "self".to_string(),
             )
-        };
+        ;
 
         let init_pou = Pou {
             name: init_fn_name.clone(),
