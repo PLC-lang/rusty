@@ -1218,18 +1218,15 @@ impl<'i> TypeAnnotator<'i> {
             //     }
             // }
             for pou in &unit.units {
-                for v in &pou.variable_blocks {
-                    for var in &v.variables {
-                        // FIXME: instead of checking each variable, just create init functions for each pou/struct, regardless of whether
-                        // or not it is needed.
-                        let dt_name = &var.data_type_declaration.get_name().unwrap_or_default();
-                        all_annotations.new_initializers.maybe_insert_initializer(
-                            &pou.name,
-                            var.get_name(),
-                            dt_name,
-                            &var.initializer,
-                        );
-                    }
+                // FIXME: instead of checking each variable, just create init functions for each pou/struct, regardless of whether
+                // or not it is needed.
+                if !matches!(pou.linkage, LinkageType::External | LinkageType::BuiltIn) {
+                    all_annotations.new_initializers.maybe_insert_initializer(
+                        &pou.name,
+                        "",
+                        "",
+                        &None,
+                    );
                 }
             }
         };
