@@ -545,3 +545,201 @@ fn ref_to_inout_variable() {
 
     insta::assert_snapshot!(res, @r###""###);
 }
+
+#[test]
+fn struct_types() {
+    let res = codegen(
+        r#"      
+      TYPE myStruct : STRUCT
+              member : REF_TO STRING := REF(s);
+              member2 AT s2 : ARRAY[0..1] OF STRING;
+          END_STRUCT
+      END_TYPE
+
+      VAR_GLOBAL
+          s : STRING := 'Hello world!';
+          s2 : ARRAY[0..1] OF STRING := ['hello', 'world'];
+      END_VAR
+
+      PROGRAM prog 
+      VAR 
+          str: myStruct;
+      END_VAR
+      END_PROGRAM
+        "#,
+    );
+
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %prog = type { %myStruct }
+    %myStruct = type { [81 x i8]*, [2 x [81 x i8]]* }
+
+    @s = global [81 x i8] c"Hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$s:s8u81"
+    @s2 = global [2 x [81 x i8]] [[81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"world\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], section "var-$RUSTY$s2:as8u81"
+    @prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r1r2ps8u81pas8u81"
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r2ps8u81pas8u81"
+
+    define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+    entry:
+      %str = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2ps8u81pas8u81]" {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      %deref = load %myStruct*, %myStruct** %self, align 8
+      %member2 = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1
+      store [2 x [81 x i8]]* @s2, [2 x [81 x i8]]** %member2, align 8
+      %deref1 = load %myStruct*, %myStruct** %self, align 8
+      %member = getelementptr inbounds %myStruct, %myStruct* %deref1, i32 0, i32 0
+      store [81 x i8]* @s, [81 x i8]** %member, align 8
+      ret void
+    }
+
+    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr1r2ps8u81pas8u81]" {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %str = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__init_mystruct(%myStruct* %str)
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      ret void
+    }
+    "###);
+}
+
+
+#[test]
+fn stateful_pous_methods_and_structs_get_init_functions() {
+    let res = codegen(
+        r#"      
+      TYPE myStruct : STRUCT
+          END_STRUCT
+      END_TYPE
+
+      PROGRAM prog 
+      VAR 
+      END_VAR
+      END_PROGRAM
+
+      FUNCTION_BLOCK foo
+        METHOD m
+        END_METHOD
+      END_FUNCTION_BLOCK
+
+      CLASS cl
+        METHOD m
+        END_METHOD
+      END_CLASS
+      
+      // no init function is expected for this action
+      ACTION foo.act
+      END_ACTION
+      "#,
+    );
+
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %prog = type {}
+    %foo = type {}
+    %cl = type {}
+    %myStruct = type {}
+    %foo.m = type {}
+    %cl.m = type {}
+
+    @prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r0"
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r0"
+    @__cl__init = unnamed_addr constant %cl zeroinitializer, section "var-$RUSTY$__cl__init:r0"
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r0"
+
+    define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+    entry:
+      ret void
+    }
+
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+    entry:
+      ret void
+    }
+
+    define void @foo.m(%foo* %0, %foo.m* %1) section "fn-$RUSTY$foo.m:v" {
+    entry:
+      ret void
+    }
+
+    define void @cl(%cl* %0) section "fn-$RUSTY$cl:v" {
+    entry:
+      ret void
+    }
+
+    define void @cl.m(%cl* %0, %cl.m* %1) section "fn-$RUSTY$cl.m:v" {
+    entry:
+      ret void
+    }
+
+    define void @foo.act(%foo* %0) section "fn-$RUSTY$foo.act:v" {
+    entry:
+      ret void
+    }
+
+    define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr0]" {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
+    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr0]" {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      ret void
+    }
+
+    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr0]" {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__init_foo.m(%foo.m* %0) section "fn-$RUSTY$__init_foo.m:v[pr0]" {
+    entry:
+      %self = alloca %foo.m*, align 8
+      store %foo.m* %0, %foo.m** %self, align 8
+      ret void
+    }
+
+    define void @__init_cl(%cl* %0) section "fn-$RUSTY$__init_cl:v[pr0]" {
+    entry:
+      %self = alloca %cl*, align 8
+      store %cl* %0, %cl** %self, align 8
+      ret void
+    }
+
+    define void @__init_cl.m(%cl.m* %0) section "fn-$RUSTY$__init_cl.m:v[pr0]" {
+    entry:
+      %self = alloca %cl.m*, align 8
+      store %cl.m* %0, %cl.m** %self, align 8
+      ret void
+    }
+
+    define void @__init() section "fn-$RUSTY$__init:v" {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      ret void
+    }
+    "###);
+}
