@@ -785,7 +785,6 @@ where
         &mut self,
         scope: &str,
         var_name: &str,
-        type_name: &str,
         initializer: &Option<AstNode>,
     );
     fn import(&mut self, other: Self);
@@ -807,7 +806,6 @@ impl<'rslv> Init<'rslv> for Initializers {
                 assignments.maybe_insert_initializer(
                     &scope,
                     data.lhs.as_ref().unwrap_or(&data.target_type_name),
-                    &data.target_type_name,
                     &data.initializer,
                 );
             });
@@ -819,7 +817,6 @@ impl<'rslv> Init<'rslv> for Initializers {
         &mut self,
         container_name: &str,
         var_name: &str,
-        type_name: &str,
         initializer: &Option<AstNode>,
     ) {
         let assignments = self.entry(container_name.to_string()).or_default();
@@ -827,7 +824,7 @@ impl<'rslv> Init<'rslv> for Initializers {
         if assignments.contains_key(var_name) {
             return;
         }
-        assignments.insert(var_name.to_string(), (type_name.into(), initializer.clone()));
+        assignments.insert(var_name.to_string(), initializer.clone());
     }
 
     fn import(&mut self, other: Self) {
@@ -837,22 +834,7 @@ impl<'rslv> Init<'rslv> for Initializers {
     }
 }
 
-pub type InitAssignments = FxIndexMap<String, (String, Option<AstNode>)>;
-
-trait InitAssignmentsExt {
-    fn get_initializer_node(&self, variable_name: &str) -> Option<&AstNode>;
-    fn get_data_type_name(&self, variable_name: &str) -> Option<&str>;
-}
-
-impl InitAssignmentsExt for InitAssignments {
-    fn get_initializer_node(&self, variable_name: &str) -> Option<&AstNode> {
-        self.get(variable_name).and_then(|(_, node)| node.as_ref())
-    }
-
-    fn get_data_type_name(&self, variable_name: &str) -> Option<&str> {
-        self.get(variable_name).map(|(dt_name, _)| dt_name.as_str())
-    }
-}
+pub type InitAssignments = FxIndexMap<String, Option<AstNode>>;
 
 impl<'i> TypeAnnotator<'i> {
     /// constructs a new TypeAnnotater that works with the given index for type-lookups
@@ -1015,7 +997,7 @@ impl<'i> TypeAnnotator<'i> {
 
         let mut statements = init
             .iter()
-            .filter_map(|(lhs_name, (type_name, initializer))| {
+            .filter_map(|(lhs_name,initializer)| {
                 let lhs = create_member_reference(
                     lhs_name,
                     id_provider.clone(),
@@ -1120,7 +1102,7 @@ impl<'i> TypeAnnotator<'i> {
         let mut globals = if let Some(stmts) = candidates.get("__global") {
             stmts
                 .iter()
-                .filter_map(|(var_name, (type_name, initializer))| {
+                .filter_map(|(var_name, initializer)| {
                     initializer.as_ref().map(|it| {
                         let global = create_member_reference(var_name, id_provider.clone(), None);
                         AstFactory::create_assignment(global, it.clone(), id_provider.next_id())
@@ -1195,15 +1177,14 @@ impl<'i> TypeAnnotator<'i> {
                         .filter_map(|var| {
                             // struct member initializers don't have a qualifier/scope while evaluated in `const_evaluator.rs` and are registered as globals under their data-type name
                             // look for member initializers for this struct in the global initializers, remove them and add new entries with the correct qualifier and left-hand-side
-                            candidates.get_mut("__global").and_then(|it| it.swap_remove(var.get_type_name())).map(|(_, node)| {
+                            candidates.get_mut("__global").and_then(|it| it.swap_remove(var.get_type_name())).map(|node| {
                                 (var.get_name(), node)
                             })
                     }).for_each(|(lhs, it)| {
-                        all_annotations.new_initializers.maybe_insert_initializer(name, &lhs, "", &it);
+                        all_annotations.new_initializers.maybe_insert_initializer(name, &lhs,  &it);
                     });
 
                     all_annotations.new_initializers.maybe_insert_initializer(
-                        &name,
                         &name,
                         &name,
                         &type_.initializer,
@@ -1215,7 +1196,6 @@ impl<'i> TypeAnnotator<'i> {
                     all_annotations.new_initializers.maybe_insert_initializer(
                         &pou.name,
                         "", // XXX: maybe make this optional?
-                        "",
                         &None,
                     );
                 }
@@ -1527,7 +1507,6 @@ impl<'i> TypeAnnotator<'i> {
             self.annotation_map.new_initializers.maybe_insert_initializer(
                 ctx.pou.or(ctx.qualifier.as_deref()).as_ref().unwrap_or(&"__global"),
                 lhs,
-                variable_ty.get_name(),
                 &Some(initializer.clone()),
             );
         }
