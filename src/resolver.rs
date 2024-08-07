@@ -937,7 +937,7 @@ impl<'i> TypeAnnotator<'i> {
         (visitor.annotation_map, visitor.dependencies, visitor.string_literals)
     }
 
-    pub fn create_init_units(
+    fn create_init_units(
         index: &Index,
         id_provider: &IdProvider,
         initializers: &Initializers,
@@ -946,24 +946,16 @@ impl<'i> TypeAnnotator<'i> {
             .iter()
             .filter_map(|(container, init)| {
                 if container == "__global" {
-                    // init.iter().for_each(|(var_name, (dt, stmt))| {
-                    //     let dti = index.get_type_information_or_void(dt);
-                    //     dbg!(&dti);
-                    //     if dti.is_struct() {
-                    //         // do something
-                    //     }
-                    // });
-
                     // globals will be initialized in the `__init` body
                     return None;
                 }
 
-                TypeAnnotator::fun_name(container, index, id_provider, init)
+                TypeAnnotator::create_init_unit(container, index, id_provider, init)
             })
             .collect()
     }
 
-    fn fun_name(
+    fn create_init_unit(
         container: &String,
         index: &Index,
         id_provider: &IdProvider,
@@ -1042,7 +1034,6 @@ impl<'i> TypeAnnotator<'i> {
             .filter_map(|member| {
                 let type_name = &member.get_type_name();
                 if index.find_pou(type_name).is_some() || index.get_type_information_or_void(type_name).is_struct() {
-                // if initializers.contains_key(*type_name) {
                     let call_name = get_init_fn_name(type_name);
                     let op = create_member_reference(&call_name, id_provider.clone(), None);
                     let param = create_member_reference(
@@ -1091,7 +1082,7 @@ impl<'i> TypeAnnotator<'i> {
         Some((new_index, new_unit))
     }
 
-    pub fn create_init_unit(
+    fn create_init_wrapper_function(
         index: &Index,
         id_provider: &IdProvider,
         candidates: &Initializers,
@@ -1192,14 +1183,25 @@ impl<'i> TypeAnnotator<'i> {
     ) {
         let mut candidates = Initializers::new(&unresolvables);
         // revisit all member variables without explicit initializers to find initializer-dependencies
-        // FIXME: order of visitation matters here
         let mut revisit_unit = |unit: &CompilationUnit| {
             for type_ in &unit.user_types {
                 if let DataType::StructType { name, .. } = &type_.data_type {
                     let Some(name) = name else {
                         continue;
                     };
-                    dbg!(full_index.get_container_members(name).iter().map(|it| &it.data_type_name).any(|it| candidates.get("__global").is_some_and(|other| other.contains_key(it))));
+                    
+                    full_index.get_container_members(name)
+                        .iter()
+                        .filter_map(|var| {
+                            // struct member initializers don't have a qualifier/scope while evaluated in `const_evaluator.rs` and are registered as globals under their data-type name
+                            // look for member initializers for this struct in the global initializers, remove them and add new entries with the correct qualifier and left-hand-side
+                            candidates.get_mut("__global").and_then(|it| it.swap_remove(var.get_type_name())).map(|(_, node)| {
+                                (var.get_name(), node)
+                            })
+                    }).for_each(|(lhs, it)| {
+                        all_annotations.new_initializers.maybe_insert_initializer(name, &lhs, "", &it);
+                    });
+
                     all_annotations.new_initializers.maybe_insert_initializer(
                         &name,
                         &name,
@@ -1208,24 +1210,11 @@ impl<'i> TypeAnnotator<'i> {
                     );
                 }
             }
-            // for global in &unit.global_vars {
-            //     for var in &global.variables {
-            //         let dt_name = &var.data_type_declaration.get_name().unwrap_or_default();
-            //         all_annotations.new_initializers.insert_initializer(
-            //             "__global",
-            //             var.get_name(),
-            //             dt_name,
-            //             &var.initializer,
-            //         );
-            //     }
-            // }
             for pou in &unit.units {
-                // FIXME: instead of checking each variable, just create init functions for each pou/struct, regardless of whether
-                // or not it is needed.
                 if !matches!(pou.linkage, LinkageType::External | LinkageType::BuiltIn) {
                     all_annotations.new_initializers.maybe_insert_initializer(
                         &pou.name,
-                        "",
+                        "", // XXX: maybe make this optional?
                         "",
                         &None,
                     );
@@ -1258,7 +1247,7 @@ impl<'i> TypeAnnotator<'i> {
         }
 
         if let Some((mut new_index, init_unit)) =
-            TypeAnnotator::create_init_unit(&*full_index, id_provider, &candidates)
+            TypeAnnotator::create_init_wrapper_function(&*full_index, id_provider, &candidates)
         {
             full_index.import(std::mem::take(&mut new_index));
             let (a, deps, literals) =
