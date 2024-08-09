@@ -1,0 +1,20 @@
+VAR_GLOBAL
+    ps: STRING;
+END_VAR
+
+FUNCTION_BLOCK foo
+VAR
+    s AT gs: STRING;
+END_VAR
+    s := 'Hello world!';
+
+    // CHECK: Hello world!
+    printf('%s$N', REF(ps));
+END_FUNCTION_BLOCK
+
+FUNCTION main: DINT
+VAR
+    fb: foo;
+END_VAR
+    __init();
+END_FUNCTION

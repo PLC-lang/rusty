@@ -60,7 +60,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             };
 
             if varargs.is_some() {
-                member_varargs = varargs.clone();
+                member_varargs.clone_from(&varargs);
             }
 
             let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
@@ -74,6 +74,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 var.initializer.clone(),
                 type_name.as_str(),
                 Some(pou.name.clone()),
+                Some(var.get_name().to_string()),
             );
 
             let binding = var
@@ -290,6 +291,7 @@ fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
             var.initializer.clone(),
             target_type,
             None,
+            Some(var.get_name().into()),
         );
         let variable = VariableIndexEntry::create_global(
             &var.name,
@@ -337,6 +339,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                         right.as_ref().clone(),
                         numeric_type.clone(),
                         scope.clone(),
+                        None,
                     );
 
                     variants.push(index.register_enum_variant(name, &variant, Some(init), ele.get_location()))
@@ -355,6 +358,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                 type_declaration.initializer.clone(),
                 name,
                 scope.clone(),
+                None,
             );
 
             index.register_type(typesystem::DataType {
@@ -383,6 +387,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                 type_declaration.initializer.clone(),
                 name,
                 scope.clone(),
+                None,
             );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
@@ -412,6 +417,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                 type_declaration.initializer.clone(),
                 name,
                 scope.clone(),
+                None,
             );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
@@ -446,6 +452,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                         len_plus_1,
                         type_name.clone(),
                         scope.clone(),
+                        None,
                     ))
                 }
                 None => TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
@@ -455,6 +462,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                 type_declaration.initializer.clone(),
                 type_name,
                 scope.clone(),
+                None,
             );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
@@ -673,11 +681,13 @@ fn visit_array(
                         *start.clone(),
                         typesystem::DINT_TYPE.to_string(),
                         scope.clone(),
+                        None,
                     )),
                     end_offset: TypeSize::from_expression(constants.add_constant_expression(
                         *end.clone(),
                         typesystem::DINT_TYPE.to_string(),
                         scope.clone(),
+                        None,
                     )),
                 })
             }
@@ -704,6 +714,7 @@ fn visit_array(
         type_declaration.initializer.clone(),
         name,
         scope.clone(),
+        None,
     );
     // TODO unfortunately we cannot share const-expressions between multiple
     // index-entries
@@ -711,6 +722,7 @@ fn visit_array(
         type_declaration.initializer.clone(),
         name,
         scope.clone(),
+        None,
     );
 
     index.register_type(typesystem::DataType {
@@ -766,6 +778,7 @@ fn visit_struct(
                 var.initializer.clone(),
                 member_type,
                 scope.clone(),
+                None,
             );
 
             let binding =
@@ -795,6 +808,7 @@ fn visit_struct(
         type_declaration.initializer.clone(),
         name,
         scope.clone(),
+        Some(name.into()),
     );
     index.register_type(typesystem::DataType {
         name: name.to_string(),

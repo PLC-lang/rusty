@@ -361,6 +361,32 @@ pub struct VariableBlock {
     pub location: SourceLocation,
 }
 
+impl VariableBlock {
+    pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
+        self.variable_block_type = block_type;
+        self
+    }
+
+    pub fn with_variables(mut self, variables: Vec<Variable>) -> Self {
+        self.variables = variables;
+        self
+    }
+}
+
+impl Default for VariableBlock {
+    fn default() -> Self {
+        VariableBlock {
+            access: AccessModifier::Internal,
+            constant: false,
+            retain: false,
+            variables: vec![],
+            variable_block_type: VariableBlockType::Local,
+            linkage: LinkageType::Internal,
+            location: SourceLocation::internal(),
+        }
+    }
+}
+
 impl Debug for VariableBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("VariableBlock")
@@ -400,6 +426,10 @@ impl Variable {
             location: self.data_type_declaration.get_location(),
         };
         std::mem::replace(&mut self.data_type_declaration, new_data_type)
+    }
+
+    pub fn get_name(&self) -> &str {
+        &self.name
     }
 }
 

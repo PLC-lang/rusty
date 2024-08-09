@@ -717,7 +717,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let assigned_output = self.generate_lvalue(expr)?;
                 let assigned_output_type =
                     self.annotations.get_type_or_void(expr, self.index).get_type_information();
-
                 let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                     Diagnostic::codegen_error(
                         format!("Cannot build generate parameter: {parameter:#?}"),

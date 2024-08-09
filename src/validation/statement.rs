@@ -492,7 +492,9 @@ fn validate_reference<T: AnnotationMap>(
                     .and_then(|qualifier| context.index.find_pou(qualifier))
                     .map(|pou| (pou.get_name(), pou.get_container())) // get the container pou (for actions this is the program/fb)
                     .map_or(false, |(pou, container)| {
-                        !qualified_name.starts_with(pou) && !qualified_name.starts_with(container)
+                        !qualified_name.starts_with(pou)
+                            && !qualified_name.starts_with(container)
+                            && !context.index.is_init_function(pou)
                     })
             {
                 validator.push_diagnostic(
@@ -780,8 +782,12 @@ pub fn validate_pointer_assignment<T>(
 ) where
     T: AnnotationMap,
 {
-    let type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
-    let type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
+    let type_info_lhs = context
+        .index
+        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_lhs.get_type_information()));
+    let type_info_rhs = context
+        .index
+        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_rhs.get_type_information()));
 
     if type_info_lhs.is_array() && type_info_rhs.is_array() {
         let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
@@ -851,7 +857,9 @@ fn validate_alias_assignment<T: AnnotationMap>(
     ref_assignment: &AstNode,
 ) {
     if let AstStatement::RefAssignment(Assignment { left, .. }) = ref_assignment.get_stmt() {
-        if context.annotations.get(left).is_some_and(|opt| opt.is_alias()) {
+        if context.annotations.get(left).is_some_and(|opt| {
+            opt.is_alias() && !context.qualifier.is_some_and(|it| context.index.is_init_function(it))
+        }) {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
                     "{} is an immutable alias variable, can not change the address",

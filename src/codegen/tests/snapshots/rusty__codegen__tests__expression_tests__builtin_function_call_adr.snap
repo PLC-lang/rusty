@@ -13,8 +13,6 @@ define void @main(%main* %0) section "fn-$RUSTY$main:v" {
 entry:
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %1 = ptrtoint i32* %b to i64
-  %2 = inttoptr i64 %1 to i32*
-  store i32* %2, i32** %a, align 8
+  store i32* %b, i32** %a, align 8
   ret void
 }

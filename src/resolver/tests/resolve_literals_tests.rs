@@ -5,10 +5,11 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
+use crate::resolver::TypeAnnotator;
 use crate::{
     assert_type_and_hint,
     index::ArgumentType,
-    resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
+    resolver::{AnnotationMap, StatementAnnotation},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{DataType, DataTypeInformation, StringEncoding, TypeSize, DINT_TYPE},
 };

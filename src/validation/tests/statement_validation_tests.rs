@@ -1615,16 +1615,7 @@ fn action_as_reference_does_not_cause_parentheses_diagnostic() {
     );
 
     // we expect no missing parentheses diagnostic
-    assert_snapshot!(diagnostics, @r###"
-    error[E037]: Invalid assignment: cannot assign 'FOO' to 'fb1'
-      ┌─ <internal>:7:28
-      │
-    7 │             address := ADR(fb1.FOO);
-      │                            ^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'fb1'
-
-    "###);
-    // XXX: change assertion to `assert!(diagnostics.is_empty())` once
-    // https://github.com/PLC-lang/rusty/issues/1165 is resolved
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
