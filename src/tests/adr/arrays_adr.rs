@@ -83,19 +83,6 @@ fn assigning_full_arrays() {
       ret void
     }
 
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2ai32ai32]" {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
-    }
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 

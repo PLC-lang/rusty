@@ -11,24 +11,6 @@ source_filename = "main"
 @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r3i32f64ai32", !dbg !13
 @b = global [11 x %myStruct] zeroinitializer, section "var-$RUSTY$b:ar3i32f64ai32", !dbg !15
 
-define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr3i32f64ai32]" !dbg !22 {
-entry:
-  %self = alloca %myStruct*, align 8, !dbg !27
-  call void @llvm.dbg.declare(metadata %myStruct** %self, metadata !28, metadata !DIExpression()), !dbg !27
-  store %myStruct* %0, %myStruct** %self, align 8, !dbg !27
-  ret void, !dbg !27
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" !dbg !29 {
-entry:
-  ret void, !dbg !32
-}
-
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
-
 !llvm.module.flags = !{!18, !19}
 !llvm.dbg.cu = !{!20}
 
@@ -54,14 +36,3 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !19 = !{i32 2, !"Debug Info Version", i32 3}
 !20 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !21, splitDebugInlining: false)
 !21 = !{!0, !13, !15}
-!22 = distinct !DISubprogram(name: "__init_mystruct", linkageName: "__init_mystruct", scope: !2, file: !2, line: 2, type: !23, scopeLine: 2, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !20, retainedNodes: !26)
-!23 = !DISubroutineType(flags: DIFlagPublic, types: !24)
-!24 = !{null, !25}
-!25 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_myStruct", baseType: !3, size: 64, align: 64, dwarfAddressSpace: 1)
-!26 = !{}
-!27 = !DILocation(line: 2, column: 9, scope: !22)
-!28 = !DILocalVariable(name: "self", scope: !22, file: !2, line: 2, type: !25)
-!29 = distinct !DISubprogram(name: "__init", linkageName: "__init", scope: !2, file: !2, type: !30, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !20, retainedNodes: !26)
-!30 = !DISubroutineType(flags: DIFlagPublic, types: !31)
-!31 = !{null}
-!32 = !DILocation(line: 0, scope: !29)

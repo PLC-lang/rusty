@@ -27,18 +27,6 @@ entry:
   ret i32 %main_ret
 }
 
-define void @__init_commands(%commands* %0) section "fn-$RUSTY$__init_commands:v[pr2u8u8]" {
-entry:
-  %self = alloca %commands*, align 8
-  store %commands* %0, %commands** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  ret void
-}
-
 ; Function Attrs: argmemonly nofree nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 

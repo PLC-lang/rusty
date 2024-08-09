@@ -29,8 +29,3 @@ continue:                                         ; preds = %buffer_block, %entr
   %smaller_than_ten_ret1 = load i16, i16* %smaller_than_ten, align 2
   ret i16 %smaller_than_ten_ret1
 }
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  ret void
-}

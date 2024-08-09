@@ -28,15 +28,3 @@ buffer_block:                                     ; No predecessors!
 continue:                                         ; preds = %buffer_block, %entry
   ret void
 }
-
-define void @__init_abcdef(%abcdef* %0) section "fn-$RUSTY$__init_abcdef:v[pr1i8]" {
-entry:
-  %self = alloca %abcdef*, align 8
-  store %abcdef* %0, %abcdef** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  ret void
-}

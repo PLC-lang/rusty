@@ -214,18 +214,6 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       ret i32 %main_ret
     }
 
-    define void @__init_foo(%FOO* %0) section "fn-$RUSTY$__init_foo:v[pr2u8u8]" {
-    entry:
-      %self = alloca %FOO*, align 8
-      store %FOO* %0, %FOO** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      ret void
-    }
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
@@ -289,18 +277,6 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
       ret i32 %main_ret
     }
 
-    define void @__init_foo(%FOO* %0) section "fn-$RUSTY$__init_foo:v[pr1u8]" {
-    entry:
-      %self = alloca %FOO*, align 8
-      store %FOO* %0, %FOO** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      ret void
-    }
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
@@ -362,18 +338,6 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
       store i8 %or, i8* %error_bits, align 1
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
-    }
-
-    define void @__init_foo(%FOO* %0) section "fn-$RUSTY$__init_foo:v[pr1u8]" {
-    entry:
-      %self = alloca %FOO*, align 8
-      store %FOO* %0, %FOO** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      ret void
     }
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
@@ -465,35 +429,6 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       store i64 %or5, i64* %baz2, align 4
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
-    }
-
-    define void @__init_foo_struct(%foo_struct* %0) section "fn-$RUSTY$__init_foo_struct:v[pr1r1u64]" {
-    entry:
-      %self = alloca %foo_struct*, align 8
-      store %foo_struct* %0, %foo_struct** %self, align 8
-      %deref = load %foo_struct*, %foo_struct** %self, align 8
-      %bar = getelementptr inbounds %foo_struct, %foo_struct* %deref, i32 0, i32 0
-      call void @__init_bar_struct(%bar_struct* %bar)
-      ret void
-    }
-
-    define void @__init_bar_struct(%bar_struct* %0) section "fn-$RUSTY$__init_bar_struct:v[pr1u64]" {
-    entry:
-      %self = alloca %bar_struct*, align 8
-      store %bar_struct* %0, %bar_struct** %self, align 8
-      ret void
-    }
-
-    define void @__init_quux(%QUUX* %0) section "fn-$RUSTY$__init_quux:v[pr1u8]" {
-    entry:
-      %self = alloca %QUUX*, align 8
-      store %QUUX* %0, %QUUX** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      ret void
     }
 
     ; Function Attrs: argmemonly nofree nounwind willreturn

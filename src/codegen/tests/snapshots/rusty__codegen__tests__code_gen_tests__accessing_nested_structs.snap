@@ -24,39 +24,3 @@ entry:
   store i16 7, i16* %inner2, align 2
   ret void
 }
-
-define void @__init_innerstruct(%InnerStruct* %0) section "fn-$RUSTY$__init_innerstruct:v[pr2i16i16]" {
-entry:
-  %self = alloca %InnerStruct*, align 8
-  store %InnerStruct* %0, %InnerStruct** %self, align 8
-  ret void
-}
-
-define void @__init_outerstruct(%OuterStruct* %0) section "fn-$RUSTY$__init_outerstruct:v[pr2r2i16i16r2i16i16]" {
-entry:
-  %self = alloca %OuterStruct*, align 8
-  store %OuterStruct* %0, %OuterStruct** %self, align 8
-  %deref = load %OuterStruct*, %OuterStruct** %self, align 8
-  %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %deref, i32 0, i32 0
-  call void @__init_innerstruct(%InnerStruct* %out1)
-  %deref1 = load %OuterStruct*, %OuterStruct** %self, align 8
-  %out2 = getelementptr inbounds %OuterStruct, %OuterStruct* %deref1, i32 0, i32 1
-  call void @__init_innerstruct(%InnerStruct* %out2)
-  ret void
-}
-
-define void @__init_main(%Main* %0) section "fn-$RUSTY$__init_main:v[pr1r2r2i16i16r2i16i16]" {
-entry:
-  %self = alloca %Main*, align 8
-  store %Main* %0, %Main** %self, align 8
-  %deref = load %Main*, %Main** %self, align 8
-  %m = getelementptr inbounds %Main, %Main* %deref, i32 0, i32 0
-  call void @__init_outerstruct(%OuterStruct* %m)
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  call void @__init_main(%Main* @Main_instance)
-  ret void
-}

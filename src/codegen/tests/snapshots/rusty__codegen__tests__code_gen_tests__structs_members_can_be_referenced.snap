@@ -18,26 +18,3 @@ entry:
   store i32 0, i32* %a, align 4
   ret void
 }
-
-define void @__init_mystruct(%MyStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2i32i32]" {
-entry:
-  %self = alloca %MyStruct*, align 8
-  store %MyStruct* %0, %MyStruct** %self, align 8
-  ret void
-}
-
-define void @__init_mainprog(%MainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr1r2i32i32]" {
-entry:
-  %self = alloca %MainProg*, align 8
-  store %MainProg* %0, %MainProg** %self, align 8
-  %deref = load %MainProg*, %MainProg** %self, align 8
-  %Cord = getelementptr inbounds %MainProg, %MainProg* %deref, i32 0, i32 0
-  call void @__init_mystruct(%MyStruct* %Cord)
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  call void @__init_mainprog(%MainProg* @MainProg_instance)
-  ret void
-}

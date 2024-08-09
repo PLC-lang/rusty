@@ -245,19 +245,6 @@ fn codegen_of_a_program_pou() {
       store i16 0, i16* %vt, align 2
       ret void
     }
-
-    define void @__init_main_prg(%main_prg* %0) section "fn-$RUSTY$__init_main_prg:v[pr5i16pi16i16i16i16]" {
-    entry:
-      %self = alloca %main_prg*, align 8
-      store %main_prg* %0, %main_prg** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_main_prg(%main_prg* @main_prg_instance)
-      ret void
-    }
     "###);
 }
 
@@ -313,19 +300,6 @@ fn calling_a_program() {
       store i16 0, i16* %vt, align 2
       ret void
     }
-
-    define void @__init_main_prg(%main_prg* %0) section "fn-$RUSTY$__init_main_prg:v[pr5i16pi16i16i16i16]" {
-    entry:
-      %self = alloca %main_prg*, align 8
-      store %main_prg* %0, %main_prg** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_main_prg(%main_prg* @main_prg_instance)
-      ret void
-    }
     "###);
 }
 
@@ -371,18 +345,6 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
       %v = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 3
       %vt = alloca i16, align 2
       store i16 2, i16* %vt, align 2
-      ret void
-    }
-
-    define void @__init_main_fb(%main_fb* %0) section "fn-$RUSTY$__init_main_fb:v[pr5i16pi16i16i16i16]" {
-    entry:
-      %self = alloca %main_fb*, align 8
-      store %main_fb* %0, %main_fb** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
       ret void
     }
     "###);
@@ -442,29 +404,6 @@ fn calling_a_function_block() {
       store i16 2, i16* %vt, align 2
       ret void
     }
-
-    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr3i16i16r5i16pi16i16i16i16]" {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
-      %fb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
-      call void @__init_main_fb(%main_fb* %fb)
-      ret void
-    }
-
-    define void @__init_main_fb(%main_fb* %0) section "fn-$RUSTY$__init_main_fb:v[pr5i16pi16i16i16i16]" {
-    entry:
-      %self = alloca %main_fb*, align 8
-      store %main_fb* %0, %main_fb** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_foo(%foo* @foo_instance)
-      ret void
-    }
     "###);
 }
 
@@ -508,11 +447,6 @@ fn function_get_a_method_with_by_ref_parameters() {
       store i32 0, i32* %main_fun, align 4
       %main_fun_ret = load i32, i32* %main_fun, align 4
       ret i32 %main_fun_ret
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      ret void
     }
     "###);
 }
@@ -569,19 +503,6 @@ fn calling_a_function() {
       store i32 0, i32* %main_fun, align 4
       %main_fun_ret = load i32, i32* %main_fun, align 4
       ret i32 %main_fun_ret
-    }
-
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2i16i8]" {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
     }
     "###);
 }
@@ -640,19 +561,6 @@ fn return_a_complex_type_from_function() {
       %2 = bitcast [81 x i8]* %s to i8*
       %3 = bitcast [81 x i8]* %1 to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 %3, i32 80, i1 false)
-      ret void
-    }
-
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr1s8u81]" {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
       ret void
     }
 
@@ -753,29 +661,6 @@ fn passing_aggregate_types_to_functions_by_value() {
       ret void
     }
 
-    define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr4i32i32i32s8u81]" {
-    entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
-      ret void
-    }
-
-    define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr4s8u81s16u81ai32r4i32i32i32s8u81]" {
-    entry:
-      %self = alloca %main*, align 8
-      store %main* %0, %main** %self, align 8
-      %deref = load %main*, %main** %self, align 8
-      %struct1 = getelementptr inbounds %main, %main* %deref, i32 0, i32 3
-      call void @__init_mystruct(%myStruct* %struct1)
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_main(%main* @main_instance)
-      ret void
-    }
-
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
@@ -841,19 +726,6 @@ fn passing_by_ref_to_functions() {
       %1 = bitcast [81 x i8]* %str1 to i8*
       %2 = bitcast [81 x i8]* %str2 to i8*
       %call = call i8 @StrEqual(i8* %1, i8* %2)
-      ret void
-    }
-
-    define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr2s8u81s8u81]" {
-    entry:
-      %self = alloca %main*, align 8
-      store %main* %0, %main** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_main(%main* @main_instance)
       ret void
     }
     "###);

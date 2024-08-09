@@ -18,19 +18,6 @@ entry:
   ret void
 }
 
-define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr1ai16]" {
-entry:
-  %self = alloca %main*, align 8
-  store %main* %0, %main** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  call void @__init_main(%main* @main_instance)
-  ret void
-}
-
 ; Function Attrs: argmemonly nofree nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 

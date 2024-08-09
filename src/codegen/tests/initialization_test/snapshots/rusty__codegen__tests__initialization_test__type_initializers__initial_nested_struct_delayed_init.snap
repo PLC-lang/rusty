@@ -12,28 +12,3 @@ source_filename = "main"
 @__MyStruct2__init = unnamed_addr constant %MyStruct2 { %MyStruct { i32 5, i32 3 }, %MyStruct { i32 0, i32 7 } }, section "var-$RUSTY$__MyStruct2__init:r2r2i32i32r2i32i32"
 @__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-$RUSTY$__MyStruct__init:r2i32i32"
 @b = global %MyStruct2 { %MyStruct { i32 5, i32 3 }, %MyStruct { i32 9, i32 0 } }, section "var-$RUSTY$b:r2r2i32i32r2i32i32"
-
-define void @__init_mystruct2(%MyStruct2* %0) section "fn-$RUSTY$__init_mystruct2:v[pr2r2i32i32r2i32i32]" {
-entry:
-  %self = alloca %MyStruct2*, align 8
-  store %MyStruct2* %0, %MyStruct2** %self, align 8
-  %deref = load %MyStruct2*, %MyStruct2** %self, align 8
-  %a = getelementptr inbounds %MyStruct2, %MyStruct2* %deref, i32 0, i32 0
-  call void @__init_mystruct(%MyStruct* %a)
-  %deref1 = load %MyStruct2*, %MyStruct2** %self, align 8
-  %b = getelementptr inbounds %MyStruct2, %MyStruct2* %deref1, i32 0, i32 1
-  call void @__init_mystruct(%MyStruct* %b)
-  ret void
-}
-
-define void @__init_mystruct(%MyStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2i32i32]" {
-entry:
-  %self = alloca %MyStruct*, align 8
-  store %MyStruct* %0, %MyStruct** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  ret void
-}

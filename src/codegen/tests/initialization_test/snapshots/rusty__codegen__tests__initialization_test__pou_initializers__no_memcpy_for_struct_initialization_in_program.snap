@@ -16,26 +16,3 @@ entry:
   %a = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   ret void
 }
-
-define void @__init___prog_a(%__prog_a* %0) section "fn-$RUSTY$__init___prog_a:v[pr1i16]" {
-entry:
-  %self = alloca %__prog_a*, align 8
-  store %__prog_a* %0, %__prog_a** %self, align 8
-  ret void
-}
-
-define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr1r1i16]" {
-entry:
-  %self = alloca %prog*, align 8
-  store %prog* %0, %prog** %self, align 8
-  %deref = load %prog*, %prog** %self, align 8
-  %a = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
-  call void @__init___prog_a(%__prog_a* %a)
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  call void @__init_prog(%prog* @prog_instance)
-  ret void
-}

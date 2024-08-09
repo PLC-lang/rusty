@@ -57,16 +57,3 @@ entry:
 }
 
 declare double @foo__LREAL(double) section "fn-$RUSTY$foo__LREAL:f64[f64]"
-
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr10f32f32f32f64f32f32f32f64i32i32]" {
-entry:
-  %self = alloca %prg*, align 8
-  store %prg* %0, %prg** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  call void @__init_prg(%prg* @prg_instance)
-  ret void
-}

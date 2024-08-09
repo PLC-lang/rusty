@@ -58,26 +58,3 @@ entry:
   store i8 %load_myOtherInOut, i8* %deref, align 1
   ret void
 }
-
-define void @__init_mainprog(%mainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr3r5u8u8pu8u8pu8u8u8]" {
-entry:
-  %self = alloca %mainProg*, align 8
-  store %mainProg* %0, %mainProg** %self, align 8
-  %deref = load %mainProg*, %mainProg** %self, align 8
-  %fb = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 0
-  call void @__init_fb_t(%fb_t* %fb)
-  ret void
-}
-
-define void @__init_fb_t(%fb_t* %0) section "fn-$RUSTY$__init_fb_t:v[pr5u8u8pu8u8pu8]" {
-entry:
-  %self = alloca %fb_t*, align 8
-  store %fb_t* %0, %fb_t** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  call void @__init_mainprog(%mainProg* @mainProg_instance)
-  ret void
-}

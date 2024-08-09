@@ -35,22 +35,3 @@ entry:
   %tmpVar = icmp eq i32 %2, %3
   ret void
 }
-
-define void @__init_myclass(%MyClass* %0) section "fn-$RUSTY$__init_myclass:v[pr2i16i16]" {
-entry:
-  %self = alloca %MyClass*, align 8
-  store %MyClass* %0, %MyClass** %self, align 8
-  ret void
-}
-
-define void @__init_myclass.testmethod(%MyClass.testMethod* %0) section "fn-$RUSTY$__init_myclass.testmethod:v[pr2i16i16]" {
-entry:
-  %self = alloca %MyClass.testMethod*, align 8
-  store %MyClass.testMethod* %0, %MyClass.testMethod** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  ret void
-}

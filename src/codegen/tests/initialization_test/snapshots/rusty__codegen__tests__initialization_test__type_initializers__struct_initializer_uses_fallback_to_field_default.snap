@@ -9,15 +9,3 @@ source_filename = "main"
 
 @x = global %Point { i32 1, i32 2, i32 3 }, section "var-$RUSTY$x:r3i32i32i32"
 @__Point__init = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }, section "var-$RUSTY$__Point__init:r3i32i32i32"
-
-define void @__init_point(%Point* %0) section "fn-$RUSTY$__init_point:v[pr3i32i32i32]" {
-entry:
-  %self = alloca %Point*, align 8
-  store %Point* %0, %Point** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  ret void
-}

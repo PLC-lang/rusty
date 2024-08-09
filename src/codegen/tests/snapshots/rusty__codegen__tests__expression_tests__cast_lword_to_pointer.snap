@@ -19,8 +19,3 @@ entry:
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
 }
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  ret void
-}

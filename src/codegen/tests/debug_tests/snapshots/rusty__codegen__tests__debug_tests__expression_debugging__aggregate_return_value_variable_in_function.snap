@@ -21,11 +21,6 @@ entry:
   ret void, !dbg !8
 }
 
-define void @__init() section "fn-$RUSTY$__init:v" !dbg !16 {
-entry:
-  ret void, !dbg !17
-}
-
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
@@ -58,5 +53,3 @@ attributes #2 = { argmemonly nofree nounwind willreturn }
 !13 = !{!14}
 !14 = !DISubrange(count: 81, lowerBound: 0)
 !15 = !DILocation(line: 2, column: 17, scope: !4)
-!16 = distinct !DISubprogram(name: "__init", linkageName: "__init", scope: !3, file: !3, type: !5, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
-!17 = !DILocation(line: 0, scope: !16)

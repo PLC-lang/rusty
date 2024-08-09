@@ -2,8 +2,15 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: msg
 ---
-error[E071]: struct member lvalue required as left operand of assignment
-  ┌─ <internal>:3:38
+error[E075]: Some initial values were not generated
+
+error[E041]: Cannot generate literal initializer for 'MyStruct2.b': Value cannot be derived
+  ┌─ <internal>:9:31
   │
-3 │             a : MyStruct2  := (a := (c:=5, b:= 7), b := (a:=3, b:=2));
-  │                                      ^ struct member lvalue required as left operand of assignment
+7 │         TYPE MyStruct2: STRUCT
+  │              --------- see also
+8 │             a : MyStruct  := (a:=5, b:=3);
+9 │             b : MyStruct  := (c:=7);
+  │                               ^^^^ Cannot generate literal initializer for 'MyStruct2.b': Value cannot be derived
+
+

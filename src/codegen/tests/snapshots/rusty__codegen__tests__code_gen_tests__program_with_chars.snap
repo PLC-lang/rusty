@@ -27,16 +27,3 @@ entry:
   store i16 34, i16* %y, align 2
   ret void
 }
-
-define void @__init_mainprog(%mainPROG* %0) section "fn-$RUSTY$__init_mainprog:v[pr2u8u16]" {
-entry:
-  %self = alloca %mainPROG*, align 8
-  store %mainPROG* %0, %mainPROG** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  call void @__init_mainprog(%mainPROG* @mainPROG_instance)
-  ret void
-}

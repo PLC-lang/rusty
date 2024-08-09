@@ -9,7 +9,6 @@ source_filename = "main"
 
 @prg_instance = global %prg { [11 x i8] c"hello\00\00\00\00\00\00", [81 x i8] zeroinitializer }, section "var-$RUSTY$prg_instance:r2s8u11s8u81"
 @__prg.s__init = unnamed_addr constant [11 x i8] c"hello\00\00\00\00\00\00"
-@__prg.s__init.1 = unnamed_addr constant [11 x i8] c"hello\00\00\00\00\00\00"
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
 define i16 @foo(i8* %0) section "fn-$RUSTY$foo:i16[s8u81]" {
@@ -40,19 +39,6 @@ entry:
   %4 = bitcast [11 x i8]* %s to i8*
   %call = call i16 @foo(i8* %4)
   %call1 = call i16 @foo(i8* getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0))
-  ret void
-}
-
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2s8u11s8u81]" {
-entry:
-  %self = alloca %prg*, align 8
-  store %prg* %0, %prg** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  call void @__init_prg(%prg* @prg_instance)
   ret void
 }
 

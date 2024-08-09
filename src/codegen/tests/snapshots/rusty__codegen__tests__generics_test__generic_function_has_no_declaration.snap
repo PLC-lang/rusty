@@ -1,11 +1,8 @@
 ---
 source: src/codegen/tests/generics_test.rs
 expression: prg
+
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  ret void
-}

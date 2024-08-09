@@ -12,8 +12,6 @@ source_filename = "main"
 @prg_instance = global %prg { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [31 x i16] zeroinitializer, [7 x i16] [i16 120, i16 121, i16 122, i16 0, i16 0, i16 0, i16 0] }, section "var-$RUSTY$prg_instance:r4vvvv"
 @__prg.z__init = unnamed_addr constant [4 x i8] c"xyz\00"
 @__prg.wz__init = unnamed_addr constant [7 x i16] [i16 120, i16 121, i16 122, i16 0, i16 0, i16 0, i16 0]
-@__prg.z__init.1 = unnamed_addr constant [4 x i8] c"xyz\00"
-@__prg.wz__init.2 = unnamed_addr constant [7 x i16] [i16 120, i16 121, i16 122, i16 0, i16 0, i16 0, i16 0]
 @utf08_literal_0 = private unnamed_addr constant [12 x i8] c"im a genius\00"
 @utf16_literal_0 = private unnamed_addr constant [12 x i16] [i16 105, i16 109, i16 32, i16 97, i16 32, i16 103, i16 101, i16 110, i16 105, i16 117, i16 115, i16 0]
 
@@ -27,19 +25,6 @@ entry:
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([12 x i8], [12 x i8]* @utf08_literal_0, i32 0, i32 0), i32 12, i1 false)
   %2 = bitcast [31 x i16]* %wy to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %2, i8* align 2 bitcast ([12 x i16]* @utf16_literal_0 to i8*), i32 24, i1 false)
-  ret void
-}
-
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr4vvvv]" {
-entry:
-  %self = alloca %prg*, align 8
-  store %prg* %0, %prg** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  call void @__init_prg(%prg* @prg_instance)
   ret void
 }
 

@@ -47,18 +47,6 @@ entry:
   ret void
 }
 
-define void @__init_mystrct(%MyStrct* %0) section "fn-$RUSTY$__init_mystrct:v[pr3i32i32i32]" {
-entry:
-  %self = alloca %MyStrct*, align 8
-  store %MyStrct* %0, %MyStrct** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  ret void
-}
-
 ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 

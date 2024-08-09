@@ -18,8 +18,3 @@ entry:
   %main_ret = load i16, i16* %main, align 2
   ret i16 %main_ret
 }
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  ret void
-}

@@ -80,19 +80,6 @@ fn assigning_strings() {
       ret void
     }
 
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2s8u11s8u11]" {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
-    }
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
 
@@ -134,19 +121,6 @@ fn assigning_string_literals() {
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
       %2 = bitcast [11 x i8]* %b to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
-      ret void
-    }
-
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2s8u11s8u11]" {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
       ret void
     }
 

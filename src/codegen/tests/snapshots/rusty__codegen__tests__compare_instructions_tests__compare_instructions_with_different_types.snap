@@ -98,16 +98,3 @@ entry:
   %tmpVar35 = icmp eq i64 %call33, %load_var_lint34
   ret void
 }
-
-define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr11pi16i16i32i8i16i32i64u8u16u32u64]" {
-entry:
-  %self = alloca %main*, align 8
-  store %main* %0, %main** %self, align 8
-  ret void
-}
-
-define void @__init() section "fn-$RUSTY$__init:v" {
-entry:
-  call void @__init_main(%main* @main_instance)
-  ret void
-}
