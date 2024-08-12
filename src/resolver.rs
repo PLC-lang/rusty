@@ -784,7 +784,7 @@ where
     fn maybe_insert_initializer(
         &mut self,
         scope: &str,
-        var_name: &str,
+        var_name: Option<&str>,
         initializer: &Option<AstNode>,
     );
     fn import(&mut self, other: Self);
@@ -797,7 +797,8 @@ impl<'rslv> Init<'rslv> for Initializers {
             .iter()
             .filter_map(|it| {
                 if let Some(index::const_expressions::UnresolvableKind::Address(init)) = &it.kind {
-                    Some((init.scope.clone().unwrap_or("__global".to_string()), init)) // TODO: not automatically global, might be a struct-member initializer
+                    Some((init.scope.clone().unwrap_or("__global".to_string()), init))
+                // TODO: not automatically global, might be a struct-member initializer
                 } else {
                     None
                 }
@@ -805,7 +806,7 @@ impl<'rslv> Init<'rslv> for Initializers {
             .for_each(|(scope, data)| {
                 assignments.maybe_insert_initializer(
                     &scope,
-                    data.lhs.as_ref().unwrap_or(&data.target_type_name),
+                    Some(data.lhs.as_ref().unwrap_or(&data.target_type_name)),
                     &data.initializer,
                 );
             });
@@ -816,10 +817,14 @@ impl<'rslv> Init<'rslv> for Initializers {
     fn maybe_insert_initializer(
         &mut self,
         container_name: &str,
-        var_name: &str,
+        var_name: Option<&str>,
         initializer: &Option<AstNode>,
     ) {
         let assignments = self.entry(container_name.to_string()).or_default();
+
+        let Some(var_name) = var_name else {
+            return;
+        };
         // don't update if a value already exists
         if assignments.contains_key(var_name) {
             return;
@@ -962,25 +967,24 @@ impl<'i> TypeAnnotator<'i> {
         if matches!(init_type, InitFnType::Function) {
             return None; // TODO: handle functions
         };
+
         let mut id_provider = id_provider.clone();
 
-        let (param, ident) = 
-            (
-                vec![VariableBlock::default().with_block_type(ast::VariableBlockType::InOut).with_variables(
-                    vec![Variable {
-                        name: "self".into(),
-                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                            referenced_type: container.to_string(),
-                            location: location.clone(),
-                        },
-                        initializer: None,
-                        address: None,
+        let (param, ident) = (
+            vec![VariableBlock::default().with_block_type(ast::VariableBlockType::InOut).with_variables(
+                vec![Variable {
+                    name: "self".into(),
+                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                        referenced_type: container.to_string(),
                         location: location.clone(),
-                    }],
-                )],
-                "self".to_string(),
-            )
-        ;
+                    },
+                    initializer: None,
+                    address: None,
+                    location: location.clone(),
+                }],
+            )],
+            "self".to_string(),
+        );
 
         let init_pou = Pou {
             name: init_fn_name.clone(),
@@ -997,7 +1001,7 @@ impl<'i> TypeAnnotator<'i> {
 
         let mut statements = init
             .iter()
-            .filter_map(|(lhs_name,initializer)| {
+            .filter_map(|(lhs_name, initializer)| {
                 let lhs = create_member_reference(
                     lhs_name,
                     id_provider.clone(),
@@ -1009,13 +1013,13 @@ impl<'i> TypeAnnotator<'i> {
             })
             .collect::<Vec<_>>();
 
-        let members =index.get_container_members(container);
-        
+        let members = index.get_container_members(container);
+
         let member_init_calls = members
             .iter()
             .filter_map(|member| {
                 let type_name = &member.get_type_name();
-                if index.find_pou(type_name).is_some() || index.get_type_information_or_void(type_name).is_struct() {
+                if !member.is_temp() /* TODO: support temp accessors */ && (index.find_pou(type_name).is_some() || index.get_type_information_or_void(type_name).is_struct()) {
                     let call_name = get_init_fn_name(type_name);
                     let op = create_member_reference(&call_name, id_provider.clone(), None);
                     let param = create_member_reference(
@@ -1171,33 +1175,32 @@ impl<'i> TypeAnnotator<'i> {
                     let Some(name) = name else {
                         continue;
                     };
-                    
-                    full_index.get_container_members(name)
+
+                    full_index
+                        .get_container_members(name)
                         .iter()
                         .filter_map(|var| {
-                            // struct member initializers don't have a qualifier/scope while evaluated in `const_evaluator.rs` and are registered as globals under their data-type name
+                            // struct member initializers don't have a qualifier/scope while evaluated in `const_evaluator.rs` and are registered as globals under their data-type name;
                             // look for member initializers for this struct in the global initializers, remove them and add new entries with the correct qualifier and left-hand-side
-                            candidates.get_mut("__global").and_then(|it| it.swap_remove(var.get_type_name())).map(|node| {
-                                (var.get_name(), node)
-                            })
-                    }).for_each(|(lhs, it)| {
-                        all_annotations.new_initializers.maybe_insert_initializer(name, &lhs,  &it);
-                    });
+                            candidates
+                                .get_mut("__global")
+                                .and_then(|it| it.swap_remove(var.get_type_name()))
+                                .map(|node| (var.get_name(), node))
+                        })
+                        .for_each(|(lhs, it)| {
+                            all_annotations.new_initializers.maybe_insert_initializer(name, Some(&lhs), &it);
+                        });
 
                     all_annotations.new_initializers.maybe_insert_initializer(
                         &name,
-                        &name,
+                        None,
                         &type_.initializer,
                     );
                 }
             }
             for pou in &unit.units {
                 if !matches!(pou.linkage, LinkageType::External | LinkageType::BuiltIn) {
-                    all_annotations.new_initializers.maybe_insert_initializer(
-                        &pou.name,
-                        "", // XXX: maybe make this optional?
-                        &None,
-                    );
+                    all_annotations.new_initializers.maybe_insert_initializer(&pou.name, None, &None);
                 }
             }
         };
@@ -1506,7 +1509,7 @@ impl<'i> TypeAnnotator<'i> {
             };
             self.annotation_map.new_initializers.maybe_insert_initializer(
                 ctx.pou.or(ctx.qualifier.as_deref()).as_ref().unwrap_or(&"__global"),
-                lhs,
+                Some(lhs),
                 &Some(initializer.clone()),
             );
         }

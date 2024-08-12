@@ -193,42 +193,43 @@ pub mod tests {
             &mut annotated_units,
         );
 
-        let (unit, dependencies, literals) = annotated_units
-            .into_iter()
-            .reduce(|acc, ele| {
-                let (mut unit1, mut set1, mut lit1) = acc;
-                let (unit2, set2, lit2) = ele;
-                unit1.import(unit2);
-                set1.extend(set2);
-                lit1.import(lit2);
-                (unit1, set1, lit1)
-            })
-            .unwrap();
-
-        let context = CodegenContext::create();
-        let path = PathBuf::from_str("src").ok();
-        let mut code_generator = crate::codegen::CodeGen::new(
-            &context,
-            path.as_deref(),
-            "main",
-            crate::OptimizationLevel::None,
-            debug_level,
-        );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
-        let llvm_index = code_generator
-            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)
-            .map_err(|err| {
-                reporter.handle(&[err]);
-                reporter.buffer().unwrap()
-            })?;
 
-        code_generator
-            .generate(&context, &unit, &annotations, &index, &llvm_index)
-            .map(|module| module.persist_to_string())
-            .map_err(|err| {
-                reporter.handle(&[err]);
-                reporter.buffer().unwrap()
+        annotated_units
+            .into_iter()
+            .map(|(unit, dependencies, literals)| {
+                let context = CodegenContext::create();
+                let path = PathBuf::from_str("src").ok();
+                let mut code_generator = crate::codegen::CodeGen::new(
+                    &context,
+                    path.as_deref(),
+                    &unit.file_name,
+                    crate::OptimizationLevel::None,
+                    debug_level,
+                );
+                let llvm_index = code_generator
+                    .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)
+                    .map_err(|err| {
+                        reporter.handle(&[err]);
+                        reporter.buffer().unwrap()
+                    })?;
+
+                code_generator
+                    .generate(&context, &unit, &annotations, &index, &llvm_index)
+                    .map(|module| module.persist_to_string())
+                    .map_err(|err| {
+                        reporter.handle(&[err]);
+                        reporter.buffer().unwrap()
+                    })
             })
+            .reduce(|acc, ir| {
+                Ok(format!(
+                    "{}\
+                        {}",
+                    acc?, ir?
+                ))
+            })
+            .unwrap()
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
@@ -272,6 +273,8 @@ pub mod tests {
                 (unit, dependencies, literals)
             })
             .collect::<Vec<_>>();
+
+        // TODO: lowering here?
 
         let path = PathBuf::from_str("src").ok();
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
