@@ -929,6 +929,7 @@ impl<'i> TypeAnnotator<'i> {
         id_provider: &IdProvider,
         initializers: &Initializers,
     ) -> Vec<(Index, CompilationUnit)> {
+        let lookup = initializers.keys().map(|it| it.as_str()).collect::<FxIndexSet<_>>();
         initializers
             .iter()
             .filter_map(|(container, init)| {
@@ -937,7 +938,7 @@ impl<'i> TypeAnnotator<'i> {
                     return None;
                 }
 
-                TypeAnnotator::create_init_unit(container, index, id_provider, init)
+                TypeAnnotator::create_init_unit(container, index, id_provider, init, &lookup)
             })
             .collect()
     }
@@ -946,7 +947,8 @@ impl<'i> TypeAnnotator<'i> {
         container: &String,
         index: &Index,
         id_provider: &IdProvider,
-        init: &InitAssignments,
+        initializations: &InitAssignments,
+        all_init_units: &FxIndexSet<&str>,
     ) -> Option<(Index, CompilationUnit)> {
         let init_fn_name = index::get_init_fn_name(container);
 
@@ -999,7 +1001,7 @@ impl<'i> TypeAnnotator<'i> {
             super_class: None,
         };
 
-        let mut statements = init
+        let mut statements = initializations
             .iter()
             .filter_map(|(lhs_name, initializer)| {
                 let lhs = create_member_reference(
@@ -1018,9 +1020,10 @@ impl<'i> TypeAnnotator<'i> {
         let member_init_calls = members
             .iter()
             .filter_map(|member| {
-                let type_name = &member.get_type_name();
-                if !member.is_temp() /* TODO: support temp accessors */ && (index.find_pou(type_name).is_some() || index.get_type_information_or_void(type_name).is_struct()) {
-                    let call_name = get_init_fn_name(type_name);
+                let type_name = member.get_type_name();
+                let call_name = get_init_fn_name(type_name);
+                if !member.is_temp() /* TODO: support temp accessors */ && all_init_units.contains(type_name)
+                {
                     let op = create_member_reference(&call_name, id_provider.clone(), None);
                     let param = create_member_reference(
                         member.get_name(),
@@ -1072,15 +1075,18 @@ impl<'i> TypeAnnotator<'i> {
         index: &Index,
         id_provider: &IdProvider,
         candidates: &Initializers,
+        symbol_name: &str,
     ) -> Option<(Index, CompilationUnit)> {
         if candidates.is_empty() {
             return None;
         }
-        let ident = String::from("__init");
+        dbg!(symbol_name);
+
+        // in order to avoid duplicate symbols when linking previously compiled objects, the init function is mangled with the project name
         let mut id_provider = id_provider.clone();
 
         let init_pou = Pou {
-            name: ident.clone(),
+            name: symbol_name.into(),
             variable_blocks: vec![],
             pou_type: PouType::Function,
             return_type: None,
@@ -1134,8 +1140,8 @@ impl<'i> TypeAnnotator<'i> {
         globals.extend(body);
 
         let implementation = Implementation {
-            name: ident.clone(),
-            type_name: ident.clone(),
+            name: symbol_name.into(),
+            type_name: symbol_name.into(),
             linkage: LinkageType::Internal,
             pou_type: PouType::Function,
             statements: globals,
@@ -1151,7 +1157,7 @@ impl<'i> TypeAnnotator<'i> {
             units: vec![init_pou],
             implementations: vec![implementation],
             user_types: vec![],
-            file_name: "__init_globals".into(),
+            file_name: symbol_name.into(),
         };
 
         pre_process(&mut init_unit, id_provider.clone());
@@ -1161,6 +1167,7 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     pub fn lower_init_functions(
+        init_symbol_name: &str,
         unresolvables: Vec<UnresolvableConstant>,
         all_annotations: &mut AnnotationMapImpl,
         full_index: &mut Index,
@@ -1168,7 +1175,9 @@ impl<'i> TypeAnnotator<'i> {
         annotated_units: &mut Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
     ) {
         let mut candidates = Initializers::new(&unresolvables);
+
         // revisit all member variables without explicit initializers to find initializer-dependencies
+        // XXX: should this be done during `visit_unit` or should this be kept isolated?
         let mut revisit_unit = |unit: &CompilationUnit| {
             for type_ in &unit.user_types {
                 if let DataType::StructType { name, .. } = &type_.data_type {
@@ -1229,9 +1238,12 @@ impl<'i> TypeAnnotator<'i> {
             full_index.import(std::mem::take(&mut all_annotations.new_index));
         }
 
-        if let Some((mut new_index, init_unit)) =
-            TypeAnnotator::create_init_wrapper_function(&*full_index, id_provider, &candidates)
-        {
+        if let Some((mut new_index, init_unit)) = TypeAnnotator::create_init_wrapper_function(
+            &*full_index,
+            id_provider,
+            &candidates,
+            init_symbol_name,
+        ) {
             full_index.import(std::mem::take(&mut new_index));
             let (a, deps, literals) =
                 TypeAnnotator::visit_unit(&*full_index, &init_unit, id_provider.clone());

@@ -300,6 +300,12 @@ impl<S: SourceContainer> Project<S> {
     pub fn get_validation_schema(&self) -> impl AsRef<str> {
         include_str!("../schema/plc-json.schema")
     }
+
+    pub fn get_init_symbol_name(&self) -> String {
+        let name = self.get_name();
+        let name = name.rfind('.').map(|it| &name[..it]).unwrap_or(name);
+        format!("__init___{name}")
+    }
 }
 
 fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<Vec<PathBuf>> {

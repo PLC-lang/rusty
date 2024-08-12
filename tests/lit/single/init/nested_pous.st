@@ -38,6 +38,6 @@ END_VAR
 END_PROGRAM
 
 FUNCTION main: DINT
-    __init();
+    __init___nested_pous();
     baz();
 END_FUNCTION

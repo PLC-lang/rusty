@@ -83,7 +83,7 @@ pub mod tests {
 
         pre_process(&mut unit, id_provider);
         index.import(index::visitor::visit(&unit));
-        index.register_global_init_function();
+        index.register_global_init_function(&get_project_init_symbol());
         (unit, index, diagnostics)
     }
 
@@ -123,6 +123,7 @@ pub mod tests {
         full_index.import(std::mem::take(&mut annotations.new_index));
         let mut annotated_units = vec![(parse_result, dependencies, literals)];
         TypeAnnotator::lower_init_functions(
+            &get_project_init_symbol(),
             unresolvables,
             &mut annotations,
             &mut full_index,
@@ -186,6 +187,7 @@ pub mod tests {
 
         let mut annotated_units = vec![(unit, dependencies, literals)];
         TypeAnnotator::lower_init_functions(
+            &get_project_init_symbol(),
             unresolvables,
             &mut annotations,
             &mut index,
@@ -316,5 +318,9 @@ pub mod tests {
     pub fn generate_with_empty_program(src: &str) -> String {
         let source = format!("{} {}", "PROGRAM main END_PROGRAM", src);
         codegen(source.as_str())
+    }
+
+    fn get_project_init_symbol() -> String {
+        format!("__init___testproject")
     }
 }

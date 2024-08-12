@@ -14,6 +14,6 @@ END_VAR
 END_PROGRAM
 
 FUNCTION main: DINT
-    __init();
+    __init___program();
     prog();
 END_FUNCTION
