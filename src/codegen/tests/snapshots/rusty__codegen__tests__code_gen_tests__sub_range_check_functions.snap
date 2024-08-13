@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %main = type { i8, i8, i8, i16, i16, i16, i32, i32, i64, i64 }
 
@@ -109,3 +109,34 @@ entry:
   store i64 %call9, i64* %j, align 4
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%main = type { i8, i8, i8, i16, i16, i16, i32, i32, i64, i64 }
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r10u8i8u8u16i16u16i32u32i64u64"
+
+define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr10u8i8u8u16i16u16i32u32i64u64]" {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { i8, i8, i8, i16, i16, i16, i32, i32, i64, i64 }
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r10u8i8u8u16i16u16i32u32i64u64"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr10u8i8u8u16i16u16i32u32i64u64]"
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"

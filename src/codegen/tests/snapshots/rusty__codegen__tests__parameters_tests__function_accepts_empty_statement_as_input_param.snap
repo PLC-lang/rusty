@@ -2,8 +2,8 @@
 source: src/codegen/tests/parameters_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %main = type {}
 
@@ -25,3 +25,34 @@ entry:
   call void @foo(i32 1, i32 %2)
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%main = type {}
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r0"
+
+define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr0]" {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type {}
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r0"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr0]"
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"

@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/global_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @x = global i16 7, section "var-$RUSTY$x:i16"
 @y = global i8 1, section "var-$RUSTY$y:u8"

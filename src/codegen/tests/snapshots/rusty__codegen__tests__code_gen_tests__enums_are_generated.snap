@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @x = global i32 0, section "var-$RUSTY$x:e3i32"
 @MyEnum.red = unnamed_addr constant i32 0, section "var-$RUSTY$red:e3i32"

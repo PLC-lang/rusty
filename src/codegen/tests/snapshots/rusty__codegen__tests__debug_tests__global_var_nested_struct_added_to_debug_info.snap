@@ -2,8 +2,8 @@
 source: src/codegen/tests/debug_tests.rs
 expression: codegen
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %myStruct = type { i32, %myStruct2 }
 %myStruct2 = type { i32, double }
@@ -17,7 +17,7 @@ source_filename = "main"
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "gStruct", scope: !2, file: !2, line: 15, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "main", directory: "src")
+!2 = !DIFile(filename: "<internal>", directory: "")
 !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 2, size: 192, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myStruct")
 !4 = !{!5, !7}
 !5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 3, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
@@ -34,5 +34,97 @@ source_filename = "main"
 !16 = distinct !DIGlobalVariable(name: "__myStruct2__init", scope: !2, file: !2, line: 8, type: !8, isLocal: false, isDefinition: true)
 !17 = !{i32 2, !"Dwarf Version", i32 5}
 !18 = !{i32 2, !"Debug Info Version", i32 3}
-!19 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !20, splitDebugInlining: false)
-!20 = !{!0, !13, !15}
+!19 = distinct !DICompileUnit(language: DW_LANG_C, file: !20, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !21, splitDebugInlining: false)
+!20 = !DIFile(filename: "<internal>", directory: "src")
+!21 = !{!0, !13, !15}
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%myStruct = type { i32, %myStruct2 }
+%myStruct2 = type { i32, double }
+
+@__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2i32r2i32f64", !dbg !0
+@__myStruct2__init = external global %myStruct2, section "var-$RUSTY$__myStruct2__init:r2i32f64", !dbg !13
+
+define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2i32r2i32f64]" !dbg !20 {
+entry:
+  %self = alloca %myStruct*, align 8, !dbg !25
+  call void @llvm.dbg.declare(metadata %myStruct** %self, metadata !26, metadata !DIExpression()), !dbg !25
+  store %myStruct* %0, %myStruct** %self, align 8, !dbg !25
+  %deref = load %myStruct*, %myStruct** %self, align 8, !dbg !25
+  %b = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1, !dbg !25
+  call void @__init_mystruct2(%myStruct2* %b), !dbg !27
+  ret void, !dbg !27
+}
+
+define void @__init_mystruct2(%myStruct2* %0) section "fn-$RUSTY$__init_mystruct2:v[pr2i32f64]" !dbg !28 {
+entry:
+  %self = alloca %myStruct2*, align 8, !dbg !32
+  call void @llvm.dbg.declare(metadata %myStruct2** %self, metadata !33, metadata !DIExpression()), !dbg !32
+  store %myStruct2* %0, %myStruct2** %self, align 8, !dbg !32
+  ret void, !dbg !32
+}
+
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
+!llvm.module.flags = !{!15, !16}
+!llvm.dbg.cu = !{!17}
+
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+!2 = !DIFile(filename: "<internal>", directory: "")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 2, size: 192, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myStruct")
+!4 = !{!5, !7}
+!5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 3, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+!6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 4, baseType: !8, size: 128, align: 64, offset: 64, flags: DIFlagPublic)
+!8 = !DICompositeType(tag: DW_TAG_structure_type, name: "mystruct2", scope: !2, file: !2, line: 8, size: 128, align: 64, flags: DIFlagPublic, elements: !9, identifier: "mystruct2")
+!9 = !{!10, !11}
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 9, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !12, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
+!12 = !DIBasicType(name: "LREAL", size: 64, encoding: DW_ATE_float, flags: DIFlagPublic)
+!13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
+!14 = distinct !DIGlobalVariable(name: "__myStruct2__init", scope: !2, file: !2, line: 8, type: !8, isLocal: false, isDefinition: true)
+!15 = !{i32 2, !"Dwarf Version", i32 5}
+!16 = !{i32 2, !"Debug Info Version", i32 3}
+!17 = distinct !DICompileUnit(language: DW_LANG_C, file: !18, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !19, splitDebugInlining: false)
+!18 = !DIFile(filename: "__initializers", directory: "src")
+!19 = !{!0, !13}
+!20 = distinct !DISubprogram(name: "__init_mystruct", linkageName: "__init_mystruct", scope: !2, file: !2, line: 2, type: !21, scopeLine: 2, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !24)
+!21 = !DISubroutineType(flags: DIFlagPublic, types: !22)
+!22 = !{null, !23}
+!23 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_myStruct", baseType: !3, size: 64, align: 64, dwarfAddressSpace: 1)
+!24 = !{}
+!25 = !DILocation(line: 2, column: 9, scope: !20)
+!26 = !DILocalVariable(name: "self", scope: !20, file: !2, line: 2, type: !23)
+!27 = !DILocation(line: 0, scope: !20)
+!28 = distinct !DISubprogram(name: "__init_mystruct2", linkageName: "__init_mystruct2", scope: !2, file: !2, line: 8, type: !29, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !24)
+!29 = !DISubroutineType(flags: DIFlagPublic, types: !30)
+!30 = !{null, !31}
+!31 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_myStruct2", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+!32 = !DILocation(line: 8, column: 9, scope: !28)
+!33 = !DILocalVariable(name: "self", scope: !28, file: !2, line: 8, type: !31)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" !dbg !4 {
+entry:
+  ret void, !dbg !9
+}
+
+!llvm.module.flags = !{!0, !1}
+!llvm.dbg.cu = !{!2}
+
+!0 = !{i32 2, !"Dwarf Version", i32 5}
+!1 = !{i32 2, !"Debug Info Version", i32 3}
+!2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+!3 = !DIFile(filename: "__init___testproject", directory: "src")
+!4 = distinct !DISubprogram(name: "__init___testproject", linkageName: "__init___testproject", scope: !5, file: !5, type: !6, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+!5 = !DIFile(filename: "<internal>", directory: "")
+!6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
+!7 = !{null}
+!8 = !{}
+!9 = !DILocation(line: 0, scope: !4)

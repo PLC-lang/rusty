@@ -311,8 +311,8 @@ fn pass() {
     // 3. Populate them based on the information we have on `local`, i.e. 1D and (start, end)-offset = (0, 5)
     insta::assert_snapshot!(codegen(src),
     @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %__foo_arr = type { i32*, [2 x i32] }
 
@@ -354,6 +354,13 @@ fn pass() {
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 
@@ -377,8 +384,8 @@ fn access() {
 
     insta::assert_snapshot!(codegen(src),
     @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %__foo_arr = type { i32*, [2 x i32] }
 
@@ -403,6 +410,13 @@ fn access() {
       store i32 12345, i32* %arr_val, align 4
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
+    }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
     }
     "###);
 }
@@ -435,8 +449,8 @@ fn multi_dimensional() {
     // is borderline incomprehensible as a result, if not given readable names.
     insta::assert_snapshot!(codegen(src),
     @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %__foo_arr = type { i32*, [4 x i32] }
 
@@ -487,6 +501,13 @@ fn multi_dimensional() {
       store i32 12345, i32* %arr_val, align 4
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
+    }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
     }
     "###);
 }

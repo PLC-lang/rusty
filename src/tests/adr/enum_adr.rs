@@ -19,8 +19,8 @@ fn enums_generate_a_global_constants_for_each_element() {
             myColor : Color;
         END_VAR"#;
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @myColor = global i32 0, section "var-$RUSTY$myColor:e3i32"
     @Color.red = unnamed_addr constant i32 0, section "var-$RUSTY$red:e3i32"
@@ -49,8 +49,8 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
         END_VAR"#;
 
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @myColor = global i32 0, section "var-$RUSTY$myColor:e4i32"
     @myState = global i8 0, section "var-$RUSTY$myState:e4u8"
@@ -77,8 +77,8 @@ fn inline_declaration_of_enum_types() {
         END_VAR"#;
 
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @frontColor = global i32 0, section "var-$RUSTY$frontColor:e3i32"
     @backColor = global i32 0, section "var-$RUSTY$backColor:e3i32"
@@ -101,10 +101,10 @@ fn inline_declaration_of_enum_types() {
 fn using_enums() {
     let src = r#"
         TYPE ProcessState : (open := 1, closed := 4, idle, running);
-        END_TYPE;
+        END_TYPE
 
         TYPE Door : (open := 8, closed := 16);
-        END_TYPE;
+        END_TYPE
 
         PROGRAM prg
             VAR x, y, z : DINT; END_VAR
@@ -116,8 +116,8 @@ fn using_enums() {
     "#;
 
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %prg = type { i32, i32, i32 }
 
@@ -139,5 +139,36 @@ fn using_enums() {
       store i32 16, i32* %z, align 4
       ret void
     }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %prg = type { i32, i32, i32 }
+
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r3i32i32i32"
+
+    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr3i32i32i32]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prg = type { i32, i32, i32 }
+
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r3i32i32i32"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prg(%prg* @prg_instance)
+      ret void
+    }
+
+    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr3i32i32i32]"
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
     "###);
 }

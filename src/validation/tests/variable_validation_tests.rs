@@ -415,3 +415,49 @@ fn assignment_suggestion_for_equal_operation_with_no_effect() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn invalid_initial_constant_values_in_pou_variables() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL CONSTANT
+            MAX_LEN : INT := 99;
+        END_VAR
+
+        VAR_GLOBAL
+            LEN : DINT := MAX_LEN - 2;
+        END_VAR
+
+        PROGRAM prg
+          VAR_INPUT
+            my_len: INT := LEN + 4;  //cannot be evaluated at compile time!
+          END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E033]: Unresolved constant `my_len` variable: `LEN` is no const reference
+       ┌─ <internal>:12:28
+       │
+    12 │             my_len: INT := LEN + 4;  //cannot be evaluated at compile time!
+       │                            ^^^^^^^ Unresolved constant `my_len` variable: `LEN` is no const reference
+
+    "###);
+}
+
+#[test]
+#[ignore = "no validation for non-leap-year date literals yet"]
+fn date_invalid_declaration() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"PROGRAM prg
+        VAR
+          a : DATE := D#2001-02-29; (* feb29 on non-leap year should not pass *)
+        END_VAR
+        END_PROGRAM"#,
+    );
+
+    assert!(!diagnostics.is_empty());
+
+    assert_snapshot!(diagnostics, @r###""###);
+}

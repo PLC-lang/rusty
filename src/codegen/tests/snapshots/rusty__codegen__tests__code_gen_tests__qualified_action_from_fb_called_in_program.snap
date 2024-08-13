@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %bar = type { %fb }
 %fb = type { i32 }
@@ -30,3 +30,52 @@ entry:
   store i32 2, i32* %x, align 4
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%bar = type { %fb }
+%fb = type { i32 }
+
+@bar_instance = external global %bar, section "var-$RUSTY$bar_instance:r1r1i32"
+@__fb__init = external global %fb, section "var-$RUSTY$__fb__init:r1i32"
+
+define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr1r1i32]" {
+entry:
+  %self = alloca %bar*, align 8
+  store %bar* %0, %bar** %self, align 8
+  %deref = load %bar*, %bar** %self, align 8
+  %fb_inst = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+  call void @__init_fb(%fb* %fb_inst)
+  ret void
+}
+
+declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
+
+declare void @fb(%fb*) section "fn-$RUSTY$fb:v"
+
+define void @__init_fb(%fb* %0) section "fn-$RUSTY$__init_fb:v[pr1i32]" {
+entry:
+  %self = alloca %fb*, align 8
+  store %fb* %0, %fb** %self, align 8
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%bar = type { %fb }
+%fb = type { i32 }
+
+@bar_instance = external global %bar, section "var-$RUSTY$bar_instance:r1r1i32"
+@__fb__init = external global %fb, section "var-$RUSTY$__fb__init:r1i32"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_bar(%bar* @bar_instance)
+  ret void
+}
+
+declare void @__init_bar(%bar*) section "fn-$RUSTY$__init_bar:v[pr1r1i32]"
+
+declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
+
+declare void @fb(%fb*) section "fn-$RUSTY$fb:v"

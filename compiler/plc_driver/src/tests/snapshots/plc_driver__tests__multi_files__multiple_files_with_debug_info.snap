@@ -85,3 +85,89 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !12 = !{null}
 !13 = !DILocalVariable(name: "mainProg", scope: !10, file: !2, line: 2, type: !3)
 !14 = !DILocation(line: 5, column: 4, scope: !10)
+
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%mainProg = type {}
+
+@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r0", !dbg !0
+
+define void @__init_mainprog(%mainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr0]" !dbg !10 {
+entry:
+  %self = alloca %mainProg*, align 8, !dbg !14
+  call void @llvm.dbg.declare(metadata %mainProg** %self, metadata !15, metadata !DIExpression()), !dbg !14
+  store %mainProg* %0, %mainProg** %self, align 8, !dbg !14
+  ret void, !dbg !14
+}
+
+declare !dbg !16 void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
+!llvm.module.flags = !{!5, !6}
+!llvm.dbg.cu = !{!7}
+
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "mainProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+!2 = !DIFile(filename: "file2.st", directory: "")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainprog", scope: !2, file: !2, line: 2, align: 64, flags: DIFlagPublic, elements: !4, identifier: "mainprog")
+!4 = !{}
+!5 = !{i32 2, !"Dwarf Version", i32 5}
+!6 = !{i32 2, !"Debug Info Version", i32 3}
+!7 = distinct !DICompileUnit(language: DW_LANG_C, file: !8, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !9, splitDebugInlining: false)
+!8 = !DIFile(filename: "__initializers", directory: "root")
+!9 = !{!0}
+!10 = distinct !DISubprogram(name: "__init_mainprog", linkageName: "__init_mainprog", scope: !2, file: !2, line: 2, type: !11, scopeLine: 2, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
+!11 = !DISubroutineType(flags: DIFlagPublic, types: !12)
+!12 = !{null, !13}
+!13 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_mainProg", baseType: !3, size: 64, align: 64, dwarfAddressSpace: 1)
+!14 = !DILocation(line: 2, column: 12, scope: !10)
+!15 = !DILocalVariable(name: "self", scope: !10, file: !2, line: 2, type: !13)
+!16 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !2, file: !2, line: 2, type: !17, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
+!17 = !DISubroutineType(flags: DIFlagPublic, types: !18)
+!18 = !{null}
+
+; ModuleID = '__init___TestProject'
+source_filename = "__init___TestProject"
+
+%mainProg = type {}
+
+@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r0", !dbg !0
+
+define void @__init___TestProject() section "fn-$RUSTY$__init___TestProject:v" !dbg !10 {
+entry:
+  call void @__init_mainprog(%mainProg* @mainProg_instance), !dbg !14
+  ret void, !dbg !14
+}
+
+declare !dbg !15 void @__init_mainprog(%mainProg*) section "fn-$RUSTY$__init_mainprog:v[pr0]"
+
+declare !dbg !19 void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+
+!llvm.module.flags = !{!5, !6}
+!llvm.dbg.cu = !{!7}
+
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "mainProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+!2 = !DIFile(filename: "file2.st", directory: "")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainprog", scope: !2, file: !2, line: 2, align: 64, flags: DIFlagPublic, elements: !4, identifier: "mainprog")
+!4 = !{}
+!5 = !{i32 2, !"Dwarf Version", i32 5}
+!6 = !{i32 2, !"Debug Info Version", i32 3}
+!7 = distinct !DICompileUnit(language: DW_LANG_C, file: !8, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !9, splitDebugInlining: false)
+!8 = !DIFile(filename: "__init___TestProject", directory: "root")
+!9 = !{!0}
+!10 = distinct !DISubprogram(name: "__init___TestProject", linkageName: "__init___TestProject", scope: !11, file: !11, type: !12, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
+!11 = !DIFile(filename: "<internal>", directory: "")
+!12 = !DISubroutineType(flags: DIFlagPublic, types: !13)
+!13 = !{null}
+!14 = !DILocation(line: 0, scope: !10)
+!15 = distinct !DISubprogram(name: "__init_mainprog", linkageName: "__init_mainprog", scope: !2, file: !2, line: 2, type: !16, scopeLine: 2, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
+!16 = !DISubroutineType(flags: DIFlagPublic, types: !17)
+!17 = !{null, !18}
+!18 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_mainProg", baseType: !3, size: 64, align: 64, dwarfAddressSpace: 1)
+!19 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !2, file: !2, line: 2, type: !12, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)

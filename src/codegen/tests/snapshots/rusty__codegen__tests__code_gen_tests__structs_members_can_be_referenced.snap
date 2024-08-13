@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %MainProg = type { %MyStruct }
 %MyStruct = type { i32, i32 }
@@ -18,3 +18,48 @@ entry:
   store i32 0, i32* %a, align 4
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%MyStruct = type { i32, i32 }
+%MainProg = type { %MyStruct }
+
+@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r2i32i32"
+@MainProg_instance = external global %MainProg, section "var-$RUSTY$MainProg_instance:r1r2i32i32"
+
+define void @__init_mystruct(%MyStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2i32i32]" {
+entry:
+  %self = alloca %MyStruct*, align 8
+  store %MyStruct* %0, %MyStruct** %self, align 8
+  ret void
+}
+
+define void @__init_mainprog(%MainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr1r2i32i32]" {
+entry:
+  %self = alloca %MainProg*, align 8
+  store %MainProg* %0, %MainProg** %self, align 8
+  %deref = load %MainProg*, %MainProg** %self, align 8
+  %Cord = getelementptr inbounds %MainProg, %MainProg* %deref, i32 0, i32 0
+  call void @__init_mystruct(%MyStruct* %Cord)
+  ret void
+}
+
+declare void @MainProg(%MainProg*) section "fn-$RUSTY$MainProg:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%MainProg = type { %MyStruct }
+%MyStruct = type { i32, i32 }
+
+@MainProg_instance = external global %MainProg, section "var-$RUSTY$MainProg_instance:r1r2i32i32"
+@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r2i32i32"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_mainprog(%MainProg* @MainProg_instance)
+  ret void
+}
+
+declare void @__init_mainprog(%MainProg*) section "fn-$RUSTY$__init_mainprog:v[pr1r2i32i32]"
+
+declare void @MainProg(%MainProg*) section "fn-$RUSTY$MainProg:v"

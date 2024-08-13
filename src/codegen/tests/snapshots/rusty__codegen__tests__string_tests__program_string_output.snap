@@ -2,8 +2,8 @@
 source: src/codegen/tests/string_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %prog = type { [81 x i8], [81 x i16] }
 %main = type { [7 x i8], [8 x i16] }
@@ -40,3 +40,52 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%prog = type { [81 x i8], [81 x i16] }
+%main = type { [7 x i8], [8 x i16] }
+
+@prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r2s8u81s16u81"
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r2s8u7s16u8"
+
+define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr2s8u81s16u81]" {
+entry:
+  %self = alloca %prog*, align 8
+  store %prog* %0, %prog** %self, align 8
+  ret void
+}
+
+declare void @prog(%prog*) section "fn-$RUSTY$prog:v[s8u81][s16u81]"
+
+define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr2s8u7s16u8]" {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%prog = type { [81 x i8], [81 x i16] }
+%main = type { [7 x i8], [8 x i16] }
+
+@prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r2s8u81s16u81"
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r2s8u7s16u8"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_prog(%prog* @prog_instance)
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr2s8u81s16u81]"
+
+declare void @prog(%prog*) section "fn-$RUSTY$prog:v[s8u81][s16u81]"
+
+declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr2s8u7s16u8]"
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"

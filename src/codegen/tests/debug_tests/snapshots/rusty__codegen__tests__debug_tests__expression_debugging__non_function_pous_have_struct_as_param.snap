@@ -2,8 +2,8 @@
 source: src/codegen/tests/debug_tests/expression_debugging.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %myProg = type { i32 }
 %fb = type { i32 }
@@ -11,24 +11,24 @@ source_filename = "main"
 @myProg_instance = global %myProg zeroinitializer, section "var-$RUSTY$myProg_instance:r1i32", !dbg !0
 @__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-$RUSTY$__fb__init:r1i32", !dbg !7
 
-define void @myProg(%myProg* %0) section "fn-$RUSTY$myProg:v[i32]" !dbg !16 {
+define void @myProg(%myProg* %0) section "fn-$RUSTY$myProg:v[i32]" !dbg !17 {
 entry:
-  call void @llvm.dbg.declare(metadata %myProg* %0, metadata !20, metadata !DIExpression()), !dbg !21
-  %x = getelementptr inbounds %myProg, %myProg* %0, i32 0, i32 0, !dbg !21
-  %load_x = load i32, i32* %x, align 4, !dbg !21
-  %tmpVar = add i32 %load_x, 2, !dbg !21
-  store i32 %tmpVar, i32* %x, align 4, !dbg !21
-  ret void, !dbg !21
+  call void @llvm.dbg.declare(metadata %myProg* %0, metadata !21, metadata !DIExpression()), !dbg !22
+  %x = getelementptr inbounds %myProg, %myProg* %0, i32 0, i32 0, !dbg !22
+  %load_x = load i32, i32* %x, align 4, !dbg !22
+  %tmpVar = add i32 %load_x, 2, !dbg !22
+  store i32 %tmpVar, i32* %x, align 4, !dbg !22
+  ret void, !dbg !22
 }
 
-define void @fb(%fb* %0) section "fn-$RUSTY$fb:v[i32]" !dbg !22 {
+define void @fb(%fb* %0) section "fn-$RUSTY$fb:v[i32]" !dbg !23 {
 entry:
-  call void @llvm.dbg.declare(metadata %fb* %0, metadata !23, metadata !DIExpression()), !dbg !24
-  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0, !dbg !24
-  %load_x = load i32, i32* %x, align 4, !dbg !24
-  %tmpVar = add i32 %load_x, 2, !dbg !24
-  store i32 %tmpVar, i32* %x, align 4, !dbg !24
-  ret void, !dbg !24
+  call void @llvm.dbg.declare(metadata %fb* %0, metadata !24, metadata !DIExpression()), !dbg !25
+  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0, !dbg !25
+  %load_x = load i32, i32* %x, align 4, !dbg !25
+  %tmpVar = add i32 %load_x, 2, !dbg !25
+  store i32 %tmpVar, i32* %x, align 4, !dbg !25
+  ret void, !dbg !25
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -41,7 +41,7 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "myProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "main", directory: "src")
+!2 = !DIFile(filename: "<internal>", directory: "")
 !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myProg", scope: !2, file: !2, line: 2, size: 32, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myProg")
 !4 = !{!5}
 !5 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 4, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
@@ -53,14 +53,130 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !11 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
 !12 = !{i32 2, !"Dwarf Version", i32 5}
 !13 = !{i32 2, !"Debug Info Version", i32 3}
-!14 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !15, splitDebugInlining: false)
-!15 = !{!0, !7}
-!16 = distinct !DISubprogram(name: "myProg", linkageName: "myProg", scope: !2, file: !2, line: 2, type: !17, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !19)
-!17 = !DISubroutineType(flags: DIFlagPublic, types: !18)
-!18 = !{null, !6}
-!19 = !{}
-!20 = !DILocalVariable(name: "myProg", scope: !16, file: !2, line: 2, type: !3)
-!21 = !DILocation(line: 6, column: 12, scope: !16)
-!22 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 9, type: !17, scopeLine: 13, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !19)
-!23 = !DILocalVariable(name: "fb", scope: !22, file: !2, line: 9, type: !9)
-!24 = !DILocation(line: 13, column: 12, scope: !22)
+!14 = distinct !DICompileUnit(language: DW_LANG_C, file: !15, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !16, splitDebugInlining: false)
+!15 = !DIFile(filename: "<internal>", directory: "src")
+!16 = !{!0, !7}
+!17 = distinct !DISubprogram(name: "myProg", linkageName: "myProg", scope: !2, file: !2, line: 2, type: !18, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !20)
+!18 = !DISubroutineType(flags: DIFlagPublic, types: !19)
+!19 = !{null, !6}
+!20 = !{}
+!21 = !DILocalVariable(name: "myProg", scope: !17, file: !2, line: 2, type: !3)
+!22 = !DILocation(line: 6, column: 12, scope: !17)
+!23 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 9, type: !18, scopeLine: 13, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !20)
+!24 = !DILocalVariable(name: "fb", scope: !23, file: !2, line: 9, type: !9)
+!25 = !DILocation(line: 13, column: 12, scope: !23)
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%myProg = type { i32 }
+%fb = type { i32 }
+
+@myProg_instance = external global %myProg, section "var-$RUSTY$myProg_instance:r1i32", !dbg !0
+@__fb__init = external global %fb, section "var-$RUSTY$__fb__init:r1i32", !dbg !7
+
+define void @__init_myprog(%myProg* %0) section "fn-$RUSTY$__init_myprog:v[pr1i32]" !dbg !17 {
+entry:
+  %self = alloca %myProg*, align 8, !dbg !22
+  call void @llvm.dbg.declare(metadata %myProg** %self, metadata !23, metadata !DIExpression()), !dbg !22
+  store %myProg* %0, %myProg** %self, align 8, !dbg !22
+  ret void, !dbg !22
+}
+
+declare !dbg !24 void @myProg(%myProg*) section "fn-$RUSTY$myProg:v[i32]"
+
+define void @__init_fb(%fb* %0) section "fn-$RUSTY$__init_fb:v[pr1i32]" !dbg !27 {
+entry:
+  %self = alloca %fb*, align 8, !dbg !31
+  call void @llvm.dbg.declare(metadata %fb** %self, metadata !32, metadata !DIExpression()), !dbg !31
+  store %fb* %0, %fb** %self, align 8, !dbg !31
+  ret void, !dbg !31
+}
+
+declare !dbg !33 void @fb(%fb*) section "fn-$RUSTY$fb:v[i32]"
+
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
+!llvm.module.flags = !{!12, !13}
+!llvm.dbg.cu = !{!14}
+
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "myProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+!2 = !DIFile(filename: "<internal>", directory: "")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myprog", scope: !2, file: !2, line: 2, size: 32, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myprog")
+!4 = !{!5}
+!5 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 4, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+!6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!7 = !DIGlobalVariableExpression(var: !8, expr: !DIExpression())
+!8 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 9, type: !9, isLocal: false, isDefinition: true)
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 9, size: 32, align: 64, flags: DIFlagPublic, elements: !10, identifier: "fb")
+!10 = !{!11}
+!11 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+!12 = !{i32 2, !"Dwarf Version", i32 5}
+!13 = !{i32 2, !"Debug Info Version", i32 3}
+!14 = distinct !DICompileUnit(language: DW_LANG_C, file: !15, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !16, splitDebugInlining: false)
+!15 = !DIFile(filename: "__initializers", directory: "src")
+!16 = !{!0, !7}
+!17 = distinct !DISubprogram(name: "__init_myprog", linkageName: "__init_myprog", scope: !2, file: !2, line: 2, type: !18, scopeLine: 2, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !21)
+!18 = !DISubroutineType(flags: DIFlagPublic, types: !19)
+!19 = !{null, !20}
+!20 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_myProg", baseType: !3, size: 64, align: 64, dwarfAddressSpace: 1)
+!21 = !{}
+!22 = !DILocation(line: 2, column: 16, scope: !17)
+!23 = !DILocalVariable(name: "self", scope: !17, file: !2, line: 2, type: !20)
+!24 = distinct !DISubprogram(name: "myProg", linkageName: "myProg", scope: !2, file: !2, line: 2, type: !25, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !21)
+!25 = !DISubroutineType(flags: DIFlagPublic, types: !26)
+!26 = !{null, !6}
+!27 = distinct !DISubprogram(name: "__init_fb", linkageName: "__init_fb", scope: !2, file: !2, line: 9, type: !28, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !21)
+!28 = !DISubroutineType(flags: DIFlagPublic, types: !29)
+!29 = !{null, !30}
+!30 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_fb", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
+!31 = !DILocation(line: 9, column: 23, scope: !27)
+!32 = !DILocalVariable(name: "self", scope: !27, file: !2, line: 9, type: !30)
+!33 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 9, type: !25, scopeLine: 13, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !21)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%myProg = type { i32 }
+
+@myProg_instance = external global %myProg, section "var-$RUSTY$myProg_instance:r1i32", !dbg !0
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" !dbg !12 {
+entry:
+  call void @__init_myprog(%myProg* @myProg_instance), !dbg !16
+  ret void, !dbg !16
+}
+
+declare !dbg !17 void @__init_myprog(%myProg*) section "fn-$RUSTY$__init_myprog:v[pr1i32]"
+
+declare !dbg !21 void @myProg(%myProg*) section "fn-$RUSTY$myProg:v[i32]"
+
+!llvm.module.flags = !{!7, !8}
+!llvm.dbg.cu = !{!9}
+
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "myProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+!2 = !DIFile(filename: "<internal>", directory: "")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myprog", scope: !2, file: !2, line: 2, size: 32, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myprog")
+!4 = !{!5}
+!5 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 4, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+!6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!7 = !{i32 2, !"Dwarf Version", i32 5}
+!8 = !{i32 2, !"Debug Info Version", i32 3}
+!9 = distinct !DICompileUnit(language: DW_LANG_C, file: !10, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !11, splitDebugInlining: false)
+!10 = !DIFile(filename: "__init___testproject", directory: "src")
+!11 = !{!0}
+!12 = distinct !DISubprogram(name: "__init___testproject", linkageName: "__init___testproject", scope: !2, file: !2, type: !13, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !9, retainedNodes: !15)
+!13 = !DISubroutineType(flags: DIFlagPublic, types: !14)
+!14 = !{null}
+!15 = !{}
+!16 = !DILocation(line: 0, scope: !12)
+!17 = distinct !DISubprogram(name: "__init_myprog", linkageName: "__init_myprog", scope: !2, file: !2, line: 2, type: !18, scopeLine: 2, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !9, retainedNodes: !15)
+!18 = !DISubroutineType(flags: DIFlagPublic, types: !19)
+!19 = !{null, !20}
+!20 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_myProg", baseType: !3, size: 64, align: 64, dwarfAddressSpace: 1)
+!21 = distinct !DISubprogram(name: "myProg", linkageName: "myProg", scope: !2, file: !2, line: 2, type: !22, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !9, retainedNodes: !15)
+!22 = !DISubroutineType(flags: DIFlagPublic, types: !23)
+!23 = !{null, !6}

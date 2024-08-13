@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @BASE = unnamed_addr constant i32 7, section "var-$RUSTY$BASE:i32"
 @Direction.FORWARD = unnamed_addr constant i32 7, section "var-$RUSTY$FORWARD:e3i32"
@@ -58,4 +58,11 @@ else:                                             ; preds = %entry
 continue:                                         ; preds = %else, %case6, %case4, %case1, %case
   %drive_ret = load i32, i32* %drive, align 4
   ret i32 %drive_ret
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
 }
