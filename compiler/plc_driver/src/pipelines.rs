@@ -99,7 +99,6 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
     pub fn index(self, id_provider: IdProvider) -> IndexedProject<T> {
-        let project_init_symbol = self.get_project().get_init_symbol_name();
         let indexed_units = self
             .units
             .into_par_iter()
@@ -127,7 +126,6 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
         // import builtin functions
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(&builtins));
-        global_index.register_global_init_function(&project_init_symbol);
 
         IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
     }
@@ -147,9 +145,10 @@ pub struct IndexedProject<T: SourceContainer + Sync> {
 impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
-        let project_init_symbol = self.get_project().get_init_symbol_name();
+        let init_name = self.get_project().get_init_symbol_name();
         //Resolve constants
         let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
+        full_index.register_global_init_function(&init_name);
 
         //Create and call the annotator
         let mut annotated_units = Vec::new();
@@ -174,7 +173,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
         full_index.import(std::mem::take(&mut all_annotations.new_index));
 
         TypeAnnotator::lower_init_functions(
-            &project_init_symbol,
+            &init_name,
             unresolvables,
             &mut all_annotations,
             &mut full_index,

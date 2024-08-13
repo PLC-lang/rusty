@@ -212,7 +212,7 @@ impl Debug for SourceLocation {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut f = f.debug_struct("SourceLocation");
         f.field("span", &self.span);
-        if !self.file.is_undefined() {
+        if !(self.file.is_undefined() || self.file.is_internal()) {
             f.field("file", &self.file.get_name());
         }
         f.finish()

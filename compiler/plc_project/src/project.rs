@@ -301,10 +301,9 @@ impl<S: SourceContainer> Project<S> {
         include_str!("../schema/plc-json.schema")
     }
 
+    /// Returns the symbol name of this projects main initializer function
     pub fn get_init_symbol_name(&self) -> String {
-        let name = self.get_name();
-        let name = name.rfind('.').map(|it| &name[..it]).unwrap_or(name);
-        format!("__init___{name}")
+        format!("__init___{}", self.get_name().replace(".", "_"))
     }
 }
 

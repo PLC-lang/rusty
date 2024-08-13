@@ -774,9 +774,9 @@ impl StringLiterals {
 /// The key corresponds to the scope in which the initializers were encountered.
 /// The value corresponds to the assignment data, with the key being the assigned variable name
 /// and value being the initializer `AstNode`.
-pub type Initializers = FxIndexMap<String, InitAssignments>;
+type Initializers = FxIndexMap<String, InitAssignments>;
 
-pub trait Init<'rslv>
+trait Init<'rslv>
 where
     Self: Sized + Default,
 {
@@ -797,8 +797,8 @@ impl<'rslv> Init<'rslv> for Initializers {
             .iter()
             .filter_map(|it| {
                 if let Some(index::const_expressions::UnresolvableKind::Address(init)) = &it.kind {
+                    // assume all initializers without scope/not in a container are global variables for now. type-defs are separated later
                     Some((init.scope.clone().unwrap_or("__global".to_string()), init))
-                // TODO: not automatically global, might be a struct-member initializer
                 } else {
                     None
                 }
@@ -821,14 +821,15 @@ impl<'rslv> Init<'rslv> for Initializers {
         initializer: &Option<AstNode>,
     ) {
         let assignments = self.entry(container_name.to_string()).or_default();
-
         let Some(var_name) = var_name else {
             return;
         };
-        // don't update if a value already exists
+
+        // don't overwrite existing values
         if assignments.contains_key(var_name) {
             return;
         }
+
         assignments.insert(var_name.to_string(), initializer.clone());
     }
 
@@ -839,7 +840,7 @@ impl<'rslv> Init<'rslv> for Initializers {
     }
 }
 
-pub type InitAssignments = FxIndexMap<String, Option<AstNode>>;
+type InitAssignments = FxIndexMap<String, Option<AstNode>>;
 
 impl<'i> TypeAnnotator<'i> {
     /// constructs a new TypeAnnotater that works with the given index for type-lookups
@@ -924,248 +925,8 @@ impl<'i> TypeAnnotator<'i> {
         (visitor.annotation_map, visitor.dependencies, visitor.string_literals)
     }
 
-    fn create_init_units(
-        index: &Index,
-        id_provider: &IdProvider,
-        initializers: &Initializers,
-    ) -> Vec<(Index, CompilationUnit)> {
-        let lookup = initializers.keys().map(|it| it.as_str()).collect::<FxIndexSet<_>>();
-        initializers
-            .iter()
-            .filter_map(|(container, init)| {
-                if container == "__global" {
-                    // globals will be initialized in the `__init` body
-                    return None;
-                }
-
-                TypeAnnotator::create_init_unit(container, index, id_provider, init, &lookup)
-            })
-            .collect()
-    }
-
-    fn create_init_unit(
-        container: &String,
-        index: &Index,
-        id_provider: &IdProvider,
-        initializations: &InitAssignments,
-        all_init_units: &FxIndexSet<&str>,
-    ) -> Option<(Index, CompilationUnit)> {
-        let init_fn_name = index::get_init_fn_name(container);
-
-        enum InitFnType {
-            StatefulPou,
-            Function,
-            Struct,
-        }
-
-        let (init_type, location) = index
-            .find_pou(container)
-            .map(|it| {
-                let ty = if it.is_function() { InitFnType::Function } else { InitFnType::StatefulPou };
-                (ty, it.get_location())
-            })
-            .unwrap_or_else(|| (InitFnType::Struct, &index.get_type_or_panic(container).location));
-
-        if matches!(init_type, InitFnType::Function) {
-            return None; // TODO: handle functions
-        };
-
-        let mut id_provider = id_provider.clone();
-
-        let (param, ident) = (
-            vec![VariableBlock::default().with_block_type(ast::VariableBlockType::InOut).with_variables(
-                vec![Variable {
-                    name: "self".into(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                        referenced_type: container.to_string(),
-                        location: location.clone(),
-                    },
-                    initializer: None,
-                    address: None,
-                    location: location.clone(),
-                }],
-            )],
-            "self".to_string(),
-        );
-
-        let init_pou = Pou {
-            name: init_fn_name.clone(),
-            variable_blocks: param,
-            pou_type: PouType::Function,
-            return_type: None,
-            location: location.clone(),
-            name_location: location.clone(),
-            poly_mode: None,
-            generics: vec![],
-            linkage: LinkageType::Internal,
-            super_class: None,
-        };
-
-        let mut statements = initializations
-            .iter()
-            .filter_map(|(lhs_name, initializer)| {
-                let lhs = create_member_reference(
-                    lhs_name,
-                    id_provider.clone(),
-                    Some(create_member_reference(&ident, id_provider.clone(), None)),
-                );
-                initializer
-                    .as_ref()
-                    .map(|node| AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
-            })
-            .collect::<Vec<_>>();
-
-        let members = index.get_container_members(container);
-
-        let member_init_calls = members
-            .iter()
-            .filter_map(|member| {
-                let type_name = member.get_type_name();
-                let call_name = get_init_fn_name(type_name);
-                if !member.is_temp() /* TODO: support temp accessors */ && all_init_units.contains(type_name)
-                {
-                    let op = create_member_reference(&call_name, id_provider.clone(), None);
-                    let param = create_member_reference(
-                        member.get_name(),
-                        id_provider.clone(),
-                        Some(create_member_reference("self", id_provider.clone(), None)),
-                    );
-                    Some(AstFactory::create_call_statement(
-                        op,
-                        Some(param),
-                        id_provider.next_id(),
-                        location.clone(),
-                    ))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-
-        statements.extend(member_init_calls);
-
-        let implementation = Implementation {
-            name: init_fn_name.clone(),
-            type_name: init_fn_name.clone(),
-            linkage: LinkageType::Internal,
-            pou_type: PouType::Function, // XXX: would a distinct POU type make sense here, linking this function with the POU to be initialized? (similar to actions)
-            statements,
-            location: location.clone(),
-            name_location: location.clone(),
-            overriding: false,
-            generic: false,
-            access: None,
-        };
-
-        let mut new_unit = CompilationUnit {
-            global_vars: vec![],
-            units: vec![init_pou],
-            implementations: vec![implementation],
-            user_types: vec![],
-            file_name: "__initializers".into(),
-        };
-
-        pre_process(&mut new_unit, id_provider.clone());
-        let mut new_index = index::visitor::visit(&new_unit);
-        new_index.register_init_function(container);
-        Some((new_index, new_unit))
-    }
-
-    fn create_init_wrapper_function(
-        index: &Index,
-        id_provider: &IdProvider,
-        candidates: &Initializers,
-        symbol_name: &str,
-    ) -> Option<(Index, CompilationUnit)> {
-        if candidates.is_empty() {
-            return None;
-        }
-        dbg!(symbol_name);
-
-        // in order to avoid duplicate symbols when linking previously compiled objects, the init function is mangled with the project name
-        let mut id_provider = id_provider.clone();
-
-        let init_pou = Pou {
-            name: symbol_name.into(),
-            variable_blocks: vec![],
-            pou_type: PouType::Function,
-            return_type: None,
-            location: SourceLocation::internal(),
-            name_location: SourceLocation::internal(),
-            poly_mode: None,
-            generics: vec![],
-            linkage: LinkageType::Internal,
-            super_class: None,
-        };
-
-        let init_functions = candidates
-            .iter()
-            .filter_map(|(scope, _)| {
-                if index.find_pou(scope).is_some_and(|pou| pou.is_program()) {
-                    let init_fn_name = get_init_fn_name(scope);
-                    Some((init_fn_name, scope))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-        let mut globals = if let Some(stmts) = candidates.get("__global") {
-            stmts
-                .iter()
-                .filter_map(|(var_name, initializer)| {
-                    initializer.as_ref().map(|it| {
-                        let global = create_member_reference(var_name, id_provider.clone(), None);
-                        AstFactory::create_assignment(global, it.clone(), id_provider.next_id())
-                    })
-                })
-                .collect::<Vec<_>>()
-        } else {
-            vec![]
-        };
-
-        let body = init_functions
-            .iter()
-            .map(|(fn_name, param)| {
-                let op = create_member_reference(fn_name, id_provider.clone(), None);
-                let param = create_member_reference(param, id_provider.clone(), None);
-                AstFactory::create_call_statement(
-                    op,
-                    Some(param),
-                    id_provider.next_id(),
-                    SourceLocation::internal(),
-                )
-            })
-            .collect::<Vec<_>>();
-
-        globals.extend(body);
-
-        let implementation = Implementation {
-            name: symbol_name.into(),
-            type_name: symbol_name.into(),
-            linkage: LinkageType::Internal,
-            pou_type: PouType::Function,
-            statements: globals,
-            location: SourceLocation::internal(),
-            name_location: SourceLocation::internal(),
-            overriding: false,
-            generic: false,
-            access: None,
-        };
-
-        let mut init_unit = CompilationUnit {
-            global_vars: vec![],
-            units: vec![init_pou],
-            implementations: vec![implementation],
-            user_types: vec![],
-            file_name: symbol_name.into(),
-        };
-
-        pre_process(&mut init_unit, id_provider.clone());
-        let new_index = index::visitor::visit(&init_unit);
-
-        Some((new_index, init_unit))
-    }
-
+    // XXX: should this be part of the type annotator?
+    // once dedicated lowering pipeline-stage is introduced, think about moving to separate file/crate
     pub fn lower_init_functions(
         init_symbol_name: &str,
         unresolvables: Vec<UnresolvableConstant>,
@@ -1252,6 +1013,241 @@ impl<'i> TypeAnnotator<'i> {
         }
 
         full_index.import(std::mem::take(&mut all_annotations.new_index));
+    }
+
+    fn create_init_units(
+        index: &Index,
+        id_provider: &IdProvider,
+        initializers: &Initializers,
+    ) -> Vec<(Index, CompilationUnit)> {
+        let lookup = initializers.keys().map(|it| it.as_str()).collect::<FxIndexSet<_>>();
+        initializers
+            .iter()
+            .filter_map(|(container, init)| {
+                // globals will be initialized in the `__init` body
+                if container == "__global" {
+                    return None;
+                }
+
+                TypeAnnotator::create_init_unit(container, index, id_provider, init, &lookup)
+            })
+            .collect()
+    }
+
+    fn create_init_unit(
+        container: &String,
+        index: &Index,
+        id_provider: &IdProvider,
+        initializations: &InitAssignments,
+        all_init_units: &FxIndexSet<&str>,
+    ) -> Option<(Index, CompilationUnit)> {
+        enum InitFnType {
+            StatefulPou,
+            Function,
+            Struct,
+        }
+
+        let init_fn_name = index::get_init_fn_name(container);
+        let (init_type, location) = index
+            .find_pou(container)
+            .map(|it| {
+                let ty = if it.is_function() { InitFnType::Function } else { InitFnType::StatefulPou };
+                (ty, it.get_location())
+            })
+            .unwrap_or_else(|| (InitFnType::Struct, &index.get_type_or_panic(container).location));
+
+        if matches!(init_type, InitFnType::Function) {
+            return None; // TODO: handle functions
+        };
+
+        let mut id_provider = id_provider.clone();
+        let (param, ident) = (
+            vec![VariableBlock::default().with_block_type(ast::VariableBlockType::InOut).with_variables(
+                vec![Variable {
+                    name: "self".into(),
+                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                        referenced_type: container.to_string(),
+                        location: location.clone(),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: location.clone(),
+                }],
+            )],
+            "self".to_string(),
+        );
+
+        let init_pou = Pou {
+            name: init_fn_name.clone(),
+            variable_blocks: param,
+            pou_type: PouType::Function,
+            return_type: None,
+            location: location.clone(),
+            name_location: location.clone(),
+            poly_mode: None,
+            generics: vec![],
+            linkage: LinkageType::Internal,
+            super_class: None,
+        };
+
+        let mut statements = initializations
+            .iter()
+            .filter_map(|(lhs_name, initializer)| {
+                let lhs = create_member_reference(
+                    lhs_name,
+                    id_provider.clone(),
+                    Some(create_member_reference(&ident, id_provider.clone(), None)),
+                );
+                initializer
+                    .as_ref()
+                    .map(|node| AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
+            })
+            .collect::<Vec<_>>();
+
+        let member_init_calls = index
+            .get_container_members(container)
+            .iter()
+            .filter_map(|member| {
+                let type_name = member.get_type_name();
+                let call_name = get_init_fn_name(type_name);
+                // TODO: support temp accessors && external declarations
+                if !member.is_temp() && all_init_units.contains(type_name)
+                {
+                    let op = create_member_reference(&call_name, id_provider.clone(), None);
+                    let param = create_member_reference(
+                        member.get_name(),
+                        id_provider.clone(),
+                        Some(create_member_reference("self", id_provider.clone(), None)),
+                    );
+                    Some(AstFactory::create_call_statement(
+                        op,
+                        Some(param),
+                        id_provider.next_id(),
+                        location.clone(),
+                    ))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        statements.extend(member_init_calls);
+        let implementation = Implementation {
+            name: init_fn_name.clone(),
+            type_name: init_fn_name.clone(),
+            linkage: LinkageType::Internal,
+            pou_type: PouType::Function,
+            statements,
+            location: location.clone(),
+            name_location: location.clone(),
+            overriding: false,
+            generic: false,
+            access: None,
+        };
+
+        let mut new_unit = CompilationUnit {
+            global_vars: vec![],
+            units: vec![init_pou],
+            implementations: vec![implementation],
+            user_types: vec![],
+            file_name: "__initializers".into(),
+        };
+
+        pre_process(&mut new_unit, id_provider.clone());
+        let mut new_index = index::visitor::visit(&new_unit);
+        new_index.register_init_function(container);
+        Some((new_index, new_unit))
+    }
+
+    fn create_init_wrapper_function(
+        index: &Index,
+        id_provider: &IdProvider,
+        candidates: &Initializers,
+        symbol_name: &str,
+    ) -> Option<(Index, CompilationUnit)> {
+        if candidates.is_empty() {
+            return None;
+        }
+
+        let mut id_provider = id_provider.clone();
+        let init_pou = Pou {
+            name: symbol_name.into(),
+            variable_blocks: vec![],
+            pou_type: PouType::Function,
+            return_type: None,
+            location: SourceLocation::internal(),
+            name_location: SourceLocation::internal(),
+            poly_mode: None,
+            generics: vec![],
+            linkage: LinkageType::Internal,
+            super_class: None,
+        };
+
+        let init_functions = candidates
+            .iter()
+            .filter_map(|(scope, _)| {
+                if index.find_pou(scope).is_some_and(|pou| pou.is_program()) {
+                    let init_fn_name = get_init_fn_name(scope);
+                    Some((init_fn_name, scope))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        let mut globals = if let Some(stmts) = candidates.get("__global") {
+            stmts
+                .iter()
+                .filter_map(|(var_name, initializer)| {
+                    initializer.as_ref().map(|it| {
+                        let global = create_member_reference(var_name, id_provider.clone(), None);
+                        AstFactory::create_assignment(global, it.clone(), id_provider.next_id())
+                    })
+                })
+                .collect::<Vec<_>>()
+        } else {
+            vec![]
+        };
+
+        let body = init_functions
+            .iter()
+            .map(|(fn_name, param)| {
+                let op = create_member_reference(fn_name, id_provider.clone(), None);
+                let param = create_member_reference(param, id_provider.clone(), None);
+                AstFactory::create_call_statement(
+                    op,
+                    Some(param),
+                    id_provider.next_id(),
+                    SourceLocation::internal(),
+                )
+            })
+            .collect::<Vec<_>>();
+
+        globals.extend(body);
+        let implementation = Implementation {
+            name: symbol_name.into(),
+            type_name: symbol_name.into(),
+            linkage: LinkageType::Internal,
+            pou_type: PouType::Function,
+            statements: globals,
+            location: SourceLocation::internal(),
+            name_location: SourceLocation::internal(),
+            overriding: false,
+            generic: false,
+            access: None,
+        };
+
+        let mut init_unit = CompilationUnit {
+            global_vars: vec![],
+            units: vec![init_pou],
+            implementations: vec![implementation],
+            user_types: vec![],
+            file_name: symbol_name.into(),
+        };
+
+        pre_process(&mut init_unit, id_provider.clone());
+        let new_index = index::visitor::visit(&init_unit);
+        Some((new_index, init_unit))
     }
 
     fn visit_user_type_declaration(&mut self, user_data_type: &UserTypeDeclaration, ctx: &VisitorContext) {
