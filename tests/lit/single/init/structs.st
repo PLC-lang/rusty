@@ -28,6 +28,6 @@ END_VAR
 END_PROGRAM
 
 FUNCTION main: DINT
-    __init___structs();
+    __init___structs_st();
     prog();
 END_FUNCTION
