@@ -1521,7 +1521,7 @@ impl AstFactory {
                 parameters: Some(Box::new(AstNode::new(
                     AstStatement::ExpressionList(parameters),
                     parameter_list_id,
-                    SourceLocation::undefined(), //TODO: get real location
+                    SourceLocation::internal(), //TODO: get real location
                 ))),
             }),
             location: location.clone(),
@@ -1566,7 +1566,7 @@ impl AstFactory {
                 )),
                 parameters: Some(Box::new(AstFactory::create_expression_list(
                     parameters,
-                    SourceLocation::undefined(),
+                    SourceLocation::internal(),
                     id_provider.next_id(),
                 ))),
             }),

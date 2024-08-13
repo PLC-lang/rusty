@@ -303,7 +303,7 @@ impl<S: SourceContainer> Project<S> {
 
     /// Returns the symbol name of this projects main initializer function
     pub fn get_init_symbol_name(&self) -> String {
-        format!("__init___{}", self.get_name().replace(".", "_"))
+        format!("__init___{}", self.get_name().replace('.', "_"))
     }
 }
 

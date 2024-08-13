@@ -962,7 +962,7 @@ impl<'i> TypeAnnotator<'i> {
                         });
 
                     all_annotations.new_initializers.maybe_insert_initializer(
-                        &name,
+                        name,
                         None,
                         &type_.initializer,
                     );
