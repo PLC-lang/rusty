@@ -480,7 +480,7 @@ impl GeneratedProject {
                     })??;
                 codegen.persist_to_ir(output_location)
             }
-            FormatOption::Object if self.objects.len() == 1 && objects.is_empty() => {
+            FormatOption::Object if objects.is_empty() => {
                 //Just copy over the object file, no need for a linker
                 if let [obj] = &self.objects[..] {
                     if obj.get_path() != output_location {
