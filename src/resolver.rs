@@ -958,14 +958,10 @@ impl<'i> TypeAnnotator<'i> {
                                 .map(|node| (var.get_name(), node))
                         })
                         .for_each(|(lhs, it)| {
-                            all_annotations.new_initializers.maybe_insert_initializer(name, Some(&lhs), &it);
+                            all_annotations.new_initializers.maybe_insert_initializer(name, Some(lhs), &it);
                         });
 
-                    all_annotations.new_initializers.maybe_insert_initializer(
-                        name,
-                        None,
-                        &type_.initializer,
-                    );
+                    all_annotations.new_initializers.maybe_insert_initializer(name, None, &type_.initializer);
                 }
             }
             for pou in &unit.units {
@@ -1111,8 +1107,7 @@ impl<'i> TypeAnnotator<'i> {
                 let type_name = member.get_type_name();
                 let call_name = get_init_fn_name(type_name);
                 // TODO: support temp accessors && external declarations
-                if !member.is_temp() && all_init_units.contains(type_name)
-                {
+                if !member.is_temp() && all_init_units.contains(type_name) {
                     let op = create_member_reference(&call_name, id_provider.clone(), None);
                     let param = create_member_reference(
                         member.get_name(),
