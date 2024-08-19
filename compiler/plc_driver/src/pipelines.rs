@@ -11,12 +11,16 @@ use ast::{
     provider::IdProvider,
 };
 
+use lowering::AstLowerer;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{FxIndexSet, Index},
     output::FormatOption,
     parser::parse_file,
-    resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
+    resolver::{
+        const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
+        TypeAnnotator,
+    },
     validation::Validator,
     ConfigFormat, Target,
 };
@@ -144,11 +148,9 @@ pub struct IndexedProject<T: SourceContainer + Sync> {
 
 impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
-    pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
-        let init_name = self.get_project().get_init_symbol_name();
+    pub fn annotate(self, id_provider: IdProvider) -> AnnotatedProject<T> {
         //Resolve constants
         let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
-        full_index.register_global_init_function(&init_name);
 
         //Create and call the annotator
         let mut annotated_units = Vec::new();
@@ -172,21 +174,12 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
 
         full_index.import(std::mem::take(&mut all_annotations.new_index));
 
-        TypeAnnotator::lower_init_functions(
-            &init_name,
-            unresolvables,
-            &mut all_annotations,
-            &mut full_index,
-            &id_provider,
-            &mut annotated_units,
-        );
-
-        let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
         AnnotatedProject {
             project: self.project.project,
             units: annotated_units,
             index: full_index,
-            annotations,
+            annotation_map: all_annotations,
+            unresolvables,
         }
     }
 
@@ -204,10 +197,40 @@ pub struct AnnotatedProject<T: SourceContainer + Sync> {
     pub project: Project<T>,
     pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
     pub index: Index,
-    pub annotations: AstAnnotations,
+    pub annotation_map: AnnotationMapImpl,
+    unresolvables: Vec<UnresolvableConstant>,
 }
 
 impl<T: SourceContainer + Sync> AnnotatedProject<T> {
+    pub fn get_project(&self) -> &Project<T> {
+        &self.project
+    }
+
+    pub fn lower(self, mut id_provider: IdProvider) -> LoweredProject<T> {
+        let symbol_name = &self.get_project().get_init_symbol_name();
+        let (units, index, annotations) = AstLowerer::lower(
+            self.index,
+            self.annotation_map,
+            self.units,
+            self.unresolvables,
+            id_provider.clone(),
+            &symbol_name,
+        );
+
+        let annotations = AstAnnotations::new(annotations, id_provider.next_id());
+
+        LoweredProject { project: self.project, units, index, annotations }
+    }
+}
+
+pub struct LoweredProject<T: SourceContainer + Sync> {
+    pub project: Project<T>,
+    pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
+    pub index: Index,
+    pub annotations: AstAnnotations,
+}
+
+impl<T: SourceContainer + Sync> LoweredProject<T> {
     pub fn get_project(&self) -> &Project<T> {
         &self.project
     }

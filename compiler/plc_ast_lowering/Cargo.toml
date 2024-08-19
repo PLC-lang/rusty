@@ -1,0 +1,9 @@
+[package]
+name = "plc_ast_lowering"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+plc = { path = "../..", package = "rusty" }
+plc_source = { path = "../plc_source" }
+ast = { path = "../plc_ast/", package = "plc_ast" }

@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 plc = { path = "../..", package = "rusty" }
 ast = { path = "../plc_ast/", package = "plc_ast" }
+lowering = { path = "../plc_ast_lowering/", package = "plc_ast_lowering" }
 project = { path = "../plc_project/", package = "plc_project" }
 source_code = { path = "../plc_source/", package = "plc_source" }
 cfc = { path = "../plc_xml/", package = "plc_xml" }

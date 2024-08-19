@@ -17,7 +17,7 @@ use std::{
 };
 
 use cli::{CompileParameters, ParameterError, SubCommands};
-use pipelines::AnnotatedProject;
+use pipelines::LoweredProject;
 use plc::{
     codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat,
     OptimizationLevel, Target, Threads,
@@ -242,28 +242,29 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
             None,
         )?;
 
-    // 1 : Parse, 2. Index and 3. Resolve / Annotate
-    let annotated_project = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
+    // 1 : Parse, 2. Index, 3. Resolve / Annotate and 4. Lower
+    let lowered_project = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
         .index(ctxt.provider())
-        .annotate(ctxt.provider());
+        .annotate(ctxt.provider())
+        .lower(ctxt.provider());
 
     if compile_parameters.output_ast {
-        println!("{:#?}", annotated_project.units);
+        println!("{:#?}", lowered_project.units);
         return Ok(());
     }
 
-    // 4 : Validate
-    annotated_project.validate(&ctxt, &mut diagnostician)?;
+    // 5 : Validate
+    lowered_project.validate(&ctxt, &mut diagnostician)?;
 
     if let Some((location, format)) =
         compile_parameters.hardware_config.as_ref().zip(compile_parameters.config_format())
     {
-        annotated_project.generate_hardware_information(format, location)?;
+        lowered_project.generate_hardware_information(format, location)?;
     }
 
     // 5 : Codegen
     if !compile_parameters.is_check() {
-        let res = generate(&compile_options, &link_options, compile_parameters.target, annotated_project)
+        let res = generate(&compile_options, &link_options, compile_parameters.target, lowered_project)
             .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
         if let Err(res) = res {
             diagnostician.handle(&[res]);
@@ -313,7 +314,7 @@ fn print_config_options<T: AsRef<Path> + Sync>(
 pub fn parse_and_annotate<T: SourceContainer>(
     name: &str,
     src: Vec<T>,
-) -> Result<(GlobalContext, AnnotatedProject<T>), Diagnostic> {
+) -> Result<(GlobalContext, LoweredProject<T>), Diagnostic> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
     let ctxt = GlobalContext::new().with_source(project.get_sources(), None)?;
@@ -322,7 +323,7 @@ pub fn parse_and_annotate<T: SourceContainer>(
 
     // Create an index, add builtins then resolve
     let provider = ctxt.provider();
-    Ok((ctxt, parsed.index(provider.clone()).annotate(provider)))
+    Ok((ctxt, parsed.index(provider.clone()).annotate(provider.clone()).lower(provider)))
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls
@@ -361,7 +362,7 @@ fn generate(
     compile_options: &CompileOptions,
     linker_options: &LinkOptions,
     targets: Vec<Target>,
-    annotated_project: AnnotatedProject<PathBuf>,
+    annotated_project: LoweredProject<PathBuf>,
 ) -> Result<(), Diagnostic> {
     let res = if compile_options.single_module || matches!(linker_options.format, FormatOption::Object) {
         log::info!("Using single module mode");

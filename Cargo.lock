@@ -2490,6 +2490,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "plc_ast_lowering"
+version = "0.1.0"
+dependencies = [
+ "plc_ast",
+ "plc_source",
+ "rusty",
+]
+
+[[package]]
 name = "plc_derive"
 version = "0.1.0"
 dependencies = [
@@ -2526,6 +2535,7 @@ dependencies = [
  "insta",
  "log",
  "plc_ast",
+ "plc_ast_lowering",
  "plc_diagnostics",
  "plc_index",
  "plc_project",
@@ -2962,6 +2972,7 @@ dependencies = [
  "logos",
  "num",
  "plc_ast",
+ "plc_ast_lowering",
  "plc_derive",
  "plc_diagnostics",
  "plc_driver",
