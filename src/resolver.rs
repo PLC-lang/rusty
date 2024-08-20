@@ -41,6 +41,8 @@ pub mod generics;
 #[cfg(test)]
 mod tests;
 
+const GLOBAL_SCOPE: &str = "__global";
+
 /// helper macro that calls visit_statement for all given statements
 /// use like `visit_all_statements!(self, ctx, stmt1, stmt2, stmt3, ...)`
 macro_rules! visit_all_statements {
@@ -577,7 +579,7 @@ pub trait AnnotationMap {
                 .and_then(|it| self.get_type_name_for_annotation(it)),
             StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } => Some(type_name),
-            _ => None,
+            StatementAnnotation::Function { .. } | StatementAnnotation::Label { .. } => None,
         }
     }
 
@@ -792,7 +794,7 @@ impl<'rslv> Init<'rslv> for Initializers {
             .iter()
             .filter_map(|it| {
                 if let Some(index::const_expressions::UnresolvableKind::Address(init)) = &it.kind {
-                    Some((init.scope.clone().unwrap_or("__global".to_string()), init))
+                    Some((init.scope.clone().unwrap_or(GLOBAL_SCOPE.to_string()), init))
                 } else {
                     None
                 }
@@ -912,7 +914,7 @@ impl<'i> TypeAnnotator<'i> {
         initializers
             .iter()
             .filter_map(|(scope, init)| {
-                if scope == "__global" {
+                if scope == GLOBAL_SCOPE {
                     // globals will be initialized in the `__init` body
                     return None;
                 }
@@ -1061,7 +1063,7 @@ impl<'i> TypeAnnotator<'i> {
                 }
             })
             .collect::<Vec<_>>();
-        let mut globals = if let Some(stmts) = init_fns.get("__global") {
+        let mut globals = if let Some(stmts) = init_fns.get(GLOBAL_SCOPE) {
             stmts
                 .iter()
                 .filter_map(|(k, v)| {
@@ -1452,7 +1454,7 @@ impl<'i> TypeAnnotator<'i> {
                 return;
             };
             self.annotation_map.new_initializers.insert_initializer(
-                ctx.pou.unwrap_or("__global"),
+                ctx.pou.unwrap_or(GLOBAL_SCOPE),
                 lhs,
                 &Some(initializer.clone()),
             );
