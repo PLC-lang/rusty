@@ -13,6 +13,7 @@ coverage=0
 release=0
 debug=0
 container=0
+container_engine=0
 assume_linux=0
 junit=0
 package=0
@@ -279,7 +280,9 @@ function run_package_std() {
 }
 
 function run_in_container() {
-    container_engine=$(get_container_engine)
+    if [ "$container_engine" == "0" ]; then
+        container_engine=$(get_container_engine)
+    fi
     params=""
     options=""
 
@@ -349,7 +352,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-name:,coverage,package,target:
+LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-engine:,container-name:,coverage,package,target:
 
 check_env
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -378,6 +381,10 @@ while true; do
             ;;
         -c|--container)
             container=1
+            ;;
+        --container-engine)
+            shift;
+            container_engine=$1
             ;;
         --container-name)
             shift;
