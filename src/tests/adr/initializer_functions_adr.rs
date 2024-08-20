@@ -197,7 +197,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     }
     "###);
 
-    // the init-function for `bar` will have an `Assignment`, assigning `REF(d)` to `self.pd` followed by
+    // the init-function for `baz` will have an `Assignment`, assigning `REF(d)` to `self.pd` followed by
     // a `CallStatement` to `__init_bar`, passing the member-instance `self.fb`
     let init_baz_impl = &units[1].implementations[1];
     assert_eq!(&init_baz_impl.name, "__init_baz");
