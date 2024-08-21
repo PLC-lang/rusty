@@ -31,13 +31,14 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
     let parsed_project = ParsedProject::parse(&ctxt, project, &mut diagnostician).unwrap();
     let indexed_project = parsed_project.index(ctxt.provider());
     let annotated_project = indexed_project.annotate(ctxt.provider());
+    let lowered_project = annotated_project.lower(ctxt.provider());
     let compile_options = CompileOptions {
         optimization: plc::OptimizationLevel::None,
         debug_level: plc::DebugLevel::None,
         ..Default::default()
     };
 
-    match annotated_project.generate_single_module(context, &compile_options) {
+    match lowered_project.generate_single_module(context, &compile_options) {
         Ok(res) => res.unwrap(),
         Err(e) => panic!("{e}"),
     }

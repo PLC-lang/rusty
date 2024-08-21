@@ -17,7 +17,9 @@ pub mod tests {
         builtins,
         codegen::{CodegenContext, GeneratedModule},
         index::{self, Index},
-        lexer, parser,
+        lexer,
+        lowering::AstLowerer,
+        parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
             StringLiterals, TypeAnnotator,
@@ -121,17 +123,17 @@ pub mod tests {
         let (mut annotations, dependencies, literals) =
             TypeAnnotator::visit_unit(&full_index, &parse_result, id_provider.clone());
         full_index.import(std::mem::take(&mut annotations.new_index));
-        let mut annotated_units = vec![(parse_result, dependencies, literals)];
-        TypeAnnotator::lower_init_functions(
-            &get_project_init_symbol(),
+        let annotated_units = vec![(parse_result, dependencies, literals)];
+        let (annotated_units, index, annotations) = AstLowerer::lower(
+            full_index,
+            annotations,
+            annotated_units,
             unresolvables,
-            &mut annotations,
-            &mut full_index,
-            &id_provider,
-            &mut annotated_units,
+            id_provider,
+            &get_project_init_symbol(),
         );
 
-        (annotations, full_index, annotated_units)
+        (annotations, index, annotated_units)
     }
 
     pub fn parse_and_validate_buffered(src: &str) -> String {
@@ -185,14 +187,14 @@ pub mod tests {
             TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
 
-        let mut annotated_units = vec![(unit, dependencies, literals)];
-        TypeAnnotator::lower_init_functions(
-            &get_project_init_symbol(),
+        let annotated_units = vec![(unit, dependencies, literals)];
+        let (annotated_units, index, annotations) = AstLowerer::lower(
+            index,
+            annotations,
+            annotated_units,
             unresolvables,
-            &mut annotations,
-            &mut index,
-            &id_provider,
-            &mut annotated_units,
+            id_provider.clone(),
+            &get_project_init_symbol(),
         );
 
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());

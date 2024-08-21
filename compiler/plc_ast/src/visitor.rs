@@ -7,6 +7,7 @@ use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnSta
 use crate::literals::AstLiteral;
 
 /// Macro that calls the visitor's `visit` method for every AstNode in the passed iterator `iter`.
+#[macro_export]
 macro_rules! visit_all_nodes {
     ($visitor:expr, $iter:expr) => {
         for node in $iter {

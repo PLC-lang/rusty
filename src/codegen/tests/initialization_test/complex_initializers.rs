@@ -694,19 +694,19 @@ fn struct_types() {
 
     @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2ps8u81pas8u81"
     @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r2ps8u81pas8u81"
-    @s2 = external global [2 x [81 x i8]], section "var-$RUSTY$s2:as8u81"
     @s = external global [81 x i8], section "var-$RUSTY$s:s8u81"
+    @s2 = external global [2 x [81 x i8]], section "var-$RUSTY$s2:as8u81"
 
     define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2ps8u81pas8u81]" {
     entry:
       %self = alloca %myStruct*, align 8
       store %myStruct* %0, %myStruct** %self, align 8
       %deref = load %myStruct*, %myStruct** %self, align 8
-      %member2 = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1
-      store [2 x [81 x i8]]* @s2, [2 x [81 x i8]]** %member2, align 8
-      %deref1 = load %myStruct*, %myStruct** %self, align 8
-      %member = getelementptr inbounds %myStruct, %myStruct* %deref1, i32 0, i32 0
+      %member = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 0
       store [81 x i8]* @s, [81 x i8]** %member, align 8
+      %deref1 = load %myStruct*, %myStruct** %self, align 8
+      %member2 = getelementptr inbounds %myStruct, %myStruct* %deref1, i32 0, i32 1
+      store [2 x [81 x i8]]* @s2, [2 x [81 x i8]]** %member2, align 8
       ret void
     }
 
