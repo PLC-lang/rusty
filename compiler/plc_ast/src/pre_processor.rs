@@ -67,7 +67,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     let type_name = internal_type_name("", name);
                     let type_ref = DataTypeDeclaration::DataTypeReference {
                         referenced_type: type_name.clone(),
-                        location: SourceLocation::undefined(), //return_type.get_location(),
+                        location: SourceLocation::internal(), //return_type.get_location(),
                     };
                     let datatype = std::mem::replace(referenced_type, Box::new(type_ref));
                     if let DataTypeDeclaration::DataTypeDefinition { mut data_type, location, scope } =

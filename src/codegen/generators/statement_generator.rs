@@ -379,7 +379,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let eval_step = || {
             step_ty.map_or_else(
-                || self.llvm.create_const_numeric(&cast_target_llty, "1", SourceLocation::undefined()),
+                || self.llvm.create_const_numeric(&cast_target_llty, "1", SourceLocation::internal()),
                 |step_ty| {
                     let step = exp_gen.generate_expression(by_step.as_ref().unwrap())?;
                     Ok(cast_if_needed!(exp_gen, cast_target_ty, step_ty, step, None))
@@ -404,7 +404,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             inkwell::IntPredicate::SGT,
             eval_step()?.into_int_value(),
             self.llvm
-                .create_const_numeric(&cast_target_llty, "0", SourceLocation::undefined())?
+                .create_const_numeric(&cast_target_llty, "0", SourceLocation::internal())?
                 .into_int_value(),
             "is_incrementing",
         );

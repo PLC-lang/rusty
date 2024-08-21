@@ -1453,9 +1453,9 @@ impl Index {
         self.init_functions.insert(init_name.clone());
     }
 
-    pub fn register_global_init_function(&mut self) {
+    pub fn register_global_init_function(&mut self, name: &str) {
         let entry = PouIndexEntry::Function {
-            name: "__init".into(),
+            name: name.into(),
             return_type: VOID_TYPE.into(),
             generics: vec![],
             linkage: LinkageType::Internal,
@@ -1464,7 +1464,7 @@ impl Index {
             is_generated: true,
         };
         self.register_pou(entry);
-        self.init_functions.insert("__init".to_string());
+        self.init_functions.insert(name.into());
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {

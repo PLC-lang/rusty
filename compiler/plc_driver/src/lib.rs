@@ -363,7 +363,7 @@ fn generate(
     targets: Vec<Target>,
     annotated_project: AnnotatedProject<PathBuf>,
 ) -> Result<(), Diagnostic> {
-    let res = if compile_options.single_module {
+    let res = if compile_options.single_module || matches!(linker_options.format, FormatOption::Object) {
         log::info!("Using single module mode");
         annotated_project.codegen_single_module(compile_options, &targets)?
     } else {

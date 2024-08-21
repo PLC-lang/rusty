@@ -47,36 +47,36 @@ fn simple_struct_type_can_be_parsed() {
                         name: "One".to_string(),
                         data_type_declaration: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
-                            location: SourceLocation::undefined(),
+                            location: SourceLocation::internal(),
                         },
                         initializer: None,
                         address: None,
-                        location: SourceLocation::undefined(),
+                        location: SourceLocation::internal(),
                     },
                     Variable {
                         name: "Two".to_string(),
                         data_type_declaration: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
-                            location: SourceLocation::undefined(),
+                            location: SourceLocation::internal(),
                         },
                         initializer: None,
                         address: None,
-                        location: SourceLocation::undefined(),
+                        location: SourceLocation::internal(),
                     },
                     Variable {
                         name: "Three".to_string(),
                         data_type_declaration: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
-                            location: SourceLocation::undefined(),
+                            location: SourceLocation::internal(),
                         },
                         initializer: None,
                         address: None,
-                        location: SourceLocation::undefined(),
+                        location: SourceLocation::internal(),
                     },
                 ),
             },
             initializer: None,
-            location: SourceLocation::undefined(),
+            location: SourceLocation::internal(),
             scope: None,
         }
     );
@@ -161,7 +161,7 @@ fn type_alias_can_be_parsed() {
                 bounds: None,
             },
             initializer: None,
-            location: SourceLocation::undefined(),
+            location: SourceLocation::internal(),
             scope: None,
         }
     );
