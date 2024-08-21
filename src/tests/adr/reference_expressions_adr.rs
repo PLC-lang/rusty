@@ -17,7 +17,7 @@ use crate::test_utils::tests::parse_and_preprocess;
 /// - Casting a value
 /// - Dereferencing a pointer
 /// - accessing the Address of a variable
-
+///
 /// A flat reference is treated as a Qualified-Reference with no qualifier.
 /// This means that a flat reference (a) and a qualified reference (a.b)
 /// are represented using the same AST-Structure. One has no qualifier (None),

@@ -135,7 +135,7 @@ impl RecursiveValidator {
     /// Returns the data type of `entry` distinguishing between two cases:
     /// 1. If the entry is any type but an array its datatype is returned (as usual)
     /// 2. If the entry is an array their inner type name is returned. For example calling the
-    /// [`index::VariableIndexEntry::get_type_name`] method on the following code snippet
+    ///    [`index::VariableIndexEntry::get_type_name`] method on the following code snippet
     /// ```ST
     /// TYPE A : STRUCT
     ///     b : ARRAY[0..1] OF B;

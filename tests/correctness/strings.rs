@@ -315,12 +315,6 @@ fn initialization_of_string_arrays() {
     assert_eq!(main_type.z, "ten chars!\0".as_bytes());
 }
 
-#[repr(C, align(1))]
-#[derive(Debug)]
-struct Wrapper<T> {
-    inner: T,
-}
-
 /// .
 ///
 /// # Safety

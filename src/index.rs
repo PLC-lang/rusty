@@ -868,8 +868,7 @@ impl Index {
     ///
     /// imports all global_variables, types and implementations
     /// # Arguments
-    /// - `other` the other index. The elements are drained from the given index and moved
-    /// into the current one
+    /// - `other` the other index. The elements are drained from the given index and moved into the current one
     pub fn import(&mut self, mut other: Index) {
         //global variables
         for (name, e) in other.global_variables.drain(..) {
