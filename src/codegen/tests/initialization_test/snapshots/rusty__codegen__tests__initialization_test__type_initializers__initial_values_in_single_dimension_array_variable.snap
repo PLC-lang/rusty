@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @a = global [3 x i8] c"\01\02\03", section "var-$RUSTY$a:ai8"
 @b = global [3 x i16] [i16 1, i16 2, i16 3], section "var-$RUSTY$b:ai16"

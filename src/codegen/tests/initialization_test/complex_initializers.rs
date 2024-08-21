@@ -12,13 +12,18 @@ fn simple_global() {
     );
 
     insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$s:s8u81"
     @ps = global [81 x i8]* null, section "var-$RUSTY$ps:ps8u81"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
 
-    define void @__init() section "fn-$RUSTY$__init:v" {
+    @s = external global [81 x i8], section "var-$RUSTY$s:s8u81"
+    @ps = external global [81 x i8]*, section "var-$RUSTY$ps:ps8u81"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
       store [81 x i8]* @s, [81 x i8]** @ps, align 8
       ret void
@@ -38,13 +43,18 @@ fn global_alias() {
     );
 
     insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$s:s8u81"
     @ps = global [81 x i8]* null, section "var-$RUSTY$ps:ps8u81"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
 
-    define void @__init() section "fn-$RUSTY$__init:v" {
+    @s = external global [81 x i8], section "var-$RUSTY$s:s8u81"
+    @ps = external global [81 x i8]*, section "var-$RUSTY$ps:ps8u81"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
       store [81 x i8]* @s, [81 x i8]** @ps, align 8
       ret void
@@ -64,13 +74,18 @@ fn global_reference_to() {
     );
 
     insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$s:s8u81"
     @ps = global [81 x i8]* null, section "var-$RUSTY$ps:ps8u81"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
 
-    define void @__init() section "fn-$RUSTY$__init:v" {
+    @s = external global [81 x i8], section "var-$RUSTY$s:s8u81"
+    @ps = external global [81 x i8]*, section "var-$RUSTY$ps:ps8u81"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
       store [81 x i8]* @s, [81 x i8]** @ps, align 8
       ret void
@@ -95,8 +110,8 @@ fn init_functions_generated_for_programs() {
     );
 
     insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %PLC_PRG = type { [81 x i8]* }
 
@@ -108,6 +123,13 @@ fn init_functions_generated_for_programs() {
       %to_init = getelementptr inbounds %PLC_PRG, %PLC_PRG* %0, i32 0, i32 0
       ret void
     }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %PLC_PRG = type { [81 x i8]* }
+
+    @PLC_PRG_instance = external global %PLC_PRG, section "var-$RUSTY$PLC_PRG_instance:r1ps8u81"
+    @s = external global [81 x i8], section "var-$RUSTY$s:s8u81"
 
     define void @__init_plc_prg(%PLC_PRG* %0) section "fn-$RUSTY$__init_plc_prg:v[pr1ps8u81]" {
     entry:
@@ -119,11 +141,23 @@ fn init_functions_generated_for_programs() {
       ret void
     }
 
-    define void @__init() section "fn-$RUSTY$__init:v" {
+    declare void @PLC_PRG(%PLC_PRG*) section "fn-$RUSTY$PLC_PRG:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %PLC_PRG = type { [81 x i8]* }
+
+    @PLC_PRG_instance = external global %PLC_PRG, section "var-$RUSTY$PLC_PRG_instance:r1ps8u81"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
       call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
       ret void
     }
+
+    declare void @__init_plc_prg(%PLC_PRG*) section "fn-$RUSTY$__init_plc_prg:v[pr1ps8u81]"
+
+    declare void @PLC_PRG(%PLC_PRG*) section "fn-$RUSTY$PLC_PRG:v"
     "###);
 }
 
@@ -144,8 +178,8 @@ fn init_functions_work_with_adr() {
     );
 
     insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %PLC_PRG = type { [81 x i8]* }
 
@@ -157,6 +191,13 @@ fn init_functions_work_with_adr() {
       %to_init = getelementptr inbounds %PLC_PRG, %PLC_PRG* %0, i32 0, i32 0
       ret void
     }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %PLC_PRG = type { [81 x i8]* }
+
+    @PLC_PRG_instance = external global %PLC_PRG, section "var-$RUSTY$PLC_PRG_instance:r1ps8u81"
+    @s = external global [81 x i8], section "var-$RUSTY$s:s8u81"
 
     define void @__init_plc_prg(%PLC_PRG* %0) section "fn-$RUSTY$__init_plc_prg:v[pr1ps8u81]" {
     entry:
@@ -168,11 +209,23 @@ fn init_functions_work_with_adr() {
       ret void
     }
 
-    define void @__init() section "fn-$RUSTY$__init:v" {
+    declare void @PLC_PRG(%PLC_PRG*) section "fn-$RUSTY$PLC_PRG:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %PLC_PRG = type { [81 x i8]* }
+
+    @PLC_PRG_instance = external global %PLC_PRG, section "var-$RUSTY$PLC_PRG_instance:r1ps8u81"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
       call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
       ret void
     }
+
+    declare void @__init_plc_prg(%PLC_PRG*) section "fn-$RUSTY$__init_plc_prg:v[pr1ps8u81]"
+
+    declare void @PLC_PRG(%PLC_PRG*) section "fn-$RUSTY$PLC_PRG:v"
     "###);
 }
 
@@ -193,8 +246,8 @@ fn init_functions_generated_for_function_blocks() {
     );
 
     insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %foo = type { [81 x i8]* }
 
@@ -206,6 +259,13 @@ fn init_functions_generated_for_function_blocks() {
       %to_init = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { [81 x i8]* }
+
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @s = external global [81 x i8], section "var-$RUSTY$s:s8u81"
 
     define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]" {
     entry:
@@ -217,7 +277,11 @@ fn init_functions_generated_for_function_blocks() {
       ret void
     }
 
-    define void @__init() section "fn-$RUSTY$__init:v" {
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
       ret void
     }
@@ -282,18 +346,12 @@ fn nested_initializer_pous() {
             f();
             f.print();
         END_PROGRAM
-        
-        FUNCTION main : DINT
-            __init();
-            mainProg();
-            sideProg();
-        END_FUNCTION
         "#,
     );
 
     insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %foo = type { [81 x i8]*, %bar }
     %bar = type { %baz }
@@ -346,17 +404,6 @@ fn nested_initializer_pous() {
       ret void
     }
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
-    entry:
-      %main = alloca i32, align 4
-      store i32 0, i32* %main, align 4
-      call void @__init()
-      call void @mainProg(%mainProg* @mainProg_instance)
-      call void @sideProg(%sideProg* @sideProg_instance)
-      %main_ret = load i32, i32* %main, align 4
-      ret i32 %main_ret
-    }
-
     define void @bar.print(%bar* %0) section "fn-$RUSTY$bar.print:v" {
     entry:
       %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
@@ -375,13 +422,21 @@ fn nested_initializer_pous() {
       %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
       ret void
     }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
 
-    define void @__init() section "fn-$RUSTY$__init:v" {
-    entry:
-      call void @__init_mainprog(%mainProg* @mainProg_instance)
-      call void @__init_sideprog(%sideProg* @sideProg_instance)
-      ret void
-    }
+    %foo = type { [81 x i8]*, %bar }
+    %bar = type { %baz }
+    %baz = type { [81 x i8]* }
+    %mainProg = type { [81 x i8]*, %foo }
+    %sideProg = type { [81 x i8]*, %foo }
+
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r2ps8u81r1r1ps8u81"
+    @__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r1r1ps8u81"
+    @__baz__init = external global %baz, section "var-$RUSTY$__baz__init:r1ps8u81"
+    @mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r2ps8u81r2ps8u81r1r1ps8u81"
+    @sideProg_instance = external global %sideProg, section "var-$RUSTY$sideProg_instance:r2ps8u81r2ps8u81r1r1ps8u81"
+    @str = external global [81 x i8], section "var-$RUSTY$str:s8u81"
 
     define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr2ps8u81r1r1ps8u81]" {
     entry:
@@ -395,6 +450,12 @@ fn nested_initializer_pous() {
       call void @__init_bar(%bar* %b)
       ret void
     }
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
+
+    declare void @baz(%baz*) section "fn-$RUSTY$baz:v"
 
     define void @__init_baz(%baz* %0) section "fn-$RUSTY$__init_baz:v[pr1ps8u81]" {
     entry:
@@ -419,6 +480,8 @@ fn nested_initializer_pous() {
       ret void
     }
 
+    declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+
     define void @__init_sideprog(%sideProg* %0) section "fn-$RUSTY$__init_sideprog:v[pr2ps8u81r2ps8u81r1r1ps8u81]" {
     entry:
       %self = alloca %sideProg*, align 8
@@ -432,6 +495,8 @@ fn nested_initializer_pous() {
       ret void
     }
 
+    declare void @sideProg(%sideProg*) section "fn-$RUSTY$sideProg:v"
+
     define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr1r1ps8u81]" {
     entry:
       %self = alloca %bar*, align 8
@@ -441,6 +506,41 @@ fn nested_initializer_pous() {
       call void @__init_baz(%baz* %b)
       ret void
     }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %mainProg = type { [81 x i8]*, %foo }
+    %foo = type { [81 x i8]*, %bar }
+    %bar = type { %baz }
+    %baz = type { [81 x i8]* }
+    %sideProg = type { [81 x i8]*, %foo }
+
+    @mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r2ps8u81r2ps8u81r1r1ps8u81"
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r2ps8u81r1r1ps8u81"
+    @__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r1r1ps8u81"
+    @__baz__init = external global %baz, section "var-$RUSTY$__baz__init:r1ps8u81"
+    @sideProg_instance = external global %sideProg, section "var-$RUSTY$sideProg_instance:r2ps8u81r2ps8u81r1r1ps8u81"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_mainprog(%mainProg* @mainProg_instance)
+      call void @__init_sideprog(%sideProg* @sideProg_instance)
+      ret void
+    }
+
+    declare void @__init_mainprog(%mainProg*) section "fn-$RUSTY$__init_mainprog:v[pr2ps8u81r2ps8u81r1r1ps8u81]"
+
+    declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
+
+    declare void @baz(%baz*) section "fn-$RUSTY$baz:v"
+
+    declare void @__init_sideprog(%sideProg*) section "fn-$RUSTY$__init_sideprog:v[pr2ps8u81r2ps8u81r1r1ps8u81]"
+
+    declare void @sideProg(%sideProg*) section "fn-$RUSTY$sideProg:v"
     "###);
 }
 
@@ -570,8 +670,8 @@ fn struct_types() {
     );
 
     insta::assert_snapshot!(res, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %prog = type { %myStruct }
     %myStruct = type { [81 x i8]*, [2 x [81 x i8]]* }
@@ -586,6 +686,16 @@ fn struct_types() {
       %str = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
       ret void
     }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %myStruct = type { [81 x i8]*, [2 x [81 x i8]]* }
+    %prog = type { %myStruct }
+
+    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2ps8u81pas8u81"
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r2ps8u81pas8u81"
+    @s2 = external global [2 x [81 x i8]], section "var-$RUSTY$s2:as8u81"
+    @s = external global [81 x i8], section "var-$RUSTY$s:s8u81"
 
     define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2ps8u81pas8u81]" {
     entry:
@@ -610,14 +720,27 @@ fn struct_types() {
       ret void
     }
 
-    define void @__init() section "fn-$RUSTY$__init:v" {
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prog = type { %myStruct }
+    %myStruct = type { [81 x i8]*, [2 x [81 x i8]]* }
+
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r2ps8u81pas8u81"
+    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2ps8u81pas8u81"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       ret void
     }
+
+    declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr1r2ps8u81pas8u81]"
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
     "###);
 }
-
 
 #[test]
 fn stateful_pous_methods_and_structs_get_init_functions() {
@@ -649,8 +772,8 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     );
 
     insta::assert_snapshot!(res, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %prog = type {}
     %foo = type {}
@@ -693,6 +816,20 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     entry:
       ret void
     }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %myStruct = type {}
+    %prog = type {}
+    %foo = type {}
+    %cl = type {}
+    %foo.m = type {}
+    %cl.m = type {}
+
+    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r0"
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r0"
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r0"
+    @__cl__init = external global %cl, section "var-$RUSTY$__cl__init:r0"
 
     define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr0]" {
     entry:
@@ -708,12 +845,16 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+
     define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr0]" {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       ret void
     }
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
 
     define void @__init_foo.m(%foo.m* %0) section "fn-$RUSTY$__init_foo.m:v[pr0]" {
     entry:
@@ -722,12 +863,16 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
+    declare void @foo.m(%foo*, %foo.m*) section "fn-$RUSTY$foo.m:v"
+
     define void @__init_cl(%cl* %0) section "fn-$RUSTY$__init_cl:v[pr0]" {
     entry:
       %self = alloca %cl*, align 8
       store %cl* %0, %cl** %self, align 8
       ret void
     }
+
+    declare void @cl(%cl*) section "fn-$RUSTY$cl:v"
 
     define void @__init_cl.m(%cl.m* %0) section "fn-$RUSTY$__init_cl.m:v[pr0]" {
     entry:
@@ -736,10 +881,22 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    define void @__init() section "fn-$RUSTY$__init:v" {
+    declare void @cl.m(%cl*, %cl.m*) section "fn-$RUSTY$cl.m:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prog = type {}
+
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r0"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       ret void
     }
+
+    declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr0]"
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
     "###);
 }

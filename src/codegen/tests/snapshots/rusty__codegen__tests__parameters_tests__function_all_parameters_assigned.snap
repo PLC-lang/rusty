@@ -2,8 +2,8 @@
 source: src/codegen/tests/parameters_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %main = type { i32, i32, i32 }
 
@@ -36,3 +36,34 @@ entry:
   %call4 = call i32 @foo(i32 %load_var13, i32* %var2, i32* %var3)
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%main = type { i32, i32, i32 }
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r3i32i32i32"
+
+define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr3i32i32i32]" {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { i32, i32, i32 }
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r3i32i32i32"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr3i32i32i32]"
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"

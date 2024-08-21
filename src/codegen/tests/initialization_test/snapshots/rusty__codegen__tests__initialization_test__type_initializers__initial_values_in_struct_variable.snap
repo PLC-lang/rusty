@@ -2,11 +2,31 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %MyStruct = type { i32, i32 }
 
 @a = global %MyStruct { i32 3, i32 5 }, section "var-$RUSTY$a:r2i32i32"
 @__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-$RUSTY$__MyStruct__init:r2i32i32"
 @b = global %MyStruct { i32 5, i32 3 }, section "var-$RUSTY$b:r2i32i32"
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%MyStruct = type { i32, i32 }
+
+@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r2i32i32"
+
+define void @__init_mystruct(%MyStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2i32i32]" {
+entry:
+  %self = alloca %MyStruct*, align 8
+  store %MyStruct* %0, %MyStruct** %self, align 8
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}

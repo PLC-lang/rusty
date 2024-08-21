@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 define i16 @smaller_than_ten(i8 %0) section "fn-$RUSTY$smaller_than_ten:i16[i8]" {
 entry:
@@ -28,4 +28,11 @@ buffer_block:                                     ; No predecessors!
 continue:                                         ; preds = %buffer_block, %entry
   %smaller_than_ten_ret1 = load i16, i16* %smaller_than_ten, align 2
   ret i16 %smaller_than_ten_ret1
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
 }

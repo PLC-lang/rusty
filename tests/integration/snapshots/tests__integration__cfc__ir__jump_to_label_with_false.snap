@@ -27,3 +27,8 @@ lbl:                                              ; preds = %else_block, %entry
   %main_ret = load i32, i32* %main, align 4
   ret i32 %main_ret
 }
+
+define void @__init___plc() section "fn-$RUSTY$__init___plc:v" {
+entry:
+  ret void
+}

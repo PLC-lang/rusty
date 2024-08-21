@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: function
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @x = global i32 10, section "var-$RUSTY$x:i32"
 @__foo_position.x = unnamed_addr constant i32 1, section "var-$RUSTY$x:e2i32"
@@ -29,4 +29,11 @@ entry:
   store i32 0, i32* %bar, align 4
   %bar_ret = load i32, i32* %bar, align 4
   ret i32 %bar_ret
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
 }

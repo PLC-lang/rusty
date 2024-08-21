@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %Main = type { i16, i16, i8, i8, float, float }
 
@@ -19,3 +19,34 @@ entry:
   %zz = getelementptr inbounds %Main, %Main* %0, i32 0, i32 5
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%Main = type { i16, i16, i8, i8, float, float }
+
+@Main_instance = external global %Main, section "var-$RUSTY$Main_instance:r6i16i16u8u8f32f32"
+
+define void @__init_main(%Main* %0) section "fn-$RUSTY$__init_main:v[pr6i16i16u8u8f32f32]" {
+entry:
+  %self = alloca %Main*, align 8
+  store %Main* %0, %Main** %self, align 8
+  ret void
+}
+
+declare void @Main(%Main*) section "fn-$RUSTY$Main:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%Main = type { i16, i16, i8, i8, float, float }
+
+@Main_instance = external global %Main, section "var-$RUSTY$Main_instance:r6i16i16u8u8f32f32"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_main(%Main* @Main_instance)
+  ret void
+}
+
+declare void @__init_main(%Main*) section "fn-$RUSTY$__init_main:v[pr6i16i16u8u8f32f32]"
+
+declare void @Main(%Main*) section "fn-$RUSTY$Main:v"

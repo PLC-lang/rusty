@@ -1688,7 +1688,6 @@ fn init_function_is_indexed_unconditionally() {
     // WHEN indexed
     let (_, index) = index("");
 
-    dbg!(&index.get_pous());
     // THEN we expect an `__init___testproject` function to be registered regardless
     let init = index.find_pou("__init___testproject");
     assert!(init.is_some());

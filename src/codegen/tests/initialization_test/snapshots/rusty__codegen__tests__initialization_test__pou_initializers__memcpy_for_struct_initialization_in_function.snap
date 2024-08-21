@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %__func_a = type { i16 }
 
@@ -24,3 +24,23 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%__func_a = type { i16 }
+
+@____func_a__init = external global %__func_a, section "var-$RUSTY$____func_a__init:r1i16"
+
+define void @__init___func_a(%__func_a* %0) section "fn-$RUSTY$__init___func_a:v[pr1i16]" {
+entry:
+  %self = alloca %__func_a*, align 8
+  store %__func_a* %0, %__func_a** %self, align 8
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}

@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: function
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %fb = type { i16 }
 %main = type { %fb }
@@ -43,3 +43,52 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%fb = type { i16 }
+%main = type { %fb }
+
+@__fb__init = external global %fb, section "var-$RUSTY$__fb__init:r1i16"
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r1r1i16"
+
+define void @__init_fb(%fb* %0) section "fn-$RUSTY$__init_fb:v[pr1i16]" {
+entry:
+  %self = alloca %fb*, align 8
+  store %fb* %0, %fb** %self, align 8
+  ret void
+}
+
+declare void @fb(%fb*) section "fn-$RUSTY$fb:v"
+
+define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr1r1i16]" {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  %deref = load %main*, %main** %self, align 8
+  %fb0 = getelementptr inbounds %main, %main* %deref, i32 0, i32 0
+  call void @__init_fb(%fb* %fb0)
+  ret void
+}
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { %fb }
+%fb = type { i16 }
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r1r1i16"
+@__fb__init = external global %fb, section "var-$RUSTY$__fb__init:r1i16"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr1r1i16]"
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"
+
+declare void @fb(%fb*) section "fn-$RUSTY$fb:v"

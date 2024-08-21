@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %abcdef = type { i8 }
 
@@ -26,5 +26,27 @@ buffer_block:                                     ; No predecessors!
   br label %continue
 
 continue:                                         ; preds = %buffer_block, %entry
+  ret void
+}
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%abcdef = type { i8 }
+
+@__abcdef__init = external global %abcdef, section "var-$RUSTY$__abcdef__init:r1i8"
+
+define void @__init_abcdef(%abcdef* %0) section "fn-$RUSTY$__init_abcdef:v[pr1i8]" {
+entry:
+  %self = alloca %abcdef*, align 8
+  store %abcdef* %0, %abcdef** %self, align 8
+  ret void
+}
+
+declare void @abcdef(%abcdef*) section "fn-$RUSTY$abcdef:v[i8]"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
   ret void
 }

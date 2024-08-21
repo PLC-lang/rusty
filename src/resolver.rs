@@ -579,7 +579,7 @@ pub trait AnnotationMap {
                 .and_then(|it| self.get_type_name_for_annotation(it)),
             StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } => Some(type_name),
-            _ => None,
+            StatementAnnotation::Function { .. } | StatementAnnotation::Label { .. } => None,
         }
     }
 
