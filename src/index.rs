@@ -971,9 +971,7 @@ impl Index {
         }
 
         //init functions
-        for name in other.init_functions.drain(..) {
-            self.init_functions.insert(name.clone());
-        }
+        self.init_functions.extend(other.init_functions);
 
         //labels
         self.labels.extend(other.labels);

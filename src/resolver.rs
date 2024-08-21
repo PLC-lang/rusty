@@ -41,6 +41,8 @@ pub mod generics;
 #[cfg(test)]
 mod tests;
 
+const GLOBAL_SCOPE: &str = "__global";
+
 /// helper macro that calls visit_statement for all given statements
 /// use like `visit_all_statements!(self, ctx, stmt1, stmt2, stmt3, ...)`
 macro_rules! visit_all_statements {
@@ -798,7 +800,7 @@ impl<'rslv> Init<'rslv> for Initializers {
             .filter_map(|it| {
                 if let Some(index::const_expressions::UnresolvableKind::Address(init)) = &it.kind {
                     // assume all initializers without scope/not in a container are global variables for now. type-defs are separated later
-                    Some((init.scope.clone().unwrap_or("__global".to_string()), init))
+                    Some((init.scope.clone().unwrap_or(GLOBAL_SCOPE.to_string()), init))
                 } else {
                     None
                 }
@@ -953,7 +955,7 @@ impl<'i> TypeAnnotator<'i> {
                             // struct member initializers don't have a qualifier/scope while evaluated in `const_evaluator.rs` and are registered as globals under their data-type name;
                             // look for member initializers for this struct in the global initializers, remove them and add new entries with the correct qualifier and left-hand-side
                             candidates
-                                .get_mut("__global")
+                                .get_mut(GLOBAL_SCOPE)
                                 .and_then(|it| it.swap_remove(var.get_type_name()))
                                 .map(|node| (var.get_name(), node))
                         })
@@ -1021,7 +1023,7 @@ impl<'i> TypeAnnotator<'i> {
             .iter()
             .filter_map(|(container, init)| {
                 // globals will be initialized in the `__init` body
-                if container == "__global" {
+                if container == GLOBAL_SCOPE {
                     return None;
                 }
 
@@ -1190,7 +1192,7 @@ impl<'i> TypeAnnotator<'i> {
             })
             .collect::<Vec<_>>();
 
-        let mut globals = if let Some(stmts) = candidates.get("__global") {
+        let mut globals = if let Some(stmts) = candidates.get(GLOBAL_SCOPE) {
             stmts
                 .iter()
                 .filter_map(|(var_name, initializer)| {
@@ -1511,7 +1513,7 @@ impl<'i> TypeAnnotator<'i> {
                 return;
             };
             self.annotation_map.new_initializers.maybe_insert_initializer(
-                ctx.pou.or(ctx.qualifier.as_deref()).as_ref().unwrap_or(&"__global"),
+                ctx.pou.or(ctx.qualifier.as_deref()).as_ref().unwrap_or(&GLOBAL_SCOPE),
                 Some(lhs),
                 &Some(initializer.clone()),
             );
