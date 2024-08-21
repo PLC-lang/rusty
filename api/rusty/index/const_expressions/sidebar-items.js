@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ConstExpression","UnresolvableKind"],"struct":["ConstExpressions","IntoStatementIter"],"type":["ConstId"]};
+window.SIDEBAR_ITEMS = {"enum":["ConstExpression","UnresolvableKind"],"struct":["ConstExpressions","InitData","IntoStatementIter"],"type":["ConstId"]};

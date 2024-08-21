@@ -740,6 +740,43 @@
 <a href="#738" id="738">738</a>
 <a href="#739" id="739">739</a>
 <a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::VecDeque;
 
 <span class="kw">use </span>plc_ast::{
@@ -753,7 +790,7 @@
 
 <span class="kw">use crate</span>::{
     index::{
-        const_expressions::{ConstExpression, ConstId, UnresolvableKind},
+        const_expressions::{ConstExpression, ConstId, InitData, UnresolvableKind},
         Index,
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
@@ -761,17 +798,21 @@
 
 <span class="doccomment">/// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
-</span><span class="attr">#[derive(PartialEq, Eq, Debug)]
+</span><span class="attr">#[derive(PartialEq, Debug)]
 </span><span class="kw">pub struct </span>UnresolvableConstant {
     <span class="kw">pub </span>id: ConstId,
-    <span class="kw">pub </span>reason: String,
+    <span class="kw">pub </span>kind: <span class="prelude-ty">Option</span>&lt;UnresolvableKind&gt;,
     <span class="comment">//location
     //source-file
 </span>}
 
 <span class="kw">impl </span>UnresolvableConstant {
     <span class="kw">pub fn </span>new(id: ConstId, reason: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
-        UnresolvableConstant { id, reason: reason.to_string() }
+        UnresolvableConstant { id, kind: <span class="prelude-val">Some</span>(UnresolvableKind::Misc(reason.into())) }
+    }
+
+    <span class="kw">pub fn </span>with_kind(<span class="self">self</span>, kind: UnresolvableKind) -&gt; <span class="self">Self </span>{
+        UnresolvableConstant { id: <span class="self">self</span>.id, kind: <span class="prelude-val">Some</span>(kind) }
     }
 
     <span class="kw">pub fn </span>incomplete_initialzation(id: <span class="kw-2">&amp;</span>ConstId) -&gt; <span class="self">Self </span>{
@@ -780,6 +821,10 @@
 
     <span class="kw">pub fn </span>no_initial_value(id: <span class="kw-2">&amp;</span>ConstId) -&gt; <span class="self">Self </span>{
         UnresolvableConstant::new(<span class="kw-2">*</span>id, <span class="string">"No initial value"</span>)
+    }
+
+    <span class="kw">pub fn </span>get_reason(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.kind.as_ref().map(|it| it.get_reason())
     }
 }
 
@@ -824,6 +869,7 @@
                     const_expr.get_qualifier(),
                     <span class="kw-2">&amp;</span>index,
                     target_type,
+                    const_expr.get_lhs(),
                 );
 
                 <span class="kw">match </span>(initial_value_literal, <span class="kw-2">&amp;</span>candidates_type) {
@@ -872,7 +918,9 @@
                     <span class="comment">// there was an error during evaluation
                     </span>(<span class="prelude-val">Err</span>(kind), <span class="kw">_</span>) =&gt; {
                         <span class="comment">//error during resolving
-                        </span>unresolvable.push(UnresolvableConstant::new(candidate, kind.get_reason()));
+                        </span>unresolvable.push(
+                            UnresolvableConstant::new(candidate, kind.get_reason()).with_kind(kind.clone()),
+                        );
                         index
                             .get_mut_const_expressions()
                             .mark_unresolvable(<span class="kw-2">&amp;</span>candidate, kind)
@@ -1053,7 +1101,7 @@
     scope: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     index: <span class="kw-2">&amp;</span>Index,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;AstNode&gt;, UnresolvableKind&gt; {
-    evaluate_with_target_hint(initial, scope, index, <span class="prelude-val">None</span>)
+    evaluate_with_target_hint(initial, scope, index, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
 }
 
 <span class="doccomment">/// evaluates the given Syntax-Tree `initial` to a `LiteralValue` if possible
@@ -1069,11 +1117,11 @@
     scope: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     index: <span class="kw-2">&amp;</span>Index,
     target_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    lhs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;AstNode&gt;, UnresolvableKind&gt; {
     <span class="kw">if </span>!needs_evaluation(initial) {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(initial.clone())); <span class="comment">// TODO hmm ...
     </span>}
-
     <span class="kw">let </span>(id, location) = (initial.get_id(), initial.get_location());
     <span class="kw">let </span>literal = <span class="kw">match </span>initial.get_stmt() {
         AstStatement::Literal(kind) =&gt; <span class="kw">match </span>kind {
@@ -1085,7 +1133,7 @@
 
                 <span class="kw">let </span>inner_elements = AstNode::get_as_list(elements)
                     .iter()
-                    .map(|e| evaluate_with_target_hint(e, scope, index, tt))
+                    .map(|e| evaluate_with_target_hint(e, scope, index, tt, lhs))
                     .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="prelude-ty">Option</span>&lt;AstNode&gt;&gt;, UnresolvableKind&gt;&gt;()<span class="question-mark">?
                     </span>.into_iter()
                     .collect::&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;AstNode&gt;&gt;&gt;();
@@ -1143,14 +1191,16 @@
                                     <span class="string">"Cannot resolve constant enum {enum_name}#{ref_name}."
                                 </span>))
                             })
-                            .and_then(|v| resolve_const_reference(v, ref_name, index));
+                            .and_then(|v| {
+                                resolve_const_reference(v, ref_name, index, target_type, scope, lhs)
+                            });
                     } <span class="kw">else </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">"Cannot resolve unknown constant."</span>.to_string()));
                     }
                 }
                 <span class="prelude-val">Some</span>(dti) =&gt; {
-                    evaluate_with_target_hint(target, scope, index, <span class="prelude-val">Some</span>(dti.get_name()))<span class="question-mark">?</span>;
-                    <span class="prelude-val">Some</span>(get_cast_statement_literal(target, dti.get_name(), scope, index)<span class="question-mark">?</span>)
+                    evaluate_with_target_hint(target, scope, index, <span class="prelude-val">Some</span>(dti.get_name()), lhs)<span class="question-mark">?</span>;
+                    <span class="prelude-val">Some</span>(get_cast_statement_literal(target, dti.get_name(), scope, index, lhs)<span class="question-mark">?</span>)
                 }
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="string">"Cannot resolve unknown Type-Cast."</span>.to_string())),
             }
@@ -1162,7 +1212,7 @@
                         base.as_ref().and_then(|it| it.get_flat_reference_name()).or(scope),
                         std::slice::from_ref(<span class="kw-2">&amp;</span>name),
                     )
-                    .map(|variable| resolve_const_reference(variable, name, index))
+                    .map(|variable| resolve_const_reference(variable, name, index, target_type, scope, lhs))
                     .transpose()<span class="question-mark">?
                     </span>.flatten()
             } <span class="kw">else </span>{
@@ -1204,7 +1254,7 @@
                 };
 
                 <span class="comment">// We have to re-evaluate to detect overflows
-                </span>evaluate_with_target_hint(<span class="kw-2">&amp;</span>evalualted, scope, index, target_type)<span class="question-mark">?
+                </span>evaluate_with_target_hint(<span class="kw-2">&amp;</span>evalualted, scope, index, target_type, lhs)<span class="question-mark">?
             </span>} <span class="kw">else </span>{
                 <span class="prelude-val">None </span><span class="comment">//not all operators can be resolved
             </span>}
@@ -1218,7 +1268,7 @@
                     <span class="prelude-val">Some</span>(AstFactory::create_literal(AstLiteral::Bool(!v), location.clone(), <span class="kw-2">*</span>id))
                 }
                 <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location }) =&gt; {
-                    evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type)<span class="question-mark">?</span>;
+                    evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type, lhs)<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>(AstFactory::create_literal(AstLiteral::Integer(!v), location.clone(), <span class="kw-2">*</span>id))
                 }
                 <span class="prelude-val">None </span>=&gt; {
@@ -1243,7 +1293,7 @@
                         id,
                         location,
                     );
-                    evaluate_with_target_hint(<span class="kw-2">&amp;</span>lit, scope, index, target_type)<span class="question-mark">?
+                    evaluate_with_target_hint(<span class="kw-2">&amp;</span>lit, scope, index, target_type, lhs)<span class="question-mark">?
                 </span>}
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="prelude-val">None </span><span class="comment">//not yet resolvable
@@ -1297,7 +1347,20 @@
             <span class="kw">let </span>end = evaluate(<span class="kw-2">&amp;</span>data.end, scope, index)<span class="question-mark">?</span>.unwrap_or_else(|| <span class="kw-2">*</span>data.end.to_owned());
             <span class="prelude-val">Some</span>(AstFactory::create_range_statement(start, end, id))
         }
-        AstStatement::ParenExpression(expr) =&gt; evaluate_with_target_hint(expr, scope, index, target_type)<span class="question-mark">?</span>,
+        AstStatement::ParenExpression(expr) =&gt; {
+            evaluate_with_target_hint(expr, scope, index, target_type, lhs)<span class="question-mark">?
+        </span>}
+        AstStatement::CallStatement(plc_ast::ast::CallStatement { parameters, .. }) =&gt; {
+            <span class="kw">let </span><span class="prelude-val">Some</span>(arg) = parameters <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Cannot resolve constant: {:#?}"</span>, initial)));
+            };
+            <span class="kw">return match </span>evaluate_with_target_hint(arg, scope, index, target_type, lhs) {
+                <span class="comment">// arg to const fn call could not be found in the index =&gt; unresolvable (only ref/adr are supported for now, must have arg)
+                </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Cannot resolve constant: {arg:#?}"</span>))),
+                <span class="comment">// we found a local or global parameter for REF/ADR, but it cannot be resolved as constant since the address is not yet known. Resolve during codegen
+                </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(UnresolvableKind::Address(InitData::new(<span class="prelude-val">Some</span>(initial), target_type, scope, lhs))),
+            };
+        }
         <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Cannot resolve constant: {initial:#?}"</span>))),
     };
     <span class="prelude-val">Ok</span>(literal)
@@ -1310,9 +1373,18 @@
     variable: <span class="kw-2">&amp;</span><span class="kw">crate</span>::index::VariableIndexEntry,
     name: <span class="kw-2">&amp;</span>str,
     index: <span class="kw-2">&amp;</span>Index,
+    target_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    scope: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    lhs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;AstNode&gt;, UnresolvableKind&gt; {
     <span class="kw">if </span>!variable.is_constant() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"`{name}` is no const reference"</span>)));
+        <span class="kw">if </span>!target_type
+            .is_some_and(|it| index.find_effective_type_by_name(it).is_some_and(|it| it.is_pointer()))
+        {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"`{name}` is no const reference"</span>)));
+        } <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(UnresolvableKind::Address(InitData::new(<span class="prelude-val">None</span>, target_type, scope, lhs)));
+        }
     }
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(ConstExpression::Resolved(statement)) =
@@ -1332,20 +1404,22 @@
     type_name: <span class="kw-2">&amp;</span>str,
     scope: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     index: <span class="kw-2">&amp;</span>Index,
+    lhs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;AstNode, UnresolvableKind&gt; {
     <span class="kw">let </span>dti = index.find_effective_type_info(type_name);
     <span class="kw">match </span>dti {
         <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>DataTypeInformation::Integer { .. }) =&gt; {
-            <span class="kw">let </span>evaluated_initial = evaluate_with_target_hint(cast_statement, scope, index, <span class="prelude-val">Some</span>(type_name))<span class="question-mark">?
-                </span>.as_ref()
-                .map(|v| {
-                    <span class="kw">if let </span>AstStatement::Literal(AstLiteral::Integer(value)) = v.get_stmt() {
-                        <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>value)
-                    } <span class="kw">else </span>{
-                        <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Expected integer value, found {v:?}"</span>)))
-                    }
-                })
-                .transpose()<span class="question-mark">?</span>;
+            <span class="kw">let </span>evaluated_initial =
+                evaluate_with_target_hint(cast_statement, scope, index, <span class="prelude-val">Some</span>(type_name), lhs)<span class="question-mark">?
+                    </span>.as_ref()
+                    .map(|v| {
+                        <span class="kw">if let </span>AstStatement::Literal(AstLiteral::Integer(value)) = v.get_stmt() {
+                            <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>value)
+                        } <span class="kw">else </span>{
+                            <span class="prelude-val">Err</span>(UnresolvableKind::Misc(<span class="macro">format!</span>(<span class="string">"Expected integer value, found {v:?}"</span>)))
+                        }
+                    })
+                    .transpose()<span class="question-mark">?</span>;
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = evaluated_initial {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(AstNode::new(

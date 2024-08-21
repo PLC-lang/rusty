@@ -2831,7 +2831,6 @@
 <a href="#2829" id="2829">2829</a>
 <a href="#2830" id="2830">2830</a>
 <a href="#2831" id="2831">2831</a>
-<a href="#2832" id="2832">2832</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
@@ -3551,7 +3550,6 @@
                 <span class="kw">let </span>assigned_output = <span class="self">self</span>.generate_lvalue(expr)<span class="question-mark">?</span>;
                 <span class="kw">let </span>assigned_output_type =
                     <span class="self">self</span>.annotations.get_type_or_void(expr, <span class="self">self</span>.index).get_type_information();
-
                 <span class="kw">let </span>output = builder.build_struct_gep(parameter_struct, index, <span class="string">""</span>).map_err(|<span class="kw">_</span>| {
                     Diagnostic::codegen_error(
                         <span class="macro">format!</span>(<span class="string">"Cannot build generate parameter: {parameter:#?}"</span>),

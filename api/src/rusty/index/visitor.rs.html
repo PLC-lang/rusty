@@ -817,6 +817,20 @@
 <a href="#815" id="815">815</a>
 <a href="#816" id="816">816</a>
 <a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, Index, MemberInfo};
@@ -879,7 +893,7 @@
             </span>};
 
             <span class="kw">if </span>varargs.is_some() {
-                member_varargs = varargs.clone();
+                member_varargs.clone_from(<span class="kw-2">&amp;</span>varargs);
             }
 
             <span class="kw">let </span>var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
@@ -893,6 +907,7 @@
                 var.initializer.clone(),
                 type_name.as_str(),
                 <span class="prelude-val">Some</span>(pou.name.clone()),
+                <span class="prelude-val">Some</span>(var.get_name().to_string()),
             );
 
             <span class="kw">let </span>binding = var
@@ -1109,6 +1124,7 @@
             var.initializer.clone(),
             target_type,
             <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(var.get_name().into()),
         );
         <span class="kw">let </span>variable = VariableIndexEntry::create_global(
             <span class="kw-2">&amp;</span>var.name,
@@ -1156,6 +1172,7 @@
                         right.as_ref().clone(),
                         numeric_type.clone(),
                         scope.clone(),
+                        <span class="prelude-val">None</span>,
                     );
 
                     variants.push(index.register_enum_variant(name, <span class="kw-2">&amp;</span>variant, <span class="prelude-val">Some</span>(init), ele.get_location()))
@@ -1174,6 +1191,7 @@
                 type_declaration.initializer.clone(),
                 name,
                 scope.clone(),
+                <span class="prelude-val">None</span>,
             );
 
             index.register_type(typesystem::DataType {
@@ -1202,6 +1220,7 @@
                 type_declaration.initializer.clone(),
                 name,
                 scope.clone(),
+                <span class="prelude-val">None</span>,
             );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
@@ -1231,6 +1250,7 @@
                 type_declaration.initializer.clone(),
                 name,
                 scope.clone(),
+                <span class="prelude-val">None</span>,
             );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
@@ -1265,6 +1285,7 @@
                         len_plus_1,
                         type_name.clone(),
                         scope.clone(),
+                        <span class="prelude-val">None</span>,
                     ))
                 }
                 <span class="prelude-val">None </span>=&gt; TypeSize::from_literal((DEFAULT_STRING_LEN + <span class="number">1</span>).into()),
@@ -1274,6 +1295,7 @@
                 type_declaration.initializer.clone(),
                 type_name,
                 scope.clone(),
+                <span class="prelude-val">None</span>,
             );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
@@ -1492,11 +1514,13 @@
                         <span class="kw-2">*</span>start.clone(),
                         typesystem::DINT_TYPE.to_string(),
                         scope.clone(),
+                        <span class="prelude-val">None</span>,
                     )),
                     end_offset: TypeSize::from_expression(constants.add_constant_expression(
                         <span class="kw-2">*</span>end.clone(),
                         typesystem::DINT_TYPE.to_string(),
                         scope.clone(),
+                        <span class="prelude-val">None</span>,
                     )),
                 })
             }
@@ -1523,6 +1547,7 @@
         type_declaration.initializer.clone(),
         name,
         scope.clone(),
+        <span class="prelude-val">None</span>,
     );
     <span class="comment">// TODO unfortunately we cannot share const-expressions between multiple
     // index-entries
@@ -1530,6 +1555,7 @@
         type_declaration.initializer.clone(),
         name,
         scope.clone(),
+        <span class="prelude-val">None</span>,
     );
 
     index.register_type(typesystem::DataType {
@@ -1585,6 +1611,7 @@
                 var.initializer.clone(),
                 member_type,
                 scope.clone(),
+                <span class="prelude-val">None</span>,
             );
 
             <span class="kw">let </span>binding =
@@ -1614,6 +1641,7 @@
         type_declaration.initializer.clone(),
         name,
         scope.clone(),
+        <span class="prelude-val">Some</span>(name.into()),
     );
     index.register_type(typesystem::DataType {
         name: name.to_string(),

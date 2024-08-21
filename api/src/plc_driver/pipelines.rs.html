@@ -525,6 +525,18 @@
 <a href="#523" id="523">523</a>
 <a href="#524" id="524">524</a>
 <a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     fs::{<span class="self">self</span>, File},
@@ -538,10 +550,9 @@
     provider::IdProvider,
 };
 
-<span class="kw">use </span>plc::index::FxIndexSet;
 <span class="kw">use </span>plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::Index,
+    index::{FxIndexSet, Index},
     output::FormatOption,
     parser::parse_file,
     resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
@@ -654,6 +665,7 @@
         <span class="comment">// import builtin functions
         </span><span class="kw">let </span>builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(<span class="kw-2">&amp;</span>builtins));
+        global_index.register_global_init_function();
 
         IndexedProject { project: ParsedProject { project: <span class="self">self</span>.project, units }, index: global_index }
     }
@@ -675,7 +687,8 @@
     </span><span class="kw">pub fn </span>annotate(<span class="self">self</span>, <span class="kw-2">mut </span>id_provider: IdProvider) -&gt; AnnotatedProject&lt;T&gt; {
         <span class="comment">//Resolve constants
         //TODO: Not sure what we are currently doing with unresolvables
-        </span><span class="kw">let </span>(<span class="kw-2">mut </span>full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(<span class="self">self</span>.index);
+        </span><span class="kw">let </span>(<span class="kw-2">mut </span>full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(<span class="self">self</span>.index);
+
         <span class="comment">//Create and call the annotator
         </span><span class="kw">let </span><span class="kw-2">mut </span>annotated_units = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>all_annotations = AnnotationMapImpl::default();
@@ -698,8 +711,15 @@
 
         full_index.import(std::mem::take(<span class="kw-2">&amp;mut </span>all_annotations.new_index));
 
-        <span class="kw">let </span>annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+        TypeAnnotator::lower_init_functions(
+            unresolvables,
+            <span class="kw-2">&amp;mut </span>all_annotations,
+            <span class="kw-2">&amp;mut </span>full_index,
+            <span class="kw-2">&amp;</span>id_provider,
+            <span class="kw-2">&amp;mut </span>annotated_units,
+        );
 
+        <span class="kw">let </span>annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
         AnnotatedProject {
             project: <span class="self">self</span>.project.project,
             units: annotated_units,
@@ -868,7 +888,11 @@
                         <span class="kw">let </span>current_dir = env::current_dir()<span class="question-mark">?</span>;
                         <span class="kw">let </span>current_dir = compile_options.root.as_deref().unwrap_or(<span class="kw-2">&amp;</span>current_dir);
                         <span class="kw">let </span>unit_location = PathBuf::from(<span class="kw-2">&amp;</span>unit.file_name);
-                        <span class="kw">let </span>unit_location = fs::canonicalize(unit_location)<span class="question-mark">?</span>;
+                        <span class="kw">let </span>unit_location = <span class="kw">if </span>unit_location.exists() {
+                            fs::canonicalize(unit_location)<span class="question-mark">?
+                        </span>} <span class="kw">else </span>{
+                            unit_location
+                        };
                         <span class="kw">let </span>output_name = <span class="kw">if </span>unit_location.starts_with(current_dir) {
                             unit_location.strip_prefix(current_dir).map_err(|it| {
                                 Diagnostic::new(<span class="macro">format!</span>(

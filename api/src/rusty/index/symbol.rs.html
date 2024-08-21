@@ -236,18 +236,18 @@
 {
     <span class="doccomment">/// returns the first element associated with the given key or None if
     /// this key was never associated with an element
-    </span><span class="kw">pub fn </span>get&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>V&gt;
+    </span><span class="kw">pub fn </span>get&lt;Q&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>V&gt;
     <span class="kw">where
-        </span>Q: Hash + Equivalent&lt;K&gt;,
+        </span>Q: Hash + Equivalent&lt;K&gt; + <span class="question-mark">?</span>Sized,
     {
         <span class="self">self</span>.get_all(key).and_then(|it| it.first())
     }
 
     <span class="doccomment">/// returns all elements associated with the given key or None if
     /// this key was never associated with an element
-    </span><span class="kw">pub fn </span>get_all&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;V&gt;&gt;
+    </span><span class="kw">pub fn </span>get_all&lt;Q&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;V&gt;&gt;
     <span class="kw">where
-        </span>Q: Hash + Equivalent&lt;K&gt;,
+        </span>Q: Hash + Equivalent&lt;K&gt; + <span class="question-mark">?</span>Sized,
     {
         <span class="self">self</span>.inner_map.get(key)
     }

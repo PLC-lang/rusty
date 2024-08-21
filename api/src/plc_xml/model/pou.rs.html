@@ -240,7 +240,7 @@
                     <span class="kw">let </span>actions: Vec&lt;Action&lt;<span class="lifetime">'_</span>&gt;&gt; = Parseable::visit(reader, <span class="prelude-val">Some</span>(tag))<span class="question-mark">?</span>;
                     <span class="kw">for </span><span class="kw-2">mut </span>action <span class="kw">in </span>actions.into_iter() {
                         <span class="comment">// Copy the action type names
-                        </span>action.type_name = pou.name.clone();
+                        </span>action.type_name.clone_from(<span class="kw-2">&amp;</span>pou.name);
                         pou.actions.push(action);
                     }
                 }

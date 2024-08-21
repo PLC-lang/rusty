@@ -1694,6 +1694,14 @@
 <a href="#1692" id="1692">1692</a>
 <a href="#1693" id="1693">1693</a>
 <a href="#1694" id="1694">1694</a>
+<a href="#1695" id="1695">1695</a>
+<a href="#1696" id="1696">1696</a>
+<a href="#1697" id="1697">1697</a>
+<a href="#1698" id="1698">1698</a>
+<a href="#1699" id="1699">1699</a>
+<a href="#1700" id="1700">1700</a>
+<a href="#1701" id="1701">1701</a>
+<a href="#1702" id="1702">1702</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
@@ -2188,7 +2196,9 @@
                     .and_then(|qualifier| context.index.find_pou(qualifier))
                     .map(|pou| (pou.get_name(), pou.get_container())) <span class="comment">// get the container pou (for actions this is the program/fb)
                     </span>.map_or(<span class="bool-val">false</span>, |(pou, container)| {
-                        !qualified_name.starts_with(pou) &amp;&amp; !qualified_name.starts_with(container)
+                        !qualified_name.starts_with(pou)
+                            &amp;&amp; !qualified_name.starts_with(container)
+                            &amp;&amp; !context.index.is_init_function(pou)
                     })
             {
                 validator.push_diagnostic(
@@ -2476,8 +2486,12 @@
 ) <span class="kw">where
     </span>T: AnnotationMap,
 {
-    <span class="kw">let </span>type_info_lhs = context.index.find_elementary_pointer_type(type_lhs.get_type_information());
-    <span class="kw">let </span>type_info_rhs = context.index.find_elementary_pointer_type(type_rhs.get_type_information());
+    <span class="kw">let </span>type_info_lhs = context
+        .index
+        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_lhs.get_type_information()));
+    <span class="kw">let </span>type_info_rhs = context
+        .index
+        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_rhs.get_type_information()));
 
     <span class="kw">if </span>type_info_lhs.is_array() &amp;&amp; type_info_rhs.is_array() {
         <span class="kw">let </span>len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
@@ -2547,7 +2561,9 @@
     ref_assignment: <span class="kw-2">&amp;</span>AstNode,
 ) {
     <span class="kw">if let </span>AstStatement::RefAssignment(Assignment { left, .. }) = ref_assignment.get_stmt() {
-        <span class="kw">if </span>context.annotations.get(left).is_some_and(|opt| opt.is_alias()) {
+        <span class="kw">if </span>context.annotations.get(left).is_some_and(|opt| {
+            opt.is_alias() &amp;&amp; !context.qualifier.is_some_and(|it| context.index.is_init_function(it))
+        }) {
             validator.push_diagnostic(
                 Diagnostic::new(<span class="macro">format!</span>(
                     <span class="string">"{} is an immutable alias variable, can not change the address"</span>,

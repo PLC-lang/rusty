@@ -571,7 +571,7 @@
         },
         DataTypeDeclaration::DataTypeReference { referenced_type, .. } =&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(type_name) = generics.get(referenced_type) {
-                <span class="kw-2">*</span>referenced_type = type_name.clone();
+                referenced_type.clone_from(type_name);
             }
         }
     }

@@ -819,6 +819,16 @@
 <a href="#817" id="817">817</a>
 <a href="#818" id="818">818</a>
 <a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     expression_generator::{to_i1, ExpressionCodeGenerator, ExpressionValue},
@@ -1076,7 +1086,7 @@
             <span class="kw">let </span>expr = exp.generate_reference_expression(<span class="kw-2">&amp;</span>data.access, data.base.as_deref(), left)<span class="question-mark">?</span>;
             expr.get_basic_value_enum().into_pointer_value()
         };
-        <span class="kw">let </span>right_expr_val = ref_builtin.codegen(<span class="kw-2">&amp;</span>exp, <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>right], right.get_location())<span class="question-mark">?</span>;
+        <span class="kw">let </span>right_expr_val = ref_builtin.codegen(<span class="kw-2">&amp;</span>exp, <span class="kw-2">&amp;</span>[right], right.get_location())<span class="question-mark">?</span>;
 
         <span class="self">self</span>.llvm.builder.build_store(left_ptr_val, right_expr_val.get_basic_value_enum());
         <span class="prelude-val">Ok</span>(())
@@ -1097,6 +1107,16 @@
         </span><span class="kw">if </span>left_statement.has_direct_access() {
             <span class="kw">return </span><span class="self">self</span>.generate_assignment_statement_direct_access(left_statement, right_statement);
         }
+
+        <span class="kw">if </span><span class="self">self</span>.annotations.get(left_statement).is_some_and(|it| {
+            <span class="comment">// TODO(mhasel): ideally the resolver decides which assignment statement to call when lowering the init functions,
+            // but that requires refactoring of how `aliases` and `reference to` LHS/RHS nodes are annotated. this is a workaround.
+            </span><span class="self">self</span>.index.is_init_function(<span class="self">self</span>.function_context.linking_context.get_call_name())
+                &amp;&amp; (it.is_alias() || it.is_reference_to())
+        }) {
+            <span class="kw">return </span><span class="self">self</span>.generate_ref_assignment(left_statement, right_statement);
+        };
+
         <span class="comment">//TODO: Also hacky but for now we cannot generate assignments for hardware access
         </span><span class="kw">if </span><span class="macro">matches!</span>(left_statement.get_stmt(), AstStatement::HardwareAccess { .. }) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());

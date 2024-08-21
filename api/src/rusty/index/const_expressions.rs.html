@@ -264,6 +264,51 @@
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
 <a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>generational_arena::{Arena, Iter};
@@ -273,6 +318,7 @@
 };
 
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
+
 <span class="kw">pub type </span>ConstId = generational_arena::Index;
 
 <span class="doccomment">/// wrapper around ConstExpression stored in the arena
@@ -303,6 +349,8 @@
         /// e.g. a const-expression inside a POU would use this POU's name as a
         /// qualifier.
         </span>scope: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        <span class="doccomment">/// the name of the variable this expression is assigned to, if any
+        </span>lhs: <span class="prelude-ty">Option</span>&lt;String&gt;,
     },
     Resolved(AstNode),
     Unresolvable {
@@ -330,6 +378,13 @@
         }
     }
 
+    <span class="kw">pub fn </span>get_lhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
+            ConstExpression::Unresolved { lhs, .. } =&gt; lhs.as_ref().map(|it| it.as_str()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="kw">pub fn </span>is_resolved(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, ConstExpression::Resolved(<span class="kw">_</span>))
     }
@@ -339,19 +394,49 @@
     }
 }
 
-<span class="attr">#[derive(Debug)]
+<span class="doccomment">/// Initializers which rely on code-execution/allocated memory addresses and are
+/// therefore not resolvable before the codegen stage
+</span><span class="attr">#[derive(Debug, PartialEq, Clone)]
+</span><span class="kw">pub struct </span>InitData {
+    <span class="kw">pub </span>initializer: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
+    <span class="kw">pub </span>target_type_name: String,
+    <span class="kw">pub </span>scope: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>lhs: <span class="prelude-ty">Option</span>&lt;String&gt;,
+}
+
+<span class="kw">impl </span>InitData {
+    <span class="kw">pub fn </span>new(
+        initializer: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
+        target_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+        scope: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+        target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        InitData {
+            initializer: initializer.cloned(),
+            target_type_name: target_type.unwrap_or_default().to_string(),
+            scope: scope.map(|it| it.into()),
+            lhs: target.map(|it| it.into()),
+        }
+    }
+}
+
+<span class="attr">#[derive(Debug, PartialEq, Clone)]
 </span><span class="kw">pub enum </span>UnresolvableKind {
     <span class="doccomment">/// Indicates that the const expression was not resolvable for any reason not listed in [`UnresolvableKind`].
     </span>Misc(String),
 
     <span class="doccomment">/// Indicates that the const expression was not resolvable because it would yield an overflow.
     </span>Overflow(String, SourceLocation),
+
+    <span class="doccomment">/// Indicates that the const expression is not resolvable before codegen
+    </span>Address(InitData),
 }
 
 <span class="kw">impl </span>UnresolvableKind {
     <span class="kw">pub fn </span>get_reason(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">match </span><span class="self">self </span>{
             UnresolvableKind::Misc(val) | UnresolvableKind::Overflow(val, ..) =&gt; val,
+            UnresolvableKind::Address { .. } =&gt; <span class="string">"Try to re-resolve during codegen"</span>,
         }
     }
 
@@ -383,9 +468,12 @@
         statement: AstNode,
         target_type_name: String,
         scope: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        lhs: <span class="prelude-ty">Option</span>&lt;String&gt;,
     ) -&gt; ConstId {
-        <span class="self">self</span>.expressions
-            .insert(ConstWrapper { expr: ConstExpression::Unresolved { statement, scope }, target_type_name })
+        <span class="self">self</span>.expressions.insert(ConstWrapper {
+            expr: ConstExpression::Unresolved { statement, scope, lhs },
+            target_type_name,
+        })
     }
 
     <span class="doccomment">/// returns the expression associated with the given `id` together with an optional
@@ -410,13 +498,13 @@
     }
 
     <span class="doccomment">/// clones the expression in the ConstExpressions and returns all of its elements
-    </span><span class="kw">pub fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>ConstId) -&gt; <span class="prelude-ty">Option</span>&lt;(AstNode, String, <span class="prelude-ty">Option</span>&lt;String&gt;)&gt; {
+    </span><span class="kw">pub fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>ConstId) -&gt; <span class="prelude-ty">Option</span>&lt;(AstNode, String, <span class="prelude-ty">Option</span>&lt;String&gt;, <span class="prelude-ty">Option</span>&lt;String&gt;)&gt; {
         <span class="self">self</span>.expressions.get(<span class="kw-2">*</span>id).map(|it| <span class="kw">match </span><span class="kw-2">&amp;</span>it.expr {
-            ConstExpression::Unresolved { statement, scope } =&gt; {
-                (statement.clone(), it.target_type_name.clone(), scope.clone())
+            ConstExpression::Unresolved { statement, scope, lhs: target } =&gt; {
+                (statement.clone(), it.target_type_name.clone(), scope.clone(), target.clone())
             }
             ConstExpression::Resolved(s) | ConstExpression::Unresolvable { statement: s, .. } =&gt; {
-                (s.clone(), it.target_type_name.clone(), <span class="prelude-val">None</span>)
+                (s.clone(), it.target_type_name.clone(), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
             }
         })
     }
@@ -455,8 +543,9 @@
         expr: AstNode,
         target_type: String,
         scope: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        lhs: <span class="prelude-ty">Option</span>&lt;String&gt;,
     ) -&gt; ConstId {
-        <span class="self">self</span>.add_expression(expr, target_type, scope)
+        <span class="self">self</span>.add_expression(expr, target_type, scope, lhs)
     }
 
     <span class="doccomment">/// convinience-method to add the constant exression if there is some, otherwhise not
@@ -467,8 +556,9 @@
         expr: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
         target_type_name: <span class="kw-2">&amp;</span>str,
         scope: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        lhs: <span class="prelude-ty">Option</span>&lt;String&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;ConstId&gt; {
-        expr.map(|it| <span class="self">self</span>.add_constant_expression(it, target_type_name.to_string(), scope))
+        expr.map(|it| <span class="self">self</span>.add_constant_expression(it, target_type_name.to_string(), scope, lhs))
     }
 
     <span class="doccomment">/// convinience-method to query for an optional constant expression.

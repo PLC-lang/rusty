@@ -1640,6 +1640,53 @@
 <a href="#1638" id="1638">1638</a>
 <a href="#1639" id="1639">1639</a>
 <a href="#1640" id="1640">1640</a>
+<a href="#1641" id="1641">1641</a>
+<a href="#1642" id="1642">1642</a>
+<a href="#1643" id="1643">1643</a>
+<a href="#1644" id="1644">1644</a>
+<a href="#1645" id="1645">1645</a>
+<a href="#1646" id="1646">1646</a>
+<a href="#1647" id="1647">1647</a>
+<a href="#1648" id="1648">1648</a>
+<a href="#1649" id="1649">1649</a>
+<a href="#1650" id="1650">1650</a>
+<a href="#1651" id="1651">1651</a>
+<a href="#1652" id="1652">1652</a>
+<a href="#1653" id="1653">1653</a>
+<a href="#1654" id="1654">1654</a>
+<a href="#1655" id="1655">1655</a>
+<a href="#1656" id="1656">1656</a>
+<a href="#1657" id="1657">1657</a>
+<a href="#1658" id="1658">1658</a>
+<a href="#1659" id="1659">1659</a>
+<a href="#1660" id="1660">1660</a>
+<a href="#1661" id="1661">1661</a>
+<a href="#1662" id="1662">1662</a>
+<a href="#1663" id="1663">1663</a>
+<a href="#1664" id="1664">1664</a>
+<a href="#1665" id="1665">1665</a>
+<a href="#1666" id="1666">1666</a>
+<a href="#1667" id="1667">1667</a>
+<a href="#1668" id="1668">1668</a>
+<a href="#1669" id="1669">1669</a>
+<a href="#1670" id="1670">1670</a>
+<a href="#1671" id="1671">1671</a>
+<a href="#1672" id="1672">1672</a>
+<a href="#1673" id="1673">1673</a>
+<a href="#1674" id="1674">1674</a>
+<a href="#1675" id="1675">1675</a>
+<a href="#1676" id="1676">1676</a>
+<a href="#1677" id="1677">1677</a>
+<a href="#1678" id="1678">1678</a>
+<a href="#1679" id="1679">1679</a>
+<a href="#1680" id="1680">1680</a>
+<a href="#1681" id="1681">1681</a>
+<a href="#1682" id="1682">1682</a>
+<a href="#1683" id="1683">1683</a>
+<a href="#1684" id="1684">1684</a>
+<a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
@@ -1752,6 +1799,7 @@
                             expr.clone(),
                             typesystem::DINT_SIZE.to_string(),
                             scope.clone(),
+                            <span class="prelude-val">None</span>,
                         )
                     })
                     .collect(),
@@ -2357,13 +2405,15 @@
         </span>}
     }
 
-    <span class="doccomment">/// returns true if this pou is an action
-    </span><span class="kw">pub fn </span>is_action(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">pub fn </span>is_action(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, PouIndexEntry::Action { .. })
     }
 
-    <span class="doccomment">/// return true if this pou is a function
-    </span><span class="kw">pub fn </span>is_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">pub fn </span>is_program(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, PouIndexEntry::Program { .. })
+    }
+
+    <span class="kw">pub fn </span>is_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, PouIndexEntry::Function { .. })
     }
 
@@ -2480,6 +2530,10 @@
 
     <span class="comment">// all pous,
     </span>pous: SymbolMap&lt;String, PouIndexEntry&gt;,
+
+    <span class="comment">// initializer functions are registered here in addition to the `pous` field. this is because they are
+    // excempt from certain validations/codegen will redirect certain statements and thus a quick lookup is advantageous
+    </span>init_functions: FxIndexSet&lt;String&gt;,
 
     <span class="doccomment">/// all implementations
     </span><span class="comment">// we keep an IndexMap for implementations since duplication issues regarding implementations
@@ -2605,6 +2659,9 @@
             }
         }
 
+        <span class="comment">//init functions
+        </span><span class="self">self</span>.init_functions.extend(other.init_functions);
+
         <span class="comment">//labels
         </span><span class="self">self</span>.labels.extend(other.labels);
 
@@ -2647,8 +2704,8 @@
         import_from: <span class="kw-2">&amp;mut </span>ConstExpressions,
         initializer_id: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ConstId&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;ConstId&gt; {
-        initializer_id.as_ref().and_then(|it| import_from.clone(it)).map(|(init, target_type, scope)| {
-            <span class="self">self</span>.get_mut_const_expressions().add_constant_expression(init, target_type, scope)
+        initializer_id.as_ref().and_then(|it| import_from.clone(it)).map(|(init, target_type, scope, lhs)| {
+            <span class="self">self</span>.get_mut_const_expressions().add_constant_expression(init, target_type, scope, lhs)
         })
     }
 
@@ -2662,8 +2719,8 @@
             TypeSize::LiteralInteger(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>type_size),
             TypeSize::ConstExpression(id) =&gt; import_from
                 .clone(id)
-                .map(|(expr, target_type, scope)| {
-                    <span class="self">self</span>.get_mut_const_expressions().add_constant_expression(expr, target_type, scope)
+                .map(|(expr, target_type, scope, lhs)| {
+                    <span class="self">self</span>.get_mut_const_expressions().add_constant_expression(expr, target_type, scope, lhs)
                 })
                 .map(TypeSize::from_expression),
             TypeSize::Undetermined =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>type_size),
@@ -2725,9 +2782,15 @@
             .find_type(container_name)
             .and_then(|it| it.find_member(variable_name))
             .or(<span class="self">self</span>.find_enum_variant_in_pou(container_name, variable_name))
-            .or(container_name
+            <span class="comment">// underlying type of an `ACTION`
+            </span>.or(container_name
                 .rfind(<span class="string">'.'</span>)
                 .map(|p| <span class="kw-2">&amp;</span>container_name[..p])
+                .and_then(|qualifier| <span class="self">self</span>.find_member(qualifier, variable_name)))
+            <span class="comment">// 'self' instance of a POUs init function
+            </span>.or(container_name
+                .rfind(<span class="string">'_'</span>)
+                .map(|p| <span class="kw-2">&amp;</span>container_name[p + <span class="number">1</span>..])
                 .and_then(|qualifier| <span class="self">self</span>.find_member(qualifier, variable_name)))
     }
 
@@ -3053,6 +3116,14 @@
         <span class="self">self</span>.pous.get(<span class="kw-2">&amp;</span>pou_name.to_lowercase())
     }
 
+    <span class="kw">pub fn </span>type_has_init_function(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        <span class="self">self</span>.init_functions.get(<span class="kw-2">&amp;</span>get_init_fn_name(type_name)).is_some()
+    }
+
+    <span class="kw">pub fn </span>is_init_function(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; bool {
+        <span class="self">self</span>.init_functions.get(pou_name).is_some()
+    }
+
     <span class="kw">pub fn </span>register_program(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, location: SourceLocation, linkage: LinkageType) {
         <span class="kw">let </span>instance_variable =
             VariableIndexEntry::create_global(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{}_instance"</span>, <span class="kw-2">&amp;</span>name), name, name, location.clone()) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
@@ -3064,6 +3135,25 @@
 
     <span class="kw">pub fn </span>register_pou(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry: PouIndexEntry) {
         <span class="self">self</span>.pous.insert(entry.get_name().to_lowercase(), entry);
+    }
+
+    <span class="kw">pub fn </span>register_init_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) {
+        <span class="kw">let </span>init_name = get_init_fn_name(name);
+        <span class="self">self</span>.init_functions.insert(init_name.clone());
+    }
+
+    <span class="kw">pub fn </span>register_global_init_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>entry = PouIndexEntry::Function {
+            name: <span class="string">"__init"</span>.into(),
+            return_type: VOID_TYPE.into(),
+            generics: <span class="macro">vec!</span>[],
+            linkage: LinkageType::Internal,
+            is_variadic: <span class="bool-val">false</span>,
+            location: SourceLocation::internal(),
+            is_generated: <span class="bool-val">true</span>,
+        };
+        <span class="self">self</span>.register_pou(entry);
+        <span class="self">self</span>.init_functions.insert(<span class="string">"__init"</span>.to_string());
     }
 
     <span class="kw">pub fn </span>find_implementation_by_name(<span class="kw-2">&amp;</span><span class="self">self</span>, call_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ImplementationIndexEntry&gt; {
@@ -3279,5 +3369,9 @@
 <span class="doccomment">/// Returns a default initialization name for a variable or type
 </span><span class="kw">pub fn </span>get_initializer_name(name: <span class="kw-2">&amp;</span>str) -&gt; String {
     <span class="macro">format!</span>(<span class="string">"__{name}__init"</span>)
+}
+
+<span class="kw">pub fn </span>get_init_fn_name(name: <span class="kw-2">&amp;</span>str) -&gt; String {
+    <span class="macro">format!</span>(<span class="string">"__init_{name}"</span>).to_lowercase()
 }
 </code></pre></div></section></main></body></html>
