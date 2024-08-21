@@ -42,13 +42,15 @@ lazy_static! {
                 END_FUNCTION
             ",
                 annotation: None,
-                validation: None,
+                validation: Some(|validator, operator, parameters, _, _| {
+                    validate_argument_count(validator, operator, &parameters, 1);
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
                         generator
                             .generate_lvalue(reference)
-                            .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
+                            .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
                         Err(Diagnostic::codegen_error(
                             "Expected exactly one parameter for REF",
@@ -91,16 +93,7 @@ lazy_static! {
                     );
                 }),
                 validation: Some(|validator, operator, parameters, _, _| {
-                    let Some(params) = parameters else {
-                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, 0, operator.get_location()));
-                        return;
-                    };
-
-                    let params = flatten_expression_list(params);
-
-                    if params.len() > 1 {
-                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, params.len(), operator.get_location()));
-                    }
+                    validate_argument_count(validator, operator, &parameters, 1);
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -801,6 +794,28 @@ fn validate_variable_length_array_bound_function(
             validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 1, operator.get_location()))
         }
         _ => unreachable!(),
+    }
+}
+
+fn validate_argument_count(
+    validator: &mut Validator,
+    operator: &AstNode,
+    parameters: &Option<&AstNode>,
+    expected: usize,
+) {
+    let Some(params) = parameters else {
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, 0, operator.get_location()));
+        return;
+    };
+
+    let params = flatten_expression_list(params);
+
+    if params.len() != expected {
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(
+            expected,
+            params.len(),
+            operator.get_location(),
+        ));
     }
 }
 

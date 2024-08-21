@@ -255,7 +255,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let expr = exp.generate_reference_expression(&data.access, data.base.as_deref(), left)?;
             expr.get_basic_value_enum().into_pointer_value()
         };
-        let right_expr_val = ref_builtin.codegen(&exp, &[&right], right.get_location())?;
+        let right_expr_val = ref_builtin.codegen(&exp, &[right], right.get_location())?;
 
         self.llvm.builder.build_store(left_ptr_val, right_expr_val.get_basic_value_enum());
         Ok(())
@@ -276,6 +276,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         if left_statement.has_direct_access() {
             return self.generate_assignment_statement_direct_access(left_statement, right_statement);
         }
+
+        if self.annotations.get(left_statement).is_some_and(|it| {
+            // TODO(mhasel): ideally the resolver decides which assignment statement to call when lowering the init functions,
+            // but that requires refactoring of how `aliases` and `reference to` LHS/RHS nodes are annotated. this is a workaround.
+            self.index.is_init_function(self.function_context.linking_context.get_call_name())
+                && (it.is_alias() || it.is_reference_to())
+        }) {
+            return self.generate_ref_assignment(left_statement, right_statement);
+        };
+
         //TODO: Also hacky but for now we cannot generate assignments for hardware access
         if matches!(left_statement.get_stmt(), AstStatement::HardwareAccess { .. }) {
             return Ok(());

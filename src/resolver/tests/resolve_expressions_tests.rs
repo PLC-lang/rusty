@@ -15,15 +15,13 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{ArgumentType, Index, VariableType},
-    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
+    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, Dimension, TypeSize, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE,
         LINT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
-
-use crate::TypeAnnotator;
 
 #[macro_export]
 macro_rules! assert_type_and_hint {
