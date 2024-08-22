@@ -11,7 +11,7 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-use super::AstLowerer;
+use super::{AstLowerer, LoweringContext};
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
 
 /// POUs and datatypes which require initialization via generated function call.
@@ -107,8 +107,8 @@ impl<'lwr> Init<'lwr> for Initializers {
 }
 
 impl AstLowerer {
-    pub fn lower_init_functions(mut self, init_symbol_name: &str) -> Self {
-        let res = create_init_units(&self);
+    pub fn lower_init_functions(mut self, init_symbol_name: &str, ctxt: &LoweringContext) -> Self {
+        let res = create_init_units(&self, ctxt);
 
         if let Some((mut init_index, init_unit)) =
             res.into_iter().reduce(|(mut acc_index, mut acc_unit), (index, unit)| {
@@ -119,7 +119,7 @@ impl AstLowerer {
         {
             self.index.import(std::mem::take(&mut init_index));
             let (annotation, dependencies, literals) =
-                TypeAnnotator::visit_unit(&self.index, &init_unit, self.ctx.id_provider.clone());
+                TypeAnnotator::visit_unit(&self.index, &init_unit, ctxt.id_provider.clone());
 
             self.units.push((init_unit, dependencies, literals));
             self.annotation_map.import(annotation);
@@ -127,10 +127,10 @@ impl AstLowerer {
             self.index.import(std::mem::take(&mut self.annotation_map.new_index));
         }
 
-        if let Some((mut new_index, init_unit)) = create_init_wrapper_function(&self, init_symbol_name) {
+        if let Some((mut new_index, init_unit)) = create_init_wrapper_function(&self, init_symbol_name, ctxt) {
             self.index.import(std::mem::take(&mut new_index));
             let (a, deps, literals) =
-                TypeAnnotator::visit_unit(&self.index, &init_unit, self.ctx.id_provider.clone());
+                TypeAnnotator::visit_unit(&self.index, &init_unit, ctxt.id_provider.clone());
             self.units.push((init_unit, deps, literals));
             self.annotation_map.import(a);
         }
@@ -141,7 +141,7 @@ impl AstLowerer {
     }
 }
 
-fn create_init_units(lowerer: &AstLowerer) -> Vec<(Index, CompilationUnit)> {
+fn create_init_units(lowerer: &AstLowerer, ctxt: &LoweringContext) -> Vec<(Index, CompilationUnit)> {
     let lookup = lowerer.unresolved_initializers.keys().map(|it| it.as_str()).collect::<FxIndexSet<_>>();
     lowerer
         .unresolved_initializers
@@ -152,7 +152,7 @@ fn create_init_units(lowerer: &AstLowerer) -> Vec<(Index, CompilationUnit)> {
                 return None;
             }
 
-            create_init_unit(lowerer, container, init, &lookup)
+            create_init_unit(lowerer, container, init, &lookup, ctxt)
         })
         .collect()
 }
@@ -162,8 +162,9 @@ fn create_init_unit(
     container_name: &str,
     assignments: &InitAssignments,
     all_init_units: &FxIndexSet<&str>,
+    ctxt: &LoweringContext
 ) -> Option<(Index, CompilationUnit)> {
-    let mut id_provider = lowerer.ctx.id_provider.clone();
+    let mut id_provider = ctxt.id_provider.clone();
     enum InitFnType {
         StatefulPou,
         Function,
@@ -285,12 +286,13 @@ fn create_init_unit(
 fn create_init_wrapper_function(
     lowerer: &AstLowerer,
     init_symbol_name: &str,
+    ctxt: &LoweringContext
 ) -> Option<(Index, CompilationUnit)> {
     if lowerer.unresolved_initializers.is_empty() {
         return None;
     }
 
-    let mut id_provider = lowerer.ctx.id_provider.clone();
+    let mut id_provider = ctxt.id_provider.clone();
     let init_pou = Pou {
         name: init_symbol_name.into(),
         variable_blocks: vec![],

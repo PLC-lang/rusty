@@ -8,9 +8,8 @@ use crate::{
 use initializers::{Init, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
     ast::{CompilationUnit, DataType, LinkageType},
-    mut_visitor::{AstVisitorMut, WalkerMut},
-    provider::IdProvider,
-    visit_all_nodes,
+    mut_visitor::{AstVisitorMut, VisitorContext, WalkerMut},
+    provider::IdProvider, visit_all_nodes_mut,
 };
 
 mod initializers;
@@ -20,7 +19,6 @@ pub struct AstLowerer {
     annotation_map: AnnotationMapImpl,
     unresolved_initializers: Initializers,
     units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
-    ctx: LoweringContext,
 }
 
 pub struct LoweredUnits {
@@ -38,14 +36,15 @@ impl AstLowerer {
         id_provider: IdProvider,
         init_symbol_name: &str,
     ) -> LoweredUnits {
-        let mut lowerer = Self::new(index, annotations, unresolvables, id_provider);
+        let mut lowerer = Self::new(index, annotations, unresolvables);
         // visit all units
         let mut units = annotated_units;
+        let ctxt = LoweringContext::new(id_provider.clone());
         for unit in units.iter_mut().map(|(unit, _, _)| unit) {
-            lowerer.visit_compilation_unit(unit)
+            lowerer.visit_compilation_unit(unit, &ctxt)
         }
 
-        let lowered = lowerer.with_units(units).lower_init_functions(init_symbol_name);
+        let lowered = lowerer.with_units(units).lower_init_functions(init_symbol_name, &ctxt);
 
         LoweredUnits { units: lowered.units, index: lowered.index, annotations: lowered.annotation_map }
         // TODO: impl From<>
@@ -55,14 +54,12 @@ impl AstLowerer {
         index: Index,
         annotation_map: AnnotationMapImpl,
         unresolved_initializers: Vec<UnresolvableConstant>,
-        id_provider: IdProvider,
     ) -> Self {
         Self {
             index,
             annotation_map,
             unresolved_initializers: Initializers::new(&unresolved_initializers),
             units: vec![],
-            ctx: LoweringContext::new(id_provider),
         }
     }
 
@@ -72,36 +69,36 @@ impl AstLowerer {
             annotation_map: self.annotation_map,
             unresolved_initializers: self.unresolved_initializers,
             units,
-            ctx: self.ctx,
         }
     }
 }
 
 impl AstVisitorMut for AstLowerer {
-    fn visit(&mut self, node: &mut plc_ast::ast::AstNode) {
-        node.walk(self)
+    fn visit<T: plc_ast::mut_visitor::VisitorContext>(&mut self, node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        node.walk(self, ctxt)
     }
 
-    fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
-        unit.walk(self)
+    fn visit_compilation_unit<T: plc_ast::mut_visitor::VisitorContext>(&mut self, unit: &mut CompilationUnit, ctxt: &T) {
+        unit.walk(self, ctxt)
     }
 
-    fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
-        implementation.walk(self);
+    fn visit_implementation<T: plc_ast::mut_visitor::VisitorContext>(&mut self, implementation: &mut plc_ast::ast::Implementation, ctxt: &T) {
+        implementation.walk(self, ctxt);
     }
 
-    fn visit_variable_block(&mut self, block: &mut plc_ast::ast::VariableBlock) {
-        block.walk(self)
+    fn visit_variable_block<T: plc_ast::mut_visitor::VisitorContext>(&mut self, block: &mut plc_ast::ast::VariableBlock, ctxt: &T) {
+        block.walk(self, ctxt)
     }
 
-    fn visit_variable(&mut self, variable: &mut plc_ast::ast::Variable) {
+    fn visit_variable<T: plc_ast::mut_visitor::VisitorContext>(&mut self, variable: &mut plc_ast::ast::Variable, ctxt: &T) {
+        // TODO: refactor alias/reference to lowering to be done right after parsing in a de-sugaring step
         if let Some(initializer) = variable.initializer.as_ref() {
             let Some(variable_ty) = variable
                 .data_type_declaration
                 .get_referenced_type()
                 .and_then(|it| self.index.find_effective_type_by_name(&it))
             else {
-                return variable.walk(self);
+                return variable.walk(self, ctxt);
             };
 
             let variable_is_auto_deref_pointer = {
@@ -120,27 +117,27 @@ impl AstVisitorMut for AstLowerer {
             if variable_is_auto_deref_pointer && initializer_is_not_wrapped_in_ref_call {
                 debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
                 self.unresolved_initializers.insert_initializer(
-                    self.ctx.pou.as_ref().or(self.ctx.qualifier.as_ref()).unwrap_or(&GLOBAL_SCOPE.to_owned()),
+                    ctxt.get_pou().as_ref().or(ctxt.get_qualifier().as_ref()).unwrap_or(&GLOBAL_SCOPE.to_owned()),
                     Some(&variable.name),
                     &Some(initializer.clone()),
                 );
             }
         }
-        variable.walk(self);
+        variable.walk(self, ctxt);
     }
 
-    fn visit_enum_element(&mut self, element: &mut plc_ast::ast::AstNode) {
-        element.walk(self);
+    fn visit_enum_element<T: plc_ast::mut_visitor::VisitorContext>(&mut self, element: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        element.walk(self, ctxt);
     }
 
-    fn visit_data_type_declaration(&mut self, data_type_declaration: &mut plc_ast::ast::DataTypeDeclaration) {
-        data_type_declaration.walk(self);
+    fn visit_data_type_declaration<T: plc_ast::mut_visitor::VisitorContext>(&mut self, data_type_declaration: &mut plc_ast::ast::DataTypeDeclaration, ctxt: &T) {
+        data_type_declaration.walk(self, ctxt);
     }
 
-    fn visit_user_type_declaration(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
+    fn visit_user_type_declaration<T: plc_ast::mut_visitor::VisitorContext>(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration, ctxt: &T) {
         if let DataType::StructType { name, .. } = &user_type.data_type {
             let Some(name) = name else {
-                return user_type.walk(self);
+                return user_type.walk(self, ctxt);
             };
 
             let member_inits = self
@@ -163,341 +160,115 @@ impl AstVisitorMut for AstLowerer {
             // XXX: necessary?
             self.unresolved_initializers.maybe_insert_initializer(name, None, &user_type.initializer);
         }
-        user_type.walk(self);
+        user_type.walk(self, ctxt);
     }
 
-    fn visit_data_type(&mut self, data_type: &mut DataType) {
-        if let plc_ast::ast::DataType::StructType { name, .. } = data_type {
+    fn visit_data_type<T: plc_ast::mut_visitor::VisitorContext>(&mut self, data_type: &mut DataType, ctxt: &T) {
+        let ctxt = if let plc_ast::ast::DataType::StructType { name, .. } = data_type {
             if let Some(it) = name.as_ref() {
-                self.ctx.with_qualifier(it.to_owned())
-            }
+                &ctxt.with_qualifier(it)
+            } else { ctxt }
+        } else {
+            ctxt
         };
-        data_type.walk(self);
+
+        data_type.walk(self, ctxt);
     }
 
-    fn visit_pou(&mut self, pou: &mut plc_ast::ast::Pou) {
+    fn visit_pou<T: plc_ast::mut_visitor::VisitorContext>(&mut self, pou: &mut plc_ast::ast::Pou, ctxt: &T) {
         if !matches!(pou.linkage, LinkageType::External | LinkageType::BuiltIn) {
             self.unresolved_initializers.maybe_insert_initializer(&pou.name, None, &None);
         }
-        self.ctx.with_pou(pou.name.to_owned());
-        pou.walk(self);
+        
+        pou.walk(self, &ctxt.with_pou(&pou.name));
     }
 
-    fn visit_empty_statement(
-        &mut self,
-        _stmt: &mut plc_ast::ast::EmptyStatement,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
+    fn visit_empty_statement<T: plc_ast::mut_visitor::VisitorContext>(&mut self, _stmt: &mut plc_ast::ast::EmptyStatement, _node: &mut plc_ast::ast::AstNode, _ctxt: &T) {}
+
+    fn visit_default_value<T: plc_ast::mut_visitor::VisitorContext>(&mut self, _stmt: &mut plc_ast::ast::DefaultValue, _node: &mut plc_ast::ast::AstNode, _ctxt: &T) {}
+
+    fn visit_literal<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::literals::AstLiteral, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_default_value(
-        &mut self,
-        _stmt: &mut plc_ast::ast::DefaultValue,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
+    fn visit_multiplied_statement<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::MultipliedStatement, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_literal(&mut self, stmt: &mut plc_ast::literals::AstLiteral, _node: &mut plc_ast::ast::AstNode) {
-        stmt.walk(self)
+    fn visit_reference_expr<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::ReferenceExpr, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_multiplied_statement(
-        &mut self,
-        stmt: &mut plc_ast::ast::MultipliedStatement,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
+    fn visit_identifier<T: plc_ast::mut_visitor::VisitorContext>(&mut self, _stmt: &mut str, _node: &mut plc_ast::ast::AstNode, _ctxt: &T) {}
+
+    fn visit_direct_access<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::DirectAccess, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_reference_expr(
-        &mut self,
-        stmt: &mut plc_ast::ast::ReferenceExpr,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
+    fn visit_hardware_access<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::HardwareAccess, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_identifier(&mut self, _stmt: &mut str, _node: &mut plc_ast::ast::AstNode) {}
-
-    fn visit_direct_access(
-        &mut self,
-        stmt: &mut plc_ast::ast::DirectAccess,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
+    fn visit_binary_expression<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::BinaryExpression, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_hardware_access(
-        &mut self,
-        stmt: &mut plc_ast::ast::HardwareAccess,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
+    fn visit_unary_expression<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::UnaryExpression, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_binary_expression(
-        &mut self,
-        stmt: &mut plc_ast::ast::BinaryExpression,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
+    fn visit_expression_list<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut Vec<plc_ast::ast::AstNode>, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        visit_all_nodes_mut!(self, stmt, ctxt);
     }
 
-    fn visit_unary_expression(
-        &mut self,
-        stmt: &mut plc_ast::ast::UnaryExpression,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
+    fn visit_paren_expression<T: plc_ast::mut_visitor::VisitorContext>(&mut self, inner: &mut plc_ast::ast::AstNode, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        inner.walk(self, ctxt)
     }
 
-    fn visit_expression_list(
-        &mut self,
-        stmt: &mut Vec<plc_ast::ast::AstNode>,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        visit_all_nodes!(self, stmt);
+    fn visit_range_statement<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::RangeStatement, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_paren_expression(
-        &mut self,
-        inner: &mut plc_ast::ast::AstNode,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        inner.walk(self)
+    fn visit_vla_range_statement<T: plc_ast::mut_visitor::VisitorContext>(&mut self, _node: &mut plc_ast::ast::AstNode, _ctxt: &T) {}
+
+    fn visit_assignment<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::Assignment, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_range_statement(
-        &mut self,
-        stmt: &mut plc_ast::ast::RangeStatement,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
+    fn visit_output_assignment<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::Assignment, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_vla_range_statement(&mut self, _node: &mut plc_ast::ast::AstNode) {}
-
-    fn visit_assignment(&mut self, stmt: &mut plc_ast::ast::Assignment, _node: &mut plc_ast::ast::AstNode) {
-        stmt.walk(self)
+    fn visit_ref_assignment<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::Assignment, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_output_assignment(
-        &mut self,
-        stmt: &mut plc_ast::ast::Assignment,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
+    fn visit_call_statement<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::CallStatement, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_ref_assignment(
-        &mut self,
-        stmt: &mut plc_ast::ast::Assignment,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
+    fn visit_control_statement<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::control_statements::AstControlStatement, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_call_statement(
-        &mut self,
-        stmt: &mut plc_ast::ast::CallStatement,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
+    fn visit_case_condition<T: plc_ast::mut_visitor::VisitorContext>(&mut self, child: &mut plc_ast::ast::AstNode, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        child.walk(self, ctxt)
     }
 
-    fn visit_control_statement(
-        &mut self,
-        stmt: &mut plc_ast::control_statements::AstControlStatement,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
+    fn visit_exit_statement<T: plc_ast::mut_visitor::VisitorContext>(&mut self, _node: &mut plc_ast::ast::AstNode, _ctxt: &T) {}
+
+    fn visit_continue_statement<T: plc_ast::mut_visitor::VisitorContext>(&mut self, _node: &mut plc_ast::ast::AstNode, _ctxt: &T) {}
+
+    fn visit_return_statement<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::control_statements::ReturnStatement, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_case_condition(&mut self, child: &mut plc_ast::ast::AstNode, _node: &mut plc_ast::ast::AstNode) {
-        child.walk(self)
+    fn visit_jump_statement<T: plc_ast::mut_visitor::VisitorContext>(&mut self, stmt: &mut plc_ast::ast::JumpStatement, _node: &mut plc_ast::ast::AstNode, ctxt: &T) {
+        stmt.walk(self, ctxt)
     }
 
-    fn visit_exit_statement(&mut self, _node: &mut plc_ast::ast::AstNode) {}
-
-    fn visit_continue_statement(&mut self, _node: &mut plc_ast::ast::AstNode) {}
-
-    fn visit_return_statement(
-        &mut self,
-        stmt: &mut plc_ast::control_statements::ReturnStatement,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
-    }
-
-    fn visit_jump_statement(
-        &mut self,
-        stmt: &mut plc_ast::ast::JumpStatement,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-        stmt.walk(self)
-    }
-
-    fn visit_label_statement(
-        &mut self,
-        _stmt: &mut plc_ast::ast::LabelStatement,
-        _node: &mut plc_ast::ast::AstNode,
-    ) {
-    }
+    fn visit_label_statement<T: plc_ast::mut_visitor::VisitorContext>(&mut self, _stmt: &mut plc_ast::ast::LabelStatement, _node: &mut plc_ast::ast::AstNode, _ctxt: &T) {}
 }
-
-// impl AstVisitor for AstLowerer {
-//     fn visit(&mut self, node: &plc_ast::ast::AstNode) {
-//         node.walk(self)
-//     }
-
-//     fn visit_compilation_unit(&mut self, unit: &plc_ast::ast::CompilationUnit) {
-//         unit.walk(self)
-//     }
-
-//     fn visit_implementation(&mut self, implementation: &plc_ast::ast::Implementation) {
-//         implementation.walk(self);
-//     }
-
-//     fn visit_variable_block(&mut self, block: &plc_ast::ast::VariableBlock) {
-//         block.walk(self)
-//     }
-
-//     fn visit_variable(&mut self, variable: &plc_ast::ast::Variable) {
-
-//         variable.walk(self);
-//     }
-
-//     fn visit_enum_element(&mut self, element: &plc_ast::ast::AstNode) {
-//         element.walk(self);
-//     }
-
-//     fn visit_data_type_declaration(&mut self, data_type_declaration: &plc_ast::ast::DataTypeDeclaration) {
-//         data_type_declaration.walk(self);
-//     }
-
-//     fn visit_user_type_declaration(&mut self, user_type: &plc_ast::ast::UserTypeDeclaration) {
-
-//         user_type.walk(self);
-//     }
-
-//     fn visit_data_type(&mut self, data_type: &plc_ast::ast::DataType) {
-
-//         data_type.walk(self);
-//     }
-
-//     fn visit_pou(&mut self, pou: &plc_ast::ast::Pou) {
-
-//         pou.walk(self);
-//     }
-
-//     fn visit_empty_statement(&mut self, _stmt: &plc_ast::ast::EmptyStatement, _node: &plc_ast::ast::AstNode) {
-//     }
-
-//     fn visit_default_value(&mut self, _stmt: &plc_ast::ast::DefaultValue, _node: &plc_ast::ast::AstNode) {}
-
-//     fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, _node: &plc_ast::ast::AstNode) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_multiplied_statement(
-//         &mut self,
-//         stmt: &plc_ast::ast::MultipliedStatement,
-//         _node: &plc_ast::ast::AstNode,
-//     ) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_reference_expr(&mut self, stmt: &plc_ast::ast::ReferenceExpr, _node: &plc_ast::ast::AstNode) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_identifier(&mut self, _stmt: &str, _node: &plc_ast::ast::AstNode) {}
-
-//     fn visit_direct_access(&mut self, stmt: &plc_ast::ast::DirectAccess, _node: &plc_ast::ast::AstNode) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_hardware_access(&mut self, stmt: &plc_ast::ast::HardwareAccess, _node: &plc_ast::ast::AstNode) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_binary_expression(
-//         &mut self,
-//         stmt: &plc_ast::ast::BinaryExpression,
-//         _node: &plc_ast::ast::AstNode,
-//     ) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_unary_expression(
-//         &mut self,
-//         stmt: &plc_ast::ast::UnaryExpression,
-//         _node: &plc_ast::ast::AstNode,
-//     ) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_expression_list(&mut self, stmt: &Vec<plc_ast::ast::AstNode>, _node: &plc_ast::ast::AstNode) {
-//         visit_all_nodes!(self, stmt);
-//     }
-
-//     fn visit_paren_expression(&mut self, inner: &plc_ast::ast::AstNode, _node: &plc_ast::ast::AstNode) {
-//         inner.walk(self)
-//     }
-
-//     fn visit_range_statement(&mut self, stmt: &plc_ast::ast::RangeStatement, _node: &plc_ast::ast::AstNode) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_vla_range_statement(&mut self, _node: &plc_ast::ast::AstNode) {}
-
-//     fn visit_assignment(&mut self, stmt: &plc_ast::ast::Assignment, _node: &plc_ast::ast::AstNode) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_output_assignment(&mut self, stmt: &plc_ast::ast::Assignment, _node: &plc_ast::ast::AstNode) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_ref_assignment(&mut self, stmt: &plc_ast::ast::Assignment, _node: &plc_ast::ast::AstNode) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_call_statement(&mut self, stmt: &plc_ast::ast::CallStatement, _node: &plc_ast::ast::AstNode) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_control_statement(
-//         &mut self,
-//         stmt: &plc_ast::control_statements::AstControlStatement,
-//         _node: &plc_ast::ast::AstNode,
-//     ) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_case_condition(&mut self, child: &plc_ast::ast::AstNode, _node: &plc_ast::ast::AstNode) {
-//         child.walk(self)
-//     }
-
-//     fn visit_exit_statement(&mut self, _node: &plc_ast::ast::AstNode) {}
-
-//     fn visit_continue_statement(&mut self, _node: &plc_ast::ast::AstNode) {}
-
-//     fn visit_return_statement(
-//         &mut self,
-//         stmt: &plc_ast::control_statements::ReturnStatement,
-//         _node: &plc_ast::ast::AstNode,
-//     ) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_jump_statement(&mut self, stmt: &plc_ast::ast::JumpStatement, _node: &plc_ast::ast::AstNode) {
-//         stmt.walk(self)
-//     }
-
-//     fn visit_label_statement(&mut self, _stmt: &plc_ast::ast::LabelStatement, _node: &plc_ast::ast::AstNode) {
-//     }
-// }
 
 #[derive(Clone, Default)]
 pub struct LoweringContext {
@@ -509,18 +280,33 @@ pub struct LoweringContext {
     pub id_provider: IdProvider,
 }
 
-impl LoweringContext {
-    /// returns a copy of the current context and changes the `current_qualifier` to the given qualifier
-    fn with_qualifier(&mut self, qualifier: String) {
-        self.qualifier = Some(qualifier);
-    }
-
-    /// returns a copy of the current context and changes the `current_pou` to the given pou
-    fn with_pou(&mut self, pou: String) {
-        self.pou = Some(pou);
-    }
-
+// TODO: use &str with lifetimes, requires loads of changes to the visitor/walker traits
+impl VisitorContext for LoweringContext {
     fn new(id_provider: IdProvider) -> Self {
         Self { qualifier: None, pou: None, id_provider }
     }
+
+    /// returns a copy of the current context and changes the `current_qualifier` to the given qualifier
+    fn with_qualifier(&self, qualifier: &str) -> Self {
+       let mut ctx = self.clone();
+       ctx.qualifier = Some(qualifier.into());
+       ctx
+    }
+
+    /// returns a copy of the current context and changes the `current_pou` to the given pou   
+    fn with_pou(&self, pou: &str) -> Self {
+        let mut ctx = self.clone();
+        ctx.pou = Some(pou.into());
+        ctx
+    }
+    
+    fn get_qualifier(&self) -> &Option<String> {
+        &self.qualifier
+    }
+    
+    fn get_pou(&self) -> &Option<String> {
+        &self.pou
+    }
+
+    
 }

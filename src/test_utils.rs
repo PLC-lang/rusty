@@ -18,7 +18,7 @@ pub mod tests {
         codegen::{CodegenContext, GeneratedModule},
         index::{self, Index},
         lexer,
-        lowering::AstLowerer,
+        lowering::{AstLowerer, LoweredUnits},
         parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
@@ -124,7 +124,7 @@ pub mod tests {
             TypeAnnotator::visit_unit(&full_index, &parse_result, id_provider.clone());
         full_index.import(std::mem::take(&mut annotations.new_index));
         let annotated_units = vec![(parse_result, dependencies, literals)];
-        let (annotated_units, index, annotations) = AstLowerer::lower(
+        let LoweredUnits { units: annotated_units, index, annotations } = AstLowerer::lower(
             full_index,
             annotations,
             annotated_units,
@@ -188,7 +188,7 @@ pub mod tests {
         index.import(std::mem::take(&mut annotations.new_index));
 
         let annotated_units = vec![(unit, dependencies, literals)];
-        let (annotated_units, index, annotations) = AstLowerer::lower(
+        let LoweredUnits { units: annotated_units, index, annotations } = AstLowerer::lower(
             index,
             annotations,
             annotated_units,
