@@ -14,7 +14,7 @@ use ast::{
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{FxIndexSet, Index},
-    lowering::{AstLowerer, LoweredUnits},
+    lowering::AstLowerer,
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -149,11 +149,11 @@ pub struct IndexedProject<T: SourceContainer + Sync> {
 impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, id_provider: IdProvider) -> AnnotatedProject<T> {
-        let name = self.get_project().get_init_symbol_name().to_owned();
+        // let name = self.get_project().get_init_symbol_name().to_owned();
 
         //Resolve constants
         let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
-        full_index.register_global_init_function(&name);
+        // full_index.register_global_init_function(&name);
 
         //Create and call the annotator
         let mut annotated_units = Vec::new();
@@ -209,34 +209,42 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         &self.project
     }
 
-    pub fn lower(self, mut id_provider: IdProvider) -> LoweredProject<T> {
+    pub fn lower(self, id_provider: IdProvider) -> ParsedProject<T> {
         let init_symbol_name = &self.get_project().get_init_symbol_name();
-        let LoweredUnits { units, index, annotations } = AstLowerer::lower(
+        let units = AstLowerer::lower(
             self.index,
             self.annotation_map,
             self.units,
             self.unresolvables,
-            id_provider.clone(),
+            id_provider,
             init_symbol_name,
         );
 
-        let annotations = AstAnnotations::new(annotations, id_provider.next_id());
+        ParsedProject { project: self.project, units }
+    }
 
-        LoweredProject { project: self.project, units, index, annotations }
+    pub fn finalize(self, mut id_provider: IdProvider) -> ResolvedProject<T> {
+        ResolvedProject {
+            project: self.project,
+            units: self.units,
+            index: self.index,
+            annotations: AstAnnotations::new(self.annotation_map, id_provider.next_id()),
+        }
     }
 }
 
-pub struct LoweredProject<T: SourceContainer + Sync> {
+pub struct ResolvedProject<T: SourceContainer + Sync> {
     pub project: Project<T>,
     pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
     pub index: Index,
     pub annotations: AstAnnotations,
 }
 
-impl<T: SourceContainer + Sync> LoweredProject<T> {
+impl<T: SourceContainer + Sync> ResolvedProject<T> {
     pub fn get_project(&self) -> &Project<T> {
         &self.project
     }
+
     /// Validates the project, reports any new diagnostics on the fly
     pub fn validate(
         &self,

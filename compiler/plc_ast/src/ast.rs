@@ -256,6 +256,7 @@ pub enum PouType {
     Action,
     Class,
     Method { owner_class: String },
+    Init
 }
 
 impl Display for PouType {
@@ -267,6 +268,7 @@ impl Display for PouType {
             PouType::Action => write!(f, "Action"),
             PouType::Class => write!(f, "Class"),
             PouType::Method { .. } => write!(f, "Method"),
+            PouType::Init => write!(f, "Init")
         }
     }
 }

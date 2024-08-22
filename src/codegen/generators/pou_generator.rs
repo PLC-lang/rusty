@@ -413,7 +413,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // generate local variables
-        if implementation.pou_type == PouType::Function {
+        if matches!(implementation.pou_type, PouType::Function | PouType::Init) {
             self.generate_local_function_arguments_accessors(
                 &mut local_index,
                 &implementation.type_name,
@@ -434,7 +434,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let pou_members =
                 self.index.get_pou_members(&implementation.type_name).iter().collect::<Vec<_>>();
             //if this is a function, we need to initilialize the VAR-variables
-            if matches!(implementation.pou_type, PouType::Function | PouType::Method { .. }) {
+            if matches!(implementation.pou_type, PouType::Function | PouType::Init | PouType::Method { .. }) {
                 self.generate_initialization_of_local_vars(
                     &pou_members,
                     &local_index,

@@ -196,6 +196,20 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             ));
             index.register_pou_type(datatype);
         }
+        PouType::Init => {
+            index.register_pou(PouIndexEntry::create_function_entry(
+                &pou.name,
+                return_type_name,
+                &pou.generics,
+                pou.linkage,
+                has_varargs,
+                pou.name_location.clone(),
+            ));
+            index.register_init_function(&pou.name);
+            index.register_pou_type(datatype);
+
+            // index.register_pou_type(datatype); maybe solves accessor problem in codegen?
+        }
         _ => {}
     };
 }
@@ -210,7 +224,7 @@ fn get_declaration_type_for(block: &VariableBlock, pou_type: &PouType) -> Argume
     } else if block.variable_block_type == VariableBlockType::Output {
         // outputs differ depending on pou type
         match pou_type {
-            PouType::Function => ArgumentType::ByRef(get_variable_type_from_block(block)),
+            PouType::Function | PouType::Init => ArgumentType::ByRef(get_variable_type_from_block(block)),
             _ => ArgumentType::ByVal(get_variable_type_from_block(block)),
         }
     } else {

@@ -1,7 +1,12 @@
 //! This module defines the `AstVisitorMut` trait and its associated macros.
 //! The `AstVisitorMut` trait provides a set of methods for mutably traversing and visiting ASTs
 
-use crate::ast::{flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement, CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement, HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock};
+use crate::ast::{
+    flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
+    CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement,
+    HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement,
+    ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
+};
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;
 use crate::provider::IdProvider;
@@ -78,11 +83,19 @@ pub trait AstVisitorMut: Sized {
         element.walk(self, ctxt);
     }
 
-    fn visit_data_type_declaration<T: VisitorContext>(&mut self, data_type_declaration: &mut DataTypeDeclaration, ctxt: &T) {
+    fn visit_data_type_declaration<T: VisitorContext>(
+        &mut self,
+        data_type_declaration: &mut DataTypeDeclaration,
+        ctxt: &T,
+    ) {
         data_type_declaration.walk(self, ctxt);
     }
 
-    fn visit_user_type_declaration<T: VisitorContext>(&mut self, user_type: &mut UserTypeDeclaration, ctxt: &T) {
+    fn visit_user_type_declaration<T: VisitorContext>(
+        &mut self,
+        user_type: &mut UserTypeDeclaration,
+        ctxt: &T,
+    ) {
         user_type.walk(self, ctxt);
     }
 
@@ -94,49 +107,106 @@ pub trait AstVisitorMut: Sized {
         pou.walk(self, ctxt);
     }
 
-    fn visit_empty_statement<T: VisitorContext>(&mut self, _stmt: &mut EmptyStatement, _node: &mut AstNode, _ctxt: &T) {}
+    fn visit_empty_statement<T: VisitorContext>(
+        &mut self,
+        _stmt: &mut EmptyStatement,
+        _node: &mut AstNode,
+        _ctxt: &T,
+    ) {
+    }
 
-    fn visit_default_value<T: VisitorContext>(&mut self, _stmt: &mut DefaultValue, _node: &mut AstNode, _ctxt: &T) {}
+    fn visit_default_value<T: VisitorContext>(
+        &mut self,
+        _stmt: &mut DefaultValue,
+        _node: &mut AstNode,
+        _ctxt: &T,
+    ) {
+    }
 
     fn visit_literal<T: VisitorContext>(&mut self, stmt: &mut AstLiteral, _node: &mut AstNode, ctxt: &T) {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_multiplied_statement<T: VisitorContext>(&mut self, stmt: &mut MultipliedStatement, _node: &mut AstNode, ctxt: &T) {
+    fn visit_multiplied_statement<T: VisitorContext>(
+        &mut self,
+        stmt: &mut MultipliedStatement,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_reference_expr<T: VisitorContext>(&mut self, stmt: &mut ReferenceExpr, _node: &mut AstNode, ctxt: &T) {
+    fn visit_reference_expr<T: VisitorContext>(
+        &mut self,
+        stmt: &mut ReferenceExpr,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
     fn visit_identifier<T: VisitorContext>(&mut self, _stmt: &mut str, _node: &mut AstNode, _ctxt: &T) {}
 
-    fn visit_direct_access<T: VisitorContext>(&mut self, stmt: &mut DirectAccess, _node: &mut AstNode, ctxt: &T) {
+    fn visit_direct_access<T: VisitorContext>(
+        &mut self,
+        stmt: &mut DirectAccess,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_hardware_access<T: VisitorContext>(&mut self, stmt: &mut HardwareAccess, _node: &mut AstNode, ctxt: &T) {
+    fn visit_hardware_access<T: VisitorContext>(
+        &mut self,
+        stmt: &mut HardwareAccess,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_binary_expression<T: VisitorContext>(&mut self, stmt: &mut BinaryExpression, _node: &mut AstNode, ctxt: &T) {
+    fn visit_binary_expression<T: VisitorContext>(
+        &mut self,
+        stmt: &mut BinaryExpression,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_unary_expression<T: VisitorContext>(&mut self, stmt: &mut UnaryExpression, _node: &mut AstNode, ctxt: &T) {
+    fn visit_unary_expression<T: VisitorContext>(
+        &mut self,
+        stmt: &mut UnaryExpression,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_expression_list<T: VisitorContext>(&mut self, stmt: &mut Vec<AstNode>, _node: &mut AstNode, ctxt: &T) {
+    fn visit_expression_list<T: VisitorContext>(
+        &mut self,
+        stmt: &mut Vec<AstNode>,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         visit_all_nodes_mut!(self, stmt, ctxt);
     }
 
-    fn visit_paren_expression<T: VisitorContext>(&mut self, inner: &mut AstNode, _node: &mut AstNode, ctxt: &T) {
+    fn visit_paren_expression<T: VisitorContext>(
+        &mut self,
+        inner: &mut AstNode,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         inner.walk(self, ctxt)
     }
 
-    fn visit_range_statement<T: VisitorContext>(&mut self, stmt: &mut RangeStatement, _node: &mut AstNode, ctxt: &T) {
+    fn visit_range_statement<T: VisitorContext>(
+        &mut self,
+        stmt: &mut RangeStatement,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
@@ -146,23 +216,48 @@ pub trait AstVisitorMut: Sized {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_output_assignment<T: VisitorContext>(&mut self, stmt: &mut Assignment, _node: &mut AstNode, ctxt: &T) {
+    fn visit_output_assignment<T: VisitorContext>(
+        &mut self,
+        stmt: &mut Assignment,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_ref_assignment<T: VisitorContext>(&mut self, stmt: &mut Assignment, _node: &mut AstNode, ctxt: &T) {
+    fn visit_ref_assignment<T: VisitorContext>(
+        &mut self,
+        stmt: &mut Assignment,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_call_statement<T: VisitorContext>(&mut self, stmt: &mut CallStatement, _node: &mut AstNode, ctxt: &T) {
+    fn visit_call_statement<T: VisitorContext>(
+        &mut self,
+        stmt: &mut CallStatement,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_control_statement<T: VisitorContext>(&mut self, stmt: &mut AstControlStatement, _node: &mut AstNode, ctxt: &T) {
+    fn visit_control_statement<T: VisitorContext>(
+        &mut self,
+        stmt: &mut AstControlStatement,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_case_condition<T: VisitorContext>(&mut self, child: &mut AstNode, _node: &mut AstNode, ctxt: &T) {
+    fn visit_case_condition<T: VisitorContext>(
+        &mut self,
+        child: &mut AstNode,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         child.walk(self, ctxt)
     }
 
@@ -170,11 +265,21 @@ pub trait AstVisitorMut: Sized {
 
     fn visit_continue_statement<T: VisitorContext>(&mut self, _node: &mut AstNode, _ctxt: &T) {}
 
-    fn visit_return_statement<T: VisitorContext>(&mut self, stmt: &mut ReturnStatement, _node: &mut AstNode, ctxt: &T) {
+    fn visit_return_statement<T: VisitorContext>(
+        &mut self,
+        stmt: &mut ReturnStatement,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
-    fn visit_jump_statement<T: VisitorContext>(&mut self, stmt: &mut JumpStatement, _node: &mut AstNode, ctxt: &T) {
+    fn visit_jump_statement<T: VisitorContext>(
+        &mut self,
+        stmt: &mut JumpStatement,
+        _node: &mut AstNode,
+        ctxt: &T,
+    ) {
         stmt.walk(self, ctxt)
     }
 
@@ -182,14 +287,20 @@ pub trait AstVisitorMut: Sized {
     /// # Arguments
     /// * `stmt` - The unwraped, typed `LabelStatement` node to visit.
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
-    fn visit_label_statement<T: VisitorContext>(&mut self, _stmt: &mut LabelStatement, _node: &mut AstNode, _ctxt: &T) {}
+    fn visit_label_statement<T: VisitorContext>(
+        &mut self,
+        _stmt: &mut LabelStatement,
+        _node: &mut AstNode,
+        _ctxt: &T,
+    ) {
+    }
 }
 
 /// Helper method that walks through a slice of `ConditionalBlock` and applies the visitor's `walk` method to each node.
 fn walk_conditional_blocks<V, T>(visitor: &mut V, blocks: &mut [ConditionalBlock], ctxt: &T)
 where
     V: AstVisitorMut,
-    T: VisitorContext
+    T: VisitorContext,
 {
     for b in blocks {
         visit_nodes!(visitor, ctxt, &mut b.condition);
@@ -201,7 +312,7 @@ impl WalkerMut for AstLiteral {
     fn walk<V, T>(&mut self, _visitor: &mut V, _ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         // do nothing
     }
@@ -211,7 +322,7 @@ impl WalkerMut for MultipliedStatement {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visitor.visit(&mut self.element, ctxt)
     }
@@ -221,7 +332,7 @@ impl WalkerMut for ReferenceExpr {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         if let Some(base) = &mut self.base {
             visitor.visit(base, ctxt);
@@ -240,7 +351,7 @@ impl WalkerMut for DirectAccess {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visit_nodes!(visitor, ctxt, &mut self.index);
     }
@@ -250,7 +361,7 @@ impl WalkerMut for HardwareAccess {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visit_all_nodes_mut!(visitor, &mut self.address, ctxt);
     }
@@ -260,7 +371,7 @@ impl WalkerMut for BinaryExpression {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visit_nodes!(visitor, ctxt, &mut self.left, &mut self.right);
     }
@@ -270,7 +381,7 @@ impl WalkerMut for UnaryExpression {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visit_nodes!(visitor, ctxt, &mut self.value);
     }
@@ -280,7 +391,7 @@ impl WalkerMut for Assignment {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visit_nodes!(visitor, ctxt, &mut self.left, &mut self.right);
     }
@@ -290,7 +401,7 @@ impl WalkerMut for RangeStatement {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visit_nodes!(visitor, ctxt, &mut self.start, &mut self.end);
     }
@@ -300,7 +411,7 @@ impl WalkerMut for CallStatement {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visit_nodes!(visitor, ctxt, &mut self.operator);
         if let Some(params) = &mut self.parameters {
@@ -313,7 +424,7 @@ impl WalkerMut for AstControlStatement {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         match self {
             AstControlStatement::If(stmt) => {
@@ -342,7 +453,7 @@ impl WalkerMut for ReturnStatement {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visit_all_nodes_mut!(visitor, &mut self.condition, ctxt);
     }
@@ -352,7 +463,7 @@ impl WalkerMut for JumpStatement {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visit_nodes!(visitor, ctxt, &mut self.condition, &mut self.target);
     }
@@ -362,13 +473,15 @@ impl WalkerMut for AstNode {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         match self.stmt.clone() {
             AstStatement::EmptyStatement(ref mut stmt) => visitor.visit_empty_statement(stmt, self, ctxt),
             AstStatement::DefaultValue(ref mut stmt) => visitor.visit_default_value(stmt, self, ctxt),
             AstStatement::Literal(ref mut stmt) => visitor.visit_literal(stmt, self, ctxt),
-            AstStatement::MultipliedStatement(ref mut stmt) => visitor.visit_multiplied_statement(stmt, self, ctxt),
+            AstStatement::MultipliedStatement(ref mut stmt) => {
+                visitor.visit_multiplied_statement(stmt, self, ctxt)
+            }
             AstStatement::ReferenceExpr(ref mut stmt) => visitor.visit_reference_expr(stmt, self, ctxt),
             AstStatement::Identifier(ref mut stmt) => visitor.visit_identifier(stmt, self, ctxt),
             AstStatement::DirectAccess(ref mut stmt) => visitor.visit_direct_access(stmt, self, ctxt),
@@ -398,7 +511,7 @@ impl WalkerMut for CompilationUnit {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         for block in &mut self.global_vars {
             visitor.visit_variable_block(block, ctxt);
@@ -422,7 +535,7 @@ impl WalkerMut for UserTypeDeclaration {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visitor.visit_data_type(&mut self.data_type, ctxt);
         visit_all_nodes_mut!(visitor, &mut self.initializer, ctxt);
@@ -433,7 +546,7 @@ impl WalkerMut for VariableBlock {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         for v in self.variables.iter_mut() {
             visitor.visit_variable(v, ctxt);
@@ -445,7 +558,7 @@ impl WalkerMut for Variable {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         visit_all_nodes_mut!(visitor, &mut self.address, ctxt);
         visitor.visit_data_type_declaration(&mut self.data_type_declaration, ctxt);
@@ -457,7 +570,7 @@ impl WalkerMut for DataType {
     fn walk<V, T>(&mut self, visitor: &mut V, ctxt: &T)
     where
         V: AstVisitorMut,
-        T: VisitorContext
+        T: VisitorContext,
     {
         match self {
             DataType::StructType { variables, .. } => {
@@ -499,7 +612,7 @@ impl WalkerMut for DataTypeDeclaration {
     fn walk<V, C>(&mut self, visitor: &mut V, ctxt: &C)
     where
         V: AstVisitorMut,
-        C: VisitorContext
+        C: VisitorContext,
     {
         if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = self {
             visitor.visit_data_type(data_type, ctxt);
@@ -507,12 +620,11 @@ impl WalkerMut for DataTypeDeclaration {
     }
 }
 
-impl<T: WalkerMut> WalkerMut for Option<T>
-{
+impl<T: WalkerMut> WalkerMut for Option<T> {
     fn walk<V, C>(&mut self, visitor: &mut V, ctxt: &C)
     where
         V: AstVisitorMut,
-        C: VisitorContext
+        C: VisitorContext,
     {
         if let Some(node) = self {
             node.walk(visitor, ctxt);
@@ -524,7 +636,7 @@ impl WalkerMut for Pou {
     fn walk<V, C>(&mut self, visitor: &mut V, ctxt: &C)
     where
         V: AstVisitorMut,
-        C: VisitorContext
+        C: VisitorContext,
     {
         for block in &mut self.variable_blocks {
             visitor.visit_variable_block(block, ctxt);
@@ -540,7 +652,7 @@ impl WalkerMut for Implementation {
     fn walk<V, C>(&mut self, visitor: &mut V, ctxt: &C)
     where
         V: AstVisitorMut,
-        C: VisitorContext
+        C: VisitorContext,
     {
         for n in &mut self.statements {
             visitor.visit(n, ctxt);

@@ -1,7 +1,12 @@
 //! This module defines the `AstVisitor` trait and its associated macros.
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
-use crate::ast::{flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement, CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement, HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock};
+use crate::ast::{
+    flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
+    CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement,
+    HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement,
+    ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
+};
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;
 

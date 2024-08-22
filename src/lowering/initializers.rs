@@ -1,11 +1,11 @@
 use crate::{
-    index::{const_expressions::UnresolvableKind, get_init_fn_name, visitor, FxIndexMap, FxIndexSet, Index},
-    resolver::{const_evaluator::UnresolvableConstant, TypeAnnotator},
+    index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
+    resolver::const_evaluator::UnresolvableConstant,
 };
 use plc_ast::{
     ast::{
-        pre_process, AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, Implementation, LinkageType,
-        Pou, PouType, Variable, VariableBlock, VariableBlockType,
+        AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, Implementation, LinkageType, Pou, PouType,
+        Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -110,38 +110,22 @@ impl AstLowerer {
     pub fn lower_init_functions(mut self, init_symbol_name: &str, ctxt: &LoweringContext) -> Self {
         let res = create_init_units(&self, ctxt);
 
-        if let Some((mut init_index, init_unit)) =
-            res.into_iter().reduce(|(mut acc_index, mut acc_unit), (index, unit)| {
-                acc_unit.import(unit);
-                acc_index.import(index);
-                (acc_index, acc_unit)
-            })
-        {
-            self.index.import(std::mem::take(&mut init_index));
-            let (annotation, dependencies, literals) =
-                TypeAnnotator::visit_unit(&self.index, &init_unit, ctxt.id_provider.clone());
-
-            self.units.push((init_unit, dependencies, literals));
-            self.annotation_map.import(annotation);
-
-            self.index.import(std::mem::take(&mut self.annotation_map.new_index));
+        if let Some(init_unit) = res.into_iter().reduce(|mut acc_unit, unit| {
+            acc_unit.import(unit);
+            acc_unit
+        }) {
+            self.units.push(init_unit);
         }
 
-        if let Some((mut new_index, init_unit)) = create_init_wrapper_function(&self, init_symbol_name, ctxt) {
-            self.index.import(std::mem::take(&mut new_index));
-            let (a, deps, literals) =
-                TypeAnnotator::visit_unit(&self.index, &init_unit, ctxt.id_provider.clone());
-            self.units.push((init_unit, deps, literals));
-            self.annotation_map.import(a);
+        if let Some(init_unit) = create_init_wrapper_function(&self, init_symbol_name, ctxt) {
+            self.units.push(init_unit);
         }
-
-        self.index.import(std::mem::take(&mut self.annotation_map.new_index));
 
         self
     }
 }
 
-fn create_init_units(lowerer: &AstLowerer, ctxt: &LoweringContext) -> Vec<(Index, CompilationUnit)> {
+fn create_init_units(lowerer: &AstLowerer, ctxt: &LoweringContext) -> Vec<CompilationUnit> {
     let lookup = lowerer.unresolved_initializers.keys().map(|it| it.as_str()).collect::<FxIndexSet<_>>();
     lowerer
         .unresolved_initializers
@@ -162,8 +146,8 @@ fn create_init_unit(
     container_name: &str,
     assignments: &InitAssignments,
     all_init_units: &FxIndexSet<&str>,
-    ctxt: &LoweringContext
-) -> Option<(Index, CompilationUnit)> {
+    ctxt: &LoweringContext,
+) -> Option<CompilationUnit> {
     let mut id_provider = ctxt.id_provider.clone();
     enum InitFnType {
         StatefulPou,
@@ -204,7 +188,7 @@ fn create_init_unit(
     let init_pou = Pou {
         name: init_fn_name.clone(),
         variable_blocks: param,
-        pou_type: PouType::Function,
+        pou_type: PouType::Init,
         return_type: None,
         location: location.clone(),
         name_location: location.clone(),
@@ -260,7 +244,7 @@ fn create_init_unit(
         name: init_fn_name.clone(),
         type_name: init_fn_name.clone(),
         linkage: LinkageType::Internal,
-        pou_type: PouType::Function,
+        pou_type: PouType::Init,
         statements,
         location: location.clone(),
         name_location: location.clone(),
@@ -269,7 +253,7 @@ fn create_init_unit(
         access: None,
     };
 
-    let mut new_unit = CompilationUnit {
+    let new_unit = CompilationUnit {
         global_vars: vec![],
         units: vec![init_pou],
         implementations: vec![implementation],
@@ -277,17 +261,14 @@ fn create_init_unit(
         file_name: "__initializers".into(),
     };
 
-    pre_process(&mut new_unit, id_provider.clone());
-    let mut new_index = visitor::visit(&new_unit);
-    new_index.register_init_function(container_name);
-    Some((new_index, new_unit))
+    Some(new_unit)
 }
 
 fn create_init_wrapper_function(
     lowerer: &AstLowerer,
     init_symbol_name: &str,
-    ctxt: &LoweringContext
-) -> Option<(Index, CompilationUnit)> {
+    ctxt: &LoweringContext,
+) -> Option<CompilationUnit> {
     if lowerer.unresolved_initializers.is_empty() {
         return None;
     }
@@ -296,7 +277,7 @@ fn create_init_wrapper_function(
     let init_pou = Pou {
         name: init_symbol_name.into(),
         variable_blocks: vec![],
-        pou_type: PouType::Function,
+        pou_type: PouType::Init,
         return_type: None,
         location: SourceLocation::internal(),
         name_location: SourceLocation::internal(),
@@ -351,7 +332,7 @@ fn create_init_wrapper_function(
         name: init_symbol_name.into(),
         type_name: init_symbol_name.into(),
         linkage: LinkageType::Internal,
-        pou_type: PouType::Function,
+        pou_type: PouType::Init,
         statements: globals,
         location: SourceLocation::internal(),
         name_location: SourceLocation::internal(),
@@ -360,7 +341,7 @@ fn create_init_wrapper_function(
         access: None,
     };
 
-    let mut init_unit = CompilationUnit {
+    let init_unit = CompilationUnit {
         global_vars: vec![],
         units: vec![init_pou],
         implementations: vec![implementation],
@@ -368,10 +349,7 @@ fn create_init_wrapper_function(
         file_name: init_symbol_name.into(),
     };
 
-    pre_process(&mut init_unit, id_provider.clone());
-    let new_index = visitor::visit(&init_unit);
-
-    Some((new_index, init_unit))
+    Some(init_unit)
 }
 
 fn create_member_reference(name: &str, mut id_provider: IdProvider, base: Option<AstNode>) -> AstNode {
