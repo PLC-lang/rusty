@@ -2,9 +2,9 @@
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
 use crate::ast::AstNode;
-use crate::{ast::*, visit_all_nodes};
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;
+use crate::{ast::*, visit_all_nodes};
 
 /// Macro that calls the visitor's `visit` method for every AstNode in the passed sequence of nodes.
 macro_rules! visit_nodes {
@@ -22,11 +22,9 @@ pub trait WalkerMut {
 }
 
 pub trait AstVisitorMut: Sized {
-   
     fn visit(&mut self, node: &mut AstNode) {
         node.walk(self)
     }
-
 
     fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
         unit.walk(self)
@@ -479,7 +477,9 @@ impl WalkerMut for Pou {
             visitor.visit_variable_block(block);
         }
 
-        self.return_type.as_mut().map(|rt| visitor.visit_data_type_declaration(rt));
+        if let Some(rt) = self.return_type.as_mut() {
+            visitor.visit_data_type_declaration(rt)
+        }
     }
 }
 

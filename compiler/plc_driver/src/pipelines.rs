@@ -14,7 +14,7 @@ use ast::{
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{FxIndexSet, Index},
-    lowering::AstLowerer,
+    lowering::{AstLowerer, LoweredUnits},
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -150,7 +150,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, id_provider: IdProvider) -> AnnotatedProject<T> {
         let name = self.get_project().get_init_symbol_name().to_owned();
-        
+
         //Resolve constants
         let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
         full_index.register_global_init_function(&name);
@@ -211,13 +211,13 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
 
     pub fn lower(self, mut id_provider: IdProvider) -> LoweredProject<T> {
         let init_symbol_name = &self.get_project().get_init_symbol_name();
-        let (units, index, annotations) = AstLowerer::lower(
+        let LoweredUnits { units, index, annotations } = AstLowerer::lower(
             self.index,
             self.annotation_map,
             self.units,
             self.unresolvables,
             id_provider.clone(),
-            &init_symbol_name,
+            init_symbol_name,
         );
 
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
