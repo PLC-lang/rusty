@@ -35,6 +35,7 @@ pub enum ReporterType {
 
 #[derive(Serialize)]
 pub struct BenchmarkReport {
+    #[allow(dead_code)]
     #[serde(skip_serializing)]
     pub id: u64,
     /// Host information, see [`Host`].
@@ -67,6 +68,7 @@ impl Serialize for DurationWrapper {
 
 #[derive(Serialize, Debug)]
 pub struct Host {
+    #[allow(dead_code)]
     #[serde(skip_serializing)]
     pub id: u64,
     pub os: String,

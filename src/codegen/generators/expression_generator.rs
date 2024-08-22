@@ -1087,11 +1087,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
+    // TODO: will be deleted once methods work properly (like functions)
     /// generates a new instance of a function called `function_name` and returns a PointerValue to it
     ///
     /// - `function_name` the name of the function as registered in the index
     /// - `context` the statement used to report a possible Diagnostic on
-    /// TODO: will be deleted once methods work properly (like functions)
     fn allocate_function_struct_instance(
         &self,
         function_name: &str,
