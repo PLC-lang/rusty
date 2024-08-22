@@ -10,8 +10,13 @@ use crate::literals::AstLiteral;
 #[macro_export]
 macro_rules! visit_all_nodes {
     ($visitor:expr, $iter:expr) => {
-        for node in $iter {
-            $visitor.visit(node);
+        // Note: The `allow` is needed to suppress warnings about `while let Some(...)` warnings
+        // because `visit_all_nodes!` is used for both Option and Non-Option types
+        #[allow(warnings)]
+        {
+            for node in $iter {
+                $visitor.visit(node);
+            }
         }
     };
 }
