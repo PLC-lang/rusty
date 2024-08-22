@@ -149,8 +149,11 @@ pub struct IndexedProject<T: SourceContainer + Sync> {
 impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, id_provider: IdProvider) -> AnnotatedProject<T> {
+        let name = self.get_project().get_init_symbol_name().to_owned();
+        
         //Resolve constants
         let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
+        full_index.register_global_init_function(&name);
 
         //Create and call the annotator
         let mut annotated_units = Vec::new();

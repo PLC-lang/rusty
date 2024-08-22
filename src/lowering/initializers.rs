@@ -108,8 +108,6 @@ impl<'lwr> Init<'lwr> for Initializers {
 
 impl AstLowerer {
     pub fn lower_init_functions(mut self, init_symbol_name: &str) -> Self {
-        self.index.register_global_init_function(&init_symbol_name);
-
         let res = create_init_units(&self);
 
         if let Some((mut init_index, init_unit)) =
@@ -370,6 +368,7 @@ fn create_init_wrapper_function(
 
     pre_process(&mut init_unit, id_provider.clone());
     let new_index = visitor::visit(&init_unit);
+
     Some((new_index, init_unit))
 }
 
