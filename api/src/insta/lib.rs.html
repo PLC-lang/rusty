@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../insta/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.39.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -329,6 +327,31 @@
 <a href="#327" id="327">327</a>
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! &lt;div align="center"&gt;
 //!  &lt;img src="https://github.com/mitsuhiko/insta/blob/master/assets/logo.png?raw=true" width="250" height="250"&gt;
 //!  &lt;p&gt;&lt;strong&gt;insta: a snapshot testing library for Rust&lt;/strong&gt;&lt;/p&gt;
@@ -389,6 +412,28 @@
 //! $ cargo insta review
 //! ```
 //!
+//! # Use Without `cargo-insta`
+//!
+//! Note that `cargo-insta` is entirely optional.  You can also just use insta
+//! directly from `cargo test` and control it via the `INSTA_UPDATE` environment
+//! variable.  The default is `auto` which will write all new snapshots into
+//! `.snap.new` files if no CI is detected so that `cargo-insta` can pick them
+//! up.  The following other modes are possible:
+//!
+//! - `auto`: the default. `no` for CI environments or `new` otherwise
+//! - `always`: overwrites old snapshot files with new ones unasked
+//! - `unseen`: behaves like `always` for new snapshots and `new` for others
+//! - `new`: write new snapshots into `.snap.new` files
+//! - `no`: does not update snapshot files at all (just runs tests)
+//!
+//! You can for instance first run the tests and not write and new snapshots, and
+//! if you like them run the tests again and update them:
+//!
+//! ```text
+//! INSTA_UPDATE=no cargo test
+//! INSTA_UPDATE=always cargo test
+//! ```
+//!
 //! # Assertion Macros
 //!
 //! This crate exports multiple macros for snapshot testing:
@@ -431,56 +476,55 @@
 //! # Snapshot updating
 //!
 //! During test runs snapshots will be updated according to the `INSTA_UPDATE`
-//! environment variable.  The default is `auto` which will write all new
-//! snapshots into `.snap.new` files if no CI is detected so that
-//! [`cargo-insta`](https://crates.io/crates/cargo-insta)
-//! can pick them up.  Normally you don't have to change this variable.
+//! environment variable.  The default is `auto` which will write snapshots for
+//! any failing tests into `.snap.new` files (if no CI is detected) so that
+//! [`cargo-insta`](https://crates.io/crates/cargo-insta) can pick them up for
+//! review. Normally you don't have to change this variable.
 //!
 //! `INSTA_UPDATE` modes:
 //!
 //! - `auto`: the default. `no` for CI environments or `new` otherwise
-//! - `always`: overwrites old snapshot files with new ones unasked
-//! - `unseen`: behaves like `always` for new snapshots and `new` for others
-//! - `new`: write new snapshots into `.snap.new` files
-//! - `no`: does not update snapshot files at all (just runs tests)
+//! - `new`: writes snapshots for any failing tests into `.snap.new` files,
+//!   pending review
+//! - `always`: writes snapshots for any failing tests into `.snap` files,
+//!   bypassing review
+//! - `unseen`: `always` for previously unseen snapshots or `new` for existing
+//!   snapshots
+//! - `no`: does not write to snapshot files at all; just runs tests
 //!
-//! When `new` or `auto` is used as mode the [`cargo-insta`](https://crates.io/crates/cargo-insta)
-//! command can be used to review the snapshots conveniently:
+//! When `new`, `auto` or `unseen` is used, the
+//! [`cargo-insta`](https://crates.io/crates/cargo-insta) command can be used to
+//! review the snapshots conveniently:
 //!
 //! ```text
 //! $ cargo insta review
 //! ```
 //!
-//! "enter" or "a" accepts a new snapshot, "escape" or "r" rejects,
-//! "space" or "s" skips the snapshot for now.
+//! "enter" or "a" accepts a new snapshot, "escape" or "r" rejects, "space" or
+//! "s" skips the snapshot for now.
 //!
-//! For more information [read the cargo insta docs](https://insta.rs/docs/cli/).
+//! For more information [read the cargo insta
+//! docs](https://insta.rs/docs/cli/).
 //!
 //! # Inline Snapshots
 //!
 //! Additionally snapshots can also be stored inline.  In that case the format
 //! for the snapshot macros is `assert_snapshot!(reference_value, @"snapshot")`.
 //! The leading at sign (`@`) indicates that the following string is the
-//! reference value.  `cargo-insta` will then update that string with the new
-//! value on review.
+//! reference value.  On review, `cargo-insta` will update the string with the
+//! new value.
 //!
 //! Example:
 //!
-</span><span class="attr">#![cfg_attr(feature = <span class="string">"yaml"</span>, doc = <span class="string">" ```no_run"</span>)]
-#![cfg_attr(not(feature = <span class="string">"yaml"</span>), doc = <span class="string">" ```ignore"</span>)]
-</span><span class="doccomment">//! # use insta::*; use serde::Serialize;
-//! #[derive(Serialize)]
-//! pub struct User {
-//!     username: String,
-//! }
-//!
-//! assert_yaml_snapshot!(User {
-//!     username: "john_doe".to_string(),
-//! }, @"");
+//! ```no_run
+//! # use insta::assert_snapshot;
+//! assert_snapshot!(2 + 2, @"");
 //! ```
 //!
-//! Like with normal snapshots after the initial test failure you can run
-//! `cargo insta review` to accept the change.  The file will then be updated
+//! Like with normal snapshots, an initial test failure will write the proposed
+//! value into a draft file (note that inline snapshots use `.pending-snap`
+//! files rather than `.snap.new` files). Running `cargo insta review` will
+//! review the proposed changes and update the source files on acceptance
 //! automatically.
 //!
 //! # Features
@@ -497,9 +541,9 @@
 //! * `glob`: enables support for globbing ([`glob!`])
 //! * `colors`: enables color output (enabled by default)
 //!
-//! For legacy reasons the `json` and `yaml` features are enabled by default
-//! in limited capacity.  You will receive a deprecation warning if you are
-//! not opting into them but for now the macros will continue to function.
+//! For legacy reasons the `json` and `yaml` features are enabled by default in
+//! limited capacity.  You will receive a deprecation warning if you are not
+//! opting into them but for now the macros will continue to function.
 //!
 //! Enabling any of the serde based formats enables the hidden `serde` feature
 //! which gates some serde specific APIs such as [`Settings::set_info`].
@@ -508,10 +552,10 @@
 //!
 //! `insta` tries to be light in dependencies but this is tricky to accomplish
 //! given what it tries to do.  By default it currently depends on `serde` for
-//! the [`assert_toml_snapshot!`] and [`assert_yaml_snapshot!`] macros.  In
-//! the future this default dependencies will be removed.  To already benefit
-//! from this optimization you can disable the default features and manually
-//! opt into what you want.
+//! the [`assert_toml_snapshot!`] and [`assert_yaml_snapshot!`] macros.  In the
+//! future this default dependencies will be removed.  To already benefit from
+//! this optimization you can disable the default features and manually opt into
+//! what you want.
 //!
 //! # Settings
 //!
@@ -560,10 +604,11 @@
 //!
 //! # Optional: Faster Runs
 //!
-//! Insta benefits from being compiled in release mode, even as dev dependency.  It
-//! will compile slightly slower once, but use less memory, have faster diffs and
-//! just generally be more fun to use.  To achieve that, opt `insta` and `similar`
-//! (the diffing library) into higher optimization in your `Cargo.toml`:
+//! Insta benefits from being compiled in release mode, even as dev dependency.
+//! It will compile slightly slower once, but use less memory, have faster diffs
+//! and just generally be more fun to use.  To achieve that, opt `insta` and
+//! `similar` (the diffing library) into higher optimization in your
+//! `Cargo.toml`:
 //!
 //! ```yaml
 //! [profile.dev.package.insta]
@@ -572,6 +617,9 @@
 //! [profile.dev.package.similar]
 //! opt-level = 3
 //! ```
+//!
+//! You can also disable the default features of `insta` which will cut down on
+//! the compile time a bit by removing some quality of life features.
 </span><span class="attr">#![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[macro_use]

@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/value-bag-1.7.0/src/internal/cast/primitive.rs`."><title>primitive.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="value_bag" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../value_bag/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/value-bag-1.9.0/src/internal/cast/primitive.rs`."><title>primitive.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="value_bag" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -90,6 +88,41 @@
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
 <a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
 This module generates code to try efficiently convert some arbitrary `T: 'static` into
 a `Internal`.
@@ -100,84 +133,119 @@ a `Internal`.
 
 <span class="kw">use </span><span class="kw">crate</span>::ValueBag;
 
-<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::internal) <span class="kw">fn </span>from_any&lt;<span class="lifetime">'v</span>, T: <span class="question-mark">?</span>Sized + <span class="lifetime">'static</span>&gt;(value: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>T) -&gt; <span class="prelude-ty">Option</span>&lt;ValueBag&lt;<span class="lifetime">'v</span>&gt;&gt; {
-    <span class="comment">// NOTE: The casts for unsized values (str) are dubious here. To really do this properly
-    // we need https://github.com/rust-lang/rust/issues/81513
-    // NOTE: With some kind of const `Any::is&lt;T&gt;` we could do all this at compile-time
-    // Older versions of `value-bag` did this, but the infrastructure just wasn't worth
-    // the tiny performance improvement
-    </span><span class="kw">use </span><span class="kw">crate</span>::std::any::TypeId;
+<span class="comment">// NOTE: The casts for unsized values (str) are dubious here. To really do this properly
+// we need https://github.com/rust-lang/rust/issues/81513
+// NOTE: With some kind of const `Any::is&lt;T&gt;` we could do all this at compile-time
+// Older versions of `value-bag` did this, but the infrastructure just wasn't worth
+// the tiny performance improvement
+</span><span class="kw">use </span><span class="kw">crate</span>::std::any::TypeId;
 
-    <span class="kw">enum </span>Void {}
+<span class="kw">enum </span>Void {}
 
-    <span class="attr">#[repr(transparent)]
-    </span><span class="kw">struct </span>VoidRef&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">*const &amp;</span><span class="lifetime">'a </span>Void);
+<span class="attr">#[repr(transparent)]
+</span><span class="kw">struct </span>VoidRef&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">*const &amp;</span><span class="lifetime">'a </span>Void);
 
-    <span class="macro">macro_rules! </span>type_ids {
-        ($(
-            $(<span class="attr">#[cfg($(<span class="macro-nonterminal">$cfg</span>:tt)<span class="kw-2">*</span>)]</span>)*
-                <span class="macro-nonterminal">$ty</span>:ty,
-            )<span class="kw-2">*</span>) =&gt; {
-            |v: VoidRef&lt;<span class="lifetime">'_</span>&gt;| {
-                <span class="kw">if </span>TypeId::of::&lt;T&gt;() == TypeId::of::&lt;str&gt;() {
-                    <span class="comment">// SAFETY: We verify the value is str before casting
-                        </span><span class="kw">let </span>v = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(v.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const &amp;</span><span class="lifetime">'_ </span>str) };
+<span class="macro">macro_rules!</span> check_type_ids {
+    (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$l</span>:lifetime <span class="macro-nonterminal">$v</span>:ident =&gt; $(
+        $(<span class="attr">#[cfg($(<span class="macro-nonterminal">$cfg</span>:tt)<span class="kw-2">*</span>)]</span>)*
+            <span class="macro-nonterminal">$ty</span>:ty,
+        )*
+    ) =&gt; {
+        $(
+            $(<span class="attr">#[cfg($(<span class="macro-nonterminal">$cfg</span>)<span class="kw-2">*</span>)]</span>)*
+            <span class="kw">if </span>TypeId::of::&lt;T&gt;() == TypeId::of::&lt;<span class="macro-nonterminal">$ty</span>&gt;() {
+                <span class="comment">// SAFETY: We verify the value is $ty before casting
+                </span><span class="kw">let </span>v = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<span class="macro-nonterminal">$v</span>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span>&amp; <span class="macro-nonterminal">$l $ty</span>) };
 
+                <span class="kw">return </span><span class="prelude-val">Some</span>(ValueBag::from(v));
+            }
+        )*
+        $(
+            $(<span class="attr">#[cfg($(<span class="macro-nonterminal">$cfg</span>)<span class="kw-2">*</span>)]</span>)*
+            <span class="kw">if </span>TypeId::of::&lt;T&gt;() == TypeId::of::&lt;<span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$ty</span>&gt;&gt;() {
+                <span class="comment">// SAFETY: We verify the value is Option&lt;$ty&gt; before casting
+                </span><span class="kw">let </span>v = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(<span class="macro-nonterminal">$v</span>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span>&amp; <span class="macro-nonterminal">$l </span><span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$ty</span>&gt;) };
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = v {
                     <span class="kw">return </span><span class="prelude-val">Some</span>(ValueBag::from(v));
+                } <span class="kw">else </span>{
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(ValueBag::empty());
                 }
+            }
+        )*
+    };
+}
 
-                    $(
-                        $(<span class="attr">#[cfg($(<span class="macro-nonterminal">$cfg</span>)<span class="kw-2">*</span>)]</span>)*
-                        <span class="kw">if </span>TypeId::of::&lt;T&gt;() == TypeId::of::&lt;<span class="macro-nonterminal">$ty</span>&gt;() {
-                            <span class="comment">// SAFETY: We verify the value is $ty before casting
-                            </span><span class="kw">let </span>v = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(v.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const &amp;</span><span class="lifetime">'_ </span><span class="macro-nonterminal">$ty</span>) };
+<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::internal) <span class="kw">fn </span>from_any&lt;<span class="lifetime">'v</span>, T: <span class="question-mark">?</span>Sized + <span class="lifetime">'static</span>&gt;(value: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>T) -&gt; <span class="prelude-ty">Option</span>&lt;ValueBag&lt;<span class="lifetime">'v</span>&gt;&gt; {
+    <span class="kw">let </span>type_ids = |v: VoidRef&lt;<span class="lifetime">'v</span>&gt;| {
+        <span class="kw">if </span>TypeId::of::&lt;T&gt;() == TypeId::of::&lt;str&gt;() {
+            <span class="comment">// SAFETY: We verify the value is str before casting
+            </span><span class="kw">let </span>v = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(v.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const &amp;</span><span class="lifetime">'v </span>str) };
 
-                            <span class="kw">return </span><span class="prelude-val">Some</span>(ValueBag::from(v));
-                        }
-                    )*
-                    $(
-                        $(<span class="attr">#[cfg($(<span class="macro-nonterminal">$cfg</span>)<span class="kw-2">*</span>)]</span>)*
-                        <span class="kw">if </span>TypeId::of::&lt;T&gt;() == TypeId::of::&lt;<span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$ty</span>&gt;&gt;() {
-                            <span class="comment">// SAFETY: We verify the value is Option&lt;$ty&gt; before casting
-                            </span><span class="kw">let </span>v = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>(v.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const &amp;</span><span class="lifetime">'_ </span><span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$ty</span>&gt;) };
+            <span class="kw">return </span><span class="prelude-val">Some</span>(ValueBag::from(v));
+        }
 
-                            <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = v {
-                                <span class="kw">return </span><span class="prelude-val">Some</span>(ValueBag::from(v));
-                            } <span class="kw">else </span>{
-                                <span class="kw">return </span><span class="prelude-val">Some</span>(ValueBag::empty());
-                            }
-                        }
-                    )*
+        <span class="macro">check_type_ids!</span>(
+            <span class="kw-2">&amp;</span><span class="lifetime">'v </span>v =&gt;
+                usize,
+                u8,
+                u16,
+                u32,
+                u64,
+                u128,
+                isize,
+                i8,
+                i16,
+                i32,
+                i64,
+                i128,
+                f32,
+                f64,
+                char,
+                bool,
+                <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+                <span class="comment">// We deal with `str` separately because it's unsized
+                // str,
+                </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+                </span>String,
+        );
 
-                    <span class="prelude-val">None
-            </span>}
-        };
-    }
-
-    <span class="kw">let </span>type_ids = <span class="macro">type_ids!</span>[
-        usize,
-        u8,
-        u16,
-        u32,
-        u64,
-        u128,
-        isize,
-        i8,
-        i16,
-        i32,
-        i64,
-        i128,
-        f32,
-        f64,
-        char,
-        bool,
-        <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
-        <span class="comment">// We deal with `str` separately because it's unsized
-        // str,
-        </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
-        </span>String,
-    ];
+        <span class="prelude-val">None
+    </span>};
 
     (type_ids)(VoidRef(<span class="kw-2">&amp;</span>(value) <span class="kw">as </span><span class="kw-2">*const &amp;</span><span class="lifetime">'v </span>T <span class="kw">as </span><span class="kw-2">*const &amp;</span><span class="lifetime">'v </span>Void))
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"owned"</span>)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::internal) <span class="kw">fn </span>from_owned_any&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized + <span class="lifetime">'static</span>&gt;(
+    value: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T,
+) -&gt; <span class="prelude-ty">Option</span>&lt;ValueBag&lt;<span class="lifetime">'static</span>&gt;&gt; {
+    <span class="kw">let </span>type_ids = |v: VoidRef&lt;<span class="lifetime">'a</span>&gt;| {
+        <span class="macro">check_type_ids!</span>(
+            <span class="kw-2">&amp;</span><span class="lifetime">'a </span>v =&gt;
+                usize,
+                u8,
+                u16,
+                u32,
+                u64,
+                <span class="attr">#[cfg(feature = <span class="string">"inline-i128"</span>)]
+                </span>u128,
+                isize,
+                i8,
+                i16,
+                i32,
+                i64,
+                <span class="attr">#[cfg(feature = <span class="string">"inline-i128"</span>)]
+                </span>i128,
+                f32,
+                f64,
+                char,
+                bool,
+        );
+
+        <span class="prelude-val">None
+    </span>};
+
+    (type_ids)(VoidRef(<span class="kw-2">&amp;</span>(value) <span class="kw">as </span><span class="kw-2">*const &amp;</span><span class="lifetime">'a </span>T <span class="kw">as </span><span class="kw-2">*const &amp;</span><span class="lifetime">'a </span>Void))
 }
 </code></pre></div></section></main></body></html>

@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.35/src/format/parsed.rs`."><title>parsed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../chrono/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.38/src/format/parsed.rs`."><title>parsed.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1866,6 +1864,8 @@
 <a href="#1864" id="1864">1864</a>
 <a href="#1865" id="1865">1865</a>
 <a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
 </pre></div><pre class="rust"><code><span class="comment">// This is a part of Chrono.
 // See README.md and LICENSE.txt for details.
 
@@ -1874,7 +1874,7 @@
 
 </span><span class="kw">use super</span>::{ParseResult, IMPOSSIBLE, NOT_ENOUGH, OUT_OF_RANGE};
 <span class="kw">use </span><span class="kw">crate</span>::naive::{NaiveDate, NaiveDateTime, NaiveTime};
-<span class="kw">use </span><span class="kw">crate</span>::offset::{FixedOffset, LocalResult, Offset, TimeZone};
+<span class="kw">use </span><span class="kw">crate</span>::offset::{FixedOffset, MappedLocalTime, Offset, TimeZone};
 <span class="kw">use crate</span>::{DateTime, Datelike, TimeDelta, Timelike, Weekday};
 
 <span class="doccomment">/// A type to hold parsed fields of date and time that can check all fields are consistent.
@@ -1925,9 +1925,9 @@
 ///
 /// Let's see how `Parsed` correctly detects the second RFC 2822 string from before is inconsistent.
 ///
-</span><span class="attr">#[cfg_attr(not(feature = <span class="string">"alloc"</span>), doc = <span class="string">"```ignore"</span>)]
-#[cfg_attr(feature = <span class="string">"alloc"</span>, doc = <span class="string">"```rust"</span>)]
-</span><span class="doccomment">/// use chrono::format::{ParseErrorKind, Parsed};
+/// ```
+/// # #[cfg(feature = "alloc")] {
+/// use chrono::format::{ParseErrorKind, Parsed};
 /// use chrono::Weekday;
 ///
 /// let mut parsed = Parsed::new();
@@ -1957,6 +1957,7 @@
 /// if let Err(error) = result {
 ///     assert_eq!(error.kind(), ParseErrorKind::Impossible);
 /// }
+/// # }
 /// # Ok::&lt;(), chrono::ParseError&gt;(())
 /// ```
 ///
@@ -1966,9 +1967,9 @@
 /// [RFC2822 formatting item]: crate::format::Fixed::RFC2822
 /// [`format::parse()`]: crate::format::parse()
 ///
-</span><span class="attr">#[cfg_attr(not(feature = <span class="string">"alloc"</span>), doc = <span class="string">"```ignore"</span>)]
-#[cfg_attr(feature = <span class="string">"alloc"</span>, doc = <span class="string">"```rust"</span>)]
-</span><span class="doccomment">/// use chrono::format::{parse, Fixed, Item, Parsed};
+/// ```
+/// # #[cfg(feature = "alloc")] {
+/// use chrono::format::{parse, Fixed, Item, Parsed};
 /// use chrono::Weekday;
 ///
 /// let rfc_2822 = [Item::Fixed(Fixed::RFC2822)];
@@ -1988,6 +1989,7 @@
 ///     // What is the weekday?
 ///     assert_eq!(parsed.weekday(), Some(Weekday::Thu));
 /// }
+/// # }
 /// # Ok::&lt;(), chrono::ParseError&gt;(())
 /// ```
 </span><span class="attr">#[allow(clippy::manual_non_exhaustive)]
@@ -2756,9 +2758,9 @@
         <span class="kw">let </span>offset = FixedOffset::east_opt(offset).ok_or(OUT_OF_RANGE)<span class="question-mark">?</span>;
 
         <span class="kw">match </span>offset.from_local_datetime(<span class="kw-2">&amp;</span>datetime) {
-            LocalResult::None =&gt; <span class="prelude-val">Err</span>(IMPOSSIBLE),
-            LocalResult::Single(t) =&gt; <span class="prelude-val">Ok</span>(t),
-            LocalResult::Ambiguous(..) =&gt; <span class="prelude-val">Err</span>(NOT_ENOUGH),
+            MappedLocalTime::None =&gt; <span class="prelude-val">Err</span>(IMPOSSIBLE),
+            MappedLocalTime::Single(t) =&gt; <span class="prelude-val">Ok</span>(t),
+            MappedLocalTime::Ambiguous(..) =&gt; <span class="prelude-val">Err</span>(NOT_ENOUGH),
         }
     }
 
@@ -2812,15 +2814,15 @@
         // it will be 0 otherwise, but this is fine as the algorithm ignores offset for that case.
         </span><span class="kw">let </span>datetime = <span class="self">self</span>.to_naive_datetime_with_offset(guessed_offset)<span class="question-mark">?</span>;
         <span class="kw">match </span>tz.from_local_datetime(<span class="kw-2">&amp;</span>datetime) {
-            LocalResult::None =&gt; <span class="prelude-val">Err</span>(IMPOSSIBLE),
-            LocalResult::Single(t) =&gt; {
+            MappedLocalTime::None =&gt; <span class="prelude-val">Err</span>(IMPOSSIBLE),
+            MappedLocalTime::Single(t) =&gt; {
                 <span class="kw">if </span>check_offset(<span class="kw-2">&amp;</span>t) {
                     <span class="prelude-val">Ok</span>(t)
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Err</span>(IMPOSSIBLE)
                 }
             }
-            LocalResult::Ambiguous(min, max) =&gt; {
+            MappedLocalTime::Ambiguous(min, max) =&gt; {
                 <span class="comment">// try to disambiguate two possible local dates by offset.
                 </span><span class="kw">match </span>(check_offset(<span class="kw-2">&amp;</span>min), check_offset(<span class="kw-2">&amp;</span>max)) {
                     (<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Err</span>(IMPOSSIBLE),
@@ -3018,9 +3020,9 @@
 
     <span class="kw">let </span>first_day_of_year = NaiveDate::from_yo_opt(year, <span class="number">1</span>).ok_or(OUT_OF_RANGE)<span class="question-mark">?</span>;
     <span class="comment">// Ordinal of the day at which week 1 starts.
-    </span><span class="kw">let </span>first_week_start = <span class="number">1 </span>+ week_start_day.num_days_from(first_day_of_year.weekday()) <span class="kw">as </span>i32;
+    </span><span class="kw">let </span>first_week_start = <span class="number">1 </span>+ week_start_day.days_since(first_day_of_year.weekday()) <span class="kw">as </span>i32;
     <span class="comment">// Number of the `weekday`, which is 0 for the first day of the week.
-    </span><span class="kw">let </span>weekday = weekday.num_days_from(week_start_day) <span class="kw">as </span>i32;
+    </span><span class="kw">let </span>weekday = weekday.days_since(week_start_day) <span class="kw">as </span>i32;
     <span class="kw">let </span>ordinal = first_week_start + (week <span class="kw">as </span>i32 - <span class="number">1</span>) * <span class="number">7 </span>+ weekday;
     <span class="kw">if </span>ordinal &lt;= <span class="number">0 </span>{
         <span class="kw">return </span><span class="prelude-val">Err</span>(IMPOSSIBLE);
@@ -3206,7 +3208,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsed_to_naive_date() {
-        <span class="macro">macro_rules! </span>parse {
+        <span class="macro">macro_rules!</span> parse {
             ($(<span class="macro-nonterminal">$k</span>:ident: <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>) =&gt; (
                 Parsed { $(<span class="macro-nonterminal">$k</span>: <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$v</span>),)* ..Parsed::new() }.to_naive_date()
             )
@@ -3393,7 +3395,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsed_to_naive_time() {
-        <span class="macro">macro_rules! </span>parse {
+        <span class="macro">macro_rules!</span> parse {
             ($(<span class="macro-nonterminal">$k</span>:ident: <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>) =&gt; (
                 Parsed { $(<span class="macro-nonterminal">$k</span>: <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$v</span>),)* ..Parsed::new() }.to_naive_time()
             )
@@ -3448,7 +3450,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsed_to_naive_datetime_with_offset() {
-        <span class="macro">macro_rules! </span>parse {
+        <span class="macro">macro_rules!</span> parse {
             (offset = <span class="macro-nonterminal">$offset</span>:expr; $(<span class="macro-nonterminal">$k</span>:ident: <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>) =&gt; (
                 Parsed { $(<span class="macro-nonterminal">$k</span>: <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$v</span>),)* ..Parsed::new() }.to_naive_datetime_with_offset(<span class="macro-nonterminal">$offset</span>)
             );
@@ -3602,7 +3604,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsed_to_datetime() {
-        <span class="macro">macro_rules! </span>parse {
+        <span class="macro">macro_rules!</span> parse {
             ($(<span class="macro-nonterminal">$k</span>:ident: <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>) =&gt; (
                 Parsed { $(<span class="macro-nonterminal">$k</span>: <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$v</span>),)* ..Parsed::new() }.to_datetime()
             )
@@ -3650,7 +3652,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsed_to_datetime_with_timezone() {
-        <span class="macro">macro_rules! </span>parse {
+        <span class="macro">macro_rules!</span> parse {
             (<span class="macro-nonterminal">$tz</span>:expr; $(<span class="macro-nonterminal">$k</span>:ident: <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>) =&gt; (
                 Parsed { $(<span class="macro-nonterminal">$k</span>: <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$v</span>),)* ..Parsed::new() }.to_datetime_with_timezone(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$tz</span>)
             )

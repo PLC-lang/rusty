@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.3.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_io/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.3.4/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2239,6 +2237,11 @@
 <a href="#2237" id="2237">2237</a>
 <a href="#2238" id="2238">2238</a>
 <a href="#2239" id="2239">2239</a>
+<a href="#2240" id="2240">2240</a>
+<a href="#2241" id="2241">2241</a>
+<a href="#2242" id="2242">2242</a>
+<a href="#2243" id="2243">2243</a>
+<a href="#2244" id="2244">2244</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Async I/O and timers.
 //!
 //! This crate provides two tools:
@@ -4341,6 +4344,7 @@
     </span>)))]
     </span><span class="kw">let </span>socket = {
         <span class="attr">#[cfg(not(any(
+            target_os = <span class="string">"aix"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"ios"</span>,
             target_os = <span class="string">"tvos"</span>,
@@ -4350,6 +4354,7 @@
         )))]
         </span><span class="kw">let </span>flags = rn::SocketFlags::CLOEXEC;
         <span class="attr">#[cfg(any(
+            target_os = <span class="string">"aix"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"ios"</span>,
             target_os = <span class="string">"tvos"</span>,
@@ -4364,6 +4369,7 @@
 
         <span class="comment">// Set cloexec if necessary.
         </span><span class="attr">#[cfg(any(
+            target_os = <span class="string">"aix"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"ios"</span>,
             target_os = <span class="string">"tvos"</span>,
@@ -4383,8 +4389,10 @@
         target_os = <span class="string">"ios"</span>,
         target_os = <span class="string">"tvos"</span>,
         target_os = <span class="string">"watchos"</span>,
-        target_os = <span class="string">"freebsd"
-    </span>))]
+        target_os = <span class="string">"freebsd"</span>,
+        target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"dragonfly"</span>,
+    ))]
     </span>rn::sockopt::set_socket_nosigpipe(<span class="kw-2">&amp;</span>socket, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// Set the handle information to HANDLE_FLAG_INHERIT.
@@ -4430,7 +4438,7 @@
     <span class="attr">#[cfg(unix)] </span>fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;,
     <span class="attr">#[cfg(windows)] </span>fd: BorrowedSocket&lt;<span class="lifetime">'_</span>&gt;,
 ) -&gt; io::Result&lt;()&gt; {
-    <span class="macro">cfg_if::cfg_if! </span>{
+    <span class="macro">cfg_if::cfg_if!</span> {
         <span class="comment">// ioctl(FIONBIO) sets the flag atomically, but we use this only on Linux
         // for now, as with the standard library, because it seems to behave
         // differently depending on the platform.

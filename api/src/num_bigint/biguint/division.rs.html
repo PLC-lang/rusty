@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.4/src/biguint/division.rs`."><title>division.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../num_bigint/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.6/src/biguint/division.rs`."><title>division.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -652,9 +650,59 @@
 <a href="#650" id="650">650</a>
 <a href="#651" id="651">651</a>
 <a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::addition::__add2;
-<span class="attr">#[cfg(not(u64_digit))]
-</span><span class="kw">use </span><span class="kw">super</span>::u32_to_u128;
 <span class="kw">use super</span>::{cmp_slice, BigUint};
 
 <span class="kw">use </span><span class="kw">crate</span>::big_digit::{<span class="self">self</span>, BigDigit, DoubleBigDigit};
@@ -666,19 +714,63 @@
 <span class="kw">use </span>num_integer::Integer;
 <span class="kw">use </span>num_traits::{CheckedDiv, CheckedEuclid, Euclid, One, ToPrimitive, Zero};
 
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const </span>FAST_DIV_WIDE: bool = <span class="macro">cfg!</span>(any(target_arch = <span class="string">"x86"</span>, target_arch = <span class="string">"x86_64"</span>));
+
 <span class="doccomment">/// Divide a two digit numerator by a one digit divisor, returns quotient and remainder:
 ///
 /// Note: the caller must ensure that both the quotient and remainder will fit into a single digit.
 /// This is _not_ true for an arbitrary numerator/denominator.
 ///
 /// (This function also matches what the x86 divide instruction does).
-</span><span class="attr">#[inline]
+</span><span class="attr">#[cfg(any(miri, not(any(target_arch = <span class="string">"x86"</span>, target_arch = <span class="string">"x86_64"</span>))))]
+#[inline]
 </span><span class="kw">fn </span>div_wide(hi: BigDigit, lo: BigDigit, divisor: BigDigit) -&gt; (BigDigit, BigDigit) {
     <span class="macro">debug_assert!</span>(hi &lt; divisor);
 
     <span class="kw">let </span>lhs = big_digit::to_doublebigdigit(hi, lo);
     <span class="kw">let </span>rhs = DoubleBigDigit::from(divisor);
     ((lhs / rhs) <span class="kw">as </span>BigDigit, (lhs % rhs) <span class="kw">as </span>BigDigit)
+}
+
+<span class="doccomment">/// x86 and x86_64 can use a real `div` instruction.
+</span><span class="attr">#[cfg(all(not(miri), any(target_arch = <span class="string">"x86"</span>, target_arch = <span class="string">"x86_64"</span>)))]
+#[inline]
+</span><span class="kw">fn </span>div_wide(hi: BigDigit, lo: BigDigit, divisor: BigDigit) -&gt; (BigDigit, BigDigit) {
+    <span class="comment">// This debug assertion covers the potential #DE for divisor==0 or a quotient too large for one
+    // register, otherwise in release mode it will become a target-specific fault like SIGFPE.
+    // This should never occur with the inputs from our few `div_wide` callers.
+    </span><span class="macro">debug_assert!</span>(hi &lt; divisor);
+
+    <span class="comment">// SAFETY: The `div` instruction only affects registers, reading the explicit operand as the
+    // divisor, and implicitly reading RDX:RAX or EDX:EAX as the dividend. The result is implicitly
+    // written back to RAX or EAX for the quotient and RDX or EDX for the remainder. No memory is
+    // used, and flags are not preserved.
+    </span><span class="kw">unsafe </span>{
+        <span class="kw">let </span>(div, rem);
+
+        <span class="macro">cfg_digit!</span>(
+            <span class="macro">macro_rules!</span> div {
+                () =&gt; {
+                    <span class="string">"div {0:e}"
+                </span>};
+            }
+            <span class="macro">macro_rules!</span> div {
+                () =&gt; {
+                    <span class="string">"div {0:r}"
+                </span>};
+            }
+        );
+
+        <span class="macro">core::arch::asm!</span>(
+            <span class="macro">div!</span>(),
+            <span class="kw">in</span>(reg) divisor,
+            inout(<span class="string">"dx"</span>) hi =&gt; rem,
+            inout(<span class="string">"ax"</span>) lo =&gt; div,
+            options(pure, nomem, nostack),
+        );
+
+        (div, rem)
+    }
 }
 
 <span class="doccomment">/// For small divisors, we can divide without promoting to `DoubleBigDigit` by
@@ -701,7 +793,7 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>rem = <span class="number">0</span>;
 
-    <span class="kw">if </span>b &lt;= big_digit::HALF {
+    <span class="kw">if </span>!FAST_DIV_WIDE &amp;&amp; b &lt;= big_digit::HALF {
         <span class="kw">for </span>d <span class="kw">in </span>a.data.iter_mut().rev() {
             <span class="kw">let </span>(q, r) = div_half(rem, <span class="kw-2">*</span>d, b);
             <span class="kw-2">*</span>d = q;
@@ -726,7 +818,7 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>rem = <span class="number">0</span>;
 
-    <span class="kw">if </span>b &lt;= big_digit::HALF {
+    <span class="kw">if </span>!FAST_DIV_WIDE &amp;&amp; b &lt;= big_digit::HALF {
         <span class="kw">for </span><span class="kw-2">&amp;</span>digit <span class="kw">in </span>a.data.iter().rev() {
             <span class="kw">let </span>(<span class="kw">_</span>, r) = div_half(rem, digit, b);
             rem = r;
@@ -775,12 +867,12 @@
         <span class="macro">panic!</span>(<span class="string">"attempt to divide by zero"</span>)
     }
     <span class="kw">if </span>u.is_zero() {
-        <span class="kw">return </span>(Zero::zero(), Zero::zero());
+        <span class="kw">return </span>(BigUint::ZERO, BigUint::ZERO);
     }
 
     <span class="kw">if </span>d.data.len() == <span class="number">1 </span>{
         <span class="kw">if </span>d.data == [<span class="number">1</span>] {
-            <span class="kw">return </span>(u, Zero::zero());
+            <span class="kw">return </span>(u, BigUint::ZERO);
         }
         <span class="kw">let </span>(div, rem) = div_rem_digit(u, d.data[<span class="number">0</span>]);
         <span class="comment">// reuse d
@@ -791,10 +883,10 @@
 
     <span class="comment">// Required or the q_len calculation below can underflow:
     </span><span class="kw">match </span>u.cmp(<span class="kw-2">&amp;</span>d) {
-        Less =&gt; <span class="kw">return </span>(Zero::zero(), u),
+        Less =&gt; <span class="kw">return </span>(BigUint::ZERO, u),
         Equal =&gt; {
             u.set_one();
-            <span class="kw">return </span>(u, Zero::zero());
+            <span class="kw">return </span>(u, BigUint::ZERO);
         }
         Greater =&gt; {} <span class="comment">// Do nothing
     </span>}
@@ -822,12 +914,12 @@
         <span class="macro">panic!</span>(<span class="string">"attempt to divide by zero"</span>)
     }
     <span class="kw">if </span>u.is_zero() {
-        <span class="kw">return </span>(Zero::zero(), Zero::zero());
+        <span class="kw">return </span>(BigUint::ZERO, BigUint::ZERO);
     }
 
     <span class="kw">if </span>d.data.len() == <span class="number">1 </span>{
         <span class="kw">if </span>d.data == [<span class="number">1</span>] {
-            <span class="kw">return </span>(u.clone(), Zero::zero());
+            <span class="kw">return </span>(u.clone(), BigUint::ZERO);
         }
 
         <span class="kw">let </span>(div, rem) = div_rem_digit(u.clone(), d.data[<span class="number">0</span>]);
@@ -836,8 +928,8 @@
 
     <span class="comment">// Required or the q_len calculation below can underflow:
     </span><span class="kw">match </span>u.cmp(d) {
-        Less =&gt; <span class="kw">return </span>(Zero::zero(), u.clone()),
-        Equal =&gt; <span class="kw">return </span>(One::one(), Zero::zero()),
+        Less =&gt; <span class="kw">return </span>(BigUint::ZERO, u.clone()),
+        Equal =&gt; <span class="kw">return </span>(One::one(), BigUint::ZERO),
         Greater =&gt; {} <span class="comment">// Do nothing
     </span>}
 
@@ -886,7 +978,7 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>a0 = <span class="number">0</span>;
 
     <span class="comment">// [b1, b0] are the two most significant digits of the divisor. They never change.
-    </span><span class="kw">let </span>b0 = <span class="kw-2">*</span>b.last().unwrap();
+    </span><span class="kw">let </span>b0 = b[b.len() - <span class="number">1</span>];
     <span class="kw">let </span>b1 = b[b.len() - <span class="number">2</span>];
 
     <span class="kw">let </span>q_len = a.data.len() - b.len() + <span class="number">1</span>;
@@ -1014,7 +1106,7 @@
         <span class="kw">match </span>other.data.len() {
             <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">"attempt to divide by zero"</span>),
             <span class="number">1 </span>=&gt; From::from(<span class="self">self </span><span class="kw">as </span>BigDigit / other.data[<span class="number">0</span>]),
-            <span class="kw">_ </span>=&gt; Zero::zero(),
+            <span class="kw">_ </span>=&gt; BigUint::ZERO,
         }
     }
 }
@@ -1032,7 +1124,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>div_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: u64) {
         <span class="comment">// a vec of size 0 does not allocate, so this is fairly cheap
-        </span><span class="kw">let </span>temp = mem::replace(<span class="self">self</span>, Zero::zero());
+        </span><span class="kw">let </span>temp = mem::replace(<span class="self">self</span>, <span class="self">Self</span>::ZERO);
         <span class="kw-2">*</span><span class="self">self </span>= temp / other;
     }
 }
@@ -1040,26 +1132,26 @@
 <span class="kw">impl </span>Div&lt;BigUint&gt; <span class="kw">for </span>u64 {
     <span class="kw">type </span>Output = BigUint;
 
-    <span class="attr">#[cfg(not(u64_digit))]
-    #[inline]
-    </span><span class="kw">fn </span>div(<span class="self">self</span>, other: BigUint) -&gt; BigUint {
-        <span class="kw">match </span>other.data.len() {
-            <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">"attempt to divide by zero"</span>),
-            <span class="number">1 </span>=&gt; From::from(<span class="self">self </span>/ u64::from(other.data[<span class="number">0</span>])),
-            <span class="number">2 </span>=&gt; From::from(<span class="self">self </span>/ big_digit::to_doublebigdigit(other.data[<span class="number">1</span>], other.data[<span class="number">0</span>])),
-            <span class="kw">_ </span>=&gt; Zero::zero(),
+    <span class="macro">cfg_digit!</span>(
+        <span class="attr">#[inline]
+        </span><span class="kw">fn </span>div(<span class="self">self</span>, other: BigUint) -&gt; BigUint {
+            <span class="kw">match </span>other.data.len() {
+                <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">"attempt to divide by zero"</span>),
+                <span class="number">1 </span>=&gt; From::from(<span class="self">self </span>/ u64::from(other.data[<span class="number">0</span>])),
+                <span class="number">2 </span>=&gt; From::from(<span class="self">self </span>/ big_digit::to_doublebigdigit(other.data[<span class="number">1</span>], other.data[<span class="number">0</span>])),
+                <span class="kw">_ </span>=&gt; BigUint::ZERO,
+            }
         }
-    }
 
-    <span class="attr">#[cfg(u64_digit)]
-    #[inline]
-    </span><span class="kw">fn </span>div(<span class="self">self</span>, other: BigUint) -&gt; BigUint {
-        <span class="kw">match </span>other.data.len() {
-            <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">"attempt to divide by zero"</span>),
-            <span class="number">1 </span>=&gt; From::from(<span class="self">self </span>/ other.data[<span class="number">0</span>]),
-            <span class="kw">_ </span>=&gt; Zero::zero(),
+        <span class="attr">#[inline]
+        </span><span class="kw">fn </span>div(<span class="self">self</span>, other: BigUint) -&gt; BigUint {
+            <span class="kw">match </span>other.data.len() {
+                <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">"attempt to divide by zero"</span>),
+                <span class="number">1 </span>=&gt; From::from(<span class="self">self </span>/ other.data[<span class="number">0</span>]),
+                <span class="kw">_ </span>=&gt; BigUint::ZERO,
+            }
         }
-    }
+    );
 }
 
 <span class="kw">impl </span>Div&lt;u128&gt; <span class="kw">for </span>BigUint {
@@ -1082,33 +1174,34 @@
 <span class="kw">impl </span>Div&lt;BigUint&gt; <span class="kw">for </span>u128 {
     <span class="kw">type </span>Output = BigUint;
 
-    <span class="attr">#[cfg(not(u64_digit))]
-    #[inline]
-    </span><span class="kw">fn </span>div(<span class="self">self</span>, other: BigUint) -&gt; BigUint {
-        <span class="kw">match </span>other.data.len() {
-            <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">"attempt to divide by zero"</span>),
-            <span class="number">1 </span>=&gt; From::from(<span class="self">self </span>/ u128::from(other.data[<span class="number">0</span>])),
-            <span class="number">2 </span>=&gt; From::from(
-                <span class="self">self </span>/ u128::from(big_digit::to_doublebigdigit(other.data[<span class="number">1</span>], other.data[<span class="number">0</span>])),
-            ),
-            <span class="number">3 </span>=&gt; From::from(<span class="self">self </span>/ u32_to_u128(<span class="number">0</span>, other.data[<span class="number">2</span>], other.data[<span class="number">1</span>], other.data[<span class="number">0</span>])),
-            <span class="number">4 </span>=&gt; From::from(
-                <span class="self">self </span>/ u32_to_u128(other.data[<span class="number">3</span>], other.data[<span class="number">2</span>], other.data[<span class="number">1</span>], other.data[<span class="number">0</span>]),
-            ),
-            <span class="kw">_ </span>=&gt; Zero::zero(),
+    <span class="macro">cfg_digit!</span>(
+        <span class="attr">#[inline]
+        </span><span class="kw">fn </span>div(<span class="self">self</span>, other: BigUint) -&gt; BigUint {
+            <span class="kw">use </span><span class="kw">super</span>::u32_to_u128;
+            <span class="kw">match </span>other.data.len() {
+                <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">"attempt to divide by zero"</span>),
+                <span class="number">1 </span>=&gt; From::from(<span class="self">self </span>/ u128::from(other.data[<span class="number">0</span>])),
+                <span class="number">2 </span>=&gt; From::from(
+                    <span class="self">self </span>/ u128::from(big_digit::to_doublebigdigit(other.data[<span class="number">1</span>], other.data[<span class="number">0</span>])),
+                ),
+                <span class="number">3 </span>=&gt; From::from(<span class="self">self </span>/ u32_to_u128(<span class="number">0</span>, other.data[<span class="number">2</span>], other.data[<span class="number">1</span>], other.data[<span class="number">0</span>])),
+                <span class="number">4 </span>=&gt; From::from(
+                    <span class="self">self </span>/ u32_to_u128(other.data[<span class="number">3</span>], other.data[<span class="number">2</span>], other.data[<span class="number">1</span>], other.data[<span class="number">0</span>]),
+                ),
+                <span class="kw">_ </span>=&gt; BigUint::ZERO,
+            }
         }
-    }
 
-    <span class="attr">#[cfg(u64_digit)]
-    #[inline]
-    </span><span class="kw">fn </span>div(<span class="self">self</span>, other: BigUint) -&gt; BigUint {
-        <span class="kw">match </span>other.data.len() {
-            <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">"attempt to divide by zero"</span>),
-            <span class="number">1 </span>=&gt; From::from(<span class="self">self </span>/ other.data[<span class="number">0</span>] <span class="kw">as </span>u128),
-            <span class="number">2 </span>=&gt; From::from(<span class="self">self </span>/ big_digit::to_doublebigdigit(other.data[<span class="number">1</span>], other.data[<span class="number">0</span>])),
-            <span class="kw">_ </span>=&gt; Zero::zero(),
+        <span class="attr">#[inline]
+        </span><span class="kw">fn </span>div(<span class="self">self</span>, other: BigUint) -&gt; BigUint {
+            <span class="kw">match </span>other.data.len() {
+                <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">"attempt to divide by zero"</span>),
+                <span class="number">1 </span>=&gt; From::from(<span class="self">self </span>/ other.data[<span class="number">0</span>] <span class="kw">as </span>u128),
+                <span class="number">2 </span>=&gt; From::from(<span class="self">self </span>/ big_digit::to_doublebigdigit(other.data[<span class="number">1</span>], other.data[<span class="number">0</span>])),
+                <span class="kw">_ </span>=&gt; BigUint::ZERO,
+            }
         }
-    }
+    );
 }
 
 <span class="macro">forward_val_ref_binop!</span>(<span class="kw">impl </span>Rem <span class="kw">for </span>BigUint, rem);
@@ -1180,7 +1273,7 @@
     }
 }
 
-<span class="macro">macro_rules! </span>impl_rem_assign_scalar {
+<span class="macro">macro_rules!</span> impl_rem_assign_scalar {
     (<span class="macro-nonterminal">$scalar</span>:ty, <span class="macro-nonterminal">$to_scalar</span>:ident) =&gt; {
         <span class="macro">forward_val_assign_scalar!</span>(<span class="kw">impl </span>RemAssign <span class="kw">for </span>BigUint, <span class="macro-nonterminal">$scalar</span>, rem_assign);
         <span class="kw">impl </span>RemAssign&lt;<span class="kw-2">&amp;</span>BigUint&gt; <span class="kw">for </span><span class="macro-nonterminal">$scalar </span>{
@@ -1289,6 +1382,10 @@
         }
         <span class="prelude-val">Some</span>(<span class="self">self</span>.rem_euclid(v))
     }
+
+    <span class="kw">fn </span>checked_div_rem_euclid(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="self">Self</span>, <span class="self">Self</span>)&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.div_rem_euclid(v))
+    }
 }
 
 <span class="kw">impl </span>Euclid <span class="kw">for </span>BigUint {
@@ -1302,6 +1399,11 @@
     </span><span class="kw">fn </span>rem_euclid(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>BigUint) -&gt; BigUint {
         <span class="comment">// trivially same as regular remainder
         </span><span class="self">self </span>% v
+    }
+
+    <span class="kw">fn </span>div_rem_euclid(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>) {
+        <span class="comment">// trivially same as regular division and remainder
+        </span><span class="self">self</span>.div_rem(v)
     }
 }
 </code></pre></div></section></main></body></html>

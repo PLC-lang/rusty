@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.3.0/src/barrier.rs`."><title>barrier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_lock/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.4.0/src/barrier.rs`."><title>barrier.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -286,6 +284,10 @@
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>event_listener::{Event, EventListener};
 <span class="kw">use </span>event_listener_strategy::{easy_wrapper, EventListenerFuture, Strategy};
 
@@ -311,28 +313,31 @@
 }
 
 <span class="kw">impl </span>Barrier {
-    <span class="doccomment">/// Creates a barrier that can block the given number of tasks.
-    ///
-    /// A barrier will block `n`-1 tasks which call [`wait()`] and then wake up all tasks
-    /// at once when the `n`th task calls [`wait()`].
-    ///
-    /// [`wait()`]: `Barrier::wait()`
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use async_lock::Barrier;
-    ///
-    /// let barrier = Barrier::new(5);
-    /// ```
-    </span><span class="kw">pub const fn </span>new(n: usize) -&gt; Barrier {
-        Barrier {
-            n,
-            state: Mutex::new(State {
-                count: <span class="number">0</span>,
-                generation_id: <span class="number">0</span>,
-            }),
-            event: Event::new(),
+    <span class="macro">const_fn!</span> {
+        const_if: <span class="attr">#[cfg(not(loom))]</span>;
+        <span class="doccomment">/// Creates a barrier that can block the given number of tasks.
+        ///
+        /// A barrier will block `n`-1 tasks which call [`wait()`] and then wake up all tasks
+        /// at once when the `n`th task calls [`wait()`].
+        ///
+        /// [`wait()`]: `Barrier::wait()`
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use async_lock::Barrier;
+        ///
+        /// let barrier = Barrier::new(5);
+        /// ```
+        </span><span class="kw">pub const fn </span>new(n: usize) -&gt; Barrier {
+            Barrier {
+                n,
+                state: Mutex::new(State {
+                    count: <span class="number">0</span>,
+                    generation_id: <span class="number">0</span>,
+                }),
+                event: Event::new(),
+            }
         }
     }
 
@@ -370,7 +375,7 @@
         BarrierWait::_new(BarrierWaitInner {
             barrier: <span class="self">self</span>,
             lock: <span class="prelude-val">Some</span>(<span class="self">self</span>.state.lock()),
-            evl: EventListener::new(),
+            evl: <span class="prelude-val">None</span>,
             state: WaitState::Initial,
         })
     }
@@ -411,6 +416,8 @@
     ///         println!("after wait");
     ///     });
     /// }
+    /// # // Wait for threads to stop.
+    /// # std::thread::sleep(std::time::Duration::from_secs(1));
     /// ```
     </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub fn </span>wait_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BarrierWaitResult {
@@ -418,14 +425,14 @@
     }
 }
 
-<span class="macro">easy_wrapper! </span>{
+<span class="macro">easy_wrapper!</span> {
     <span class="doccomment">/// The future returned by [`Barrier::wait()`].
     </span><span class="kw">pub struct </span>BarrierWait&lt;<span class="lifetime">'a</span>&gt;(BarrierWaitInner&lt;<span class="lifetime">'a</span>&gt; =&gt; BarrierWaitResult);
     <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
-<span class="macro">pin_project_lite::pin_project! </span>{
+<span class="macro">pin_project_lite::pin_project!</span> {
     <span class="doccomment">/// The future returned by [`Barrier::wait()`].
     </span><span class="kw">struct </span>BarrierWaitInner&lt;<span class="lifetime">'a</span>&gt; {
         <span class="comment">// The barrier to wait on.
@@ -436,8 +443,7 @@
         </span>lock: <span class="prelude-ty">Option</span>&lt;Lock&lt;<span class="lifetime">'a</span>, State&gt;&gt;,
 
         <span class="comment">// An event listener for the `barrier.event` event.
-        </span><span class="attr">#[pin]
-        </span>evl: EventListener,
+        </span>evl: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
 
         <span class="comment">// The current state of the future.
         </span>state: WaitState,
@@ -488,7 +494,7 @@
 
                     <span class="kw">if </span>state.count &lt; this.barrier.n {
                         <span class="comment">// We need to wait for the event.
-                        </span>this.evl.as_mut().listen(<span class="kw-2">&amp;</span>this.barrier.event);
+                        </span><span class="kw-2">*</span>this.evl = <span class="prelude-val">Some</span>(this.barrier.event.listen());
                         <span class="kw-2">*</span>this.state = WaitState::Waiting { local_gen };
                     } <span class="kw">else </span>{
                         <span class="comment">// We are the last one.
@@ -500,7 +506,7 @@
                 }
 
                 WaitState::Waiting { local_gen } =&gt; {
-                    <span class="macro">ready!</span>(strategy.poll(this.evl.as_mut(), cx));
+                    <span class="macro">ready!</span>(strategy.poll(this.evl, cx));
 
                     <span class="comment">// We are now re-acquiring the mutex.
                     </span>this.lock.as_mut().set(<span class="prelude-val">Some</span>(this.barrier.state.lock()));
@@ -521,7 +527,7 @@
 
                     <span class="kw">if </span><span class="kw-2">*</span>local_gen == state.generation_id &amp;&amp; state.count &lt; this.barrier.n {
                         <span class="comment">// We need to wait for the event again.
-                        </span>this.evl.as_mut().listen(<span class="kw-2">&amp;</span>this.barrier.event);
+                        </span><span class="kw-2">*</span>this.evl = <span class="prelude-val">Some</span>(this.barrier.event.listen());
                         <span class="kw-2">*</span>this.state = WaitState::Waiting {
                             local_gen: <span class="kw-2">*</span>local_gen,
                         };

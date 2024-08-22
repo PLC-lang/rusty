@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/html5ever-0.26.0/src/tokenizer/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="html5ever" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../html5ever/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/html5ever-0.27.0/src/tokenizer/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="html5ever" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1713,6 +1711,55 @@
 <a href="#1711" id="1711">1711</a>
 <a href="#1712" id="1712">1712</a>
 <a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
+<a href="#1716" id="1716">1716</a>
+<a href="#1717" id="1717">1717</a>
+<a href="#1718" id="1718">1718</a>
+<a href="#1719" id="1719">1719</a>
+<a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
+<a href="#1724" id="1724">1724</a>
+<a href="#1725" id="1725">1725</a>
+<a href="#1726" id="1726">1726</a>
+<a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
+<a href="#1735" id="1735">1735</a>
+<a href="#1736" id="1736">1736</a>
+<a href="#1737" id="1737">1737</a>
+<a href="#1738" id="1738">1738</a>
+<a href="#1739" id="1739">1739</a>
+<a href="#1740" id="1740">1740</a>
+<a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
+<a href="#1745" id="1745">1745</a>
+<a href="#1746" id="1746">1746</a>
+<a href="#1747" id="1747">1747</a>
+<a href="#1748" id="1748">1748</a>
+<a href="#1749" id="1749">1749</a>
+<a href="#1750" id="1750">1750</a>
+<a href="#1751" id="1751">1751</a>
+<a href="#1752" id="1752">1752</a>
+<a href="#1753" id="1753">1753</a>
+<a href="#1754" id="1754">1754</a>
+<a href="#1755" id="1755">1755</a>
+<a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2014-2017 The html5ever Project Developers. See the
 // COPYRIGHT file at the top-level directory of this distribution.
 //
@@ -1739,12 +1786,11 @@
 <span class="kw">use </span><span class="kw">crate</span>::util::str::lower_ascii_letter;
 
 <span class="kw">use </span>log::{debug, trace};
-<span class="kw">use </span>mac::{_tt_as_expr_hack, format_if, matches};
+<span class="kw">use </span>mac::format_if;
 <span class="kw">use </span>markup5ever::{namespace_url, ns, small_char_set};
 <span class="kw">use </span>std::borrow::Cow::{<span class="self">self</span>, Borrowed};
 <span class="kw">use </span>std::collections::BTreeMap;
-<span class="kw">use </span>std::default::Default;
-<span class="kw">use </span>std::mem::replace;
+<span class="kw">use </span>std::mem;
 
 <span class="kw">pub use </span><span class="kw">crate</span>::buffer_queue::{BufferQueue, FromSet, NotFromSet, SetResult};
 <span class="kw">use </span><span class="kw">crate</span>::tendril::StrTendril;
@@ -1761,6 +1807,7 @@
 }
 
 <span class="attr">#[must_use]
+#[derive(Debug)]
 </span><span class="kw">pub enum </span>TokenizerResult&lt;Handle&gt; {
     Done,
     Script(Handle),
@@ -1911,7 +1958,7 @@
             current_attr_name: StrTendril::new(),
             current_attr_value: StrTendril::new(),
             current_comment: StrTendril::new(),
-            current_doctype: Doctype::new(),
+            current_doctype: Doctype::default(),
             last_start_tag_name: start_tag_name,
             temp_buf: StrTendril::new(),
             state_profile: BTreeMap::new(),
@@ -1980,8 +2027,8 @@
             <span class="self">self</span>.current_line += <span class="number">1</span>;
         }
 
-        <span class="kw">if </span><span class="self">self</span>.opts.exact_errors &amp;&amp;
-            <span class="kw">match </span>c <span class="kw">as </span>u32 {
+        <span class="kw">if </span><span class="self">self</span>.opts.exact_errors
+            &amp;&amp; <span class="kw">match </span>c <span class="kw">as </span>u32 {
                 <span class="number">0x01</span>..=<span class="number">0x08 </span>| <span class="number">0x0B </span>| <span class="number">0x0E</span>..=<span class="number">0x1F </span>| <span class="number">0x7F</span>..=<span class="number">0x9F </span>| <span class="number">0xFDD0</span>..=<span class="number">0xFDEF </span>=&gt; <span class="bool-val">true</span>,
                 n <span class="kw">if </span>(n &amp; <span class="number">0xFFFE</span>) == <span class="number">0xFFFE </span>=&gt; <span class="bool-val">true</span>,
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
@@ -2033,21 +2080,25 @@
     <span class="comment">// Check if the next characters are an ASCII case-insensitive match.  See
     // BufferQueue::eat.
     //
-    // NB: this doesn't do input stream preprocessing or set the current input
-    // character.
+    // NB: this doesn't set the current input character.
     </span><span class="kw">fn </span>eat(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;mut </span>BufferQueue,
         pat: <span class="kw-2">&amp;</span>str,
         eq: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>u8, <span class="kw-2">&amp;</span>u8) -&gt; bool,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
-        input.push_front(replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.temp_buf, StrTendril::new()));
+        <span class="kw">if </span><span class="self">self</span>.ignore_lf {
+            <span class="self">self</span>.ignore_lf = <span class="bool-val">false</span>;
+            <span class="kw">if </span><span class="self">self</span>.peek(input) == <span class="prelude-val">Some</span>(<span class="string">'\n'</span>) {
+                <span class="self">self</span>.discard_char(input);
+            }
+        }
+
+        input.push_front(mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.temp_buf));
         <span class="kw">match </span>input.eat(pat, eq) {
             <span class="prelude-val">None </span><span class="kw">if </span><span class="self">self</span>.at_eof =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">while let </span><span class="prelude-val">Some</span>(c) = input.next() {
-                    <span class="self">self</span>.temp_buf.push_char(c);
-                }
+                <span class="self">self</span>.temp_buf.extend(input);
                 <span class="prelude-val">None
             </span>},
             <span class="prelude-val">Some</span>(matched) =&gt; <span class="prelude-val">Some</span>(matched),
@@ -2148,7 +2199,7 @@
             kind: <span class="self">self</span>.current_tag_kind,
             name,
             self_closing: <span class="self">self</span>.current_tag_self_closing,
-            attrs: replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_tag_attrs, <span class="macro">vec!</span>[]),
+            attrs: std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_tag_attrs),
         });
 
         <span class="kw">match </span><span class="self">self</span>.process_token(token) {
@@ -2170,7 +2221,7 @@
 
     <span class="kw">fn </span>emit_temp_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// FIXME: Make sure that clearing on emit is spec-compatible.
-        </span><span class="kw">let </span>buf = replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.temp_buf, StrTendril::new());
+        </span><span class="kw">let </span>buf = mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.temp_buf);
         <span class="self">self</span>.emit_chars(buf);
     }
 
@@ -2180,7 +2231,7 @@
     }
 
     <span class="kw">fn </span>emit_current_comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>comment = replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_comment, StrTendril::new());
+        <span class="kw">let </span>comment = mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_comment);
         <span class="self">self</span>.process_token_and_continue(CommentToken(comment));
     }
 
@@ -2216,7 +2267,6 @@
 
         <span class="comment">// Check for a duplicate attribute.
         // FIXME: the spec says we should error as soon as the name is finished.
-        // FIXME: linear time search, do we care?
         </span><span class="kw">let </span>dup = {
             <span class="kw">let </span>name = <span class="kw-2">&amp;*</span><span class="self">self</span>.current_attr_name;
             <span class="self">self</span>.current_tag_attrs
@@ -2235,13 +2285,13 @@
                 <span class="comment">// The tree builder will adjust the namespace if necessary.
                 // This only happens in foreign elements.
                 </span>name: QualName::new(<span class="prelude-val">None</span>, <span class="macro">ns!</span>(), name),
-                value: replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_attr_value, StrTendril::new()),
+                value: mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_attr_value),
             });
         }
     }
 
     <span class="kw">fn </span>emit_current_doctype(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>doctype = replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_doctype, Doctype::new());
+        <span class="kw">let </span>doctype = mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_doctype);
         <span class="self">self</span>.process_token_and_continue(DoctypeToken(doctype));
     }
 
@@ -2260,10 +2310,11 @@
         }
     }
 
-    <span class="kw">fn </span>consume_char_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>, addnl_allowed: <span class="prelude-ty">Option</span>&lt;char&gt;) {
-        <span class="comment">// NB: The char ref tokenizer assumes we have an additional allowed
-        // character iff we're tokenizing in an attribute value.
-        </span><span class="self">self</span>.char_ref_tokenizer = <span class="prelude-val">Some</span>(Box::new(CharRefTokenizer::new(addnl_allowed)));
+    <span class="kw">fn </span>consume_char_ref(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.char_ref_tokenizer = <span class="prelude-val">Some</span>(Box::new(CharRefTokenizer::new(<span class="macro">matches!</span>(
+            <span class="self">self</span>.state,
+            states::AttributeValue(<span class="kw">_</span>)
+        ))));
     }
 
     <span class="kw">fn </span>emit_eof(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -2279,7 +2330,16 @@
     }
 
     <span class="kw">fn </span>discard_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;mut </span>BufferQueue) {
-        <span class="self">self</span>.get_char(input);
+        <span class="comment">// peek() deals in un-processed characters (no newline normalization), while get_char()
+        // does.
+        //
+        // since discard_char is supposed to be used in combination with peek(), discard_char must
+        // discard a single raw input character, not a normalized newline.
+        </span><span class="kw">if </span><span class="self">self</span>.reconsume {
+            <span class="self">self</span>.reconsume = <span class="bool-val">false</span>;
+        } <span class="kw">else </span>{
+            input.next();
+        }
     }
 
     <span class="kw">fn </span>emit_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, error: Cow&lt;<span class="lifetime">'static</span>, str&gt;) {
@@ -2289,7 +2349,7 @@
 <span class="comment">//§ END
 
 // Shorthand for common state machine behaviors.
-</span><span class="macro">macro_rules! </span>shorthand (
+</span><span class="macro">macro_rules!</span> shorthand (
     ( <span class="macro-nonterminal">$me</span>:ident : emit <span class="macro-nonterminal">$c</span>:expr                     ) =&gt; ( <span class="macro-nonterminal">$me</span>.emit_char(<span class="macro-nonterminal">$c</span>)                                   );
     ( <span class="macro-nonterminal">$me</span>:ident : create_tag <span class="macro-nonterminal">$kind</span>:ident <span class="macro-nonterminal">$c</span>:expr   ) =&gt; ( <span class="macro-nonterminal">$me</span>.create_tag(<span class="macro-nonterminal">$kind</span>, <span class="macro-nonterminal">$c</span>)                           );
     ( <span class="macro-nonterminal">$me</span>:ident : push_tag <span class="macro-nonterminal">$c</span>:expr                 ) =&gt; ( <span class="macro-nonterminal">$me</span>.current_tag_name.push_char(<span class="macro-nonterminal">$c</span>)                  );
@@ -2306,7 +2366,7 @@
     ( <span class="macro-nonterminal">$me</span>:ident : append_comment <span class="macro-nonterminal">$c</span>:expr           ) =&gt; ( <span class="macro-nonterminal">$me</span>.current_comment.push_slice(<span class="macro-nonterminal">$c</span>)                  );
     ( <span class="macro-nonterminal">$me</span>:ident : emit_comment                     ) =&gt; ( <span class="macro-nonterminal">$me</span>.emit_current_comment()                          );
     ( <span class="macro-nonterminal">$me</span>:ident : clear_comment                    ) =&gt; ( <span class="macro-nonterminal">$me</span>.current_comment.clear()                         );
-    ( <span class="macro-nonterminal">$me</span>:ident : create_doctype                   ) =&gt; ( <span class="macro-nonterminal">$me</span>.current_doctype = Doctype::new()                );
+    ( <span class="macro-nonterminal">$me</span>:ident : create_doctype                   ) =&gt; ( <span class="macro-nonterminal">$me</span>.current_doctype = Doctype::default()            );
     ( <span class="macro-nonterminal">$me</span>:ident : push_doctype_name <span class="macro-nonterminal">$c</span>:expr        ) =&gt; ( option_push(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$me</span>.current_doctype.name, <span class="macro-nonterminal">$c</span>)      );
     ( <span class="macro-nonterminal">$me</span>:ident : push_doctype_id <span class="macro-nonterminal">$k</span>:ident <span class="macro-nonterminal">$c</span>:expr ) =&gt; ( option_push(<span class="macro-nonterminal">$me</span>.doctype_id(<span class="macro-nonterminal">$k</span>), <span class="macro-nonterminal">$c</span>)                 );
     ( <span class="macro-nonterminal">$me</span>:ident : clear_doctype_id <span class="macro-nonterminal">$k</span>:ident        ) =&gt; ( <span class="macro-nonterminal">$me</span>.clear_doctype_id(<span class="macro-nonterminal">$k</span>)                            );
@@ -2319,16 +2379,16 @@
 <span class="comment">// Tracing of tokenizer actions.  This adds significant bloat and compile time,
 // so it's behind a cfg flag.
 </span><span class="attr">#[cfg(trace_tokenizer)]
-</span><span class="macro">macro_rules! </span>sh_trace ( ( <span class="macro-nonterminal">$me</span>:ident : $(<span class="macro-nonterminal">$cmds</span>:tt)* ) =&gt; ({
+</span><span class="macro">macro_rules!</span> sh_trace ( ( <span class="macro-nonterminal">$me</span>:ident : $(<span class="macro-nonterminal">$cmds</span>:tt)* ) =&gt; ({
     <span class="macro">trace!</span>(<span class="string">"  {:s}"</span>, <span class="macro">stringify!</span>($(<span class="macro-nonterminal">$cmds</span>)<span class="kw-2">*</span>));
     <span class="macro">shorthand!</span>(<span class="macro-nonterminal">$me</span>:expr : $(<span class="macro-nonterminal">$cmds</span>)<span class="kw-2">*</span>);
 }));
 
 <span class="attr">#[cfg(not(trace_tokenizer))]
-</span><span class="macro">macro_rules! </span>sh_trace ( ( <span class="macro-nonterminal">$me</span>:ident : $(<span class="macro-nonterminal">$cmds</span>:tt)* ) =&gt; ( <span class="macro">shorthand!</span>(<span class="macro-nonterminal">$me</span>: $(<span class="macro-nonterminal">$cmds</span>)<span class="kw-2">*</span>) ) );
+</span><span class="macro">macro_rules!</span> sh_trace ( ( <span class="macro-nonterminal">$me</span>:ident : $(<span class="macro-nonterminal">$cmds</span>:tt)* ) =&gt; ( <span class="macro">shorthand!</span>(<span class="macro-nonterminal">$me</span>: $(<span class="macro-nonterminal">$cmds</span>)<span class="kw-2">*</span>) ) );
 
 <span class="comment">// A little DSL for sequencing shorthand actions.
-</span><span class="macro">macro_rules! </span>go (
+</span><span class="macro">macro_rules!</span> go (
     <span class="comment">// A pattern like $($cmd:tt)* ; $($rest:tt)* causes parse ambiguity.
     // We have to tell the parser how much lookahead we need.
 
@@ -2347,8 +2407,7 @@
     ( <span class="macro-nonterminal">$me</span>:ident : reconsume <span class="macro-nonterminal">$s</span>:ident <span class="macro-nonterminal">$k1</span>:expr           ) =&gt; ({ <span class="macro-nonterminal">$me</span>.reconsume = <span class="bool-val">true</span>; <span class="macro">go!</span>(<span class="macro-nonterminal">$me</span>: to <span class="macro-nonterminal">$s $k1</span>);     });
     ( <span class="macro-nonterminal">$me</span>:ident : reconsume <span class="macro-nonterminal">$s</span>:ident <span class="macro-nonterminal">$k1</span>:ident <span class="macro-nonterminal">$k2</span>:expr ) =&gt; ({ <span class="macro-nonterminal">$me</span>.reconsume = <span class="bool-val">true</span>; <span class="macro">go!</span>(<span class="macro-nonterminal">$me</span>: to <span class="macro-nonterminal">$s $k1 $k2</span>); });
 
-    ( <span class="macro-nonterminal">$me</span>:ident : consume_char_ref             ) =&gt; ({ <span class="macro-nonterminal">$me</span>.consume_char_ref(<span class="prelude-val">None</span>); <span class="kw">return </span>ProcessResult::Continue;         });
-    ( <span class="macro-nonterminal">$me</span>:ident : consume_char_ref <span class="macro-nonterminal">$addnl</span>:expr ) =&gt; ({ <span class="macro-nonterminal">$me</span>.consume_char_ref(<span class="prelude-val">Some</span>(<span class="macro-nonterminal">$addnl</span>)); <span class="kw">return </span>ProcessResult::Continue; });
+    ( <span class="macro-nonterminal">$me</span>:ident : consume_char_ref             ) =&gt; ({ <span class="macro-nonterminal">$me</span>.consume_char_ref(); <span class="kw">return </span>ProcessResult::Continue;         });
 
     <span class="comment">// We have a default next state after emitting a tag, but the sink can override.
     </span>( <span class="macro-nonterminal">$me</span>:ident : emit_tag <span class="macro-nonterminal">$s</span>:ident ) =&gt; ({
@@ -2365,7 +2424,7 @@
     </span>( <span class="macro-nonterminal">$me</span>:ident : ) =&gt; (());
 );
 
-<span class="macro">macro_rules! </span>go_match ( ( <span class="macro-nonterminal">$me</span>:ident : <span class="macro-nonterminal">$x</span>:expr, $(<span class="macro-nonterminal">$pats</span>:pat),+ =&gt; $(<span class="macro-nonterminal">$cmds</span>:tt)* ) =&gt; (
+<span class="macro">macro_rules!</span> go_match ( ( <span class="macro-nonterminal">$me</span>:ident : <span class="macro-nonterminal">$x</span>:expr, $(<span class="macro-nonterminal">$pats</span>:pat),+ =&gt; $(<span class="macro-nonterminal">$cmds</span>:tt)* ) =&gt; (
     <span class="kw">match </span><span class="macro-nonterminal">$x </span>{
         $(<span class="macro-nonterminal">$pats</span>)|+ =&gt; <span class="macro">go!</span>(<span class="macro-nonterminal">$me</span>: $(<span class="macro-nonterminal">$cmds</span>)<span class="kw-2">*</span>),
         <span class="kw">_ </span>=&gt; (),
@@ -2374,23 +2433,23 @@
 
 <span class="comment">// This is a macro because it can cause early return
 // from the function where it is used.
-</span><span class="macro">macro_rules! </span>get_char ( (<span class="macro-nonterminal">$me</span>:expr, <span class="macro-nonterminal">$input</span>:expr) =&gt; (
+</span><span class="macro">macro_rules!</span> get_char ( (<span class="macro-nonterminal">$me</span>:expr, <span class="macro-nonterminal">$input</span>:expr) =&gt; (
     <span class="macro">unwrap_or_return!</span>(<span class="macro-nonterminal">$me</span>.get_char(<span class="macro-nonterminal">$input</span>), ProcessResult::Suspend)
 ));
 
-<span class="macro">macro_rules! </span>peek ( (<span class="macro-nonterminal">$me</span>:expr, <span class="macro-nonterminal">$input</span>:expr) =&gt; (
+<span class="macro">macro_rules!</span> peek ( (<span class="macro-nonterminal">$me</span>:expr, <span class="macro-nonterminal">$input</span>:expr) =&gt; (
     <span class="macro">unwrap_or_return!</span>(<span class="macro-nonterminal">$me</span>.peek(<span class="macro-nonterminal">$input</span>), ProcessResult::Suspend)
 ));
 
-<span class="macro">macro_rules! </span>pop_except_from ( (<span class="macro-nonterminal">$me</span>:expr, <span class="macro-nonterminal">$input</span>:expr, <span class="macro-nonterminal">$set</span>:expr) =&gt; (
+<span class="macro">macro_rules!</span> pop_except_from ( (<span class="macro-nonterminal">$me</span>:expr, <span class="macro-nonterminal">$input</span>:expr, <span class="macro-nonterminal">$set</span>:expr) =&gt; (
     <span class="macro">unwrap_or_return!</span>(<span class="macro-nonterminal">$me</span>.pop_except_from(<span class="macro-nonterminal">$input</span>, <span class="macro-nonterminal">$set</span>), ProcessResult::Suspend)
 ));
 
-<span class="macro">macro_rules! </span>eat ( (<span class="macro-nonterminal">$me</span>:expr, <span class="macro-nonterminal">$input</span>:expr, <span class="macro-nonterminal">$pat</span>:expr) =&gt; (
+<span class="macro">macro_rules!</span> eat ( (<span class="macro-nonterminal">$me</span>:expr, <span class="macro-nonterminal">$input</span>:expr, <span class="macro-nonterminal">$pat</span>:expr) =&gt; (
     <span class="macro">unwrap_or_return!</span>(<span class="macro-nonterminal">$me</span>.eat(<span class="macro-nonterminal">$input</span>, <span class="macro-nonterminal">$pat</span>, u8::eq_ignore_ascii_case), ProcessResult::Suspend)
 ));
 
-<span class="macro">macro_rules! </span>eat_exact ( (<span class="macro-nonterminal">$me</span>:expr, <span class="macro-nonterminal">$input</span>:expr, <span class="macro-nonterminal">$pat</span>:expr) =&gt; (
+<span class="macro">macro_rules!</span> eat_exact ( (<span class="macro-nonterminal">$me</span>:expr, <span class="macro-nonterminal">$input</span>:expr, <span class="macro-nonterminal">$pat</span>:expr) =&gt; (
     <span class="macro">unwrap_or_return!</span>(<span class="macro-nonterminal">$me</span>.eat(<span class="macro-nonterminal">$input</span>, <span class="macro-nonterminal">$pat</span>, u8::eq), ProcessResult::Suspend)
 ));
 
@@ -2484,9 +2543,9 @@
             <span class="comment">//§ tag-open-state
             </span>states::TagOpen =&gt; <span class="kw">loop </span>{
                 <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
-                    <span class="string">'!' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: clear_temp; to MarkupDeclarationOpen),
+                    <span class="string">'!' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: to MarkupDeclarationOpen),
                     <span class="string">'/' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: to EndTagOpen),
-                    <span class="string">'?' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; clear_comment; push_comment <span class="string">'?'</span>; to BogusComment),
+                    <span class="string">'?' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; clear_comment; reconsume BogusComment),
                     c =&gt; <span class="kw">match </span>lower_ascii_letter(c) {
                         <span class="prelude-val">Some</span>(cl) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: create_tag StartTag cl; to TagName),
                         <span class="prelude-val">None </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; emit <span class="string">'&lt;'</span>; reconsume Data),
@@ -2498,12 +2557,9 @@
             </span>states::EndTagOpen =&gt; <span class="kw">loop </span>{
                 <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
                     <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; to Data),
-                    <span class="string">'\0' </span>=&gt; {
-                        <span class="macro">go!</span>(<span class="self">self</span>: error; clear_comment; push_comment <span class="string">'\u{fffd}'</span>; to BogusComment)
-                    },
                     c =&gt; <span class="kw">match </span>lower_ascii_letter(c) {
                         <span class="prelude-val">Some</span>(cl) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: create_tag EndTag cl; to TagName),
-                        <span class="prelude-val">None </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; clear_comment; push_comment c; to BogusComment),
+                        <span class="prelude-val">None </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; clear_comment; reconsume BogusComment),
                     },
                 }
             },
@@ -2565,9 +2621,9 @@
                 <span class="kw">let </span>c = <span class="macro">get_char!</span>(<span class="self">self</span>, input);
                 <span class="kw">if </span><span class="self">self</span>.have_appropriate_end_tag() {
                     <span class="kw">match </span>c {
-                        <span class="string">'\t' </span>| <span class="string">'\n' </span>| <span class="string">'\x0C' </span>| <span class="string">' ' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: to BeforeAttributeName),
-                        <span class="string">'/' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: to SelfClosingStartTag),
-                        <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: emit_tag Data),
+                        <span class="string">'\t' </span>| <span class="string">'\n' </span>| <span class="string">'\x0C' </span>| <span class="string">' ' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: clear_temp; to BeforeAttributeName),
+                        <span class="string">'/' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: clear_temp; to SelfClosingStartTag),
+                        <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: clear_temp; emit_tag Data),
                         <span class="kw">_ </span>=&gt; (),
                     }
                 }
@@ -2729,9 +2785,6 @@
                     <span class="string">'\t' </span>| <span class="string">'\n' </span>| <span class="string">'\r' </span>| <span class="string">'\x0C' </span>| <span class="string">' ' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: discard_char input),
                     <span class="string">'"' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: discard_char input; to AttributeValue DoubleQuoted),
                     <span class="string">'\'' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: discard_char input; to AttributeValue SingleQuoted),
-                    <span class="string">'\0' </span>=&gt; {
-                        <span class="macro">go!</span>(<span class="self">self</span>: discard_char input; error; push_value <span class="string">'\u{fffd}'</span>; to AttributeValue Unquoted)
-                    },
                     <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: discard_char input; error; emit_tag Data),
                     <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: to AttributeValue Unquoted),
                 }
@@ -2741,7 +2794,7 @@
             </span>states::AttributeValue(DoubleQuoted) =&gt; <span class="kw">loop </span>{
                 <span class="kw">match </span><span class="macro">pop_except_from!</span>(<span class="self">self</span>, input, <span class="macro">small_char_set!</span>(<span class="string">'\r' '"' '&amp;' '\0' '\n'</span>)) {
                     FromSet(<span class="string">'"'</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: to AfterAttributeValueQuoted),
-                    FromSet(<span class="string">'&amp;'</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: consume_char_ref <span class="string">'"'</span>),
+                    FromSet(<span class="string">'&amp;'</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: consume_char_ref),
                     FromSet(<span class="string">'\0'</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; push_value <span class="string">'\u{fffd}'</span>),
                     FromSet(c) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: push_value c),
                     NotFromSet(<span class="kw-2">ref </span>b) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: append_value b),
@@ -2752,7 +2805,7 @@
             </span>states::AttributeValue(SingleQuoted) =&gt; <span class="kw">loop </span>{
                 <span class="kw">match </span><span class="macro">pop_except_from!</span>(<span class="self">self</span>, input, <span class="macro">small_char_set!</span>(<span class="string">'\r' '\'' '&amp;' '\0' '\n'</span>)) {
                     FromSet(<span class="string">'\''</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: to AfterAttributeValueQuoted),
-                    FromSet(<span class="string">'&amp;'</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: consume_char_ref <span class="string">'\''</span>),
+                    FromSet(<span class="string">'&amp;'</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: consume_char_ref),
                     FromSet(<span class="string">'\0'</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; push_value <span class="string">'\u{fffd}'</span>),
                     FromSet(c) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: push_value c),
                     NotFromSet(<span class="kw-2">ref </span>b) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: append_value b),
@@ -2769,7 +2822,7 @@
                     FromSet(<span class="string">'\t'</span>) | FromSet(<span class="string">'\n'</span>) | FromSet(<span class="string">'\x0C'</span>) | FromSet(<span class="string">' '</span>) =&gt; {
                         <span class="macro">go!</span>(<span class="self">self</span>: to BeforeAttributeName)
                     },
-                    FromSet(<span class="string">'&amp;'</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: consume_char_ref <span class="string">'&gt;'</span>),
+                    FromSet(<span class="string">'&amp;'</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: consume_char_ref),
                     FromSet(<span class="string">'&gt;'</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: emit_tag Data),
                     FromSet(<span class="string">'\0'</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; push_value <span class="string">'\u{fffd}'</span>),
                     FromSet(c) =&gt; {
@@ -2825,9 +2878,43 @@
             <span class="comment">//§ comment-state
             </span>states::Comment =&gt; <span class="kw">loop </span>{
                 <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
+                    c @ <span class="string">'&lt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: push_comment c; to CommentLessThanSign),
                     <span class="string">'-' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: to CommentEndDash),
                     <span class="string">'\0' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; push_comment <span class="string">'\u{fffd}'</span>),
                     c =&gt; <span class="macro">go!</span>(<span class="self">self</span>: push_comment c),
+                }
+            },
+
+            <span class="comment">//§ comment-less-than-sign-state
+            </span>states::CommentLessThanSign =&gt; <span class="kw">loop </span>{
+                <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
+                    c @ <span class="string">'!' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: push_comment c; to CommentLessThanSignBang),
+                    c @ <span class="string">'&lt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: push_comment c),
+                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: reconsume Comment),
+                }
+            },
+
+            <span class="comment">//§ comment-less-than-sign-bang
+            </span>states::CommentLessThanSignBang =&gt; <span class="kw">loop </span>{
+                <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
+                    <span class="string">'-' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: to CommentLessThanSignBangDash),
+                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: reconsume Comment),
+                }
+            },
+
+            <span class="comment">//§ comment-less-than-sign-bang-dash
+            </span>states::CommentLessThanSignBangDash =&gt; <span class="kw">loop </span>{
+                <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
+                    <span class="string">'-' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: to CommentLessThanSignBangDashDash),
+                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: reconsume CommentEndDash),
+                }
+            },
+
+            <span class="comment">//§ comment-less-than-sign-bang-dash-dash
+            </span>states::CommentLessThanSignBangDashDash =&gt; <span class="kw">loop </span>{
+                <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
+                    <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: reconsume CommentEnd),
+                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; reconsume CommentEnd),
                 }
             },
 
@@ -2844,10 +2931,9 @@
             </span>states::CommentEnd =&gt; <span class="kw">loop </span>{
                 <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
                     <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: emit_comment; to Data),
-                    <span class="string">'\0' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; append_comment <span class="string">"--\u{fffd}"</span>; to Comment),
-                    <span class="string">'!' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; to CommentEndBang),
-                    <span class="string">'-' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; push_comment <span class="string">'-'</span>),
-                    c =&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; append_comment <span class="string">"--"</span>; push_comment c; to Comment),
+                    <span class="string">'!' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: to CommentEndBang),
+                    <span class="string">'-' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: push_comment <span class="string">'-'</span>),
+                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: append_comment <span class="string">"--"</span>; reconsume Comment),
                 }
             },
 
@@ -2855,7 +2941,7 @@
             </span>states::CommentEndBang =&gt; <span class="kw">loop </span>{
                 <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
                     <span class="string">'-' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: append_comment <span class="string">"--!"</span>; to CommentEndDash),
-                    <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: emit_comment; to Data),
+                    <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; emit_comment; to Data),
                     <span class="string">'\0' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; append_comment <span class="string">"--!\u{fffd}"</span>; to Comment),
                     c =&gt; <span class="macro">go!</span>(<span class="self">self</span>: append_comment <span class="string">"--!"</span>; push_comment c; to Comment),
                 }
@@ -2865,6 +2951,7 @@
             </span>states::Doctype =&gt; <span class="kw">loop </span>{
                 <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
                     <span class="string">'\t' </span>| <span class="string">'\n' </span>| <span class="string">'\x0C' </span>| <span class="string">' ' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: to BeforeDoctypeName),
+                    <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: reconsume BeforeDoctypeName),
                     <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; reconsume BeforeDoctypeName),
                 }
             },
@@ -2902,7 +2989,7 @@
                     <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
                         <span class="string">'\t' </span>| <span class="string">'\n' </span>| <span class="string">'\x0C' </span>| <span class="string">' ' </span>=&gt; (),
                         <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: emit_doctype; to Data),
-                        <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; to BogusDoctype),
+                        <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; reconsume BogusDoctype),
                     }
                 }
             },
@@ -2918,7 +3005,7 @@
                         <span class="macro">go!</span>(<span class="self">self</span>: error; clear_doctype_id kind; to DoctypeIdentifierSingleQuoted kind)
                     },
                     <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; emit_doctype; to Data),
-                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; to BogusDoctype),
+                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; reconsume BogusDoctype),
                 }
             },
 
@@ -2929,7 +3016,7 @@
                     <span class="string">'"' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: clear_doctype_id kind; to DoctypeIdentifierDoubleQuoted kind),
                     <span class="string">'\'' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: clear_doctype_id kind; to DoctypeIdentifierSingleQuoted kind),
                     <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; emit_doctype; to Data),
-                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; to BogusDoctype),
+                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; reconsume BogusDoctype),
                 }
             },
 
@@ -2966,7 +3053,7 @@
                     <span class="string">'\'' </span>=&gt; {
                         <span class="macro">go!</span>(<span class="self">self</span>: error; clear_doctype_id System; to DoctypeIdentifierSingleQuoted System)
                     },
-                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; to BogusDoctype),
+                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; reconsume BogusDoctype),
                 }
             },
 
@@ -2975,7 +3062,7 @@
                 <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
                     <span class="string">'\t' </span>| <span class="string">'\n' </span>| <span class="string">'\x0C' </span>| <span class="string">' ' </span>=&gt; (),
                     <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: emit_doctype; to Data),
-                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; to BogusDoctype),
+                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; reconsume BogusDoctype),
                 }
             },
 
@@ -2990,7 +3077,7 @@
                     <span class="string">'\'' </span>=&gt; {
                         <span class="macro">go!</span>(<span class="self">self</span>: clear_doctype_id System; to DoctypeIdentifierSingleQuoted System)
                     },
-                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; to BogusDoctype),
+                    <span class="kw">_ </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; force_quirks; reconsume BogusDoctype),
                 }
             },
 
@@ -2998,6 +3085,7 @@
             </span>states::BogusDoctype =&gt; <span class="kw">loop </span>{
                 <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
                     <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: emit_doctype; to Data),
+                    <span class="string">'\0' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error),
                     <span class="kw">_ </span>=&gt; (),
                 }
             },
@@ -3006,7 +3094,7 @@
             </span>states::BogusComment =&gt; <span class="kw">loop </span>{
                 <span class="kw">match </span><span class="macro">get_char!</span>(<span class="self">self</span>, input) {
                     <span class="string">'&gt;' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: emit_comment; to Data),
-                    <span class="string">'\0' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: push_comment <span class="string">'\u{fffd}'</span>),
+                    <span class="string">'\0' </span>=&gt; <span class="macro">go!</span>(<span class="self">self</span>: error; push_comment <span class="string">'\u{fffd}'</span>),
                     c =&gt; <span class="macro">go!</span>(<span class="self">self</span>: push_comment c),
                 }
             },
@@ -3021,12 +3109,11 @@
                     <span class="kw">if </span><span class="self">self
                         </span>.sink
                         .adjusted_current_node_present_but_not_in_html_namespace()
+                        &amp;&amp; <span class="macro">eat_exact!</span>(<span class="self">self</span>, input, <span class="string">"[CDATA["</span>)
                     {
-                        <span class="kw">if </span><span class="macro">eat_exact!</span>(<span class="self">self</span>, input, <span class="string">"[CDATA["</span>) {
-                            <span class="macro">go!</span>(<span class="self">self</span>: clear_temp; to CdataSection);
-                        }
+                        <span class="macro">go!</span>(<span class="self">self</span>: clear_temp; to CdataSection);
                     }
-                    <span class="macro">go!</span>(<span class="self">self</span>: error; to BogusComment);
+                    <span class="macro">go!</span>(<span class="self">self</span>: error; clear_comment; to BogusComment);
                 }
             },
 
@@ -3107,7 +3194,7 @@
     </span><span class="kw">pub fn </span>end(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Handle EOF in the char ref sub-tokenizer, if there is one.
         // Do this first because it might un-consume stuff.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>input = BufferQueue::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>input = BufferQueue::default();
         <span class="kw">match </span><span class="self">self</span>.char_ref_tokenizer.take() {
             <span class="prelude-val">None </span>=&gt; (),
             <span class="prelude-val">Some</span>(<span class="kw-2">mut </span>tok) =&gt; {
@@ -3159,23 +3246,24 @@
     <span class="kw">fn </span>eof_step(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ProcessResult&lt;Sink::Handle&gt; {
         <span class="macro">debug!</span>(<span class="string">"processing EOF in state {:?}"</span>, <span class="self">self</span>.state);
         <span class="kw">match </span><span class="self">self</span>.state {
-            states::Data |
-            states::RawData(Rcdata) |
-            states::RawData(Rawtext) |
-            states::RawData(ScriptData) |
-            states::Plaintext =&gt; <span class="macro">go!</span>(<span class="self">self</span>: eof),
+            states::Data
+            | states::RawData(Rcdata)
+            | states::RawData(Rawtext)
+            | states::RawData(ScriptData)
+            | states::Plaintext =&gt; <span class="macro">go!</span>(<span class="self">self</span>: eof),
 
-            states::TagName |
-            states::RawData(ScriptDataEscaped(<span class="kw">_</span>)) |
-            states::BeforeAttributeName |
-            states::AttributeName |
-            states::AfterAttributeName |
-            states::BeforeAttributeValue |
-            states::AttributeValue(<span class="kw">_</span>) |
-            states::AfterAttributeValueQuoted |
-            states::SelfClosingStartTag |
-            states::ScriptDataEscapedDash(<span class="kw">_</span>) |
-            states::ScriptDataEscapedDashDash(<span class="kw">_</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: error_eof; to Data),
+            states::TagName
+            | states::RawData(ScriptDataEscaped(<span class="kw">_</span>))
+            | states::BeforeAttributeName
+            | states::AttributeName
+            | states::AfterAttributeName
+            | states::AttributeValue(<span class="kw">_</span>)
+            | states::AfterAttributeValueQuoted
+            | states::SelfClosingStartTag
+            | states::ScriptDataEscapedDash(<span class="kw">_</span>)
+            | states::ScriptDataEscapedDashDash(<span class="kw">_</span>) =&gt; <span class="macro">go!</span>(<span class="self">self</span>: error_eof; to Data),
+
+            states::BeforeAttributeValue =&gt; <span class="macro">go!</span>(<span class="self">self</span>: reconsume AttributeValue Unquoted),
 
             states::TagOpen =&gt; <span class="macro">go!</span>(<span class="self">self</span>: error_eof; emit <span class="string">'&lt;'</span>; to Data),
 
@@ -3201,25 +3289,33 @@
                 <span class="macro">go!</span>(<span class="self">self</span>: to RawData ScriptDataEscaped DoubleEscaped)
             },
 
-            states::CommentStart |
-            states::CommentStartDash |
-            states::Comment |
-            states::CommentEndDash |
-            states::CommentEnd |
-            states::CommentEndBang =&gt; <span class="macro">go!</span>(<span class="self">self</span>: error_eof; emit_comment; to Data),
+            states::CommentStart
+            | states::CommentStartDash
+            | states::Comment
+            | states::CommentEndDash
+            | states::CommentEnd
+            | states::CommentEndBang =&gt; <span class="macro">go!</span>(<span class="self">self</span>: error_eof; emit_comment; to Data),
+
+            states::CommentLessThanSign | states::CommentLessThanSignBang =&gt; {
+                <span class="macro">go!</span>(<span class="self">self</span>: reconsume Comment)
+            },
+
+            states::CommentLessThanSignBangDash =&gt; <span class="macro">go!</span>(<span class="self">self</span>: reconsume CommentEndDash),
+
+            states::CommentLessThanSignBangDashDash =&gt; <span class="macro">go!</span>(<span class="self">self</span>: reconsume CommentEnd),
 
             states::Doctype | states::BeforeDoctypeName =&gt; {
                 <span class="macro">go!</span>(<span class="self">self</span>: error_eof; create_doctype; force_quirks; emit_doctype; to Data)
             },
 
-            states::DoctypeName |
-            states::AfterDoctypeName |
-            states::AfterDoctypeKeyword(<span class="kw">_</span>) |
-            states::BeforeDoctypeIdentifier(<span class="kw">_</span>) |
-            states::DoctypeIdentifierDoubleQuoted(<span class="kw">_</span>) |
-            states::DoctypeIdentifierSingleQuoted(<span class="kw">_</span>) |
-            states::AfterDoctypeIdentifier(<span class="kw">_</span>) |
-            states::BetweenDoctypePublicAndSystemIdentifiers =&gt; {
+            states::DoctypeName
+            | states::AfterDoctypeName
+            | states::AfterDoctypeKeyword(<span class="kw">_</span>)
+            | states::BeforeDoctypeIdentifier(<span class="kw">_</span>)
+            | states::DoctypeIdentifierDoubleQuoted(<span class="kw">_</span>)
+            | states::DoctypeIdentifierSingleQuoted(<span class="kw">_</span>)
+            | states::AfterDoctypeIdentifier(<span class="kw">_</span>)
+            | states::BetweenDoctypePublicAndSystemIdentifiers =&gt; {
                 <span class="macro">go!</span>(<span class="self">self</span>: error_eof; force_quirks; emit_doctype; to Data)
             },
 
@@ -3251,7 +3347,7 @@
     <span class="kw">use </span><span class="kw">super</span>::interface::{TagToken, Token};
 
     <span class="kw">use </span>markup5ever::buffer_queue::BufferQueue;
-    <span class="kw">use </span>std::mem::replace;
+    <span class="kw">use </span>std::mem;
 
     <span class="kw">use </span><span class="kw">crate</span>::LocalName;
 
@@ -3280,7 +3376,7 @@
 
         <span class="kw">fn </span>finish_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
             <span class="kw">if </span><span class="self">self</span>.current_str.len() &gt; <span class="number">0 </span>{
-                <span class="kw">let </span>s = replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_str, StrTendril::new());
+                <span class="kw">let </span>s = mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_str);
                 <span class="self">self</span>.tokens.push(CharacterTokens(s));
             }
         }
@@ -3334,7 +3430,7 @@
     </span><span class="kw">fn </span>tokenize(input: Vec&lt;StrTendril&gt;, opts: TokenizerOpts) -&gt; Vec&lt;(Token, u64)&gt; {
         <span class="kw">let </span>sink = LinesMatch::new();
         <span class="kw">let </span><span class="kw-2">mut </span>tok = Tokenizer::new(sink, opts);
-        <span class="kw">let </span><span class="kw-2">mut </span>buffer = BufferQueue::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = BufferQueue::default();
         <span class="kw">for </span>chunk <span class="kw">in </span>input.into_iter() {
             buffer.push_back(chunk);
             <span class="kw">let _ </span>= tok.feed(<span class="kw-2">&amp;mut </span>buffer);
@@ -3346,13 +3442,13 @@
     <span class="comment">// Create a tag token
     </span><span class="kw">fn </span>create_tag(token: StrTendril, tagkind: TagKind) -&gt; Token {
         <span class="kw">let </span>name = LocalName::from(<span class="kw-2">&amp;*</span>token);
-        <span class="kw">let </span>token = TagToken(Tag {
+
+        TagToken(Tag {
             kind: tagkind,
             name,
             self_closing: <span class="bool-val">false</span>,
             attrs: <span class="macro">vec!</span>[],
-        });
-        token
+        })
     }
 
     <span class="attr">#[test]

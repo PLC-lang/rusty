@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.36.0/src/runtime/scheduler/multi_thread/worker.rs`."><title>worker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../../tokio/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.39.3/src/runtime/scheduler/multi_thread/worker.rs`."><title>worker.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1234,6 +1232,32 @@
 <a href="#1232" id="1232">1232</a>
 <a href="#1233" id="1233">1233</a>
 <a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
+<a href="#1240" id="1240">1240</a>
+<a href="#1241" id="1241">1241</a>
+<a href="#1242" id="1242">1242</a>
+<a href="#1243" id="1243">1243</a>
+<a href="#1244" id="1244">1244</a>
+<a href="#1245" id="1245">1245</a>
+<a href="#1246" id="1246">1246</a>
+<a href="#1247" id="1247">1247</a>
+<a href="#1248" id="1248">1248</a>
+<a href="#1249" id="1249">1249</a>
+<a href="#1250" id="1250">1250</a>
+<a href="#1251" id="1251">1251</a>
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A scheduler is initialized with a fixed number of workers. Each worker is
 //! driven by a thread. Each worker has a "core" which contains data such as the
 //! run queue and other state. When `block_in_place` is called, the worker's
@@ -1308,17 +1332,18 @@
 
 <span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::task::Waker;
+<span class="kw">use </span>std::thread;
 <span class="kw">use </span>std::time::Duration;
 
-<span class="macro">cfg_metrics! </span>{
+<span class="macro">cfg_unstable_metrics!</span> {
     <span class="kw">mod </span>metrics;
 }
 
-<span class="macro">cfg_taskdump! </span>{
+<span class="macro">cfg_taskdump!</span> {
     <span class="kw">mod </span>taskdump;
 }
 
-<span class="macro">cfg_not_taskdump! </span>{
+<span class="macro">cfg_not_taskdump!</span> {
     <span class="kw">mod </span>taskdump_mock;
 }
 
@@ -1570,6 +1595,12 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(cx) = maybe_cx {
                     <span class="kw">if </span><span class="self">self</span>.take_core {
                         <span class="kw">let </span>core = cx.worker.core.take();
+
+                        <span class="kw">if </span>core.is_some() {
+                            cx.worker.handle.shared.worker_metrics[cx.worker.index]
+                                .set_thread_id(thread::current().id());
+                        }
+
                         <span class="kw">let </span><span class="kw-2">mut </span>cx_core = cx.core.borrow_mut();
                         <span class="macro">assert!</span>(cx_core.is_none());
                         <span class="kw-2">*</span>cx_core = core;
@@ -1631,10 +1662,18 @@
         <span class="kw">let </span>cx = maybe_cx.expect(<span class="string">"no .is_some() == false cases above should lead here"</span>);
 
         <span class="comment">// Get the worker core. If none is set, then blocking is fine!
-        </span><span class="kw">let </span>core = <span class="kw">match </span>cx.core.borrow_mut().take() {
+        </span><span class="kw">let </span><span class="kw-2">mut </span>core = <span class="kw">match </span>cx.core.borrow_mut().take() {
             <span class="prelude-val">Some</span>(core) =&gt; core,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
         };
+
+        <span class="comment">// If we heavily call `spawn_blocking`, there might be no available thread to
+        // run this core. Except for the task in the lifo_slot, all tasks can be
+        // stolen, so we move the task out of the lifo_slot to the run_queue.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(task) = core.lifo_slot.take() {
+            core.run_queue
+                .push_back_or_overflow(task, <span class="kw-2">&amp;*</span>cx.worker.handle, <span class="kw-2">&amp;mut </span>core.stats);
+        }
 
         <span class="comment">// We are taking the core from the context and sending it to another
         // thread.
@@ -1686,7 +1725,8 @@
 }
 
 <span class="kw">fn </span>run(worker: Arc&lt;Worker&gt;) {
-    <span class="kw">struct </span>AbortOnPanic;
+    <span class="attr">#[allow(dead_code)]
+    </span><span class="kw">struct </span>AbortOnPanic;
 
     <span class="kw">impl </span>Drop <span class="kw">for </span>AbortOnPanic {
         <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -1708,6 +1748,8 @@
         <span class="prelude-val">Some</span>(core) =&gt; core,
         <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
     };
+
+    worker.handle.shared.worker_metrics[worker.index].set_thread_id(thread::current().id());
 
     <span class="kw">let </span>handle = scheduler::Handle::MultiThread(worker.handle.clone());
 
@@ -1926,7 +1968,12 @@
         <span class="kw">if </span>core.transition_to_parked(<span class="kw-2">&amp;</span><span class="self">self</span>.worker) {
             <span class="kw">while </span>!core.is_shutdown &amp;&amp; !core.is_traced {
                 core.stats.about_to_park();
+                core.stats
+                    .submit(<span class="kw-2">&amp;</span><span class="self">self</span>.worker.handle.shared.worker_metrics[<span class="self">self</span>.worker.index]);
+
                 core = <span class="self">self</span>.park_timeout(core, <span class="prelude-val">None</span>);
+
+                core.stats.unparked();
 
                 <span class="comment">// Run regularly scheduled maintenance
                 </span>core.maintenance(<span class="kw-2">&amp;</span><span class="self">self</span>.worker);
@@ -1976,6 +2023,11 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>defer(<span class="kw-2">&amp;</span><span class="self">self</span>, waker: <span class="kw-2">&amp;</span>Waker) {
         <span class="self">self</span>.defer.defer(waker);
+    }
+
+    <span class="attr">#[allow(dead_code)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_worker_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.worker.index
     }
 }
 
@@ -2220,8 +2272,6 @@
         <span class="kw">let </span>next = <span class="self">self
             </span>.stats
             .tuned_global_queue_interval(<span class="kw-2">&amp;</span>worker.handle.shared.config);
-
-        <span class="macro">debug_assert!</span>(next &gt; <span class="number">1</span>);
 
         <span class="comment">// Smooth out jitter
         </span><span class="kw">if </span>abs_diff(<span class="self">self</span>.global_queue_interval, next) &gt; <span class="number">2 </span>{

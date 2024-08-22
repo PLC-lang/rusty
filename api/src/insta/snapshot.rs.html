@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/snapshot.rs`."><title>snapshot.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../insta/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.39.0/src/snapshot.rs`."><title>snapshot.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -929,6 +927,35 @@
 <a href="#927" id="927">927</a>
 <a href="#928" id="928">928</a>
 <a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::env;
 <span class="kw">use </span>std::error::Error;
@@ -939,7 +966,7 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::content::{<span class="self">self</span>, json, yaml, Content};
 
-<span class="macro">lazy_static::lazy_static! </span>{
+<span class="macro">lazy_static::lazy_static!</span> {
     <span class="kw">static </span><span class="kw-2">ref </span>RUN_ID: String = {
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(run_id) = env::var(<span class="string">"NEXTEST_RUN_ID"</span>) {
             run_id
@@ -1064,7 +1091,8 @@
 </span><span class="kw">pub struct </span>MetaData {
     <span class="doccomment">/// The source file (relative to workspace root).
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) source: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    <span class="doccomment">/// The source line if available.
+    <span class="doccomment">/// The source line, if available. This is used by pending snapshots, but trimmed
+    /// before writing to the final `.snap` files in [`MetaData::trim_for_persistence`].
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) assertion_line: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     <span class="doccomment">/// Optional human readable (non formatted) snapshot description.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) description: <span class="prelude-ty">Option</span>&lt;String&gt;,
@@ -1177,7 +1205,8 @@
         Content::Struct(<span class="string">"MetaData"</span>, fields)
     }
 
-    <span class="doccomment">/// Trims the metadata for persistence.
+    <span class="doccomment">/// Trims the metadata of fields that we don't save to `.snap` files; we
+    /// only use for display while reviewing
     </span><span class="kw">fn </span>trim_for_persistence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">'_</span>, MetaData&gt; {
         <span class="kw">if </span><span class="self">self</span>.assertion_line.is_some() {
             <span class="kw">let </span><span class="kw-2">mut </span>rv = <span class="self">self</span>.clone();
@@ -1254,31 +1283,11 @@
             buf.push_str(<span class="kw-2">&amp;</span>line);
         }
 
-        <span class="kw">let </span>module_name = p
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap_or(<span class="string">""</span>)
-            .split(<span class="string">"__"</span>)
-            .next()
-            .unwrap_or(<span class="string">"&lt;unknown&gt;"</span>)
-            .to_string();
-
-        <span class="kw">let </span>snapshot_name = p
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap_or(<span class="string">""</span>)
-            .split(<span class="string">'.'</span>)
-            .next()
-            .unwrap_or(<span class="string">""</span>)
-            .splitn(<span class="number">2</span>, <span class="string">"__"</span>)
-            .nth(<span class="number">1</span>)
-            .map(|x| x.to_string());
+        <span class="kw">let </span>(snapshot_name, module_name) = names_of_path(p);
 
         <span class="prelude-val">Ok</span>(Snapshot::from_components(
             module_name,
-            snapshot_name,
+            <span class="prelude-val">Some</span>(snapshot_name),
             metadata,
             buf.into(),
         ))
@@ -1373,7 +1382,8 @@
 
     <span class="doccomment">/// Snapshot contents _and_ metadata match another snapshot's.
     </span><span class="kw">pub fn </span>matches_fully(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Snapshot) -&gt; bool {
-        <span class="self">self</span>.matches(other) &amp;&amp; <span class="self">self</span>.metadata == other.metadata
+        <span class="self">self</span>.matches(other)
+            &amp;&amp; <span class="self">self</span>.metadata.trim_for_persistence() == other.metadata.trim_for_persistence()
     }
 
     <span class="doccomment">/// The snapshot contents as a &amp;str
@@ -1432,8 +1442,7 @@
     /// If the existing snapshot matches the new file, then `None` is returned, otherwise
     /// the name of the new snapshot file.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>save_new(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;PathBuf&gt;, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>new_path = path.to_path_buf();
-        new_path.set_extension(<span class="string">"snap.new"</span>);
+        <span class="kw">let </span>new_path = path.to_path_buf().with_extension(<span class="string">"snap.new"</span>);
         <span class="kw">if </span><span class="self">self</span>.save_with_metadata(<span class="kw-2">&amp;</span>new_path, <span class="prelude-val">Some</span>(path), <span class="kw-2">&amp;</span><span class="self">self</span>.metadata)<span class="question-mark">? </span>{
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(new_path))
         } <span class="kw">else </span>{
@@ -1559,6 +1568,53 @@
         .map(|l| l.get(indentation..).unwrap_or(<span class="string">""</span>))
         .collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;()
         .join(<span class="string">"\n"</span>)
+}
+
+<span class="doccomment">/// Extracts the module and snapshot name from a snapshot path
+</span><span class="kw">fn </span>names_of_path(path: <span class="kw-2">&amp;</span>Path) -&gt; (String, String) {
+    <span class="comment">// The final part of the snapshot file name is the test name; the
+    // initial parts are the module name
+    </span><span class="kw">let </span>parts: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = path
+        .file_stem()
+        .unwrap()
+        .to_str()
+        .unwrap_or(<span class="string">""</span>)
+        .rsplitn(<span class="number">2</span>, <span class="string">"__"</span>)
+        .collect();
+
+    <span class="kw">match </span>parts.as_slice() {
+        [snapshot_name, module_name] =&gt; (snapshot_name.to_string(), module_name.to_string()),
+        [snapshot_name] =&gt; (snapshot_name.to_string(), String::new()),
+        <span class="kw">_ </span>=&gt; (String::new(), <span class="string">"&lt;unknown&gt;"</span>.to_string()),
+    }
+}
+
+<span class="attr">#[test]
+</span><span class="kw">fn </span>test_names_of_path() {
+    <span class="macro">assert_debug_snapshot!</span>(
+        names_of_path(Path::new(<span class="string">"/src/snapshots/insta_tests__tests__name_foo.snap"</span>)), @<span class="string">r###"
+    (
+        "name_foo",
+        "insta_tests__tests",
+    )
+    "###
+    </span>);
+    <span class="macro">assert_debug_snapshot!</span>(
+        names_of_path(Path::new(<span class="string">"/src/snapshots/name_foo.snap"</span>)), @<span class="string">r###"
+    (
+        "name_foo",
+        "",
+    )
+    "###
+    </span>);
+    <span class="macro">assert_debug_snapshot!</span>(
+        names_of_path(Path::new(<span class="string">"foo/src/snapshots/go1.20.5.snap"</span>)), @<span class="string">r###"
+    (
+        "go1.20.5",
+        "",
+    )
+    "###
+    </span>);
 }
 
 <span class="doccomment">/// Helper function that returns the real inline snapshot value from a given

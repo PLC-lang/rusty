@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["PopError","PushError"],"struct":["ConcurrentQueue","TryIter"]};
+window.SIDEBAR_ITEMS = {"enum":["PopError","PushError"],"struct":["ConcurrentQueue","ForcePushError","TryIter"]};

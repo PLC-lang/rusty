@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/markup5ever-0.11.0/util/buffer_queue.rs`."><title>buffer_queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="markup5ever" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../markup5ever/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/markup5ever-0.12.1/util/buffer_queue.rs`."><title>buffer_queue.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="markup5ever" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -303,6 +301,9 @@
 <a href="#301" id="301">301</a>
 <a href="#302" id="302">302</a>
 <a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2014-2017 The html5ever Project Developers. See the
 // COPYRIGHT file at the top-level directory of this distribution.
 //
@@ -354,15 +355,17 @@
     </span>buffers: VecDeque&lt;StrTendril&gt;,
 }
 
-<span class="kw">impl </span>BufferQueue {
+<span class="kw">impl </span>Default <span class="kw">for </span>BufferQueue {
     <span class="doccomment">/// Create an empty BufferQueue.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new() -&gt; BufferQueue {
-        BufferQueue {
+    </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
             buffers: VecDeque::with_capacity(<span class="number">16</span>),
         }
     }
+}
 
+<span class="kw">impl </span>BufferQueue {
     <span class="doccomment">/// Returns whether the queue is empty.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -398,32 +401,10 @@
     <span class="doccomment">/// Look at the next available character without removing it, if the queue is not empty.
     </span><span class="kw">pub fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
         <span class="macro">debug_assert!</span>(
-            <span class="self">self</span>.buffers
-                .iter()
-                .find(|el| el.len32() == <span class="number">0</span>)
-                .is_none(),
+            !<span class="self">self</span>.buffers.iter().any(|el| el.len32() == <span class="number">0</span>),
             <span class="string">"invariant \"all buffers in the queue are non-empty\" failed"
         </span>);
         <span class="self">self</span>.buffers.front().map(|b| b.chars().next().unwrap())
-    }
-
-    <span class="doccomment">/// Get the next character if one is available, removing it from the queue.
-    ///
-    /// This function manages the buffers, removing them as they become empty.
-    </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
-        <span class="kw">let </span>(result, now_empty) = <span class="kw">match </span><span class="self">self</span>.buffers.front_mut() {
-            <span class="prelude-val">None </span>=&gt; (<span class="prelude-val">None</span>, <span class="bool-val">false</span>),
-            <span class="prelude-val">Some</span>(buf) =&gt; {
-                <span class="kw">let </span>c = buf.pop_front_char().expect(<span class="string">"empty buffer in queue"</span>);
-                (<span class="prelude-val">Some</span>(c), buf.is_empty())
-            },
-        };
-
-        <span class="kw">if </span>now_empty {
-            <span class="self">self</span>.buffers.pop_front();
-        }
-
-        result
     }
 
     <span class="doccomment">/// Pops and returns either a single character from the given set, or
@@ -437,7 +418,7 @@
     /// # fn main() {
     /// use markup5ever::buffer_queue::{BufferQueue, SetResult};
     ///
-    /// let mut queue = BufferQueue::new();
+    /// let mut queue = BufferQueue::default();
     /// queue.push_back(format_tendril!(r#"&lt;some_tag attr="text"&gt;SomeText&lt;/some_tag&gt;"#));
     /// let set = small_char_set!(b'&lt;' b'&gt;' b' ' b'=' b'"' b'/');
     /// let tag = format_tendril!("some_tag");
@@ -457,7 +438,7 @@
         <span class="kw">let </span>(result, now_empty) = <span class="kw">match </span><span class="self">self</span>.buffers.front_mut() {
             <span class="prelude-val">None </span>=&gt; (<span class="prelude-val">None</span>, <span class="bool-val">false</span>),
             <span class="prelude-val">Some</span>(buf) =&gt; {
-                <span class="kw">let </span>n = set.nonmember_prefix_len(<span class="kw-2">&amp;</span>buf);
+                <span class="kw">let </span>n = set.nonmember_prefix_len(buf);
                 <span class="kw">if </span>n &gt; <span class="number">0 </span>{
                     <span class="kw">let </span>out;
                     <span class="kw">unsafe </span>{
@@ -493,9 +474,9 @@
     /// # extern crate markup5ever;
     /// # #[macro_use] extern crate tendril;
     /// # fn main() {
-    /// use markup5ever::buffer_queue::{BufferQueue};
+    /// use markup5ever::buffer_queue::BufferQueue;
     ///
-    /// let mut queue = BufferQueue::new();
+    /// let mut queue = BufferQueue::default();
     /// queue.push_back(format_tendril!("testtext"));
     /// let test_str = "test";
     /// assert_eq!(queue.eat("test", |&amp;a, &amp;b| a == b), Some(true));
@@ -540,6 +521,29 @@
     }
 }
 
+<span class="kw">impl </span>Iterator <span class="kw">for </span>BufferQueue {
+    <span class="kw">type </span>Item = char;
+
+    <span class="doccomment">/// Get the next character if one is available, removing it from the queue.
+    ///
+    /// This function manages the buffers, removing them as they become empty.
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+        <span class="kw">let </span>(result, now_empty) = <span class="kw">match </span><span class="self">self</span>.buffers.front_mut() {
+            <span class="prelude-val">None </span>=&gt; (<span class="prelude-val">None</span>, <span class="bool-val">false</span>),
+            <span class="prelude-val">Some</span>(buf) =&gt; {
+                <span class="kw">let </span>c = buf.pop_front_char().expect(<span class="string">"empty buffer in queue"</span>);
+                (<span class="prelude-val">Some</span>(c), buf.is_empty())
+            },
+        };
+
+        <span class="kw">if </span>now_empty {
+            <span class="self">self</span>.buffers.pop_front();
+        }
+
+        result
+    }
+}
+
 <span class="attr">#[cfg(test)]
 #[allow(non_snake_case)]
 </span><span class="kw">mod </span>test {
@@ -550,7 +554,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>smoke_test() {
-        <span class="kw">let </span><span class="kw-2">mut </span>bq = BufferQueue::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>bq = BufferQueue::default();
         <span class="macro">assert_eq!</span>(bq.peek(), <span class="prelude-val">None</span>);
         <span class="macro">assert_eq!</span>(bq.next(), <span class="prelude-val">None</span>);
 
@@ -568,7 +572,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>can_unconsume() {
-        <span class="kw">let </span><span class="kw-2">mut </span>bq = BufferQueue::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>bq = BufferQueue::default();
         bq.push_back(<span class="string">"abc"</span>.to_tendril());
         <span class="macro">assert_eq!</span>(bq.next(), <span class="prelude-val">Some</span>(<span class="string">'a'</span>));
 
@@ -582,7 +586,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>can_pop_except_set() {
-        <span class="kw">let </span><span class="kw-2">mut </span>bq = BufferQueue::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>bq = BufferQueue::default();
         bq.push_back(<span class="string">"abc&amp;def"</span>.to_tendril());
         <span class="kw">let </span><span class="kw-2">mut </span>pop = || bq.pop_except_from(<span class="macro">small_char_set!</span>(<span class="string">'&amp;'</span>));
         <span class="macro">assert_eq!</span>(pop(), <span class="prelude-val">Some</span>(NotFromSet(<span class="string">"abc"</span>.to_tendril())));
@@ -596,7 +600,7 @@
         <span class="comment">// This is not very comprehensive.  We rely on the tokenizer
         // integration tests for more thorough testing with many
         // different input buffer splits.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>bq = BufferQueue::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>bq = BufferQueue::default();
         bq.push_back(<span class="string">"a"</span>.to_tendril());
         bq.push_back(<span class="string">"bc"</span>.to_tendril());
         <span class="macro">assert_eq!</span>(bq.eat(<span class="string">"abcd"</span>, u8::eq_ignore_ascii_case), <span class="prelude-val">None</span>);

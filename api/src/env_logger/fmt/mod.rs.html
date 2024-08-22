@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.11.3/src/fmt/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://www.rust-lang.org/static/images/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../env_logger/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_logger-0.11.5/src/fmt/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="env_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -809,6 +807,7 @@
 <a href="#807" id="807">807</a>
 <a href="#808" id="808">808</a>
 <a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Formatting for log records.
 //!
 //! This module contains a [`Formatter`] that can be used to format log records
@@ -868,7 +867,7 @@
 
 </span><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::fmt::Display;
-<span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::io::prelude::Write;
 <span class="kw">use </span>std::rc::Rc;
 <span class="kw">use </span>std::{fmt, io, mem};
 
@@ -899,6 +898,7 @@
 /// Seconds give precision of full seconds, milliseconds give thousands of a
 /// second (3 decimal digits), microseconds are millionth of a second (6 decimal
 /// digits) and nanoseconds are billionth of a second (9 decimal digits).
+</span><span class="attr">#[allow(clippy::exhaustive_enums)] </span><span class="comment">// compatibility
 </span><span class="attr">#[derive(Copy, Clone, Debug)]
 </span><span class="kw">pub enum </span>TimestampPrecision {
     <span class="doccomment">/// Full second precision (0 decimal digits)
@@ -960,7 +960,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.buf.borrow_mut().clear()
+        <span class="self">self</span>.buf.borrow_mut().clear();
     }
 }
 
@@ -999,7 +999,7 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Formatter {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span>buf = <span class="self">self</span>.buf.borrow();
         f.debug_struct(<span class="string">"Formatter"</span>)
             .field(<span class="string">"buf"</span>, <span class="kw-2">&amp;</span>buf)
@@ -1008,18 +1008,18 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>FormatFn = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;mut </span>Formatter, <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; + Sync + Send&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>FormatFn = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;mut </span>Formatter, <span class="kw-2">&amp;</span>Record&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;()&gt; + Sync + Send&gt;;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Builder {
-    <span class="kw">pub </span>format_timestamp: <span class="prelude-ty">Option</span>&lt;TimestampPrecision&gt;,
-    <span class="kw">pub </span>format_module_path: bool,
-    <span class="kw">pub </span>format_target: bool,
-    <span class="kw">pub </span>format_level: bool,
-    <span class="kw">pub </span>format_indent: <span class="prelude-ty">Option</span>&lt;usize&gt;,
-    <span class="kw">pub </span>custom_format: <span class="prelude-ty">Option</span>&lt;FormatFn&gt;,
-    <span class="kw">pub </span>format_suffix: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) format_timestamp: <span class="prelude-ty">Option</span>&lt;TimestampPrecision&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) format_module_path: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) format_target: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) format_level: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) format_indent: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) custom_format: <span class="prelude-ty">Option</span>&lt;FormatFn&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) format_suffix: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
-    </span><span class="kw">pub </span>kv_format: <span class="prelude-ty">Option</span>&lt;Box&lt;KvFormatFn&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) kv_format: <span class="prelude-ty">Option</span>&lt;Box&lt;KvFormatFn&gt;&gt;,
     built: bool,
 }
 
@@ -1029,7 +1029,7 @@
     /// If the `custom_format` is `Some`, then any `default_format` switches are ignored.
     /// If the `custom_format` is `None`, then a default format is returned.
     /// Any `default_format` switches set to `false` won't be written by the format.
-    </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FormatFn {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FormatFn {
         <span class="macro">assert!</span>(!<span class="self">self</span>.built, <span class="string">"attempt to re-use consumed builder"</span>);
 
         <span class="kw">let </span>built = mem::replace(
@@ -1093,8 +1093,8 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"color"</span>)]
-</span><span class="kw">impl</span>&lt;T: std::fmt::Display&gt; std::fmt::Display <span class="kw">for </span>StyledValue&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+</span><span class="kw">impl</span>&lt;T: Display&gt; Display <span class="kw">for </span>StyledValue&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span>style = <span class="self">self</span>.style;
 
         <span class="comment">// We need to make sure `f`s settings don't get passed onto the styling but do get passed
@@ -1126,7 +1126,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DefaultFormat&lt;<span class="lifetime">'a</span>&gt; {
-    <span class="kw">fn </span>write(<span class="kw-2">mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;()&gt; {
         <span class="self">self</span>.write_timestamp()<span class="question-mark">?</span>;
         <span class="self">self</span>.write_level(record)<span class="question-mark">?</span>;
         <span class="self">self</span>.write_module_path(record)<span class="question-mark">?</span>;
@@ -1171,7 +1171,7 @@
         }
     }
 
-    <span class="kw">fn </span>write_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">fn </span>write_level(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;()&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.level {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
@@ -1197,7 +1197,7 @@
     <span class="kw">fn </span>write_timestamp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="attr">#[cfg(feature = <span class="string">"humantime"</span>)]
         </span>{
-            <span class="kw">use </span><span class="self">self</span>::TimestampPrecision::<span class="kw-2">*</span>;
+            <span class="kw">use </span><span class="self">self</span>::TimestampPrecision::{Micros, Millis, Nanos, Seconds};
             <span class="kw">let </span>ts = <span class="kw">match </span><span class="self">self</span>.timestamp {
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
                 <span class="prelude-val">Some</span>(Seconds) =&gt; <span class="self">self</span>.buf.timestamp_seconds(),
@@ -1217,7 +1217,7 @@
         }
     }
 
-    <span class="kw">fn </span>write_module_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">fn </span>write_module_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;()&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.module_path {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
@@ -1229,7 +1229,7 @@
         }
     }
 
-    <span class="kw">fn </span>write_target(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">fn </span>write_target(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;()&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.target {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
@@ -1249,7 +1249,7 @@
         }
     }
 
-    <span class="kw">fn </span>write_args(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">fn </span>write_args(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self</span>.indent {
             <span class="comment">// Fast path for no indentation
             </span><span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(<span class="self">self</span>.buf, <span class="string">"{}"</span>, record.args()),
@@ -1257,7 +1257,7 @@
             <span class="prelude-val">Some</span>(indent_count) =&gt; {
                 <span class="comment">// Create a wrapper around the buffer only if we have to actually indent the message
 
-                </span><span class="kw">struct </span>IndentWrapper&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>: <span class="lifetime">'a</span>&gt; {
+                </span><span class="kw">struct </span>IndentWrapper&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
                     fmt: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>DefaultFormat&lt;<span class="lifetime">'b</span>&gt;,
                     indent_count: usize,
                 }
@@ -1302,7 +1302,7 @@
     }
 
     <span class="attr">#[cfg(feature = <span class="string">"unstable-kv"</span>)]
-    </span><span class="kw">fn </span>write_kv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; io::Result&lt;()&gt; {
+    </span><span class="kw">fn </span>write_kv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>format = <span class="self">self</span>.kv_format;
         format(<span class="self">self</span>.buf, record.key_values())
     }
@@ -1314,7 +1314,7 @@
 
     <span class="kw">use </span>log::{Level, Record};
 
-    <span class="kw">fn </span>write_record(record: Record, fmt: DefaultFormat) -&gt; String {
+    <span class="kw">fn </span>write_record(record: Record&lt;<span class="lifetime">'_</span>&gt;, fmt: DefaultFormat&lt;<span class="lifetime">'_</span>&gt;) -&gt; String {
         <span class="kw">let </span>buf = fmt.buf.buf.clone();
 
         fmt.write(<span class="kw-2">&amp;</span>record).expect(<span class="string">"failed to write record"</span>);
@@ -1323,7 +1323,7 @@
         String::from_utf8(buf.as_bytes().to_vec()).expect(<span class="string">"failed to read record"</span>)
     }
 
-    <span class="kw">fn </span>write_target(target: <span class="kw-2">&amp;</span>str, fmt: DefaultFormat) -&gt; String {
+    <span class="kw">fn </span>write_target(target: <span class="kw-2">&amp;</span>str, fmt: DefaultFormat&lt;<span class="lifetime">'_</span>&gt;) -&gt; String {
         write_record(
             Record::builder()
                 .args(<span class="macro">format_args!</span>(<span class="string">"log\nmessage"</span>))
@@ -1337,7 +1337,7 @@
         )
     }
 
-    <span class="kw">fn </span>write(fmt: DefaultFormat) -&gt; String {
+    <span class="kw">fn </span>write(fmt: DefaultFormat&lt;<span class="lifetime">'_</span>&gt;) -&gt; String {
         write_target(<span class="string">""</span>, fmt)
     }
 

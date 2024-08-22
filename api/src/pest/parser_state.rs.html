@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pest-2.7.9/src/parser_state.rs`."><title>parser_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pest/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pest-2.7.11/src/parser_state.rs`."><title>parser_state.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1694,6 +1692,44 @@
 <a href="#1692" id="1692">1692</a>
 <a href="#1693" id="1693">1693</a>
 <a href="#1694" id="1694">1694</a>
+<a href="#1695" id="1695">1695</a>
+<a href="#1696" id="1696">1696</a>
+<a href="#1697" id="1697">1697</a>
+<a href="#1698" id="1698">1698</a>
+<a href="#1699" id="1699">1699</a>
+<a href="#1700" id="1700">1700</a>
+<a href="#1701" id="1701">1701</a>
+<a href="#1702" id="1702">1702</a>
+<a href="#1703" id="1703">1703</a>
+<a href="#1704" id="1704">1704</a>
+<a href="#1705" id="1705">1705</a>
+<a href="#1706" id="1706">1706</a>
+<a href="#1707" id="1707">1707</a>
+<a href="#1708" id="1708">1708</a>
+<a href="#1709" id="1709">1709</a>
+<a href="#1710" id="1710">1710</a>
+<a href="#1711" id="1711">1711</a>
+<a href="#1712" id="1712">1712</a>
+<a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
+<a href="#1716" id="1716">1716</a>
+<a href="#1717" id="1717">1717</a>
+<a href="#1718" id="1718">1718</a>
+<a href="#1719" id="1719">1719</a>
+<a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
+<a href="#1724" id="1724">1724</a>
+<a href="#1725" id="1725">1725</a>
+<a href="#1726" id="1726">1726</a>
+<a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
 </pre></div><pre class="rust"><code><span class="comment">// pest. The Elegant Parser
 // Copyright (c) 2018 Dragoș Tiselice
 //
@@ -1716,7 +1752,7 @@
 <span class="kw">use </span>core::fmt::{Debug, Display, Formatter};
 <span class="kw">use </span>core::num::NonZeroUsize;
 <span class="kw">use </span>core::ops::Range;
-<span class="kw">use </span>core::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span>core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 <span class="kw">use </span><span class="kw">crate</span>::error::{Error, ErrorVariant};
 <span class="kw">use </span><span class="kw">crate</span>::iterators::pairs::new;
@@ -1797,6 +1833,22 @@
 ///             the number of calls is unlimited.
 </span><span class="kw">pub fn </span>set_call_limit(limit: <span class="prelude-ty">Option</span>&lt;NonZeroUsize&gt;) {
     CALL_LIMIT.store(limit.map(|f| f.get()).unwrap_or(<span class="number">0</span>), Ordering::Relaxed);
+}
+
+<span class="kw">static </span>ERROR_DETAIL: AtomicBool = AtomicBool::new(<span class="bool-val">false</span>);
+
+<span class="doccomment">/// Sets whether information for more error details
+/// should be collected. This is useful for debugging
+/// parser errors (as it leads to more comprehensive
+/// error messages), but it has a higher performance cost.
+/// (hence, it's off by default)
+///
+/// # Arguments
+///
+/// * `enabled` - Whether to enable the collection for
+///               more error details.
+</span><span class="kw">pub fn </span>set_error_detail(enabled: bool) {
+    ERROR_DETAIL.store(enabled, Ordering::Relaxed);
 }
 
 <span class="attr">#[derive(Debug)]
@@ -1900,6 +1952,8 @@
 /// The intuition is such rules will be most likely the query user initially wanted to write.
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 </span><span class="kw">pub struct </span>ParseAttempts&lt;R&gt; {
+    <span class="doccomment">/// Indicates whether the parsing attempts are tracked.
+    </span>enabled: bool,
     <span class="doccomment">/// Vec of rule calls sequences awaiting tokens at the same `max_position`.
     /// If there are several stacks in vec, it means all those rule stacks are "equal"
     /// because their attempts occurred on the same position.
@@ -1923,6 +1977,7 @@
             expected_tokens: Vec::with_capacity(EXPECTED_TOKENS_INITIAL_CAPACITY),
             unexpected_tokens: Vec::with_capacity(EXPECTED_TOKENS_INITIAL_CAPACITY),
             max_position: <span class="number">0</span>,
+            enabled: ERROR_DETAIL.load(Ordering::Relaxed),
         }
     }
 
@@ -2157,11 +2212,18 @@
                 }
             };
 
-            <span class="prelude-val">Err</span>(Error::new_from_pos_with_parsing_attempts(
-                variant,
-                Position::new_internal(input, state.attempt_pos),
-                state.parse_attempts.clone(),
-            ))
+            <span class="kw">if </span>state.parse_attempts.enabled {
+                <span class="prelude-val">Err</span>(Error::new_from_pos_with_parsing_attempts(
+                    variant,
+                    Position::new_internal(input, state.attempt_pos),
+                    state.parse_attempts.clone(),
+                ))
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(Error::new_from_pos(
+                    variant,
+                    Position::new_internal(input, state.attempt_pos),
+                ))
+            }
         }
     }
 }
@@ -2371,7 +2433,9 @@
                 <span class="comment">// Note, that we need to count positive parsing results too, because we can fail in
                 // optional rule call inside which may lie the farthest
                 // parsed token.
-                </span>try_add_rule_to_stack(<span class="kw-2">&amp;mut </span>new_state);
+                </span><span class="kw">if </span>new_state.parse_attempts.enabled {
+                    try_add_rule_to_stack(<span class="kw-2">&amp;mut </span>new_state);
+                }
                 <span class="prelude-val">Ok</span>(new_state)
             }
             <span class="prelude-val">Err</span>(<span class="kw-2">mut </span>new_state) =&gt; {
@@ -2383,7 +2447,9 @@
                         neg_attempts_index,
                         attempts,
                     );
-                    try_add_rule_to_stack(<span class="kw-2">&amp;mut </span>new_state);
+                    <span class="kw">if </span>new_state.parse_attempts.enabled {
+                        try_add_rule_to_stack(<span class="kw-2">&amp;mut </span>new_state);
+                    }
                 }
 
                 <span class="kw">if </span>new_state.lookahead == Lookahead::None
@@ -2677,13 +2743,15 @@
     <span class="kw">where
         </span>F: FnOnce(char) -&gt; bool,
     {
-        <span class="kw">let </span>token = ParsingToken::BuiltInRule;
         <span class="kw">let </span>start_position = <span class="self">self</span>.position.pos();
-        <span class="kw">if </span><span class="self">self</span>.position.match_char_by(f) {
-            <span class="self">self</span>.handle_token_parse_result(start_position, token, <span class="bool-val">true</span>);
+        <span class="kw">let </span>succeeded = <span class="self">self</span>.position.match_char_by(f);
+        <span class="kw">if </span><span class="self">self</span>.parse_attempts.enabled {
+            <span class="kw">let </span>token = ParsingToken::BuiltInRule;
+            <span class="self">self</span>.handle_token_parse_result(start_position, token, succeeded);
+        }
+        <span class="kw">if </span>succeeded {
             <span class="prelude-val">Ok</span>(<span class="self">self</span>)
         } <span class="kw">else </span>{
-            <span class="self">self</span>.handle_token_parse_result(start_position, token, <span class="bool-val">false</span>);
             <span class="prelude-val">Err</span>(<span class="self">self</span>)
         }
     }
@@ -2712,15 +2780,17 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>match_string(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, string: <span class="kw-2">&amp;</span>str) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">let </span>token = ParsingToken::Sensitive {
-            token: String::from(string),
-        };
         <span class="kw">let </span>start_position = <span class="self">self</span>.position.pos();
-        <span class="kw">if </span><span class="self">self</span>.position.match_string(string) {
-            <span class="self">self</span>.handle_token_parse_result(start_position, token, <span class="bool-val">true</span>);
+        <span class="kw">let </span>succeeded = <span class="self">self</span>.position.match_string(string);
+        <span class="kw">if </span><span class="self">self</span>.parse_attempts.enabled {
+            <span class="kw">let </span>token = ParsingToken::Sensitive {
+                token: String::from(string),
+            };
+            <span class="self">self</span>.handle_token_parse_result(start_position, token, succeeded);
+        }
+        <span class="kw">if </span>succeeded {
             <span class="prelude-val">Ok</span>(<span class="self">self</span>)
         } <span class="kw">else </span>{
-            <span class="self">self</span>.handle_token_parse_result(start_position, token, <span class="bool-val">false</span>);
             <span class="prelude-val">Err</span>(<span class="self">self</span>)
         }
     }
@@ -2749,15 +2819,17 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>match_insensitive(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, string: <span class="kw-2">&amp;</span>str) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
-        <span class="kw">let </span>token = ParsingToken::Insensitive {
-            token: String::from(string),
-        };
-        <span class="kw">let </span>start_position = <span class="self">self</span>.position().pos();
-        <span class="kw">if </span><span class="self">self</span>.position.match_insensitive(string) {
-            <span class="self">self</span>.handle_token_parse_result(start_position, token, <span class="bool-val">true</span>);
+        <span class="kw">let </span>start_position: usize = <span class="self">self</span>.position().pos();
+        <span class="kw">let </span>succeeded = <span class="self">self</span>.position.match_insensitive(string);
+        <span class="kw">if </span><span class="self">self</span>.parse_attempts.enabled {
+            <span class="kw">let </span>token = ParsingToken::Insensitive {
+                token: String::from(string),
+            };
+            <span class="self">self</span>.handle_token_parse_result(start_position, token, succeeded);
+        }
+        <span class="kw">if </span>succeeded {
             <span class="prelude-val">Ok</span>(<span class="self">self</span>)
         } <span class="kw">else </span>{
-            <span class="self">self</span>.handle_token_parse_result(start_position, token, <span class="bool-val">false</span>);
             <span class="prelude-val">Err</span>(<span class="self">self</span>)
         }
     }
@@ -2789,16 +2861,18 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>match_range(<span class="kw-2">mut </span><span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, range: Range&lt;char&gt;) -&gt; ParseResult&lt;Box&lt;<span class="self">Self</span>&gt;&gt; {
+        <span class="kw">let </span>start_position = <span class="self">self</span>.position().pos();
         <span class="kw">let </span>token = ParsingToken::Range {
             start: range.start,
             end: range.end,
         };
-        <span class="kw">let </span>start_position = <span class="self">self</span>.position().pos();
-        <span class="kw">if </span><span class="self">self</span>.position.match_range(range) {
-            <span class="self">self</span>.handle_token_parse_result(start_position, token, <span class="bool-val">true</span>);
+        <span class="kw">let </span>succeeded = <span class="self">self</span>.position.match_range(range);
+        <span class="kw">if </span><span class="self">self</span>.parse_attempts.enabled {
+            <span class="self">self</span>.handle_token_parse_result(start_position, token, succeeded);
+        }
+        <span class="kw">if </span>succeeded {
             <span class="prelude-val">Ok</span>(<span class="self">self</span>)
         } <span class="kw">else </span>{
-            <span class="self">self</span>.handle_token_parse_result(start_position, token, <span class="bool-val">false</span>);
             <span class="prelude-val">Err</span>(<span class="self">self</span>)
         }
     }

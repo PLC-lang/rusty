@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/blocking/client.rs`."><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../reqwest/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.27/src/blocking/client.rs`."><title>client.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1192,6 +1190,30 @@
 <a href="#1190" id="1190">1190</a>
 <a href="#1191" id="1191">1191</a>
 <a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(any(feature = <span class="string">"native-tls"</span>, feature = <span class="string">"__rustls"</span>,))]
 </span><span class="kw">use </span>std::any::Any;
 <span class="kw">use </span>std::convert::TryInto;
@@ -1983,26 +2005,50 @@
         <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.use_preconfigured_tls(tls))
     }
 
-    <span class="doccomment">/// Enables the [trust-dns](trust_dns_resolver) async resolver instead of a default threadpool using `getaddrinfo`.
+    <span class="doccomment">/// Enables the [hickory-dns](hickory_resolver) async resolver instead of a default threadpool using `getaddrinfo`.
     ///
-    /// If the `trust-dns` feature is turned on, the default option is enabled.
+    /// If the `hickory-dns` feature is turned on, the default option is enabled.
     ///
     /// # Optional
     ///
-    /// This requires the optional `trust-dns` feature to be enabled
-    </span><span class="attr">#[cfg(feature = <span class="string">"trust-dns"</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"trust-dns"</span>)))]
+    /// This requires the optional `hickory-dns` feature to be enabled
+    </span><span class="attr">#[cfg(feature = <span class="string">"hickory-dns"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"hickory-dns"</span>)))]
+    #[deprecated(note = <span class="string">"use `hickory_dns` instead"</span>, since = <span class="string">"0.12.0"</span>)]
     </span><span class="kw">pub fn </span>trust_dns(<span class="self">self</span>, enable: bool) -&gt; ClientBuilder {
-        <span class="self">self</span>.with_inner(|inner| inner.trust_dns(enable))
+        <span class="self">self</span>.with_inner(|inner| inner.hickory_dns(enable))
     }
 
-    <span class="doccomment">/// Disables the trust-dns async resolver.
+    <span class="doccomment">/// Enables the [hickory-dns](hickory_resolver) async resolver instead of a default threadpool using `getaddrinfo`.
     ///
-    /// This method exists even if the optional `trust-dns` feature is not enabled.
-    /// This can be used to ensure a `Client` doesn't use the trust-dns async resolver
-    /// even if another dependency were to enable the optional `trust-dns` feature.
+    /// If the `hickory-dns` feature is turned on, the default option is enabled.
+    ///
+    /// # Optional
+    ///
+    /// This requires the optional `hickory-dns` feature to be enabled
+    </span><span class="attr">#[cfg(feature = <span class="string">"hickory-dns"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"hickory-dns"</span>)))]
+    </span><span class="kw">pub fn </span>hickory_dns(<span class="self">self</span>, enable: bool) -&gt; ClientBuilder {
+        <span class="self">self</span>.with_inner(|inner| inner.hickory_dns(enable))
+    }
+
+    <span class="doccomment">/// Disables the hickory-dns async resolver.
+    ///
+    /// This method exists even if the optional `hickory-dns` feature is not enabled.
+    /// This can be used to ensure a `Client` doesn't use the hickory-dns async resolver
+    /// even if another dependency were to enable the optional `hickory-dns` feature.
+    </span><span class="attr">#[deprecated(note = <span class="string">"use `no_hickory_dns` instead"</span>, since = <span class="string">"0.12.0"</span>)]
     </span><span class="kw">pub fn </span>no_trust_dns(<span class="self">self</span>) -&gt; ClientBuilder {
-        <span class="self">self</span>.with_inner(|inner| inner.no_trust_dns())
+        <span class="self">self</span>.with_inner(|inner| inner.no_hickory_dns())
+    }
+
+    <span class="doccomment">/// Disables the hickory-dns async resolver.
+    ///
+    /// This method exists even if the optional `hickory-dns` feature is not enabled.
+    /// This can be used to ensure a `Client` doesn't use the hickory-dns async resolver
+    /// even if another dependency were to enable the optional `hickory-dns` feature.
+    </span><span class="kw">pub fn </span>no_hickory_dns(<span class="self">self</span>) -&gt; ClientBuilder {
+        <span class="self">self</span>.with_inner(|inner| inner.no_hickory_dns())
     }
 
     <span class="doccomment">/// Restrict the Client to be used with HTTPS only requests.
@@ -2208,11 +2254,11 @@
             .map(|h| h.thread().id())
             .expect(<span class="string">"thread not dropped yet"</span>);
 
-        <span class="macro">trace!</span>(<span class="string">"closing runtime thread ({:?})"</span>, id);
+        <span class="macro">trace!</span>(<span class="string">"closing runtime thread ({id:?})"</span>);
         <span class="self">self</span>.tx.take();
-        <span class="macro">trace!</span>(<span class="string">"signaled close for runtime thread ({:?})"</span>, id);
+        <span class="macro">trace!</span>(<span class="string">"signaled close for runtime thread ({id:?})"</span>);
         <span class="self">self</span>.thread.take().map(|h| h.join());
-        <span class="macro">trace!</span>(<span class="string">"closed runtime thread ({:?})"</span>, id);
+        <span class="macro">trace!</span>(<span class="string">"closed runtime thread ({id:?})"</span>);
     }
 }
 
@@ -2233,7 +2279,7 @@
                 {
                     <span class="prelude-val">Err</span>(e) =&gt; {
                         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = spawn_tx.send(<span class="prelude-val">Err</span>(e)) {
-                            <span class="macro">error!</span>(<span class="string">"Failed to communicate runtime creation failure: {:?}"</span>, e);
+                            <span class="macro">error!</span>(<span class="string">"Failed to communicate runtime creation failure: {e:?}"</span>);
                         }
                         <span class="kw">return</span>;
                     }
@@ -2244,14 +2290,14 @@
                     <span class="kw">let </span>client = <span class="kw">match </span>builder.build() {
                         <span class="prelude-val">Err</span>(e) =&gt; {
                             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = spawn_tx.send(<span class="prelude-val">Err</span>(e)) {
-                                <span class="macro">error!</span>(<span class="string">"Failed to communicate client creation failure: {:?}"</span>, e);
+                                <span class="macro">error!</span>(<span class="string">"Failed to communicate client creation failure: {e:?}"</span>);
                             }
                             <span class="kw">return</span>;
                         }
                         <span class="prelude-val">Ok</span>(v) =&gt; v,
                     };
                     <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = spawn_tx.send(<span class="prelude-val">Ok</span>(())) {
-                        <span class="macro">error!</span>(<span class="string">"Failed to communicate successful startup: {:?}"</span>, e);
+                        <span class="macro">error!</span>(<span class="string">"Failed to communicate successful startup: {e:?}"</span>);
                         <span class="kw">return</span>;
                     }
 
@@ -2366,7 +2412,7 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>KeepCoreThreadAlive(<span class="prelude-ty">Option</span>&lt;Arc&lt;InnerClientHandle&gt;&gt;);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>KeepCoreThreadAlive(<span class="attr">#[allow(unused)] </span><span class="prelude-ty">Option</span>&lt;Arc&lt;InnerClientHandle&gt;&gt;);
 
 <span class="kw">impl </span>KeepCoreThreadAlive {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>empty() -&gt; KeepCoreThreadAlive {

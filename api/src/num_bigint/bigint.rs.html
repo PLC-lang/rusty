@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.4/src/bigint.rs`."><title>bigint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../num_bigint/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.6/src/bigint.rs`."><title>bigint.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1171,21 +1169,78 @@
 <a href="#1169" id="1169">1169</a>
 <a href="#1170" id="1170">1170</a>
 <a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
 </pre></div><pre class="rust"><code><span class="comment">// `Add`/`Sub` ops may flip from `BigInt` to its `BigUint` magnitude
 </span><span class="attr">#![allow(clippy::suspicious_arithmetic_impl)]
 
-</span><span class="kw">use </span><span class="kw">crate</span>::std_alloc::{String, Vec};
+</span><span class="kw">use </span>alloc::string::String;
+<span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>core::cmp::Ordering::{<span class="self">self</span>, Equal};
 <span class="kw">use </span>core::default::Default;
 <span class="kw">use </span>core::fmt;
 <span class="kw">use </span>core::hash;
 <span class="kw">use </span>core::ops::{Neg, Not};
 <span class="kw">use </span>core::str;
-<span class="kw">use </span>core::{i128, u128};
-<span class="kw">use </span>core::{i64, u64};
 
 <span class="kw">use </span>num_integer::{Integer, Roots};
-<span class="kw">use </span>num_traits::{Num, One, Pow, Signed, Zero};
+<span class="kw">use </span>num_traits::{ConstZero, Num, One, Pow, Signed, Zero};
 
 <span class="kw">use </span><span class="self">self</span>::Sign::{Minus, NoSign, Plus};
 
@@ -1198,16 +1253,12 @@
 <span class="kw">mod </span>multiplication;
 <span class="kw">mod </span>subtraction;
 
+<span class="kw">mod </span>arbitrary;
 <span class="kw">mod </span>bits;
 <span class="kw">mod </span>convert;
 <span class="kw">mod </span>power;
+<span class="kw">mod </span>serde;
 <span class="kw">mod </span>shift;
-
-<span class="attr">#[cfg(any(feature = <span class="string">"quickcheck"</span>, feature = <span class="string">"arbitrary"</span>))]
-</span><span class="kw">mod </span>arbitrary;
-
-<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
-</span><span class="kw">mod </span>serde;
 
 <span class="doccomment">/// A `Sign` is a [`BigInt`]'s composing element.
 </span><span class="attr">#[derive(PartialEq, PartialOrd, Eq, Ord, Copy, Clone, Debug, Hash)]
@@ -1305,7 +1356,7 @@
 <span class="kw">impl </span>Default <span class="kw">for </span>BigInt {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>default() -&gt; BigInt {
-        Zero::zero()
+        <span class="self">Self</span>::ZERO
     }
 }
 
@@ -1384,10 +1435,7 @@
 <span class="kw">impl </span>Zero <span class="kw">for </span>BigInt {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>zero() -&gt; BigInt {
-        BigInt {
-            sign: NoSign,
-            data: BigUint::zero(),
-        }
+        <span class="self">Self</span>::ZERO
     }
 
     <span class="attr">#[inline]
@@ -1400,6 +1448,11 @@
     </span><span class="kw">fn </span>is_zero(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.sign == NoSign
     }
+}
+
+<span class="kw">impl </span>ConstZero <span class="kw">for </span>BigInt {
+    <span class="comment">// forward to the inherent const
+    </span><span class="kw">const </span>ZERO: <span class="self">Self </span>= <span class="self">Self</span>::ZERO;
 }
 
 <span class="kw">impl </span>One <span class="kw">for </span>BigInt {
@@ -1435,7 +1488,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>abs_sub(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>BigInt) -&gt; BigInt {
         <span class="kw">if </span><span class="kw-2">*</span><span class="self">self </span>&lt;= <span class="kw-2">*</span>other {
-            Zero::zero()
+            <span class="self">Self</span>::ZERO
         } <span class="kw">else </span>{
             <span class="self">self </span>- other
         }
@@ -1446,7 +1499,7 @@
         <span class="kw">match </span><span class="self">self</span>.sign {
             Plus =&gt; BigInt::one(),
             Minus =&gt; -BigInt::one(),
-            NoSign =&gt; BigInt::zero(),
+            NoSign =&gt; <span class="self">Self</span>::ZERO,
         }
     }
 
@@ -1464,10 +1517,6 @@
 <span class="kw">trait </span>UnsignedAbs {
     <span class="kw">type </span>Unsigned;
 
-    <span class="doccomment">/// A convenience method for getting the absolute value of a signed primitive as unsigned
-    /// See also `unsigned_abs`: &lt;https://github.com/rust-lang/rust/issues/74913&gt;
-    </span><span class="kw">fn </span>uabs(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Unsigned;
-
     <span class="kw">fn </span>checked_uabs(<span class="self">self</span>) -&gt; CheckedUnsignedAbs&lt;<span class="self">Self</span>::Unsigned&gt;;
 }
 
@@ -1477,15 +1526,10 @@
 }
 <span class="kw">use </span><span class="self">self</span>::CheckedUnsignedAbs::{Negative, Positive};
 
-<span class="macro">macro_rules! </span>impl_unsigned_abs {
+<span class="macro">macro_rules!</span> impl_unsigned_abs {
     (<span class="macro-nonterminal">$Signed</span>:ty, <span class="macro-nonterminal">$Unsigned</span>:ty) =&gt; {
         <span class="kw">impl </span>UnsignedAbs <span class="kw">for </span><span class="macro-nonterminal">$Signed </span>{
             <span class="kw">type </span>Unsigned = <span class="macro-nonterminal">$Unsigned</span>;
-
-            <span class="attr">#[inline]
-            </span><span class="kw">fn </span>uabs(<span class="self">self</span>) -&gt; <span class="macro-nonterminal">$Unsigned </span>{
-                <span class="self">self</span>.wrapping_abs() <span class="kw">as </span><span class="macro-nonterminal">$Unsigned
-            </span>}
 
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>checked_uabs(<span class="self">self</span>) -&gt; CheckedUnsignedAbs&lt;<span class="self">Self</span>::Unsigned&gt; {
@@ -1635,7 +1679,7 @@
     </span><span class="kw">fn </span>extended_gcd_lcm(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>BigInt) -&gt; (num_integer::ExtendedGcd&lt;BigInt&gt;, BigInt) {
         <span class="kw">let </span>egcd = <span class="self">self</span>.extended_gcd(other);
         <span class="kw">let </span>lcm = <span class="kw">if </span>egcd.gcd.is_zero() {
-            BigInt::zero()
+            <span class="self">Self</span>::ZERO
         } <span class="kw">else </span>{
             BigInt::from(<span class="kw-2">&amp;</span><span class="self">self</span>.data / <span class="kw-2">&amp;</span>egcd.gcd.data * <span class="kw-2">&amp;</span>other.data)
         };
@@ -1680,6 +1724,14 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>prev_multiple_of(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">self </span>- <span class="self">self</span>.mod_floor(other)
+    }
+
+    <span class="kw">fn </span>dec(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw-2">*</span><span class="self">self </span>-= <span class="number">1u32</span>;
+    }
+
+    <span class="kw">fn </span>inc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw-2">*</span><span class="self">self </span>+= <span class="number">1u32</span>;
     }
 }
 
@@ -1740,6 +1792,12 @@
 }
 
 <span class="kw">impl </span>BigInt {
+    <span class="doccomment">/// A constant `BigInt` with value 0, useful for static initialization.
+    </span><span class="kw">pub const </span>ZERO: <span class="self">Self </span>= BigInt {
+        sign: NoSign,
+        data: BigUint::ZERO,
+    };
+
     <span class="doccomment">/// Creates and initializes a [`BigInt`].
     ///
     /// The base 2&lt;sup&gt;32&lt;/sup&gt; digits are ordered least significant digit first.
@@ -2095,11 +2153,10 @@
     ///
     /// ```
     /// use num_bigint::{BigInt, Sign};
-    /// use num_traits::Zero;
     ///
     /// assert_eq!(BigInt::from(1234).sign(), Sign::Plus);
     /// assert_eq!(BigInt::from(-4321).sign(), Sign::Minus);
-    /// assert_eq!(BigInt::zero().sign(), Sign::NoSign);
+    /// assert_eq!(BigInt::ZERO.sign(), Sign::NoSign);
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sign(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sign {
@@ -2116,7 +2173,7 @@
     ///
     /// assert_eq!(BigInt::from(1234).magnitude(), &amp;BigUint::from(1234u32));
     /// assert_eq!(BigInt::from(-4321).magnitude(), &amp;BigUint::from(4321u32));
-    /// assert!(BigInt::zero().magnitude().is_zero());
+    /// assert!(BigInt::ZERO.magnitude().is_zero());
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>magnitude(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BigUint {
@@ -2130,11 +2187,10 @@
     ///
     /// ```
     /// use num_bigint::{BigInt, BigUint, Sign};
-    /// use num_traits::Zero;
     ///
     /// assert_eq!(BigInt::from(1234).into_parts(), (Sign::Plus, BigUint::from(1234u32)));
     /// assert_eq!(BigInt::from(-4321).into_parts(), (Sign::Minus, BigUint::from(4321u32)));
-    /// assert_eq!(BigInt::zero().into_parts(), (Sign::NoSign, BigUint::zero()));
+    /// assert_eq!(BigInt::ZERO.into_parts(), (Sign::NoSign, BigUint::ZERO));
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>into_parts(<span class="self">self</span>) -&gt; (Sign, BigUint) {
@@ -2153,7 +2209,7 @@
     </span><span class="kw">pub fn </span>to_biguint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BigUint&gt; {
         <span class="kw">match </span><span class="self">self</span>.sign {
             Plus =&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.data.clone()),
-            NoSign =&gt; <span class="prelude-val">Some</span>(Zero::zero()),
+            NoSign =&gt; <span class="prelude-val">Some</span>(BigUint::ZERO),
             Minus =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2196,6 +2252,64 @@
     /// Panics if the exponent is negative or the modulus is zero.
     </span><span class="kw">pub fn </span>modpow(<span class="kw-2">&amp;</span><span class="self">self</span>, exponent: <span class="kw-2">&amp;</span><span class="self">Self</span>, modulus: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
         power::modpow(<span class="self">self</span>, exponent, modulus)
+    }
+
+    <span class="doccomment">/// Returns the modular multiplicative inverse if it exists, otherwise `None`.
+    ///
+    /// This solves for `x` such that `self * x ≡ 1 (mod modulus)`.
+    /// Note that this rounds like `mod_floor`, not like the `%` operator,
+    /// which makes a difference when given a negative `self` or `modulus`.
+    /// The solution will be in the interval `[0, modulus)` for `modulus &gt; 0`,
+    /// or in the interval `(modulus, 0]` for `modulus &lt; 0`,
+    /// and it exists if and only if `gcd(self, modulus) == 1`.
+    ///
+    /// ```
+    /// use num_bigint::BigInt;
+    /// use num_integer::Integer;
+    /// use num_traits::{One, Zero};
+    ///
+    /// let m = BigInt::from(383);
+    ///
+    /// // Trivial cases
+    /// assert_eq!(BigInt::zero().modinv(&amp;m), None);
+    /// assert_eq!(BigInt::one().modinv(&amp;m), Some(BigInt::one()));
+    /// let neg1 = &amp;m - 1u32;
+    /// assert_eq!(neg1.modinv(&amp;m), Some(neg1));
+    ///
+    /// // Positive self and modulus
+    /// let a = BigInt::from(271);
+    /// let x = a.modinv(&amp;m).unwrap();
+    /// assert_eq!(x, BigInt::from(106));
+    /// assert_eq!(x.modinv(&amp;m).unwrap(), a);
+    /// assert_eq!((&amp;a * x).mod_floor(&amp;m), BigInt::one());
+    ///
+    /// // Negative self and positive modulus
+    /// let b = -&amp;a;
+    /// let x = b.modinv(&amp;m).unwrap();
+    /// assert_eq!(x, BigInt::from(277));
+    /// assert_eq!((&amp;b * x).mod_floor(&amp;m), BigInt::one());
+    ///
+    /// // Positive self and negative modulus
+    /// let n = -&amp;m;
+    /// let x = a.modinv(&amp;n).unwrap();
+    /// assert_eq!(x, BigInt::from(-277));
+    /// assert_eq!((&amp;a * x).mod_floor(&amp;n), &amp;n + 1);
+    ///
+    /// // Negative self and modulus
+    /// let x = b.modinv(&amp;n).unwrap();
+    /// assert_eq!(x, BigInt::from(-106));
+    /// assert_eq!((&amp;b * x).mod_floor(&amp;n), &amp;n + 1);
+    /// ```
+    </span><span class="kw">pub fn </span>modinv(<span class="kw-2">&amp;</span><span class="self">self</span>, modulus: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>result = <span class="self">self</span>.data.modinv(<span class="kw-2">&amp;</span>modulus.data)<span class="question-mark">?</span>;
+        <span class="comment">// The sign of the result follows the modulus, like `mod_floor`.
+        </span><span class="kw">let </span>(sign, mag) = <span class="kw">match </span>(<span class="self">self</span>.is_negative(), modulus.is_negative()) {
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; (Plus, result),
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; (Plus, <span class="kw-2">&amp;</span>modulus.data - result),
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; (Minus, <span class="kw-2">&amp;</span>modulus.data - result),
+            (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; (Minus, result),
+        };
+        <span class="prelude-val">Some</span>(BigInt::from_biguint(sign, mag))
     }
 
     <span class="doccomment">/// Returns the truncated principal square root of `self` --

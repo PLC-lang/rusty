@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Builder","Filter","FilteredLog"]};
+window.SIDEBAR_ITEMS = {"struct":["Builder","Filter","FilteredLog","ParseError"]};

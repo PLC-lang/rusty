@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.35/src/time_delta.rs`."><title>time_delta.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../chrono/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.38/src/time_delta.rs`."><title>time_delta.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1286,6 +1284,20 @@
 <a href="#1284" id="1284">1284</a>
 <a href="#1285" id="1285">1285</a>
 <a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2012-2014 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
 // http://rust-lang.org/COPYRIGHT.
@@ -1390,9 +1402,8 @@
     /// Panics when the duration is out of bounds.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_weeks` instead"</span>)]
     </span><span class="kw">pub const fn </span>weeks(weeks: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_weeks(weeks), <span class="string">"TimeDelta::weeks out of bounds"</span>)
+        expect(TimeDelta::try_weeks(weeks), <span class="string">"TimeDelta::weeks out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of weeks.
@@ -1418,9 +1429,8 @@
     /// Panics when the `TimeDelta` would be out of bounds.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_days` instead"</span>)]
     </span><span class="kw">pub const fn </span>days(days: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_days(days), <span class="string">"TimeDelta::days out of bounds"</span>)
+        expect(TimeDelta::try_days(days), <span class="string">"TimeDelta::days out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of days.
@@ -1445,9 +1455,8 @@
     /// Panics when the `TimeDelta` would be out of bounds.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_hours` instead"</span>)]
     </span><span class="kw">pub const fn </span>hours(hours: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_hours(hours), <span class="string">"TimeDelta::hours out of bounds"</span>)
+        expect(TimeDelta::try_hours(hours), <span class="string">"TimeDelta::hours out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of hours.
@@ -1471,9 +1480,8 @@
     /// Panics when the `TimeDelta` would be out of bounds.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_minutes` instead"</span>)]
     </span><span class="kw">pub const fn </span>minutes(minutes: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_minutes(minutes), <span class="string">"TimeDelta::minutes out of bounds"</span>)
+        expect(TimeDelta::try_minutes(minutes), <span class="string">"TimeDelta::minutes out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of minutes.
@@ -1496,9 +1504,8 @@
     /// (in this context, this is the same as `i64::MIN / 1_000` due to rounding).
     </span><span class="attr">#[inline]
     #[must_use]
-    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_seconds` instead"</span>)]
     </span><span class="kw">pub const fn </span>seconds(seconds: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_seconds(seconds), <span class="string">"TimeDelta::seconds out of bounds"</span>)
+        expect(TimeDelta::try_seconds(seconds), <span class="string">"TimeDelta::seconds out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of seconds.
@@ -1520,9 +1527,8 @@
     /// Panics when the `TimeDelta` would be out of bounds, i.e. when `milliseconds` is more than
     /// `i64::MAX` or less than `-i64::MAX`. Notably, this is not the same as `i64::MIN`.
     </span><span class="attr">#[inline]
-    #[deprecated(since = <span class="string">"0.4.35"</span>, note = <span class="string">"Use `TimeDelta::try_milliseconds` instead"</span>)]
     </span><span class="kw">pub const fn </span>milliseconds(milliseconds: i64) -&gt; TimeDelta {
-        <span class="macro">expect!</span>(TimeDelta::try_milliseconds(milliseconds), <span class="string">"TimeDelta::milliseconds out of bounds"</span>)
+        expect(TimeDelta::try_milliseconds(milliseconds), <span class="string">"TimeDelta::milliseconds out of bounds"</span>)
     }
 
     <span class="doccomment">/// Makes a new `TimeDelta` with the given number of milliseconds.
@@ -1666,6 +1672,40 @@
         TimeDelta::new(secs, nanos <span class="kw">as </span>u32)
     }
 
+    <span class="doccomment">/// Multiply a `TimeDelta` with a i32, returning `None` if overflow occurred.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>checked_mul(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: i32) -&gt; <span class="prelude-ty">Option</span>&lt;TimeDelta&gt; {
+        <span class="comment">// Multiply nanoseconds as i64, because it cannot overflow that way.
+        </span><span class="kw">let </span>total_nanos = <span class="self">self</span>.nanos <span class="kw">as </span>i64 * rhs <span class="kw">as </span>i64;
+        <span class="kw">let </span>(extra_secs, nanos) = div_mod_floor_64(total_nanos, NANOS_PER_SEC <span class="kw">as </span>i64);
+        <span class="comment">// Multiply seconds as i128 to prevent overflow
+        </span><span class="kw">let </span>secs: i128 = <span class="self">self</span>.secs <span class="kw">as </span>i128 * rhs <span class="kw">as </span>i128 + extra_secs <span class="kw">as </span>i128;
+        <span class="kw">if </span>secs &lt;= i64::MIN <span class="kw">as </span>i128 || secs &gt;= i64::MAX <span class="kw">as </span>i128 {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        };
+        <span class="prelude-val">Some</span>(TimeDelta { secs: secs <span class="kw">as </span>i64, nanos: nanos <span class="kw">as </span>i32 })
+    }
+
+    <span class="doccomment">/// Divide a `TimeDelta` with a i32, returning `None` if dividing by 0.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub const fn </span>checked_div(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: i32) -&gt; <span class="prelude-ty">Option</span>&lt;TimeDelta&gt; {
+        <span class="kw">if </span>rhs == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
+        <span class="kw">let </span>secs = <span class="self">self</span>.secs / rhs <span class="kw">as </span>i64;
+        <span class="kw">let </span>carry = <span class="self">self</span>.secs % rhs <span class="kw">as </span>i64;
+        <span class="kw">let </span>extra_nanos = carry * NANOS_PER_SEC <span class="kw">as </span>i64 / rhs <span class="kw">as </span>i64;
+        <span class="kw">let </span>nanos = <span class="self">self</span>.nanos / rhs + extra_nanos <span class="kw">as </span>i32;
+
+        <span class="kw">let </span>(secs, nanos) = <span class="kw">match </span>nanos {
+            i32::MIN..=-<span class="number">1 </span>=&gt; (secs - <span class="number">1</span>, nanos + NANOS_PER_SEC),
+            NANOS_PER_SEC..=i32::MAX =&gt; (secs + <span class="number">1</span>, nanos - NANOS_PER_SEC),
+            <span class="kw">_ </span>=&gt; (secs, nanos),
+        };
+
+        <span class="prelude-val">Some</span>(TimeDelta { secs, nanos })
+    }
+
     <span class="doccomment">/// Returns the `TimeDelta` as an absolute (non-negative) value.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>abs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TimeDelta {
@@ -1783,11 +1823,7 @@
     <span class="kw">type </span>Output = TimeDelta;
 
     <span class="kw">fn </span>mul(<span class="self">self</span>, rhs: i32) -&gt; TimeDelta {
-        <span class="comment">// Multiply nanoseconds as i64, because it cannot overflow that way.
-        </span><span class="kw">let </span>total_nanos = <span class="self">self</span>.nanos <span class="kw">as </span>i64 * rhs <span class="kw">as </span>i64;
-        <span class="kw">let </span>(extra_secs, nanos) = div_mod_floor_64(total_nanos, NANOS_PER_SEC <span class="kw">as </span>i64);
-        <span class="kw">let </span>secs = <span class="self">self</span>.secs * rhs <span class="kw">as </span>i64 + extra_secs;
-        TimeDelta { secs, nanos: nanos <span class="kw">as </span>i32 }
+        <span class="self">self</span>.checked_mul(rhs).expect(<span class="string">"`TimeDelta * i32` overflowed"</span>)
     }
 }
 
@@ -1795,19 +1831,7 @@
     <span class="kw">type </span>Output = TimeDelta;
 
     <span class="kw">fn </span>div(<span class="self">self</span>, rhs: i32) -&gt; TimeDelta {
-        <span class="kw">let </span><span class="kw-2">mut </span>secs = <span class="self">self</span>.secs / rhs <span class="kw">as </span>i64;
-        <span class="kw">let </span>carry = <span class="self">self</span>.secs - secs * rhs <span class="kw">as </span>i64;
-        <span class="kw">let </span>extra_nanos = carry * NANOS_PER_SEC <span class="kw">as </span>i64 / rhs <span class="kw">as </span>i64;
-        <span class="kw">let </span><span class="kw-2">mut </span>nanos = <span class="self">self</span>.nanos / rhs + extra_nanos <span class="kw">as </span>i32;
-        <span class="kw">if </span>nanos &gt;= NANOS_PER_SEC {
-            nanos -= NANOS_PER_SEC;
-            secs += <span class="number">1</span>;
-        }
-        <span class="kw">if </span>nanos &lt; <span class="number">0 </span>{
-            nanos += NANOS_PER_SEC;
-            secs -= <span class="number">1</span>;
-        }
-        TimeDelta { secs, nanos }
+        <span class="self">self</span>.checked_div(rhs).expect(<span class="string">"`i32` is zero"</span>)
     }
 }
 
@@ -1976,7 +2000,6 @@
     }
 
     <span class="attr">#[test]
-    #[allow(deprecated)]
     #[should_panic(expected = <span class="string">"TimeDelta::seconds out of bounds"</span>)]
     </span><span class="kw">fn </span>test_duration_seconds_max_overflow_panic() {
         <span class="kw">let _ </span>= TimeDelta::seconds(i64::MAX / <span class="number">1_000 </span>+ <span class="number">1</span>);
@@ -1998,7 +2021,6 @@
     }
 
     <span class="attr">#[test]
-    #[allow(deprecated)]
     #[should_panic(expected = <span class="string">"TimeDelta::seconds out of bounds"</span>)]
     </span><span class="kw">fn </span>test_duration_seconds_min_underflow_panic() {
         <span class="kw">let _ </span>= TimeDelta::seconds(-i64::MAX / <span class="number">1_000 </span>- <span class="number">1</span>);
@@ -2061,7 +2083,6 @@
     }
 
     <span class="attr">#[test]
-    #[allow(deprecated)]
     #[should_panic(expected = <span class="string">"TimeDelta::milliseconds out of bounds"</span>)]
     </span><span class="kw">fn </span>test_duration_milliseconds_min_underflow_panic() {
         <span class="comment">// Here we ensure that trying to create a value one millisecond below the
@@ -2331,6 +2352,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_duration_checked_ops() {
         <span class="kw">let </span>milliseconds = |ms| TimeDelta::try_milliseconds(ms).unwrap();
+        <span class="kw">let </span>seconds = |s| TimeDelta::try_seconds(s).unwrap();
 
         <span class="macro">assert_eq!</span>(
             milliseconds(i64::MAX).checked_add(<span class="kw-2">&amp;</span>milliseconds(<span class="number">0</span>)),
@@ -2353,6 +2375,10 @@
         );
         <span class="macro">assert!</span>(milliseconds(-i64::MAX).checked_sub(<span class="kw-2">&amp;</span>milliseconds(<span class="number">1</span>)).is_none());
         <span class="macro">assert!</span>(milliseconds(-i64::MAX).checked_sub(<span class="kw-2">&amp;</span>TimeDelta::nanoseconds(<span class="number">1</span>)).is_none());
+
+        <span class="macro">assert!</span>(seconds(i64::MAX / <span class="number">1000</span>).checked_mul(<span class="number">2000</span>).is_none());
+        <span class="macro">assert!</span>(seconds(i64::MIN / <span class="number">1000</span>).checked_mul(<span class="number">2000</span>).is_none());
+        <span class="macro">assert!</span>(seconds(<span class="number">1</span>).checked_div(<span class="number">0</span>).is_none());
     }
 
     <span class="attr">#[test]
@@ -2532,12 +2558,12 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_duration_const() {
-        <span class="kw">const </span>ONE_WEEK: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_weeks(<span class="number">1</span>), <span class="string">""</span>);
-        <span class="kw">const </span>ONE_DAY: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_days(<span class="number">1</span>), <span class="string">""</span>);
-        <span class="kw">const </span>ONE_HOUR: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_hours(<span class="number">1</span>), <span class="string">""</span>);
-        <span class="kw">const </span>ONE_MINUTE: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_minutes(<span class="number">1</span>), <span class="string">""</span>);
-        <span class="kw">const </span>ONE_SECOND: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_seconds(<span class="number">1</span>), <span class="string">""</span>);
-        <span class="kw">const </span>ONE_MILLI: TimeDelta = <span class="macro">expect!</span>(TimeDelta::try_milliseconds(<span class="number">1</span>), <span class="string">""</span>);
+        <span class="kw">const </span>ONE_WEEK: TimeDelta = expect(TimeDelta::try_weeks(<span class="number">1</span>), <span class="string">""</span>);
+        <span class="kw">const </span>ONE_DAY: TimeDelta = expect(TimeDelta::try_days(<span class="number">1</span>), <span class="string">""</span>);
+        <span class="kw">const </span>ONE_HOUR: TimeDelta = expect(TimeDelta::try_hours(<span class="number">1</span>), <span class="string">""</span>);
+        <span class="kw">const </span>ONE_MINUTE: TimeDelta = expect(TimeDelta::try_minutes(<span class="number">1</span>), <span class="string">""</span>);
+        <span class="kw">const </span>ONE_SECOND: TimeDelta = expect(TimeDelta::try_seconds(<span class="number">1</span>), <span class="string">""</span>);
+        <span class="kw">const </span>ONE_MILLI: TimeDelta = expect(TimeDelta::try_milliseconds(<span class="number">1</span>), <span class="string">""</span>);
         <span class="kw">const </span>ONE_MICRO: TimeDelta = TimeDelta::microseconds(<span class="number">1</span>);
         <span class="kw">const </span>ONE_NANO: TimeDelta = TimeDelta::nanoseconds(<span class="number">1</span>);
         <span class="kw">let </span>combo: TimeDelta = ONE_WEEK

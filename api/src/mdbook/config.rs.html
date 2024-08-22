@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mdbook-0.4.37/src/config.rs`."><title>config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mdbook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../mdbook/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mdbook-0.4.40/src/config.rs`."><title>config.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mdbook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1323,6 +1321,39 @@
 <a href="#1321" id="1321">1321</a>
 <a href="#1322" id="1322">1322</a>
 <a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Mdbook's configuration system.
 //!
 //! The main entrypoint of the `config` module is the `Config` struct. This acts
@@ -1383,7 +1414,7 @@
 <span class="kw">use </span>std::path::{Path, PathBuf};
 <span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>toml::value::Table;
-<span class="kw">use </span>toml::{<span class="self">self</span>, Value};
+<span class="kw">use </span>toml::Value;
 
 <span class="kw">use </span><span class="kw">crate</span>::errors::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::utils::{<span class="self">self</span>, toml_ext::TomlExt};
@@ -1582,7 +1613,7 @@
         <span class="comment">// we use a macro here instead of a normal loop because the $out
         // variable can be different types. This way we can make type inference
         // figure out what try_into() deserializes to.
-        </span><span class="macro">macro_rules! </span>get_and_insert {
+        </span><span class="macro">macro_rules!</span> get_and_insert {
             (<span class="macro-nonterminal">$table</span>:expr, <span class="macro-nonterminal">$key</span>:expr =&gt; <span class="macro-nonterminal">$out</span>:expr) =&gt; {
                 <span class="kw">let </span>got = <span class="macro-nonterminal">$table
                     </span>.as_table_mut()
@@ -1851,7 +1882,9 @@
     <span class="doccomment">/// The theme to use if the browser requests the dark version of the site.
     /// Defaults to 'navy'.
     </span><span class="kw">pub </span>preferred_dark_theme: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    <span class="doccomment">/// Use "smart quotes" instead of the usual `"` character.
+    <span class="doccomment">/// Supports smart quotes, apostrophes, ellipsis, en-dash, and em-dash.
+    </span><span class="kw">pub </span>smart_punctuation: bool,
+    <span class="doccomment">/// Deprecated alias for `smart_punctuation`.
     </span><span class="kw">pub </span>curly_quotes: bool,
     <span class="doccomment">/// Should mathjax be enabled?
     </span><span class="kw">pub </span>mathjax_support: bool,
@@ -1915,6 +1948,7 @@
             theme: <span class="prelude-val">None</span>,
             default_theme: <span class="prelude-val">None</span>,
             preferred_dark_theme: <span class="prelude-val">None</span>,
+            smart_punctuation: <span class="bool-val">false</span>,
             curly_quotes: <span class="bool-val">false</span>,
             mathjax_support: <span class="bool-val">false</span>,
             copy_fonts: <span class="bool-val">true</span>,
@@ -1947,6 +1981,11 @@
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>d) =&gt; root.join(d),
             <span class="prelude-val">None </span>=&gt; root.join(<span class="string">"theme"</span>),
         }
+    }
+
+    <span class="doccomment">/// Returns `true` if smart punctuation is enabled.
+    </span><span class="kw">pub fn </span>smart_punctuation(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.smart_punctuation || <span class="self">self</span>.curly_quotes
     }
 }
 
@@ -1981,7 +2020,7 @@
     </span><span class="kw">pub </span>level: u8,
 }
 
-<span class="doccomment">/// Configuration for tweaking how the the HTML renderer handles the playground.
+<span class="doccomment">/// Configuration for tweaking how the HTML renderer handles the playground.
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = <span class="string">"kebab-case"</span>)]
 </span><span class="kw">pub struct </span>Playground {
@@ -2010,20 +2049,12 @@
     }
 }
 
-<span class="doccomment">/// Configuration for tweaking how the the HTML renderer handles code blocks.
-</span><span class="attr">#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+<span class="doccomment">/// Configuration for tweaking how the HTML renderer handles code blocks.
+</span><span class="attr">#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = <span class="string">"kebab-case"</span>)]
 </span><span class="kw">pub struct </span>Code {
     <span class="doccomment">/// A prefix string to hide lines per language (one or more chars).
     </span><span class="kw">pub </span>hidelines: HashMap&lt;String, String&gt;,
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>Code {
-    <span class="kw">fn </span>default() -&gt; Code {
-        Code {
-            hidelines: HashMap::new(),
-        }
-    }
 }
 
 <span class="doccomment">/// Configuration of the search functionality of the HTML renderer.
@@ -2123,7 +2154,7 @@
         [output.html]
         theme = "./themedir"
         default-theme = "rust"
-        curly-quotes = true
+        smart-punctuation = true
         google-analytics = "123456"
         additional-css = ["./foo/bar/baz.css"]
         git-repository-url = "https://foo.com/"
@@ -2170,7 +2201,7 @@
             runnable: <span class="bool-val">true</span>,
         };
         <span class="kw">let </span>html_should_be = HtmlConfig {
-            curly_quotes: <span class="bool-val">true</span>,
+            smart_punctuation: <span class="bool-val">true</span>,
             google_analytics: <span class="prelude-val">Some</span>(String::from(<span class="string">"123456"</span>)),
             additional_css: <span class="macro">vec!</span>[PathBuf::from(<span class="string">"./foo/bar/baz.css"</span>)],
             theme: <span class="prelude-val">Some</span>(PathBuf::from(<span class="string">"./themedir"</span>)),
@@ -2350,7 +2381,7 @@
         [output.html]
         destination = "my-book" # the output files will be generated in `root/my-book` instead of `root/book`
         theme = "my-theme"
-        curly-quotes = true
+        smart-punctuation = true
         google-analytics = "123456"
         additional-css = ["custom.css", "custom2.css"]
         additional-js = ["custom.js"]
@@ -2375,7 +2406,7 @@
 
         <span class="kw">let </span>html_should_be = HtmlConfig {
             theme: <span class="prelude-val">Some</span>(PathBuf::from(<span class="string">"my-theme"</span>)),
-            curly_quotes: <span class="bool-val">true</span>,
+            smart_punctuation: <span class="bool-val">true</span>,
             google_analytics: <span class="prelude-val">Some</span>(String::from(<span class="string">"123456"</span>)),
             additional_css: <span class="macro">vec!</span>[PathBuf::from(<span class="string">"custom.css"</span>), PathBuf::from(<span class="string">"custom2.css"</span>)],
             additional_js: <span class="macro">vec!</span>[PathBuf::from(<span class="string">"custom.js"</span>)],
@@ -2644,6 +2675,39 @@
         <span class="kw">let </span>html_config = got.html_config().unwrap();
         <span class="macro">assert!</span>(html_config.print.enable);
         <span class="macro">assert!</span>(!html_config.print.page_break);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>curly_quotes_or_smart_punctuation() {
+        <span class="kw">let </span>src = <span class="string">r#"
+        [book]
+        title = "mdBook Documentation"
+
+        [output.html]
+        smart-punctuation = true
+        "#</span>;
+        <span class="kw">let </span>config = Config::from_str(src).unwrap();
+        <span class="macro">assert_eq!</span>(config.html_config().unwrap().smart_punctuation(), <span class="bool-val">true</span>);
+
+        <span class="kw">let </span>src = <span class="string">r#"
+        [book]
+        title = "mdBook Documentation"
+
+        [output.html]
+        curly-quotes = true
+        "#</span>;
+        <span class="kw">let </span>config = Config::from_str(src).unwrap();
+        <span class="macro">assert_eq!</span>(config.html_config().unwrap().smart_punctuation(), <span class="bool-val">true</span>);
+
+        <span class="kw">let </span>src = <span class="string">r#"
+        [book]
+        title = "mdBook Documentation"
+        "#</span>;
+        <span class="kw">let </span>config = Config::from_str(src).unwrap();
+        <span class="macro">assert_eq!</span>(
+            config.html_config().unwrap_or_default().smart_punctuation(),
+            <span class="bool-val">false
+        </span>);
     }
 }
 </code></pre></div></section></main></body></html>

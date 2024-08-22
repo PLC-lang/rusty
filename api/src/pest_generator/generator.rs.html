@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pest_generator-2.7.9/src/generator.rs`."><title>generator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pest_generator" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pest_generator/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pest_generator-2.7.11/src/generator.rs`."><title>generator.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pest_generator" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1359,7 +1357,7 @@
 
     <span class="kw">let </span>result = result_type();
 
-    <span class="kw">let </span>parser_impl = <span class="macro">quote! </span>{
+    <span class="kw">let </span>parser_impl = <span class="macro">quote!</span> {
         <span class="attr">#[allow(clippy::all)]
         </span><span class="kw">impl </span>#impl_generics ::pest::Parser&lt;Rule&gt; <span class="kw">for </span>#name #ty_generics #where_clause {
             <span class="kw">fn </span>parse&lt;<span class="lifetime">'i</span>&gt;(
@@ -1393,7 +1391,7 @@
         }
     };
 
-    <span class="macro">quote! </span>{
+    <span class="macro">quote!</span> {
         #include_fix
         #rule_enum
         #parser_impl
@@ -1462,7 +1460,7 @@
     <span class="kw">for </span>property <span class="kw">in </span>unicode_property_names() {
         <span class="kw">let </span>property_ident: Ident = syn::parse_str(property).unwrap();
         <span class="comment">// insert manually for #property substitution
-        </span>builtins.push((property, <span class="macro">quote! </span>{
+        </span>builtins.push((property, <span class="macro">quote!</span> {
             <span class="attr">#[inline]
             #[allow(dead_code, non_snake_case, unused_variables)]
             </span><span class="kw">fn </span>#property_ident(state: #box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;) -&gt; ::pest::ParseResult&lt;#box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;&gt; {
@@ -1489,13 +1487,13 @@
             .expect(<span class="string">"path contains invalid unicode"</span>)
             .to_string();
 
-        <span class="macro">quote! </span>{
+        <span class="macro">quote!</span> {
             <span class="macro">include_str!</span>(#relative_path)
         }
     });
 
     <span class="kw">let </span>len = include_tokens.len();
-    <span class="macro">quote! </span>{
+    <span class="macro">quote!</span> {
         <span class="attr">#[allow(non_upper_case_globals)]
         </span><span class="kw">const </span>#const_name: [<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str; #len] = [
             #(#include_tokens),*
@@ -1513,11 +1511,11 @@
         <span class="kw">let </span>rule_name = <span class="macro">format_ident!</span>(<span class="string">"r#{}"</span>, rule.name);
 
         <span class="kw">match </span>doc_comment.line_docs.get(<span class="kw-2">&amp;</span>rule.name) {
-            <span class="prelude-val">Some</span>(doc) =&gt; <span class="macro">quote! </span>{
+            <span class="prelude-val">Some</span>(doc) =&gt; <span class="macro">quote!</span> {
                 <span class="attr">#[doc = #doc]
                 </span>#rule_name
             },
-            <span class="prelude-val">None </span>=&gt; <span class="macro">quote! </span>{
+            <span class="prelude-val">None </span>=&gt; <span class="macro">quote!</span> {
                 #rule_name
             },
         }
@@ -1525,27 +1523,27 @@
 
     <span class="kw">let </span>grammar_doc = <span class="kw-2">&amp;</span>doc_comment.grammar_doc;
     <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">if </span>grammar_doc.is_empty() {
-        <span class="macro">quote! </span>{
+        <span class="macro">quote!</span> {
             <span class="attr">#[allow(dead_code, non_camel_case_types, clippy::upper_case_acronyms)]
             #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
         </span>}
     } <span class="kw">else </span>{
-        <span class="macro">quote! </span>{
+        <span class="macro">quote!</span> {
             <span class="attr">#[doc = #grammar_doc]
             #[allow(dead_code, non_camel_case_types, clippy::upper_case_acronyms)]
             #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
         </span>}
     };
     <span class="kw">if </span>non_exhaustive {
-        result.append_all(<span class="macro">quote! </span>{
+        result.append_all(<span class="macro">quote!</span> {
             <span class="attr">#[non_exhaustive]
         </span>});
     }
-    result.append_all(<span class="macro">quote! </span>{
+    result.append_all(<span class="macro">quote!</span> {
         <span class="kw">pub enum </span>Rule
     });
     <span class="kw">if </span>uses_eoi {
-        result.append_all(<span class="macro">quote! </span>{
+        result.append_all(<span class="macro">quote!</span> {
             {
                 <span class="attr">#[doc = <span class="string">"End-of-input"</span>]
                 </span>EOI,
@@ -1553,7 +1551,7 @@
             }
         });
     } <span class="kw">else </span>{
-        result.append_all(<span class="macro">quote! </span>{
+        result.append_all(<span class="macro">quote!</span> {
             {
                 #( #rule_variants ),*
             }
@@ -1562,10 +1560,10 @@
 
     <span class="kw">let </span>rules = rules.iter().map(|rule| {
         <span class="kw">let </span>rule_name = <span class="macro">format_ident!</span>(<span class="string">"r#{}"</span>, rule.name);
-        <span class="macro">quote! </span>{ #rule_name }
+        <span class="macro">quote!</span> { #rule_name }
     });
 
-    result.append_all(<span class="macro">quote! </span>{
+    result.append_all(<span class="macro">quote!</span> {
         <span class="kw">impl </span>Rule {
             <span class="kw">pub fn </span>all_rules() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static</span>[Rule] {
                 <span class="kw-2">&amp;</span>[ #(Rule::#rules), * ]
@@ -1582,19 +1580,19 @@
         .map(|rule| {
             <span class="kw">let </span>rule = <span class="macro">format_ident!</span>(<span class="string">"r#{}"</span>, rule.name);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 Rule::#rule =&gt; rules::#rule(state)
             }
         })
         .collect();
 
     <span class="kw">if </span>uses_eoi {
-        rules.push(<span class="macro">quote! </span>{
+        rules.push(<span class="macro">quote!</span> {
             Rule::EOI =&gt; rules::EOI(state)
         });
     }
 
-    <span class="macro">quote! </span>{
+    <span class="macro">quote!</span> {
         #( #rules ),*
     }
 }
@@ -1606,7 +1604,7 @@
     } <span class="kw">else if </span>rule.name == <span class="string">"WHITESPACE" </span>|| rule.name == <span class="string">"COMMENT" </span>{
         <span class="kw">let </span>atomic = generate_expr_atomic(rule.expr);
 
-        <span class="macro">quote! </span>{
+        <span class="macro">quote!</span> {
             state.atomic(::pest::Atomicity::Atomic, |state| {
                 #atomic
             })
@@ -1618,7 +1616,7 @@
     <span class="kw">let </span>box_ty = box_type();
 
     <span class="kw">match </span>rule.ty {
-        RuleType::Normal =&gt; <span class="macro">quote! </span>{
+        RuleType::Normal =&gt; <span class="macro">quote!</span> {
             <span class="attr">#[inline]
             #[allow(non_snake_case, unused_variables)]
             </span><span class="kw">pub fn </span>#name(state: #box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;) -&gt; ::pest::ParseResult&lt;#box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;&gt; {
@@ -1627,14 +1625,14 @@
                 })
             }
         },
-        RuleType::Silent =&gt; <span class="macro">quote! </span>{
+        RuleType::Silent =&gt; <span class="macro">quote!</span> {
             <span class="attr">#[inline]
             #[allow(non_snake_case, unused_variables)]
             </span><span class="kw">pub fn </span>#name(state: #box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;) -&gt; ::pest::ParseResult&lt;#box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;&gt; {
                 #expr
             }
         },
-        RuleType::Atomic =&gt; <span class="macro">quote! </span>{
+        RuleType::Atomic =&gt; <span class="macro">quote!</span> {
             <span class="attr">#[inline]
             #[allow(non_snake_case, unused_variables)]
             </span><span class="kw">pub fn </span>#name(state: #box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;) -&gt; ::pest::ParseResult&lt;#box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;&gt; {
@@ -1645,7 +1643,7 @@
                 })
             }
         },
-        RuleType::CompoundAtomic =&gt; <span class="macro">quote! </span>{
+        RuleType::CompoundAtomic =&gt; <span class="macro">quote!</span> {
             <span class="attr">#[inline]
             #[allow(non_snake_case, unused_variables)]
             </span><span class="kw">pub fn </span>#name(state: #box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;) -&gt; ::pest::ParseResult&lt;#box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;&gt; {
@@ -1656,7 +1654,7 @@
                 })
             }
         },
-        RuleType::NonAtomic =&gt; <span class="macro">quote! </span>{
+        RuleType::NonAtomic =&gt; <span class="macro">quote!</span> {
             <span class="attr">#[inline]
             #[allow(non_snake_case, unused_variables)]
             </span><span class="kw">pub fn </span>#name(state: #box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;) -&gt; ::pest::ParseResult&lt;#box_ty&lt;::pest::ParserState&lt;<span class="lifetime">'_</span>, Rule&gt;&gt;&gt; {
@@ -1718,12 +1716,12 @@
 <span class="kw">fn </span>generate_expr(expr: OptimizedExpr) -&gt; TokenStream {
     <span class="kw">match </span>expr {
         OptimizedExpr::Str(string) =&gt; {
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.match_string(#string)
             }
         }
         OptimizedExpr::Insens(string) =&gt; {
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.match_insensitive(#string)
             }
         }
@@ -1731,24 +1729,24 @@
             <span class="kw">let </span>start = start.chars().next().unwrap();
             <span class="kw">let </span>end = end.chars().next().unwrap();
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.match_range(#start..#end)
             }
         }
         OptimizedExpr::Ident(ident) =&gt; {
             <span class="kw">let </span>ident = <span class="macro">format_ident!</span>(<span class="string">"r#{}"</span>, ident);
-            <span class="macro">quote! </span>{ <span class="self">self</span>::#ident(state) }
+            <span class="macro">quote!</span> { <span class="self">self</span>::#ident(state) }
         }
         OptimizedExpr::PeekSlice(start, end_) =&gt; {
             <span class="kw">let </span>end = QuoteOption(end_);
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.stack_match_peek_slice(#start, #end, ::pest::MatchDir::BottomToTop)
             }
         }
         OptimizedExpr::PosPred(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.lookahead(<span class="bool-val">true</span>, |state| {
                     #expr
                 })
@@ -1757,7 +1755,7 @@
         OptimizedExpr::NegPred(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.lookahead(<span class="bool-val">false</span>, |state| {
                     #expr
                 })
@@ -1774,7 +1772,7 @@
             }
             tail.push(generate_expr(current));
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.sequence(|state| {
                     #head
                     #(
@@ -1798,7 +1796,7 @@
             }
             tail.push(generate_expr(current));
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 #head
                 #(
                     .or_else(|state| {
@@ -1810,7 +1808,7 @@
         OptimizedExpr::Opt(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.optional(|state| {
                     #expr
                 })
@@ -1819,7 +1817,7 @@
         OptimizedExpr::Rep(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.sequence(|state| {
                     state.optional(|state| {
                         #expr.and_then(|state| {
@@ -1841,7 +1839,7 @@
         </span>OptimizedExpr::RepOnce(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.sequence(|state| {
                     #expr.and_then(|state| {
                         state.repeat(|state| {
@@ -1858,7 +1856,7 @@
             }
         }
         OptimizedExpr::Skip(strings) =&gt; {
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 <span class="kw">let </span>strings = [#(#strings),<span class="kw-2">*</span>];
 
                 state.skip_until(<span class="kw-2">&amp;</span>strings)
@@ -1867,14 +1865,14 @@
         OptimizedExpr::Push(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.stack_push(|state| #expr)
             }
         }
         OptimizedExpr::RestoreOnErr(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.restore_on_err(|state| #expr)
             }
         }
@@ -1882,7 +1880,7 @@
         </span>OptimizedExpr::NodeTag(expr, tag) =&gt; <span class="kw">match </span><span class="kw-2">*</span>expr {
             OptimizedExpr::Opt(expr) =&gt; {
                 <span class="kw">let </span>expr = generate_expr(<span class="kw-2">*</span>expr);
-                <span class="macro">quote! </span>{
+                <span class="macro">quote!</span> {
                     state.optional(|state| {
                         #expr.and_then(|state| state.tag_node(#tag))
                     })
@@ -1890,7 +1888,7 @@
             }
             OptimizedExpr::Rep(expr) =&gt; {
                 <span class="kw">let </span>expr = generate_expr(<span class="kw-2">*</span>expr);
-                <span class="macro">quote! </span>{
+                <span class="macro">quote!</span> {
                     state.sequence(|state| {
                         state.optional(|state| {
                             #expr.and_then(|state| {
@@ -1910,7 +1908,7 @@
             }
             expr =&gt; {
                 <span class="kw">let </span>expr = generate_expr(expr);
-                <span class="macro">quote! </span>{
+                <span class="macro">quote!</span> {
                     #expr.and_then(|state| state.tag_node(#tag))
                 }
             }
@@ -1921,12 +1919,12 @@
 <span class="kw">fn </span>generate_expr_atomic(expr: OptimizedExpr) -&gt; TokenStream {
     <span class="kw">match </span>expr {
         OptimizedExpr::Str(string) =&gt; {
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.match_string(#string)
             }
         }
         OptimizedExpr::Insens(string) =&gt; {
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.match_insensitive(#string)
             }
         }
@@ -1934,24 +1932,24 @@
             <span class="kw">let </span>start = start.chars().next().unwrap();
             <span class="kw">let </span>end = end.chars().next().unwrap();
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.match_range(#start..#end)
             }
         }
         OptimizedExpr::Ident(ident) =&gt; {
             <span class="kw">let </span>ident = <span class="macro">format_ident!</span>(<span class="string">"r#{}"</span>, ident);
-            <span class="macro">quote! </span>{ <span class="self">self</span>::#ident(state) }
+            <span class="macro">quote!</span> { <span class="self">self</span>::#ident(state) }
         }
         OptimizedExpr::PeekSlice(start, end_) =&gt; {
             <span class="kw">let </span>end = QuoteOption(end_);
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.stack_match_peek_slice(#start, #end, ::pest::MatchDir::BottomToTop)
             }
         }
         OptimizedExpr::PosPred(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr_atomic(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.lookahead(<span class="bool-val">true</span>, |state| {
                     #expr
                 })
@@ -1960,7 +1958,7 @@
         OptimizedExpr::NegPred(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr_atomic(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.lookahead(<span class="bool-val">false</span>, |state| {
                     #expr
                 })
@@ -1977,7 +1975,7 @@
             }
             tail.push(generate_expr_atomic(current));
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.sequence(|state| {
                     #head
                     #(
@@ -1999,7 +1997,7 @@
             }
             tail.push(generate_expr_atomic(current));
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 #head
                 #(
                     .or_else(|state| {
@@ -2011,7 +2009,7 @@
         OptimizedExpr::Opt(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr_atomic(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.optional(|state| {
                     #expr
                 })
@@ -2020,7 +2018,7 @@
         OptimizedExpr::Rep(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr_atomic(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.repeat(|state| {
                     #expr
                 })
@@ -2030,7 +2028,7 @@
         </span>OptimizedExpr::RepOnce(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr_atomic(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.sequence(|state| {
                     #expr.and_then(|state| {
                         state.repeat(|state| {
@@ -2043,7 +2041,7 @@
             }
         }
         OptimizedExpr::Skip(strings) =&gt; {
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 <span class="kw">let </span>strings = [#(#strings),<span class="kw-2">*</span>];
 
                 state.skip_until(<span class="kw-2">&amp;</span>strings)
@@ -2052,14 +2050,14 @@
         OptimizedExpr::Push(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr_atomic(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.stack_push(|state| #expr)
             }
         }
         OptimizedExpr::RestoreOnErr(expr) =&gt; {
             <span class="kw">let </span>expr = generate_expr_atomic(<span class="kw-2">*</span>expr);
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.restore_on_err(|state| #expr)
             }
         }
@@ -2068,7 +2066,7 @@
             OptimizedExpr::Opt(expr) =&gt; {
                 <span class="kw">let </span>expr = generate_expr_atomic(<span class="kw-2">*</span>expr);
 
-                <span class="macro">quote! </span>{
+                <span class="macro">quote!</span> {
                     state.optional(|state| {
                         #expr.and_then(|state| state.tag_node(#tag))
                     })
@@ -2077,7 +2075,7 @@
             OptimizedExpr::Rep(expr) =&gt; {
                 <span class="kw">let </span>expr = generate_expr_atomic(<span class="kw-2">*</span>expr);
 
-                <span class="macro">quote! </span>{
+                <span class="macro">quote!</span> {
                     state.repeat(|state| {
                         #expr.and_then(|state| state.tag_node(#tag))
                     })
@@ -2085,7 +2083,7 @@
             }
             expr =&gt; {
                 <span class="kw">let </span>expr = generate_expr_atomic(expr);
-                <span class="macro">quote! </span>{
+                <span class="macro">quote!</span> {
                     #expr.and_then(|state| state.tag_node(#tag))
                 }
             }
@@ -2099,34 +2097,34 @@
     <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
         <span class="kw">let </span>option = option_type();
         tokens.append_all(<span class="kw">match </span><span class="self">self</span>.<span class="number">0 </span>{
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>t) =&gt; <span class="macro">quote! </span>{ #option::Some(#t) },
-            <span class="prelude-val">None </span>=&gt; <span class="macro">quote! </span>{ #option::None },
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>t) =&gt; <span class="macro">quote!</span> { #option::Some(#t) },
+            <span class="prelude-val">None </span>=&gt; <span class="macro">quote!</span> { #option::None },
         });
     }
 }
 
 <span class="kw">fn </span>box_type() -&gt; TokenStream {
     <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-    </span><span class="macro">quote! </span>{ ::std::boxed::Box }
+    </span><span class="macro">quote!</span> { ::std::boxed::Box }
 
     <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
-    </span><span class="macro">quote! </span>{ ::alloc::boxed::Box }
+    </span><span class="macro">quote!</span> { ::alloc::boxed::Box }
 }
 
 <span class="kw">fn </span>result_type() -&gt; TokenStream {
     <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-    </span><span class="macro">quote! </span>{ ::std::result::Result }
+    </span><span class="macro">quote!</span> { ::std::result::Result }
 
     <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
-    </span><span class="macro">quote! </span>{ ::core::result::Result }
+    </span><span class="macro">quote!</span> { ::core::result::Result }
 }
 
 <span class="kw">fn </span>option_type() -&gt; TokenStream {
     <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-    </span><span class="macro">quote! </span>{ ::std::option::Option }
+    </span><span class="macro">quote!</span> { ::std::option::Option }
 
     <span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
-    </span><span class="macro">quote! </span>{ ::core::option::Option }
+    </span><span class="macro">quote!</span> { ::core::option::Option }
 }
 
 <span class="attr">#[cfg(test)]
@@ -2155,7 +2153,7 @@
 
         <span class="macro">assert_eq!</span>(
             generate_enum(<span class="kw-2">&amp;</span>rules, doc_comment, <span class="bool-val">false</span>, <span class="bool-val">false</span>).to_string(),
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 <span class="attr">#[doc = <span class="string">"Rule doc\nhello"</span>]
                 #[allow(dead_code, non_camel_case_types, clippy::upper_case_acronyms)]
                 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -2191,7 +2189,7 @@
 
         <span class="macro">assert_eq!</span>(
             generate_enum(<span class="kw-2">&amp;</span>rules, doc_comment, <span class="bool-val">false</span>, <span class="bool-val">false</span>).to_string(),
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 <span class="attr">#[allow(dead_code, non_camel_case_types, clippy::upper_case_acronyms)]
                 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
                 </span><span class="kw">pub enum </span>Rule {
@@ -2223,7 +2221,7 @@
 
         <span class="macro">assert_eq!</span>(
             generate_expr(expr).to_string(),
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.sequence(|state| {
                     state.match_string(<span class="string">"a"</span>).and_then(|state| {
                         <span class="kw">super</span>::hidden::skip(state)
@@ -2259,7 +2257,7 @@
 
         <span class="macro">assert_eq!</span>(
             generate_expr_atomic(expr).to_string(),
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.sequence(|state| {
                     state.match_string(<span class="string">"a"</span>).and_then(|state| {
                         state.match_string(<span class="string">"b"</span>)
@@ -2289,7 +2287,7 @@
 
         <span class="macro">assert_eq!</span>(
             generate_expr(expr).to_string(),
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.match_string(<span class="string">"a"</span>).or_else(|state| {
                     state.match_string(<span class="string">"b"</span>)
                 }).or_else(|state| {
@@ -2317,7 +2315,7 @@
 
         <span class="macro">assert_eq!</span>(
             generate_expr_atomic(expr).to_string(),
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 state.match_string(<span class="string">"a"</span>).or_else(|state| {
                     state.match_string(<span class="string">"b"</span>)
                 }).or_else(|state| {
@@ -2336,7 +2334,7 @@
 
         <span class="macro">assert_eq!</span>(
             generate_expr_atomic(expr).to_string(),
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 <span class="kw">let </span>strings = [<span class="string">"a"</span>, <span class="string">"b"</span>];
 
                 state.skip_until(<span class="kw-2">&amp;</span>strings)
@@ -2365,7 +2363,7 @@
             )),
         );
 
-        <span class="kw">let </span>sequence = <span class="macro">quote! </span>{
+        <span class="kw">let </span>sequence = <span class="macro">quote!</span> {
             state.sequence(|state| {
                 <span class="kw">super</span>::hidden::skip(state).and_then(
                     |state| {
@@ -2374,7 +2372,7 @@
                 )
             })
         };
-        <span class="kw">let </span>repeat = <span class="macro">quote! </span>{
+        <span class="kw">let </span>repeat = <span class="macro">quote!</span> {
             state.repeat(|state| {
                 state.sequence(|state| {
                     <span class="kw">super</span>::hidden::skip(state).and_then(|state| {
@@ -2388,7 +2386,7 @@
         };
         <span class="macro">assert_eq!</span>(
             generate_expr(expr).to_string(),
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 <span class="self">self</span>::r#a(state).or_else(|state| {
                     state.sequence(|state| {
                         state.match_range(<span class="string">'a'</span>..<span class="string">'b'</span>).and_then(|state| {
@@ -2454,7 +2452,7 @@
 
         <span class="macro">assert_eq!</span>(
             generate_expr_atomic(expr).to_string(),
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 <span class="self">self</span>::r#a(state).or_else(|state| {
                     state.sequence(|state| {
                         state.match_range(<span class="string">'a'</span>..<span class="string">'b'</span>).and_then(|state| {
@@ -2522,7 +2520,7 @@
         };
         <span class="macro">assert_eq!</span>(
             generate(parsed_derive, <span class="macro">vec!</span>[PathBuf::from(<span class="string">"base.pest"</span>), PathBuf::from(<span class="string">"test.pest"</span>)], rules, defaults, doc_comment, <span class="bool-val">true</span>).to_string(),
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 <span class="attr">#[allow(non_upper_case_globals)]
                 </span><span class="kw">const </span>_PEST_GRAMMAR_MyParser: [<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str; <span class="number">2usize</span>] = [<span class="macro">include_str!</span>(#base_path), <span class="macro">include_str!</span>(#test_path)];
 

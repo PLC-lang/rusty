@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.3.0/src/once_cell.rs`."><title>once_cell.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_lock/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.4.0/src/once_cell.rs`."><title>once_cell.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -797,19 +795,38 @@
 <a href="#795" id="795">795</a>
 <a href="#796" id="796">796</a>
 <a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>core::cell::UnsafeCell;
 <span class="kw">use </span>core::convert::Infallible;
 <span class="kw">use </span>core::fmt;
 <span class="kw">use </span>core::future::Future;
 <span class="kw">use </span>core::mem::{forget, MaybeUninit};
 <span class="kw">use </span>core::ptr;
-<span class="kw">use </span>core::sync::atomic::{AtomicUsize, Ordering};
+
+<span class="kw">use </span><span class="kw">crate</span>::sync::atomic::{AtomicUsize, Ordering};
+
+<span class="attr">#[cfg(not(loom))]
+</span><span class="kw">use </span><span class="kw">crate</span>::sync::WithMut;
 
 <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
 </span><span class="kw">use </span>core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
-<span class="kw">use </span>event_listener::{Event, EventListener};
+<span class="kw">use </span>event_listener::Event;
 <span class="kw">use </span>event_listener_strategy::{NonBlocking, Strategy};
+
+<span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
+</span><span class="kw">use </span>event_listener::Listener;
 
 <span class="doccomment">/// The current state of the `OnceCell`.
 </span><span class="attr">#[derive(Copy, Clone, PartialEq, Eq)]
@@ -903,22 +920,25 @@
 <span class="kw">unsafe impl</span>&lt;T: Send + Sync&gt; Sync <span class="kw">for </span>OnceCell&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; OnceCell&lt;T&gt; {
-    <span class="doccomment">/// Create a new, uninitialized `OnceCell`.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use async_lock::OnceCell;
-    ///
-    /// let cell = OnceCell::new();
-    /// # cell.set_blocking(1);
-    /// ```
-    </span><span class="kw">pub const fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            active_initializers: Event::new(),
-            passive_waiters: Event::new(),
-            state: AtomicUsize::new(State::Uninitialized <span class="kw">as _</span>),
-            value: UnsafeCell::new(MaybeUninit::uninit()),
+    <span class="macro">const_fn!</span> {
+        const_if: <span class="attr">#[cfg(not(loom))]</span>;
+        <span class="doccomment">/// Create a new, uninitialized `OnceCell`.
+        ///
+        /// # Example
+        ///
+        /// ```rust
+        /// use async_lock::OnceCell;
+        ///
+        /// let cell = OnceCell::new();
+        /// # cell.set_blocking(1);
+        /// ```
+        </span><span class="kw">pub const fn </span>new() -&gt; <span class="self">Self </span>{
+            <span class="self">Self </span>{
+                active_initializers: Event::new(),
+                passive_waiters: Event::new(),
+                state: AtomicUsize::new(State::Uninitialized <span class="kw">as _</span>),
+                value: UnsafeCell::new(MaybeUninit::uninit()),
+            }
         }
     }
 
@@ -990,13 +1010,15 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
-        <span class="kw">if </span>State::from(<span class="kw-2">*</span><span class="self">self</span>.state.get_mut()) == State::Initialized {
-            <span class="comment">// SAFETY: We know that the value is initialized, so it is safe to
-            // read it.
-            </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.value.get().cast() })
-        } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>}
+        <span class="self">self</span>.state.with_mut(|state| {
+            <span class="kw">if </span>State::from(<span class="kw-2">*</span>state) == State::Initialized {
+                <span class="comment">// SAFETY: We know that the value is initialized, so it is safe to
+                // read it.
+                </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.value.get().cast() })
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>}
+        })
     }
 
     <span class="doccomment">/// Take the value out of this `OnceCell`, moving it back to the uninitialized
@@ -1015,15 +1037,17 @@
     /// # });
     /// ```
     </span><span class="kw">pub fn </span>take(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="kw">if </span>State::from(<span class="kw-2">*</span><span class="self">self</span>.state.get_mut()) == State::Initialized {
-            <span class="comment">// SAFETY: We know that the value is initialized, so it is safe to
-            // read it.
-            </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{ ptr::read(<span class="self">self</span>.value.get().cast()) };
-            <span class="kw-2">*</span><span class="self">self</span>.state.get_mut() = State::Uninitialized.into();
-            <span class="prelude-val">Some</span>(value)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>}
+        <span class="self">self</span>.state.with_mut(|state| {
+            <span class="kw">if </span>State::from(<span class="kw-2">*</span>state) == State::Initialized {
+                <span class="comment">// SAFETY: We know that the value is initialized, so it is safe to
+                // read it.
+                </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{ ptr::read(<span class="self">self</span>.value.get().cast()) };
+                <span class="kw-2">*</span>state = State::Uninitialized.into();
+                <span class="prelude-val">Some</span>(value)
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>}
+        })
     }
 
     <span class="doccomment">/// Convert this `OnceCell` into the inner value, if it is initialized.
@@ -1073,9 +1097,7 @@
         }
 
         <span class="comment">// Slow path: wait for the value to be initialized.
-        </span><span class="kw">let </span>listener = EventListener::new();
-        <span class="macro">pin!</span>(listener);
-        listener.as_mut().listen(<span class="kw-2">&amp;</span><span class="self">self</span>.passive_waiters);
+        </span><span class="macro">event_listener::listener!</span>(<span class="self">self</span>.passive_waiters =&gt; listener);
 
         <span class="comment">// Try again.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.get() {
@@ -1128,9 +1150,7 @@
         }
 
         <span class="comment">// Slow path: wait for the value to be initialized.
-        </span><span class="kw">let </span>listener = EventListener::new();
-        <span class="macro">pin!</span>(listener);
-        listener.as_mut().listen(<span class="kw-2">&amp;</span><span class="self">self</span>.passive_waiters);
+        </span><span class="macro">event_listener::listener!</span>(<span class="self">self</span>.passive_waiters =&gt; listener);
 
         <span class="comment">// Try again.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="self">self</span>.get() {
@@ -1302,10 +1322,11 @@
     /// ```
     </span><span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub fn </span>get_or_init_blocking(<span class="kw-2">&amp;</span><span class="self">self</span>, closure: <span class="kw">impl </span>FnOnce() -&gt; T + Unpin) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">match </span><span class="self">self</span>.get_or_try_init_blocking(<span class="kw">move </span>|| {
+        <span class="kw">let </span>result = <span class="self">self</span>.get_or_try_init_blocking(<span class="kw">move </span>|| {
             <span class="kw">let </span>result: <span class="prelude-ty">Result</span>&lt;T, Infallible&gt; = <span class="prelude-val">Ok</span>(closure());
             result
-        }) {
+        });
+        <span class="kw">match </span>result {
             <span class="prelude-val">Ok</span>(value) =&gt; value,
             <span class="prelude-val">Err</span>(infallible) =&gt; <span class="kw">match </span>infallible {},
         }
@@ -1390,8 +1411,7 @@
         strategy: <span class="kw-2">&amp;mut </span><span class="kw">impl for</span>&lt;<span class="lifetime">'a</span>&gt; Strategy&lt;<span class="lifetime">'a</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), E&gt; {
         <span class="comment">// The event listener we're currently waiting on.
-        </span><span class="kw">let </span>event_listener = EventListener::new();
-        <span class="macro">pin!</span>(event_listener);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>event_listener = <span class="prelude-val">None</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>closure = <span class="prelude-val">Some</span>(closure);
 
@@ -1410,10 +1430,10 @@
                     // but we do not have the ability to initialize it.
                     //
                     // We need to wait the initialization to complete.
-                    </span><span class="kw">if </span>event_listener.is_listening() {
-                        strategy.wait(event_listener.as_mut()).<span class="kw">await</span>;
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(listener) = event_listener.take() {
+                        strategy.wait(listener).<span class="kw">await</span>;
                     } <span class="kw">else </span>{
-                        event_listener.as_mut().listen(<span class="kw-2">&amp;</span><span class="self">self</span>.active_initializers);
+                        event_listener = <span class="prelude-val">Some</span>(<span class="self">self</span>.active_initializers.listen());
                     }
                 }
                 State::Uninitialized =&gt; {
@@ -1554,11 +1574,13 @@
 
 <span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>OnceCell&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if </span>State::from(<span class="kw-2">*</span><span class="self">self</span>.state.get_mut()) == State::Initialized {
-            <span class="comment">// SAFETY: We know that the value is initialized, so it is safe to
-            // drop it.
-            </span><span class="kw">unsafe </span>{ <span class="self">self</span>.value.get().cast::&lt;T&gt;().drop_in_place() }
-        }
+        <span class="self">self</span>.state.with_mut(|state| {
+            <span class="kw">if </span>State::from(<span class="kw-2">*</span>state) == State::Initialized {
+                <span class="comment">// SAFETY: We know that the value is initialized, so it is safe to
+                // drop it.
+                </span><span class="kw">unsafe </span>{ <span class="self">self</span>.value.get().cast::&lt;T&gt;().drop_in_place() }
+            }
+        });
     }
 }
 

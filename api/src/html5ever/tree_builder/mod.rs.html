@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/html5ever-0.26.0/src/tree_builder/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="html5ever" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../html5ever/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/html5ever-0.27.0/src/tree_builder/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="html5ever" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1670,15 +1668,6 @@
 <a href="#1668" id="1668">1668</a>
 <a href="#1669" id="1669">1669</a>
 <a href="#1670" id="1670">1670</a>
-<a href="#1671" id="1671">1671</a>
-<a href="#1672" id="1672">1672</a>
-<a href="#1673" id="1673">1673</a>
-<a href="#1674" id="1674">1674</a>
-<a href="#1675" id="1675">1675</a>
-<a href="#1676" id="1676">1676</a>
-<a href="#1677" id="1677">1677</a>
-<a href="#1678" id="1678">1678</a>
-<a href="#1679" id="1679">1679</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2014-2017 The html5ever Project Developers. See the
 // COPYRIGHT file at the top-level directory of this distribution.
 //
@@ -1707,9 +1696,8 @@
 
 <span class="kw">use </span>std::borrow::Cow::Borrowed;
 <span class="kw">use </span>std::collections::VecDeque;
-<span class="kw">use </span>std::default::Default;
 <span class="kw">use </span>std::iter::{Enumerate, Rev};
-<span class="kw">use </span>std::mem::replace;
+<span class="kw">use </span>std::mem;
 <span class="kw">use </span>std::{fmt, slice};
 
 <span class="kw">use </span><span class="kw">crate</span>::tokenizer::states::{RawData, RawKind};
@@ -1717,7 +1705,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::tree_builder::types::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::util::str::to_escaped_string;
 <span class="kw">use </span>log::{debug, log_enabled, warn, Level};
-<span class="kw">use </span>mac::{_tt_as_expr_hack, format_if, matches};
+<span class="kw">use </span>mac::{_tt_as_expr_hack, format_if};
 
 <span class="kw">pub use </span><span class="self">self</span>::PushFlag::<span class="kw-2">*</span>;
 
@@ -1918,11 +1906,11 @@
         <span class="kw">match </span><span class="kw-2">*</span>name {
             <span class="macro">local_name!</span>(<span class="string">"title"</span>) | <span class="macro">local_name!</span>(<span class="string">"textarea"</span>) =&gt; tok_state::RawData(tok_state::Rcdata),
 
-            <span class="macro">local_name!</span>(<span class="string">"style"</span>) |
-            <span class="macro">local_name!</span>(<span class="string">"xmp"</span>) |
-            <span class="macro">local_name!</span>(<span class="string">"iframe"</span>) |
-            <span class="macro">local_name!</span>(<span class="string">"noembed"</span>) |
-            <span class="macro">local_name!</span>(<span class="string">"noframes"</span>) =&gt; tok_state::RawData(tok_state::Rawtext),
+            <span class="macro">local_name!</span>(<span class="string">"style"</span>)
+            | <span class="macro">local_name!</span>(<span class="string">"xmp"</span>)
+            | <span class="macro">local_name!</span>(<span class="string">"iframe"</span>)
+            | <span class="macro">local_name!</span>(<span class="string">"noembed"</span>)
+            | <span class="macro">local_name!</span>(<span class="string">"noframes"</span>) =&gt; tok_state::RawData(tok_state::Rawtext),
 
             <span class="macro">local_name!</span>(<span class="string">"script"</span>) =&gt; tok_state::RawData(tok_state::ScriptData),
 
@@ -1942,7 +1930,7 @@
 
     <span class="doccomment">/// Call the `Tracer`'s `trace_handle` method on every `Handle` in the tree builder's
     /// internal state.  This is intended to support garbage-collected DOMs.
-    </span><span class="kw">pub fn </span>trace_handles(<span class="kw-2">&amp;</span><span class="self">self</span>, tracer: <span class="kw-2">&amp;</span>Tracer&lt;Handle = Handle&gt;) {
+    </span><span class="kw">pub fn </span>trace_handles(<span class="kw-2">&amp;</span><span class="self">self</span>, tracer: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Tracer&lt;Handle = Handle&gt;) {
         tracer.trace_handle(<span class="kw-2">&amp;</span><span class="self">self</span>.doc_handle);
         <span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.open_elems {
             tracer.trace_handle(e);
@@ -2137,7 +2125,7 @@
         <span class="kw">if </span>line_number != <span class="self">self</span>.current_line {
             <span class="self">self</span>.sink.set_current_line(line_number);
         }
-        <span class="kw">let </span>ignore_lf = replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ignore_lf, <span class="bool-val">false</span>);
+        <span class="kw">let </span>ignore_lf = mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ignore_lf);
 
         <span class="comment">// Handle `ParseError` and `DoctypeToken`; convert everything else to the local `Token` type.
         </span><span class="kw">let </span>token = <span class="kw">match </span>token {
@@ -2211,8 +2199,8 @@
     }
 
     <span class="kw">fn </span>adjusted_current_node_present_but_not_in_html_namespace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        !<span class="self">self</span>.open_elems.is_empty() &amp;&amp;
-            <span class="self">self</span>.sink.elem_name(<span class="self">self</span>.adjusted_current_node()).ns != <span class="kw-2">&amp;</span><span class="macro">ns!</span>(html)
+        !<span class="self">self</span>.open_elems.is_empty()
+            &amp;&amp; <span class="self">self</span>.sink.elem_name(<span class="self">self</span>.adjusted_current_node()).ns != <span class="kw-2">&amp;</span><span class="macro">ns!</span>(html)
     }
 }
 
@@ -2244,7 +2232,7 @@
     InsertAfter(Handle),
 }
 
-<span class="macro">macro_rules! </span>qualname {
+<span class="macro">macro_rules!</span> qualname {
     (<span class="string">""</span>, <span class="macro-nonterminal">$local</span>:tt) =&gt; {
         QualName {
             prefix: <span class="prelude-val">None</span>,
@@ -2532,8 +2520,8 @@
                 Bookmark::InsertAfter(previous) =&gt; {
                     <span class="kw">let </span>index = <span class="self">self
                         </span>.position_in_active_formatting(<span class="kw-2">&amp;</span>previous)
-                        .expect(<span class="string">"bookmark not found in active formatting elements"</span>) +
-                        <span class="number">1</span>;
+                        .expect(<span class="string">"bookmark not found in active formatting elements"</span>)
+                        + <span class="number">1</span>;
                     <span class="self">self</span>.active_formatting.insert(index, new_entry);
                     <span class="kw">let </span>old_index = <span class="self">self
                         </span>.position_in_active_formatting(<span class="kw-2">&amp;</span>fmt_elem)
@@ -2981,11 +2969,11 @@
         };
 
         <span class="comment">// Step 12.
-        </span><span class="kw">if </span>form_associatable(qname.expanded()) &amp;&amp;
-            <span class="self">self</span>.form_elem.is_some() &amp;&amp;
-            !<span class="self">self</span>.in_html_elem_named(<span class="macro">local_name!</span>(<span class="string">"template"</span>)) &amp;&amp;
-            !(listed(qname.expanded()) &amp;&amp;
-                attrs
+        </span><span class="kw">if </span>form_associatable(qname.expanded())
+            &amp;&amp; <span class="self">self</span>.form_elem.is_some()
+            &amp;&amp; !<span class="self">self</span>.in_html_elem_named(<span class="macro">local_name!</span>(<span class="string">"template"</span>))
+            &amp;&amp; !(listed(qname.expanded())
+                &amp;&amp; attrs
                     .iter()
                     .any(|a| a.name.expanded() == <span class="macro">expanded_name!</span>(<span class="string">""</span>, <span class="string">"form"</span>)))
         {
@@ -3311,7 +3299,6 @@
             <span class="macro">local_name!</span>(<span class="string">"xlink:show"</span>) =&gt; <span class="prelude-val">Some</span>(<span class="macro">qualname!</span>(<span class="string">"xlink" </span>xlink <span class="string">"show"</span>)),
             <span class="macro">local_name!</span>(<span class="string">"xlink:title"</span>) =&gt; <span class="prelude-val">Some</span>(<span class="macro">qualname!</span>(<span class="string">"xlink" </span>xlink <span class="string">"title"</span>)),
             <span class="macro">local_name!</span>(<span class="string">"xlink:type"</span>) =&gt; <span class="prelude-val">Some</span>(<span class="macro">qualname!</span>(<span class="string">"xlink" </span>xlink <span class="string">"type"</span>)),
-            <span class="macro">local_name!</span>(<span class="string">"xml:base"</span>) =&gt; <span class="prelude-val">Some</span>(<span class="macro">qualname!</span>(<span class="string">"xml" </span>xml <span class="string">"base"</span>)),
             <span class="macro">local_name!</span>(<span class="string">"xml:lang"</span>) =&gt; <span class="prelude-val">Some</span>(<span class="macro">qualname!</span>(<span class="string">"xml" </span>xml <span class="string">"lang"</span>)),
             <span class="macro">local_name!</span>(<span class="string">"xml:space"</span>) =&gt; <span class="prelude-val">Some</span>(<span class="macro">qualname!</span>(<span class="string">"xml" </span>xml <span class="string">"space"</span>)),
             <span class="macro">local_name!</span>(<span class="string">"xmlns"</span>) =&gt; <span class="prelude-val">Some</span>(<span class="macro">qualname!</span>(<span class="string">"" </span>xmlns <span class="string">"xmlns"</span>)),
@@ -3343,19 +3330,12 @@
 
     <span class="kw">fn </span>unexpected_start_tag_in_foreign_content(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag: Tag) -&gt; ProcessResult&lt;Handle&gt; {
         <span class="self">self</span>.unexpected(<span class="kw-2">&amp;</span>tag);
-        <span class="kw">if </span><span class="self">self</span>.is_fragment() {
-            <span class="self">self</span>.foreign_start_tag(tag)
-        } <span class="kw">else </span>{
+        <span class="kw">while </span>!<span class="self">self</span>.current_node_in(|n| {
+            <span class="kw-2">*</span>n.ns == <span class="macro">ns!</span>(html) || mathml_text_integration_point(n) || svg_html_integration_point(n)
+        }) {
             <span class="self">self</span>.pop();
-            <span class="kw">while </span>!<span class="self">self</span>.current_node_in(|n| {
-                <span class="kw-2">*</span>n.ns == <span class="macro">ns!</span>(html) ||
-                    mathml_text_integration_point(n) ||
-                    svg_html_integration_point(n)
-            }) {
-                <span class="self">self</span>.pop();
-            }
-            ReprocessForeign(TagToken(tag))
         }
+        <span class="self">self</span>.step(<span class="self">self</span>.mode, TagToken(tag))
     }
 }
 </code></pre></div></section></main></body></html>

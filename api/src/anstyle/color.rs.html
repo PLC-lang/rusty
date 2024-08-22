@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstyle-1.0.6/src/color.rs`."><title>color.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anstyle" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../anstyle/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstyle-1.0.8/src/color.rs`."><title>color.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anstyle" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -665,12 +663,44 @@
 <a href="#663" id="663">663</a>
 <a href="#664" id="664">664</a>
 <a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Any ANSI color code scheme
-</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="attr">#[allow(clippy::exhaustive_enums)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">pub enum </span>Color {
-    Ansi(AnsiColor),
-    Ansi256(Ansi256Color),
-    Rgb(RgbColor),
+    <span class="doccomment">/// Available 4-bit ANSI color palette codes
+    ///
+    /// The user's terminal defines the meaning of the each palette code.
+    </span>Ansi(AnsiColor),
+    <span class="doccomment">/// 256 (8-bit) color support
+    ///
+    /// - `0..16` are [`AnsiColor`] palette codes
+    /// - `0..232` map to [`RgbColor`] color values
+    /// - `232..` map to [`RgbColor`] gray-scale values
+    </span>Ansi256(Ansi256Color),
+    <span class="doccomment">/// 24-bit ANSI RGB color codes
+    </span>Rgb(RgbColor),
 }
 
 <span class="kw">impl </span>Color {
@@ -690,7 +720,7 @@
 
     <span class="doccomment">/// Render the ANSI code for a foreground color
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>render_fg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy + Clone {
+    </span><span class="kw">pub fn </span>render_fg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Ansi(color) =&gt; color.as_fg_buffer(),
             <span class="self">Self</span>::Ansi256(color) =&gt; color.as_fg_buffer(),
@@ -711,7 +741,7 @@
 
     <span class="doccomment">/// Render the ANSI code for a background color
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>render_bg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy + Clone {
+    </span><span class="kw">pub fn </span>render_bg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Ansi(color) =&gt; color.as_bg_buffer(),
             <span class="self">Self</span>::Ansi256(color) =&gt; color.as_bg_buffer(),
@@ -731,7 +761,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>render_underline(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy + Clone {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>render_underline(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Ansi(color) =&gt; color.as_underline_buffer(),
             <span class="self">Self</span>::Ansi256(color) =&gt; color.as_underline_buffer(),
@@ -789,7 +819,8 @@
 <span class="doccomment">/// Available 4-bit ANSI color palette codes
 ///
 /// The user's terminal defines the meaning of the each palette code.
-</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="attr">#[allow(clippy::exhaustive_enums)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
 </span><span class="kw">pub enum </span>AnsiColor {
     <span class="doccomment">/// Black: #0 (foreground code `30`, background code `40`).
@@ -858,7 +889,7 @@
 
     <span class="doccomment">/// Render the ANSI code for a foreground color
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>render_fg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy + Clone {
+    </span><span class="kw">pub fn </span>render_fg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy {
         NullFormatter(<span class="self">self</span>.as_fg_str())
     }
 
@@ -891,7 +922,7 @@
 
     <span class="doccomment">/// Render the ANSI code for a background color
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>render_bg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy + Clone {
+    </span><span class="kw">pub fn </span>render_bg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy {
         NullFormatter(<span class="self">self</span>.as_bg_str())
     }
 
@@ -1002,7 +1033,8 @@
 /// - `0..16` are [`AnsiColor`] palette codes
 /// - `0..232` map to [`RgbColor`] color values
 /// - `232..` map to [`RgbColor`] gray-scale values
-</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="attr">#[allow(clippy::exhaustive_structs)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 </span><span class="kw">pub struct </span>Ansi256Color(<span class="kw">pub </span>u8);
 
@@ -1021,12 +1053,14 @@
         <span class="kw">crate</span>::Style::new().fg_color(<span class="prelude-val">Some</span>(Color::Ansi256(<span class="self">self</span>)))
     }
 
-    <span class="attr">#[inline]
+    <span class="doccomment">/// Get the raw value
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>index(<span class="self">self</span>) -&gt; u8 {
         <span class="self">self</span>.<span class="number">0
     </span>}
 
-    <span class="attr">#[inline]
+    <span class="doccomment">/// Convert to [`AnsiColor`] when there is a 1:1 mapping
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>into_ansi(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;AnsiColor&gt; {
         <span class="kw">match </span><span class="self">self</span>.index() {
             <span class="number">0 </span>=&gt; <span class="prelude-val">Some</span>(AnsiColor::Black),
@@ -1049,7 +1083,8 @@
         }
     }
 
-    <span class="attr">#[inline]
+    <span class="doccomment">/// Losslessly convert from [`AnsiColor`]
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>from_ansi(color: AnsiColor) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>color {
             AnsiColor::Black =&gt; <span class="self">Self</span>(<span class="number">0</span>),
@@ -1073,7 +1108,7 @@
 
     <span class="doccomment">/// Render the ANSI code for a foreground color
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>render_fg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy + Clone {
+    </span><span class="kw">pub fn </span>render_fg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy {
         <span class="self">self</span>.as_fg_buffer()
     }
 
@@ -1087,7 +1122,7 @@
 
     <span class="doccomment">/// Render the ANSI code for a background color
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>render_bg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy + Clone {
+    </span><span class="kw">pub fn </span>render_bg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy {
         <span class="self">self</span>.as_bg_buffer()
     }
 
@@ -1123,7 +1158,8 @@
 }
 
 <span class="doccomment">/// 24-bit ANSI RGB color codes
-</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="attr">#[allow(clippy::exhaustive_structs)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">pub struct </span>RgbColor(<span class="kw">pub </span>u8, <span class="kw">pub </span>u8, <span class="kw">pub </span>u8);
 
 <span class="kw">impl </span>RgbColor {
@@ -1141,24 +1177,27 @@
         <span class="kw">crate</span>::Style::new().fg_color(<span class="prelude-val">Some</span>(Color::Rgb(<span class="self">self</span>)))
     }
 
-    <span class="attr">#[inline]
+    <span class="doccomment">/// Red
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>r(<span class="self">self</span>) -&gt; u8 {
         <span class="self">self</span>.<span class="number">0
     </span>}
 
-    <span class="attr">#[inline]
+    <span class="doccomment">/// Green
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>g(<span class="self">self</span>) -&gt; u8 {
         <span class="self">self</span>.<span class="number">1
     </span>}
 
-    <span class="attr">#[inline]
+    <span class="doccomment">/// Blue
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>b(<span class="self">self</span>) -&gt; u8 {
         <span class="self">self</span>.<span class="number">2
     </span>}
 
     <span class="doccomment">/// Render the ANSI code for a foreground color
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>render_fg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy + Clone {
+    </span><span class="kw">pub fn </span>render_fg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy {
         <span class="self">self</span>.as_fg_buffer()
     }
 
@@ -1176,7 +1215,7 @@
 
     <span class="doccomment">/// Render the ANSI code for a background color
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>render_bg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy + Clone {
+    </span><span class="kw">pub fn </span>render_bg(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy {
         <span class="self">self</span>.as_bg_buffer()
     }
 
@@ -1259,7 +1298,10 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="comment">// SAFETY: Only `&amp;str` can be written to the buffer
-        </span><span class="kw">unsafe </span>{ core::str::from_utf8_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>.buffer[<span class="number">0</span>..<span class="self">self</span>.len]) }
+        </span><span class="attr">#[allow(unsafe_code)]
+        </span><span class="kw">unsafe </span>{
+            core::str::from_utf8_unchecked(<span class="kw-2">&amp;</span><span class="self">self</span>.buffer[<span class="number">0</span>..<span class="self">self</span>.len])
+        }
     }
 
     <span class="attr">#[inline]

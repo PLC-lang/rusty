@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.35/src/offset/local/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../chrono/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.38/src/offset/local/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -537,6 +535,10 @@
 <a href="#535" id="535">535</a>
 <a href="#536" id="536">536</a>
 <a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
 </pre></div><pre class="rust"><code><span class="comment">// This is a part of Chrono.
 // See README.md and LICENSE.txt for details.
 
@@ -549,7 +551,7 @@
 </span><span class="kw">use </span>rkyv::{Archive, Deserialize, Serialize};
 
 <span class="kw">use </span><span class="kw">super</span>::fixed::FixedOffset;
-<span class="kw">use super</span>::{LocalResult, TimeZone};
+<span class="kw">use super</span>::{MappedLocalTime, TimeZone};
 <span class="kw">use </span><span class="kw">crate</span>::naive::{NaiveDate, NaiveDateTime, NaiveTime};
 <span class="attr">#[allow(deprecated)]
 </span><span class="kw">use </span><span class="kw">crate</span>::Date;
@@ -577,16 +579,18 @@
     ))
 ))]
 </span><span class="kw">mod </span>inner {
-    <span class="kw">use crate</span>::{FixedOffset, LocalResult, NaiveDateTime};
+    <span class="kw">use crate</span>::{FixedOffset, MappedLocalTime, NaiveDateTime};
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>offset_from_utc_datetime(_utc_time: <span class="kw-2">&amp;</span>NaiveDateTime) -&gt; LocalResult&lt;FixedOffset&gt; {
-        LocalResult::Single(FixedOffset::east_opt(<span class="number">0</span>).unwrap())
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>offset_from_utc_datetime(
+        _utc_time: <span class="kw-2">&amp;</span>NaiveDateTime,
+    ) -&gt; MappedLocalTime&lt;FixedOffset&gt; {
+        MappedLocalTime::Single(FixedOffset::east_opt(<span class="number">0</span>).unwrap())
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>offset_from_local_datetime(
         _local_time: <span class="kw-2">&amp;</span>NaiveDateTime,
-    ) -&gt; LocalResult&lt;FixedOffset&gt; {
-        LocalResult::Single(FixedOffset::east_opt(<span class="number">0</span>).unwrap())
+    ) -&gt; MappedLocalTime&lt;FixedOffset&gt; {
+        MappedLocalTime::Single(FixedOffset::east_opt(<span class="number">0</span>).unwrap())
     }
 }
 
@@ -596,14 +600,16 @@
     not(any(target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"wasi"</span>))
 ))]
 </span><span class="kw">mod </span>inner {
-    <span class="kw">use crate</span>::{Datelike, FixedOffset, LocalResult, NaiveDateTime, Timelike};
+    <span class="kw">use crate</span>::{Datelike, FixedOffset, MappedLocalTime, NaiveDateTime, Timelike};
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>offset_from_utc_datetime(utc: <span class="kw-2">&amp;</span>NaiveDateTime) -&gt; LocalResult&lt;FixedOffset&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>offset_from_utc_datetime(utc: <span class="kw-2">&amp;</span>NaiveDateTime) -&gt; MappedLocalTime&lt;FixedOffset&gt; {
         <span class="kw">let </span>offset = js_sys::Date::from(utc.and_utc()).get_timezone_offset();
-        LocalResult::Single(FixedOffset::west_opt((offset <span class="kw">as </span>i32) * <span class="number">60</span>).unwrap())
+        MappedLocalTime::Single(FixedOffset::west_opt((offset <span class="kw">as </span>i32) * <span class="number">60</span>).unwrap())
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>offset_from_local_datetime(local: <span class="kw-2">&amp;</span>NaiveDateTime) -&gt; LocalResult&lt;FixedOffset&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>offset_from_local_datetime(
+        local: <span class="kw-2">&amp;</span>NaiveDateTime,
+    ) -&gt; MappedLocalTime&lt;FixedOffset&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>year = local.year();
         <span class="kw">if </span>year &lt; <span class="number">100 </span>{
             <span class="comment">// The API in `js_sys` does not let us create a `Date` with negative years.
@@ -623,7 +629,7 @@
         </span>);
         <span class="kw">let </span>offset = js_date.get_timezone_offset();
         <span class="comment">// We always get a result, even if this time does not exist or is ambiguous.
-        </span>LocalResult::Single(FixedOffset::west_opt((offset <span class="kw">as </span>i32) * <span class="number">60</span>).unwrap())
+        </span>MappedLocalTime::Single(FixedOffset::west_opt((offset <span class="kw">as </span>i32) * <span class="number">60</span>).unwrap())
     }
 }
 
@@ -705,12 +711,12 @@
     }
 
     <span class="attr">#[allow(deprecated)]
-    </span><span class="kw">fn </span>offset_from_local_date(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <span class="kw-2">&amp;</span>NaiveDate) -&gt; LocalResult&lt;FixedOffset&gt; {
+    </span><span class="kw">fn </span>offset_from_local_date(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <span class="kw-2">&amp;</span>NaiveDate) -&gt; MappedLocalTime&lt;FixedOffset&gt; {
         <span class="comment">// Get the offset at local midnight.
         </span><span class="self">self</span>.offset_from_local_datetime(<span class="kw-2">&amp;</span>local.and_time(NaiveTime::MIN))
     }
 
-    <span class="kw">fn </span>offset_from_local_datetime(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <span class="kw-2">&amp;</span>NaiveDateTime) -&gt; LocalResult&lt;FixedOffset&gt; {
+    <span class="kw">fn </span>offset_from_local_datetime(<span class="kw-2">&amp;</span><span class="self">self</span>, local: <span class="kw-2">&amp;</span>NaiveDateTime) -&gt; MappedLocalTime&lt;FixedOffset&gt; {
         inner::offset_from_local_datetime(local)
     }
 
@@ -768,7 +774,7 @@
 </span><span class="kw">fn </span>lookup_with_dst_transitions(
     transitions: <span class="kw-2">&amp;</span>[Transition],
     dt: NaiveDateTime,
-) -&gt; LocalResult&lt;FixedOffset&gt; {
+) -&gt; MappedLocalTime&lt;FixedOffset&gt; {
     <span class="kw">for </span>t <span class="kw">in </span>transitions.iter() {
         <span class="comment">// A transition can result in the wall clock time going forward (creating a gap) or going
         // backward (creating a fold). We are interested in the earliest and latest wall time of the
@@ -786,24 +792,24 @@
         <span class="kw">let </span>wall_latest = t.transition_utc.overflowing_add_offset(offset_max);
 
         <span class="kw">if </span>dt &lt; wall_earliest {
-            <span class="kw">return </span>LocalResult::Single(t.offset_before);
+            <span class="kw">return </span>MappedLocalTime::Single(t.offset_before);
         } <span class="kw">else if </span>dt &lt;= wall_latest {
             <span class="kw">return match </span>t.offset_after.local_minus_utc().cmp(<span class="kw-2">&amp;</span>t.offset_before.local_minus_utc()) {
-                Ordering::Equal =&gt; LocalResult::Single(t.offset_before),
-                Ordering::Less =&gt; LocalResult::Ambiguous(t.offset_before, t.offset_after),
+                Ordering::Equal =&gt; MappedLocalTime::Single(t.offset_before),
+                Ordering::Less =&gt; MappedLocalTime::Ambiguous(t.offset_before, t.offset_after),
                 Ordering::Greater =&gt; {
                     <span class="kw">if </span>dt == wall_earliest {
-                        LocalResult::Single(t.offset_before)
+                        MappedLocalTime::Single(t.offset_before)
                     } <span class="kw">else if </span>dt == wall_latest {
-                        LocalResult::Single(t.offset_after)
+                        MappedLocalTime::Single(t.offset_after)
                     } <span class="kw">else </span>{
-                        LocalResult::None
+                        MappedLocalTime::None
                     }
                 }
             };
         }
     }
-    LocalResult::Single(transitions.last().unwrap().offset_after)
+    MappedLocalTime::Single(transitions.last().unwrap().offset_after)
 }
 
 <span class="attr">#[cfg(test)]
@@ -814,7 +820,7 @@
     <span class="kw">use </span><span class="kw">crate</span>::offset::TimeZone;
     <span class="kw">use crate</span>::{Datelike, Days, Utc};
     <span class="attr">#[cfg(windows)]
-    </span><span class="kw">use crate</span>::{FixedOffset, LocalResult, NaiveDate, NaiveDateTime};
+    </span><span class="kw">use crate</span>::{FixedOffset, MappedLocalTime, NaiveDate, NaiveDateTime};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>verify_correct_offsets() {
@@ -907,7 +913,7 @@
             h: u32,
             n: u32,
             s: u32,
-            result: LocalResult&lt;FixedOffset&gt;,
+            result: MappedLocalTime&lt;FixedOffset&gt;,
         ) {
             <span class="kw">let </span>dt = NaiveDate::from_ymd_opt(y, m, d).unwrap().and_hms_opt(h, n, s).unwrap();
             <span class="macro">assert_eq!</span>(lookup_with_dst_transitions(transitions, dt), result);
@@ -921,17 +927,17 @@
             Transition::new(ymdhms(<span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>), std, dst),
             Transition::new(ymdhms(<span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>), dst, std),
         ];
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, LocalResult::None);
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, MappedLocalTime::None);
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
 
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Ambiguous(dst, std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, LocalResult::Ambiguous(dst, std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Ambiguous(dst, std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(dst, std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(dst, std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(dst, std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
 
         <span class="comment">// std transition before dst transition
         // dst offset &gt; std offset
@@ -941,17 +947,17 @@
             Transition::new(ymdhms(<span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>), dst, std),
             Transition::new(ymdhms(<span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>), std, dst),
         ];
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Ambiguous(dst, std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, LocalResult::Ambiguous(dst, std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Ambiguous(dst, std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(dst, std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(dst, std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(dst, std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
 
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, LocalResult::None);
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, MappedLocalTime::None);
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
 
         <span class="comment">// dst transition before std transition
         // dst offset &lt; std offset
@@ -961,17 +967,17 @@
             Transition::new(ymdhms(<span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>), std, dst),
             Transition::new(ymdhms(<span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>), dst, std),
         ];
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Ambiguous(std, dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">15</span>, <span class="number">0</span>, LocalResult::Ambiguous(std, dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, LocalResult::Ambiguous(std, dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(std, dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">15</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(std, dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(std, dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
 
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">2</span>, <span class="number">15</span>, <span class="number">0</span>, LocalResult::None);
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, LocalResult::Single(std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">2</span>, <span class="number">15</span>, <span class="number">0</span>, MappedLocalTime::None);
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
 
         <span class="comment">// std transition before dst transition
         // dst offset &lt; std offset
@@ -981,17 +987,17 @@
             Transition::new(ymdhms(<span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>), dst, std),
             Transition::new(ymdhms(<span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>), std, dst),
         ];
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">2</span>, <span class="number">15</span>, <span class="number">0</span>, LocalResult::None);
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, LocalResult::Single(std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">2</span>, <span class="number">15</span>, <span class="number">0</span>, MappedLocalTime::None);
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">24</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
 
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Ambiguous(std, dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">15</span>, <span class="number">0</span>, LocalResult::Ambiguous(std, dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, LocalResult::Ambiguous(std, dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(std, dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">15</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(std, dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, MappedLocalTime::Ambiguous(std, dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">27</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
 
         <span class="comment">// offset stays the same
         </span><span class="kw">let </span>std = FixedOffset::east_opt(<span class="number">3 </span>* <span class="number">60 </span>* <span class="number">60</span>).unwrap();
@@ -999,18 +1005,18 @@
             Transition::new(ymdhms(<span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>), std, std),
             Transition::new(ymdhms(<span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>), std, std),
         ];
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">10</span>, <span class="number">29</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
 
         <span class="comment">// single transition
         </span><span class="kw">let </span>std = FixedOffset::east_opt(<span class="number">3 </span>* <span class="number">60 </span>* <span class="number">60</span>).unwrap();
         <span class="kw">let </span>dst = FixedOffset::east_opt(<span class="number">4 </span>* <span class="number">60 </span>* <span class="number">60</span>).unwrap();
         <span class="kw">let </span>transitions = [Transition::new(ymdhms(<span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>), std, dst)];
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(std));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, LocalResult::None);
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
-        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, LocalResult::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(std));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">2</span>, <span class="number">30</span>, <span class="number">0</span>, MappedLocalTime::None);
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
+        compare_lookup(<span class="kw-2">&amp;</span>transitions, <span class="number">2023</span>, <span class="number">3</span>, <span class="number">26</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, MappedLocalTime::Single(dst));
     }
 
     <span class="attr">#[test]
@@ -1025,17 +1031,17 @@
         ];
         <span class="macro">assert_eq!</span>(
             lookup_with_dst_transitions(<span class="kw-2">&amp;</span>transitions, NaiveDateTime::MAX.with_month(<span class="number">3</span>).unwrap()),
-            LocalResult::Single(std)
+            MappedLocalTime::Single(std)
         );
         <span class="macro">assert_eq!</span>(
             lookup_with_dst_transitions(<span class="kw-2">&amp;</span>transitions, NaiveDateTime::MAX.with_month(<span class="number">8</span>).unwrap()),
-            LocalResult::Single(dst)
+            MappedLocalTime::Single(dst)
         );
         <span class="comment">// Doesn't panic with `NaiveDateTime::MAX` as argument (which would be out of range when
         // converted to UTC).
         </span><span class="macro">assert_eq!</span>(
             lookup_with_dst_transitions(<span class="kw-2">&amp;</span>transitions, NaiveDateTime::MAX),
-            LocalResult::Ambiguous(dst, std)
+            MappedLocalTime::Ambiguous(dst, std)
         );
 
         <span class="comment">// Transition before UTC year end doesn't panic in year of `NaiveDate::MIN`
@@ -1047,17 +1053,17 @@
         ];
         <span class="macro">assert_eq!</span>(
             lookup_with_dst_transitions(<span class="kw-2">&amp;</span>transitions, NaiveDateTime::MIN.with_month(<span class="number">3</span>).unwrap()),
-            LocalResult::Single(dst)
+            MappedLocalTime::Single(dst)
         );
         <span class="macro">assert_eq!</span>(
             lookup_with_dst_transitions(<span class="kw-2">&amp;</span>transitions, NaiveDateTime::MIN.with_month(<span class="number">8</span>).unwrap()),
-            LocalResult::Single(std)
+            MappedLocalTime::Single(std)
         );
         <span class="comment">// Doesn't panic with `NaiveDateTime::MIN` as argument (which would be out of range when
         // converted to UTC).
         </span><span class="macro">assert_eq!</span>(
             lookup_with_dst_transitions(<span class="kw-2">&amp;</span>transitions, NaiveDateTime::MIN),
-            LocalResult::Ambiguous(std, dst)
+            MappedLocalTime::Ambiguous(std, dst)
         );
     }
 

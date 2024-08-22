@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-project-internal-1.1.5/src/pin_project/derive.rs`."><title>derive.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="pin_project_internal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../pin_project_internal/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-project-internal-1.1.5/src/pin_project/derive.rs`."><title>derive.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="pin_project_internal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1202,7 +1200,7 @@
         <span class="kw">let </span>drop_impl = make_drop_impl(cx);
         <span class="kw">let </span>allowed_lints = global_allowed_lints();
 
-        tokens.extend(<span class="macro">quote! </span>{
+        tokens.extend(<span class="macro">quote!</span> {
             <span class="comment">// All items except projected types are generated inside a `const` scope.
             // This makes it impossible for user code to refer to these types.
             // However, this prevents Rustdoc from displaying docs for any
@@ -1236,7 +1234,7 @@
 
 <span class="doccomment">/// Returns attributes that should be applied to all generated code.
 </span><span class="kw">fn </span>global_allowed_lints() -&gt; TokenStream {
-    <span class="macro">quote! </span>{
+    <span class="macro">quote!</span> {
         <span class="attr">#[allow(box_pointers)] </span><span class="comment">// This lint warns use of the `Box` type.
         </span><span class="attr">#[allow(deprecated)]
         #[allow(explicit_outlives_requirements)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/60993
@@ -1255,7 +1253,7 @@
 <span class="doccomment">/// Returns attributes used on projected types.
 </span><span class="kw">fn </span>proj_allowed_lints(cx: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; (TokenStream, TokenStream, TokenStream) {
     <span class="kw">let </span>large_enum_variant = <span class="kw">if </span>cx.kind == Enum {
-        <span class="prelude-val">Some</span>(<span class="macro">quote! </span>{
+        <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
             <span class="attr">#[allow(variant_size_differences)]
             #[allow(clippy::large_enum_variant)]
         </span>})
@@ -1264,14 +1262,14 @@
     </span>};
     <span class="kw">let </span>global_allowed_lints = global_allowed_lints();
     <span class="kw">let </span>proj_mut_allowed_lints = <span class="kw">if </span>cx.project { <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>global_allowed_lints) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
-    <span class="kw">let </span>proj_mut = <span class="macro">quote! </span>{
+    <span class="kw">let </span>proj_mut = <span class="macro">quote!</span> {
         #proj_mut_allowed_lints
         <span class="attr">#[allow(dead_code)] </span><span class="comment">// This lint warns unused fields/variants.
         </span><span class="attr">#[allow(clippy::mut_mut)] </span><span class="comment">// This lint warns `&amp;mut &amp;mut &lt;ty&gt;`.
         </span><span class="attr">#[allow(clippy::missing_docs_in_private_items)]
     </span>};
     <span class="kw">let </span>proj_ref_allowed_lints = <span class="kw">if </span>cx.project_ref { <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>global_allowed_lints) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
-    <span class="kw">let </span>proj_ref = <span class="macro">quote! </span>{
+    <span class="kw">let </span>proj_ref = <span class="macro">quote!</span> {
         #proj_ref_allowed_lints
         <span class="attr">#[allow(dead_code)] </span><span class="comment">// This lint warns unused fields/variants.
         </span><span class="attr">#[allow(clippy::ref_option_ref)] </span><span class="comment">// This lint warns `&amp;Option&lt;&amp;&lt;ty&gt;&gt;`.
@@ -1279,7 +1277,7 @@
     </span>};
     <span class="kw">let </span>proj_own_allowed_lints =
         <span class="kw">if </span>cx.project_replace.ident().is_some() { <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>global_allowed_lints) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
-    <span class="kw">let </span>proj_own = <span class="macro">quote! </span>{
+    <span class="kw">let </span>proj_own = <span class="macro">quote!</span> {
         #proj_own_allowed_lints
         <span class="attr">#[allow(dead_code)] </span><span class="comment">// This lint warns unused fields/variants.
         </span><span class="attr">#[allow(clippy::missing_docs_in_private_items)]
@@ -1513,30 +1511,30 @@
     };
 
     <span class="kw">let </span>(proj_attrs, proj_ref_attrs, proj_own_attrs) = proj_allowed_lints(cx);
-    generate.extend(cx.project, <span class="macro">quote! </span>{
+    generate.extend(cx.project, <span class="macro">quote!</span> {
         #proj_attrs
         #vis <span class="kw">struct </span>#proj_ident #proj_generics #where_clause_fields
     });
-    generate.extend(cx.project_ref, <span class="macro">quote! </span>{
+    generate.extend(cx.project_ref, <span class="macro">quote!</span> {
         #proj_ref_attrs
         #vis <span class="kw">struct </span>#proj_ref_ident #proj_generics #where_clause_ref_fields
     });
     <span class="kw">if </span>cx.project_replace.span().is_some() {
-        generate.extend(cx.project_replace.ident().is_some(), <span class="macro">quote! </span>{
+        generate.extend(cx.project_replace.ident().is_some(), <span class="macro">quote!</span> {
             #proj_own_attrs
             #vis <span class="kw">struct </span>#proj_own_ident #orig_generics #where_clause_own_fields
         });
     }
 
-    <span class="kw">let </span>proj_mut_body = <span class="macro">quote! </span>{
+    <span class="kw">let </span>proj_mut_body = <span class="macro">quote!</span> {
         <span class="kw">let </span><span class="self">Self </span>#proj_pat = <span class="self">self</span>.get_unchecked_mut();
         #proj_ident #proj_body
     };
-    <span class="kw">let </span>proj_ref_body = <span class="macro">quote! </span>{
+    <span class="kw">let </span>proj_ref_body = <span class="macro">quote!</span> {
         <span class="kw">let </span><span class="self">Self </span>#proj_pat = <span class="self">self</span>.get_ref();
         #proj_ref_ident #proj_body
     };
-    <span class="kw">let </span>proj_own_body = <span class="macro">quote! </span>{
+    <span class="kw">let </span>proj_own_body = <span class="macro">quote!</span> {
         <span class="kw">let </span><span class="self">Self </span>#proj_pat = <span class="kw-2">&amp;mut *</span>__self_ptr;
         #proj_own_body
     };
@@ -1587,7 +1585,7 @@
 
     <span class="kw">let </span>(proj_attrs, proj_ref_attrs, proj_own_attrs) = proj_allowed_lints(cx);
     <span class="kw">if </span>cx.project {
-        generate.extend(<span class="bool-val">true</span>, <span class="macro">quote! </span>{
+        generate.extend(<span class="bool-val">true</span>, <span class="macro">quote!</span> {
             #proj_attrs
             #vis <span class="kw">enum </span>#proj_ident #proj_generics #proj_where_clause {
                 #proj_variants
@@ -1595,7 +1593,7 @@
         });
     }
     <span class="kw">if </span>cx.project_ref {
-        generate.extend(<span class="bool-val">true</span>, <span class="macro">quote! </span>{
+        generate.extend(<span class="bool-val">true</span>, <span class="macro">quote!</span> {
             #proj_ref_attrs
             #vis <span class="kw">enum </span>#proj_ref_ident #proj_generics #proj_where_clause {
                 #proj_ref_variants
@@ -1603,7 +1601,7 @@
         });
     }
     <span class="kw">if </span>cx.project_replace.ident().is_some() {
-        generate.extend(<span class="bool-val">true</span>, <span class="macro">quote! </span>{
+        generate.extend(<span class="bool-val">true</span>, <span class="macro">quote!</span> {
             #proj_own_attrs
             #vis <span class="kw">enum </span>#proj_own_ident #orig_generics #orig_where_clause {
                 #proj_own_variants
@@ -1611,17 +1609,17 @@
         });
     }
 
-    <span class="kw">let </span>proj_mut_body = <span class="macro">quote! </span>{
+    <span class="kw">let </span>proj_mut_body = <span class="macro">quote!</span> {
         <span class="kw">match </span><span class="self">self</span>.get_unchecked_mut() {
             #proj_arms
         }
     };
-    <span class="kw">let </span>proj_ref_body = <span class="macro">quote! </span>{
+    <span class="kw">let </span>proj_ref_body = <span class="macro">quote!</span> {
         <span class="kw">match </span><span class="self">self</span>.get_ref() {
             #proj_ref_arms
         }
     };
-    <span class="kw">let </span>proj_own_body = <span class="macro">quote! </span>{
+    <span class="kw">let </span>proj_own_body = <span class="macro">quote!</span> {
         <span class="kw">match </span><span class="kw-2">&amp;mut *</span>__self_ptr {
             #proj_own_arms
         }
@@ -1658,22 +1656,22 @@
 
         <span class="kw">let </span>proj_ident = <span class="kw-2">&amp;</span>cx.proj.mut_ident;
         <span class="kw">let </span>proj_ref_ident = <span class="kw-2">&amp;</span>cx.proj.ref_ident;
-        proj_variants.extend(<span class="macro">quote! </span>{
+        proj_variants.extend(<span class="macro">quote!</span> {
             #ident #proj_fields,
         });
-        proj_ref_variants.extend(<span class="macro">quote! </span>{
+        proj_ref_variants.extend(<span class="macro">quote!</span> {
             #ident #proj_ref_fields,
         });
-        proj_own_variants.extend(<span class="macro">quote! </span>{
+        proj_own_variants.extend(<span class="macro">quote!</span> {
             #ident #proj_own_fields,
         });
-        proj_arms.extend(<span class="macro">quote! </span>{
+        proj_arms.extend(<span class="macro">quote!</span> {
             <span class="self">Self</span>::#ident #proj_pat =&gt; #proj_ident::#ident #proj_body,
         });
-        proj_ref_arms.extend(<span class="macro">quote! </span>{
+        proj_ref_arms.extend(<span class="macro">quote!</span> {
             <span class="self">Self</span>::#ident #proj_pat =&gt; #proj_ref_ident::#ident #proj_body,
         });
-        proj_own_arms.extend(<span class="macro">quote! </span>{
+        proj_own_arms.extend(<span class="macro">quote!</span> {
             <span class="self">Self</span>::#ident #proj_pat =&gt; { #proj_own_body }
         });
     }
@@ -1711,38 +1709,38 @@
         proj_pat.extend(<span class="macro">quote!</span>(#binding,));
         <span class="kw">let </span>lifetime = <span class="kw-2">&amp;</span>cx.proj.lifetime;
         <span class="kw">if </span>attrs.position_exact(PIN)<span class="question-mark">?</span>.is_some() {
-            proj_fields.extend(<span class="macro">quote! </span>{
+            proj_fields.extend(<span class="macro">quote!</span> {
                 #vis #ident #colon_token ::pin_project::__private::Pin&lt;<span class="kw-2">&amp;</span>#lifetime <span class="kw-2">mut </span>(#ty)&gt;,
             });
-            proj_ref_fields.extend(<span class="macro">quote! </span>{
+            proj_ref_fields.extend(<span class="macro">quote!</span> {
                 #vis #ident #colon_token ::pin_project::__private::Pin&lt;<span class="kw-2">&amp;</span>#lifetime (#ty)&gt;,
             });
-            proj_own_fields.extend(<span class="macro">quote! </span>{
+            proj_own_fields.extend(<span class="macro">quote!</span> {
                 #vis #ident #colon_token ::pin_project::__private::PhantomData&lt;#ty&gt;,
             });
-            proj_body.extend(<span class="macro">quote! </span>{
+            proj_body.extend(<span class="macro">quote!</span> {
                 #ident #colon_token _pin_project::__private::Pin::new_unchecked(#binding),
             });
-            proj_move.extend(<span class="macro">quote! </span>{
+            proj_move.extend(<span class="macro">quote!</span> {
                 #ident #colon_token _pin_project::__private::PhantomData,
             });
 
             cx.pinned_fields.push(ty);
             pinned_bindings.push(binding);
         } <span class="kw">else </span>{
-            proj_fields.extend(<span class="macro">quote! </span>{
+            proj_fields.extend(<span class="macro">quote!</span> {
                 #vis #ident #colon_token <span class="kw-2">&amp;</span>#lifetime <span class="kw-2">mut </span>(#ty),
             });
-            proj_ref_fields.extend(<span class="macro">quote! </span>{
+            proj_ref_fields.extend(<span class="macro">quote!</span> {
                 #vis #ident #colon_token <span class="kw-2">&amp;</span>#lifetime (#ty),
             });
-            proj_own_fields.extend(<span class="macro">quote! </span>{
+            proj_own_fields.extend(<span class="macro">quote!</span> {
                 #vis #ident #colon_token #ty,
             });
-            proj_body.extend(<span class="macro">quote! </span>{
+            proj_body.extend(<span class="macro">quote!</span> {
                 #binding,
             });
-            proj_move.extend(<span class="macro">quote! </span>{
+            proj_move.extend(<span class="macro">quote!</span> {
                 #ident #colon_token _pin_project::__private::ptr::read(#binding),
             });
         }
@@ -1787,7 +1785,7 @@
     // Refs: https://doc.rust-lang.org/reference/destructors.html
     </span><span class="kw">let </span>pinned_fields = pinned_fields.iter().rev();
 
-    <span class="macro">quote! </span>{
+    <span class="macro">quote!</span> {
         <span class="comment">// First, extract all the unpinned fields.
         </span><span class="kw">let </span>__result = #proj_own #proj_move;
 
@@ -1821,14 +1819,14 @@
             <span class="kw">let </span>lifetime = <span class="kw-2">&amp;</span>cx.proj.lifetime;
 
             <span class="comment">// Make the error message highlight `UnsafeUnpin` argument.
-            </span>proj_generics.make_where_clause().predicates.push(<span class="macro">parse_quote_spanned! </span>{ span =&gt;
+            </span>proj_generics.make_where_clause().predicates.push(<span class="macro">parse_quote_spanned!</span> { span =&gt;
                 _pin_project::__private::Wrapper&lt;#lifetime, <span class="self">Self</span>&gt;: _pin_project::UnsafeUnpin
             });
 
             <span class="kw">let </span>(impl_generics, <span class="kw">_</span>, where_clause) = proj_generics.split_for_impl();
             <span class="kw">let </span>ty_generics = cx.orig.generics.split_for_impl().<span class="number">1</span>;
 
-            <span class="macro">quote_spanned! </span>{ span =&gt;
+            <span class="macro">quote_spanned!</span> { span =&gt;
                 <span class="kw">impl </span>#impl_generics _pin_project::__private::Unpin <span class="kw">for </span>#orig_ident #ty_generics
                 #where_clause
                 {
@@ -1840,7 +1838,7 @@
             <span class="kw">let </span>orig_ident = cx.orig.ident;
             <span class="kw">let </span>lifetime = <span class="kw-2">&amp;</span>cx.proj.lifetime;
 
-            proj_generics.make_where_clause().predicates.push(<span class="macro">parse_quote! </span>{
+            proj_generics.make_where_clause().predicates.push(<span class="macro">parse_quote!</span> {
                 _pin_project::__private::Wrapper&lt;
                     #lifetime, _pin_project::__private::PhantomPinned
                 &gt;: _pin_project::__private::Unpin
@@ -1852,7 +1850,7 @@
             <span class="comment">// For interoperability with `forbid(unsafe_code)`, `unsafe` token should be
             // call-site span.
             </span><span class="kw">let </span>unsafety = &lt;<span class="macro">Token!</span>[<span class="kw">unsafe</span>]&gt;::default();
-            <span class="macro">quote_spanned! </span>{ span =&gt;
+            <span class="macro">quote_spanned!</span> { span =&gt;
                 <span class="attr">#[doc(hidden)]
                 </span><span class="kw">impl </span>#proj_impl_generics _pin_project::__private::Unpin
                     <span class="kw">for </span>#orig_ident #ty_generics
@@ -1921,11 +1919,11 @@
             <span class="kw">let </span>(proj_impl_generics, proj_ty_generics, <span class="kw">_</span>) = proj_generics.split_for_impl();
             <span class="kw">let </span>(<span class="kw">_</span>, ty_generics, where_clause) = cx.orig.generics.split_for_impl();
 
-            full_where_clause.predicates.push(<span class="macro">parse_quote! </span>{
+            full_where_clause.predicates.push(<span class="macro">parse_quote!</span> {
                 #struct_ident #proj_ty_generics: _pin_project::__private::Unpin
             });
 
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 <span class="comment">// This needs to have the same visibility as the original type,
                 // due to the limitations of the 'public in private' error.
                 //
@@ -1983,7 +1981,7 @@
         <span class="comment">// For interoperability with `forbid(unsafe_code)`, `unsafe` token should be
         // call-site span.
         </span><span class="kw">let </span>unsafety = &lt;<span class="macro">Token!</span>[<span class="kw">unsafe</span>]&gt;::default();
-        <span class="macro">quote_spanned! </span>{ span =&gt;
+        <span class="macro">quote_spanned!</span> { span =&gt;
             <span class="kw">impl </span>#impl_generics _pin_project::__private::Drop <span class="kw">for </span>#ident #ty_generics
             #where_clause
             {
@@ -2018,7 +2016,7 @@
         // giving users more flexibility.
         </span><span class="kw">let </span>trait_ident = <span class="macro">format_ident!</span>(<span class="string">"{}MustNotImplDrop"</span>, ident);
 
-        <span class="macro">quote! </span>{
+        <span class="macro">quote!</span> {
             <span class="comment">// There are two possible cases:
             // 1. The user type does not implement Drop. In this case,
             // the first blanked impl will not apply to it. This code
@@ -2077,9 +2075,9 @@
     // allowed because methods are not generated unless explicitly specified.
     // However, there is currently no good way to allow warnings for generated
     // code, so we allow warnings for all methods for now.
-    </span><span class="kw">let </span>allow_dead_code = <span class="macro">quote! </span>{ <span class="attr">#[allow(dead_code)] </span>};
+    </span><span class="kw">let </span>allow_dead_code = <span class="macro">quote!</span> { <span class="attr">#[allow(dead_code)] </span>};
 
-    <span class="kw">let </span><span class="kw-2">mut </span>project = <span class="prelude-val">Some</span>(<span class="macro">quote! </span>{
+    <span class="kw">let </span><span class="kw-2">mut </span>project = <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
         #allow_dead_code
         <span class="attr">#[inline]
         </span>#vis <span class="kw">fn </span>project&lt;#lifetime&gt;(
@@ -2090,7 +2088,7 @@
             }
         }
     });
-    <span class="kw">let </span><span class="kw-2">mut </span>project_ref = <span class="prelude-val">Some</span>(<span class="macro">quote! </span>{
+    <span class="kw">let </span><span class="kw-2">mut </span>project_ref = <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
         #allow_dead_code
         <span class="attr">#[allow(clippy::missing_const_for_fn)]
         #[inline]
@@ -2104,7 +2102,7 @@
     });
     <span class="kw">let </span><span class="kw-2">mut </span>project_replace = cx.project_replace.span().map(|span| {
         <span class="comment">// It is enough to only set the span of the signature.
-        </span><span class="kw">let </span>sig = <span class="macro">quote_spanned! </span>{ span =&gt;
+        </span><span class="kw">let </span>sig = <span class="macro">quote_spanned!</span> { span =&gt;
             #allow_dead_code
             <span class="attr">#[inline]
             </span>#vis <span class="kw">fn </span>project_replace(
@@ -2112,7 +2110,7 @@
                 __replacement: <span class="self">Self</span>,
             ) -&gt; #proj_own_ident #orig_ty_generics
         };
-        <span class="macro">quote! </span>{
+        <span class="macro">quote!</span> {
             #sig {
                 <span class="kw">unsafe </span>{
                     <span class="kw">let </span>__self_ptr: <span class="kw-2">*mut </span><span class="self">Self </span>= <span class="self">self</span>.get_unchecked_mut();
@@ -2142,7 +2140,7 @@
         }
     }
 
-    <span class="macro">quote! </span>{
+    <span class="macro">quote!</span> {
         <span class="kw">impl </span>#impl_generics #orig_ident #ty_generics #where_clause {
             #project
             #project_ref
@@ -2253,7 +2251,7 @@
 
     <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = orig.generics.split_for_impl();
     <span class="kw">let </span>ident = orig.ident;
-    <span class="prelude-val">Ok</span>(<span class="macro">quote! </span>{
+    <span class="prelude-val">Ok</span>(<span class="macro">quote!</span> {
         <span class="attr">#[forbid(unaligned_references, safe_packed_borrows)]
         </span><span class="kw">fn </span>__assert_not_repr_packed #impl_generics (this: <span class="kw-2">&amp;</span>#ident #ty_generics) #where_clause {
             #(<span class="kw">let _ </span>= #field_refs;)*

@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/sys/unix/uds/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="mio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../../mio/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-1.0.2/src/sys/unix/uds/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="mio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -164,8 +162,30 @@
 <a href="#162" id="162">162</a>
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
-</pre></div><pre class="rust"><code><span class="kw">mod </span>socketaddr;
-<span class="kw">pub use </span><span class="self">self</span>::socketaddr::SocketAddr;
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+</pre></div><pre class="rust"><code><span class="attr">#[cfg(target_os = <span class="string">"android"</span>)]
+</span><span class="kw">use </span>std::os::android::net::SocketAddrExt;
+<span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
+</span><span class="kw">use </span>std::os::linux::net::SocketAddrExt;
+<span class="kw">use </span>std::os::unix::ffi::OsStrExt;
+<span class="kw">use </span>std::os::unix::io::FromRawFd;
+<span class="kw">use </span>std::os::unix::net::SocketAddr;
+<span class="kw">use </span>std::{io, mem, ptr};
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>datagram;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>listener;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>stream;
+
+<span class="kw">const </span>UNNAMED_ADDRESS: <span class="kw-2">&amp;</span>[u8] = <span class="kw-2">&amp;</span>[];
 
 <span class="doccomment">/// Get the `sun_path` field offset of `sockaddr_un` for the target OS.
 ///
@@ -173,159 +193,157 @@
 /// `size_of::&lt;sa_family_t&gt;()`, but some other implementations include
 /// other fields before `sun_path`, so the expression more portably
 /// describes the size of the address structure.
-</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::sys) <span class="kw">fn </span>path_offset(sockaddr: <span class="kw-2">&amp;</span>libc::sockaddr_un) -&gt; usize {
+</span><span class="kw">fn </span>path_offset(sockaddr: <span class="kw-2">&amp;</span>libc::sockaddr_un) -&gt; usize {
     <span class="kw">let </span>base = sockaddr <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span>usize;
     <span class="kw">let </span>path = <span class="kw-2">&amp;</span>sockaddr.sun_path <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span>usize;
     path - base
 }
 
-<span class="macro">cfg_os_poll! </span>{
-    <span class="kw">use </span>std::cmp::Ordering;
-    <span class="kw">use </span>std::os::unix::io::{RawFd, FromRawFd};
-    <span class="kw">use </span>std::{io, mem};
+<span class="doccomment">/// Converts a Rust `SocketAddr` into the system representation.
+</span><span class="kw">fn </span>unix_addr(address: <span class="kw-2">&amp;</span>SocketAddr) -&gt; (libc::sockaddr_un, libc::socklen_t) {
+    <span class="comment">// SAFETY: `libc::sockaddr_un` zero filled is properly initialized.
+    //
+    // `0` is a valid value for `sockaddr_un::sun_family`; it is
+    // `libc::AF_UNSPEC`.
+    //
+    // `[0; 108]` is a valid value for `sockaddr_un::sun_path`; it begins an
+    // abstract path.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>sockaddr = <span class="kw">unsafe </span>{ mem::zeroed::&lt;libc::sockaddr_un&gt;() };
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>datagram;
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>listener;
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>stream;
+    sockaddr.sun_family = libc::AF_UNIX <span class="kw">as </span>libc::sa_family_t;
 
-    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::sys) <span class="kw">fn </span>socket_addr(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;(libc::sockaddr_un, libc::socklen_t)&gt; {
-        <span class="kw">let </span>sockaddr = mem::MaybeUninit::&lt;libc::sockaddr_un&gt;::zeroed();
-
-        <span class="comment">// This is safe to assume because a `libc::sockaddr_un` filled with `0`
-        // bytes is properly initialized.
-        //
-        // `0` is a valid value for `sockaddr_un::sun_family`; it is
-        // `libc::AF_UNSPEC`.
-        //
-        // `[0; 108]` is a valid value for `sockaddr_un::sun_path`; it begins an
-        // abstract path.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>sockaddr = <span class="kw">unsafe </span>{ sockaddr.assume_init() };
-
-        sockaddr.sun_family = libc::AF_UNIX <span class="kw">as </span>libc::sa_family_t;
-
-        <span class="kw">match </span>(bytes.first(), bytes.len().cmp(<span class="kw-2">&amp;</span>sockaddr.sun_path.len())) {
-            <span class="comment">// Abstract paths don't need a null terminator
-            </span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>), Ordering::Greater) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    <span class="string">"path must be no longer than libc::sockaddr_un.sun_path"</span>,
-                ));
+    <span class="attr">#[allow(unused_mut)] </span><span class="comment">// Only used with abstract namespaces.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0</span>;
+    <span class="kw">let </span>addr = <span class="kw">match </span>address.as_pathname() {
+        <span class="prelude-val">Some</span>(path) =&gt; path.as_os_str().as_bytes(),
+        <span class="attr">#[cfg(any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>))]
+        </span><span class="prelude-val">None </span>=&gt; <span class="kw">match </span>address.as_abstract_name() {
+            <span class="prelude-val">Some</span>(name) =&gt; {
+                offset += <span class="number">1</span>;
+                name
             }
-            (<span class="kw">_</span>, Ordering::Greater) | (<span class="kw">_</span>, Ordering::Equal) =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    <span class="string">"path must be shorter than libc::sockaddr_un.sun_path"</span>,
-                ));
-            }
-            <span class="kw">_ </span>=&gt; {}
-        }
+            <span class="prelude-val">None </span>=&gt; UNNAMED_ADDRESS,
+        },
+        <span class="attr">#[cfg(not(any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>)))]
+        </span><span class="prelude-val">None </span>=&gt; UNNAMED_ADDRESS,
+    };
 
-        <span class="kw">for </span>(dst, src) <span class="kw">in </span>sockaddr.sun_path.iter_mut().zip(bytes.iter()) {
-            <span class="kw-2">*</span>dst = <span class="kw-2">*</span>src <span class="kw">as </span>libc::c_char;
-        }
+    <span class="comment">// SAFETY: `addr` and `sockaddr.sun_path` are not overlapping and both point
+    // to valid memory.
+    // SAFETY: since `addr` is a valid Unix address, it must not be larger than
+    // `SUN_LEN` bytes, thus we won't overwrite the size of sockaddr.sun_path.
+    // SAFETY: null byte is already written because we zeroed the address above.
+    </span><span class="macro">debug_assert!</span>(offset + addr.len() &lt;= sockaddr.sun_path.len());
+    <span class="kw">unsafe </span>{
+        ptr::copy_nonoverlapping(
+            addr.as_ptr(),
+            sockaddr.sun_path.as_mut_ptr().add(offset).cast(),
+            addr.len(),
+        )
+    };
 
+    <span class="kw">let </span><span class="kw-2">mut </span>addrlen = path_offset(<span class="kw-2">&amp;</span>sockaddr) + addr.len();
+    <span class="comment">// +1 for null byte at the end of the path, not needed for abstract
+    // namespaces (which start with a null byte).
+    </span><span class="kw">match </span>addr.first() {
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) | <span class="prelude-val">None </span>=&gt; {}
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; addrlen += <span class="number">1</span>,
+    }
+
+    <span class="comment">// SAFETY: the length is fine to cast to `socklen_t` as it's 32 bits and the
+    // address can be at most `SUN_LEN` bytes.
+    </span>(sockaddr, addrlen <span class="kw">as _</span>)
+}
+
+<span class="kw">fn </span>pair&lt;T&gt;(flags: libc::c_int) -&gt; io::Result&lt;(T, T)&gt;
+<span class="kw">where
+    </span>T: FromRawFd,
+{
+    <span class="attr">#[cfg(not(any(
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"macos"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"tvos"</span>,
+        target_os = <span class="string">"visionos"</span>,
+        target_os = <span class="string">"watchos"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"vita"</span>,
+    )))]
+    </span><span class="kw">let </span>flags = flags | libc::SOCK_NONBLOCK | libc::SOCK_CLOEXEC;
+
+    <span class="kw">let </span><span class="kw-2">mut </span>fds = [-<span class="number">1</span>; <span class="number">2</span>];
+    <span class="macro">syscall!</span>(socketpair(libc::AF_UNIX, flags, <span class="number">0</span>, fds.as_mut_ptr()))<span class="question-mark">?</span>;
+    <span class="kw">let </span>pair = <span class="kw">unsafe </span>{ (T::from_raw_fd(fds[<span class="number">0</span>]), T::from_raw_fd(fds[<span class="number">1</span>])) };
+
+    <span class="comment">// Darwin (and others) doesn't have SOCK_NONBLOCK or SOCK_CLOEXEC.
+    //
+    // In order to set those flags, additional `fcntl` sys calls must be
+    // performed. If a `fnctl` fails after the sockets have been created,
+    // the file descriptors will leak. Creating `pair` above ensures that if
+    // there is an error, the file descriptors are closed.
+    </span><span class="attr">#[cfg(any(
+        target_os = <span class="string">"aix"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"macos"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"tvos"</span>,
+        target_os = <span class="string">"visionos"</span>,
+        target_os = <span class="string">"watchos"</span>,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"vita"</span>,
+    ))]
+    </span>{
+        <span class="macro">syscall!</span>(fcntl(fds[<span class="number">0</span>], libc::F_SETFL, libc::O_NONBLOCK))<span class="question-mark">?</span>;
+        <span class="attr">#[cfg(not(any(target_os = <span class="string">"espidf"</span>, target_os = <span class="string">"vita"</span>, target_os = <span class="string">"nto"</span>)))]
+        </span><span class="macro">syscall!</span>(fcntl(fds[<span class="number">0</span>], libc::F_SETFD, libc::FD_CLOEXEC))<span class="question-mark">?</span>;
+        <span class="macro">syscall!</span>(fcntl(fds[<span class="number">1</span>], libc::F_SETFL, libc::O_NONBLOCK))<span class="question-mark">?</span>;
+        <span class="attr">#[cfg(not(any(target_os = <span class="string">"espidf"</span>, target_os = <span class="string">"vita"</span>, target_os = <span class="string">"nto"</span>)))]
+        </span><span class="macro">syscall!</span>(fcntl(fds[<span class="number">1</span>], libc::F_SETFD, libc::FD_CLOEXEC))<span class="question-mark">?</span>;
+    }
+
+    <span class="prelude-val">Ok</span>(pair)
+}
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>std::os::unix::net::SocketAddr;
+    <span class="kw">use </span>std::path::Path;
+    <span class="kw">use </span>std::str;
+
+    <span class="kw">use super</span>::{path_offset, unix_addr};
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>pathname_address() {
+        <span class="kw">const </span>PATH: <span class="kw-2">&amp;</span>str = <span class="string">"./foo/bar.txt"</span>;
+        <span class="kw">const </span>PATH_LEN: usize = <span class="number">13</span>;
+
+        <span class="comment">// Pathname addresses do have a null terminator, so `socklen` is
+        // expected to be `PATH_LEN` + `offset` + 1.
+        </span><span class="kw">let </span>address = SocketAddr::from_pathname(Path::new(PATH)).unwrap();
+        <span class="kw">let </span>(sockaddr, actual) = unix_addr(<span class="kw-2">&amp;</span>address);
         <span class="kw">let </span>offset = path_offset(<span class="kw-2">&amp;</span>sockaddr);
-        <span class="kw">let </span><span class="kw-2">mut </span>socklen = offset + bytes.len();
-
-        <span class="kw">match </span>bytes.first() {
-            <span class="comment">// The struct has already been zeroes so the null byte for pathname
-            // addresses is already there.
-            </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) | <span class="prelude-val">None </span>=&gt; {}
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; socklen += <span class="number">1</span>,
-        }
-
-        <span class="prelude-val">Ok</span>((sockaddr, socklen <span class="kw">as </span>libc::socklen_t))
+        <span class="kw">let </span>expected = PATH_LEN + offset + <span class="number">1</span>;
+        <span class="macro">assert_eq!</span>(expected <span class="kw">as </span>libc::socklen_t, actual)
     }
 
-    <span class="kw">fn </span>pair&lt;T&gt;(flags: libc::c_int) -&gt; io::Result&lt;(T, T)&gt;
-        <span class="kw">where </span>T: FromRawFd,
-    {
-        <span class="attr">#[cfg(not(any(
-            target_os = <span class="string">"aix"</span>,
-            target_os = <span class="string">"ios"</span>,
-            target_os = <span class="string">"macos"</span>,
-            target_os = <span class="string">"tvos"</span>,
-            target_os = <span class="string">"watchos"</span>,
-            target_os = <span class="string">"espidf"</span>,
-            target_os = <span class="string">"vita"</span>,
-        )))]
-        </span><span class="kw">let </span>flags = flags | libc::SOCK_NONBLOCK | libc::SOCK_CLOEXEC;
+    <span class="attr">#[test]
+    #[cfg(any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>))]
+    </span><span class="kw">fn </span>abstract_address() {
+        <span class="kw">use </span>std::os::linux::net::SocketAddrExt;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>fds = [-<span class="number">1</span>; <span class="number">2</span>];
-        <span class="macro">syscall!</span>(socketpair(libc::AF_UNIX, flags, <span class="number">0</span>, fds.as_mut_ptr()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>pair = <span class="kw">unsafe </span>{ (T::from_raw_fd(fds[<span class="number">0</span>]), T::from_raw_fd(fds[<span class="number">1</span>])) };
+        <span class="kw">const </span>PATH: <span class="kw-2">&amp;</span>[u8] = <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">116</span>, <span class="number">111</span>, <span class="number">107</span>, <span class="number">105</span>, <span class="number">111</span>];
+        <span class="kw">const </span>PATH_LEN: usize = <span class="number">6</span>;
 
-        <span class="comment">// Darwin (and others) doesn't have SOCK_NONBLOCK or SOCK_CLOEXEC.
-        //
-        // In order to set those flags, additional `fcntl` sys calls must be
-        // performed. If a `fnctl` fails after the sockets have been created,
-        // the file descriptors will leak. Creating `pair` above ensures that if
-        // there is an error, the file descriptors are closed.
-        </span><span class="attr">#[cfg(any(
-            target_os = <span class="string">"aix"</span>,
-            target_os = <span class="string">"ios"</span>,
-            target_os = <span class="string">"macos"</span>,
-            target_os = <span class="string">"tvos"</span>,
-            target_os = <span class="string">"watchos"</span>,
-            target_os = <span class="string">"espidf"</span>,
-            target_os = <span class="string">"vita"</span>,
-        ))]
-        </span>{
-            <span class="macro">syscall!</span>(fcntl(fds[<span class="number">0</span>], libc::F_SETFL, libc::O_NONBLOCK))<span class="question-mark">?</span>;
-            <span class="attr">#[cfg(not(any(target_os = <span class="string">"espidf"</span>, target_os = <span class="string">"vita"</span>)))]
-            </span><span class="macro">syscall!</span>(fcntl(fds[<span class="number">0</span>], libc::F_SETFD, libc::FD_CLOEXEC))<span class="question-mark">?</span>;
-            <span class="macro">syscall!</span>(fcntl(fds[<span class="number">1</span>], libc::F_SETFL, libc::O_NONBLOCK))<span class="question-mark">?</span>;
-            <span class="attr">#[cfg(not(any(target_os = <span class="string">"espidf"</span>, target_os = <span class="string">"vita"</span>)))]
-            </span><span class="macro">syscall!</span>(fcntl(fds[<span class="number">1</span>], libc::F_SETFD, libc::FD_CLOEXEC))<span class="question-mark">?</span>;
-        }
-
-        <span class="prelude-val">Ok</span>(pair)
-    }
-
-    <span class="comment">// The following functions can't simply be replaced with a call to
-    // `net::UnixDatagram` because of our `SocketAddr` type.
-
-    </span><span class="kw">fn </span>local_addr(socket: RawFd) -&gt; io::Result&lt;SocketAddr&gt; {
-        SocketAddr::new(|sockaddr, socklen| <span class="macro">syscall!</span>(getsockname(socket, sockaddr, socklen)))
-    }
-
-    <span class="kw">fn </span>peer_addr(socket: RawFd) -&gt; io::Result&lt;SocketAddr&gt; {
-        SocketAddr::new(|sockaddr, socklen| <span class="macro">syscall!</span>(getpeername(socket, sockaddr, socklen)))
-    }
-
-    <span class="attr">#[cfg(test)]
-    </span><span class="kw">mod </span>tests {
-        <span class="kw">use super</span>::{path_offset, socket_addr};
-        <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
-        <span class="kw">use </span>std::path::Path;
-        <span class="kw">use </span>std::str;
-
-        <span class="attr">#[test]
-        </span><span class="kw">fn </span>pathname_address() {
-            <span class="kw">const </span>PATH: <span class="kw-2">&amp;</span>str = <span class="string">"./foo/bar.txt"</span>;
-            <span class="kw">const </span>PATH_LEN: usize = <span class="number">13</span>;
-
-            <span class="comment">// Pathname addresses do have a null terminator, so `socklen` is
-            // expected to be `PATH_LEN` + `offset` + 1.
-            </span><span class="kw">let </span>path = Path::new(PATH);
-            <span class="kw">let </span>(sockaddr, actual) = socket_addr(path.as_os_str().as_bytes()).unwrap();
-            <span class="kw">let </span>offset = path_offset(<span class="kw-2">&amp;</span>sockaddr);
-            <span class="kw">let </span>expected = PATH_LEN + offset + <span class="number">1</span>;
-            <span class="macro">assert_eq!</span>(expected <span class="kw">as </span>libc::socklen_t, actual)
-        }
-
-        <span class="attr">#[test]
-        </span><span class="kw">fn </span>abstract_address() {
-            <span class="kw">const </span>PATH: <span class="kw-2">&amp;</span>[u8] = <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">116</span>, <span class="number">111</span>, <span class="number">107</span>, <span class="number">105</span>, <span class="number">111</span>];
-            <span class="kw">const </span>PATH_LEN: usize = <span class="number">6</span>;
-
-            <span class="comment">// Abstract addresses do not have a null terminator, so `socklen` is
-            // expected to be `PATH_LEN` + `offset`.
-            </span><span class="kw">let </span>(sockaddr, actual) = socket_addr(PATH).unwrap();
-            <span class="kw">let </span>offset = path_offset(<span class="kw-2">&amp;</span>sockaddr);
-            <span class="kw">let </span>expected = PATH_LEN + offset;
-            <span class="macro">assert_eq!</span>(expected <span class="kw">as </span>libc::socklen_t, actual)
-        }
+        <span class="comment">// Abstract addresses do not have a null terminator, so `socklen` is
+        // expected to be `PATH_LEN` + `offset`.
+        </span><span class="kw">let </span>address = SocketAddr::from_abstract_name(PATH).unwrap();
+        <span class="kw">let </span>(sockaddr, actual) = unix_addr(<span class="kw-2">&amp;</span>address);
+        <span class="kw">let </span>offset = path_offset(<span class="kw-2">&amp;</span>sockaddr);
+        <span class="kw">let </span>expected = PATH_LEN + offset;
+        <span class="macro">assert_eq!</span>(expected <span class="kw">as </span>libc::socklen_t, actual)
     }
 }
 </code></pre></div></section></main></body></html>

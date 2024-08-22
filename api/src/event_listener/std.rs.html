@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/event-listener-5.2.0/src/std.rs`."><title>std.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../event_listener/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/event-listener-5.3.1/src/std.rs`."><title>std.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -392,14 +390,6 @@
 <a href="#390" id="390">390</a>
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! libstd-based implementation of `event-listener`.
 //!
 //! This implementation crates an intrusive linked list of listeners.
@@ -466,36 +456,31 @@
         }
     }
 
-    <span class="doccomment">/// Whether or not this number of listeners would lead to a notification.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>needs_notification(<span class="kw-2">&amp;</span><span class="self">self</span>, limit: usize) -&gt; bool {
-        <span class="self">self</span>.notified.load(Ordering::Acquire) &lt; limit
-    }
-
     <span class="doccomment">/// Add a new listener to the list.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>listener: Pin&lt;<span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Listener&lt;T&gt;&gt;&gt;) {
         <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.lock();
 
-        <span class="comment">// SAFETY: We are locked, so we can access the inner `link`.
-        </span><span class="kw">let </span>entry = <span class="kw">unsafe </span>{
-            listener.as_mut().set(<span class="prelude-val">Some</span>(Listener {
-                link: UnsafeCell::new(Link {
-                    state: Cell::new(State::Created),
-                    prev: Cell::new(inner.tail),
-                    next: Cell::new(<span class="prelude-val">None</span>),
-                }),
-                _pin: PhantomPinned,
-            }));
-            <span class="kw">let </span>listener = listener.as_pin_mut().unwrap();
+        listener.as_mut().set(<span class="prelude-val">Some</span>(Listener {
+            link: UnsafeCell::new(Link {
+                state: Cell::new(State::Created),
+                prev: Cell::new(inner.tail),
+                next: Cell::new(<span class="prelude-val">None</span>),
+            }),
+            _pin: PhantomPinned,
+        }));
+        <span class="kw">let </span>listener = listener.as_pin_mut().unwrap();
 
-            <span class="comment">// Get the inner pointer.
-            </span><span class="kw-2">&amp;*</span>listener.link.get()
-        };
+        {
+            <span class="kw">let </span>entry_guard = listener.link.get();
+            <span class="comment">// SAFETY: We are locked, so we can access the inner `link`.
+            </span><span class="kw">let </span>entry = <span class="kw">unsafe </span>{ entry_guard.deref() };
 
-        <span class="comment">// Replace the tail with the new entry.
-        </span><span class="kw">match </span>mem::replace(<span class="kw-2">&amp;mut </span>inner.tail, <span class="prelude-val">Some</span>(entry.into())) {
-            <span class="prelude-val">None </span>=&gt; inner.head = <span class="prelude-val">Some</span>(entry.into()),
-            <span class="prelude-val">Some</span>(t) =&gt; <span class="kw">unsafe </span>{ t.as_ref().next.set(<span class="prelude-val">Some</span>(entry.into())) },
-        };
+            <span class="comment">// Replace the tail with the new entry.
+            </span><span class="kw">match </span>mem::replace(<span class="kw-2">&amp;mut </span>inner.tail, <span class="prelude-val">Some</span>(entry.into())) {
+                <span class="prelude-val">None </span>=&gt; inner.head = <span class="prelude-val">Some</span>(entry.into()),
+                <span class="prelude-val">Some</span>(t) =&gt; <span class="kw">unsafe </span>{ t.as_ref().next.set(<span class="prelude-val">Some</span>(entry.into())) },
+            };
+        }
 
         <span class="comment">// If there are no unnotified entries, this is the first one.
         </span><span class="kw">if </span>inner.next.is_none() {
@@ -531,15 +516,12 @@
         task: TaskRef&lt;<span class="lifetime">'_</span>&gt;,
     ) -&gt; RegisterResult&lt;T&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.lock();
-
-        <span class="comment">// SAFETY: We are locked, so we can access the inner `link`.
-        </span><span class="kw">let </span>entry = <span class="kw">unsafe </span>{
-            <span class="kw">let </span>listener = <span class="kw">match </span>listener.as_mut().as_pin_mut() {
-                <span class="prelude-val">Some</span>(listener) =&gt; listener,
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>RegisterResult::NeverInserted,
-            };
-            <span class="kw-2">&amp;*</span>listener.link.get()
+        <span class="kw">let </span>entry_guard = <span class="kw">match </span>listener.as_mut().as_pin_mut() {
+            <span class="prelude-val">Some</span>(listener) =&gt; listener.link.get(),
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>RegisterResult::NeverInserted,
         };
+        <span class="comment">// SAFETY: We are locked, so we can access the inner `link`.
+        </span><span class="kw">let </span>entry = <span class="kw">unsafe </span>{ entry_guard.deref() };
 
         <span class="comment">// Take out the state and check it.
         </span><span class="kw">match </span>entry.state.replace(State::NotifiedTaken) {
@@ -577,12 +559,8 @@
         <span class="kw-2">mut </span>listener: Pin&lt;<span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Listener&lt;T&gt;&gt;&gt;,
         propagate: bool,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;State&lt;T&gt;&gt; {
-        <span class="kw">let </span>entry = <span class="kw">unsafe </span>{
-            <span class="kw">let </span>listener = listener.as_mut().as_pin_mut()<span class="question-mark">?</span>;
-
-            <span class="comment">// Get the inner pointer.
-            </span><span class="kw-2">&amp;*</span>listener.link.get()
-        };
+        <span class="kw">let </span>entry_guard = listener.as_mut().as_pin_mut()<span class="question-mark">?</span>.link.get();
+        <span class="kw">let </span>entry = <span class="kw">unsafe </span>{ entry_guard.deref() };
 
         <span class="kw">let </span>prev = entry.prev.get();
         <span class="kw">let </span>next = entry.next.get();
@@ -618,7 +596,11 @@
                 .into_inner()
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>state = entry.state.into_inner();
+        <span class="comment">// This State::Created is immediately dropped and exists as a workaround for the absence of
+        // loom::cell::Cell::into_inner. The intent is `let mut state = entry.state.into_inner();`
+        //
+        // refs: https://github.com/tokio-rs/loom/pull/341
+        </span><span class="kw">let </span><span class="kw-2">mut </span>state = entry.state.replace(State::Created);
 
         <span class="comment">// Update the notified count.
         </span><span class="kw">if </span>state.is_notified() {
@@ -711,7 +693,7 @@
         </span><span class="kw">let </span>notified = <span class="kw">if </span>list.notified &lt; list.len {
             list.notified
         } <span class="kw">else </span>{
-            core::usize::MAX
+            usize::MAX
         };
 
         <span class="self">self</span>.inner.notified.store(notified, Ordering::Release);
@@ -749,7 +731,7 @@
     <span class="attr">#[cfg(target_family = <span class="string">"wasm"</span>)]
     </span><span class="kw">use </span>wasm_bindgen_test::wasm_bindgen_test <span class="kw">as </span>test;
 
-    <span class="macro">macro_rules! </span>make_listeners {
+    <span class="macro">macro_rules!</span> make_listeners {
         ($(<span class="macro-nonterminal">$id</span>:ident),<span class="kw-2">*</span>) =&gt; {
             $(
                 <span class="kw">let </span><span class="macro-nonterminal">$id </span>= <span class="prelude-ty">Option</span>::&lt;Listener&lt;()&gt;&gt;::None;

@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstyle-1.0.6/src/style.rs`."><title>style.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anstyle" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../anstyle/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anstyle-1.0.8/src/style.rs`."><title>style.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anstyle" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -431,6 +429,12 @@
 <a href="#429" id="429">429</a>
 <a href="#430" id="430">430</a>
 <a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::reset::RESET;
 
 <span class="doccomment">/// ANSI Text styling
@@ -534,7 +538,7 @@
     ///
     /// `Style` also implements `Display` directly, so calling this method is optional.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>render(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy + Clone {
+    </span><span class="kw">pub fn </span>render(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy {
         StyleDisplay(<span class="self">self</span>)
     }
 
@@ -583,7 +587,7 @@
     ///
     /// Unlike [`Reset::render`][crate::Reset::render], this will elide the code if there is nothing to reset.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>render_reset(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy + Clone {
+    </span><span class="kw">pub fn </span>render_reset(<span class="self">self</span>) -&gt; <span class="kw">impl </span>core::fmt::Display + Copy {
         <span class="kw">if </span><span class="self">self </span>!= <span class="self">Self</span>::new() {
             RESET
         } <span class="kw">else </span>{
@@ -722,27 +726,32 @@
 
 <span class="doccomment">/// # Reflection
 </span><span class="kw">impl </span>Style {
-    <span class="attr">#[inline]
+    <span class="doccomment">/// Get the foreground color
+    </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>get_fg_color(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Color&gt; {
         <span class="self">self</span>.fg
     }
 
-    <span class="attr">#[inline]
+    <span class="doccomment">/// Get the background color
+    </span><span class="attr">#[inline]
+    #[allow(missing_docs)]
     </span><span class="kw">pub const fn </span>get_bg_color(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Color&gt; {
         <span class="self">self</span>.bg
     }
 
     <span class="attr">#[inline]
+    #[allow(missing_docs)]
     </span><span class="kw">pub const fn </span>get_underline_color(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Color&gt; {
         <span class="self">self</span>.underline
     }
 
     <span class="attr">#[inline]
+    #[allow(missing_docs)]
     </span><span class="kw">pub const fn </span>get_effects(<span class="self">self</span>) -&gt; <span class="kw">crate</span>::Effects {
         <span class="self">self</span>.effects
     }
 
-    <span class="doccomment">/// Check if no effects are enabled
+    <span class="doccomment">/// Check if no styling is enabled
     </span><span class="attr">#[inline]
     </span><span class="kw">pub const fn </span>is_plain(<span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.fg.is_none()
@@ -828,7 +837,7 @@
 /// assert_ne!(anstyle::Effects::UNDERLINE | effects, effects);
 /// assert_ne!(anstyle::RgbColor(0, 0, 0).on_default() | effects, effects);
 /// ```
-</span><span class="kw">impl </span>core::cmp::PartialEq&lt;<span class="kw">crate</span>::Effects&gt; <span class="kw">for </span>Style {
+</span><span class="kw">impl </span>PartialEq&lt;<span class="kw">crate</span>::Effects&gt; <span class="kw">for </span>Style {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Effects) -&gt; bool {
         <span class="kw">let </span>other = <span class="self">Self</span>::from(<span class="kw-2">*</span>other);
@@ -857,6 +866,7 @@
 }
 
 <span class="attr">#[test]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">fn </span>print_size_of() {
     <span class="kw">use </span>std::mem::size_of;
     <span class="macro">dbg!</span>(size_of::&lt;Style&gt;());

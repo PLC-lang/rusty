@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_complete-4.5.1/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="clap_complete" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../clap_complete/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_complete-4.5.20/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="clap_complete" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -75,19 +73,50 @@
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright ⓒ 2015-2018 Kevin B. Knapp
 //
 // `clap_complete` is distributed under the terms of both the MIT license and the Apache License
 // (Version 2.0).
 // See the [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT) files in this repository
 // for more information.
-
-</span><span class="attr">#![doc(html_logo_url = <span class="string">"https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png"</span>)]
-#![doc = <span class="macro">include_str!</span>(<span class="string">"../README.md"</span>)]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![warn(missing_docs, trivial_casts, unused_allocation, trivial_numeric_casts)]
-#![forbid(unsafe_code)]
-#![allow(clippy::needless_doctest_main)]
 
 </span><span class="doccomment">//! ## Quick Start
 //!
@@ -101,7 +130,7 @@
 //!
 //! ```rust,no_run
 //! use clap::{Command, Arg, ValueHint, value_parser, ArgAction};
-//! use clap_complete::{generate, Generator, Shell};
+//! use clap_complete::aot::{generate, Generator, Shell};
 //! use std::io;
 //!
 //! fn build_cli() -&gt; Command {
@@ -133,6 +162,15 @@
 //! }
 //! ```
 
+</span><span class="attr">#![doc(html_logo_url = <span class="string">"https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png"</span>)]
+#![doc = <span class="macro">include_str!</span>(<span class="string">"../README.md"</span>)]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![forbid(unsafe_code)]
+#![warn(missing_docs)]
+#![allow(clippy::needless_doctest_main)]
+#![warn(clippy::print_stderr)]
+#![warn(clippy::print_stdout)]
+
 </span><span class="kw">const </span>INTERNAL_ERROR_MSG: <span class="kw-2">&amp;</span>str = <span class="string">"Fatal internal error. Please consider filing a bug \
                                   report at https://github.com/clap-rs/clap/issues"</span>;
 
@@ -140,14 +178,50 @@
 #[allow(missing_docs)]
 </span><span class="kw">mod </span>macros;
 
-<span class="kw">pub mod </span>generator;
-<span class="kw">pub mod </span>shells;
-
-<span class="kw">pub use </span>generator::generate;
-<span class="kw">pub use </span>generator::generate_to;
-<span class="kw">pub use </span>generator::Generator;
-<span class="kw">pub use </span>shells::Shell;
-
+<span class="kw">pub mod </span>aot;
+<span class="attr">#[cfg(feature = <span class="string">"unstable-command"</span>)]
+</span><span class="kw">pub mod </span>command;
 <span class="attr">#[cfg(feature = <span class="string">"unstable-dynamic"</span>)]
-</span><span class="kw">pub mod </span>dynamic;
+</span><span class="kw">pub mod </span>engine;
+<span class="attr">#[cfg(feature = <span class="string">"unstable-dynamic"</span>)]
+</span><span class="kw">pub mod </span>env;
+
+<span class="kw">pub use </span>clap::ValueHint;
+<span class="attr">#[cfg(feature = <span class="string">"unstable-command"</span>)]
+</span><span class="kw">pub use </span>command::CompleteArgs;
+<span class="attr">#[cfg(feature = <span class="string">"unstable-command"</span>)]
+</span><span class="kw">pub use </span>command::CompleteCommand;
+<span class="attr">#[doc(inline)]
+#[cfg(feature = <span class="string">"unstable-dynamic"</span>)]
+</span><span class="kw">pub use </span>engine::ArgValueCandidates;
+<span class="attr">#[doc(inline)]
+#[cfg(feature = <span class="string">"unstable-dynamic"</span>)]
+</span><span class="kw">pub use </span>engine::CompletionCandidate;
+<span class="attr">#[cfg(feature = <span class="string">"unstable-dynamic"</span>)]
+</span><span class="kw">pub use </span>env::CompleteEnv;
+
+<span class="doccomment">/// Deprecated, see [`aot`]
+</span><span class="kw">pub mod </span>generator {
+    <span class="kw">pub use </span><span class="kw">crate</span>::aot::generate;
+    <span class="kw">pub use </span><span class="kw">crate</span>::aot::generate_to;
+    <span class="kw">pub use </span><span class="kw">crate</span>::aot::utils;
+    <span class="kw">pub use </span><span class="kw">crate</span>::aot::Generator;
+}
+<span class="doccomment">/// Deprecated, see [`aot`]
+</span><span class="kw">pub mod </span>shells {
+    <span class="kw">pub use </span><span class="kw">crate</span>::aot::Bash;
+    <span class="kw">pub use </span><span class="kw">crate</span>::aot::Elvish;
+    <span class="kw">pub use </span><span class="kw">crate</span>::aot::Fish;
+    <span class="kw">pub use </span><span class="kw">crate</span>::aot::PowerShell;
+    <span class="kw">pub use </span><span class="kw">crate</span>::aot::Shell;
+    <span class="kw">pub use </span><span class="kw">crate</span>::aot::Zsh;
+}
+<span class="doccomment">/// Deprecated, see [`aot::generate`]
+</span><span class="kw">pub use </span>aot::generate;
+<span class="doccomment">/// Deprecated, see [`aot::generate_to`]
+</span><span class="kw">pub use </span>aot::generate_to;
+<span class="doccomment">/// Deprecated, see [`aot::Generator`]
+</span><span class="kw">pub use </span>aot::Generator;
+<span class="doccomment">/// Deprecated, see [`aot::Shell`]
+</span><span class="kw">pub use </span>aot::Shell;
 </code></pre></div></section></main></body></html>

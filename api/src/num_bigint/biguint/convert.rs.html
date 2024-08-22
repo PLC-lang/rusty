@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.4/src/biguint/convert.rs`."><title>convert.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../num_bigint/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.6/src/biguint/convert.rs`."><title>convert.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -820,24 +818,68 @@
 <a href="#818" id="818">818</a>
 <a href="#819" id="819">819</a>
 <a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
 </pre></div><pre class="rust"><code><span class="comment">// This uses stdlib features higher than the MSRV
 </span><span class="attr">#![allow(clippy::manual_range_contains)] </span><span class="comment">// 1.35
 
 </span><span class="kw">use super</span>::{biguint_from_vec, BigUint, ToBigUint};
 
 <span class="kw">use </span><span class="kw">super</span>::addition::add2;
-<span class="kw">use </span><span class="kw">super</span>::division::div_rem_digit;
+<span class="kw">use </span><span class="kw">super</span>::division::{div_rem_digit, FAST_DIV_WIDE};
 <span class="kw">use </span><span class="kw">super</span>::multiplication::mac_with_carry;
 
 <span class="kw">use </span><span class="kw">crate</span>::big_digit::{<span class="self">self</span>, BigDigit};
-<span class="kw">use </span><span class="kw">crate</span>::std_alloc::Vec;
 <span class="kw">use </span><span class="kw">crate</span>::ParseBigIntError;
-<span class="attr">#[cfg(has_try_from)]
-</span><span class="kw">use </span><span class="kw">crate</span>::TryFromBigIntError;
+<span class="kw">use </span><span class="kw">crate</span>::TryFromBigIntError;
 
+<span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>core::cmp::Ordering::{Equal, Greater, Less};
-<span class="attr">#[cfg(has_try_from)]
-</span><span class="kw">use </span>core::convert::TryFrom;
+<span class="kw">use </span>core::convert::TryFrom;
 <span class="kw">use </span>core::mem;
 <span class="kw">use </span>core::str::FromStr;
 <span class="kw">use </span>num_integer::{Integer, Roots};
@@ -893,7 +935,7 @@
     <span class="kw">let </span>total_bits = (v.len() <span class="kw">as </span>u64).saturating_mul(bits.into());
     <span class="kw">let </span>big_digits = Integer::div_ceil(<span class="kw-2">&amp;</span>total_bits, <span class="kw-2">&amp;</span>big_digit::BITS.into())
         .to_usize()
-        .unwrap_or(core::usize::MAX);
+        .unwrap_or(usize::MAX);
     <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::with_capacity(big_digits);
 
     <span class="kw">let </span><span class="kw-2">mut </span>d = <span class="number">0</span>;
@@ -943,7 +985,7 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::with_capacity(big_digits.to_usize().unwrap_or(<span class="number">0</span>));
 
-    <span class="kw">let </span>(base, power) = get_radix_base(radix, big_digit::BITS);
+    <span class="kw">let </span>(base, power) = get_radix_base(radix);
     <span class="kw">let </span>radix = radix <span class="kw">as </span>BigDigit;
 
     <span class="kw">let </span>r = v.len() % power;
@@ -983,7 +1025,7 @@
     </span>);
 
     <span class="kw">if </span>buf.is_empty() {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(Zero::zero());
+        <span class="kw">return </span><span class="prelude-val">Some</span>(BigUint::ZERO);
     }
 
     <span class="kw">if </span>radix != <span class="number">256 </span>&amp;&amp; buf.iter().any(|<span class="kw-2">&amp;</span>b| b &gt;= radix <span class="kw">as </span>u8) {
@@ -1014,7 +1056,7 @@
     </span>);
 
     <span class="kw">if </span>buf.is_empty() {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(Zero::zero());
+        <span class="kw">return </span><span class="prelude-val">Some</span>(BigUint::ZERO);
     }
 
     <span class="kw">if </span>radix != <span class="number">256 </span>&amp;&amp; buf.iter().any(|<span class="kw-2">&amp;</span>b| b &gt;= radix <span class="kw">as </span>u8) {
@@ -1045,8 +1087,7 @@
     </span><span class="kw">fn </span>from_str_radix(s: <span class="kw-2">&amp;</span>str, radix: u32) -&gt; <span class="prelude-ty">Result</span>&lt;BigUint, ParseBigIntError&gt; {
         <span class="macro">assert!</span>(<span class="number">2 </span>&lt;= radix &amp;&amp; radix &lt;= <span class="number">36</span>, <span class="string">"The radix must be within 2...36"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>s = s;
-        <span class="kw">if </span>s.starts_with(<span class="string">'+'</span>) {
-            <span class="kw">let </span>tail = <span class="kw-2">&amp;</span>s[<span class="number">1</span>..];
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(tail) = s.strip_prefix(<span class="string">'+'</span>) {
             <span class="kw">if </span>!tail.starts_with(<span class="string">'+'</span>) {
                 s = tail
             }
@@ -1069,7 +1110,7 @@
                 <span class="string">b'a'</span>..=<span class="string">b'z' </span>=&gt; b - <span class="string">b'a' </span>+ <span class="number">10</span>,
                 <span class="string">b'A'</span>..=<span class="string">b'Z' </span>=&gt; b - <span class="string">b'A' </span>+ <span class="number">10</span>,
                 <span class="string">b'_' </span>=&gt; <span class="kw">continue</span>,
-                <span class="kw">_ </span>=&gt; core::u8::MAX,
+                <span class="kw">_ </span>=&gt; u8::MAX,
             };
             <span class="kw">if </span>d &lt; radix <span class="kw">as </span>u8 {
                 v.push(d);
@@ -1196,8 +1237,8 @@
         <span class="kw">let </span>mantissa = high_bits_to_u64(<span class="self">self</span>);
         <span class="kw">let </span>exponent = <span class="self">self</span>.bits() - u64::from(fls(mantissa));
 
-        <span class="kw">if </span>exponent &gt; core::f32::MAX_EXP <span class="kw">as </span>u64 {
-            <span class="prelude-val">Some</span>(core::f32::INFINITY)
+        <span class="kw">if </span>exponent &gt; f32::MAX_EXP <span class="kw">as </span>u64 {
+            <span class="prelude-val">Some</span>(f32::INFINITY)
         } <span class="kw">else </span>{
             <span class="prelude-val">Some</span>((mantissa <span class="kw">as </span>f32) * <span class="number">2.0f32</span>.powi(exponent <span class="kw">as </span>i32))
         }
@@ -1208,18 +1249,17 @@
         <span class="kw">let </span>mantissa = high_bits_to_u64(<span class="self">self</span>);
         <span class="kw">let </span>exponent = <span class="self">self</span>.bits() - u64::from(fls(mantissa));
 
-        <span class="kw">if </span>exponent &gt; core::f64::MAX_EXP <span class="kw">as </span>u64 {
-            <span class="prelude-val">Some</span>(core::f64::INFINITY)
+        <span class="kw">if </span>exponent &gt; f64::MAX_EXP <span class="kw">as </span>u64 {
+            <span class="prelude-val">Some</span>(f64::INFINITY)
         } <span class="kw">else </span>{
             <span class="prelude-val">Some</span>((mantissa <span class="kw">as </span>f64) * <span class="number">2.0f64</span>.powi(exponent <span class="kw">as </span>i32))
         }
     }
 }
 
-<span class="macro">macro_rules! </span>impl_try_from_biguint {
+<span class="macro">macro_rules!</span> impl_try_from_biguint {
     (<span class="macro-nonterminal">$T</span>:ty, <span class="macro-nonterminal">$to_ty</span>:path) =&gt; {
-        <span class="attr">#[cfg(has_try_from)]
-        </span><span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span>BigUint&gt; <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
+        <span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span>BigUint&gt; <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
             <span class="kw">type </span>Error = TryFromBigIntError&lt;()&gt;;
 
             <span class="attr">#[inline]
@@ -1228,8 +1268,7 @@
             }
         }
 
-        <span class="attr">#[cfg(has_try_from)]
-        </span><span class="kw">impl </span>TryFrom&lt;BigUint&gt; <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
+        <span class="kw">impl </span>TryFrom&lt;BigUint&gt; <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
             <span class="kw">type </span>Error = TryFromBigIntError&lt;BigUint&gt;;
 
             <span class="attr">#[inline]
@@ -1295,7 +1334,7 @@
 
         <span class="comment">// handle 0.x, -0.x
         </span><span class="kw">if </span>n.is_zero() {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(BigUint::zero());
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">Self</span>::ZERO);
         }
 
         <span class="kw">let </span>(mantissa, exponent, sign) = FloatCore::integer_decode(n);
@@ -1317,7 +1356,7 @@
 <span class="kw">impl </span>From&lt;u64&gt; <span class="kw">for </span>BigUint {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(<span class="kw-2">mut </span>n: u64) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>ret: BigUint = Zero::zero();
+        <span class="kw">let </span><span class="kw-2">mut </span>ret: BigUint = <span class="self">Self</span>::ZERO;
 
         <span class="kw">while </span>n != <span class="number">0 </span>{
             ret.data.push(n <span class="kw">as </span>BigDigit);
@@ -1332,7 +1371,7 @@
 <span class="kw">impl </span>From&lt;u128&gt; <span class="kw">for </span>BigUint {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(<span class="kw-2">mut </span>n: u128) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>ret: BigUint = Zero::zero();
+        <span class="kw">let </span><span class="kw-2">mut </span>ret: BigUint = <span class="self">Self</span>::ZERO;
 
         <span class="kw">while </span>n != <span class="number">0 </span>{
             ret.data.push(n <span class="kw">as </span>BigDigit);
@@ -1343,7 +1382,7 @@
     }
 }
 
-<span class="macro">macro_rules! </span>impl_biguint_from_uint {
+<span class="macro">macro_rules!</span> impl_biguint_from_uint {
     (<span class="macro-nonterminal">$T</span>:ty) =&gt; {
         <span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$T</span>&gt; <span class="kw">for </span>BigUint {
             <span class="attr">#[inline]
@@ -1359,10 +1398,9 @@
 <span class="macro">impl_biguint_from_uint!</span>(u32);
 <span class="macro">impl_biguint_from_uint!</span>(usize);
 
-<span class="macro">macro_rules! </span>impl_biguint_try_from_int {
+<span class="macro">macro_rules!</span> impl_biguint_try_from_int {
     (<span class="macro-nonterminal">$T</span>:ty, <span class="macro-nonterminal">$from_ty</span>:path) =&gt; {
-        <span class="attr">#[cfg(has_try_from)]
-        </span><span class="kw">impl </span>TryFrom&lt;<span class="macro-nonterminal">$T</span>&gt; <span class="kw">for </span>BigUint {
+        <span class="kw">impl </span>TryFrom&lt;<span class="macro-nonterminal">$T</span>&gt; <span class="kw">for </span>BigUint {
             <span class="kw">type </span>Error = TryFromBigIntError&lt;()&gt;;
 
             <span class="attr">#[inline]
@@ -1387,7 +1425,7 @@
     }
 }
 
-<span class="macro">macro_rules! </span>impl_to_biguint {
+<span class="macro">macro_rules!</span> impl_to_biguint {
     (<span class="macro-nonterminal">$T</span>:ty, <span class="macro-nonterminal">$from_ty</span>:path) =&gt; {
         <span class="kw">impl </span>ToBigUint <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
             <span class="attr">#[inline]
@@ -1420,7 +1458,7 @@
         <span class="kw">if </span>x {
             One::one()
         } <span class="kw">else </span>{
-            Zero::zero()
+            <span class="self">Self</span>::ZERO
         }
     }
 }
@@ -1434,7 +1472,7 @@
     <span class="kw">let </span>digits_per_big_digit = big_digit::BITS / bits;
     <span class="kw">let </span>digits = Integer::div_ceil(<span class="kw-2">&amp;</span>u.bits(), <span class="kw-2">&amp;</span>u64::from(bits))
         .to_usize()
-        .unwrap_or(core::usize::MAX);
+        .unwrap_or(usize::MAX);
     <span class="kw">let </span><span class="kw-2">mut </span>res = Vec::with_capacity(digits);
 
     <span class="kw">for </span><span class="kw-2">mut </span>r <span class="kw">in </span>u.data[..last_i].iter().cloned() {
@@ -1460,7 +1498,7 @@
     <span class="kw">let </span>mask: BigDigit = (<span class="number">1 </span>&lt;&lt; bits) - <span class="number">1</span>;
     <span class="kw">let </span>digits = Integer::div_ceil(<span class="kw-2">&amp;</span>u.bits(), <span class="kw-2">&amp;</span>u64::from(bits))
         .to_usize()
-        .unwrap_or(core::usize::MAX);
+        .unwrap_or(usize::MAX);
     <span class="kw">let </span><span class="kw-2">mut </span>res = Vec::with_capacity(digits);
 
     <span class="kw">let </span><span class="kw-2">mut </span>r = <span class="number">0</span>;
@@ -1515,7 +1553,13 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>digits = u.clone();
 
-    <span class="kw">let </span>(base, power) = get_radix_base(radix, big_digit::HALF_BITS);
+    <span class="comment">// X86 DIV can quickly divide by a full digit, otherwise we choose a divisor
+    // that's suitable for `div_half` to avoid slow `DoubleBigDigit` division.
+    </span><span class="kw">let </span>(base, power) = <span class="kw">if </span>FAST_DIV_WIDE {
+        get_radix_base(radix)
+    } <span class="kw">else </span>{
+        get_half_radix_base(radix)
+    };
     <span class="kw">let </span>radix = radix <span class="kw">as </span>BigDigit;
 
     <span class="comment">// For very large numbers, the O(n²) loop of repeated `div_rem_digit` dominates the
@@ -1523,8 +1567,8 @@
     // The threshold for this was chosen by anecdotal performance measurements to
     // approximate where this starts to make a noticeable difference.
     </span><span class="kw">if </span>digits.data.len() &gt;= <span class="number">64 </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>big_base = BigUint::from(base * base);
-        <span class="kw">let </span><span class="kw-2">mut </span>big_power = <span class="number">2usize</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>big_base = BigUint::from(base);
+        <span class="kw">let </span><span class="kw-2">mut </span>big_power = <span class="number">1usize</span>;
 
         <span class="comment">// Choose a target base length near √n.
         </span><span class="kw">let </span>target_len = digits.data.len().sqrt();
@@ -1610,34 +1654,80 @@
     res
 }
 
-<span class="doccomment">/// Returns the greatest power of the radix for the given bit size
+<span class="doccomment">/// Returns the greatest power of the radix for the `BigDigit` bit size
 </span><span class="attr">#[inline]
-</span><span class="kw">fn </span>get_radix_base(radix: u32, bits: u8) -&gt; (BigDigit, usize) {
-    <span class="kw">mod </span>gen {
-        <span class="macro">include! </span>{ <span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">"OUT_DIR"</span>), <span class="string">"/radix_bases.rs"</span>) }
+</span><span class="kw">fn </span>get_radix_base(radix: u32) -&gt; (BigDigit, usize) {
+    <span class="kw">static </span>BASES: [(BigDigit, usize); <span class="number">257</span>] = generate_radix_bases(big_digit::MAX);
+    <span class="macro">debug_assert!</span>(!radix.is_power_of_two());
+    <span class="macro">debug_assert!</span>((<span class="number">3</span>..<span class="number">256</span>).contains(<span class="kw-2">&amp;</span>radix));
+    BASES[radix <span class="kw">as </span>usize]
+}
+
+<span class="doccomment">/// Returns the greatest power of the radix for half the `BigDigit` bit size
+</span><span class="attr">#[inline]
+</span><span class="kw">fn </span>get_half_radix_base(radix: u32) -&gt; (BigDigit, usize) {
+    <span class="kw">static </span>BASES: [(BigDigit, usize); <span class="number">257</span>] = generate_radix_bases(big_digit::HALF);
+    <span class="macro">debug_assert!</span>(!radix.is_power_of_two());
+    <span class="macro">debug_assert!</span>((<span class="number">3</span>..<span class="number">256</span>).contains(<span class="kw-2">&amp;</span>radix));
+    BASES[radix <span class="kw">as </span>usize]
+}
+
+<span class="doccomment">/// Generate tables of the greatest power of each radix that is less that the given maximum. These
+/// are returned from `get_radix_base` to batch the multiplication/division of radix conversions on
+/// full `BigUint` values, operating on primitive integers as much as possible.
+///
+/// e.g. BASES_16[3] = (59049, 10) // 3¹⁰ fits in u16, but 3¹¹ is too big
+///      BASES_32[3] = (3486784401, 20)
+///      BASES_64[3] = (12157665459056928801, 40)
+///
+/// Powers of two are not included, just zeroed, as they're implemented with shifts.
+</span><span class="kw">const fn </span>generate_radix_bases(max: BigDigit) -&gt; [(BigDigit, usize); <span class="number">257</span>] {
+    <span class="kw">let </span><span class="kw-2">mut </span>bases = [(<span class="number">0</span>, <span class="number">0</span>); <span class="number">257</span>];
+
+    <span class="kw">let </span><span class="kw-2">mut </span>radix: BigDigit = <span class="number">3</span>;
+    <span class="kw">while </span>radix &lt; <span class="number">256 </span>{
+        <span class="kw">if </span>!radix.is_power_of_two() {
+            <span class="kw">let </span><span class="kw-2">mut </span>power = <span class="number">1</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>base = radix;
+
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(b) = base.checked_mul(radix) {
+                <span class="kw">if </span>b &gt; max {
+                    <span class="kw">break</span>;
+                }
+                base = b;
+                power += <span class="number">1</span>;
+            }
+            bases[radix <span class="kw">as </span>usize] = (base, power)
+        }
+        radix += <span class="number">1</span>;
     }
 
-    <span class="macro">debug_assert!</span>(
-        <span class="number">2 </span>&lt;= radix &amp;&amp; radix &lt;= <span class="number">256</span>,
-        <span class="string">"The radix must be within 2...256"
-    </span>);
-    <span class="macro">debug_assert!</span>(!radix.is_power_of_two());
-    <span class="macro">debug_assert!</span>(bits &lt;= big_digit::BITS);
+    bases
+}
 
-    <span class="kw">match </span>bits {
-        <span class="number">16 </span>=&gt; {
-            <span class="kw">let </span>(base, power) = gen::BASES_16[radix <span class="kw">as </span>usize];
-            (base <span class="kw">as </span>BigDigit, power)
+<span class="attr">#[test]
+</span><span class="kw">fn </span>test_radix_bases() {
+    <span class="kw">for </span>radix <span class="kw">in </span><span class="number">3u32</span>..<span class="number">256 </span>{
+        <span class="kw">if </span>!radix.is_power_of_two() {
+            <span class="kw">let </span>(base, power) = get_radix_base(radix);
+            <span class="kw">let </span>radix = BigDigit::from(radix);
+            <span class="kw">let </span>power = u32::try_from(power).unwrap();
+            <span class="macro">assert_eq!</span>(base, radix.pow(power));
+            <span class="macro">assert!</span>(radix.checked_pow(power + <span class="number">1</span>).is_none());
         }
-        <span class="number">32 </span>=&gt; {
-            <span class="kw">let </span>(base, power) = gen::BASES_32[radix <span class="kw">as </span>usize];
-            (base <span class="kw">as </span>BigDigit, power)
+    }
+}
+
+<span class="attr">#[test]
+</span><span class="kw">fn </span>test_half_radix_bases() {
+    <span class="kw">for </span>radix <span class="kw">in </span><span class="number">3u32</span>..<span class="number">256 </span>{
+        <span class="kw">if </span>!radix.is_power_of_two() {
+            <span class="kw">let </span>(base, power) = get_half_radix_base(radix);
+            <span class="kw">let </span>radix = BigDigit::from(radix);
+            <span class="kw">let </span>power = u32::try_from(power).unwrap();
+            <span class="macro">assert_eq!</span>(base, radix.pow(power));
+            <span class="macro">assert!</span>(radix.pow(power + <span class="number">1</span>) &gt; big_digit::HALF);
         }
-        <span class="number">64 </span>=&gt; {
-            <span class="kw">let </span>(base, power) = gen::BASES_64[radix <span class="kw">as </span>usize];
-            (base <span class="kw">as </span>BigDigit, power)
-        }
-        <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Invalid bigdigit size"</span>),
     }
 }
 </code></pre></div></section></main></body></html>

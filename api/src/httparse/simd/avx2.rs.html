@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/httparse-1.8.0/src/simd/avx2.rs`."><title>avx2.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="httparse" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../httparse/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/httparse-1.9.4/src/simd/avx2.rs`."><title>avx2.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="httparse" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -161,60 +159,32 @@
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::iter::Bytes;
 
-<span class="kw">pub enum </span>Scan {
-    <span class="doccomment">/// Returned when an implementation finds a noteworthy token.
-    </span>Found,
-    <span class="doccomment">/// Returned when an implementation couldn't keep running because the input was too short.
-    </span>TooShort,
-}
-
-
-<span class="kw">pub unsafe fn </span>parse_uri_batch_32(bytes: <span class="kw-2">&amp;mut </span>Bytes) -&gt; Scan {
+<span class="attr">#[inline]
+#[target_feature(enable = <span class="string">"avx2"</span>, enable = <span class="string">"sse4.2"</span>)]
+</span><span class="kw">pub unsafe fn </span>match_uri_vectored(bytes: <span class="kw-2">&amp;mut </span>Bytes) {
     <span class="kw">while </span>bytes.as_ref().len() &gt;= <span class="number">32 </span>{
         <span class="kw">let </span>advance = match_url_char_32_avx(bytes.as_ref());
         bytes.advance(advance);
 
         <span class="kw">if </span>advance != <span class="number">32 </span>{
-            <span class="kw">return </span>Scan::Found;
+            <span class="kw">return</span>;
         }
     }
-    Scan::TooShort
+    <span class="comment">// do both, since avx2 only works when bytes.len() &gt;= 32
+    </span><span class="kw">super</span>::sse42::match_uri_vectored(bytes)
 }
 
-<span class="attr">#[cfg(target_arch = <span class="string">"x86_64"</span>)]
-#[target_feature(enable = <span class="string">"avx2"</span>)]
-#[inline]
+<span class="attr">#[inline(always)]
 #[allow(non_snake_case, overflowing_literals)]
+#[allow(unused)]
 </span><span class="kw">unsafe fn </span>match_url_char_32_avx(buf: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
     <span class="macro">debug_assert!</span>(buf.len() &gt;= <span class="number">32</span>);
 
-    <span class="comment">/*
-    #[cfg(target_arch = "x86")]
-    use core::arch::x86::*;
-    #[cfg(target_arch = "x86_64")]
-    */
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
+    </span><span class="kw">use </span>core::arch::x86::<span class="kw-2">*</span>;
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86_64"</span>)]
     </span><span class="kw">use </span>core::arch::x86_64::<span class="kw-2">*</span>;
 
     <span class="kw">let </span>ptr = buf.as_ptr();
@@ -242,40 +212,34 @@
     <span class="kw">let </span>bits = _mm256_and_si256(_mm256_shuffle_epi8(ARF, cols), rbms);
 
     <span class="kw">let </span>v = _mm256_cmpeq_epi8(bits, _mm256_setzero_si256());
-    <span class="kw">let </span>r = <span class="number">0xffff_ffff_0000_0000 </span>| _mm256_movemask_epi8(v) <span class="kw">as </span>u64;
+    <span class="kw">let </span>r = _mm256_movemask_epi8(v) <span class="kw">as </span>u32;
 
-    _tzcnt_u64(r) <span class="kw">as </span>usize
+    r.trailing_zeros() <span class="kw">as </span>usize
 }
 
-<span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
-</span><span class="kw">unsafe fn </span>match_url_char_32_avx(<span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
-    <span class="macro">unreachable!</span>(<span class="string">"AVX2 detection should be disabled for x86"</span>);
-}
-
-<span class="kw">pub unsafe fn </span>match_header_value_batch_32(bytes: <span class="kw-2">&amp;mut </span>Bytes) -&gt; Scan {
+<span class="attr">#[target_feature(enable = <span class="string">"avx2"</span>, enable = <span class="string">"sse4.2"</span>)]
+</span><span class="kw">pub unsafe fn </span>match_header_value_vectored(bytes: <span class="kw-2">&amp;mut </span>Bytes) {
     <span class="kw">while </span>bytes.as_ref().len() &gt;= <span class="number">32 </span>{
         <span class="kw">let </span>advance = match_header_value_char_32_avx(bytes.as_ref());
         bytes.advance(advance);
 
         <span class="kw">if </span>advance != <span class="number">32 </span>{
-            <span class="kw">return </span>Scan::Found;
+            <span class="kw">return</span>;
         }
     }
-    Scan::TooShort
+    <span class="comment">// do both, since avx2 only works when bytes.len() &gt;= 32
+    </span><span class="kw">super</span>::sse42::match_header_value_vectored(bytes)
 }
 
-<span class="attr">#[cfg(target_arch = <span class="string">"x86_64"</span>)]
-#[target_feature(enable = <span class="string">"avx2"</span>)]
-#[inline]
+<span class="attr">#[inline(always)]
 #[allow(non_snake_case)]
+#[allow(unused)]
 </span><span class="kw">unsafe fn </span>match_header_value_char_32_avx(buf: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
     <span class="macro">debug_assert!</span>(buf.len() &gt;= <span class="number">32</span>);
 
-    <span class="comment">/*
-    #[cfg(target_arch = "x86")]
-    use core::arch::x86::*;
-    #[cfg(target_arch = "x86_64")]
-    */
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
+    </span><span class="kw">use </span>core::arch::x86::<span class="kw-2">*</span>;
+    <span class="attr">#[cfg(target_arch = <span class="string">"x86_64"</span>)]
     </span><span class="kw">use </span>core::arch::x86_64::<span class="kw-2">*</span>;
 
     <span class="kw">let </span>ptr = buf.as_ptr();
@@ -291,30 +255,24 @@
     <span class="kw">let </span>tab = _mm256_cmpeq_epi8(dat, TAB);
     <span class="kw">let </span>del = _mm256_cmpeq_epi8(dat, DEL);
     <span class="kw">let </span>bit = _mm256_andnot_si256(del, _mm256_or_si256(low, tab));
-    <span class="kw">let </span>rev = _mm256_cmpeq_epi8(bit, _mm256_setzero_si256());
-    <span class="kw">let </span>res = <span class="number">0xffff_ffff_0000_0000 </span>| _mm256_movemask_epi8(rev) <span class="kw">as </span>u64;
-
-    _tzcnt_u64(res) <span class="kw">as </span>usize
-}
-
-<span class="attr">#[cfg(target_arch = <span class="string">"x86"</span>)]
-</span><span class="kw">unsafe fn </span>match_header_value_char_32_avx(<span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
-    <span class="macro">unreachable!</span>(<span class="string">"AVX2 detection should be disabled for x86"</span>);
+    <span class="kw">let </span>res = _mm256_movemask_epi8(bit) <span class="kw">as </span>u32;
+    <span class="comment">// TODO: use .trailing_ones() once MSRV &gt;= 1.46
+    </span>(!res).trailing_zeros() <span class="kw">as </span>usize
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>avx2_code_matches_uri_chars_table() {
-    <span class="kw">match </span><span class="kw">super</span>::detect() {
-        <span class="kw">super</span>::AVX_2 | <span class="kw">super</span>::AVX_2_AND_SSE_42 =&gt; {},
-        <span class="kw">_ </span>=&gt; <span class="kw">return</span>,
+    <span class="kw">if </span>!<span class="macro">is_x86_feature_detected!</span>(<span class="string">"avx2"</span>) {
+        <span class="kw">return</span>;
     }
 
-    <span class="kw">unsafe </span>{
-        <span class="macro">assert!</span>(byte_is_allowed(<span class="string">b'_'</span>, parse_uri_batch_32));
+    <span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
+    </span><span class="kw">unsafe </span>{
+        <span class="macro">assert!</span>(byte_is_allowed(<span class="string">b'_'</span>, match_uri_vectored));
 
         <span class="kw">for </span>(b, allowed) <span class="kw">in </span><span class="kw">crate</span>::URI_MAP.iter().cloned().enumerate() {
             <span class="macro">assert_eq!</span>(
-                byte_is_allowed(b <span class="kw">as </span>u8, parse_uri_batch_32), allowed,
+                byte_is_allowed(b <span class="kw">as </span>u8, match_uri_vectored), allowed,
                 <span class="string">"byte_is_allowed({:?}) should be {:?}"</span>, b, allowed,
             );
         }
@@ -323,17 +281,17 @@
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>avx2_code_matches_header_value_chars_table() {
-    <span class="kw">match </span><span class="kw">super</span>::detect() {
-        <span class="kw">super</span>::AVX_2 | <span class="kw">super</span>::AVX_2_AND_SSE_42 =&gt; {},
-        <span class="kw">_ </span>=&gt; <span class="kw">return</span>,
+    <span class="kw">if </span>!<span class="macro">is_x86_feature_detected!</span>(<span class="string">"avx2"</span>) {
+        <span class="kw">return</span>;
     }
 
-    <span class="kw">unsafe </span>{
-        <span class="macro">assert!</span>(byte_is_allowed(<span class="string">b'_'</span>, match_header_value_batch_32));
+    <span class="attr">#[allow(clippy::undocumented_unsafe_blocks)]
+    </span><span class="kw">unsafe </span>{
+        <span class="macro">assert!</span>(byte_is_allowed(<span class="string">b'_'</span>, match_header_value_vectored));
 
         <span class="kw">for </span>(b, allowed) <span class="kw">in </span><span class="kw">crate</span>::HEADER_VALUE_MAP.iter().cloned().enumerate() {
             <span class="macro">assert_eq!</span>(
-                byte_is_allowed(b <span class="kw">as </span>u8, match_header_value_batch_32), allowed,
+                byte_is_allowed(b <span class="kw">as </span>u8, match_header_value_vectored), allowed,
                 <span class="string">"byte_is_allowed({:?}) should be {:?}"</span>, b, allowed,
             );
         }
@@ -341,7 +299,7 @@
 }
 
 <span class="attr">#[cfg(test)]
-</span><span class="kw">unsafe fn </span>byte_is_allowed(byte: u8, f: <span class="kw">unsafe fn</span>(bytes: <span class="kw-2">&amp;mut </span>Bytes&lt;<span class="lifetime">'_</span>&gt;) -&gt; Scan) -&gt; bool {
+</span><span class="kw">unsafe fn </span>byte_is_allowed(byte: u8, f: <span class="kw">unsafe fn</span>(bytes: <span class="kw-2">&amp;mut </span>Bytes&lt;<span class="lifetime">'_</span>&gt;)) -&gt; bool {
     <span class="kw">let </span>slice = [
         <span class="string">b'_'</span>, <span class="string">b'_'</span>, <span class="string">b'_'</span>, <span class="string">b'_'</span>,
         <span class="string">b'_'</span>, <span class="string">b'_'</span>, <span class="string">b'_'</span>, <span class="string">b'_'</span>,

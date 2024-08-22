@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mdbook-0.4.37/src/book/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mdbook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../mdbook/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mdbook-0.4.40/src/book/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mdbook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -877,6 +875,28 @@
 <a href="#875" id="875">875</a>
 <a href="#876" id="876">876</a>
 <a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The internal representation of a book and infrastructure for loading it from
 //! disk and building it.
 //!
@@ -894,10 +914,10 @@
 <span class="kw">pub use </span><span class="self">self</span>::summary::{parse_summary, Link, SectionNumber, Summary, SummaryItem};
 
 <span class="kw">use </span>log::{debug, error, info, log_enabled, trace, warn};
-<span class="kw">use </span>std::io::Write;
-<span class="kw">use </span>std::path::PathBuf;
+<span class="kw">use </span>std::ffi::OsString;
+<span class="kw">use </span>std::io::{IsTerminal, Write};
+<span class="kw">use </span>std::path::{Path, PathBuf};
 <span class="kw">use </span>std::process::Command;
-<span class="kw">use </span>std::string::ToString;
 <span class="kw">use </span>tempfile::Builder <span class="kw">as </span>TempFileBuilder;
 <span class="kw">use </span>toml::Value;
 <span class="kw">use </span>topological_sort::TopologicalSort;
@@ -950,18 +970,24 @@
 
         config.update_from_env();
 
-        <span class="kw">if </span>config
-            .html_config()
-            .map_or(<span class="bool-val">false</span>, |html| html.google_analytics.is_some())
-        {
-            <span class="macro">warn!</span>(
-                <span class="string">"The output.html.google-analytics field has been deprecated; \
-                 it will be removed in a future release.\n\
-                 Consider placing the appropriate site tag code into the \
-                 theme/head.hbs file instead.\n\
-                 The tracking code may be found in the Google Analytics Admin page.\n\
-               "
-            </span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(html_config) = config.html_config() {
+            <span class="kw">if </span>html_config.google_analytics.is_some() {
+                <span class="macro">warn!</span>(
+                    <span class="string">"The output.html.google-analytics field has been deprecated; \
+                     it will be removed in a future release.\n\
+                     Consider placing the appropriate site tag code into the \
+                     theme/head.hbs file instead.\n\
+                     The tracking code may be found in the Google Analytics Admin page.\n\
+                   "
+                </span>);
+            }
+            <span class="kw">if </span>html_config.curly_quotes {
+                <span class="macro">warn!</span>(
+                    <span class="string">"The output.html.curly-quotes field has been renamed to \
+                     output.html.smart-punctuation.\n\
+                     Use the new name in book.toml to remove this warning."
+                </span>);
+            }
         }
 
         <span class="kw">if </span><span class="macro">log_enabled!</span>(log::Level::Trace) {
@@ -1138,10 +1164,18 @@
     <span class="doccomment">/// Run `rustdoc` tests on a specific chapter of the book, linking against the provided libraries.
     /// If `chapter` is `None`, all tests will be run.
     </span><span class="kw">pub fn </span>test_chapter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, library_paths: Vec&lt;<span class="kw-2">&amp;</span>str&gt;, chapter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>library_args: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = (<span class="number">0</span>..library_paths.len())
-            .map(|<span class="kw">_</span>| <span class="string">"-L"</span>)
-            .zip(library_paths.into_iter())
-            .flat_map(|x| <span class="macro">vec!</span>[x.<span class="number">0</span>, x.<span class="number">1</span>])
+        <span class="kw">let </span>cwd = std::env::current_dir()<span class="question-mark">?</span>;
+        <span class="kw">let </span>library_args: Vec&lt;OsString&gt; = library_paths
+            .into_iter()
+            .flat_map(|path| {
+                <span class="kw">let </span>path = Path::new(path);
+                <span class="kw">let </span>path = <span class="kw">if </span>path.is_relative() {
+                    cwd.join(path).into_os_string()
+                } <span class="kw">else </span>{
+                    path.to_path_buf().into_os_string()
+                };
+                [OsString::from(<span class="string">"-L"</span>), path]
+            })
             .collect();
 
         <span class="kw">let </span>temp_dir = TempFileBuilder::new().prefix(<span class="string">"mdbook-"</span>).tempdir()<span class="question-mark">?</span>;
@@ -1168,6 +1202,7 @@
             .collect();
         <span class="kw">let </span>(book, <span class="kw">_</span>) = <span class="self">self</span>.preprocess_book(<span class="kw-2">&amp;</span>TestRenderer)<span class="question-mark">?</span>;
 
+        <span class="kw">let </span>color_output = std::io::stderr().is_terminal();
         <span class="kw">let </span><span class="kw-2">mut </span>failed = <span class="bool-val">false</span>;
         <span class="kw">for </span>item <span class="kw">in </span>book.iter() {
             <span class="kw">if let </span>BookItem::Chapter(<span class="kw-2">ref </span>ch) = <span class="kw-2">*</span>item {
@@ -1193,7 +1228,10 @@
                 tmpf.write_all(ch.content.as_bytes())<span class="question-mark">?</span>;
 
                 <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="string">"rustdoc"</span>);
-                cmd.arg(<span class="kw-2">&amp;</span>path).arg(<span class="string">"--test"</span>).args(<span class="kw-2">&amp;</span>library_args);
+                cmd.current_dir(temp_dir.path())
+                    .arg(chapter_path)
+                    .arg(<span class="string">"--test"</span>)
+                    .args(<span class="kw-2">&amp;</span>library_args);
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(edition) = <span class="self">self</span>.config.rust.edition {
                     <span class="kw">match </span>edition {
@@ -1207,6 +1245,10 @@
                             cmd.args([<span class="string">"--edition"</span>, <span class="string">"2021"</span>]);
                         }
                     }
+                }
+
+                <span class="kw">if </span>color_output {
+                    cmd.args([<span class="string">"--color"</span>, <span class="string">"always"</span>]);
                 }
 
                 <span class="macro">debug!</span>(<span class="string">"running {:?}"</span>, cmd);
@@ -1484,7 +1526,7 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>std::str::FromStr;
-    <span class="kw">use </span>toml::value::{Table, Value};
+    <span class="kw">use </span>toml::value::Table;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>config_defaults_to_html_renderer_if_empty() {

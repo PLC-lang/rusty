@@ -1,0 +1,1 @@
+searchState.loadedDescShard("plc_util", 0, "This module hosts several function related to naming …\nReturns a name for internally created types in the form of …\nReturns a qualified name in the form of <code>&lt;qualifier&gt;.&lt;name&gt;</code>.")

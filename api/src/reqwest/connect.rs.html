@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/connect.rs`."><title>connect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../reqwest/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.27/src/connect.rs`."><title>connect.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1331,7 +1329,6 @@
 <a href="#1329" id="1329">1329</a>
 <a href="#1330" id="1330">1330</a>
 <a href="#1331" id="1331">1331</a>
-<a href="#1332" id="1332">1332</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(feature = <span class="string">"__tls"</span>)]
 </span><span class="kw">use </span>http::header::HeaderValue;
 <span class="kw">use </span>http::uri::{Authority, Scheme};
@@ -1651,7 +1648,7 @@
         dst: Uri,
         proxy_scheme: ProxyScheme,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Conn, BoxError&gt; {
-        <span class="macro">log::debug!</span>(<span class="string">"proxy({:?}) intercepts '{:?}'"</span>, proxy_scheme, dst);
+        <span class="macro">log::debug!</span>(<span class="string">"proxy({proxy_scheme:?}) intercepts '{dst:?}'"</span>);
 
         <span class="kw">let </span>(proxy_dst, _auth) = <span class="kw">match </span>proxy_scheme {
             ProxyScheme::Http { host, auth } =&gt; (into_uri(Scheme::HTTP, host), auth),
@@ -1780,7 +1777,7 @@
     }
 
     <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: Uri) -&gt; <span class="self">Self</span>::Future {
-        <span class="macro">log::debug!</span>(<span class="string">"starting new connection: {:?}"</span>, dst);
+        <span class="macro">log::debug!</span>(<span class="string">"starting new connection: {dst:?}"</span>);
         <span class="kw">let </span>timeout = <span class="self">self</span>.timeout;
         <span class="kw">for </span>prox <span class="kw">in </span><span class="self">self</span>.proxies.iter() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(proxy_scheme) = prox.intercept(<span class="kw-2">&amp;</span>dst) {
@@ -1916,7 +1913,7 @@
 
 <span class="kw">type </span>BoxConn = Box&lt;<span class="kw">dyn </span>AsyncConnWithInfo&gt;;
 
-<span class="macro">pin_project! </span>{
+<span class="macro">pin_project!</span> {
     <span class="doccomment">/// Note: the `is_proxy` member means *is plain text HTTP proxy*.
     /// This tells hyper whether the URI should be written in
     /// * origin-form (`GET /just/a/path HTTP/1.1`), when `is_proxy == false`, or
@@ -2010,11 +2007,10 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">format!</span>(
         <span class="string">"\
-         CONNECT {0}:{1} HTTP/1.1\r\n\
-         Host: {0}:{1}\r\n\
-         "</span>,
-        host, port
-    )
+         CONNECT {host}:{port} HTTP/1.1\r\n\
+         Host: {host}:{port}\r\n\
+         "
+    </span>)
     .into_bytes();
 
     <span class="comment">// user-agent
@@ -2026,7 +2022,7 @@
 
     <span class="comment">// proxy-authorization
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = auth {
-        <span class="macro">log::debug!</span>(<span class="string">"tunnel to {}:{} using basic auth"</span>, host, port);
+        <span class="macro">log::debug!</span>(<span class="string">"tunnel to {host}:{port} using basic auth"</span>);
         buf.extend_from_slice(<span class="string">b"Proxy-Authorization: "</span>);
         buf.extend_from_slice(value.as_bytes());
         buf.extend_from_slice(<span class="string">b"\r\n"</span>);
@@ -2083,7 +2079,7 @@
     <span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
     <span class="kw">use </span>tokio_native_tls::TlsStream;
 
-    <span class="macro">pin_project! </span>{
+    <span class="macro">pin_project!</span> {
         <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>NativeTlsConn&lt;T&gt; {
             <span class="attr">#[pin] </span><span class="kw">pub</span>(<span class="kw">super</span>) inner: TlsStream&lt;T&gt;,
         }
@@ -2187,7 +2183,7 @@
     <span class="kw">use </span>tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
     <span class="kw">use </span>tokio_rustls::client::TlsStream;
 
-    <span class="macro">pin_project! </span>{
+    <span class="macro">pin_project!</span> {
         <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>RustlsTlsConn&lt;T&gt; {
             <span class="attr">#[pin] </span><span class="kw">pub</span>(<span class="kw">super</span>) inner: TlsStream&lt;T&gt;,
         }
@@ -2321,11 +2317,11 @@
                 <span class="kw-2">&amp;</span>password,
             )
             .<span class="kw">await
-            </span>.map_err(|e| <span class="macro">format!</span>(<span class="string">"socks connect error: {}"</span>, e))<span class="question-mark">?
+            </span>.map_err(|e| <span class="macro">format!</span>(<span class="string">"socks connect error: {e}"</span>))<span class="question-mark">?
         </span>} <span class="kw">else </span>{
             Socks5Stream::connect(socket_addr, (host.as_str(), port))
                 .<span class="kw">await
-                </span>.map_err(|e| <span class="macro">format!</span>(<span class="string">"socks connect error: {}"</span>, e))<span class="question-mark">?
+                </span>.map_err(|e| <span class="macro">format!</span>(<span class="string">"socks connect error: {e}"</span>))<span class="question-mark">?
         </span>};
 
         <span class="prelude-val">Ok</span>(stream.into_inner())
@@ -2470,7 +2466,7 @@
                 </span>} <span class="kw">else if </span>c &gt;= <span class="number">0x20 </span>&amp;&amp; c &lt; <span class="number">0x7f </span>{
                     <span class="macro">write!</span>(f, <span class="string">"{}"</span>, c <span class="kw">as </span>char)<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
-                    <span class="macro">write!</span>(f, <span class="string">"\\x{:02x}"</span>, c)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(f, <span class="string">"\\x{c:02x}"</span>)<span class="question-mark">?</span>;
                 }
             }
             <span class="macro">write!</span>(f, <span class="string">"\""</span>)<span class="question-mark">?</span>;
@@ -2516,7 +2512,7 @@
         \r\n\
     "</span>;
 
-    <span class="macro">macro_rules! </span>mock_tunnel {
+    <span class="macro">macro_rules!</span> mock_tunnel {
         () =&gt; {{
             <span class="macro">mock_tunnel!</span>(TUNNEL_OK)
         }};

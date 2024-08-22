@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.36.1/src/macros.rs`."><title>macros.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../insta/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.39.0/src/macros.rs`."><title>macros.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -525,10 +523,19 @@
 <a href="#523" id="523">523</a>
 <a href="#524" id="524">524</a>
 <a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Utility macro to return the name of the current function.
 </span><span class="attr">#[doc(hidden)]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>_function_name {
+</span><span class="macro">macro_rules!</span> _function_name {
     () =&gt; {{
         <span class="kw">fn </span>f() {}
         <span class="kw">fn </span>type_name_of_val&lt;T&gt;(<span class="kw">_</span>: T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
@@ -546,7 +553,7 @@
 ///
 /// **Feature:** `csv` (disabled by default)
 ///
-/// This works exactly like [`assert_yaml_snapshot!`]
+/// This works exactly like [`crate::assert_yaml_snapshot!`]
 /// but serializes in [CSV](https://github.com/burntsushi/rust-csv) format instead of
 /// YAML.
 ///
@@ -565,7 +572,7 @@
 </span><span class="attr">#[cfg(feature = <span class="string">"csv"</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"csv"</span>)))]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>assert_csv_snapshot {
+</span><span class="macro">macro_rules!</span> assert_csv_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=Csv, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
     };
@@ -575,7 +582,7 @@
 ///
 /// **Feature:** `toml` (disabled by default)
 ///
-/// This works exactly like [`assert_yaml_snapshot!`]
+/// This works exactly like [`crate::assert_yaml_snapshot!`]
 /// but serializes in [TOML](https://github.com/alexcrichton/toml-rs) format instead of
 /// YAML.  Note that TOML cannot represent all values due to limitations in the
 /// format.
@@ -595,7 +602,7 @@
 </span><span class="attr">#[cfg(feature = <span class="string">"toml"</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"toml"</span>)))]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>assert_toml_snapshot {
+</span><span class="macro">macro_rules!</span> assert_toml_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=Toml, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
     };
@@ -619,7 +626,7 @@
 /// assert_yaml_snapshot!(vec![1, 2, 3]);
 /// ```
 ///
-/// Unlike the [`assert_debug_snapshot!`]
+/// Unlike the [`crate::assert_debug_snapshot!`]
 /// macro, this one has a secondary mode where redactions can be defined.
 ///
 /// The third argument to the macro can be an object expression for redaction.
@@ -649,7 +656,7 @@
 </span><span class="attr">#[cfg(feature = <span class="string">"yaml"</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"yaml"</span>)))]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>assert_yaml_snapshot {
+</span><span class="macro">macro_rules!</span> assert_yaml_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=Yaml, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
     };
@@ -679,7 +686,7 @@
 </span><span class="attr">#[cfg(feature = <span class="string">"ron"</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"ron"</span>)))]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>assert_ron_snapshot {
+</span><span class="macro">macro_rules!</span> assert_ron_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=Ron, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
     };
@@ -709,7 +716,7 @@
 </span><span class="attr">#[cfg(feature = <span class="string">"json"</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"json"</span>)))]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>assert_json_snapshot {
+</span><span class="macro">macro_rules!</span> assert_json_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=Json, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
     };
@@ -740,21 +747,22 @@
 </span><span class="attr">#[cfg(feature = <span class="string">"json"</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"json"</span>)))]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>assert_compact_json_snapshot {
+</span><span class="macro">macro_rules!</span> assert_compact_json_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=JsonCompact, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
     };
 }
 
-<span class="attr">#[doc(hidden)]
+<span class="comment">// This macro handles optional trailing commas.
+</span><span class="attr">#[doc(hidden)]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>_assert_serialized_snapshot {
+</span><span class="macro">macro_rules!</span> _assert_serialized_snapshot {
     <span class="comment">// If there are redaction expressions and an inline snapshot, capture
     // the redactions expressions and pass to `_assert_snapshot_base`
     //
-    // Note that if we could unify the Inline &amp; File represenations of snapshots
+    // Note that if we could unify the Inline &amp; File representations of snapshots
     // redactions we could unify some of these branches.
-    </span>(format=<span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$value</span>:expr, $(<span class="kw">match </span>..)<span class="question-mark">? </span>{$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>$(,)<span class="question-mark">?</span>}, @<span class="macro-nonterminal">$snapshot</span>:literal) =&gt; {{
+    </span>(format=<span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$value</span>:expr, $(<span class="kw">match </span>..)<span class="question-mark">? </span>{$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),* $(,)<span class="question-mark">?</span>}, @<span class="macro-nonterminal">$snapshot</span>:literal $(,)<span class="question-mark">?</span>) =&gt; {{
         <span class="kw">let </span>transform = |value| {
             <span class="kw">let </span>(<span class="kw">_</span>, value) = <span class="macro-nonterminal">$</span><span class="macro">crate::_prepare_snapshot_for_redaction!</span>(<span class="macro-nonterminal">value</span>, {$(<span class="macro-nonterminal">$k </span>=&gt; <span class="macro-nonterminal">$v</span>),<span class="kw-2">*</span>}, <span class="macro-nonterminal">$format</span>, Inline);
             value
@@ -762,11 +770,11 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=transform, <span class="macro-nonterminal">$value</span>, @<span class="macro-nonterminal">$snapshot</span>);
     }};
     <span class="comment">// If there are redaction expressions and no name, add a auto-generated name, call self
-    </span>(format=<span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$value</span>:expr, $(<span class="kw">match </span>..)<span class="question-mark">? </span>{$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>$(,)<span class="question-mark">?</span>}) =&gt; {{
+    </span>(format=<span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$value</span>:expr, $(<span class="kw">match </span>..)<span class="question-mark">? </span>{$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),* $(,)<span class="question-mark">?</span>} $(,)<span class="question-mark">?</span>) =&gt; {{
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=<span class="macro-nonterminal">$format</span>, <span class="macro-nonterminal">$crate::_macro_support::AutoName</span>, <span class="macro-nonterminal">$value</span>, {$(<span class="macro-nonterminal">$k </span>=&gt; <span class="macro-nonterminal">$v</span>),<span class="kw-2">*</span>});
     }};
     <span class="comment">// If there are redaction expressions, capture and pass to `_assert_snapshot_base`
-    </span>(format=<span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$value</span>:expr, $(<span class="kw">match </span>..)<span class="question-mark">? </span>{$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>$(,)<span class="question-mark">?</span>}) =&gt; {{
+    </span>(format=<span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$value</span>:expr, $(<span class="kw">match </span>..)<span class="question-mark">? </span>{$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),* $(,)<span class="question-mark">?</span>} $(,)<span class="question-mark">?</span>) =&gt; {{
         <span class="kw">let </span>transform = |value| {
             <span class="kw">let </span>(<span class="kw">_</span>, value) = <span class="macro-nonterminal">$</span><span class="macro">crate::_prepare_snapshot_for_redaction!</span>(<span class="macro-nonterminal">value</span>, {$(<span class="macro-nonterminal">$k </span>=&gt; <span class="macro-nonterminal">$v</span>),<span class="kw-2">*</span>}, <span class="macro-nonterminal">$format</span>, File);
             value
@@ -775,7 +783,7 @@
     }};
     <span class="comment">// If there's an inline snapshot, capture serialization function and pass to
     // `_assert_snapshot_base`, specifying `Inline`
-      </span>(format=<span class="macro-nonterminal">$format</span>:ident, $(<span class="macro-nonterminal">$arg</span>:expr),<span class="kw-2">*</span>, @<span class="macro-nonterminal">$snapshot</span>:literal) =&gt; {{
+    </span>(format=<span class="macro-nonterminal">$format</span>:ident, $(<span class="macro-nonterminal">$arg</span>:expr),<span class="kw-2">*</span>, @<span class="macro-nonterminal">$snapshot</span>:literal $(,)<span class="question-mark">?</span>) =&gt; {{
         <span class="kw">let </span>transform = |value| {<span class="macro-nonterminal">$crate::_macro_support::serialize_value</span>(
             <span class="kw-2">&amp;</span>value,
             <span class="macro-nonterminal">$crate::_macro_support::SerializationFormat</span>::<span class="macro-nonterminal">$format</span>,
@@ -784,7 +792,7 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform </span>= transform, $(<span class="macro-nonterminal">$arg</span>),<span class="kw-2">*</span>, @<span class="macro-nonterminal">$snapshot</span>);
     }};
     <span class="comment">// Capture serialization function and pass to `_assert_snapshot_base`,
-    // specifing `File`
+    // specifying `File`
     </span>(format=<span class="macro-nonterminal">$format</span>:ident, $(<span class="macro-nonterminal">$arg</span>:expr),* $(,)<span class="question-mark">?</span>) =&gt; {{
         <span class="kw">let </span>transform = |value| {<span class="macro-nonterminal">$crate::_macro_support::serialize_value</span>(
             <span class="kw-2">&amp;</span>value,
@@ -798,10 +806,10 @@
 <span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
 #[doc(hidden)]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>_prepare_snapshot_for_redaction {
-    (<span class="macro-nonterminal">$value</span>:expr, {$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>$(,)<span class="question-mark">?</span>}, <span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$location</span>:ident) =&gt; {
+</span><span class="macro">macro_rules!</span> _prepare_snapshot_for_redaction {
+    (<span class="macro-nonterminal">$value</span>:expr, {$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>}, <span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$location</span>:ident) =&gt; {
         {
-            <span class="kw">let </span>vec = <span class="macro">vec!</span>[
+            <span class="kw">let </span>vec = <span class="macro">std::vec!</span>[
                 $((
                     <span class="macro-nonterminal">$crate::_macro_support::Selector::parse</span>(<span class="macro-nonterminal">$k</span>).unwrap(),
                     <span class="macro-nonterminal">$crate::_macro_support::Redaction::from</span>(<span class="macro-nonterminal">$v</span>)
@@ -821,8 +829,8 @@
 <span class="attr">#[cfg(not(feature = <span class="string">"redactions"</span>))]
 #[doc(hidden)]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>_prepare_snapshot_for_redaction {
-    (<span class="macro-nonterminal">$value</span>:expr, {$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>$(,)<span class="question-mark">?</span>}, <span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$location</span>:ident) =&gt; {
+</span><span class="macro">macro_rules!</span> _prepare_snapshot_for_redaction {
+    (<span class="macro-nonterminal">$value</span>:expr, {$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>}, <span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$location</span>:ident) =&gt; {
         <span class="macro">compile_error!</span>(<span class="string">"insta was compiled without redaction support."</span>);
     };
 }
@@ -835,20 +843,23 @@
 ///
 /// Debug is called with `"{:#?}"`, which means this uses pretty-print.
 </span><span class="attr">#[macro_export]
-</span><span class="macro">macro_rules! </span>assert_debug_snapshot {
+</span><span class="macro">macro_rules!</span> assert_debug_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=|v| <span class="macro">format!</span>(<span class="string">"{:#?}"</span>, v), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
+        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=|v| <span class="macro">std::format!</span>(<span class="string">"{:#?}"</span>, v), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     };
 }
 
 <span class="comment">// A helper macro which takes a closure as `transform`, and runs the closure on
-// the value. This allows us to implement other macros with a small wrapper.
+// the value. This allows us to implement other macros with a small wrapper. All
+// snapshot macros eventually call this macro.
+//
+// This macro handles optional trailing commas.
 </span><span class="attr">#[doc(hidden)]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>_assert_snapshot_base {
+</span><span class="macro">macro_rules!</span> _assert_snapshot_base {
     <span class="comment">// If there's an inline literal value, wrap the literal in a
     // `ReferenceValue::Inline`, call self.
-    </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, $(<span class="macro-nonterminal">$arg</span>:expr),<span class="kw-2">*</span>, @<span class="macro-nonterminal">$snapshot</span>:literal) =&gt; {
+    </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, $(<span class="macro-nonterminal">$arg</span>:expr),<span class="kw-2">*</span>, @<span class="macro-nonterminal">$snapshot</span>:literal $(,)<span class="question-mark">?</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(
             <span class="macro-nonterminal">transform </span>= <span class="macro-nonterminal">$transform</span>,
             <span class="attr">#[allow(clippy::needless_raw_string_hashes)]
@@ -857,12 +868,12 @@
         )
     };
     <span class="comment">// If there's no debug_expr, use the stringified value, call self.
-    </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$value</span>:expr) =&gt; {
+    </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$value</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform </span>= <span class="macro-nonterminal">$transform</span>, <span class="macro-nonterminal">$name</span>, <span class="macro-nonterminal">$value</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$value</span>))
     };
     <span class="comment">// If there's no name (and necessarily no debug expr), auto generate the
     // name, call self.
-    </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, <span class="macro-nonterminal">$value</span>:expr) =&gt; {
+    </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, <span class="macro-nonterminal">$value</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(
             <span class="macro-nonterminal">transform </span>= <span class="macro-nonterminal">$transform</span>,
             <span class="macro-nonterminal">$crate::_macro_support::AutoName</span>,
@@ -870,7 +881,7 @@
         </span>)
     };
     <span class="comment">// The main macro body — every call to this macro should end up here.
-    </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$value</span>:expr, <span class="macro-nonterminal">$debug_expr</span>:expr) =&gt; {
+    </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$value</span>:expr, <span class="macro-nonterminal">$debug_expr</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
         <span class="macro-nonterminal">$crate::_macro_support::assert_snapshot</span>(
             <span class="macro-nonterminal">$name</span>.into(),
             <span class="attr">#[allow(clippy::redundant_closure_call)]
@@ -891,7 +902,7 @@
 /// This is now deprecated, replaced by the more generic `assert_snapshot!()`
 </span><span class="attr">#[macro_export]
 #[deprecated = <span class="string">"use assert_snapshot!() instead"</span>]
-</span><span class="macro">macro_rules! </span>assert_display_snapshot {
+</span><span class="macro">macro_rules!</span> assert_display_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::assert_snapshot!</span>($(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     };
@@ -904,16 +915,21 @@
 ///
 /// ```no_run
 /// # use insta::*;
+/// // implicitly named
 /// assert_snapshot!("reference value to snapshot");
+/// // named
+/// assert_snapshot!("snapshot_name", "reference value to snapshot");
+/// // inline
+/// assert_snapshot!("reference value", @"reference value");
 /// ```
 ///
 /// Optionally a third argument can be given as an expression to be stringified
 /// as the debug expression.  For more information on this, check out
-/// https://insta.rs/docs/snapshot-types/.
+/// &lt;https://insta.rs/docs/snapshot-types/&gt;.
 </span><span class="attr">#[macro_export]
-</span><span class="macro">macro_rules! </span>assert_snapshot {
+</span><span class="macro">macro_rules!</span> assert_snapshot {
     ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=|v| <span class="macro">format!</span>(<span class="string">"{}"</span>, v), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
+        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=|v| <span class="macro">std::format!</span>(<span class="string">"{}"</span>, v), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     };
 }
 
@@ -947,7 +963,7 @@
 /// [`Settings::new`](crate::Settings::new) which meant that original settings
 /// were always reset rather than extended.
 </span><span class="attr">#[macro_export]
-</span><span class="macro">macro_rules! </span>with_settings {
+</span><span class="macro">macro_rules!</span> with_settings {
     ({$(<span class="macro-nonterminal">$k</span>:ident =&gt; <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>$(,)<span class="question-mark">?</span>}, <span class="macro-nonterminal">$body</span>:block) =&gt; {{
         <span class="kw">let </span><span class="kw-2">mut </span>settings = <span class="macro-nonterminal">$crate::Settings::clone_current</span>();
         $(
@@ -1005,7 +1021,7 @@
 </span><span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"glob"</span>)))]
 #[macro_export]
-</span><span class="macro">macro_rules! </span>glob {
+</span><span class="macro">macro_rules!</span> glob {
     (<span class="macro-nonterminal">$base_path</span>:expr, <span class="macro-nonterminal">$glob</span>:expr, <span class="macro-nonterminal">$closure</span>:expr) =&gt; {{
         <span class="kw">use </span>std::path::Path;
         <span class="kw">let </span>base = <span class="macro-nonterminal">$crate::_macro_support::get_cargo_workspace</span>(<span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>))
@@ -1043,7 +1059,7 @@
 /// assertion will be checked against it.  If they don't match the assertion will
 /// fail.
 </span><span class="attr">#[macro_export]
-</span><span class="macro">macro_rules! </span>allow_duplicates {
+</span><span class="macro">macro_rules!</span> allow_duplicates {
     ($(<span class="macro-nonterminal">$x</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$crate::_macro_support::with_allow_duplicates</span>(|| {
             $(<span class="macro-nonterminal">$x</span>)*

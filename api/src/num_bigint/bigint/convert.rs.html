@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.4/src/bigint/convert.rs`."><title>convert.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../num_bigint/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-bigint-0.4.6/src/bigint/convert.rs`."><title>convert.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -472,24 +470,15 @@
 <a href="#470" id="470">470</a>
 <a href="#471" id="471">471</a>
 <a href="#472" id="472">472</a>
-<a href="#473" id="473">473</a>
-<a href="#474" id="474">474</a>
-<a href="#475" id="475">475</a>
-<a href="#476" id="476">476</a>
-<a href="#477" id="477">477</a>
-<a href="#478" id="478">478</a>
-<a href="#479" id="479">479</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::Sign::{<span class="self">self</span>, Minus, NoSign, Plus};
 <span class="kw">use super</span>::{BigInt, ToBigInt};
 
-<span class="kw">use </span><span class="kw">crate</span>::std_alloc::Vec;
-<span class="attr">#[cfg(has_try_from)]
-</span><span class="kw">use </span><span class="kw">crate</span>::TryFromBigIntError;
+<span class="kw">use </span><span class="kw">crate</span>::TryFromBigIntError;
 <span class="kw">use crate</span>::{BigUint, ParseBigIntError, ToBigUint};
 
+<span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>core::cmp::Ordering::{Equal, Greater, Less};
-<span class="attr">#[cfg(has_try_from)]
-</span><span class="kw">use </span>core::convert::TryFrom;
+<span class="kw">use </span>core::convert::TryFrom;
 <span class="kw">use </span>core::str::{<span class="self">self</span>, FromStr};
 <span class="kw">use </span>num_traits::{FromPrimitive, Num, One, ToPrimitive, Zero};
 
@@ -508,8 +497,7 @@
     <span class="doccomment">/// Creates and initializes a [`BigInt`].
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>from_str_radix(<span class="kw-2">mut </span>s: <span class="kw-2">&amp;</span>str, radix: u32) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, ParseBigIntError&gt; {
-        <span class="kw">let </span>sign = <span class="kw">if </span>s.starts_with(<span class="string">'-'</span>) {
-            <span class="kw">let </span>tail = <span class="kw-2">&amp;</span>s[<span class="number">1</span>..];
+        <span class="kw">let </span>sign = <span class="kw">if let </span><span class="prelude-val">Some</span>(tail) = s.strip_prefix(<span class="string">'-'</span>) {
             <span class="kw">if </span>!tail.starts_with(<span class="string">'+'</span>) {
                 s = tail
             }
@@ -533,7 +521,7 @@
                 <span class="kw">let </span>m: u64 = <span class="number">1 </span>&lt;&lt; <span class="number">63</span>;
                 <span class="kw">match </span>n.cmp(<span class="kw-2">&amp;</span>m) {
                     Less =&gt; <span class="prelude-val">Some</span>(-(n <span class="kw">as </span>i64)),
-                    Equal =&gt; <span class="prelude-val">Some</span>(core::i64::MIN),
+                    Equal =&gt; <span class="prelude-val">Some</span>(i64::MIN),
                     Greater =&gt; <span class="prelude-val">None</span>,
                 }
             }
@@ -550,7 +538,7 @@
                 <span class="kw">let </span>m: u128 = <span class="number">1 </span>&lt;&lt; <span class="number">127</span>;
                 <span class="kw">match </span>n.cmp(<span class="kw-2">&amp;</span>m) {
                     Less =&gt; <span class="prelude-val">Some</span>(-(n <span class="kw">as </span>i128)),
-                    Equal =&gt; <span class="prelude-val">Some</span>(core::i128::MIN),
+                    Equal =&gt; <span class="prelude-val">Some</span>(i128::MIN),
                     Greater =&gt; <span class="prelude-val">None</span>,
                 }
             }
@@ -588,10 +576,9 @@
     }
 }
 
-<span class="macro">macro_rules! </span>impl_try_from_bigint {
+<span class="macro">macro_rules!</span> impl_try_from_bigint {
     (<span class="macro-nonterminal">$T</span>:ty, <span class="macro-nonterminal">$to_ty</span>:path) =&gt; {
-        <span class="attr">#[cfg(has_try_from)]
-        </span><span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span>BigInt&gt; <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
+        <span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span>BigInt&gt; <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
             <span class="kw">type </span>Error = TryFromBigIntError&lt;()&gt;;
 
             <span class="attr">#[inline]
@@ -600,8 +587,7 @@
             }
         }
 
-        <span class="attr">#[cfg(has_try_from)]
-        </span><span class="kw">impl </span>TryFrom&lt;BigInt&gt; <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
+        <span class="kw">impl </span>TryFrom&lt;BigInt&gt; <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
             <span class="kw">type </span>Error = TryFromBigIntError&lt;BigInt&gt;;
 
             <span class="attr">#[inline]
@@ -664,7 +650,7 @@
         <span class="kw">if </span>n &gt;= <span class="number">0 </span>{
             BigInt::from(n <span class="kw">as </span>u64)
         } <span class="kw">else </span>{
-            <span class="kw">let </span>u = core::u64::MAX - (n <span class="kw">as </span>u64) + <span class="number">1</span>;
+            <span class="kw">let </span>u = u64::MAX - (n <span class="kw">as </span>u64) + <span class="number">1</span>;
             BigInt {
                 sign: Minus,
                 data: BigUint::from(u),
@@ -679,7 +665,7 @@
         <span class="kw">if </span>n &gt;= <span class="number">0 </span>{
             BigInt::from(n <span class="kw">as </span>u128)
         } <span class="kw">else </span>{
-            <span class="kw">let </span>u = core::u128::MAX - (n <span class="kw">as </span>u128) + <span class="number">1</span>;
+            <span class="kw">let </span>u = u128::MAX - (n <span class="kw">as </span>u128) + <span class="number">1</span>;
             BigInt {
                 sign: Minus,
                 data: BigUint::from(u),
@@ -688,7 +674,7 @@
     }
 }
 
-<span class="macro">macro_rules! </span>impl_bigint_from_int {
+<span class="macro">macro_rules!</span> impl_bigint_from_int {
     (<span class="macro-nonterminal">$T</span>:ty) =&gt; {
         <span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$T</span>&gt; <span class="kw">for </span>BigInt {
             <span class="attr">#[inline]
@@ -713,7 +699,7 @@
                 data: BigUint::from(n),
             }
         } <span class="kw">else </span>{
-            BigInt::zero()
+            <span class="self">Self</span>::ZERO
         }
     }
 }
@@ -727,12 +713,12 @@
                 data: BigUint::from(n),
             }
         } <span class="kw">else </span>{
-            BigInt::zero()
+            <span class="self">Self</span>::ZERO
         }
     }
 }
 
-<span class="macro">macro_rules! </span>impl_bigint_from_uint {
+<span class="macro">macro_rules!</span> impl_bigint_from_uint {
     (<span class="macro-nonterminal">$T</span>:ty) =&gt; {
         <span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$T</span>&gt; <span class="kw">for </span>BigInt {
             <span class="attr">#[inline]
@@ -752,7 +738,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(n: BigUint) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>n.is_zero() {
-            BigInt::zero()
+            <span class="self">Self</span>::ZERO
         } <span class="kw">else </span>{
             BigInt {
                 sign: Plus,
@@ -773,7 +759,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>to_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BigInt&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_zero() {
-            <span class="prelude-val">Some</span>(Zero::zero())
+            <span class="prelude-val">Some</span>(BigInt::ZERO)
         } <span class="kw">else </span>{
             <span class="prelude-val">Some</span>(BigInt {
                 sign: Plus,
@@ -788,14 +774,13 @@
     </span><span class="kw">fn </span>to_biguint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BigUint&gt; {
         <span class="kw">match </span><span class="self">self</span>.sign() {
             Plus =&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.data.clone()),
-            NoSign =&gt; <span class="prelude-val">Some</span>(Zero::zero()),
+            NoSign =&gt; <span class="prelude-val">Some</span>(BigUint::ZERO),
             Minus =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="attr">#[cfg(has_try_from)]
-</span><span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span>BigInt&gt; <span class="kw">for </span>BigUint {
+<span class="kw">impl </span>TryFrom&lt;<span class="kw-2">&amp;</span>BigInt&gt; <span class="kw">for </span>BigUint {
     <span class="kw">type </span>Error = TryFromBigIntError&lt;()&gt;;
 
     <span class="attr">#[inline]
@@ -806,8 +791,7 @@
     }
 }
 
-<span class="attr">#[cfg(has_try_from)]
-</span><span class="kw">impl </span>TryFrom&lt;BigInt&gt; <span class="kw">for </span>BigUint {
+<span class="kw">impl </span>TryFrom&lt;BigInt&gt; <span class="kw">for </span>BigUint {
     <span class="kw">type </span>Error = TryFromBigIntError&lt;BigInt&gt;;
 
     <span class="attr">#[inline]
@@ -820,7 +804,7 @@
     }
 }
 
-<span class="macro">macro_rules! </span>impl_to_bigint {
+<span class="macro">macro_rules!</span> impl_to_bigint {
     (<span class="macro-nonterminal">$T</span>:ty, <span class="macro-nonterminal">$from_ty</span>:path) =&gt; {
         <span class="kw">impl </span>ToBigInt <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
             <span class="attr">#[inline]
@@ -853,7 +837,7 @@
         <span class="kw">if </span>x {
             One::one()
         } <span class="kw">else </span>{
-            Zero::zero()
+            <span class="self">Self</span>::ZERO
         }
     }
 }
@@ -863,7 +847,7 @@
     <span class="kw">let </span>sign = <span class="kw">match </span>digits.first() {
         <span class="prelude-val">Some</span>(v) <span class="kw">if </span><span class="kw-2">*</span>v &gt; <span class="number">0x7f </span>=&gt; Sign::Minus,
         <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; Sign::Plus,
-        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>BigInt::zero(),
+        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>BigInt::ZERO,
     };
 
     <span class="kw">if </span>sign == Sign::Minus {
@@ -881,7 +865,7 @@
     <span class="kw">let </span>sign = <span class="kw">match </span>digits.last() {
         <span class="prelude-val">Some</span>(v) <span class="kw">if </span><span class="kw-2">*</span>v &gt; <span class="number">0x7f </span>=&gt; Sign::Minus,
         <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; Sign::Plus,
-        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>BigInt::zero(),
+        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>BigInt::ZERO,
     };
 
     <span class="kw">if </span>sign == Sign::Minus {

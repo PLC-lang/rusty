@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="What are snapshot tests"><title>insta - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-4c98445ec4002617.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../insta/index.html">insta</a><span class="version">1.36.1</span></h2></div><div class="sidebar-elems"><ul class="block">
-            <li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li></ul></section></div></nav><div class="sidebar-resizer"></div>
-    <main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../insta/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">insta</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../src/insta/lib.rs.html#1-329">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><div align="center">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="What are snapshot tests"><title>insta - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../insta/index.html">insta</a><span class="version">1.39.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li></ul></section></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">insta</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/insta/lib.rs.html#1-354">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><div align="center">
  <img src="https://github.com/mitsuhiko/insta/blob/master/assets/logo.png?raw=true" width="250" height="250">
  <p><strong>insta: a snapshot testing library for Rust</strong></p>
 </div>
@@ -43,24 +41,12 @@ move the new files over.  To simplify this workflow you can use
 interactively review them:</p>
 <div class="example-wrap"><pre class="language-text"><code>$ cargo test
 $ cargo insta review
-</code></pre></div><h2 id="assertion-macros"><a class="doc-anchor" href="#assertion-macros">§</a>Assertion Macros</h2>
-<p>This crate exports multiple macros for snapshot testing:</p>
-<ul>
-<li><a href="macro.assert_snapshot.html" title="macro insta::assert_snapshot"><code>assert_snapshot!</code></a> for comparing basic string snapshots.</li>
-<li><a href="macro.assert_debug_snapshot.html" title="macro insta::assert_debug_snapshot"><code>assert_debug_snapshot!</code></a> for comparing <a href="https://doc.rust-lang.org/1.77.0/core/fmt/macros/derive.Debug.html" title="derive core::fmt::macros::Debug"><code>Debug</code></a> outputs of values.</li>
-<li><a href="macro.assert_display_snapshot.html" title="macro insta::assert_display_snapshot"><code>assert_display_snapshot!</code></a> for comparing <a href="https://doc.rust-lang.org/1.77.0/core/fmt/trait.Display.html" title="trait core::fmt::Display"><code>Display</code></a> outputs of values.</li>
-</ul>
-<p>The following macros require the use of serde’s <a href="serde::Serialize"><code>Serialize</code></a>:</p>
-<p>For macros that work with [<code>serde</code>] this crate also permits redacting of
-partial values.  See <a href="https://insta.rs/docs/redactions/">redactions in the
-documentation</a> for more information.</p>
-<h2 id="snapshot-updating"><a class="doc-anchor" href="#snapshot-updating">§</a>Snapshot updating</h2>
-<p>During test runs snapshots will be updated according to the <code>INSTA_UPDATE</code>
-environment variable.  The default is <code>auto</code> which will write all new
-snapshots into <code>.snap.new</code> files if no CI is detected so that
-<a href="https://crates.io/crates/cargo-insta"><code>cargo-insta</code></a>
-can pick them up.  Normally you don’t have to change this variable.</p>
-<p><code>INSTA_UPDATE</code> modes:</p>
+</code></pre></div><h2 id="use-without-cargo-insta"><a class="doc-anchor" href="#use-without-cargo-insta">§</a>Use Without <code>cargo-insta</code></h2>
+<p>Note that <code>cargo-insta</code> is entirely optional.  You can also just use insta
+directly from <code>cargo test</code> and control it via the <code>INSTA_UPDATE</code> environment
+variable.  The default is <code>auto</code> which will write all new snapshots into
+<code>.snap.new</code> files if no CI is detected so that <code>cargo-insta</code> can pick them
+up.  The following other modes are possible:</p>
 <ul>
 <li><code>auto</code>: the default. <code>no</code> for CI environments or <code>new</code> otherwise</li>
 <li><code>always</code>: overwrites old snapshot files with new ones unasked</li>
@@ -68,31 +54,60 @@ can pick them up.  Normally you don’t have to change this variable.</p>
 <li><code>new</code>: write new snapshots into <code>.snap.new</code> files</li>
 <li><code>no</code>: does not update snapshot files at all (just runs tests)</li>
 </ul>
-<p>When <code>new</code> or <code>auto</code> is used as mode the <a href="https://crates.io/crates/cargo-insta"><code>cargo-insta</code></a>
-command can be used to review the snapshots conveniently:</p>
+<p>You can for instance first run the tests and not write and new snapshots, and
+if you like them run the tests again and update them:</p>
+<div class="example-wrap"><pre class="language-text"><code>INSTA_UPDATE=no cargo test
+INSTA_UPDATE=always cargo test
+</code></pre></div><h2 id="assertion-macros"><a class="doc-anchor" href="#assertion-macros">§</a>Assertion Macros</h2>
+<p>This crate exports multiple macros for snapshot testing:</p>
+<ul>
+<li><a href="macro.assert_snapshot.html" title="macro insta::assert_snapshot"><code>assert_snapshot!</code></a> for comparing basic string snapshots.</li>
+<li><a href="macro.assert_debug_snapshot.html" title="macro insta::assert_debug_snapshot"><code>assert_debug_snapshot!</code></a> for comparing <a href="https://doc.rust-lang.org/1.80.1/core/fmt/macros/derive.Debug.html" title="derive core::fmt::macros::Debug"><code>Debug</code></a> outputs of values.</li>
+<li><a href="macro.assert_display_snapshot.html" title="macro insta::assert_display_snapshot"><code>assert_display_snapshot!</code></a> for comparing <a href="https://doc.rust-lang.org/1.80.1/core/fmt/trait.Display.html" title="trait core::fmt::Display"><code>Display</code></a> outputs of values.</li>
+</ul>
+<p>The following macros require the use of serde’s <a href="serde::Serialize"><code>Serialize</code></a>:</p>
+<p>For macros that work with [<code>serde</code>] this crate also permits redacting of
+partial values.  See <a href="https://insta.rs/docs/redactions/">redactions in the
+documentation</a> for more information.</p>
+<h2 id="snapshot-updating"><a class="doc-anchor" href="#snapshot-updating">§</a>Snapshot updating</h2>
+<p>During test runs snapshots will be updated according to the <code>INSTA_UPDATE</code>
+environment variable.  The default is <code>auto</code> which will write snapshots for
+any failing tests into <code>.snap.new</code> files (if no CI is detected) so that
+<a href="https://crates.io/crates/cargo-insta"><code>cargo-insta</code></a> can pick them up for
+review. Normally you don’t have to change this variable.</p>
+<p><code>INSTA_UPDATE</code> modes:</p>
+<ul>
+<li><code>auto</code>: the default. <code>no</code> for CI environments or <code>new</code> otherwise</li>
+<li><code>new</code>: writes snapshots for any failing tests into <code>.snap.new</code> files,
+pending review</li>
+<li><code>always</code>: writes snapshots for any failing tests into <code>.snap</code> files,
+bypassing review</li>
+<li><code>unseen</code>: <code>always</code> for previously unseen snapshots or <code>new</code> for existing
+snapshots</li>
+<li><code>no</code>: does not write to snapshot files at all; just runs tests</li>
+</ul>
+<p>When <code>new</code>, <code>auto</code> or <code>unseen</code> is used, the
+<a href="https://crates.io/crates/cargo-insta"><code>cargo-insta</code></a> command can be used to
+review the snapshots conveniently:</p>
 <div class="example-wrap"><pre class="language-text"><code>$ cargo insta review
 </code></pre></div>
-<p>“enter” or “a” accepts a new snapshot, “escape” or “r” rejects,
-“space” or “s” skips the snapshot for now.</p>
-<p>For more information <a href="https://insta.rs/docs/cli/">read the cargo insta docs</a>.</p>
+<p>“enter” or “a” accepts a new snapshot, “escape” or “r” rejects, “space” or
+“s” skips the snapshot for now.</p>
+<p>For more information <a href="https://insta.rs/docs/cli/">read the cargo insta
+docs</a>.</p>
 <h2 id="inline-snapshots"><a class="doc-anchor" href="#inline-snapshots">§</a>Inline Snapshots</h2>
 <p>Additionally snapshots can also be stored inline.  In that case the format
 for the snapshot macros is <code>assert_snapshot!(reference_value, @&quot;snapshot&quot;)</code>.
 The leading at sign (<code>@</code>) indicates that the following string is the
-reference value.  <code>cargo-insta</code> will then update that string with the new
-value on review.</p>
+reference value.  On review, <code>cargo-insta</code> will update the string with the
+new value.</p>
 <p>Example:</p>
 
-<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Serialize)]
-</span><span class="kw">pub struct </span>User {
-   username: String,
-}
-
-<span class="macro">assert_yaml_snapshot!</span>(User {
-   username: <span class="string">"john_doe"</span>.to_string(),
-}, @<span class="string">""</span>);</code></pre></div>
-<p>Like with normal snapshots after the initial test failure you can run
-<code>cargo insta review</code> to accept the change.  The file will then be updated
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">assert_snapshot!</span>(<span class="number">2 </span>+ <span class="number">2</span>, @<span class="string">""</span>);</code></pre></div>
+<p>Like with normal snapshots, an initial test failure will write the proposed
+value into a draft file (note that inline snapshots use <code>.pending-snap</code>
+files rather than <code>.snap.new</code> files). Running <code>cargo insta review</code> will
+review the proposed changes and update the source files on acceptance
 automatically.</p>
 <h2 id="features"><a class="doc-anchor" href="#features">§</a>Features</h2>
 <p>The following features exist:</p>
@@ -107,18 +122,18 @@ automatically.</p>
 <li><code>glob</code>: enables support for globbing ([<code>glob!</code>])</li>
 <li><code>colors</code>: enables color output (enabled by default)</li>
 </ul>
-<p>For legacy reasons the <code>json</code> and <code>yaml</code> features are enabled by default
-in limited capacity.  You will receive a deprecation warning if you are
-not opting into them but for now the macros will continue to function.</p>
+<p>For legacy reasons the <code>json</code> and <code>yaml</code> features are enabled by default in
+limited capacity.  You will receive a deprecation warning if you are not
+opting into them but for now the macros will continue to function.</p>
 <p>Enabling any of the serde based formats enables the hidden <code>serde</code> feature
 which gates some serde specific APIs such as [<code>Settings::set_info</code>].</p>
 <h2 id="dependencies"><a class="doc-anchor" href="#dependencies">§</a>Dependencies</h2>
 <p><code>insta</code> tries to be light in dependencies but this is tricky to accomplish
 given what it tries to do.  By default it currently depends on <code>serde</code> for
-the [<code>assert_toml_snapshot!</code>] and [<code>assert_yaml_snapshot!</code>] macros.  In
-the future this default dependencies will be removed.  To already benefit
-from this optimization you can disable the default features and manually
-opt into what you want.</p>
+the [<code>assert_toml_snapshot!</code>] and [<code>assert_yaml_snapshot!</code>] macros.  In the
+future this default dependencies will be removed.  To already benefit from
+this optimization you can disable the default features and manually opt into
+what you want.</p>
 <h2 id="settings-1"><a class="doc-anchor" href="#settings-1">§</a>Settings</h2>
 <p>There are some settings that can be changed on a per-thread (and thus
 per-test) basis.  For more information see <a href="struct.Settings.html" title="struct insta::Settings">Settings</a>.</p>
@@ -159,13 +174,17 @@ review:
   # defaults to true but creates a performance hit.
   warn_undiscovered: true / false
 </code></pre></div><h2 id="optional-faster-runs"><a class="doc-anchor" href="#optional-faster-runs">§</a>Optional: Faster Runs</h2>
-<p>Insta benefits from being compiled in release mode, even as dev dependency.  It
-will compile slightly slower once, but use less memory, have faster diffs and
-just generally be more fun to use.  To achieve that, opt <code>insta</code> and <code>similar</code>
-(the diffing library) into higher optimization in your <code>Cargo.toml</code>:</p>
+<p>Insta benefits from being compiled in release mode, even as dev dependency.
+It will compile slightly slower once, but use less memory, have faster diffs
+and just generally be more fun to use.  To achieve that, opt <code>insta</code> and
+<code>similar</code> (the diffing library) into higher optimization in your
+<code>Cargo.toml</code>:</p>
 <div class="example-wrap"><pre class="language-yaml"><code>[profile.dev.package.insta]
 opt-level = 3
 
 [profile.dev.package.similar]
 opt-level = 3
-</code></pre></div></div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="internals/index.html" title="mod insta::internals">internals</a></div><div class="desc docblock-short">Exposes some library internals.</div></li></ul><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="macro" href="macro.allow_duplicates.html" title="macro insta::allow_duplicates">allow_duplicates</a></div><div class="desc docblock-short">Utility macro to permit a multi-snapshot run where all snapshots match.</div></li><li><div class="item-name"><a class="macro" href="macro.assert_debug_snapshot.html" title="macro insta::assert_debug_snapshot">assert_debug_snapshot</a></div><div class="desc docblock-short">Asserts a <code>Debug</code> snapshot.</div></li><li><div class="item-name"><a class="macro" href="macro.assert_display_snapshot.html" title="macro insta::assert_display_snapshot">assert_display_snapshot</a><span class="stab deprecated" title="">Deprecated</span></div><div class="desc docblock-short">Asserts a <code>Display</code> snapshot.</div></li><li><div class="item-name"><a class="macro" href="macro.assert_snapshot.html" title="macro insta::assert_snapshot">assert_snapshot</a></div><div class="desc docblock-short">Asserts a string snapshot.</div></li><li><div class="item-name"><a class="macro" href="macro.with_settings.html" title="macro insta::with_settings">with_settings</a></div><div class="desc docblock-short">Settings configuration macro.</div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.MetaData.html" title="struct insta::MetaData">MetaData</a></div><div class="desc docblock-short">Snapshot metadata information.</div></li><li><div class="item-name"><a class="struct" href="struct.Settings.html" title="struct insta::Settings">Settings</a></div><div class="desc docblock-short">Configures how insta operates at test time.</div></li><li><div class="item-name"><a class="struct" href="struct.Snapshot.html" title="struct insta::Snapshot">Snapshot</a></div><div class="desc docblock-short">A helper to work with stored snapshots.</div></li></ul></section></div></main></body></html>
+</code></pre></div>
+<p>You can also disable the default features of <code>insta</code> which will cut down on
+the compile time a bit by removing some quality of life features.</p>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="internals/index.html" title="mod insta::internals">internals</a></div><div class="desc docblock-short">Exposes some library internals.</div></li></ul><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="macro" href="macro.allow_duplicates.html" title="macro insta::allow_duplicates">allow_duplicates</a></div><div class="desc docblock-short">Utility macro to permit a multi-snapshot run where all snapshots match.</div></li><li><div class="item-name"><a class="macro" href="macro.assert_debug_snapshot.html" title="macro insta::assert_debug_snapshot">assert_debug_snapshot</a></div><div class="desc docblock-short">Asserts a <code>Debug</code> snapshot.</div></li><li><div class="item-name"><a class="macro" href="macro.assert_display_snapshot.html" title="macro insta::assert_display_snapshot">assert_display_snapshot</a><span class="stab deprecated" title="">Deprecated</span></div><div class="desc docblock-short">Asserts a <code>Display</code> snapshot.</div></li><li><div class="item-name"><a class="macro" href="macro.assert_snapshot.html" title="macro insta::assert_snapshot">assert_snapshot</a></div><div class="desc docblock-short">Asserts a string snapshot.</div></li><li><div class="item-name"><a class="macro" href="macro.with_settings.html" title="macro insta::with_settings">with_settings</a></div><div class="desc docblock-short">Settings configuration macro.</div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.MetaData.html" title="struct insta::MetaData">MetaData</a></div><div class="desc docblock-short">Snapshot metadata information.</div></li><li><div class="item-name"><a class="struct" href="struct.Settings.html" title="struct insta::Settings">Settings</a></div><div class="desc docblock-short">Configures how insta operates at test time.</div></li><li><div class="item-name"><a class="struct" href="struct.Snapshot.html" title="struct insta::Snapshot">Snapshot</a></div><div class="desc docblock-short">A helper to work with stored snapshots.</div></li></ul></section></div></main></body></html>

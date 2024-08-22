@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-macros-2.2.0/src/entry.rs`."><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tokio_macros" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../tokio_macros/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-macros-2.4.0/src/entry.rs`."><title>entry.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tokio_macros" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -591,6 +589,104 @@
 <a href="#589" id="589">589</a>
 <a href="#590" id="590">590</a>
 <a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>proc_macro2::{Span, TokenStream, TokenTree};
 <span class="kw">use </span>quote::{quote, quote_spanned, ToTokens};
 <span class="kw">use </span>syn::parse::{Parse, ParseStream, Parser};
@@ -618,11 +714,37 @@
     }
 }
 
+<span class="attr">#[derive(Clone, Copy, PartialEq)]
+</span><span class="kw">enum </span>UnhandledPanic {
+    Ignore,
+    ShutdownRuntime,
+}
+
+<span class="kw">impl </span>UnhandledPanic {
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;UnhandledPanic, String&gt; {
+        <span class="kw">match </span>s {
+            <span class="string">"ignore" </span>=&gt; <span class="prelude-val">Ok</span>(UnhandledPanic::Ignore),
+            <span class="string">"shutdown_runtime" </span>=&gt; <span class="prelude-val">Ok</span>(UnhandledPanic::ShutdownRuntime),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"No such unhandled panic behavior `{}`. The unhandled panic behaviors are `ignore` and `shutdown_runtime`."</span>, s)),
+        }
+    }
+
+    <span class="kw">fn </span>into_tokens(<span class="self">self</span>, crate_path: <span class="kw-2">&amp;</span>TokenStream) -&gt; TokenStream {
+        <span class="kw">match </span><span class="self">self </span>{
+            UnhandledPanic::Ignore =&gt; <span class="macro">quote!</span> { #crate_path::runtime::UnhandledPanic::Ignore },
+            UnhandledPanic::ShutdownRuntime =&gt; {
+                <span class="macro">quote!</span> { #crate_path::runtime::UnhandledPanic::ShutdownRuntime }
+            }
+        }
+    }
+}
+
 <span class="kw">struct </span>FinalConfig {
     flavor: RuntimeFlavor,
     worker_threads: <span class="prelude-ty">Option</span>&lt;usize&gt;,
     start_paused: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     crate_name: <span class="prelude-ty">Option</span>&lt;Path&gt;,
+    unhandled_panic: <span class="prelude-ty">Option</span>&lt;UnhandledPanic&gt;,
 }
 
 <span class="doccomment">/// Config used in case of the attribute not being able to build a valid config
@@ -631,6 +753,7 @@
     worker_threads: <span class="prelude-val">None</span>,
     start_paused: <span class="prelude-val">None</span>,
     crate_name: <span class="prelude-val">None</span>,
+    unhandled_panic: <span class="prelude-val">None</span>,
 };
 
 <span class="kw">struct </span>Configuration {
@@ -641,6 +764,7 @@
     start_paused: <span class="prelude-ty">Option</span>&lt;(bool, Span)&gt;,
     is_test: bool,
     crate_name: <span class="prelude-ty">Option</span>&lt;Path&gt;,
+    unhandled_panic: <span class="prelude-ty">Option</span>&lt;(UnhandledPanic, Span)&gt;,
 }
 
 <span class="kw">impl </span>Configuration {
@@ -656,6 +780,7 @@
             start_paused: <span class="prelude-val">None</span>,
             is_test,
             crate_name: <span class="prelude-val">None</span>,
+            unhandled_panic: <span class="prelude-val">None</span>,
         }
     }
 
@@ -710,6 +835,25 @@
         <span class="prelude-val">Ok</span>(())
     }
 
+    <span class="kw">fn </span>set_unhandled_panic(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        unhandled_panic: syn::Lit,
+        span: Span,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), syn::Error&gt; {
+        <span class="kw">if </span><span class="self">self</span>.unhandled_panic.is_some() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(
+                span,
+                <span class="string">"`unhandled_panic` set multiple times."</span>,
+            ));
+        }
+
+        <span class="kw">let </span>unhandled_panic = parse_string(unhandled_panic, span, <span class="string">"unhandled_panic"</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>unhandled_panic =
+            UnhandledPanic::from_str(<span class="kw-2">&amp;</span>unhandled_panic).map_err(|err| syn::Error::new(span, err))<span class="question-mark">?</span>;
+        <span class="self">self</span>.unhandled_panic = <span class="prelude-val">Some</span>((unhandled_panic, span));
+        <span class="prelude-val">Ok</span>(())
+    }
+
     <span class="kw">fn </span>macro_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">if </span><span class="self">self</span>.is_test {
             <span class="string">"tokio::test"
@@ -756,11 +900,24 @@
             (<span class="kw">_</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">None</span>,
         };
 
+        <span class="kw">let </span>unhandled_panic = <span class="kw">match </span>(flavor, <span class="self">self</span>.unhandled_panic) {
+            (F::Threaded, <span class="prelude-val">Some</span>((<span class="kw">_</span>, unhandled_panic_span))) =&gt; {
+                <span class="kw">let </span>msg = <span class="macro">format!</span>(
+                    <span class="string">"The `unhandled_panic` option requires the `current_thread` runtime flavor. Use `#[{}(flavor = \"current_thread\")]`"</span>,
+                    <span class="self">self</span>.macro_name(),
+                );
+                <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(unhandled_panic_span, msg));
+            }
+            (F::CurrentThread, <span class="prelude-val">Some</span>((unhandled_panic, <span class="kw">_</span>))) =&gt; <span class="prelude-val">Some</span>(unhandled_panic),
+            (<span class="kw">_</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">None</span>,
+        };
+
         <span class="prelude-val">Ok</span>(FinalConfig {
             crate_name: <span class="self">self</span>.crate_name.clone(),
             flavor,
             worker_threads,
             start_paused,
+            unhandled_panic,
         })
     }
 }
@@ -868,9 +1025,13 @@
                     <span class="string">"crate" </span>=&gt; {
                         config.set_crate_name(lit.clone(), syn::spanned::Spanned::span(lit))<span class="question-mark">?</span>;
                     }
+                    <span class="string">"unhandled_panic" </span>=&gt; {
+                        config
+                            .set_unhandled_panic(lit.clone(), syn::spanned::Spanned::span(lit))<span class="question-mark">?</span>;
+                    }
                     name =&gt; {
                         <span class="kw">let </span>msg = <span class="macro">format!</span>(
-                            <span class="string">"Unknown attribute {} is specified; expected one of: `flavor`, `worker_threads`, `start_paused`, `crate`"</span>,
+                            <span class="string">"Unknown attribute {} is specified; expected one of: `flavor`, `worker_threads`, `start_paused`, `crate`, `unhandled_panic`"</span>,
                             name,
                         );
                         <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new_spanned(namevalue, msg));
@@ -896,11 +1057,11 @@
                             macro_name
                         )
                     }
-                    <span class="string">"flavor" </span>| <span class="string">"worker_threads" </span>| <span class="string">"start_paused" </span>=&gt; {
+                    <span class="string">"flavor" </span>| <span class="string">"worker_threads" </span>| <span class="string">"start_paused" </span>| <span class="string">"crate" </span>| <span class="string">"unhandled_panic" </span>=&gt; {
                         <span class="macro">format!</span>(<span class="string">"The `{}` attribute requires an argument."</span>, name)
                     }
                     name =&gt; {
-                        <span class="macro">format!</span>(<span class="string">"Unknown attribute {} is specified; expected one of: `flavor`, `worker_threads`, `start_paused`, `crate`"</span>, name)
+                        <span class="macro">format!</span>(<span class="string">"Unknown attribute {} is specified; expected one of: `flavor`, `worker_threads`, `start_paused`, `crate`, `unhandled_panic`."</span>, name)
                     }
                 };
                 <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new_spanned(path, msg));
@@ -939,30 +1100,34 @@
         .unwrap_or_else(|| Ident::new(<span class="string">"tokio"</span>, last_stmt_start_span).into_token_stream());
 
     <span class="kw">let </span><span class="kw-2">mut </span>rt = <span class="kw">match </span>config.flavor {
-        RuntimeFlavor::CurrentThread =&gt; <span class="macro">quote_spanned! </span>{last_stmt_start_span=&gt;
+        RuntimeFlavor::CurrentThread =&gt; <span class="macro">quote_spanned!</span> {last_stmt_start_span=&gt;
             #crate_path::runtime::Builder::new_current_thread()
         },
-        RuntimeFlavor::Threaded =&gt; <span class="macro">quote_spanned! </span>{last_stmt_start_span=&gt;
+        RuntimeFlavor::Threaded =&gt; <span class="macro">quote_spanned!</span> {last_stmt_start_span=&gt;
             #crate_path::runtime::Builder::new_multi_thread()
         },
     };
     <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = config.worker_threads {
-        rt = <span class="macro">quote_spanned! </span>{last_stmt_start_span=&gt; #rt.worker_threads(#v) };
+        rt = <span class="macro">quote_spanned!</span> {last_stmt_start_span=&gt; #rt.worker_threads(#v) };
     }
     <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = config.start_paused {
-        rt = <span class="macro">quote_spanned! </span>{last_stmt_start_span=&gt; #rt.start_paused(#v) };
+        rt = <span class="macro">quote_spanned!</span> {last_stmt_start_span=&gt; #rt.start_paused(#v) };
+    }
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = config.unhandled_panic {
+        <span class="kw">let </span>unhandled_panic = v.into_tokens(<span class="kw-2">&amp;</span>crate_path);
+        rt = <span class="macro">quote_spanned!</span> {last_stmt_start_span=&gt; #rt.unhandled_panic(#unhandled_panic) };
     }
 
-    <span class="kw">let </span>header = <span class="kw">if </span>is_test {
-        <span class="macro">quote! </span>{
+    <span class="kw">let </span>generated_attrs = <span class="kw">if </span>is_test {
+        <span class="macro">quote!</span> {
             <span class="attr">#[::core::prelude::v1::test]
         </span>}
     } <span class="kw">else </span>{
-        <span class="macro">quote! </span>{}
+        <span class="macro">quote!</span> {}
     };
 
-    <span class="kw">let </span>body_ident = <span class="macro">quote! </span>{ body };
-    <span class="kw">let </span>last_block = <span class="macro">quote_spanned! </span>{last_stmt_end_span=&gt;
+    <span class="kw">let </span>body_ident = <span class="macro">quote!</span> { body };
+    <span class="kw">let </span>last_block = <span class="macro">quote_spanned!</span> {last_stmt_end_span=&gt;
         <span class="attr">#[allow(clippy::expect_used, clippy::diverging_sub_expression)]
         </span>{
             <span class="kw">return </span>#rt
@@ -989,21 +1154,21 @@
             <span class="comment">// For functions with no return value syn doesn't print anything,
             // but that doesn't work as `Output` for our boxed `Future`, so
             // default to `()` (the same type as the function output).
-            </span>syn::ReturnType::Default =&gt; <span class="macro">quote! </span>{ () },
-            syn::ReturnType::Type(<span class="kw">_</span>, ret_type) =&gt; <span class="macro">quote! </span>{ #ret_type },
+            </span>syn::ReturnType::Default =&gt; <span class="macro">quote!</span> { () },
+            syn::ReturnType::Type(<span class="kw">_</span>, ret_type) =&gt; <span class="macro">quote!</span> { #ret_type },
         };
-        <span class="macro">quote! </span>{
+        <span class="macro">quote!</span> {
             <span class="kw">let </span>body = <span class="kw">async </span>#body;
             #<span class="macro">crate_path::pin!</span>(body);
             <span class="kw">let </span>body: ::core::pin::Pin&lt;<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>::core::future::Future&lt;Output = #output_type&gt;&gt; = body;
         }
     } <span class="kw">else </span>{
-        <span class="macro">quote! </span>{
+        <span class="macro">quote!</span> {
             <span class="kw">let </span>body = <span class="kw">async </span>#body;
         }
     };
 
-    input.into_tokens(header, body, last_block)
+    input.into_tokens(generated_attrs, body, last_block)
 }
 
 <span class="kw">fn </span>token_stream_with_error(<span class="kw-2">mut </span>tokens: TokenStream, error: syn::Error) -&gt; TokenStream {
@@ -1011,8 +1176,7 @@
     tokens
 }
 
-<span class="attr">#[cfg(not(test))] </span><span class="comment">// Work around for rust-lang/rust#62127
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>main(args: TokenStream, item: TokenStream, rt_multi_thread: bool) -&gt; TokenStream {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>main(args: TokenStream, item: TokenStream, rt_multi_thread: bool) -&gt; TokenStream {
     <span class="comment">// If any of the steps for this macro fail, we still want to expand to an item that is as close
     // to the expected output as possible. This helps out IDEs such that completions and other
     // related features keep working.
@@ -1036,6 +1200,35 @@
     }
 }
 
+<span class="comment">// Check whether given attribute is a test attribute of forms:
+// * `#[test]`
+// * `#[core::prelude::*::test]` or `#[::core::prelude::*::test]`
+// * `#[std::prelude::*::test]` or `#[::std::prelude::*::test]`
+</span><span class="kw">fn </span>is_test_attribute(attr: <span class="kw-2">&amp;</span>Attribute) -&gt; bool {
+    <span class="kw">let </span>path = <span class="kw">match </span><span class="kw-2">&amp;</span>attr.meta {
+        syn::Meta::Path(path) =&gt; path,
+        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
+    };
+    <span class="kw">let </span>candidates = [
+        [<span class="string">"core"</span>, <span class="string">"prelude"</span>, <span class="string">"*"</span>, <span class="string">"test"</span>],
+        [<span class="string">"std"</span>, <span class="string">"prelude"</span>, <span class="string">"*"</span>, <span class="string">"test"</span>],
+    ];
+    <span class="kw">if </span>path.leading_colon.is_none()
+        &amp;&amp; path.segments.len() == <span class="number">1
+        </span>&amp;&amp; path.segments[<span class="number">0</span>].arguments.is_none()
+        &amp;&amp; path.segments[<span class="number">0</span>].ident == <span class="string">"test"
+    </span>{
+        <span class="kw">return </span><span class="bool-val">true</span>;
+    } <span class="kw">else if </span>path.segments.len() != candidates[<span class="number">0</span>].len() {
+        <span class="kw">return </span><span class="bool-val">false</span>;
+    }
+    candidates.into_iter().any(|segments| {
+        path.segments.iter().zip(segments).all(|(segment, path)| {
+            segment.arguments.is_none() &amp;&amp; (path == <span class="string">"*" </span>|| segment.ident == path)
+        })
+    })
+}
+
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>test(args: TokenStream, item: TokenStream, rt_multi_thread: bool) -&gt; TokenStream {
     <span class="comment">// If any of the steps for this macro fail, we still want to expand to an item that is as close
     // to the expected output as possible. This helps out IDEs such that completions and other
@@ -1044,8 +1237,8 @@
         <span class="prelude-val">Ok</span>(it) =&gt; it,
         <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>token_stream_with_error(item, e),
     };
-    <span class="kw">let </span>config = <span class="kw">if let </span><span class="prelude-val">Some</span>(attr) = input.attrs().find(|attr| attr.meta.path().is_ident(<span class="string">"test"</span>)) {
-        <span class="kw">let </span>msg = <span class="string">"second test attribute is supplied"</span>;
+    <span class="kw">let </span>config = <span class="kw">if let </span><span class="prelude-val">Some</span>(attr) = input.attrs().find(|attr| is_test_attribute(attr)) {
+        <span class="kw">let </span>msg = <span class="string">"second test attribute is supplied, consider removing or changing the order of your test attributes"</span>;
         <span class="prelude-val">Err</span>(syn::Error::new_spanned(attr, msg))
     } <span class="kw">else </span>{
         AttributeArgs::parse_terminated
@@ -1086,13 +1279,11 @@
     <span class="doccomment">/// Convert our local function item into a token stream.
     </span><span class="kw">fn </span>into_tokens(
         <span class="self">self</span>,
-        header: proc_macro2::TokenStream,
+        generated_attrs: proc_macro2::TokenStream,
         body: proc_macro2::TokenStream,
         last_block: proc_macro2::TokenStream,
     ) -&gt; TokenStream {
         <span class="kw">let </span><span class="kw-2">mut </span>tokens = proc_macro2::TokenStream::new();
-        header.to_tokens(<span class="kw-2">&amp;mut </span>tokens);
-
         <span class="comment">// Outer attributes are simply streamed as-is.
         </span><span class="kw">for </span>attr <span class="kw">in </span><span class="self">self</span>.outer_attrs {
             attr.to_tokens(<span class="kw-2">&amp;mut </span>tokens);
@@ -1100,11 +1291,14 @@
 
         <span class="comment">// Inner attributes require extra care, since they're not supported on
         // blocks (which is what we're expanded into) we instead lift them
-        // outside of the function. This matches the behaviour of `syn`.
+        // outside of the function. This matches the behavior of `syn`.
         </span><span class="kw">for </span><span class="kw-2">mut </span>attr <span class="kw">in </span><span class="self">self</span>.inner_attrs {
             attr.style = syn::AttrStyle::Outer;
             attr.to_tokens(<span class="kw-2">&amp;mut </span>tokens);
         }
+
+        <span class="comment">// Add generated macros at the end, so macros processed later are aware of them.
+        </span>generated_attrs.to_tokens(<span class="kw-2">&amp;mut </span>tokens);
 
         <span class="self">self</span>.vis.to_tokens(<span class="kw-2">&amp;mut </span>tokens);
         <span class="self">self</span>.sig.to_tokens(<span class="kw-2">&amp;mut </span>tokens);

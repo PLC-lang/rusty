@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.36.0/src/macros/select.rs`."><title>select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../tokio/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.39.3/src/macros/select.rs`."><title>select.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1023,407 +1021,669 @@
 <a href="#1021" id="1021">1021</a>
 <a href="#1022" id="1022">1022</a>
 <a href="#1023" id="1023">1023</a>
-</pre></div><pre class="rust"><code><span class="doccomment">/// Waits on multiple concurrent branches, returning when the **first** branch
-/// completes, cancelling the remaining branches.
-///
-/// The `select!` macro must be used inside of async functions, closures, and
-/// blocks.
-///
-/// The `select!` macro accepts one or more branches with the following pattern:
-///
-/// ```text
-/// &lt;pattern&gt; = &lt;async expression&gt; (, if &lt;precondition&gt;)? =&gt; &lt;handler&gt;,
-/// ```
-///
-/// Additionally, the `select!` macro may include a single, optional `else`
-/// branch, which evaluates if none of the other branches match their patterns:
-///
-/// ```text
-/// else =&gt; &lt;expression&gt;
-/// ```
-///
-/// The macro aggregates all `&lt;async expression&gt;` expressions and runs them
-/// concurrently on the **current** task. Once the **first** expression
-/// completes with a value that matches its `&lt;pattern&gt;`, the `select!` macro
-/// returns the result of evaluating the completed branch's `&lt;handler&gt;`
-/// expression.
-///
-/// Additionally, each branch may include an optional `if` precondition. If the
-/// precondition returns `false`, then the branch is disabled. The provided
-/// `&lt;async expression&gt;` is still evaluated but the resulting future is never
-/// polled. This capability is useful when using `select!` within a loop.
-///
-/// The complete lifecycle of a `select!` expression is as follows:
-///
-/// 1. Evaluate all provided `&lt;precondition&gt;` expressions. If the precondition
-///    returns `false`, disable the branch for the remainder of the current call
-///    to `select!`. Re-entering `select!` due to a loop clears the "disabled"
-///    state.
-/// 2. Aggregate the `&lt;async expression&gt;`s from each branch, including the
-///    disabled ones. If the branch is disabled, `&lt;async expression&gt;` is still
-///    evaluated, but the resulting future is not polled.
-/// 3. Concurrently await on the results for all remaining `&lt;async expression&gt;`s.
-/// 4. Once an `&lt;async expression&gt;` returns a value, attempt to apply the value
-///    to the provided `&lt;pattern&gt;`, if the pattern matches, evaluate `&lt;handler&gt;`
-///    and return. If the pattern **does not** match, disable the current branch
-///    and for the remainder of the current call to `select!`. Continue from step 3.
-/// 5. If **all** branches are disabled, evaluate the `else` expression. If no
-///    else branch is provided, panic.
-///
-/// # Runtime characteristics
-///
-/// By running all async expressions on the current task, the expressions are
-/// able to run **concurrently** but not in **parallel**. This means all
-/// expressions are run on the same thread and if one branch blocks the thread,
-/// all other expressions will be unable to continue. If parallelism is
-/// required, spawn each async expression using [`tokio::spawn`] and pass the
-/// join handle to `select!`.
-///
-/// [`tokio::spawn`]: crate::spawn
-///
-/// # Fairness
-///
-/// By default, `select!` randomly picks a branch to check first. This provides
-/// some level of fairness when calling `select!` in a loop with branches that
-/// are always ready.
-///
-/// This behavior can be overridden by adding `biased;` to the beginning of the
-/// macro usage. See the examples for details. This will cause `select` to poll
-/// the futures in the order they appear from top to bottom. There are a few
-/// reasons you may want this:
-///
-/// - The random number generation of `tokio::select!` has a non-zero CPU cost
-/// - Your futures may interact in a way where known polling order is significant
-///
-/// But there is an important caveat to this mode. It becomes your responsibility
-/// to ensure that the polling order of your futures is fair. If for example you
-/// are selecting between a stream and a shutdown future, and the stream has a
-/// huge volume of messages and zero or nearly zero time between them, you should
-/// place the shutdown future earlier in the `select!` list to ensure that it is
-/// always polled, and will not be ignored due to the stream being constantly
-/// ready.
-///
-/// # Panics
-///
-/// The `select!` macro panics if all branches are disabled **and** there is no
-/// provided `else` branch. A branch is disabled when the provided `if`
-/// precondition returns `false` **or** when the pattern does not match the
-/// result of `&lt;async expression&gt;`.
-///
-/// # Cancellation safety
-///
-/// When using `select!` in a loop to receive messages from multiple sources,
-/// you should make sure that the receive call is cancellation safe to avoid
-/// losing messages. This section goes through various common methods and
-/// describes whether they are cancel safe.  The lists in this section are not
-/// exhaustive.
-///
-/// The following methods are cancellation safe:
-///
-///  * [`tokio::sync::mpsc::Receiver::recv`](crate::sync::mpsc::Receiver::recv)
-///  * [`tokio::sync::mpsc::UnboundedReceiver::recv`](crate::sync::mpsc::UnboundedReceiver::recv)
-///  * [`tokio::sync::broadcast::Receiver::recv`](crate::sync::broadcast::Receiver::recv)
-///  * [`tokio::sync::watch::Receiver::changed`](crate::sync::watch::Receiver::changed)
-///  * [`tokio::net::TcpListener::accept`](crate::net::TcpListener::accept)
-///  * [`tokio::net::UnixListener::accept`](crate::net::UnixListener::accept)
-///  * [`tokio::signal::unix::Signal::recv`](crate::signal::unix::Signal::recv)
-///  * [`tokio::io::AsyncReadExt::read`](crate::io::AsyncReadExt::read) on any `AsyncRead`
-///  * [`tokio::io::AsyncReadExt::read_buf`](crate::io::AsyncReadExt::read_buf) on any `AsyncRead`
-///  * [`tokio::io::AsyncWriteExt::write`](crate::io::AsyncWriteExt::write) on any `AsyncWrite`
-///  * [`tokio::io::AsyncWriteExt::write_buf`](crate::io::AsyncWriteExt::write_buf) on any `AsyncWrite`
-///  * [`tokio_stream::StreamExt::next`](https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.next) on any `Stream`
-///  * [`futures::stream::StreamExt::next`](https://docs.rs/futures/0.3/futures/stream/trait.StreamExt.html#method.next) on any `Stream`
-///
-/// The following methods are not cancellation safe and can lead to loss of data:
-///
-///  * [`tokio::io::AsyncReadExt::read_exact`](crate::io::AsyncReadExt::read_exact)
-///  * [`tokio::io::AsyncReadExt::read_to_end`](crate::io::AsyncReadExt::read_to_end)
-///  * [`tokio::io::AsyncReadExt::read_to_string`](crate::io::AsyncReadExt::read_to_string)
-///  * [`tokio::io::AsyncWriteExt::write_all`](crate::io::AsyncWriteExt::write_all)
-///
-/// The following methods are not cancellation safe because they use a queue for
-/// fairness and cancellation makes you lose your place in the queue:
-///
-///  * [`tokio::sync::Mutex::lock`](crate::sync::Mutex::lock)
-///  * [`tokio::sync::RwLock::read`](crate::sync::RwLock::read)
-///  * [`tokio::sync::RwLock::write`](crate::sync::RwLock::write)
-///  * [`tokio::sync::Semaphore::acquire`](crate::sync::Semaphore::acquire)
-///  * [`tokio::sync::Notify::notified`](crate::sync::Notify::notified)
-///
-/// To determine whether your own methods are cancellation safe, look for the
-/// location of uses of `.await`. This is because when an asynchronous method is
-/// cancelled, that always happens at an `.await`. If your function behaves
-/// correctly even if it is restarted while waiting at an `.await`, then it is
-/// cancellation safe.
-///
-/// Cancellation safety can be defined in the following way: If you have a
-/// future that has not yet completed, then it must be a no-op to drop that
-/// future and recreate it. This definition is motivated by the situation where
-/// a `select!` is used in a loop. Without this guarantee, you would lose your
-/// progress when another branch completes and you restart the `select!` by
-/// going around the loop.
-///
-/// Be aware that cancelling something that is not cancellation safe is not
-/// necessarily wrong. For example, if you are cancelling a task because the
-/// application is shutting down, then you probably don't care that partially
-/// read data is lost.
-///
-/// # Examples
-///
-/// Basic select with two branches.
-///
-/// ```
-/// async fn do_stuff_async() {
-///     // async work
-/// }
-///
-/// async fn more_async_work() {
-///     // more here
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     tokio::select! {
-///         _ = do_stuff_async() =&gt; {
-///             println!("do_stuff_async() completed first")
-///         }
-///         _ = more_async_work() =&gt; {
-///             println!("more_async_work() completed first")
-///         }
-///     };
-/// }
-/// ```
-///
-/// Basic stream selecting.
-///
-/// ```
-/// use tokio_stream::{self as stream, StreamExt};
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let mut stream1 = stream::iter(vec![1, 2, 3]);
-///     let mut stream2 = stream::iter(vec![4, 5, 6]);
-///
-///     let next = tokio::select! {
-///         v = stream1.next() =&gt; v.unwrap(),
-///         v = stream2.next() =&gt; v.unwrap(),
-///     };
-///
-///     assert!(next == 1 || next == 4);
-/// }
-/// ```
-///
-/// Collect the contents of two streams. In this example, we rely on pattern
-/// matching and the fact that `stream::iter` is "fused", i.e. once the stream
-/// is complete, all calls to `next()` return `None`.
-///
-/// ```
-/// use tokio_stream::{self as stream, StreamExt};
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let mut stream1 = stream::iter(vec![1, 2, 3]);
-///     let mut stream2 = stream::iter(vec![4, 5, 6]);
-///
-///     let mut values = vec![];
-///
-///     loop {
-///         tokio::select! {
-///             Some(v) = stream1.next() =&gt; values.push(v),
-///             Some(v) = stream2.next() =&gt; values.push(v),
-///             else =&gt; break,
-///         }
-///     }
-///
-///     values.sort();
-///     assert_eq!(&amp;[1, 2, 3, 4, 5, 6], &amp;values[..]);
-/// }
-/// ```
-///
-/// Using the same future in multiple `select!` expressions can be done by passing
-/// a reference to the future. Doing so requires the future to be [`Unpin`]. A
-/// future can be made [`Unpin`] by either using [`Box::pin`] or stack pinning.
-///
-/// [`Unpin`]: std::marker::Unpin
-/// [`Box::pin`]: std::boxed::Box::pin
-///
-/// Here, a stream is consumed for at most 1 second.
-///
-/// ```
-/// use tokio_stream::{self as stream, StreamExt};
-/// use tokio::time::{self, Duration};
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let mut stream = stream::iter(vec![1, 2, 3]);
-///     let sleep = time::sleep(Duration::from_secs(1));
-///     tokio::pin!(sleep);
-///
-///     loop {
-///         tokio::select! {
-///             maybe_v = stream.next() =&gt; {
-///                 if let Some(v) = maybe_v {
-///                     println!("got = {}", v);
-///                 } else {
-///                     break;
-///                 }
-///             }
-///             _ = &amp;mut sleep =&gt; {
-///                 println!("timeout");
-///                 break;
-///             }
-///         }
-///     }
-/// }
-/// ```
-///
-/// Joining two values using `select!`.
-///
-/// ```
-/// use tokio::sync::oneshot;
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let (tx1, mut rx1) = oneshot::channel();
-///     let (tx2, mut rx2) = oneshot::channel();
-///
-///     tokio::spawn(async move {
-///         tx1.send("first").unwrap();
-///     });
-///
-///     tokio::spawn(async move {
-///         tx2.send("second").unwrap();
-///     });
-///
-///     let mut a = None;
-///     let mut b = None;
-///
-///     while a.is_none() || b.is_none() {
-///         tokio::select! {
-///             v1 = (&amp;mut rx1), if a.is_none() =&gt; a = Some(v1.unwrap()),
-///             v2 = (&amp;mut rx2), if b.is_none() =&gt; b = Some(v2.unwrap()),
-///         }
-///     }
-///
-///     let res = (a.unwrap(), b.unwrap());
-///
-///     assert_eq!(res.0, "first");
-///     assert_eq!(res.1, "second");
-/// }
-/// ```
-///
-/// Using the `biased;` mode to control polling order.
-///
-/// ```
-/// #[tokio::main]
-/// async fn main() {
-///     let mut count = 0u8;
-///
-///     loop {
-///         tokio::select! {
-///             // If you run this example without `biased;`, the polling order is
-///             // pseudo-random, and the assertions on the value of count will
-///             // (probably) fail.
-///             biased;
-///
-///             _ = async {}, if count &lt; 1 =&gt; {
-///                 count += 1;
-///                 assert_eq!(count, 1);
-///             }
-///             _ = async {}, if count &lt; 2 =&gt; {
-///                 count += 1;
-///                 assert_eq!(count, 2);
-///             }
-///             _ = async {}, if count &lt; 3 =&gt; {
-///                 count += 1;
-///                 assert_eq!(count, 3);
-///             }
-///             _ = async {}, if count &lt; 4 =&gt; {
-///                 count += 1;
-///                 assert_eq!(count, 4);
-///             }
-///
-///             else =&gt; {
-///                 break;
-///             }
-///         };
-///     }
-/// }
-/// ```
-///
-/// ## Avoid racy `if` preconditions
-///
-/// Given that `if` preconditions are used to disable `select!` branches, some
-/// caution must be used to avoid missing values.
-///
-/// For example, here is **incorrect** usage of `sleep` with `if`. The objective
-/// is to repeatedly run an asynchronous task for up to 50 milliseconds.
-/// However, there is a potential for the `sleep` completion to be missed.
-///
-/// ```no_run,should_panic
-/// use tokio::time::{self, Duration};
-///
-/// async fn some_async_work() {
-///     // do work
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let sleep = time::sleep(Duration::from_millis(50));
-///     tokio::pin!(sleep);
-///
-///     while !sleep.is_elapsed() {
-///         tokio::select! {
-///             _ = &amp;mut sleep, if !sleep.is_elapsed() =&gt; {
-///                 println!("operation timed out");
-///             }
-///             _ = some_async_work() =&gt; {
-///                 println!("operation completed");
-///             }
-///         }
-///     }
-///
-///     panic!("This example shows how not to do it!");
-/// }
-/// ```
-///
-/// In the above example, `sleep.is_elapsed()` may return `true` even if
-/// `sleep.poll()` never returned `Ready`. This opens up a potential race
-/// condition where `sleep` expires between the `while !sleep.is_elapsed()`
-/// check and the call to `select!` resulting in the `some_async_work()` call to
-/// run uninterrupted despite the sleep having elapsed.
-///
-/// One way to write the above example without the race would be:
-///
-/// ```
-/// use tokio::time::{self, Duration};
-///
-/// async fn some_async_work() {
-/// # time::sleep(Duration::from_millis(10)).await;
-///     // do work
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let sleep = time::sleep(Duration::from_millis(50));
-///     tokio::pin!(sleep);
-///
-///     loop {
-///         tokio::select! {
-///             _ = &amp;mut sleep =&gt; {
-///                 println!("operation timed out");
-///                 break;
-///             }
-///             _ = some_async_work() =&gt; {
-///                 println!("operation completed");
-///             }
-///         }
-///     }
-/// }
-/// ```
-</span><span class="attr">#[macro_export]
-#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"macros"</span>)))]
-</span><span class="macro">macro_rules! </span>select {
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
+<a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
+<a href="#1169" id="1169">1169</a>
+<a href="#1170" id="1170">1170</a>
+<a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
+<a href="#1240" id="1240">1240</a>
+<a href="#1241" id="1241">1241</a>
+<a href="#1242" id="1242">1242</a>
+<a href="#1243" id="1243">1243</a>
+<a href="#1244" id="1244">1244</a>
+<a href="#1245" id="1245">1245</a>
+<a href="#1246" id="1246">1246</a>
+<a href="#1247" id="1247">1247</a>
+<a href="#1248" id="1248">1248</a>
+<a href="#1249" id="1249">1249</a>
+<a href="#1250" id="1250">1250</a>
+<a href="#1251" id="1251">1251</a>
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+</pre></div><pre class="rust"><code><span class="macro">macro_rules!</span> doc {
+    (<span class="macro-nonterminal">$select</span>:item) =&gt; {
+        <span class="doccomment">/// Waits on multiple concurrent branches, returning when the **first** branch
+        /// completes, cancelling the remaining branches.
+        ///
+        /// The `select!` macro must be used inside of async functions, closures, and
+        /// blocks.
+        ///
+        /// The `select!` macro accepts one or more branches with the following pattern:
+        ///
+        /// ```text
+        /// &lt;pattern&gt; = &lt;async expression&gt; (, if &lt;precondition&gt;)? =&gt; &lt;handler&gt;,
+        /// ```
+        ///
+        /// Additionally, the `select!` macro may include a single, optional `else`
+        /// branch, which evaluates if none of the other branches match their patterns:
+        ///
+        /// ```text
+        /// else =&gt; &lt;expression&gt;
+        /// ```
+        ///
+        /// The macro aggregates all `&lt;async expression&gt;` expressions and runs them
+        /// concurrently on the **current** task. Once the **first** expression
+        /// completes with a value that matches its `&lt;pattern&gt;`, the `select!` macro
+        /// returns the result of evaluating the completed branch's `&lt;handler&gt;`
+        /// expression.
+        ///
+        /// Additionally, each branch may include an optional `if` precondition. If the
+        /// precondition returns `false`, then the branch is disabled. The provided
+        /// `&lt;async expression&gt;` is still evaluated but the resulting future is never
+        /// polled. This capability is useful when using `select!` within a loop.
+        ///
+        /// The complete lifecycle of a `select!` expression is as follows:
+        ///
+        /// 1. Evaluate all provided `&lt;precondition&gt;` expressions. If the precondition
+        ///    returns `false`, disable the branch for the remainder of the current call
+        ///    to `select!`. Re-entering `select!` due to a loop clears the "disabled"
+        ///    state.
+        /// 2. Aggregate the `&lt;async expression&gt;`s from each branch, including the
+        ///    disabled ones. If the branch is disabled, `&lt;async expression&gt;` is still
+        ///    evaluated, but the resulting future is not polled.
+        /// 3. Concurrently await on the results for all remaining `&lt;async expression&gt;`s.
+        /// 4. Once an `&lt;async expression&gt;` returns a value, attempt to apply the value
+        ///    to the provided `&lt;pattern&gt;`, if the pattern matches, evaluate `&lt;handler&gt;`
+        ///    and return. If the pattern **does not** match, disable the current branch
+        ///    and for the remainder of the current call to `select!`. Continue from step 3.
+        /// 5. If **all** branches are disabled, evaluate the `else` expression. If no
+        ///    else branch is provided, panic.
+        ///
+        /// # Runtime characteristics
+        ///
+        /// By running all async expressions on the current task, the expressions are
+        /// able to run **concurrently** but not in **parallel**. This means all
+        /// expressions are run on the same thread and if one branch blocks the thread,
+        /// all other expressions will be unable to continue. If parallelism is
+        /// required, spawn each async expression using [`tokio::spawn`] and pass the
+        /// join handle to `select!`.
+        ///
+        /// [`tokio::spawn`]: crate::spawn
+        ///
+        /// # Fairness
+        ///
+        /// By default, `select!` randomly picks a branch to check first. This provides
+        /// some level of fairness when calling `select!` in a loop with branches that
+        /// are always ready.
+        ///
+        /// This behavior can be overridden by adding `biased;` to the beginning of the
+        /// macro usage. See the examples for details. This will cause `select` to poll
+        /// the futures in the order they appear from top to bottom. There are a few
+        /// reasons you may want this:
+        ///
+        /// - The random number generation of `tokio::select!` has a non-zero CPU cost
+        /// - Your futures may interact in a way where known polling order is significant
+        ///
+        /// But there is an important caveat to this mode. It becomes your responsibility
+        /// to ensure that the polling order of your futures is fair. If for example you
+        /// are selecting between a stream and a shutdown future, and the stream has a
+        /// huge volume of messages and zero or nearly zero time between them, you should
+        /// place the shutdown future earlier in the `select!` list to ensure that it is
+        /// always polled, and will not be ignored due to the stream being constantly
+        /// ready.
+        ///
+        /// # Panics
+        ///
+        /// The `select!` macro panics if all branches are disabled **and** there is no
+        /// provided `else` branch. A branch is disabled when the provided `if`
+        /// precondition returns `false` **or** when the pattern does not match the
+        /// result of `&lt;async expression&gt;`.
+        ///
+        /// # Cancellation safety
+        ///
+        /// When using `select!` in a loop to receive messages from multiple sources,
+        /// you should make sure that the receive call is cancellation safe to avoid
+        /// losing messages. This section goes through various common methods and
+        /// describes whether they are cancel safe.  The lists in this section are not
+        /// exhaustive.
+        ///
+        /// The following methods are cancellation safe:
+        ///
+        ///  * [`tokio::sync::mpsc::Receiver::recv`](crate::sync::mpsc::Receiver::recv)
+        ///  * [`tokio::sync::mpsc::UnboundedReceiver::recv`](crate::sync::mpsc::UnboundedReceiver::recv)
+        ///  * [`tokio::sync::broadcast::Receiver::recv`](crate::sync::broadcast::Receiver::recv)
+        ///  * [`tokio::sync::watch::Receiver::changed`](crate::sync::watch::Receiver::changed)
+        ///  * [`tokio::net::TcpListener::accept`](crate::net::TcpListener::accept)
+        ///  * [`tokio::net::UnixListener::accept`](crate::net::UnixListener::accept)
+        ///  * [`tokio::signal::unix::Signal::recv`](crate::signal::unix::Signal::recv)
+        ///  * [`tokio::io::AsyncReadExt::read`](crate::io::AsyncReadExt::read) on any `AsyncRead`
+        ///  * [`tokio::io::AsyncReadExt::read_buf`](crate::io::AsyncReadExt::read_buf) on any `AsyncRead`
+        ///  * [`tokio::io::AsyncWriteExt::write`](crate::io::AsyncWriteExt::write) on any `AsyncWrite`
+        ///  * [`tokio::io::AsyncWriteExt::write_buf`](crate::io::AsyncWriteExt::write_buf) on any `AsyncWrite`
+        ///  * [`tokio_stream::StreamExt::next`](https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.next) on any `Stream`
+        ///  * [`futures::stream::StreamExt::next`](https://docs.rs/futures/0.3/futures/stream/trait.StreamExt.html#method.next) on any `Stream`
+        ///
+        /// The following methods are not cancellation safe and can lead to loss of data:
+        ///
+        ///  * [`tokio::io::AsyncReadExt::read_exact`](crate::io::AsyncReadExt::read_exact)
+        ///  * [`tokio::io::AsyncReadExt::read_to_end`](crate::io::AsyncReadExt::read_to_end)
+        ///  * [`tokio::io::AsyncReadExt::read_to_string`](crate::io::AsyncReadExt::read_to_string)
+        ///  * [`tokio::io::AsyncWriteExt::write_all`](crate::io::AsyncWriteExt::write_all)
+        ///
+        /// The following methods are not cancellation safe because they use a queue for
+        /// fairness and cancellation makes you lose your place in the queue:
+        ///
+        ///  * [`tokio::sync::Mutex::lock`](crate::sync::Mutex::lock)
+        ///  * [`tokio::sync::RwLock::read`](crate::sync::RwLock::read)
+        ///  * [`tokio::sync::RwLock::write`](crate::sync::RwLock::write)
+        ///  * [`tokio::sync::Semaphore::acquire`](crate::sync::Semaphore::acquire)
+        ///  * [`tokio::sync::Notify::notified`](crate::sync::Notify::notified)
+        ///
+        /// To determine whether your own methods are cancellation safe, look for the
+        /// location of uses of `.await`. This is because when an asynchronous method is
+        /// cancelled, that always happens at an `.await`. If your function behaves
+        /// correctly even if it is restarted while waiting at an `.await`, then it is
+        /// cancellation safe.
+        ///
+        /// Cancellation safety can be defined in the following way: If you have a
+        /// future that has not yet completed, then it must be a no-op to drop that
+        /// future and recreate it. This definition is motivated by the situation where
+        /// a `select!` is used in a loop. Without this guarantee, you would lose your
+        /// progress when another branch completes and you restart the `select!` by
+        /// going around the loop.
+        ///
+        /// Be aware that cancelling something that is not cancellation safe is not
+        /// necessarily wrong. For example, if you are cancelling a task because the
+        /// application is shutting down, then you probably don't care that partially
+        /// read data is lost.
+        ///
+        /// # Examples
+        ///
+        /// Basic select with two branches.
+        ///
+        /// ```
+        /// async fn do_stuff_async() {
+        ///     // async work
+        /// }
+        ///
+        /// async fn more_async_work() {
+        ///     // more here
+        /// }
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     tokio::select! {
+        ///         _ = do_stuff_async() =&gt; {
+        ///             println!("do_stuff_async() completed first")
+        ///         }
+        ///         _ = more_async_work() =&gt; {
+        ///             println!("more_async_work() completed first")
+        ///         }
+        ///     };
+        /// }
+        /// ```
+        ///
+        /// Basic stream selecting.
+        ///
+        /// ```
+        /// use tokio_stream::{self as stream, StreamExt};
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let mut stream1 = stream::iter(vec![1, 2, 3]);
+        ///     let mut stream2 = stream::iter(vec![4, 5, 6]);
+        ///
+        ///     let next = tokio::select! {
+        ///         v = stream1.next() =&gt; v.unwrap(),
+        ///         v = stream2.next() =&gt; v.unwrap(),
+        ///     };
+        ///
+        ///     assert!(next == 1 || next == 4);
+        /// }
+        /// ```
+        ///
+        /// Collect the contents of two streams. In this example, we rely on pattern
+        /// matching and the fact that `stream::iter` is "fused", i.e. once the stream
+        /// is complete, all calls to `next()` return `None`.
+        ///
+        /// ```
+        /// use tokio_stream::{self as stream, StreamExt};
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let mut stream1 = stream::iter(vec![1, 2, 3]);
+        ///     let mut stream2 = stream::iter(vec![4, 5, 6]);
+        ///
+        ///     let mut values = vec![];
+        ///
+        ///     loop {
+        ///         tokio::select! {
+        ///             Some(v) = stream1.next() =&gt; values.push(v),
+        ///             Some(v) = stream2.next() =&gt; values.push(v),
+        ///             else =&gt; break,
+        ///         }
+        ///     }
+        ///
+        ///     values.sort();
+        ///     assert_eq!(&amp;[1, 2, 3, 4, 5, 6], &amp;values[..]);
+        /// }
+        /// ```
+        ///
+        /// Using the same future in multiple `select!` expressions can be done by passing
+        /// a reference to the future. Doing so requires the future to be [`Unpin`]. A
+        /// future can be made [`Unpin`] by either using [`Box::pin`] or stack pinning.
+        ///
+        /// [`Unpin`]: std::marker::Unpin
+        /// [`Box::pin`]: std::boxed::Box::pin
+        ///
+        /// Here, a stream is consumed for at most 1 second.
+        ///
+        /// ```
+        /// use tokio_stream::{self as stream, StreamExt};
+        /// use tokio::time::{self, Duration};
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let mut stream = stream::iter(vec![1, 2, 3]);
+        ///     let sleep = time::sleep(Duration::from_secs(1));
+        ///     tokio::pin!(sleep);
+        ///
+        ///     loop {
+        ///         tokio::select! {
+        ///             maybe_v = stream.next() =&gt; {
+        ///                 if let Some(v) = maybe_v {
+        ///                     println!("got = {}", v);
+        ///                 } else {
+        ///                     break;
+        ///                 }
+        ///             }
+        ///             _ = &amp;mut sleep =&gt; {
+        ///                 println!("timeout");
+        ///                 break;
+        ///             }
+        ///         }
+        ///     }
+        /// }
+        /// ```
+        ///
+        /// Joining two values using `select!`.
+        ///
+        /// ```
+        /// use tokio::sync::oneshot;
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let (tx1, mut rx1) = oneshot::channel();
+        ///     let (tx2, mut rx2) = oneshot::channel();
+        ///
+        ///     tokio::spawn(async move {
+        ///         tx1.send("first").unwrap();
+        ///     });
+        ///
+        ///     tokio::spawn(async move {
+        ///         tx2.send("second").unwrap();
+        ///     });
+        ///
+        ///     let mut a = None;
+        ///     let mut b = None;
+        ///
+        ///     while a.is_none() || b.is_none() {
+        ///         tokio::select! {
+        ///             v1 = (&amp;mut rx1), if a.is_none() =&gt; a = Some(v1.unwrap()),
+        ///             v2 = (&amp;mut rx2), if b.is_none() =&gt; b = Some(v2.unwrap()),
+        ///         }
+        ///     }
+        ///
+        ///     let res = (a.unwrap(), b.unwrap());
+        ///
+        ///     assert_eq!(res.0, "first");
+        ///     assert_eq!(res.1, "second");
+        /// }
+        /// ```
+        ///
+        /// Using the `biased;` mode to control polling order.
+        ///
+        /// ```
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let mut count = 0u8;
+        ///
+        ///     loop {
+        ///         tokio::select! {
+        ///             // If you run this example without `biased;`, the polling order is
+        ///             // pseudo-random, and the assertions on the value of count will
+        ///             // (probably) fail.
+        ///             biased;
+        ///
+        ///             _ = async {}, if count &lt; 1 =&gt; {
+        ///                 count += 1;
+        ///                 assert_eq!(count, 1);
+        ///             }
+        ///             _ = async {}, if count &lt; 2 =&gt; {
+        ///                 count += 1;
+        ///                 assert_eq!(count, 2);
+        ///             }
+        ///             _ = async {}, if count &lt; 3 =&gt; {
+        ///                 count += 1;
+        ///                 assert_eq!(count, 3);
+        ///             }
+        ///             _ = async {}, if count &lt; 4 =&gt; {
+        ///                 count += 1;
+        ///                 assert_eq!(count, 4);
+        ///             }
+        ///
+        ///             else =&gt; {
+        ///                 break;
+        ///             }
+        ///         };
+        ///     }
+        /// }
+        /// ```
+        ///
+        /// ## Avoid racy `if` preconditions
+        ///
+        /// Given that `if` preconditions are used to disable `select!` branches, some
+        /// caution must be used to avoid missing values.
+        ///
+        /// For example, here is **incorrect** usage of `sleep` with `if`. The objective
+        /// is to repeatedly run an asynchronous task for up to 50 milliseconds.
+        /// However, there is a potential for the `sleep` completion to be missed.
+        ///
+        /// ```no_run,should_panic
+        /// use tokio::time::{self, Duration};
+        ///
+        /// async fn some_async_work() {
+        ///     // do work
+        /// }
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let sleep = time::sleep(Duration::from_millis(50));
+        ///     tokio::pin!(sleep);
+        ///
+        ///     while !sleep.is_elapsed() {
+        ///         tokio::select! {
+        ///             _ = &amp;mut sleep, if !sleep.is_elapsed() =&gt; {
+        ///                 println!("operation timed out");
+        ///             }
+        ///             _ = some_async_work() =&gt; {
+        ///                 println!("operation completed");
+        ///             }
+        ///         }
+        ///     }
+        ///
+        ///     panic!("This example shows how not to do it!");
+        /// }
+        /// ```
+        ///
+        /// In the above example, `sleep.is_elapsed()` may return `true` even if
+        /// `sleep.poll()` never returned `Ready`. This opens up a potential race
+        /// condition where `sleep` expires between the `while !sleep.is_elapsed()`
+        /// check and the call to `select!` resulting in the `some_async_work()` call to
+        /// run uninterrupted despite the sleep having elapsed.
+        ///
+        /// One way to write the above example without the race would be:
+        ///
+        /// ```
+        /// use tokio::time::{self, Duration};
+        ///
+        /// async fn some_async_work() {
+        /// # time::sleep(Duration::from_millis(10)).await;
+        ///     // do work
+        /// }
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let sleep = time::sleep(Duration::from_millis(50));
+        ///     tokio::pin!(sleep);
+        ///
+        ///     loop {
+        ///         tokio::select! {
+        ///             _ = &amp;mut sleep =&gt; {
+        ///                 println!("operation timed out");
+        ///                 break;
+        ///             }
+        ///             _ = some_async_work() =&gt; {
+        ///                 println!("operation completed");
+        ///             }
+        ///         }
+        ///     }
+        /// }
+        /// ```
+        </span><span class="attr">#[macro_export]
+        #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"macros"</span>)))]
+        </span><span class="macro-nonterminal">$select
+    </span>};
+}
+
+<span class="attr">#[cfg(doc)]
+</span><span class="macro">doc!</span> {<span class="macro">macro_rules!</span> select {
+    {
+        $(
+            biased;
+        )<span class="question-mark">?
+        </span>$(
+            <span class="macro-nonterminal">$bind</span>:pat = <span class="macro-nonterminal">$fut</span>:expr $(, <span class="kw">if </span><span class="macro-nonterminal">$cond</span>:expr)<span class="question-mark">? </span>=&gt; <span class="macro-nonterminal">$handler</span>:expr,
+        )*
+        $(
+            <span class="kw">else </span>=&gt; <span class="macro-nonterminal">$els</span>:expr $(,)<span class="question-mark">?
+        </span>)<span class="question-mark">?
+    </span>} =&gt; {
+        <span class="macro">unimplemented!</span>()
+    };
+}}
+
+<span class="attr">#[cfg(not(doc))]
+</span><span class="macro">doc!</span> {<span class="macro">macro_rules!</span> select {
     <span class="comment">// Uses a declarative macro to do **most** of the work. While it is possible
     // to implement fully with a declarative macro, a procedural macro is used
     // to enable improved error messages.
@@ -1490,13 +1750,22 @@
         <span class="comment">// Create a scope to separate polling from handling the output. This
         // adds borrow checker flexibility when using the macro.
         </span><span class="kw">let </span><span class="kw-2">mut </span>output = {
+            <span class="comment">// Store each future directly first (that is, without wrapping the future in a call to
+            // `IntoFuture::into_future`). This allows the `$fut` expression to make use of
+            // temporary lifetime extension.
+            //
+            // https://doc.rust-lang.org/1.58.1/reference/destructors.html#temporary-lifetime-extension
+            </span><span class="kw">let </span>futures_init = ($( <span class="macro-nonterminal">$fut</span>, )+);
+
             <span class="comment">// Safety: Nothing must be moved out of `futures`. This is to
             // satisfy the requirement of `Pin::new_unchecked` called below.
             //
             // We can't use the `pin!` macro for this because `futures` is a
             // tuple and the standard library provides no way to pin-project to
             // the fields of a tuple.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>futures = ( $( <span class="macro-nonterminal">$fut </span>, )+ );
+            </span><span class="kw">let </span><span class="kw-2">mut </span>futures = ($( <span class="macro-nonterminal">$crate::macros::support::IntoFuture::into_future</span>(
+                        <span class="macro-nonterminal">$</span><span class="macro">crate::count_field!</span>( <span class="macro-nonterminal">futures_init</span>.$(<span class="macro-nonterminal">$skip</span>)* )
+            ),)+);
 
             <span class="comment">// This assignment makes sure that the `poll_fn` closure only has a
             // reference to the futures, instead of taking ownership of them.
@@ -1633,7 +1902,11 @@
 
     <span class="comment">// ===== Entry point =====
 
-    </span>(biased; <span class="macro-nonterminal">$p</span>:pat = $(<span class="macro-nonterminal">$t</span>:tt)* ) =&gt; {
+    </span>($(biased;)<span class="question-mark">? </span><span class="kw">else </span>=&gt; <span class="macro-nonterminal">$</span><span class="kw">else</span>:<span class="macro-nonterminal">expr </span>$(,)<span class="question-mark">? </span>) =&gt; {{
+        <span class="macro-nonterminal">$</span><span class="kw">else
+    </span>}};
+
+    (<span class="macro-nonterminal">biased</span>; <span class="macro-nonterminal">$p</span>:pat = $(<span class="macro-nonterminal">$t</span>:tt)* ) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::select!</span>(@{ <span class="macro-nonterminal">start</span>=<span class="number">0</span>; () } <span class="macro-nonterminal">$p </span>= $(<span class="macro-nonterminal">$t</span>)<span class="kw-2">*</span>)
     };
 
@@ -1642,17 +1915,18 @@
         // fair and avoids always polling the first future.
         </span><span class="macro-nonterminal">$</span><span class="macro">crate::select!</span>(@{ <span class="macro-nonterminal">start</span>={ <span class="macro-nonterminal">$crate::macros::support::thread_rng_n</span>(BRANCHES) }; () } <span class="macro-nonterminal">$p </span>= $(<span class="macro-nonterminal">$t</span>)<span class="kw-2">*</span>)
     };
+
     () =&gt; {
         <span class="macro">compile_error!</span>(<span class="string">"select! requires at least one branch."</span>)
     };
-}
+}}
 
 <span class="comment">// And here... we manually list out matches for up to 64 branches... I'm not
 // happy about it either, but this is how we manage to use a declarative macro!
 
 </span><span class="attr">#[macro_export]
 #[doc(hidden)]
-</span><span class="macro">macro_rules! </span>count {
+</span><span class="macro">macro_rules!</span> count {
     () =&gt; {
         <span class="number">0
     </span>};
@@ -1852,7 +2126,207 @@
 
 <span class="attr">#[macro_export]
 #[doc(hidden)]
-</span><span class="macro">macro_rules! </span>select_variant {
+</span><span class="macro">macro_rules!</span> count_field {
+    (<span class="macro-nonterminal">$var</span>:ident. ) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">0
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">1
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">2
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">3
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">4
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">5
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">6
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">7
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">8
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">9
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">10
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">11
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">12
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">13
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">14
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">15
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">16
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">17
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">18
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">19
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">20
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">21
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">22
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">23
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">24
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">25
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">26
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">27
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">28
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">29
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">30
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">31
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">32
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">33
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">34
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">35
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">36
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">37
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">38
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">39
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">40
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">41
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">42
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">43
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">44
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">45
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">46
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">47
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">48
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">49
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">50
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">51
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">52
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">53
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">54
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">55
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">56
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">57
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">58
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">59
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">60
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">61
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">62
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">63
+    </span>};
+    (<span class="macro-nonterminal">$var</span>:ident. <span class="kw">_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _</span>) =&gt; {
+        <span class="macro-nonterminal">$var</span>.<span class="number">64
+    </span>};
+}
+
+<span class="attr">#[macro_export]
+#[doc(hidden)]
+</span><span class="macro">macro_rules!</span> select_variant {
     ($(<span class="macro-nonterminal">$p</span>:ident)::<span class="kw-2">*</span>, () $(<span class="macro-nonterminal">$t</span>:tt)<span class="kw-2">*</span>) =&gt; {
         $(<span class="macro-nonterminal">$p</span>)::<span class="kw-2">*</span>::_0 $(<span class="macro-nonterminal">$t</span>)*
     };

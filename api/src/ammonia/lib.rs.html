@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/ammonia-3.3.0/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ammonia" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../ammonia/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/ammonia-4.0.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ammonia" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3822,6 +3820,13 @@
 <a href="#3820" id="3820">3820</a>
 <a href="#3821" id="3821">3821</a>
 <a href="#3822" id="3822">3822</a>
+<a href="#3823" id="3823">3823</a>
+<a href="#3824" id="3824">3824</a>
+<a href="#3825" id="3825">3825</a>
+<a href="#3826" id="3826">3826</a>
+<a href="#3827" id="3827">3827</a>
+<a href="#3828" id="3828">3828</a>
+<a href="#3829" id="3829">3829</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Michael Howell and others
 // this library is released under the same terms as Rust itself.
 
@@ -3851,7 +3856,6 @@
 //! [html5ever]: https://github.com/servo/html5ever "The HTML parser in Servo"
 //! [pulldown-cmark]: https://github.com/google/pulldown-cmark "CommonMark parser"
 
-
 </span><span class="attr">#[cfg(ammonia_unstable)]
 </span><span class="kw">pub mod </span>rcdom;
 
@@ -3868,7 +3872,7 @@
 <span class="kw">use </span>std::borrow::{Borrow, Cow};
 <span class="kw">use </span>std::cmp::max;
 <span class="kw">use </span>std::collections::{HashMap, HashSet};
-<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Display};
 <span class="kw">use </span>std::io;
 <span class="kw">use </span>std::iter::IntoIterator <span class="kw">as </span>IntoIter;
 <span class="kw">use </span>std::mem;
@@ -4001,7 +4005,7 @@
     <span class="kw">let </span>santok = SanitizationTokenizer::new();
     <span class="kw">let </span><span class="kw-2">mut </span>chunk = ByteTendril::new();
     chunk.push_slice(input.as_bytes());
-    <span class="kw">let </span><span class="kw-2">mut </span>input = BufferQueue::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>input = BufferQueue::default();
     input.push_back(chunk.try_reinterpret().unwrap());
 
     <span class="kw">let </span><span class="kw-2">mut </span>tok = Tokenizer::new(santok, Default::default());
@@ -4184,7 +4188,7 @@
     set_tag_attribute_values: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;&gt;,
     generic_attributes: HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;,
     url_schemes: HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;,
-    url_relative: UrlRelative,
+    url_relative: UrlRelative&lt;<span class="lifetime">'a</span>&gt;,
     attribute_filter: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>AttributeFilter&gt;&gt;,
     link_rel: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;,
     allowed_classes: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;&gt;,
@@ -4202,7 +4206,7 @@
             <span class="string">"col"</span>, <span class="string">"colgroup"</span>, <span class="string">"data"</span>, <span class="string">"dd"</span>, <span class="string">"del"</span>, <span class="string">"details"</span>, <span class="string">"dfn"</span>, <span class="string">"div"</span>,
             <span class="string">"dl"</span>, <span class="string">"dt"</span>, <span class="string">"em"</span>, <span class="string">"figcaption"</span>, <span class="string">"figure"</span>, <span class="string">"footer"</span>, <span class="string">"h1"</span>, <span class="string">"h2"</span>,
             <span class="string">"h3"</span>, <span class="string">"h4"</span>, <span class="string">"h5"</span>, <span class="string">"h6"</span>, <span class="string">"header"</span>, <span class="string">"hgroup"</span>, <span class="string">"hr"</span>, <span class="string">"i"</span>, <span class="string">"img"</span>,
-            <span class="string">"ins"</span>, <span class="string">"kbd"</span>, <span class="string">"kbd"</span>, <span class="string">"li"</span>, <span class="string">"map"</span>, <span class="string">"mark"</span>, <span class="string">"nav"</span>, <span class="string">"ol"</span>, <span class="string">"p"</span>, <span class="string">"pre"</span>,
+            <span class="string">"ins"</span>, <span class="string">"kbd"</span>, <span class="string">"li"</span>, <span class="string">"map"</span>, <span class="string">"mark"</span>, <span class="string">"nav"</span>, <span class="string">"ol"</span>, <span class="string">"p"</span>, <span class="string">"pre"</span>,
             <span class="string">"q"</span>, <span class="string">"rp"</span>, <span class="string">"rt"</span>, <span class="string">"rtc"</span>, <span class="string">"ruby"</span>, <span class="string">"s"</span>, <span class="string">"samp"</span>, <span class="string">"small"</span>, <span class="string">"span"</span>,
             <span class="string">"strike"</span>, <span class="string">"strong"</span>, <span class="string">"sub"</span>, <span class="string">"summary"</span>, <span class="string">"sup"</span>, <span class="string">"table"</span>, <span class="string">"tbody"</span>,
             <span class="string">"td"</span>, <span class="string">"th"</span>, <span class="string">"thead"</span>, <span class="string">"time"</span>, <span class="string">"tr"</span>, <span class="string">"tt"</span>, <span class="string">"u"</span>, <span class="string">"ul"</span>, <span class="string">"var"</span>, <span class="string">"wbr"
@@ -4340,7 +4344,7 @@
     /// col, colgroup, data, dd, del, details, dfn, div,
     /// dl, dt, em, figcaption, figure, footer, h1, h2,
     /// h3, h4, h5, h6, header, hgroup, hr, i, img,
-    /// ins, kbd, kbd, li, map, mark, nav, ol, p, pre,
+    /// ins, kbd, li, map, mark, nav, ol, p, pre,
     /// q, rp, rt, rtc, ruby, s, samp, small, span,
     /// strike, strong, sub, summary, sup, table, tbody,
     /// td, th, thead, time, tr, tt, u, ul, var, wbr
@@ -4581,7 +4585,7 @@
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.tag_attributes
             .entry(tag.borrow())
-            .or_insert_with(HashSet::new)
+            .or_default()
             .extend(it.into_iter().map(Borrow::borrow));
         <span class="self">self
     </span>}
@@ -4689,9 +4693,9 @@
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.tag_attribute_values
             .entry(tag.borrow())
-            .or_insert_with(HashMap::new)
+            .or_default()
             .entry(attribute.borrow())
-            .or_insert_with(HashSet::new)
+            .or_default()
             .extend(it.into_iter().map(Borrow::borrow));
 
         <span class="self">self
@@ -4814,7 +4818,7 @@
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.set_tag_attribute_values
             .entry(tag.borrow())
-            .or_insert_with(HashMap::new)
+            .or_default()
             .insert(attribute.borrow(), value.borrow());
         <span class="self">self
     </span>}
@@ -5162,7 +5166,7 @@
     /// ```notest
     /// UrlRelative::PassThrough
     /// ```
-    </span><span class="kw">pub fn </span>url_relative(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: UrlRelative) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>url_relative(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: UrlRelative&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.url_relative = value;
         <span class="self">self
     </span>}
@@ -5360,7 +5364,7 @@
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.allowed_classes
             .entry(tag.borrow())
-            .or_insert_with(HashSet::new)
+            .or_default()
             .extend(it.into_iter().map(Borrow::borrow));
         <span class="self">self
     </span>}
@@ -5482,7 +5486,7 @@
     ///     use ammonia::{Builder, Url, UrlRelative};
     ///     # use std::error::Error;
     ///
-    ///     # fn do_main() -&gt; Result&lt;(), Box&lt;Error&gt;&gt; {
+    ///     # fn do_main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     ///     let input = "&lt;!-- comments will be stripped --&gt;This is an &lt;a href=.&gt;Ammonia&lt;/a&gt; example using &lt;a href=struct.Builder.html#method.new onclick=xss&gt;the &lt;code onmouseover=xss&gt;new()&lt;/code&gt; function&lt;/a&gt;.";
     ///     let output = "This is an &lt;a href=\"https://docs.rs/ammonia/1.0/ammonia/\" rel=\"noopener noreferrer\"&gt;Ammonia&lt;/a&gt; example using &lt;a href=\"https://docs.rs/ammonia/1.0/ammonia/struct.Builder.html#method.new\" rel=\"noopener noreferrer\"&gt;the &lt;code&gt;new()&lt;/code&gt; function&lt;/a&gt;.";
     ///
@@ -5508,7 +5512,7 @@
     ///     use ammonia::{Builder, Url, UrlRelative};
     ///     # use std::error::Error;
     ///
-    ///     # fn do_main() -&gt; Result&lt;(), Box&lt;Error&gt;&gt; {
+    ///     # fn do_main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     ///     let input = "&lt;!-- comments will be stripped --&gt;This is an &lt;a href=.&gt;Ammonia&lt;/a&gt; example using &lt;a href=struct.Builder.html#method.new onclick=xss&gt;the &lt;code onmouseover=xss&gt;empty()&lt;/code&gt; function&lt;/a&gt;.";
     ///     let output = "This is an Ammonia example using the empty() function.";
     ///
@@ -5537,7 +5541,7 @@
     ///     use ammonia::{Builder, Url, UrlRelative};
     ///     # use std::error::Error;
     ///
-    ///     # fn do_main() -&gt; Result&lt;(), Box&lt;Error&gt;&gt; {
+    ///     # fn do_main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     ///     let input = "&lt;!-- comments will be stripped --&gt;This is an &lt;a href=.&gt;Ammonia&lt;/a&gt; example using &lt;a href=struct.Builder.html#method.new onclick=xss&gt;the &lt;code onmouseover=xss&gt;new()&lt;/code&gt; function&lt;/a&gt;.";
     ///     let output = "This is an &lt;a href=\"https://docs.rs/ammonia/1.0/ammonia/\" rel=\"noopener noreferrer\"&gt;Ammonia&lt;/a&gt; example using &lt;a href=\"https://docs.rs/ammonia/1.0/ammonia/struct.Builder.html#method.new\" rel=\"noopener noreferrer\"&gt;the &lt;code&gt;new()&lt;/code&gt; function&lt;/a&gt;.";
     ///
@@ -5567,7 +5571,7 @@
     ///     use ammonia::Builder;
     ///     # use std::error::Error;
     ///
-    ///     # fn do_main() -&gt; Result&lt;(), Box&lt;Error&gt;&gt; {
+    ///     # fn do_main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     ///     let a = Builder::new()
     ///         .clean_from_reader(&amp;b"&lt;!-- no --&gt;"[..])? // notice the `b`
     ///         .to_string();
@@ -5721,8 +5725,8 @@
                             // Banned classes will be filtered later.
                             </span><span class="kw-2">&amp;*</span>attr.name.local == <span class="string">"class"
                                 </span>&amp;&amp; <span class="self">self</span>.allowed_classes.contains_key(<span class="kw-2">&amp;*</span>name.local)
-                        } <span class="kw">else if </span>is_url_attr(<span class="kw-2">&amp;*</span>name.local, <span class="kw-2">&amp;*</span>attr.name.local) {
-                            <span class="kw">let </span>url = Url::parse(<span class="kw-2">&amp;*</span>attr.value);
+                        } <span class="kw">else if </span>is_url_attr(<span class="kw-2">&amp;</span>name.local, <span class="kw-2">&amp;</span>attr.name.local) {
+                            <span class="kw">let </span>url = Url::parse(<span class="kw-2">&amp;</span>attr.value);
                             <span class="kw">if let </span><span class="prelude-val">Ok</span>(url) = url {
                                 <span class="self">self</span>.url_schemes.contains(url.scheme())
                             } <span class="kw">else if </span>url == <span class="prelude-val">Err</span>(url::ParseError::RelativeUrlWithoutBase) {
@@ -5851,11 +5855,11 @@
             <span class="comment">// https://html.spec.whatwg.org/#svg-0
             </span><span class="macro">matches!</span>(<span class="kw-2">&amp;*</span>parent.local, <span class="string">"foreignObject"</span>)
         } <span class="kw">else if </span>child.ns == <span class="macro">ns!</span>(svg) {
-            is_svg_tag(<span class="kw-2">&amp;*</span>child.local)
+            is_svg_tag(<span class="kw-2">&amp;</span>child.local)
         } <span class="kw">else if </span>child.ns == <span class="macro">ns!</span>(mathml) {
-            is_mathml_tag(<span class="kw-2">&amp;*</span>child.local)
+            is_mathml_tag(<span class="kw-2">&amp;</span>child.local)
         } <span class="kw">else if </span>child.ns == <span class="macro">ns!</span>(html) {
-            (!is_svg_tag(<span class="kw-2">&amp;*</span>child.local) &amp;&amp; !is_mathml_tag(<span class="kw-2">&amp;*</span>child.local))
+            (!is_svg_tag(<span class="kw-2">&amp;</span>child.local) &amp;&amp; !is_mathml_tag(<span class="kw-2">&amp;</span>child.local))
                 || <span class="macro">matches!</span>(
                     <span class="kw-2">&amp;*</span>child.local,
                     <span class="string">"title" </span>| <span class="string">"style" </span>| <span class="string">"font" </span>| <span class="string">"a" </span>| <span class="string">"script" </span>| <span class="string">"span"
@@ -5924,7 +5928,7 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>attrs = attrs.borrow_mut();
                 <span class="kw">for </span>(i, attr) <span class="kw">in </span><span class="kw-2">&amp;mut </span>attrs.iter_mut().enumerate() {
                     <span class="kw">let </span>replace_with = <span class="kw">if let </span><span class="prelude-val">Some</span>(new) =
-                        attr_filter.filter(<span class="kw-2">&amp;*</span>name.local, <span class="kw-2">&amp;*</span>attr.name.local, <span class="kw-2">&amp;*</span>attr.value)
+                        attr_filter.filter(<span class="kw-2">&amp;</span>name.local, <span class="kw-2">&amp;</span>attr.name.local, <span class="kw-2">&amp;</span>attr.value)
                     {
                         <span class="kw">if </span><span class="kw-2">*</span>new != <span class="kw-2">*</span>attr.value {
                             <span class="prelude-val">Some</span>(<span class="macro">format_tendril!</span>(<span class="string">"{}"</span>, new))
@@ -5947,9 +5951,8 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>drop_attrs = Vec::new();
                 <span class="kw">let </span><span class="kw-2">mut </span>attrs = attrs.borrow_mut();
                 <span class="kw">for </span>(i, attr) <span class="kw">in </span>attrs.iter_mut().enumerate() {
-                    <span class="kw">if </span>is_url_attr(<span class="kw-2">&amp;*</span>name.local, <span class="kw-2">&amp;*</span>attr.name.local) &amp;&amp; is_url_relative(<span class="kw-2">&amp;*</span>attr.value)
-                    {
-                        <span class="kw">let </span>new_value = <span class="self">self</span>.url_relative.evaluate(<span class="kw-2">&amp;*</span>attr.value);
+                    <span class="kw">if </span>is_url_attr(<span class="kw-2">&amp;</span>name.local, <span class="kw-2">&amp;</span>attr.name.local) &amp;&amp; is_url_relative(<span class="kw-2">&amp;</span>attr.value) {
+                        <span class="kw">let </span>new_value = <span class="self">self</span>.url_relative.evaluate(<span class="kw-2">&amp;</span>attr.value);
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(new_value) = new_value {
                             attr.value = new_value;
                         } <span class="kw">else </span>{
@@ -6013,271 +6016,271 @@
     <span class="comment">// https://svgwg.org/svg2-draft/eltindex.html
     </span><span class="macro">matches!</span>(
         element,
-        <span class="string">"a"
-        </span>| <span class="string">"animate"
-        </span>| <span class="string">"animateMotion"
-        </span>| <span class="string">"animateTransform"
-        </span>| <span class="string">"circle"
-        </span>| <span class="string">"clipPath"
-        </span>| <span class="string">"defs"
-        </span>| <span class="string">"desc"
-        </span>| <span class="string">"discard"
-        </span>| <span class="string">"ellipse"
-        </span>| <span class="string">"feBlend"
-        </span>| <span class="string">"feColorMatrix"
-        </span>| <span class="string">"feComponentTransfer"
-        </span>| <span class="string">"feComposite"
-        </span>| <span class="string">"feConvolveMatrix"
-        </span>| <span class="string">"feDiffuseLighting"
-        </span>| <span class="string">"feDisplacementMap"
-        </span>| <span class="string">"feDistantLight"
-        </span>| <span class="string">"feDropShadow"
-        </span>| <span class="string">"feFlood"
-        </span>| <span class="string">"feFuncA"
-        </span>| <span class="string">"feFuncB"
-        </span>| <span class="string">"feFuncG"
-        </span>| <span class="string">"feFuncR"
-        </span>| <span class="string">"feGaussianBlur"
-        </span>| <span class="string">"feImage"
-        </span>| <span class="string">"feMerge"
-        </span>| <span class="string">"feMergeNode"
-        </span>| <span class="string">"feMorphology"
-        </span>| <span class="string">"feOffset"
-        </span>| <span class="string">"fePointLight"
-        </span>| <span class="string">"feSpecularLighting"
-        </span>| <span class="string">"feSpotLight"
-        </span>| <span class="string">"feTile"
-        </span>| <span class="string">"feTurbulence"
-        </span>| <span class="string">"filter"
-        </span>| <span class="string">"foreignObject"
-        </span>| <span class="string">"g"
-        </span>| <span class="string">"image"
-        </span>| <span class="string">"line"
-        </span>| <span class="string">"linearGradient"
-        </span>| <span class="string">"marker"
-        </span>| <span class="string">"mask"
-        </span>| <span class="string">"metadata"
-        </span>| <span class="string">"mpath"
-        </span>| <span class="string">"path"
-        </span>| <span class="string">"pattern"
-        </span>| <span class="string">"polygon"
-        </span>| <span class="string">"polyline"
-        </span>| <span class="string">"radialGradient"
-        </span>| <span class="string">"rect"
-        </span>| <span class="string">"script"
-        </span>| <span class="string">"set"
-        </span>| <span class="string">"stop"
-        </span>| <span class="string">"style"
-        </span>| <span class="string">"svg"
-        </span>| <span class="string">"switch"
-        </span>| <span class="string">"symbol"
-        </span>| <span class="string">"text"
-        </span>| <span class="string">"textPath"
-        </span>| <span class="string">"title"
-        </span>| <span class="string">"tspan"
-        </span>| <span class="string">"use"
-        </span>| <span class="string">"view"
+        <span class="string">"a" </span>| <span class="string">"animate"
+            </span>| <span class="string">"animateMotion"
+            </span>| <span class="string">"animateTransform"
+            </span>| <span class="string">"circle"
+            </span>| <span class="string">"clipPath"
+            </span>| <span class="string">"defs"
+            </span>| <span class="string">"desc"
+            </span>| <span class="string">"discard"
+            </span>| <span class="string">"ellipse"
+            </span>| <span class="string">"feBlend"
+            </span>| <span class="string">"feColorMatrix"
+            </span>| <span class="string">"feComponentTransfer"
+            </span>| <span class="string">"feComposite"
+            </span>| <span class="string">"feConvolveMatrix"
+            </span>| <span class="string">"feDiffuseLighting"
+            </span>| <span class="string">"feDisplacementMap"
+            </span>| <span class="string">"feDistantLight"
+            </span>| <span class="string">"feDropShadow"
+            </span>| <span class="string">"feFlood"
+            </span>| <span class="string">"feFuncA"
+            </span>| <span class="string">"feFuncB"
+            </span>| <span class="string">"feFuncG"
+            </span>| <span class="string">"feFuncR"
+            </span>| <span class="string">"feGaussianBlur"
+            </span>| <span class="string">"feImage"
+            </span>| <span class="string">"feMerge"
+            </span>| <span class="string">"feMergeNode"
+            </span>| <span class="string">"feMorphology"
+            </span>| <span class="string">"feOffset"
+            </span>| <span class="string">"fePointLight"
+            </span>| <span class="string">"feSpecularLighting"
+            </span>| <span class="string">"feSpotLight"
+            </span>| <span class="string">"feTile"
+            </span>| <span class="string">"feTurbulence"
+            </span>| <span class="string">"filter"
+            </span>| <span class="string">"foreignObject"
+            </span>| <span class="string">"g"
+            </span>| <span class="string">"image"
+            </span>| <span class="string">"line"
+            </span>| <span class="string">"linearGradient"
+            </span>| <span class="string">"marker"
+            </span>| <span class="string">"mask"
+            </span>| <span class="string">"metadata"
+            </span>| <span class="string">"mpath"
+            </span>| <span class="string">"path"
+            </span>| <span class="string">"pattern"
+            </span>| <span class="string">"polygon"
+            </span>| <span class="string">"polyline"
+            </span>| <span class="string">"radialGradient"
+            </span>| <span class="string">"rect"
+            </span>| <span class="string">"script"
+            </span>| <span class="string">"set"
+            </span>| <span class="string">"stop"
+            </span>| <span class="string">"style"
+            </span>| <span class="string">"svg"
+            </span>| <span class="string">"switch"
+            </span>| <span class="string">"symbol"
+            </span>| <span class="string">"text"
+            </span>| <span class="string">"textPath"
+            </span>| <span class="string">"title"
+            </span>| <span class="string">"tspan"
+            </span>| <span class="string">"use"
+            </span>| <span class="string">"view"
     </span>)
 }
 
 <span class="doccomment">/// Given an element name, check if it's Math
 </span><span class="kw">fn </span>is_mathml_tag(element: <span class="kw-2">&amp;</span>str) -&gt; bool {
     <span class="comment">// https://svgwg.org/svg2-draft/eltindex.html
-    </span><span class="macro">matches!</span>(element,
+    </span><span class="macro">matches!</span>(
+        element,
         <span class="string">"abs"
-        </span>| <span class="string">"and"
-        </span>| <span class="string">"annotation"
-        </span>| <span class="string">"annotation-xml"
-        </span>| <span class="string">"apply"
-        </span>| <span class="string">"approx"
-        </span>| <span class="string">"arccos"
-        </span>| <span class="string">"arccosh"
-        </span>| <span class="string">"arccot"
-        </span>| <span class="string">"arccoth"
-        </span>| <span class="string">"arccsc"
-        </span>| <span class="string">"arccsch"
-        </span>| <span class="string">"arcsec"
-        </span>| <span class="string">"arcsech"
-        </span>| <span class="string">"arcsin"
-        </span>| <span class="string">"arcsinh"
-        </span>| <span class="string">"arctan"
-        </span>| <span class="string">"arctanh"
-        </span>| <span class="string">"arg"
-        </span>| <span class="string">"bind"
-        </span>| <span class="string">"bvar"
-        </span>| <span class="string">"card"
-        </span>| <span class="string">"cartesianproduct"
-        </span>| <span class="string">"cbytes"
-        </span>| <span class="string">"ceiling"
-        </span>| <span class="string">"cerror"
-        </span>| <span class="string">"ci"
-        </span>| <span class="string">"cn"
-        </span>| <span class="string">"codomain"
-        </span>| <span class="string">"complexes"
-        </span>| <span class="string">"compose"
-        </span>| <span class="string">"condition"
-        </span>| <span class="string">"conjugate"
-        </span>| <span class="string">"cos"
-        </span>| <span class="string">"cosh"
-        </span>| <span class="string">"cot"
-        </span>| <span class="string">"coth"
-        </span>| <span class="string">"cs"
-        </span>| <span class="string">"csc"
-        </span>| <span class="string">"csch"
-        </span>| <span class="string">"csymbol"
-        </span>| <span class="string">"curl"
-        </span>| <span class="string">"declare"
-        </span>| <span class="string">"degree"
-        </span>| <span class="string">"determinant"
-        </span>| <span class="string">"diff"
-        </span>| <span class="string">"divergence"
-        </span>| <span class="string">"divide"
-        </span>| <span class="string">"domain"
-        </span>| <span class="string">"domainofapplication"
-        </span>| <span class="string">"emptyset"
-        </span>| <span class="string">"eq"
-        </span>| <span class="string">"equivalent"
-        </span>| <span class="string">"eulergamma"
-        </span>| <span class="string">"exists"
-        </span>| <span class="string">"exp"
-        </span>| <span class="string">"exponentiale"
-        </span>| <span class="string">"factorial"
-        </span>| <span class="string">"factorof"
-        </span>| <span class="string">"false"
-        </span>| <span class="string">"floor"
-        </span>| <span class="string">"fn"
-        </span>| <span class="string">"forall"
-        </span>| <span class="string">"gcd"
-        </span>| <span class="string">"geq"
-        </span>| <span class="string">"grad"
-        </span>| <span class="string">"gt"
-        </span>| <span class="string">"ident"
-        </span>| <span class="string">"image"
-        </span>| <span class="string">"imaginary"
-        </span>| <span class="string">"imaginaryi"
-        </span>| <span class="string">"implies"
-        </span>| <span class="string">"in"
-        </span>| <span class="string">"infinity"
-        </span>| <span class="string">"int"
-        </span>| <span class="string">"integers"
-        </span>| <span class="string">"intersect"
-        </span>| <span class="string">"interval"
-        </span>| <span class="string">"inverse"
-        </span>| <span class="string">"lambda"
-        </span>| <span class="string">"laplacian"
-        </span>| <span class="string">"lcm"
-        </span>| <span class="string">"leq"
-        </span>| <span class="string">"limit"
-        </span>| <span class="string">"list"
-        </span>| <span class="string">"ln"
-        </span>| <span class="string">"log"
-        </span>| <span class="string">"logbase"
-        </span>| <span class="string">"lowlimit"
-        </span>| <span class="string">"lt"
-        </span>| <span class="string">"maction"
-        </span>| <span class="string">"maligngroup"
-        </span>| <span class="string">"malignmark"
-        </span>| <span class="string">"math"
-        </span>| <span class="string">"matrix"
-        </span>| <span class="string">"matrixrow"
-        </span>| <span class="string">"max"
-        </span>| <span class="string">"mean"
-        </span>| <span class="string">"median"
-        </span>| <span class="string">"menclose"
-        </span>| <span class="string">"merror"
-        </span>| <span class="string">"mfenced"
-        </span>| <span class="string">"mfrac"
-        </span>| <span class="string">"mglyph"
-        </span>| <span class="string">"mi"
-        </span>| <span class="string">"min"
-        </span>| <span class="string">"minus"
-        </span>| <span class="string">"mlabeledtr"
-        </span>| <span class="string">"mlongdiv"
-        </span>| <span class="string">"mmultiscripts"
-        </span>| <span class="string">"mn"
-        </span>| <span class="string">"mo"
-        </span>| <span class="string">"mode"
-        </span>| <span class="string">"moment"
-        </span>| <span class="string">"momentabout"
-        </span>| <span class="string">"mover"
-        </span>| <span class="string">"mpadded"
-        </span>| <span class="string">"mphantom"
-        </span>| <span class="string">"mprescripts"
-        </span>| <span class="string">"mroot"
-        </span>| <span class="string">"mrow"
-        </span>| <span class="string">"ms"
-        </span>| <span class="string">"mscarries"
-        </span>| <span class="string">"mscarry"
-        </span>| <span class="string">"msgroup"
-        </span>| <span class="string">"msline"
-        </span>| <span class="string">"mspace"
-        </span>| <span class="string">"msqrt"
-        </span>| <span class="string">"msrow"
-        </span>| <span class="string">"mstack"
-        </span>| <span class="string">"mstyle"
-        </span>| <span class="string">"msub"
-        </span>| <span class="string">"msubsup"
-        </span>| <span class="string">"msup"
-        </span>| <span class="string">"mtable"
-        </span>| <span class="string">"mtd"
-        </span>| <span class="string">"mtext"
-        </span>| <span class="string">"mtr"
-        </span>| <span class="string">"munder"
-        </span>| <span class="string">"munderover"
-        </span>| <span class="string">"naturalnumbers"
-        </span>| <span class="string">"neq"
-        </span>| <span class="string">"none"
-        </span>| <span class="string">"not"
-        </span>| <span class="string">"notanumber"
-        </span>| <span class="string">"notin"
-        </span>| <span class="string">"notprsubset"
-        </span>| <span class="string">"notsubset"
-        </span>| <span class="string">"or"
-        </span>| <span class="string">"otherwise"
-        </span>| <span class="string">"outerproduct"
-        </span>| <span class="string">"partialdiff"
-        </span>| <span class="string">"pi"
-        </span>| <span class="string">"piece"
-        </span>| <span class="string">"piecewise"
-        </span>| <span class="string">"plus"
-        </span>| <span class="string">"power"
-        </span>| <span class="string">"primes"
-        </span>| <span class="string">"product"
-        </span>| <span class="string">"prsubset"
-        </span>| <span class="string">"quotient"
-        </span>| <span class="string">"rationals"
-        </span>| <span class="string">"real"
-        </span>| <span class="string">"reals"
-        </span>| <span class="string">"reln"
-        </span>| <span class="string">"rem"
-        </span>| <span class="string">"root"
-        </span>| <span class="string">"scalarproduct"
-        </span>| <span class="string">"sdev"
-        </span>| <span class="string">"sec"
-        </span>| <span class="string">"sech"
-        </span>| <span class="string">"selector"
-        </span>| <span class="string">"semantics"
-        </span>| <span class="string">"sep"
-        </span>| <span class="string">"set"
-        </span>| <span class="string">"setdiff"
-        </span>| <span class="string">"share"
-        </span>| <span class="string">"sin"
-        </span>| <span class="string">"sinh"
-        </span>| <span class="string">"span"
-        </span>| <span class="string">"subset"
-        </span>| <span class="string">"sum"
-        </span>| <span class="string">"tan"
-        </span>| <span class="string">"tanh"
-        </span>| <span class="string">"tendsto"
-        </span>| <span class="string">"times"
-        </span>| <span class="string">"transpose"
-        </span>| <span class="string">"true"
-        </span>| <span class="string">"union"
-        </span>| <span class="string">"uplimit"
-        </span>| <span class="string">"variance"
-        </span>| <span class="string">"vector"
-        </span>| <span class="string">"vectorproduct"
-        </span>| <span class="string">"xor"
+            </span>| <span class="string">"and"
+            </span>| <span class="string">"annotation"
+            </span>| <span class="string">"annotation-xml"
+            </span>| <span class="string">"apply"
+            </span>| <span class="string">"approx"
+            </span>| <span class="string">"arccos"
+            </span>| <span class="string">"arccosh"
+            </span>| <span class="string">"arccot"
+            </span>| <span class="string">"arccoth"
+            </span>| <span class="string">"arccsc"
+            </span>| <span class="string">"arccsch"
+            </span>| <span class="string">"arcsec"
+            </span>| <span class="string">"arcsech"
+            </span>| <span class="string">"arcsin"
+            </span>| <span class="string">"arcsinh"
+            </span>| <span class="string">"arctan"
+            </span>| <span class="string">"arctanh"
+            </span>| <span class="string">"arg"
+            </span>| <span class="string">"bind"
+            </span>| <span class="string">"bvar"
+            </span>| <span class="string">"card"
+            </span>| <span class="string">"cartesianproduct"
+            </span>| <span class="string">"cbytes"
+            </span>| <span class="string">"ceiling"
+            </span>| <span class="string">"cerror"
+            </span>| <span class="string">"ci"
+            </span>| <span class="string">"cn"
+            </span>| <span class="string">"codomain"
+            </span>| <span class="string">"complexes"
+            </span>| <span class="string">"compose"
+            </span>| <span class="string">"condition"
+            </span>| <span class="string">"conjugate"
+            </span>| <span class="string">"cos"
+            </span>| <span class="string">"cosh"
+            </span>| <span class="string">"cot"
+            </span>| <span class="string">"coth"
+            </span>| <span class="string">"cs"
+            </span>| <span class="string">"csc"
+            </span>| <span class="string">"csch"
+            </span>| <span class="string">"csymbol"
+            </span>| <span class="string">"curl"
+            </span>| <span class="string">"declare"
+            </span>| <span class="string">"degree"
+            </span>| <span class="string">"determinant"
+            </span>| <span class="string">"diff"
+            </span>| <span class="string">"divergence"
+            </span>| <span class="string">"divide"
+            </span>| <span class="string">"domain"
+            </span>| <span class="string">"domainofapplication"
+            </span>| <span class="string">"emptyset"
+            </span>| <span class="string">"eq"
+            </span>| <span class="string">"equivalent"
+            </span>| <span class="string">"eulergamma"
+            </span>| <span class="string">"exists"
+            </span>| <span class="string">"exp"
+            </span>| <span class="string">"exponentiale"
+            </span>| <span class="string">"factorial"
+            </span>| <span class="string">"factorof"
+            </span>| <span class="string">"false"
+            </span>| <span class="string">"floor"
+            </span>| <span class="string">"fn"
+            </span>| <span class="string">"forall"
+            </span>| <span class="string">"gcd"
+            </span>| <span class="string">"geq"
+            </span>| <span class="string">"grad"
+            </span>| <span class="string">"gt"
+            </span>| <span class="string">"ident"
+            </span>| <span class="string">"image"
+            </span>| <span class="string">"imaginary"
+            </span>| <span class="string">"imaginaryi"
+            </span>| <span class="string">"implies"
+            </span>| <span class="string">"in"
+            </span>| <span class="string">"infinity"
+            </span>| <span class="string">"int"
+            </span>| <span class="string">"integers"
+            </span>| <span class="string">"intersect"
+            </span>| <span class="string">"interval"
+            </span>| <span class="string">"inverse"
+            </span>| <span class="string">"lambda"
+            </span>| <span class="string">"laplacian"
+            </span>| <span class="string">"lcm"
+            </span>| <span class="string">"leq"
+            </span>| <span class="string">"limit"
+            </span>| <span class="string">"list"
+            </span>| <span class="string">"ln"
+            </span>| <span class="string">"log"
+            </span>| <span class="string">"logbase"
+            </span>| <span class="string">"lowlimit"
+            </span>| <span class="string">"lt"
+            </span>| <span class="string">"maction"
+            </span>| <span class="string">"maligngroup"
+            </span>| <span class="string">"malignmark"
+            </span>| <span class="string">"math"
+            </span>| <span class="string">"matrix"
+            </span>| <span class="string">"matrixrow"
+            </span>| <span class="string">"max"
+            </span>| <span class="string">"mean"
+            </span>| <span class="string">"median"
+            </span>| <span class="string">"menclose"
+            </span>| <span class="string">"merror"
+            </span>| <span class="string">"mfenced"
+            </span>| <span class="string">"mfrac"
+            </span>| <span class="string">"mglyph"
+            </span>| <span class="string">"mi"
+            </span>| <span class="string">"min"
+            </span>| <span class="string">"minus"
+            </span>| <span class="string">"mlabeledtr"
+            </span>| <span class="string">"mlongdiv"
+            </span>| <span class="string">"mmultiscripts"
+            </span>| <span class="string">"mn"
+            </span>| <span class="string">"mo"
+            </span>| <span class="string">"mode"
+            </span>| <span class="string">"moment"
+            </span>| <span class="string">"momentabout"
+            </span>| <span class="string">"mover"
+            </span>| <span class="string">"mpadded"
+            </span>| <span class="string">"mphantom"
+            </span>| <span class="string">"mprescripts"
+            </span>| <span class="string">"mroot"
+            </span>| <span class="string">"mrow"
+            </span>| <span class="string">"ms"
+            </span>| <span class="string">"mscarries"
+            </span>| <span class="string">"mscarry"
+            </span>| <span class="string">"msgroup"
+            </span>| <span class="string">"msline"
+            </span>| <span class="string">"mspace"
+            </span>| <span class="string">"msqrt"
+            </span>| <span class="string">"msrow"
+            </span>| <span class="string">"mstack"
+            </span>| <span class="string">"mstyle"
+            </span>| <span class="string">"msub"
+            </span>| <span class="string">"msubsup"
+            </span>| <span class="string">"msup"
+            </span>| <span class="string">"mtable"
+            </span>| <span class="string">"mtd"
+            </span>| <span class="string">"mtext"
+            </span>| <span class="string">"mtr"
+            </span>| <span class="string">"munder"
+            </span>| <span class="string">"munderover"
+            </span>| <span class="string">"naturalnumbers"
+            </span>| <span class="string">"neq"
+            </span>| <span class="string">"none"
+            </span>| <span class="string">"not"
+            </span>| <span class="string">"notanumber"
+            </span>| <span class="string">"notin"
+            </span>| <span class="string">"notprsubset"
+            </span>| <span class="string">"notsubset"
+            </span>| <span class="string">"or"
+            </span>| <span class="string">"otherwise"
+            </span>| <span class="string">"outerproduct"
+            </span>| <span class="string">"partialdiff"
+            </span>| <span class="string">"pi"
+            </span>| <span class="string">"piece"
+            </span>| <span class="string">"piecewise"
+            </span>| <span class="string">"plus"
+            </span>| <span class="string">"power"
+            </span>| <span class="string">"primes"
+            </span>| <span class="string">"product"
+            </span>| <span class="string">"prsubset"
+            </span>| <span class="string">"quotient"
+            </span>| <span class="string">"rationals"
+            </span>| <span class="string">"real"
+            </span>| <span class="string">"reals"
+            </span>| <span class="string">"reln"
+            </span>| <span class="string">"rem"
+            </span>| <span class="string">"root"
+            </span>| <span class="string">"scalarproduct"
+            </span>| <span class="string">"sdev"
+            </span>| <span class="string">"sec"
+            </span>| <span class="string">"sech"
+            </span>| <span class="string">"selector"
+            </span>| <span class="string">"semantics"
+            </span>| <span class="string">"sep"
+            </span>| <span class="string">"set"
+            </span>| <span class="string">"setdiff"
+            </span>| <span class="string">"share"
+            </span>| <span class="string">"sin"
+            </span>| <span class="string">"sinh"
+            </span>| <span class="string">"span"
+            </span>| <span class="string">"subset"
+            </span>| <span class="string">"sum"
+            </span>| <span class="string">"tan"
+            </span>| <span class="string">"tanh"
+            </span>| <span class="string">"tendsto"
+            </span>| <span class="string">"times"
+            </span>| <span class="string">"transpose"
+            </span>| <span class="string">"true"
+            </span>| <span class="string">"union"
+            </span>| <span class="string">"uplimit"
+            </span>| <span class="string">"variance"
+            </span>| <span class="string">"vector"
+            </span>| <span class="string">"vectorproduct"
+            </span>| <span class="string">"xor"
     </span>)
 }
 
@@ -6349,7 +6352,7 @@
 /// To filter all of the URLs,
 /// use the not-yet-implemented Content Security Policy.
 </span><span class="attr">#[non_exhaustive]
-</span><span class="kw">pub enum </span>UrlRelative {
+</span><span class="kw">pub enum </span>UrlRelative&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Relative URLs will be completely stripped from the document.
     </span>Deny,
     <span class="doccomment">/// Relative URLs will be passed through unchanged.
@@ -6449,15 +6452,16 @@
         </span>path: String,
     },
     <span class="doccomment">/// Rewrite URLs with a custom function.
-    </span>Custom(Box&lt;<span class="kw">dyn </span>UrlRelativeEvaluate&gt;),
+    </span>Custom(Box&lt;<span class="kw">dyn </span>UrlRelativeEvaluate&lt;<span class="lifetime">'a</span>&gt;&gt;),
 }
 
-<span class="kw">impl </span>UrlRelative {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; UrlRelative&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, url: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;tendril::StrTendril&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            UrlRelative::RewriteWithBase(<span class="kw-2">ref </span>url_base) =&gt; {
-                url_base.join(url).ok().and_then(|x| StrTendril::from_str(x.as_str()).ok())
-            }
+            UrlRelative::RewriteWithBase(<span class="kw-2">ref </span>url_base) =&gt; url_base
+                .join(url)
+                .ok()
+                .and_then(|x| StrTendril::from_str(x.as_str()).ok()),
             UrlRelative::RewriteWithRoot { <span class="kw-2">ref </span>root, <span class="kw-2">ref </span>path } =&gt; {
                 (<span class="kw">match </span>url.as_bytes() {
                     <span class="comment">// Scheme-relative URL
@@ -6467,23 +6471,23 @@
                     [<span class="string">b'/'</span>, ..] =&gt; root.join(<span class="kw-2">&amp;</span>url[<span class="number">1</span>..]),
                     <span class="comment">// Path-relative URL
                     </span><span class="kw">_ </span>=&gt; root.join(path).and_then(|r| r.join(url)),
-                }).ok().and_then(|x| StrTendril::from_str(x.as_str()).ok())
+                })
+                .ok()
+                .and_then(|x| StrTendril::from_str(x.as_str()).ok())
             }
-            UrlRelative::Custom(<span class="kw-2">ref </span>evaluate) =&gt; {
-                evaluate
-                    .evaluate(<span class="kw-2">&amp;*</span>url)
-                    .as_ref()
-                    .map(Cow::as_ref)
-                    .map(StrTendril::from_str)
-                    .and_then(Result::ok)
-            }
+            UrlRelative::Custom(<span class="kw-2">ref </span>evaluate) =&gt; evaluate
+                .evaluate(url)
+                .as_ref()
+                .map(Cow::as_ref)
+                .map(StrTendril::from_str)
+                .and_then(Result::ok),
             UrlRelative::PassThrough =&gt; StrTendril::from_str(url).ok(),
             UrlRelative::Deny =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>UrlRelative {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; fmt::Debug <span class="kw">for </span>UrlRelative&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             UrlRelative::Deny =&gt; <span class="macro">write!</span>(f, <span class="string">"UrlRelative::Deny"</span>),
@@ -6492,7 +6496,10 @@
                 <span class="macro">write!</span>(f, <span class="string">"UrlRelative::RewriteWithBase({})"</span>, base)
             }
             UrlRelative::RewriteWithRoot { <span class="kw-2">ref </span>root, <span class="kw-2">ref </span>path } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">"UrlRelative::RewriteWithRoot {{ root: {root}, path: {path} }}"</span>)
+                <span class="macro">write!</span>(
+                    f,
+                    <span class="string">"UrlRelative::RewriteWithRoot {{ root: {root}, path: {path} }}"
+                </span>)
             }
             UrlRelative::Custom(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"UrlRelative::Custom"</span>),
         }
@@ -6506,15 +6513,15 @@
 /// See [`url_relative`][url_relative] for more details.
 ///
 /// [url_relative]: struct.Builder.html#method.url_relative
-</span><span class="kw">pub trait </span>UrlRelativeEvaluate: Send + Sync {
+</span><span class="kw">pub trait </span>UrlRelativeEvaluate&lt;<span class="lifetime">'a</span>&gt;: Send + Sync + <span class="lifetime">'a </span>{
     <span class="doccomment">/// Return `None` to remove the attribute. Return `Some(str)` to replace it with a new string.
-    </span><span class="kw">fn </span>evaluate&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;;
+    </span><span class="kw">fn </span>evaluate&lt;<span class="lifetime">'url</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'url </span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'url</span>, str&gt;&gt;;
 }
-<span class="kw">impl</span>&lt;T&gt; UrlRelativeEvaluate <span class="kw">for </span>T
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; UrlRelativeEvaluate&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span>T
 <span class="kw">where
-    </span>T: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'_</span>, str&gt;&gt; + Send + Sync,
+    </span>T: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'_</span>, str&gt;&gt; + Send + Sync + <span class="lifetime">'a</span>,
 {
-    <span class="kw">fn </span>evaluate&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, url: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt; {
+    <span class="kw">fn </span>evaluate&lt;<span class="lifetime">'url</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, url: <span class="kw-2">&amp;</span><span class="lifetime">'url </span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'url</span>, str&gt;&gt; {
         <span class="self">self</span>(url)
     }
 }
@@ -6571,32 +6578,6 @@
 </span><span class="kw">pub struct </span>Document(RcDom);
 
 <span class="kw">impl </span>Document {
-    <span class="doccomment">/// Serializes a `Document` instance to a `String`.
-    ///
-    /// This method returns a [`String`] with the sanitized HTML. This is the simplest way to use
-    /// `ammonia`.
-    ///
-    /// [`String`]: https://doc.rust-lang.org/nightly/std/string/struct.String.html
-    ///
-    /// # Examples
-    ///
-    ///     use ammonia::Builder;
-    ///
-    ///     let input = "Some &lt;style&gt;&lt;/style&gt;HTML here";
-    ///     let output = "Some HTML here";
-    ///
-    ///     let document = Builder::new()
-    ///         .clean(input);
-    ///     assert_eq!(document.to_string(), output);
-    </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-        <span class="kw">let </span>opts = <span class="self">Self</span>::serialize_opts();
-        <span class="kw">let </span><span class="kw-2">mut </span>ret_val = Vec::new();
-        <span class="kw">let </span>inner: SerializableHandle = <span class="self">self</span>.<span class="number">0</span>.document.children.borrow()[<span class="number">0</span>].clone().into();
-        serialize(<span class="kw-2">&amp;mut </span>ret_val, <span class="kw-2">&amp;</span>inner, opts)
-            .expect(<span class="string">"Writing to a string shouldn't fail (expect on OOM)"</span>);
-        String::from_utf8(ret_val).expect(<span class="string">"html5ever only supports UTF8"</span>)
-    }
-
     <span class="doccomment">/// Serializes a `Document` instance to a writer.
     ///
     /// This method writes the sanitized HTML to a [`Write`] instance, avoiding a buffering step.
@@ -6667,7 +6648,7 @@
     ///     use html5ever::serialize::{serialize, SerializeOpts};
     ///
     ///     # use std::error::Error;
-    ///     # fn do_main() -&gt; Result&lt;(), Box&lt;Error&gt;&gt; {
+    ///     # fn do_main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     ///     let input = "&lt;a&gt;one link&lt;/a&gt; and &lt;a&gt;one more&lt;/a&gt;";
     ///     let expected = "&lt;a&gt;one more&lt;/a&gt; and &lt;a&gt;one link&lt;/a&gt;";
     ///
@@ -6704,15 +6685,41 @@
     }
 }
 
-<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Document {
+<span class="doccomment">/// Convert a `Document` to stringified HTML.
+///
+/// Since [`Document`] implements [`Display`], it can be converted to a [`String`] using the
+/// standard [`ToString::to_string`] method. This is the simplest way to use `ammonia`.
+///
+/// [`Document`]: ammonia::Document
+/// [`Display`]: std::fmt::Display
+/// [`ToString::to_string`]: std::string::ToString
+///
+/// # Examples
+///
+///     use ammonia::Builder;
+///
+///     let input = "Some &lt;style&gt;&lt;/style&gt;HTML here";
+///     let output = "Some HTML here";
+///
+///     let document = Builder::new()
+///         .clean(input);
+///     assert_eq!(document.to_string(), output);
+</span><span class="kw">impl </span>Display <span class="kw">for </span>Document {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.to_string())
+        <span class="kw">let </span>opts = <span class="self">Self</span>::serialize_opts();
+        <span class="kw">let </span><span class="kw-2">mut </span>ret_val = Vec::new();
+        <span class="kw">let </span>inner: SerializableHandle = <span class="self">self</span>.<span class="number">0</span>.document.children.borrow()[<span class="number">0</span>].clone().into();
+        serialize(<span class="kw-2">&amp;mut </span>ret_val, <span class="kw-2">&amp;</span>inner, opts)
+            .expect(<span class="string">"Writing to a string shouldn't fail (expect on OOM)"</span>);
+        String::from_utf8(ret_val)
+            .expect(<span class="string">"html5ever only supports UTF8"</span>)
+            .fmt(f)
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Document {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">"Document({})"</span>, <span class="self">self</span>.to_string())
+        <span class="macro">write!</span>(f, <span class="string">"Document({})"</span>, <span class="self">self</span>)
     }
 }
 
@@ -6823,11 +6830,10 @@
             .attribute_filter(|elem, attr, value| {
                 <span class="macro">assert_eq!</span>(<span class="string">"a"</span>, elem);
                 <span class="macro">assert!</span>(
-                    <span class="kw">match </span>(attr, value) {
-                        (<span class="string">"href"</span>, <span class="string">"test"</span>) =&gt; <span class="bool-val">true</span>,
-                        (<span class="string">"rel"</span>, <span class="string">"noopener noreferrer"</span>) =&gt; <span class="bool-val">true</span>,
-                        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-                    },
+                    <span class="macro">matches!</span>(
+                        (attr, value),
+                        (<span class="string">"href"</span>, <span class="string">"test"</span>) | (<span class="string">"rel"</span>, <span class="string">"noopener noreferrer"</span>)
+                    ),
                     <span class="string">"{}"</span>,
                     value.to_string()
                 );
@@ -7200,11 +7206,11 @@
             <span class="kw">let </span>u = url.as_bytes();
             <span class="comment">// `//a/b/c` is "protocol-relative", meaning "a" is a hostname
             // `/a/b/c` is an absolute path, and what we want to do stuff to.
-            </span>u.get(<span class="number">0</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'/'</span>) &amp;&amp; u.get(<span class="number">1</span>) != <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'/'</span>)
+            </span>u.first() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'/'</span>) &amp;&amp; u.get(<span class="number">1</span>) != <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'/'</span>)
         }
         <span class="kw">fn </span>is_banned(url: <span class="kw-2">&amp;</span>str) -&gt; bool {
             <span class="kw">let </span>u = url.as_bytes();
-            u.get(<span class="number">0</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'b'</span>) &amp;&amp; u.get(<span class="number">1</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'a'</span>)
+            u.first() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'b'</span>) &amp;&amp; u.get(<span class="number">1</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'a'</span>)
         }
         <span class="kw">fn </span>evaluate(url: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'_</span>, str&gt;&gt; {
             <span class="kw">if </span>is_absolute_path(url) {
@@ -7227,11 +7233,11 @@
             <span class="kw">let </span>u = url.as_bytes();
             <span class="comment">// `//a/b/c` is "protocol-relative", meaning "a" is a hostname
             // `/a/b/c` is an absolute path, and what we want to do stuff to.
-            </span>u.get(<span class="number">0</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'/'</span>) &amp;&amp; u.get(<span class="number">1</span>) != <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'/'</span>)
+            </span>u.first() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'/'</span>) &amp;&amp; u.get(<span class="number">1</span>) != <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'/'</span>)
         }
         <span class="kw">fn </span>is_banned(url: <span class="kw-2">&amp;</span>str) -&gt; bool {
             <span class="kw">let </span>u = url.as_bytes();
-            u.get(<span class="number">0</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'b'</span>) &amp;&amp; u.get(<span class="number">1</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'a'</span>)
+            u.first() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'b'</span>) &amp;&amp; u.get(<span class="number">1</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b'a'</span>)
         }
         <span class="kw">fn </span>evaluate(url: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'_</span>, str&gt;&gt; {
             <span class="kw">if </span>is_absolute_path(url) {
@@ -7468,9 +7474,9 @@
         <span class="kw">let </span><span class="kw-2">mut </span>b = Builder::new();
         <span class="kw">let </span><span class="kw-2">mut </span>hs: HashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>str&gt; = HashSet::new();
         hs.insert(<span class="string">"data-"</span>);
-        <span class="macro">assert_eq!</span>(b.generic_attribute_prefixes.is_none(), <span class="bool-val">true</span>);
+        <span class="macro">assert!</span>(b.generic_attribute_prefixes.is_none());
         b.generic_attribute_prefixes(hs);
-        <span class="macro">assert_eq!</span>(b.generic_attribute_prefixes.is_some(), <span class="bool-val">true</span>);
+        <span class="macro">assert!</span>(b.generic_attribute_prefixes.is_some());
         <span class="macro">assert_eq!</span>(b.generic_attribute_prefixes.as_ref().unwrap().len(), <span class="number">1</span>);
         b.add_generic_attribute_prefixes(<span class="kw-2">&amp;</span>prefix_data);
         <span class="macro">assert_eq!</span>(b.generic_attribute_prefixes.as_ref().unwrap().len(), <span class="number">1</span>);
@@ -7481,7 +7487,7 @@
         b.rm_generic_attribute_prefixes(<span class="kw-2">&amp;</span>prefix_code);
         <span class="macro">assert_eq!</span>(b.generic_attribute_prefixes.as_ref().unwrap().len(), <span class="number">1</span>);
         b.rm_generic_attribute_prefixes(<span class="kw-2">&amp;</span>prefix_data);
-        <span class="macro">assert_eq!</span>(b.generic_attribute_prefixes.is_none(), <span class="bool-val">true</span>);
+        <span class="macro">assert!</span>(b.generic_attribute_prefixes.is_none());
     }
 
     <span class="attr">#[test]
@@ -7634,11 +7640,17 @@
             <span class="kw">let </span>h = <span class="macro">format!</span>(<span class="string">r#"&lt;a href="{url}"&gt;test&lt;/a&gt;"#</span>);
             <span class="kw">let </span>r = <span class="macro">format!</span>(<span class="string">r#"&lt;a href="{result}" rel="noopener noreferrer"&gt;test&lt;/a&gt;"#</span>);
             <span class="kw">let </span>a = Builder::new()
-                .url_relative(UrlRelative::RewriteWithRoot { root: Url::parse(root).unwrap(), path: path.to_string() })
+                .url_relative(UrlRelative::RewriteWithRoot {
+                    root: Url::parse(root).unwrap(),
+                    path: path.to_string(),
+                })
                 .clean(<span class="kw-2">&amp;</span>h)
                 .to_string();
             <span class="kw">if </span>r != a {
-                <span class="macro">println!</span>(<span class="string">"failed to check ({root}, {path}, {url}, {result})\n{r} != {a}"</span>, r = r);
+                <span class="macro">println!</span>(
+                    <span class="string">"failed to check ({root}, {path}, {url}, {result})\n{r} != {a}"</span>,
+                    r = r
+                );
                 <span class="macro">assert_eq!</span>(r, a);
             }
         }

@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tempfile-3.10.1/src/file/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tempfile" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../tempfile/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tempfile-3.12.0/src/file/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tempfile" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1038,95 +1036,7 @@
 <a href="#1036" id="1036">1036</a>
 <a href="#1037" id="1037">1037</a>
 <a href="#1038" id="1038">1038</a>
-<a href="#1039" id="1039">1039</a>
-<a href="#1040" id="1040">1040</a>
-<a href="#1041" id="1041">1041</a>
-<a href="#1042" id="1042">1042</a>
-<a href="#1043" id="1043">1043</a>
-<a href="#1044" id="1044">1044</a>
-<a href="#1045" id="1045">1045</a>
-<a href="#1046" id="1046">1046</a>
-<a href="#1047" id="1047">1047</a>
-<a href="#1048" id="1048">1048</a>
-<a href="#1049" id="1049">1049</a>
-<a href="#1050" id="1050">1050</a>
-<a href="#1051" id="1051">1051</a>
-<a href="#1052" id="1052">1052</a>
-<a href="#1053" id="1053">1053</a>
-<a href="#1054" id="1054">1054</a>
-<a href="#1055" id="1055">1055</a>
-<a href="#1056" id="1056">1056</a>
-<a href="#1057" id="1057">1057</a>
-<a href="#1058" id="1058">1058</a>
-<a href="#1059" id="1059">1059</a>
-<a href="#1060" id="1060">1060</a>
-<a href="#1061" id="1061">1061</a>
-<a href="#1062" id="1062">1062</a>
-<a href="#1063" id="1063">1063</a>
-<a href="#1064" id="1064">1064</a>
-<a href="#1065" id="1065">1065</a>
-<a href="#1066" id="1066">1066</a>
-<a href="#1067" id="1067">1067</a>
-<a href="#1068" id="1068">1068</a>
-<a href="#1069" id="1069">1069</a>
-<a href="#1070" id="1070">1070</a>
-<a href="#1071" id="1071">1071</a>
-<a href="#1072" id="1072">1072</a>
-<a href="#1073" id="1073">1073</a>
-<a href="#1074" id="1074">1074</a>
-<a href="#1075" id="1075">1075</a>
-<a href="#1076" id="1076">1076</a>
-<a href="#1077" id="1077">1077</a>
-<a href="#1078" id="1078">1078</a>
-<a href="#1079" id="1079">1079</a>
-<a href="#1080" id="1080">1080</a>
-<a href="#1081" id="1081">1081</a>
-<a href="#1082" id="1082">1082</a>
-<a href="#1083" id="1083">1083</a>
-<a href="#1084" id="1084">1084</a>
-<a href="#1085" id="1085">1085</a>
-<a href="#1086" id="1086">1086</a>
-<a href="#1087" id="1087">1087</a>
-<a href="#1088" id="1088">1088</a>
-<a href="#1089" id="1089">1089</a>
-<a href="#1090" id="1090">1090</a>
-<a href="#1091" id="1091">1091</a>
-<a href="#1092" id="1092">1092</a>
-<a href="#1093" id="1093">1093</a>
-<a href="#1094" id="1094">1094</a>
-<a href="#1095" id="1095">1095</a>
-<a href="#1096" id="1096">1096</a>
-<a href="#1097" id="1097">1097</a>
-<a href="#1098" id="1098">1098</a>
-<a href="#1099" id="1099">1099</a>
-<a href="#1100" id="1100">1100</a>
-<a href="#1101" id="1101">1101</a>
-<a href="#1102" id="1102">1102</a>
-<a href="#1103" id="1103">1103</a>
-<a href="#1104" id="1104">1104</a>
-<a href="#1105" id="1105">1105</a>
-<a href="#1106" id="1106">1106</a>
-<a href="#1107" id="1107">1107</a>
-<a href="#1108" id="1108">1108</a>
-<a href="#1109" id="1109">1109</a>
-<a href="#1110" id="1110">1110</a>
-<a href="#1111" id="1111">1111</a>
-<a href="#1112" id="1112">1112</a>
-<a href="#1113" id="1113">1113</a>
-<a href="#1114" id="1114">1114</a>
-<a href="#1115" id="1115">1115</a>
-<a href="#1116" id="1116">1116</a>
-<a href="#1117" id="1117">1117</a>
-<a href="#1118" id="1118">1118</a>
-<a href="#1119" id="1119">1119</a>
-<a href="#1120" id="1120">1120</a>
-<a href="#1121" id="1121">1121</a>
-<a href="#1122" id="1122">1122</a>
-<a href="#1123" id="1123">1123</a>
-<a href="#1124" id="1124">1124</a>
-<a href="#1125" id="1125">1125</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::env;
-<span class="kw">use </span>std::error;
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::error;
 <span class="kw">use </span>std::ffi::OsStr;
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::fs::{<span class="self">self</span>, File, OpenOptions};
@@ -1141,6 +1051,7 @@
 </span><span class="kw">use </span>std::os::windows::io::{AsHandle, AsRawHandle, BorrowedHandle, RawHandle};
 <span class="kw">use </span>std::path::{Path, PathBuf};
 
+<span class="kw">use </span><span class="kw">crate</span>::env;
 <span class="kw">use </span><span class="kw">crate</span>::error::IoResultExt;
 <span class="kw">use </span><span class="kw">crate</span>::Builder;
 
@@ -1148,7 +1059,7 @@
 
 <span class="doccomment">/// Create a new temporary file.
 ///
-/// The file will be created in the location returned by [`std::env::temp_dir()`].
+/// The file will be created in the location returned by [`env::temp_dir()`].
 ///
 /// # Security
 ///
@@ -1167,23 +1078,14 @@
 ///
 /// ```
 /// use tempfile::tempfile;
-/// use std::io::{self, Write};
+/// use std::io::Write;
 ///
-/// # fn main() {
-/// #     if let Err(_) = run() {
-/// #         ::std::process::exit(1);
-/// #     }
-/// # }
-/// # fn run() -&gt; Result&lt;(), io::Error&gt; {
-/// // Create a file inside of `std::env::temp_dir()`.
+/// // Create a file inside of `env::temp_dir()`.
 /// let mut file = tempfile()?;
 ///
 /// writeln!(file, "Brian was here. Briefly.")?;
-/// # Ok(())
-/// # }
+/// # Ok::&lt;(), std::io::Error&gt;(())
 /// ```
-///
-/// [`std::env::temp_dir()`]: https://doc.rust-lang.org/std/env/fn.temp_dir.html
 </span><span class="kw">pub fn </span>tempfile() -&gt; io::Result&lt;File&gt; {
     tempfile_in(env::temp_dir())
 }
@@ -1193,7 +1095,7 @@
 /// # Security
 ///
 /// This variant is secure/reliable in the presence of a pathological temporary file cleaner.
-/// If the temporary file isn't created in [`std::env::temp_dir()`] then temporary file cleaners aren't an issue.
+/// If the temporary file isn't created in [`env::temp_dir()`] then temporary file cleaners aren't an issue.
 ///
 /// # Resource Leaking
 ///
@@ -1208,23 +1110,14 @@
 ///
 /// ```
 /// use tempfile::tempfile_in;
-/// use std::io::{self, Write};
+/// use std::io::Write;
 ///
-/// # fn main() {
-/// #     if let Err(_) = run() {
-/// #         ::std::process::exit(1);
-/// #     }
-/// # }
-/// # fn run() -&gt; Result&lt;(), io::Error&gt; {
 /// // Create a file inside of the current working directory
 /// let mut file = tempfile_in("./")?;
 ///
 /// writeln!(file, "Brian was here. Briefly.")?;
-/// # Ok(())
-/// # }
+/// # Ok::&lt;(), std::io::Error&gt;(())
 /// ```
-///
-/// [`std::env::temp_dir()`]: https://doc.rust-lang.org/std/env/fn.temp_dir.html
 </span><span class="kw">pub fn </span>tempfile_in&lt;P: AsRef&lt;Path&gt;&gt;(dir: P) -&gt; io::Result&lt;File&gt; {
     imp::create(dir.as_ref())
 }
@@ -1269,9 +1162,11 @@
 /// This is useful when the temporary file needs to be used by a child process,
 /// for example.
 ///
-/// When dropped, the temporary file is deleted.
+/// When dropped, the temporary file is deleted unless `keep(true)` was called
+/// on the builder that constructed this value.
 </span><span class="kw">pub struct </span>TempPath {
     path: Box&lt;Path&gt;,
+    keep: bool,
 }
 
 <span class="kw">impl </span>TempPath {
@@ -1286,15 +1181,8 @@
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
     /// use tempfile::NamedTempFile;
     ///
-    /// # fn main() {
-    /// #     if let Err(_) = run() {
-    /// #         ::std::process::exit(1);
-    /// #     }
-    /// # }
-    /// # fn run() -&gt; Result&lt;(), io::Error&gt; {
     /// let file = NamedTempFile::new()?;
     ///
     /// // Close the file, but keep the path to it around.
@@ -1305,8 +1193,7 @@
     /// // file will still be deleted when `file` goes out of scope, but we
     /// // won't know whether deleting the file succeeded.
     /// path.close()?;
-    /// # Ok(())
-    /// # }
+    /// # Ok::&lt;(), std::io::Error&gt;(())
     /// ```
     </span><span class="kw">pub fn </span>close(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>result = fs::remove_file(<span class="kw-2">&amp;</span><span class="self">self</span>.path).with_err_path(|| <span class="kw-2">&amp;*</span><span class="self">self</span>.path);
@@ -1339,22 +1226,15 @@
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io::{self, Write};
+    /// use std::io::Write;
     /// use tempfile::NamedTempFile;
     ///
-    /// # fn main() {
-    /// #     if let Err(_) = run() {
-    /// #         ::std::process::exit(1);
-    /// #     }
-    /// # }
-    /// # fn run() -&gt; Result&lt;(), io::Error&gt; {
     /// let mut file = NamedTempFile::new()?;
     /// writeln!(file, "Brian was here. Briefly.")?;
     ///
     /// let path = file.into_temp_path();
     /// path.persist("./saved_file.txt")?;
-    /// # Ok(())
-    /// # }
+    /// # Ok::&lt;(), std::io::Error&gt;(())
     /// ```
     ///
     /// [`PathPersistError`]: struct.PathPersistError.html
@@ -1398,22 +1278,15 @@
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io::{self, Write};
     /// use tempfile::NamedTempFile;
+    /// use std::io::Write;
     ///
-    /// # fn main() {
-    /// #     if let Err(_) = run() {
-    /// #         ::std::process::exit(1);
-    /// #     }
-    /// # }
-    /// # fn run() -&gt; Result&lt;(), io::Error&gt; {
     /// let mut file = NamedTempFile::new()?;
     /// writeln!(file, "Brian was here. Briefly.")?;
     ///
     /// let path = file.into_temp_path();
     /// path.persist_noclobber("./saved_file.txt")?;
-    /// # Ok(())
-    /// # }
+    /// # Ok::&lt;(), std::io::Error&gt;(())
     /// ```
     ///
     /// [`PathPersistError`]: struct.PathPersistError.html
@@ -1440,7 +1313,6 @@
     <span class="doccomment">/// Keep the temporary file from being deleted. This function will turn the
     /// temporary file into a non-temporary file without moving it.
     ///
-    ///
     /// # Errors
     ///
     /// On some platforms (e.g., Windows), we need to mark the file as
@@ -1449,22 +1321,15 @@
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io::{self, Write};
+    /// use std::io::Write;
     /// use tempfile::NamedTempFile;
     ///
-    /// # fn main() {
-    /// #     if let Err(_) = run() {
-    /// #         ::std::process::exit(1);
-    /// #     }
-    /// # }
-    /// # fn run() -&gt; Result&lt;(), io::Error&gt; {
     /// let mut file = NamedTempFile::new()?;
     /// writeln!(file, "Brian was here. Briefly.")?;
     ///
     /// let path = file.into_temp_path();
     /// let path = path.keep()?;
-    /// # Ok(())
-    /// # }
+    /// # Ok::&lt;(), std::io::Error&gt;(())
     /// ```
     ///
     /// [`PathPersistError`]: struct.PathPersistError.html
@@ -1494,6 +1359,14 @@
     </span><span class="kw">pub fn </span>from_path(path: <span class="kw">impl </span>Into&lt;PathBuf&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             path: path.into().into_boxed_path(),
+            keep: <span class="bool-val">false</span>,
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(path: PathBuf, keep: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            path: path.into_boxed_path(),
+            keep,
         }
     }
 }
@@ -1506,7 +1379,9 @@
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>TempPath {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let _ </span>= fs::remove_file(<span class="kw-2">&amp;</span><span class="self">self</span>.path);
+        <span class="kw">if </span>!<span class="self">self</span>.keep {
+            <span class="kw">let _ </span>= fs::remove_file(<span class="kw-2">&amp;</span><span class="self">self</span>.path);
+        }
     }
 }
 
@@ -1533,7 +1408,7 @@
 <span class="doccomment">/// A named temporary file.
 ///
 /// The default constructor, [`NamedTempFile::new()`], creates files in
-/// the location returned by [`std::env::temp_dir()`], but `NamedTempFile`
+/// the location returned by [`env::temp_dir()`], but `NamedTempFile`
 /// can be configured to manage a temporary file in any location
 /// by constructing with [`NamedTempFile::new_in()`].
 ///
@@ -1610,7 +1485,6 @@
 /// [`tempfile()`]: fn.tempfile.html
 /// [`NamedTempFile::new()`]: #method.new
 /// [`NamedTempFile::new_in()`]: #method.new_in
-/// [`std::env::temp_dir()`]: https://doc.rust-lang.org/std/env/fn.temp_dir.html
 /// [`std::process::exit()`]: http://doc.rust-lang.org/std/process/fn.exit.html
 /// [`lazy_static`]: https://github.com/rust-lang-nursery/lazy-static.rs/issues/62
 </span><span class="kw">pub struct </span>NamedTempFile&lt;F = File&gt; {
@@ -1712,20 +1586,13 @@
     /// Create a named temporary file and write some data to it:
     ///
     /// ```no_run
-    /// # use std::io::{self, Write};
+    /// use std::io::Write;
     /// use tempfile::NamedTempFile;
     ///
-    /// # fn main() {
-    /// #     if let Err(_) = run() {
-    /// #         ::std::process::exit(1);
-    /// #     }
-    /// # }
-    /// # fn run() -&gt; Result&lt;(), ::std::io::Error&gt; {
     /// let mut file = NamedTempFile::new()?;
     ///
     /// writeln!(file, "Brian was here. Briefly.")?;
-    /// # Ok(())
-    /// # }
+    /// # Ok::&lt;(), std::io::Error&gt;(())
     /// ```
     ///
     /// [`Builder`]: struct.Builder.html
@@ -1788,20 +1655,12 @@
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io::{self, Write};
     /// use tempfile::NamedTempFile;
     ///
-    /// # fn main() {
-    /// #     if let Err(_) = run() {
-    /// #         ::std::process::exit(1);
-    /// #     }
-    /// # }
-    /// # fn run() -&gt; Result&lt;(), ::std::io::Error&gt; {
     /// let file = NamedTempFile::new()?;
     ///
     /// println!("{:?}", file.path());
-    /// # Ok(())
-    /// # }
+    /// # Ok::&lt;(), std::io::Error&gt;(())
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
@@ -1819,15 +1678,8 @@
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
     /// use tempfile::NamedTempFile;
     ///
-    /// # fn main() {
-    /// #     if let Err(_) = run() {
-    /// #         ::std::process::exit(1);
-    /// #     }
-    /// # }
-    /// # fn run() -&gt; Result&lt;(), io::Error&gt; {
     /// let file = NamedTempFile::new()?;
     ///
     /// // By closing the `NamedTempFile` explicitly, we can check that it has
@@ -1836,8 +1688,7 @@
     /// // of scope, but we won't know whether deleting the file
     /// // succeeded.
     /// file.close()?;
-    /// # Ok(())
-    /// # }
+    /// # Ok::&lt;(), std::io::Error&gt;(())
     /// ```
     </span><span class="kw">pub fn </span>close(<span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>NamedTempFile { path, .. } = <span class="self">self</span>;
@@ -1868,21 +1719,14 @@
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io::{self, Write};
+    /// use std::io::Write;
     /// use tempfile::NamedTempFile;
     ///
-    /// # fn main() {
-    /// #     if let Err(_) = run() {
-    /// #         ::std::process::exit(1);
-    /// #     }
-    /// # }
-    /// # fn run() -&gt; Result&lt;(), io::Error&gt; {
     /// let file = NamedTempFile::new()?;
     ///
     /// let mut persisted_file = file.persist("./saved_file.txt")?;
     /// writeln!(persisted_file, "Brian was here. Briefly.")?;
-    /// # Ok(())
-    /// # }
+    /// # Ok::&lt;(), std::io::Error&gt;(())
     /// ```
     ///
     /// [`PersistError`]: struct.PersistError.html
@@ -1923,21 +1767,14 @@
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io::{self, Write};
+    /// use std::io::Write;
     /// use tempfile::NamedTempFile;
     ///
-    /// # fn main() {
-    /// #     if let Err(_) = run() {
-    /// #         ::std::process::exit(1);
-    /// #     }
-    /// # }
-    /// # fn run() -&gt; Result&lt;(), io::Error&gt; {
     /// let file = NamedTempFile::new()?;
     ///
     /// let mut persisted_file = file.persist_noclobber("./saved_file.txt")?;
     /// writeln!(persisted_file, "Brian was here. Briefly.")?;
-    /// # Ok(())
-    /// # }
+    /// # Ok::&lt;(), std::io::Error&gt;(())
     /// ```
     </span><span class="kw">pub fn </span>persist_noclobber&lt;P: AsRef&lt;Path&gt;&gt;(<span class="self">self</span>, new_path: P) -&gt; <span class="prelude-ty">Result</span>&lt;F, PersistError&lt;F&gt;&gt; {
         <span class="kw">let </span>NamedTempFile { path, file } = <span class="self">self</span>;
@@ -1965,21 +1802,14 @@
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io::{self, Write};
+    /// use std::io::Write;
     /// use tempfile::NamedTempFile;
     ///
-    /// # fn main() {
-    /// #     if let Err(_) = run() {
-    /// #         ::std::process::exit(1);
-    /// #     }
-    /// # }
-    /// # fn run() -&gt; Result&lt;(), io::Error&gt; {
     /// let mut file = NamedTempFile::new()?;
     /// writeln!(file, "Brian was here. Briefly.")?;
     ///
     /// let (file, path) = file.keep()?;
-    /// # Ok(())
-    /// # }
+    /// # Ok::&lt;(), std::io::Error&gt;(())
     /// ```
     ///
     /// [`PathPersistError`]: struct.PathPersistError.html
@@ -2057,20 +1887,12 @@
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
     /// use tempfile::NamedTempFile;
     ///
-    /// # fn main() {
-    /// #     if let Err(_) = run() {
-    /// #         ::std::process::exit(1);
-    /// #     }
-    /// # }
-    /// # fn run() -&gt; Result&lt;(), io::Error&gt; {
     /// let file = NamedTempFile::new()?;
     ///
     /// let another_handle = file.reopen()?;
-    /// # Ok(())
-    /// # }
+    /// # Ok::&lt;(), std::io::Error&gt;(())
     /// ```
     </span><span class="kw">pub fn </span>reopen(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;File&gt; {
         imp::reopen(<span class="self">self</span>.as_file(), NamedTempFile::path(<span class="self">self</span>))
@@ -2235,17 +2057,19 @@
     <span class="kw-2">mut </span>path: PathBuf,
     open_options: <span class="kw-2">&amp;mut </span>OpenOptions,
     permissions: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>std::fs::Permissions&gt;,
+    keep: bool,
 ) -&gt; io::Result&lt;NamedTempFile&gt; {
     <span class="comment">// Make the path absolute. Otherwise, changing directories could cause us to
     // delete the wrong file.
     </span><span class="kw">if </span>!path.is_absolute() {
-        path = env::current_dir()<span class="question-mark">?</span>.join(path)
+        path = std::env::current_dir()<span class="question-mark">?</span>.join(path)
     }
     imp::create_named(<span class="kw-2">&amp;</span>path, open_options, permissions)
         .with_err_path(|| path.clone())
         .map(|file| NamedTempFile {
             path: TempPath {
                 path: path.into_boxed_path(),
+                keep,
             },
             file,
         })

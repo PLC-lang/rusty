@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_filter-0.1.0/src/filter.rs`."><title>filter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="env_filter" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../env_filter/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/env_filter-0.1.2/src/filter.rs`."><title>filter.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="env_filter" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -546,6 +544,54 @@
 <a href="#544" id="544">544</a>
 <a href="#545" id="545">545</a>
 <a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::env;
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::mem;
@@ -554,8 +600,10 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::enabled;
 <span class="kw">use </span><span class="kw">crate</span>::parse_spec;
+<span class="kw">use </span><span class="kw">crate</span>::parser::ParseResult;
 <span class="kw">use </span><span class="kw">crate</span>::Directive;
 <span class="kw">use </span><span class="kw">crate</span>::FilterOp;
+<span class="kw">use </span><span class="kw">crate</span>::ParseError;
 
 <span class="doccomment">/// A builder for a log filter.
 ///
@@ -633,7 +681,7 @@
     /// If no module is provided then the filter will apply to all log messages.
     </span><span class="kw">pub fn </span>filter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, level: LevelFilter) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
         <span class="self">self</span>.insert_directive(Directive {
-            name: module.map(|s| s.to_string()),
+            name: module.map(|s| s.to_owned()),
             level,
         });
         <span class="self">self
@@ -645,7 +693,17 @@
     ///
     /// [Enabling Logging]: ../index.html#enabling-logging
     </span><span class="kw">pub fn </span>parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>, filters: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <span class="kw">let </span>(directives, filter) = parse_spec(filters);
+        <span class="attr">#![allow(clippy::print_stderr)] </span><span class="comment">// compatibility
+
+        </span><span class="kw">let </span>ParseResult {
+            directives,
+            filter,
+            errors,
+        } = parse_spec(filters);
+
+        <span class="kw">for </span>error <span class="kw">in </span>errors {
+            <span class="macro">eprintln!</span>(<span class="string">"warning: {error}, ignoring it"</span>);
+        }
 
         <span class="self">self</span>.filter = filter;
 
@@ -654,6 +712,22 @@
         }
         <span class="self">self
     </span>}
+
+    <span class="doccomment">/// Parses the directive string, returning an error if the given directive string is invalid.
+    ///
+    /// See the [Enabling Logging] section for more details.
+    ///
+    /// [Enabling Logging]: ../index.html#enabling-logging
+    </span><span class="kw">pub fn </span>try_parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>, filters: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>, ParseError&gt; {
+        <span class="kw">let </span>(directives, filter) = parse_spec(filters).ok()<span class="question-mark">?</span>;
+
+        <span class="self">self</span>.filter = filter;
+
+        <span class="kw">for </span>directive <span class="kw">in </span>directives {
+            <span class="self">self</span>.insert_directive(directive);
+        }
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
 
     <span class="doccomment">/// Build a log filter.
     </span><span class="kw">pub fn </span>build(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Filter {
@@ -693,7 +767,7 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Builder {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">if </span><span class="self">self</span>.built {
             f.debug_struct(<span class="string">"Filter"</span>).field(<span class="string">"built"</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>).finish()
         } <span class="kw">else </span>{
@@ -743,7 +817,7 @@
     }
 
     <span class="doccomment">/// Checks if this record matches the configured filter.
-    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record) -&gt; bool {
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, record: <span class="kw-2">&amp;</span>Record&lt;<span class="lifetime">'_</span>&gt;) -&gt; bool {
         <span class="kw">if </span>!<span class="self">self</span>.enabled(record.metadata()) {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
@@ -758,7 +832,7 @@
     </span>}
 
     <span class="doccomment">/// Determines if a log message with the specified metadata would be logged.
-    </span><span class="kw">pub fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata) -&gt; bool {
+    </span><span class="kw">pub fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">'_</span>&gt;) -&gt; bool {
         <span class="kw">let </span>level = metadata.level();
         <span class="kw">let </span>target = metadata.target();
 
@@ -767,7 +841,7 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Filter {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         f.debug_struct(<span class="string">"Filter"</span>)
             .field(<span class="string">"filter"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.filter)
             .field(<span class="string">"directives"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.directives)
@@ -778,6 +852,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>log::{Level, LevelFilter};
+    <span class="kw">use </span>snapbox::{assert_data_eq, str};
 
     <span class="kw">use super</span>::{enabled, Builder, Directive, Filter};
 
@@ -993,14 +1068,33 @@
     }
 
     <span class="attr">#[test]
+    </span><span class="kw">fn </span>try_parse_valid_filter() {
+        <span class="kw">let </span>logger = Builder::new()
+            .try_parse(<span class="string">"info,crate1::mod1=warn"</span>)
+            .expect(<span class="string">"valid filter returned error"</span>)
+            .build();
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Warn, <span class="string">"crate1::mod1"</span>));
+        <span class="macro">assert!</span>(enabled(<span class="kw-2">&amp;</span>logger.directives, Level::Info, <span class="string">"crate2::mod2"</span>));
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>try_parse_invalid_filter() {
+        <span class="kw">let </span>error = Builder::new().try_parse(<span class="string">"info,crate1=invalid"</span>).unwrap_err();
+        <span class="macro">assert_data_eq!</span>(
+            error,
+            <span class="macro">str!</span>[<span class="string">"error parsing logger filter: invalid logging spec 'invalid'"</span>]
+        );
+    }
+
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>match_full_path() {
         <span class="kw">let </span>logger = make_logger_filter(<span class="macro">vec!</span>[
             Directive {
-                name: <span class="prelude-val">Some</span>(<span class="string">"crate2"</span>.to_string()),
+                name: <span class="prelude-val">Some</span>(<span class="string">"crate2"</span>.to_owned()),
                 level: LevelFilter::Info,
             },
             Directive {
-                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_string()),
+                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_owned()),
                 level: LevelFilter::Warn,
             },
         ]);
@@ -1014,11 +1108,11 @@
     </span><span class="kw">fn </span>no_match() {
         <span class="kw">let </span>logger = make_logger_filter(<span class="macro">vec!</span>[
             Directive {
-                name: <span class="prelude-val">Some</span>(<span class="string">"crate2"</span>.to_string()),
+                name: <span class="prelude-val">Some</span>(<span class="string">"crate2"</span>.to_owned()),
                 level: LevelFilter::Info,
             },
             Directive {
-                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_string()),
+                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_owned()),
                 level: LevelFilter::Warn,
             },
         ]);
@@ -1029,11 +1123,11 @@
     </span><span class="kw">fn </span>match_beginning() {
         <span class="kw">let </span>logger = make_logger_filter(<span class="macro">vec!</span>[
             Directive {
-                name: <span class="prelude-val">Some</span>(<span class="string">"crate2"</span>.to_string()),
+                name: <span class="prelude-val">Some</span>(<span class="string">"crate2"</span>.to_owned()),
                 level: LevelFilter::Info,
             },
             Directive {
-                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_string()),
+                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_owned()),
                 level: LevelFilter::Warn,
             },
         ]);
@@ -1044,15 +1138,15 @@
     </span><span class="kw">fn </span>match_beginning_longest_match() {
         <span class="kw">let </span>logger = make_logger_filter(<span class="macro">vec!</span>[
             Directive {
-                name: <span class="prelude-val">Some</span>(<span class="string">"crate2"</span>.to_string()),
+                name: <span class="prelude-val">Some</span>(<span class="string">"crate2"</span>.to_owned()),
                 level: LevelFilter::Info,
             },
             Directive {
-                name: <span class="prelude-val">Some</span>(<span class="string">"crate2::mod"</span>.to_string()),
+                name: <span class="prelude-val">Some</span>(<span class="string">"crate2::mod"</span>.to_owned()),
                 level: LevelFilter::Debug,
             },
             Directive {
-                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_string()),
+                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_owned()),
                 level: LevelFilter::Warn,
             },
         ]);
@@ -1068,7 +1162,7 @@
                 level: LevelFilter::Info,
             },
             Directive {
-                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_string()),
+                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_owned()),
                 level: LevelFilter::Warn,
             },
         ]);
@@ -1084,7 +1178,7 @@
                 level: LevelFilter::Info,
             },
             Directive {
-                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_string()),
+                name: <span class="prelude-val">Some</span>(<span class="string">"crate1::mod1"</span>.to_owned()),
                 level: LevelFilter::Off,
             },
         ]);

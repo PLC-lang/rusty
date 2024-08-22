@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.3.0/src/rwlock/raw.rs`."><title>raw.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../async_lock/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.4.0/src/rwlock/raw.rs`."><title>raw.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -580,6 +578,18 @@
 <a href="#578" id="578">578</a>
 <a href="#579" id="579">579</a>
 <a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Raw, unsafe reader-writer locking implementation,
 //! doesn't depend on the data protected by the lock.
 //! [`RwLock`](super::RwLock) is implemented in terms of this.
@@ -588,10 +598,12 @@
 //! the locking code only once, and also lets us make
 //! [`RwLockReadGuard`](super::RwLockReadGuard) covariant in `T`.
 
-</span><span class="kw">use </span>core::mem::forget;
+</span><span class="kw">use </span>core::marker::PhantomPinned;
+<span class="kw">use </span>core::mem::forget;
 <span class="kw">use </span>core::pin::Pin;
-<span class="kw">use </span>core::sync::atomic::{AtomicUsize, Ordering};
 <span class="kw">use </span>core::task::Poll;
+
+<span class="kw">use </span><span class="kw">crate</span>::sync::atomic::{AtomicUsize, Ordering};
 
 <span class="kw">use </span>event_listener::{Event, EventListener};
 <span class="kw">use </span>event_listener_strategy::{EventListenerFuture, Strategy};
@@ -624,13 +636,16 @@
 }
 
 <span class="kw">impl </span>RawRwLock {
-    <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>new() -&gt; <span class="self">Self </span>{
-        RawRwLock {
-            mutex: Mutex::new(()),
-            no_readers: Event::new(),
-            no_writer: Event::new(),
-            state: AtomicUsize::new(<span class="number">0</span>),
+    <span class="macro">const_fn!</span> {
+        const_if: <span class="attr">#[cfg(not(loom))]</span>;
+        <span class="attr">#[inline]
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>new() -&gt; <span class="self">Self </span>{
+            RawRwLock {
+                mutex: Mutex::new(()),
+                no_readers: Event::new(),
+                no_writer: Event::new(),
+                state: AtomicUsize::new(<span class="number">0</span>),
+            }
         }
     }
 
@@ -668,7 +683,8 @@
         RawRead {
             lock: <span class="self">self</span>,
             state: <span class="self">self</span>.state.load(Ordering::Acquire),
-            listener: EventListener::new(),
+            listener: <span class="prelude-val">None</span>,
+            _pin: PhantomPinned,
         }
     }
 
@@ -743,7 +759,7 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawWrite&lt;<span class="lifetime">'_</span>&gt; {
         RawWrite {
             lock: <span class="self">self</span>,
-            no_readers: EventListener::new(),
+            no_readers: <span class="prelude-val">None</span>,
             state: WriteState::Acquiring {
                 lock: <span class="self">self</span>.mutex.lock(),
             },
@@ -775,7 +791,8 @@
 
         RawUpgrade {
             lock: <span class="prelude-val">Some</span>(<span class="self">self</span>),
-            listener: EventListener::new(),
+            listener: <span class="prelude-val">None</span>,
+            _pin: PhantomPinned,
         }
     }
 
@@ -863,7 +880,7 @@
     }
 }
 
-<span class="macro">pin_project_lite::pin_project! </span>{
+<span class="macro">pin_project_lite::pin_project!</span> {
     <span class="doccomment">/// The future returned by [`RawRwLock::read`].
 
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>RawRead&lt;<span class="lifetime">'a</span>&gt; {
@@ -874,8 +891,11 @@
         </span>state: usize,
 
         <span class="comment">// The listener for the "no writers" event.
+        </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
+
+        <span class="comment">// Making this type `!Unpin` enables future optimizations.
         </span><span class="attr">#[pin]
-        </span>listener: EventListener,
+        </span>_pin: PhantomPinned
     }
 }
 
@@ -887,7 +907,7 @@
         strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
     ) -&gt; Poll&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
 
         <span class="kw">loop </span>{
             <span class="kw">if </span><span class="kw-2">*</span>this.state &amp; WRITER_BIT == <span class="number">0 </span>{
@@ -909,14 +929,14 @@
                 }
             } <span class="kw">else </span>{
                 <span class="comment">// Start listening for "no writer" events.
-                </span><span class="kw">let </span>load_ordering = <span class="kw">if </span>!this.listener.is_listening() {
-                    this.listener.as_mut().listen(<span class="kw-2">&amp;</span>this.lock.no_writer);
+                </span><span class="kw">let </span>load_ordering = <span class="kw">if </span>this.listener.is_none() {
+                    <span class="kw-2">*</span>this.listener = <span class="prelude-val">Some</span>(this.lock.no_writer.listen());
 
                     <span class="comment">// Make sure there really is no writer.
                     </span>Ordering::SeqCst
                 } <span class="kw">else </span>{
                     <span class="comment">// Wait for the writer to finish.
-                    </span><span class="macro">ready!</span>(strategy.poll(this.listener.as_mut(), cx));
+                    </span><span class="macro">ready!</span>(strategy.poll(this.listener, cx));
 
                     <span class="comment">// Notify the next reader waiting in list.
                     </span>this.lock.no_writer.notify(<span class="number">1</span>);
@@ -932,7 +952,7 @@
     }
 }
 
-<span class="macro">pin_project_lite::pin_project! </span>{
+<span class="macro">pin_project_lite::pin_project!</span> {
     <span class="doccomment">/// The future returned by [`RawRwLock::upgradable_read`].
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>RawUpgradableRead&lt;<span class="lifetime">'a</span>&gt; {
         <span class="comment">// The lock that is being acquired.
@@ -983,7 +1003,7 @@
     }
 }
 
-<span class="macro">pin_project_lite::pin_project! </span>{
+<span class="macro">pin_project_lite::pin_project!</span> {
     <span class="doccomment">/// The future returned by [`RawRwLock::write`].
 
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>RawWrite&lt;<span class="lifetime">'a</span>&gt; {
@@ -991,8 +1011,7 @@
         </span><span class="kw">pub</span>(<span class="kw">super</span>) lock: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>RawRwLock,
 
         <span class="comment">// Our listener for the "no readers" event.
-        </span><span class="attr">#[pin]
-        </span>no_readers: EventListener,
+        </span>no_readers: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
 
         <span class="comment">// Current state fof this future.
         </span><span class="attr">#[pin]
@@ -1013,7 +1032,7 @@
     }
 }
 
-<span class="macro">pin_project_lite::pin_project! </span>{
+<span class="macro">pin_project_lite::pin_project!</span> {
     <span class="attr">#[project = WriteStateProj]
     #[project_replace = WriteStateProjReplace]
     </span><span class="kw">enum </span>WriteState&lt;<span class="lifetime">'a</span>&gt; {
@@ -1055,12 +1074,12 @@
                     }
 
                     <span class="comment">// Start waiting for the readers to finish.
-                    </span>this.no_readers.as_mut().listen(<span class="kw-2">&amp;</span>this.lock.no_readers);
+                    </span><span class="kw-2">*</span>this.no_readers = <span class="prelude-val">Some</span>(this.lock.no_readers.listen());
                     this.state.as_mut().set(WriteState::WaitingReaders);
                 }
 
                 WriteStateProj::WaitingReaders =&gt; {
-                    <span class="kw">let </span>load_ordering = <span class="kw">if </span>this.no_readers.is_listening() {
+                    <span class="kw">let </span>load_ordering = <span class="kw">if </span>this.no_readers.is_some() {
                         Ordering::Acquire
                     } <span class="kw">else </span>{
                         Ordering::SeqCst
@@ -1074,12 +1093,12 @@
                     }
 
                     <span class="comment">// Wait for the readers to finish.
-                    </span><span class="kw">if </span>!this.no_readers.is_listening() {
+                    </span><span class="kw">if </span>this.no_readers.is_none() {
                         <span class="comment">// Register a listener.
-                        </span>this.no_readers.as_mut().listen(<span class="kw-2">&amp;</span>this.lock.no_readers);
+                        </span><span class="kw-2">*</span>this.no_readers = <span class="prelude-val">Some</span>(this.lock.no_readers.listen());
                     } <span class="kw">else </span>{
                         <span class="comment">// Wait for the readers to finish.
-                        </span><span class="macro">ready!</span>(strategy.poll(this.no_readers.as_mut(), cx));
+                        </span><span class="macro">ready!</span>(strategy.poll(this.no_readers, cx));
                     };
                 }
                 WriteStateProj::Acquired =&gt; <span class="macro">panic!</span>(<span class="string">"Write lock already acquired"</span>),
@@ -1088,15 +1107,18 @@
     }
 }
 
-<span class="macro">pin_project_lite::pin_project! </span>{
+<span class="macro">pin_project_lite::pin_project!</span> {
     <span class="doccomment">/// The future returned by [`RawRwLock::upgrade`].
 
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>RawUpgrade&lt;<span class="lifetime">'a</span>&gt; {
         lock: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>RawRwLock&gt;,
 
         <span class="comment">// The event listener we are waiting on.
+        </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
+
+        <span class="comment">// Keeping this future `!Unpin` enables future optimizations.
         </span><span class="attr">#[pin]
-        </span>listener: EventListener,
+        </span>_pin: PhantomPinned
     }
 
     <span class="kw">impl </span>PinnedDrop <span class="kw">for </span>RawUpgrade&lt;<span class="lifetime">'_</span>&gt; {
@@ -1121,12 +1143,12 @@
         strategy: <span class="kw-2">&amp;mut </span>S,
         cx: <span class="kw-2">&amp;mut </span>S::Context,
     ) -&gt; Poll&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>RawRwLock&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+        <span class="kw">let </span>this = <span class="self">self</span>.project();
         <span class="kw">let </span>lock = this.lock.expect(<span class="string">"cannot poll future after completion"</span>);
 
         <span class="comment">// If there are readers, we need to wait for them to finish.
         </span><span class="kw">loop </span>{
-            <span class="kw">let </span>load_ordering = <span class="kw">if </span>this.listener.is_listening() {
+            <span class="kw">let </span>load_ordering = <span class="kw">if </span>this.listener.is_some() {
                 Ordering::Acquire
             } <span class="kw">else </span>{
                 Ordering::SeqCst
@@ -1139,12 +1161,12 @@
             }
 
             <span class="comment">// If there are readers, wait for them to finish.
-            </span><span class="kw">if </span>!this.listener.is_listening() {
+            </span><span class="kw">if </span>this.listener.is_none() {
                 <span class="comment">// Start listening for "no readers" events.
-                </span>this.listener.as_mut().listen(<span class="kw-2">&amp;</span>lock.no_readers);
+                </span><span class="kw-2">*</span>this.listener = <span class="prelude-val">Some</span>(lock.no_readers.listen());
             } <span class="kw">else </span>{
                 <span class="comment">// Wait for the readers to finish.
-                </span><span class="macro">ready!</span>(strategy.poll(this.listener.as_mut(), cx));
+                </span><span class="macro">ready!</span>(strategy.poll(this.listener, cx));
             };
         }
 

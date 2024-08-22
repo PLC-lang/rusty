@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/sys/unix/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="mio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../mio/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-1.0.2/src/sys/unix/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="mio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -126,14 +124,52 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Helper macro to execute a system call that returns an `io::Result`.
 </span><span class="comment">//
 // Macro must be defined before any modules that uses them.
 </span><span class="attr">#[allow(unused_macros)]
-</span><span class="macro">macro_rules! </span>syscall {
+</span><span class="macro">macro_rules!</span> syscall {
     (<span class="macro-nonterminal">$</span><span class="kw">fn</span>: <span class="macro-nonterminal">ident </span>( $(<span class="macro-nonterminal">$arg</span>: expr),* $(,)* ) ) =&gt; {{
-        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::<span class="macro-nonterminal">$</span><span class="kw">fn</span>($(<span class="macro-nonterminal">$arg</span>, )<span class="kw-2">*</span>) };
-        <span class="kw">if </span>res == -<span class="number">1 </span>{
+        <span class="attr">#[allow(unused_unsafe)]
+        </span><span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::<span class="macro-nonterminal">$</span><span class="kw">fn</span>($(<span class="macro-nonterminal">$arg</span>, )<span class="kw-2">*</span>) };
+        <span class="kw">if </span>res &lt; <span class="number">0 </span>{
             <span class="prelude-val">Err</span>(std::io::Error::last_os_error())
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(res)
@@ -141,112 +177,148 @@
     }};
 }
 
-<span class="macro">cfg_os_poll! </span>{
-    <span class="kw">mod </span>selector;
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::selector::{event, Event, Events, Selector};
+<span class="macro">cfg_os_poll!</span> {
+    <span class="attr">#[cfg_attr(all(
+        not(mio_unsupported_force_poll_poll),
+        any(
+            target_os = <span class="string">"android"</span>,
+            target_os = <span class="string">"illumos"</span>,
+            target_os = <span class="string">"linux"</span>,
+            target_os = <span class="string">"redox"</span>,
+        )
+    ), path = <span class="string">"selector/epoll.rs"</span>)]
+    #[cfg_attr(all(
+        not(mio_unsupported_force_poll_poll),
+        any(
+            target_os = <span class="string">"dragonfly"</span>,
+            target_os = <span class="string">"freebsd"</span>,
+            target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"macos"</span>,
+            target_os = <span class="string">"netbsd"</span>,
+            target_os = <span class="string">"openbsd"</span>,
+            target_os = <span class="string">"tvos"</span>,
+            target_os = <span class="string">"visionos"</span>,
+            target_os = <span class="string">"watchos"</span>,
+        )
+    ), path = <span class="string">"selector/kqueue.rs"</span>)]
+    #[cfg_attr(any(
+        mio_unsupported_force_poll_poll,
+        target_os = <span class="string">"espidf"</span>,
+        target_os = <span class="string">"fuchsia"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"hermit"</span>,
+        target_os = <span class="string">"hurd"</span>,
+        target_os = <span class="string">"nto"</span>,
+        target_os = <span class="string">"solaris"</span>,
+        target_os = <span class="string">"vita"</span>,
+    ), path = <span class="string">"selector/poll.rs"</span>)]
+    </span><span class="kw">mod </span>selector;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::selector::<span class="kw-2">*</span>;
 
-    <span class="kw">mod </span>sourcefd;
-    <span class="attr">#[cfg(feature = <span class="string">"os-ext"</span>)]
-    </span><span class="kw">pub use </span><span class="self">self</span>::sourcefd::SourceFd;
-
-    <span class="kw">mod </span>waker;
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::waker::Waker;
-
-    <span class="macro">cfg_net! </span>{
-        <span class="kw">mod </span>net;
-
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tcp;
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>udp;
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>uds;
-        <span class="kw">pub use </span><span class="self">self</span>::uds::SocketAddr;
-    }
-
-    <span class="macro">cfg_io_source! </span>{
-        <span class="comment">// Both `kqueue` and `epoll` don't need to hold any user space state.
-        </span><span class="attr">#[cfg(not(any(mio_unsupported_force_poll_poll, target_os = <span class="string">"solaris"</span>, target_os = <span class="string">"vita"</span>)))]
-        </span><span class="kw">mod </span>stateless_io_source {
-            <span class="kw">use </span>std::io;
-            <span class="kw">use </span>std::os::unix::io::RawFd;
-            <span class="kw">use </span><span class="kw">crate</span>::Registry;
-            <span class="kw">use </span><span class="kw">crate</span>::Token;
-            <span class="kw">use </span><span class="kw">crate</span>::Interest;
-
-            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IoSourceState;
-
-            <span class="kw">impl </span>IoSourceState {
-                <span class="kw">pub fn </span>new() -&gt; IoSourceState {
-                    IoSourceState
-                }
-
-                <span class="kw">pub fn </span>do_io&lt;T, F, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F, io: <span class="kw-2">&amp;</span>T) -&gt; io::Result&lt;R&gt;
-                <span class="kw">where
-                    </span>F: FnOnce(<span class="kw-2">&amp;</span>T) -&gt; io::Result&lt;R&gt;,
-                {
-                    <span class="comment">// We don't hold state, so we can just call the function and
-                    // return.
-                    </span>f(io)
-                }
-
-                <span class="kw">pub fn </span>register(
-                    <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-                    registry: <span class="kw-2">&amp;</span>Registry,
-                    token: Token,
-                    interests: Interest,
-                    fd: RawFd,
-                ) -&gt; io::Result&lt;()&gt; {
-                    <span class="comment">// Pass through, we don't have any state
-                    </span>registry.selector().register(fd, token, interests)
-                }
-
-                <span class="kw">pub fn </span>reregister(
-                    <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-                    registry: <span class="kw-2">&amp;</span>Registry,
-                    token: Token,
-                    interests: Interest,
-                    fd: RawFd,
-                ) -&gt; io::Result&lt;()&gt; {
-                    <span class="comment">// Pass through, we don't have any state
-                    </span>registry.selector().reregister(fd, token, interests)
-                }
-
-                <span class="kw">pub fn </span>deregister(<span class="kw-2">&amp;mut </span><span class="self">self</span>, registry: <span class="kw-2">&amp;</span>Registry, fd: RawFd) -&gt; io::Result&lt;()&gt; {
-                    <span class="comment">// Pass through, we don't have any state
-                    </span>registry.selector().deregister(fd)
-                }
-            }
-        }
-
-        <span class="attr">#[cfg(not(any(mio_unsupported_force_poll_poll, target_os = <span class="string">"solaris"</span>,target_os = <span class="string">"vita"</span>)))]
-        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::stateless_io_source::IoSourceState;
-
-        <span class="attr">#[cfg(any(mio_unsupported_force_poll_poll, target_os = <span class="string">"solaris"</span>, target_os = <span class="string">"vita"</span>))]
-        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::selector::IoSourceState;
-    }
-
-    <span class="attr">#[cfg(any(
-        <span class="comment">// For the public `pipe` module, must match `cfg_os_ext` macro.
-        </span>feature = <span class="string">"os-ext"</span>,
-        <span class="comment">// For the `Waker` type based on a pipe.
+    <span class="attr">#[cfg_attr(all(
+        not(mio_unsupported_force_waker_pipe),
+        any(
+            target_os = <span class="string">"android"</span>,
+            target_os = <span class="string">"espidf"</span>,
+            target_os = <span class="string">"fuchsia"</span>,
+            target_os = <span class="string">"hermit"</span>,
+            target_os = <span class="string">"illumos"</span>,
+            target_os = <span class="string">"linux"</span>,
+        )
+    ), path = <span class="string">"waker/eventfd.rs"</span>)]
+    #[cfg_attr(all(
+        not(mio_unsupported_force_waker_pipe),
+        not(mio_unsupported_force_poll_poll), <span class="comment">// `kqueue(2)` based waker doesn't work with `poll(2)`.
+        </span>any(
+            target_os = <span class="string">"freebsd"</span>,
+            target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"macos"</span>,
+            target_os = <span class="string">"tvos"</span>,
+            target_os = <span class="string">"visionos"</span>,
+            target_os = <span class="string">"watchos"</span>,
+        )
+    ), path = <span class="string">"waker/kqueue.rs"</span>)]
+    #[cfg_attr(any(
+        <span class="comment">// NOTE: also add to the list list for the `pipe` module below.
         </span>mio_unsupported_force_waker_pipe,
+        all(
+            <span class="comment">// `kqueue(2)` based waker doesn't work with `poll(2)`.
+            </span>mio_unsupported_force_poll_poll,
+            any(
+                target_os = <span class="string">"freebsd"</span>,
+                target_os = <span class="string">"ios"</span>,
+                target_os = <span class="string">"macos"</span>,
+                target_os = <span class="string">"tvos"</span>,
+                target_os = <span class="string">"visionos"</span>,
+                target_os = <span class="string">"watchos"</span>,
+            ),
+        ),
         target_os = <span class="string">"aix"</span>,
         target_os = <span class="string">"dragonfly"</span>,
-        target_os = <span class="string">"illumos"</span>,
+        target_os = <span class="string">"haiku"</span>,
+        target_os = <span class="string">"hurd"</span>,
         target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"nto"</span>,
         target_os = <span class="string">"openbsd"</span>,
         target_os = <span class="string">"redox"</span>,
         target_os = <span class="string">"solaris"</span>,
         target_os = <span class="string">"vita"</span>,
+    ), path = <span class="string">"waker/pipe.rs"</span>)]
+    </span><span class="kw">mod </span>waker;
+    <span class="comment">// NOTE: the `Waker` type is expected in the selector module as the
+    // `poll(2)` implementation needs to do some special stuff.
+
+    </span><span class="kw">mod </span>sourcefd;
+    <span class="attr">#[cfg(feature = <span class="string">"os-ext"</span>)]
+    </span><span class="kw">pub use </span><span class="self">self</span>::sourcefd::SourceFd;
+
+    <span class="macro">cfg_net!</span> {
+        <span class="kw">mod </span>net;
+
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tcp;
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>udp;
+        <span class="attr">#[cfg(not(target_os = <span class="string">"hermit"</span>))]
+        </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>uds;
+    }
+
+    <span class="attr">#[cfg(all(
+        any(
+            <span class="comment">// For the public `pipe` module, must match `cfg_os_ext` macro.
+            </span>feature = <span class="string">"os-ext"</span>,
+            <span class="comment">// For the `Waker` type based on a pipe.
+            </span>mio_unsupported_force_waker_pipe,
+            all(
+                <span class="comment">// `kqueue(2)` based waker doesn't work with `poll(2)`.
+                </span>mio_unsupported_force_poll_poll,
+                any(
+                    target_os = <span class="string">"freebsd"</span>,
+                    target_os = <span class="string">"ios"</span>,
+                    target_os = <span class="string">"macos"</span>,
+                    target_os = <span class="string">"tvos"</span>,
+                    target_os = <span class="string">"visionos"</span>,
+                    target_os = <span class="string">"watchos"</span>,
+                ),
+            ),
+            <span class="comment">// NOTE: also add to the list list for the `pipe` module below.
+            </span>target_os = <span class="string">"aix"</span>,
+            target_os = <span class="string">"dragonfly"</span>,
+            target_os = <span class="string">"haiku"</span>,
+            target_os = <span class="string">"hurd"</span>,
+            target_os = <span class="string">"netbsd"</span>,
+            target_os = <span class="string">"nto"</span>,
+            target_os = <span class="string">"openbsd"</span>,
+            target_os = <span class="string">"redox"</span>,
+            target_os = <span class="string">"solaris"</span>,
+            target_os = <span class="string">"vita"</span>,
+        ),
+        <span class="comment">// Hermit doesn't support pipes.
+        </span>not(target_os = <span class="string">"hermit"</span>),
     ))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>pipe;
 }
 
-<span class="macro">cfg_not_os_poll! </span>{
-    <span class="macro">cfg_net! </span>{
-        <span class="kw">mod </span>uds;
-        <span class="kw">pub use </span><span class="self">self</span>::uds::SocketAddr;
-    }
-
-    <span class="macro">cfg_any_os_ext! </span>{
+<span class="macro">cfg_not_os_poll!</span> {
+    <span class="macro">cfg_any_os_ext!</span> {
         <span class="kw">mod </span>sourcefd;
         <span class="attr">#[cfg(feature = <span class="string">"os-ext"</span>)]
         </span><span class="kw">pub use </span><span class="self">self</span>::sourcefd::SourceFd;

@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.3.0/src/mutex.rs`."><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../async_lock/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-lock-3.4.0/src/mutex.rs`."><title>mutex.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_lock" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -763,20 +761,19 @@
 <a href="#761" id="761">761</a>
 <a href="#762" id="762">762</a>
 <a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a>
-<a href="#766" id="766">766</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>core::borrow::Borrow;
 <span class="kw">use </span>core::cell::UnsafeCell;
 <span class="kw">use </span>core::fmt;
-<span class="kw">use </span>core::marker::PhantomData;
+<span class="kw">use </span>core::marker::{PhantomData, PhantomPinned};
 <span class="kw">use </span>core::ops::{Deref, DerefMut};
 <span class="kw">use </span>core::pin::Pin;
-<span class="kw">use </span>core::sync::atomic::{AtomicUsize, Ordering};
 <span class="kw">use </span>core::task::Poll;
 <span class="kw">use </span>core::usize;
 
 <span class="kw">use </span>alloc::sync::Arc;
+
+<span class="comment">// We don't use loom::UnsafeCell as that doesn't work with the Mutex API.
+</span><span class="kw">use </span><span class="kw">crate</span>::sync::atomic::{AtomicUsize, Ordering};
 
 <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
 </span><span class="kw">use </span>std::time::{Duration, Instant};
@@ -824,20 +821,23 @@
 <span class="kw">unsafe impl</span>&lt;T: Send + <span class="question-mark">?</span>Sized&gt; Sync <span class="kw">for </span>Mutex&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T&gt; Mutex&lt;T&gt; {
-    <span class="doccomment">/// Creates a new async mutex.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use async_lock::Mutex;
-    ///
-    /// let mutex = Mutex::new(0);
-    /// ```
-    </span><span class="kw">pub const fn </span>new(data: T) -&gt; Mutex&lt;T&gt; {
-        Mutex {
-            state: AtomicUsize::new(<span class="number">0</span>),
-            lock_ops: Event::new(),
-            data: UnsafeCell::new(data),
+    <span class="macro">const_fn!</span> {
+        const_if: <span class="attr">#[cfg(not(loom))]</span>;
+        <span class="doccomment">/// Creates a new async mutex.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use async_lock::Mutex;
+        ///
+        /// let mutex = Mutex::new(0);
+        /// ```
+        </span><span class="kw">pub const fn </span>new(data: T) -&gt; Mutex&lt;T&gt; {
+            Mutex {
+                state: AtomicUsize::new(<span class="number">0</span>),
+                lock_ops: Event::new(),
+                data: UnsafeCell::new(data),
+            }
         }
     }
 
@@ -954,7 +954,7 @@
     /// # })
     /// ```
     </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.data.get() }
+        <span class="self">self</span>.data.get_mut()
     }
 
     <span class="doccomment">/// Unlocks the mutex directly.
@@ -1083,14 +1083,14 @@
     }
 }
 
-<span class="macro">easy_wrapper! </span>{
+<span class="macro">easy_wrapper!</span> {
     <span class="doccomment">/// The future returned by [`Mutex::lock`].
     </span><span class="kw">pub struct </span>Lock&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt;(LockInner&lt;<span class="lifetime">'a</span>, T&gt; =&gt; MutexGuard&lt;<span class="lifetime">'a</span>, T&gt;);
     <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
-<span class="macro">pin_project_lite::pin_project! </span>{
+<span class="macro">pin_project_lite::pin_project!</span> {
     <span class="doccomment">/// Inner future for acquiring the mutex.
     </span><span class="kw">struct </span>LockInner&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; {
         <span class="comment">// Reference to the mutex.
@@ -1141,14 +1141,14 @@
     }
 }
 
-<span class="macro">easy_wrapper! </span>{
+<span class="macro">easy_wrapper!</span> {
     <span class="doccomment">/// The future returned by [`Mutex::lock_arc`].
     </span><span class="kw">pub struct </span>LockArc&lt;T: <span class="question-mark">?</span>Sized&gt;(LockArcInnards&lt;T&gt; =&gt; MutexGuardArc&lt;T&gt;);
     <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) wait();
 }
 
-<span class="macro">pin_project_lite::pin_project! </span>{
+<span class="macro">pin_project_lite::pin_project!</span> {
     <span class="attr">#[project = LockArcInnardsProj]
     </span><span class="kw">enum </span>LockArcInnards&lt;T: <span class="question-mark">?</span>Sized&gt; {
         <span class="doccomment">/// We have not tried to poll the fast path yet.
@@ -1206,15 +1206,14 @@
     }
 }
 
-<span class="macro">pin_project_lite::pin_project! </span>{
+<span class="macro">pin_project_lite::pin_project!</span> {
     <span class="doccomment">/// Future for acquiring the mutex slowly.
     </span><span class="kw">struct </span>AcquireSlow&lt;B: Borrow&lt;Mutex&lt;T&gt;&gt;, T: <span class="question-mark">?</span>Sized&gt; {
         <span class="comment">// Reference to the mutex.
         </span>mutex: <span class="prelude-ty">Option</span>&lt;B&gt;,
 
         <span class="comment">// The event listener waiting on the mutex.
-        </span><span class="attr">#[pin]
-        </span>listener: EventListener,
+        </span>listener: <span class="prelude-ty">Option</span>&lt;EventListener&gt;,
 
         <span class="comment">// The point at which the mutex lock was started.
         </span>start: Start,
@@ -1225,6 +1224,10 @@
         <span class="comment">// Capture the `T` lifetime.
         </span><span class="attr">#[pin]
         </span>_marker: PhantomData&lt;T&gt;,
+
+        <span class="comment">// Keeping this type `!Unpin` enables future optimizations.
+        </span><span class="attr">#[pin]
+        </span>_pin: PhantomPinned
     }
 
     <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized, B: Borrow&lt;Mutex&lt;T&gt;&gt;&gt; PinnedDrop <span class="kw">for </span>AcquireSlow&lt;B, T&gt; {
@@ -1245,18 +1248,16 @@
     <span class="doccomment">/// Create a new `AcquireSlow` future.
     </span><span class="attr">#[cold]
     </span><span class="kw">fn </span>new(mutex: B) -&gt; <span class="self">Self </span>{
-        <span class="comment">// Create a new instance of the listener.
-        </span><span class="kw">let </span>listener = { EventListener::new() };
-
         AcquireSlow {
             mutex: <span class="prelude-val">Some</span>(mutex),
-            listener,
+            listener: <span class="prelude-val">None</span>,
             start: Start {
                 <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
                 </span>start: <span class="prelude-val">None</span>,
             },
             starved: <span class="bool-val">false</span>,
             _marker: PhantomData,
+            _pin: PhantomPinned,
         }
     }
 
@@ -1285,7 +1286,7 @@
         strategy: <span class="kw-2">&amp;mut </span>S,
         context: <span class="kw-2">&amp;mut </span>S::Context,
     ) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.as_mut().project();
+        <span class="kw">let </span>this = <span class="self">self</span>.as_mut().project();
         <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, not(target_family = <span class="string">"wasm"</span>)))]
         </span><span class="kw">let </span>start = <span class="kw-2">*</span>this.start.start.get_or_insert_with(Instant::now);
         <span class="kw">let </span>mutex = Borrow::&lt;Mutex&lt;T&gt;&gt;::borrow(
@@ -1296,8 +1297,8 @@
         </span><span class="kw">if </span>!<span class="kw-2">*</span>this.starved {
             <span class="kw">loop </span>{
                 <span class="comment">// Start listening for events.
-                </span><span class="kw">if </span>!this.listener.is_listening() {
-                    this.listener.as_mut().listen(<span class="kw-2">&amp;</span>mutex.lock_ops);
+                </span><span class="kw">if </span>this.listener.is_none() {
+                    <span class="kw-2">*</span>this.listener = <span class="prelude-val">Some</span>(mutex.lock_ops.listen());
 
                     <span class="comment">// Try locking if nobody is being starved.
                     </span><span class="kw">match </span>mutex
@@ -1315,7 +1316,7 @@
                         </span><span class="kw">_ </span>=&gt; <span class="kw">break</span>,
                     }
                 } <span class="kw">else </span>{
-                    <span class="macro">ready!</span>(strategy.poll(this.listener.as_mut(), context));
+                    <span class="macro">ready!</span>(strategy.poll(this.listener, context));
 
                     <span class="comment">// Try locking if nobody is being starved.
                     </span><span class="kw">match </span>mutex
@@ -1359,9 +1360,9 @@
 
         <span class="comment">// Fairer locking loop.
         </span><span class="kw">loop </span>{
-            <span class="kw">if </span>!this.listener.is_listening() {
+            <span class="kw">if </span>this.listener.is_none() {
                 <span class="comment">// Start listening for events.
-                </span>this.listener.as_mut().listen(<span class="kw-2">&amp;</span>mutex.lock_ops);
+                </span><span class="kw-2">*</span>this.listener = <span class="prelude-val">Some</span>(mutex.lock_ops.listen());
 
                 <span class="comment">// Try locking if nobody else is being starved.
                 </span><span class="kw">match </span>mutex
@@ -1383,7 +1384,7 @@
                 }
             } <span class="kw">else </span>{
                 <span class="comment">// Wait for a notification.
-                </span><span class="macro">ready!</span>(strategy.poll(this.listener.as_mut(), context));
+                </span><span class="macro">ready!</span>(strategy.poll(this.listener, context));
 
                 <span class="comment">// Try acquiring the lock without waiting for others.
                 </span><span class="kw">if </span>mutex.state.fetch_or(<span class="number">1</span>, Ordering::Acquire) % <span class="number">2 </span>== <span class="number">0 </span>{
@@ -1521,15 +1522,6 @@
 <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>MutexGuardArc&lt;T&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
         <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.<span class="number">0</span>.data.get() }
-    }
-}
-
-<span class="doccomment">/// Calls a function when dropped.
-</span><span class="kw">struct </span>CallOnDrop&lt;F: Fn()&gt;(F);
-
-<span class="kw">impl</span>&lt;F: Fn()&gt; Drop <span class="kw">for </span>CallOnDrop&lt;F&gt; {
-    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        (<span class="self">self</span>.<span class="number">0</span>)();
     }
 }
 </code></pre></div></section></main></body></html>

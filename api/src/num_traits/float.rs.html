@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-traits-0.2.18/src/float.rs`."><title>float.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_traits" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../num_traits/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/num-traits-0.2.19/src/float.rs`."><title>float.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="num_traits" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2482,6 +2480,37 @@
 <a href="#2480" id="2480">2480</a>
 <a href="#2481" id="2481">2481</a>
 <a href="#2482" id="2482">2482</a>
+<a href="#2483" id="2483">2483</a>
+<a href="#2484" id="2484">2484</a>
+<a href="#2485" id="2485">2485</a>
+<a href="#2486" id="2486">2486</a>
+<a href="#2487" id="2487">2487</a>
+<a href="#2488" id="2488">2488</a>
+<a href="#2489" id="2489">2489</a>
+<a href="#2490" id="2490">2490</a>
+<a href="#2491" id="2491">2491</a>
+<a href="#2492" id="2492">2492</a>
+<a href="#2493" id="2493">2493</a>
+<a href="#2494" id="2494">2494</a>
+<a href="#2495" id="2495">2495</a>
+<a href="#2496" id="2496">2496</a>
+<a href="#2497" id="2497">2497</a>
+<a href="#2498" id="2498">2498</a>
+<a href="#2499" id="2499">2499</a>
+<a href="#2500" id="2500">2500</a>
+<a href="#2501" id="2501">2501</a>
+<a href="#2502" id="2502">2502</a>
+<a href="#2503" id="2503">2503</a>
+<a href="#2504" id="2504">2504</a>
+<a href="#2505" id="2505">2505</a>
+<a href="#2506" id="2506">2506</a>
+<a href="#2507" id="2507">2507</a>
+<a href="#2508" id="2508">2508</a>
+<a href="#2509" id="2509">2509</a>
+<a href="#2510" id="2510">2510</a>
+<a href="#2511" id="2511">2511</a>
+<a href="#2512" id="2512">2512</a>
+<a href="#2513" id="2513">2513</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>core::cmp::Ordering;
 <span class="kw">use </span>core::num::FpCategory;
 <span class="kw">use </span>core::ops::{Add, Div, Neg};
@@ -3136,6 +3165,36 @@
         }
     }
 
+    <span class="doccomment">/// A value bounded by a minimum and a maximum
+    ///
+    ///  If input is less than min then this returns min.
+    ///  If input is greater than max then this returns max.
+    ///  Otherwise this returns input.
+    ///
+    /// **Panics** in debug mode if `!(min &lt;= max)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use num_traits::float::FloatCore;
+    ///
+    /// fn check&lt;T: FloatCore&gt;(val: T, min: T, max: T, expected: T) {
+    ///     assert!(val.clamp(min, max) == expected);
+    /// }
+    ///
+    ///
+    /// check(1.0f32, 0.0, 2.0, 1.0);
+    /// check(1.0f32, 2.0, 3.0, 2.0);
+    /// check(3.0f32, 0.0, 2.0, 2.0);
+    ///
+    /// check(1.0f64, 0.0, 2.0, 1.0);
+    /// check(1.0f64, 2.0, 3.0, 2.0);
+    /// check(3.0f64, 0.0, 2.0, 2.0);
+    /// ```
+    </span><span class="kw">fn </span>clamp(<span class="self">self</span>, min: <span class="self">Self</span>, max: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">crate</span>::clamp(<span class="self">self</span>, min, max)
+    }
+
     <span class="doccomment">/// Returns the reciprocal (multiplicative inverse) of the number.
     ///
     /// # Examples
@@ -3253,7 +3312,7 @@
 }
 
 <span class="kw">impl </span>FloatCore <span class="kw">for </span>f32 {
-    <span class="macro">constant! </span>{
+    <span class="macro">constant!</span> {
         infinity() -&gt; f32::INFINITY;
         neg_infinity() -&gt; f32::NEG_INFINITY;
         nan() -&gt; f32::NAN;
@@ -3269,11 +3328,13 @@
         integer_decode_f32(<span class="self">self</span>)
     }
 
-    <span class="macro">forward! </span>{
+    <span class="macro">forward!</span> {
         <span class="self">Self</span>::is_nan(<span class="self">self</span>) -&gt; bool;
         <span class="self">Self</span>::is_infinite(<span class="self">self</span>) -&gt; bool;
         <span class="self">Self</span>::is_finite(<span class="self">self</span>) -&gt; bool;
         <span class="self">Self</span>::is_normal(<span class="self">self</span>) -&gt; bool;
+        <span class="self">Self</span>::is_subnormal(<span class="self">self</span>) -&gt; bool;
+        <span class="self">Self</span>::clamp(<span class="self">self</span>, min: <span class="self">Self</span>, max: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
         <span class="self">Self</span>::classify(<span class="self">self</span>) -&gt; FpCategory;
         <span class="self">Self</span>::is_sign_positive(<span class="self">self</span>) -&gt; bool;
         <span class="self">Self</span>::is_sign_negative(<span class="self">self</span>) -&gt; bool;
@@ -3284,13 +3345,8 @@
         <span class="self">Self</span>::to_radians(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
     }
 
-    <span class="attr">#[cfg(has_is_subnormal)]
-    </span><span class="macro">forward! </span>{
-        <span class="self">Self</span>::is_subnormal(<span class="self">self</span>) -&gt; bool;
-    }
-
     <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-    </span><span class="macro">forward! </span>{
+    </span><span class="macro">forward!</span> {
         <span class="self">Self</span>::floor(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         <span class="self">Self</span>::ceil(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         <span class="self">Self</span>::round(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
@@ -3302,7 +3358,7 @@
     }
 
     <span class="attr">#[cfg(all(not(feature = <span class="string">"std"</span>), feature = <span class="string">"libm"</span>))]
-    </span><span class="macro">forward! </span>{
+    </span><span class="macro">forward!</span> {
         libm::floorf <span class="kw">as </span>floor(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         libm::ceilf <span class="kw">as </span>ceil(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         libm::roundf <span class="kw">as </span>round(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
@@ -3318,7 +3374,7 @@
 }
 
 <span class="kw">impl </span>FloatCore <span class="kw">for </span>f64 {
-    <span class="macro">constant! </span>{
+    <span class="macro">constant!</span> {
         infinity() -&gt; f64::INFINITY;
         neg_infinity() -&gt; f64::NEG_INFINITY;
         nan() -&gt; f64::NAN;
@@ -3334,11 +3390,13 @@
         integer_decode_f64(<span class="self">self</span>)
     }
 
-    <span class="macro">forward! </span>{
+    <span class="macro">forward!</span> {
         <span class="self">Self</span>::is_nan(<span class="self">self</span>) -&gt; bool;
         <span class="self">Self</span>::is_infinite(<span class="self">self</span>) -&gt; bool;
         <span class="self">Self</span>::is_finite(<span class="self">self</span>) -&gt; bool;
         <span class="self">Self</span>::is_normal(<span class="self">self</span>) -&gt; bool;
+        <span class="self">Self</span>::is_subnormal(<span class="self">self</span>) -&gt; bool;
+        <span class="self">Self</span>::clamp(<span class="self">self</span>, min: <span class="self">Self</span>, max: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
         <span class="self">Self</span>::classify(<span class="self">self</span>) -&gt; FpCategory;
         <span class="self">Self</span>::is_sign_positive(<span class="self">self</span>) -&gt; bool;
         <span class="self">Self</span>::is_sign_negative(<span class="self">self</span>) -&gt; bool;
@@ -3349,13 +3407,8 @@
         <span class="self">Self</span>::to_radians(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
     }
 
-    <span class="attr">#[cfg(has_is_subnormal)]
-    </span><span class="macro">forward! </span>{
-        <span class="self">Self</span>::is_subnormal(<span class="self">self</span>) -&gt; bool;
-    }
-
     <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-    </span><span class="macro">forward! </span>{
+    </span><span class="macro">forward!</span> {
         <span class="self">Self</span>::floor(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         <span class="self">Self</span>::ceil(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         <span class="self">Self</span>::round(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
@@ -3367,7 +3420,7 @@
     }
 
     <span class="attr">#[cfg(all(not(feature = <span class="string">"std"</span>), feature = <span class="string">"libm"</span>))]
-    </span><span class="macro">forward! </span>{
+    </span><span class="macro">forward!</span> {
         libm::floor <span class="kw">as </span>floor(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         libm::ceil <span class="kw">as </span>ceil(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         libm::round <span class="kw">as </span>round(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
@@ -3989,6 +4042,23 @@
     /// ```
     </span><span class="kw">fn </span>min(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 
+    <span class="doccomment">/// Clamps a value between a min and max.
+    ///
+    /// **Panics** in debug mode if `!(min &lt;= max)`.
+    ///
+    /// ```
+    /// use num_traits::Float;
+    ///
+    /// let x = 1.0;
+    /// let y = 2.0;
+    /// let z = 3.0;
+    ///
+    /// assert_eq!(x.clamp(y, z), 2.0);
+    /// ```
+    </span><span class="kw">fn </span>clamp(<span class="self">self</span>, min: <span class="self">Self</span>, max: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">crate</span>::clamp(<span class="self">self</span>, min, max)
+    }
+
     <span class="doccomment">/// The positive difference of two numbers.
     ///
     /// * If `self &lt;= other`: `0:0`
@@ -4355,10 +4425,10 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-</span><span class="macro">macro_rules! </span>float_impl_std {
+</span><span class="macro">macro_rules!</span> float_impl_std {
     (<span class="macro-nonterminal">$T</span>:ident <span class="macro-nonterminal">$decode</span>:ident) =&gt; {
         <span class="kw">impl </span>Float <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
-            <span class="macro">constant! </span>{
+            <span class="macro">constant!</span> {
                 nan() -&gt; <span class="macro-nonterminal">$T::NAN</span>;
                 infinity() -&gt; <span class="macro-nonterminal">$T::INFINITY</span>;
                 neg_infinity() -&gt; <span class="macro-nonterminal">$T::NEG_INFINITY</span>;
@@ -4380,12 +4450,14 @@
                 <span class="macro-nonterminal">$decode</span>(<span class="self">self</span>)
             }
 
-            <span class="macro">forward! </span>{
+            <span class="macro">forward!</span> {
                 <span class="self">Self</span>::is_nan(<span class="self">self</span>) -&gt; bool;
                 <span class="self">Self</span>::is_infinite(<span class="self">self</span>) -&gt; bool;
                 <span class="self">Self</span>::is_finite(<span class="self">self</span>) -&gt; bool;
                 <span class="self">Self</span>::is_normal(<span class="self">self</span>) -&gt; bool;
+                <span class="self">Self</span>::is_subnormal(<span class="self">self</span>) -&gt; bool;
                 <span class="self">Self</span>::classify(<span class="self">self</span>) -&gt; FpCategory;
+                <span class="self">Self</span>::clamp(<span class="self">self</span>, min: <span class="self">Self</span>, max: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
                 <span class="self">Self</span>::floor(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
                 <span class="self">Self</span>::ceil(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
                 <span class="self">Self</span>::round(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
@@ -4428,25 +4500,16 @@
                 <span class="self">Self</span>::asinh(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
                 <span class="self">Self</span>::acosh(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
                 <span class="self">Self</span>::atanh(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
-            }
-
-            <span class="attr">#[cfg(has_copysign)]
-            </span><span class="macro">forward! </span>{
                 <span class="self">Self</span>::copysign(<span class="self">self</span>, sign: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-            }
-
-            <span class="attr">#[cfg(has_is_subnormal)]
-            </span><span class="macro">forward! </span>{
-                <span class="self">Self</span>::is_subnormal(<span class="self">self</span>) -&gt; bool;
             }
         }
     };
 }
 
 <span class="attr">#[cfg(all(not(feature = <span class="string">"std"</span>), feature = <span class="string">"libm"</span>))]
-</span><span class="macro">macro_rules! </span>float_impl_libm {
+</span><span class="macro">macro_rules!</span> float_impl_libm {
     (<span class="macro-nonterminal">$T</span>:ident <span class="macro-nonterminal">$decode</span>:ident) =&gt; {
-        <span class="macro">constant! </span>{
+        <span class="macro">constant!</span> {
             nan() -&gt; <span class="macro-nonterminal">$T::NAN</span>;
             infinity() -&gt; <span class="macro-nonterminal">$T::INFINITY</span>;
             neg_infinity() -&gt; <span class="macro-nonterminal">$T::NEG_INFINITY</span>;
@@ -4472,11 +4535,13 @@
             <span class="self">self</span>.ln() / base.ln()
         }
 
-        <span class="macro">forward! </span>{
+        <span class="macro">forward!</span> {
             <span class="self">Self</span>::is_nan(<span class="self">self</span>) -&gt; bool;
             <span class="self">Self</span>::is_infinite(<span class="self">self</span>) -&gt; bool;
             <span class="self">Self</span>::is_finite(<span class="self">self</span>) -&gt; bool;
             <span class="self">Self</span>::is_normal(<span class="self">self</span>) -&gt; bool;
+            <span class="self">Self</span>::is_subnormal(<span class="self">self</span>) -&gt; bool;
+            <span class="self">Self</span>::clamp(<span class="self">self</span>, min: <span class="self">Self</span>, max: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
             <span class="self">Self</span>::classify(<span class="self">self</span>) -&gt; FpCategory;
             <span class="self">Self</span>::is_sign_positive(<span class="self">self</span>) -&gt; bool;
             <span class="self">Self</span>::is_sign_negative(<span class="self">self</span>) -&gt; bool;
@@ -4487,12 +4552,7 @@
             <span class="self">Self</span>::to_radians(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         }
 
-        <span class="attr">#[cfg(has_is_subnormal)]
-        </span><span class="macro">forward! </span>{
-            <span class="self">Self</span>::is_subnormal(<span class="self">self</span>) -&gt; bool;
-        }
-
-        <span class="macro">forward! </span>{
+        <span class="macro">forward!</span> {
             FloatCore::signum(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
             FloatCore::powi(<span class="self">self</span>, n: i32) -&gt; <span class="self">Self</span>;
         }
@@ -4542,7 +4602,7 @@
         libm::fdimf(<span class="self">self</span>, other)
     }
 
-    <span class="macro">forward! </span>{
+    <span class="macro">forward!</span> {
         libm::floorf <span class="kw">as </span>floor(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         libm::ceilf <span class="kw">as </span>ceil(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         libm::roundf <span class="kw">as </span>round(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
@@ -4588,7 +4648,7 @@
         libm::fdim(<span class="self">self</span>, other)
     }
 
-    <span class="macro">forward! </span>{
+    <span class="macro">forward!</span> {
         libm::floor <span class="kw">as </span>floor(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         libm::ceil <span class="kw">as </span>ceil(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         libm::round <span class="kw">as </span>round(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
@@ -4624,7 +4684,7 @@
     }
 }
 
-<span class="macro">macro_rules! </span>float_const_impl {
+<span class="macro">macro_rules!</span> float_const_impl {
     ($(<span class="attr">#[<span class="macro-nonterminal">$doc</span>:meta] </span><span class="macro-nonterminal">$constant</span>:ident,)+) =&gt; (
         <span class="attr">#[allow(non_snake_case)]
         </span><span class="kw">pub trait </span>FloatConst {
@@ -4645,12 +4705,12 @@
                 <span class="self">Self</span>::LN_10() / <span class="self">Self</span>::LN_2()
             }
         }
-        <span class="macro">float_const_impl! </span>{ @float f32, $(<span class="macro-nonterminal">$constant</span>,)+ }
-        <span class="macro">float_const_impl! </span>{ @float f64, $(<span class="macro-nonterminal">$constant</span>,)+ }
+        <span class="macro">float_const_impl!</span> { @float f32, $(<span class="macro-nonterminal">$constant</span>,)+ }
+        <span class="macro">float_const_impl!</span> { @float f64, $(<span class="macro-nonterminal">$constant</span>,)+ }
     );
     (@float <span class="macro-nonterminal">$T</span>:ident, $(<span class="macro-nonterminal">$constant</span>:ident,)+) =&gt; (
         <span class="kw">impl </span>FloatConst <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
-            <span class="macro">constant! </span>{
+            <span class="macro">constant!</span> {
                 $( <span class="macro-nonterminal">$constant</span>() -&gt; <span class="macro-nonterminal">$T::consts</span>::<span class="macro-nonterminal">$constant</span>; )+
                 TAU() -&gt; <span class="number">6.28318530717958647692528676655900577</span>;
                 LOG10_2() -&gt; <span class="number">0.301029995663981195213738894724493027</span>;
@@ -4660,7 +4720,7 @@
     );
 }
 
-<span class="macro">float_const_impl! </span>{
+<span class="macro">float_const_impl!</span> {
     <span class="attr">#[doc = <span class="string">"Return Euler’s number."</span>]
     </span>E,
     <span class="attr">#[doc = <span class="string">"Return `1.0 / π`."</span>]
@@ -4751,7 +4811,7 @@
     /// ```
     </span><span class="kw">fn </span>total_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering;
 }
-<span class="macro">macro_rules! </span>totalorder_impl {
+<span class="macro">macro_rules!</span> totalorder_impl {
     (<span class="macro-nonterminal">$T</span>:ident, <span class="macro-nonterminal">$I</span>:ident, <span class="macro-nonterminal">$U</span>:ident, <span class="macro-nonterminal">$bits</span>:expr) =&gt; {
         <span class="kw">impl </span>TotalOrder <span class="kw">for </span><span class="macro-nonterminal">$T </span>{
             <span class="attr">#[inline]
