@@ -376,7 +376,7 @@ pub enum ImplementationType {
     Action,
     Class,
     Method,
-    Init
+    Init,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

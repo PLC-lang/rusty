@@ -9,7 +9,7 @@
 //!  - Executables
 
 use anyhow::{anyhow, Result};
-use pipelines::{AnnotatedProject, ResolvedProject};
+use pipelines::AnnotatedProject;
 use std::{
     env,
     ffi::OsStr,
@@ -242,14 +242,10 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
             None,
         )?;
 
-    // 1 : Parse, 2. Index, 3. Resolve / Annotate and 4. Lower
+    // 1 : Parse, 2. Index, 3. Resolve / Annotate
     let annotated_project = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
         .index(ctxt.provider())
-        .annotate(ctxt.provider())
-        .lower(ctxt.provider())
-        .index(ctxt.provider())
-        .annotate(ctxt.provider())
-        .finalize(ctxt.provider());
+        .annotate(ctxt.provider());
 
     if compile_parameters.output_ast {
         println!("{:#?}", annotated_project.units);
@@ -317,7 +313,7 @@ fn print_config_options<T: AsRef<Path> + Sync>(
 pub fn parse_and_annotate<T: SourceContainer>(
     name: &str,
     src: Vec<T>,
-) -> Result<(GlobalContext, ResolvedProject<T>), Diagnostic> {
+) -> Result<(GlobalContext, AnnotatedProject<T>), Diagnostic> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
     let ctxt = GlobalContext::new().with_source(project.get_sources(), None)?;
@@ -326,16 +322,7 @@ pub fn parse_and_annotate<T: SourceContainer>(
 
     // Create an index, add builtins then resolve
     let provider = ctxt.provider();
-    Ok((
-        ctxt,
-        parsed
-            .index(provider.clone())
-            .annotate(provider.clone())
-            .lower(provider.clone())
-            .index(provider.clone())
-            .annotate(provider.clone())
-            .finalize(provider.clone()),
-    ))
+    Ok((ctxt, parsed.index(provider.clone()).annotate(provider.clone())))
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls
@@ -374,7 +361,7 @@ fn generate(
     compile_options: &CompileOptions,
     linker_options: &LinkOptions,
     targets: Vec<Target>,
-    resolved_project: ResolvedProject<PathBuf>,
+    resolved_project: AnnotatedProject<PathBuf>,
 ) -> Result<(), Diagnostic> {
     let res = if compile_options.single_module || matches!(linker_options.format, FormatOption::Object) {
         log::info!("Using single module mode");

@@ -1,10 +1,4 @@
-use crate::{
-    builtins,
-    index::{FxIndexSet, Index},
-    resolver::{
-        const_evaluator::UnresolvableConstant, AnnotationMap, AnnotationMapImpl, Dependency, StringLiterals,
-    },
-};
+use crate::{index::Index, resolver::const_evaluator::UnresolvableConstant};
 use initializers::{Init, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
     ast::{CompilationUnit, DataType, LinkageType},
@@ -17,7 +11,6 @@ mod initializers;
 
 pub struct AstLowerer {
     index: Index,
-    annotation_map: AnnotationMapImpl,
     unresolved_initializers: Initializers,
     units: Vec<CompilationUnit>,
 }
@@ -25,48 +18,29 @@ pub struct AstLowerer {
 impl AstLowerer {
     pub fn lower(
         index: Index,
-        annotations: AnnotationMapImpl,
-        annotated_units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
+        mut units: Vec<CompilationUnit>,
         unresolvables: Vec<UnresolvableConstant>,
         id_provider: IdProvider,
         init_symbol_name: &str,
     ) -> Vec<CompilationUnit> {
-        let mut lowerer = Self::new(index, annotations, unresolvables);
+        let mut lowerer = Self::new(index, unresolvables);
         // visit all units
         let ctxt = LoweringContext::new(id_provider.clone());
-        let units = annotated_units
-            .into_iter()
-            .map(|(mut unit, _, _)| {
-                lowerer.visit_compilation_unit(&mut unit, &ctxt);
-                unit
-            })
-            .collect::<Vec<_>>();
+        units.iter_mut().for_each(|unit| {
+            lowerer.visit_compilation_unit(unit, &ctxt);
+        });
 
         let lowered = lowerer.with_units(units).lower_init_functions(init_symbol_name, &ctxt);
 
         lowered.units
     }
 
-    fn new(
-        index: Index,
-        annotation_map: AnnotationMapImpl,
-        unresolved_initializers: Vec<UnresolvableConstant>,
-    ) -> Self {
-        Self {
-            index,
-            annotation_map,
-            unresolved_initializers: Initializers::new(&unresolved_initializers),
-            units: vec![],
-        }
+    fn new(index: Index, unresolved_initializers: Vec<UnresolvableConstant>) -> Self {
+        Self { index, unresolved_initializers: Initializers::new(&unresolved_initializers), units: vec![] }
     }
 
     fn with_units(self, units: Vec<CompilationUnit>) -> Self {
-        Self {
-            index: self.index,
-            annotation_map: self.annotation_map,
-            unresolved_initializers: self.unresolved_initializers,
-            units,
-        }
+        Self { index: self.index, unresolved_initializers: self.unresolved_initializers, units }
     }
 }
 
@@ -119,16 +93,17 @@ impl AstVisitorMut for AstLowerer {
                     || variable_ty.get_type_information().is_reference_to()
             };
 
-            let initializer_is_not_wrapped_in_ref_call = {
-                !(initializer.is_call()
-                    && self
-                        .annotation_map
-                        .get_type(initializer, &self.index)
-                        .is_some_and(|opt| opt.is_pointer()))
-            };
+            // let initializer_is_not_wrapped_in_ref_call = {
+            //     !(initializer.is_call()
+            //         && self
+            //             .annotation_map
+            //             .get_type(initializer, &self.index)
+            //             .is_some_and(|opt| opt.is_pointer()))
+            //         && self.index.gettyp
+            // };
 
-            if variable_is_auto_deref_pointer && initializer_is_not_wrapped_in_ref_call {
-                debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
+            // if variable_is_auto_deref_pointer && initializer_is_not_wrapped_in_ref_call {
+            if variable_is_auto_deref_pointer {
                 self.unresolved_initializers.insert_initializer(
                     ctxt.get_pou()
                         .as_ref()

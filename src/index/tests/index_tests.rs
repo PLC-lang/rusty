@@ -1681,14 +1681,3 @@ fn string_type_alias_without_size_is_indexed() {
     let dt = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("WSTRING", dt.get_name());
 }
-
-#[test]
-fn init_function_is_indexed_unconditionally() {
-    // GIVEN nothing
-    // WHEN indexed
-    let (_, index) = index("");
-
-    // THEN we expect an `__init___testproject` function to be registered regardless
-    let init = index.find_pou("__init___testproject");
-    assert!(init.is_some());
-}

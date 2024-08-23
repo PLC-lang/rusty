@@ -103,35 +103,56 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
     pub fn index(self, id_provider: IdProvider) -> IndexedProject<T> {
-        let indexed_units = self
-            .units
-            .into_par_iter()
-            .map(|mut unit| {
-                //Preprocess
-                pre_process(&mut unit, id_provider.clone());
-                //import to index
-                let index = plc::index::visitor::visit(&unit);
+        let init_symbol_name = &self.get_project().get_init_symbol_name();
 
-                (index, unit)
-            })
-            .collect::<Vec<_>>();
+        fn index_and_pre_process(
+            units: Vec<CompilationUnit>,
+            id_provider: &IdProvider,
+        ) -> (Vec<CompilationUnit>, Index, Vec<UnresolvableConstant>) {
+            let indexed_units = units
+                .into_par_iter()
+                .map(|mut unit| {
+                    //Preprocess
+                    pre_process(&mut unit, id_provider.clone());
+                    //import to index
+                    let index = plc::index::visitor::visit(&unit);
 
-        let mut global_index = Index::default();
-        let mut units = vec![];
-        for (index, unit) in indexed_units {
-            units.push(unit);
-            global_index.import(index);
+                    (index, unit)
+                })
+                .collect::<Vec<_>>();
+
+            let mut global_index = Index::default();
+            let mut units = vec![];
+            for (index, unit) in indexed_units {
+                units.push(unit);
+                global_index.import(index);
+            }
+
+            // import built-in types like INT, BOOL, etc.
+            for data_type in plc::typesystem::get_builtin_types() {
+                global_index.register_type(data_type);
+            }
+
+            // import builtin functions
+            let builtins = plc::builtins::parse_built_ins(id_provider.clone());
+            global_index.import(plc::index::visitor::visit(&builtins));
+            let (full_index, unresolvables) =
+                plc::resolver::const_evaluator::evaluate_constants(global_index);
+
+            (units, full_index, unresolvables)
         }
 
-        // import built-in types like INT, BOOL, etc.
-        for data_type in plc::typesystem::get_builtin_types() {
-            global_index.register_type(data_type);
-        }
-        // import builtin functions
-        let builtins = plc::builtins::parse_built_ins(id_provider);
-        global_index.import(plc::index::visitor::visit(&builtins));
+        // index units, pre-process and resolve constants
+        // let (units, index, unresolvables) = index_and_pre_process(self.units, &IdProvider::default());
+        let (units, index, unresolvables) = index_and_pre_process(self.units, &id_provider.clone());
 
-        IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
+        // AST lowering
+        let units = AstLowerer::lower(index, units, unresolvables, id_provider.clone(), init_symbol_name);
+
+        // Re-index lowered AST
+        let (units, index, _) = index_and_pre_process(units, &id_provider);
+
+        IndexedProject { project: ParsedProject { project: self.project, units }, index }
     }
 
     pub fn get_project(&self) -> &Project<T> {
@@ -148,17 +169,11 @@ pub struct IndexedProject<T: SourceContainer + Sync> {
 
 impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
-    pub fn annotate(self, id_provider: IdProvider) -> AnnotatedProject<T> {
-        // let name = self.get_project().get_init_symbol_name().to_owned();
-
-        //Resolve constants
-        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
-        // full_index.register_global_init_function(&name);
-
+    pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
-
+        let mut full_index = self.index;
         let result = self
             .project
             .units
@@ -177,12 +192,13 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
 
         full_index.import(std::mem::take(&mut all_annotations.new_index));
 
+        let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+
         AnnotatedProject {
             project: self.project.project,
             units: annotated_units,
             index: full_index,
-            annotation_map: all_annotations,
-            unresolvables,
+            annotations,
         }
     }
 
@@ -200,47 +216,10 @@ pub struct AnnotatedProject<T: SourceContainer + Sync> {
     pub project: Project<T>,
     pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
     pub index: Index,
-    pub annotation_map: AnnotationMapImpl,
-    unresolvables: Vec<UnresolvableConstant>,
-}
-
-impl<T: SourceContainer + Sync> AnnotatedProject<T> {
-    pub fn get_project(&self) -> &Project<T> {
-        &self.project
-    }
-
-    pub fn lower(self, id_provider: IdProvider) -> ParsedProject<T> {
-        let init_symbol_name = &self.get_project().get_init_symbol_name();
-        let units = AstLowerer::lower(
-            self.index,
-            self.annotation_map,
-            self.units,
-            self.unresolvables,
-            id_provider,
-            init_symbol_name,
-        );
-
-        ParsedProject { project: self.project, units }
-    }
-
-    pub fn finalize(self, mut id_provider: IdProvider) -> ResolvedProject<T> {
-        ResolvedProject {
-            project: self.project,
-            units: self.units,
-            index: self.index,
-            annotations: AstAnnotations::new(self.annotation_map, id_provider.next_id()),
-        }
-    }
-}
-
-pub struct ResolvedProject<T: SourceContainer + Sync> {
-    pub project: Project<T>,
-    pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
-    pub index: Index,
     pub annotations: AstAnnotations,
 }
 
-impl<T: SourceContainer + Sync> ResolvedProject<T> {
+impl<T: SourceContainer + Sync> AnnotatedProject<T> {
     pub fn get_project(&self) -> &Project<T> {
         &self.project
     }

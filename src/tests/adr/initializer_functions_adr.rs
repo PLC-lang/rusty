@@ -4,7 +4,7 @@ use plc_ast::provider::IdProvider;
 use crate::{
     index::const_expressions::UnresolvableKind,
     resolver::const_evaluator::evaluate_constants,
-    test_utils::tests::{annotate_and_lower_with_ids, codegen, index, index_with_ids},
+    test_utils::tests::{codegen, index, index_annotate_and_lower_with_ids},
 };
 
 /// # Architecture Design Records: Lowering of complex initializers to initializer functions
@@ -37,7 +37,7 @@ fn ref_initializer_is_marked_for_later_resolution() {
 #[test]
 fn ref_call_in_initializer_is_lowered_to_init_function() {
     let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids(
+    let (_, index, annotated_units, _) = index_annotate_and_lower_with_ids(
         "
         FUNCTION_BLOCK foo
         VAR
@@ -48,8 +48,6 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
         ",
         id_provider.clone(),
     );
-
-    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
     assert!(index.find_pou("__init_foo").is_some());
 
@@ -72,7 +70,7 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
                 variable_block_type: InOut,
             },
         ],
-        pou_type: Function,
+        pou_type: Init,
         return_type: None,
     }
     "###);
@@ -84,7 +82,7 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
 #[test]
 fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids(
+    let (_, _, annotated_units, _) = index_annotate_and_lower_with_ids(
         "
         FUNCTION_BLOCK foo
         VAR
@@ -109,8 +107,6 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
         ",
         id_provider.clone(),
     );
-
-    let (_, _, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
     let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
     // the init-function for `foo` is expected to have a single assignment statement in its function body
@@ -277,7 +273,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
 #[test]
 fn global_initializers_are_wrapped_in_single_init_function() {
     let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids(
+    let (_, index, annotated_units, _) = index_annotate_and_lower_with_ids(
         "
         VAR_GLOBAL
             s : STRING;
@@ -311,7 +307,6 @@ fn global_initializers_are_wrapped_in_single_init_function() {
         id_provider.clone(),
     );
 
-    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
     assert!(index.find_pou("__init___testproject").is_some());
 
     let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
@@ -321,7 +316,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
     POU {
         name: "__init___testproject",
         variable_blocks: [],
-        pou_type: Function,
+        pou_type: Init,
         return_type: None,
     }
     "###);
