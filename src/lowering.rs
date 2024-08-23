@@ -1,5 +1,5 @@
 use crate::{
-    index::{get_init_fn_name, Index},
+    index::{get_init_fn_name, Index, VariableIndexEntry},
     resolver::const_evaluator::UnresolvableConstant,
 };
 use initializers::{Init, Initializers, GLOBAL_SCOPE};
@@ -66,31 +66,26 @@ impl AstVisitorMut for AstLowerer {
         implementation: &mut plc_ast::ast::Implementation,
         ctxt: &T,
     ) {
-        if implementation.pou_type == PouType::Function {
-            // get unresolved inits
-            if let Some(mut stmts) = self.unresolved_initializers.get(&implementation.name).map(|it| {
-                let assignments = it.iter()
-                    .filter_map(|(lhs, init)| {
-                        // self.index.find_variable(Some(&implementation.name), &[lhs]).and_then(|it| {
-                            // let dti = self.index.get_type_information_or_void(it.get_type_name());
-                            // if dti.is_struct() {
-                            //     Some(create_call_statement(
-                            //         &get_init_fn_name(&dti.get_name()),
-                            //         lhs,
-                            //         "self",
-                            //         ctxt.get_id_provider(),
-                            //         &SourceLocation::internal(),
-                            //     ))
-                            // } else {
-                                // create_ref_assignment_if_necessary(lhs, None, init, ctxt.get_id_provider())
-                            // }
-                        // })
-                        init.as_ref().map(|it| 
-                            create_ref_assignment(lhs, None, &it, ctxt.get_id_provider())                        
-                        )
-                    });
-                
-                let delegated_calls = self.index.get_pou_members(&implementation.name).iter().filter_map(|it| {
+        let predicate = |var: &VariableIndexEntry| {
+            var.is_temp() || (implementation.pou_type == PouType::Function && var.is_local())
+        };
+        // get unresolved inits
+        if let Some(mut stmts) = self.unresolved_initializers.get(&implementation.name).map(|it| {
+            let assignments = it
+                .iter()
+                .filter(|(id, _)| {
+                    self.index.find_member(&implementation.name, id).is_some_and(|it| predicate(it))
+                })
+                .filter_map(|(lhs, init)| {
+                    init.as_ref().map(|it| create_ref_assignment(lhs, None, &it, ctxt.get_id_provider()))
+                });
+
+            let delegated_calls = self
+                .index
+                .get_pou_members(&implementation.name)
+                .iter()
+                .filter(|it| predicate(it))
+                .filter_map(|it| {
                     let dti = self.index.get_type_information_or_void(it.get_type_name());
                     if dti.is_struct() {
                         Some(create_call_statement(
@@ -105,11 +100,10 @@ impl AstVisitorMut for AstLowerer {
                     }
                 });
 
-                assignments.chain(delegated_calls).collect::<Vec<_>>()
-            }) {
-                stmts.extend(std::mem::take(&mut implementation.statements));
-                implementation.statements = stmts;
-            }
+            assignments.chain(delegated_calls).collect::<Vec<_>>()
+        }) {
+            stmts.extend(std::mem::take(&mut implementation.statements));
+            implementation.statements = stmts;
         }
         implementation.walk(self, ctxt);
     }
