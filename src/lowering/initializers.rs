@@ -1,13 +1,11 @@
 use crate::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
+    lowering::{create_assignment_if_necessary, create_call_statement, create_member_reference},
     resolver::const_evaluator::UnresolvableConstant,
 };
-use plc_ast::{
-    ast::{
-        AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, Implementation, LinkageType, Pou, PouType,
-        Variable, VariableBlock, VariableBlockType,
-    },
-    provider::IdProvider,
+use plc_ast::ast::{
+    AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, Implementation, LinkageType, Pou, PouType,
+    Variable, VariableBlock, VariableBlockType,
 };
 use plc_source::source_location::SourceLocation;
 
@@ -148,7 +146,7 @@ fn create_init_unit(
     all_init_units: &FxIndexSet<&str>,
     ctxt: &LoweringContext,
 ) -> Option<CompilationUnit> {
-    let mut id_provider = ctxt.id_provider.clone();
+    let id_provider = &ctxt.id_provider;
     enum InitFnType {
         StatefulPou,
         Function,
@@ -201,14 +199,7 @@ fn create_init_unit(
     let mut statements = assignments
         .iter()
         .filter_map(|(lhs_name, initializer)| {
-            let lhs = create_member_reference(
-                lhs_name,
-                id_provider.clone(),
-                Some(create_member_reference(&ident, id_provider.clone(), None)),
-            );
-            initializer
-                .as_ref()
-                .map(|node| AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
+            create_assignment_if_necessary(lhs_name, Some(&ident), initializer, id_provider.clone())
         })
         .collect::<Vec<_>>();
 
@@ -221,17 +212,12 @@ fn create_init_unit(
             let call_name = get_init_fn_name(type_name);
             // TODO: support temp accessors && external declarations
             if !member.is_temp() && all_init_units.contains(type_name) {
-                let op = create_member_reference(&call_name, id_provider.clone(), None);
-                let param = create_member_reference(
+                Some(create_call_statement(
+                    &call_name,
                     member.get_name(),
+                    Some("self"),
                     id_provider.clone(),
-                    Some(create_member_reference("self", id_provider.clone(), None)),
-                );
-                Some(AstFactory::create_call_statement(
-                    op,
-                    Some(param),
-                    id_provider.next_id(),
-                    location.clone(),
+                    location,
                 ))
             } else {
                 None
@@ -304,10 +290,7 @@ fn create_init_wrapper_function(
         stmts
             .iter()
             .filter_map(|(var_name, initializer)| {
-                initializer.as_ref().map(|it| {
-                    let global = create_member_reference(var_name, id_provider.clone(), None);
-                    AstFactory::create_assignment(global, it.clone(), id_provider.next_id())
-                })
+                create_assignment_if_necessary(var_name, None, initializer, id_provider.clone())
             })
             .collect::<Vec<_>>()
     } else {
@@ -350,12 +333,4 @@ fn create_init_wrapper_function(
     };
 
     Some(init_unit)
-}
-
-fn create_member_reference(name: &str, mut id_provider: IdProvider, base: Option<AstNode>) -> AstNode {
-    AstFactory::create_member_reference(
-        AstFactory::create_identifier(name, SourceLocation::internal(), id_provider.next_id()),
-        base,
-        id_provider.next_id(),
-    )
 }

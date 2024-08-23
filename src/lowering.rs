@@ -1,11 +1,15 @@
-use crate::{index::Index, resolver::const_evaluator::UnresolvableConstant};
+use crate::{
+    index::{get_init_fn_name, Index},
+    resolver::const_evaluator::UnresolvableConstant,
+};
 use initializers::{Init, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
-    ast::{CompilationUnit, DataType, LinkageType},
+    ast::{AstFactory, AstNode, CompilationUnit, DataType, LinkageType, PouType},
     mut_visitor::{AstVisitorMut, VisitorContext, WalkerMut},
     provider::IdProvider,
     visit_all_nodes_mut,
 };
+use plc_source::source_location::SourceLocation;
 
 mod initializers;
 
@@ -62,6 +66,51 @@ impl AstVisitorMut for AstLowerer {
         implementation: &mut plc_ast::ast::Implementation,
         ctxt: &T,
     ) {
+        if implementation.pou_type == PouType::Function {
+            // get unresolved inits
+            if let Some(mut stmts) = self.unresolved_initializers.get(&implementation.name).map(|it| {
+                let assignments = it.iter()
+                    .filter_map(|(lhs, init)| {
+                        // self.index.find_variable(Some(&implementation.name), &[lhs]).and_then(|it| {
+                            // let dti = self.index.get_type_information_or_void(it.get_type_name());
+                            // if dti.is_struct() {
+                            //     Some(create_call_statement(
+                            //         &get_init_fn_name(&dti.get_name()),
+                            //         lhs,
+                            //         "self",
+                            //         ctxt.get_id_provider(),
+                            //         &SourceLocation::internal(),
+                            //     ))
+                            // } else {
+                                // create_ref_assignment_if_necessary(lhs, None, init, ctxt.get_id_provider())
+                            // }
+                        // })
+                        init.as_ref().map(|it| 
+                            create_ref_assignment(lhs, None, &it, ctxt.get_id_provider())                        
+                        )
+                    });
+                
+                let delegated_calls = self.index.get_pou_members(&implementation.name).iter().filter_map(|it| {
+                    let dti = self.index.get_type_information_or_void(it.get_type_name());
+                    if dti.is_struct() {
+                        Some(create_call_statement(
+                            &get_init_fn_name(&dti.get_name()),
+                            it.get_name(),
+                            None,
+                            ctxt.get_id_provider(),
+                            &SourceLocation::internal(),
+                        ))
+                    } else {
+                        None
+                    }
+                });
+
+                assignments.chain(delegated_calls).collect::<Vec<_>>()
+            }) {
+                stmts.extend(std::mem::take(&mut implementation.statements));
+                implementation.statements = stmts;
+            }
+        }
         implementation.walk(self, ctxt);
     }
 
@@ -78,7 +127,6 @@ impl AstVisitorMut for AstLowerer {
         variable: &mut plc_ast::ast::Variable,
         ctxt: &T,
     ) {
-        // TODO: refactor alias/reference to lowering to be done right after parsing in a de-sugaring step
         if let Some(initializer) = variable.initializer.as_ref() {
             let Some(variable_ty) = variable
                 .data_type_declaration
@@ -93,16 +141,6 @@ impl AstVisitorMut for AstLowerer {
                     || variable_ty.get_type_information().is_reference_to()
             };
 
-            // let initializer_is_not_wrapped_in_ref_call = {
-            //     !(initializer.is_call()
-            //         && self
-            //             .annotation_map
-            //             .get_type(initializer, &self.index)
-            //             .is_some_and(|opt| opt.is_pointer()))
-            //         && self.index.gettyp
-            // };
-
-            // if variable_is_auto_deref_pointer && initializer_is_not_wrapped_in_ref_call {
             if variable_is_auto_deref_pointer {
                 self.unresolved_initializers.insert_initializer(
                     ctxt.get_pou()
@@ -158,9 +196,10 @@ impl AstVisitorMut for AstLowerer {
                 .collect::<Vec<_>>();
 
             for (lhs, init) in member_inits {
+                // update struct member initializers
                 self.unresolved_initializers.maybe_insert_initializer(name, Some(lhs), &init);
             }
-            // XXX: necessary?
+            // add struct-type initializer
             self.unresolved_initializers.maybe_insert_initializer(name, None, &user_type.initializer);
         }
         user_type.walk(self, ctxt);
@@ -178,7 +217,7 @@ impl AstVisitorMut for AstLowerer {
                 ctxt
             }
         } else {
-            ctxt
+            ctxt // yuck
         };
 
         data_type.walk(self, ctxt);
@@ -445,4 +484,60 @@ impl VisitorContext for LoweringContext {
     fn get_pou(&self) -> &Option<String> {
         &self.pou
     }
+
+    fn get_id_provider(&self) -> IdProvider {
+        self.id_provider.clone()
+    }
+}
+
+fn create_member_reference(ident: &str, mut id_provider: IdProvider, base: Option<AstNode>) -> AstNode {
+    AstFactory::create_member_reference(
+        AstFactory::create_identifier(ident, SourceLocation::internal(), id_provider.next_id()),
+        base,
+        id_provider.next_id(),
+    )
+}
+
+fn create_assignment_if_necessary(
+    lhs_ident: &str,
+    base_ident: Option<&str>,
+    rhs: &Option<AstNode>,
+    mut id_provider: IdProvider,
+) -> Option<AstNode> {
+    let lhs = create_member_reference(
+        lhs_ident,
+        id_provider.clone(),
+        base_ident.map(|id| create_member_reference(id, id_provider.clone(), None)),
+    );
+    rhs.as_ref().map(|node| AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
+}
+
+fn create_ref_assignment(
+    lhs_ident: &str,
+    base_ident: Option<&str>,
+    rhs: &AstNode,
+    mut id_provider: IdProvider,
+) -> AstNode {
+    let lhs = create_member_reference(
+        lhs_ident,
+        id_provider.clone(),
+        base_ident.map(|id| create_member_reference(id, id_provider.clone(), None)),
+    );
+    AstFactory::create_ref_assignment(lhs, rhs.to_owned(), id_provider.next_id())
+}
+
+fn create_call_statement(
+    operator: &str,
+    member_id: &str,
+    base_id: Option<&str>,
+    mut id_provider: IdProvider,
+    location: &SourceLocation,
+) -> AstNode {
+    let op = create_member_reference(&operator, id_provider.clone(), None);
+    let param = create_member_reference(
+        member_id,
+        id_provider.clone(),
+        base_id.map(|it| create_member_reference(it, id_provider.clone(), None)),
+    );
+    AstFactory::create_call_statement(op, Some(param), id_provider.next_id(), location.clone())
 }

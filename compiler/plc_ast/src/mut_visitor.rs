@@ -42,6 +42,8 @@ pub trait VisitorContext {
 
     fn new(id_provider: IdProvider) -> Self;
 
+    fn get_id_provider(&self) -> IdProvider;
+
     fn get_qualifier(&self) -> &Option<String> {
         &None
     }
