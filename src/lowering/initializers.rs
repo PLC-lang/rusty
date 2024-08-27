@@ -9,7 +9,7 @@ use plc_ast::ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-use super::{AstLowerer, LoweringContext};
+use super::AstLowerer;
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
 
 /// POUs and datatypes which require initialization via generated function call.
@@ -105,8 +105,8 @@ impl<'lwr> Init<'lwr> for Initializers {
 }
 
 impl AstLowerer {
-    pub fn lower_init_functions(mut self, init_symbol_name: &str, ctxt: &LoweringContext) -> Self {
-        let res = create_init_units(&self, ctxt);
+    pub fn lower_init_functions(mut self, init_symbol_name: &str) -> Self {
+        let res = create_init_units(&self);
 
         if let Some(init_unit) = res.into_iter().reduce(|mut acc_unit, unit| {
             acc_unit.import(unit);
@@ -115,7 +115,7 @@ impl AstLowerer {
             self.units.push(init_unit);
         }
 
-        if let Some(init_unit) = create_init_wrapper_function(&self, init_symbol_name, ctxt) {
+        if let Some(init_unit) = create_init_wrapper_function(&self, init_symbol_name) {
             self.units.push(init_unit);
         }
 
@@ -123,7 +123,7 @@ impl AstLowerer {
     }
 }
 
-fn create_init_units(lowerer: &AstLowerer, ctxt: &LoweringContext) -> Vec<CompilationUnit> {
+fn create_init_units(lowerer: &AstLowerer) -> Vec<CompilationUnit> {
     let lookup = lowerer.unresolved_initializers.keys().map(|it| it.as_str()).collect::<FxIndexSet<_>>();
     lowerer
         .unresolved_initializers
@@ -134,7 +134,7 @@ fn create_init_units(lowerer: &AstLowerer, ctxt: &LoweringContext) -> Vec<Compil
                 return None;
             }
 
-            create_init_unit(lowerer, container, init, &lookup, ctxt)
+            create_init_unit(lowerer, container, init, &lookup)
         })
         .collect()
 }
@@ -144,9 +144,8 @@ fn create_init_unit(
     container_name: &str,
     assignments: &InitAssignments,
     all_init_units: &FxIndexSet<&str>,
-    ctxt: &LoweringContext,
 ) -> Option<CompilationUnit> {
-    let id_provider = &ctxt.id_provider;
+    let id_provider = &lowerer.ctxt.id_provider;
     let init_fn_name = get_init_fn_name(container_name);
     let (is_function, location) = lowerer
         .index
@@ -246,13 +245,12 @@ fn create_init_unit(
 fn create_init_wrapper_function(
     lowerer: &AstLowerer,
     init_symbol_name: &str,
-    ctxt: &LoweringContext,
 ) -> Option<CompilationUnit> {
     if lowerer.unresolved_initializers.is_empty() {
         return None;
     }
 
-    let mut id_provider = ctxt.id_provider.clone();
+    let mut id_provider = lowerer.ctxt.id_provider.clone();
     let init_pou = Pou {
         name: init_symbol_name.into(),
         variable_blocks: vec![],
