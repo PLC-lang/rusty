@@ -15,8 +15,8 @@ fn declaring_an_array() {
 
     // ... just translates to a llvm array type
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @d = global [10 x i32] zeroinitializer, section "var-$RUSTY$d:ai32"
     "###);
@@ -37,8 +37,8 @@ fn initializing_an_array() {
 
     // ... Instances of this struct will be initialized accordingly
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-$RUSTY$d:ai32"
     @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-$RUSTY$__Data__init:ai32"
@@ -65,8 +65,8 @@ fn assigning_full_arrays() {
 
     // ... the assignment a := b will be performed as a memcpy
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %prg = type { [10 x i32], [10 x i32] }
 
@@ -87,6 +87,39 @@ fn assigning_full_arrays() {
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %prg = type { [10 x i32], [10 x i32] }
+
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2ai32ai32"
+    @__Data__init = external global [10 x i32], section "var-$RUSTY$__Data__init:ai32"
+
+    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2ai32ai32]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prg = type { [10 x i32], [10 x i32] }
+
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2ai32ai32"
+    @__Data__init = external global [10 x i32], section "var-$RUSTY$__Data__init:ai32"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prg(%prg* @prg_instance)
+      ret void
+    }
+
+    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr2ai32ai32]"
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
     "###);
 }
 
@@ -117,8 +150,8 @@ fn accessing_array_elements() {
     // .   %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %b, i32 0, i32 1
     // .                                                                      ^^^^^
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %prg = type { [10 x i32], [3 x i32] }
 
@@ -136,5 +169,38 @@ fn accessing_array_elements() {
       store i32 %load_tmpVar, i32* %tmpVar, align 4
       ret void
     }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %prg = type { [10 x i32], [3 x i32] }
+
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2ai32ai32"
+    @__Data__init = external global [10 x i32], section "var-$RUSTY$__Data__init:ai32"
+
+    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2ai32ai32]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prg = type { [10 x i32], [3 x i32] }
+
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2ai32ai32"
+    @__Data__init = external global [10 x i32], section "var-$RUSTY$__Data__init:ai32"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prg(%prg* @prg_instance)
+      ret void
+    }
+
+    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr2ai32ai32]"
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
     "###);
 }

@@ -62,11 +62,11 @@ fn missing_comma_in_call_parameters() {
                 ref_to("buz"),
                 Some(AstFactory::create_expression_list(
                     vec![ref_to("a"), ref_to("b")],
-                    SourceLocation::undefined(),
+                    SourceLocation::internal(),
                     0
                 )),
                 0,
-                SourceLocation::undefined()
+                SourceLocation::internal()
             )]
         )
     );
@@ -98,11 +98,11 @@ fn illegal_semicolon_in_call_parameters() {
                     ref_to("buz"),
                     Some(AstFactory::create_expression_list(
                         vec![ref_to("a"), ref_to("b")],
-                        SourceLocation::undefined(),
+                        SourceLocation::internal(),
                         0
                     )),
                     0,
-                    SourceLocation::undefined()
+                    SourceLocation::internal()
                 ),
                 ref_to("c")
             ]
@@ -202,16 +202,16 @@ fn invalid_variable_name_error_recovery() {
                 constant: false,
                 access: AccessModifier::Protected,
                 retain: false,
-                location: SourceLocation::undefined(),
+                location: SourceLocation::internal(),
                 variables: vec![Variable {
                     name: "c".into(),
                     data_type_declaration: DataTypeDeclaration::DataTypeReference {
                         referenced_type: "INT".into(),
-                        location: SourceLocation::undefined(),
+                        location: SourceLocation::internal(),
                     },
                     initializer: None,
                     address: None,
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                 },],
                 variable_block_type: VariableBlockType::Local,
                 linkage: LinkageType::Internal,
@@ -1126,11 +1126,11 @@ fn pointer_type_without_to_test() {
             name: Some("SamplePointer".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: SourceLocation::undefined(),
+                location: SourceLocation::internal(),
             }),
             auto_deref: None,
         },
-        location: SourceLocation::undefined(),
+        location: SourceLocation::internal(),
         initializer: None,
         scope: None,
     };
@@ -1153,11 +1153,11 @@ fn pointer_type_with_wrong_keyword_to_test() {
             name: Some("SamplePointer".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "tu".to_string(),
-                location: SourceLocation::undefined(),
+                location: SourceLocation::internal(),
             }),
             auto_deref: None,
         },
-        location: SourceLocation::undefined(),
+        location: SourceLocation::internal(),
         initializer: None,
         scope: None,
     };

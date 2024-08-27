@@ -83,7 +83,7 @@ pub mod tests {
 
         pre_process(&mut unit, id_provider);
         index.import(index::visitor::visit(&unit));
-        index.register_global_init_function();
+        index.register_global_init_function(&get_project_init_symbol());
         (unit, index, diagnostics)
     }
 
@@ -123,6 +123,7 @@ pub mod tests {
         full_index.import(std::mem::take(&mut annotations.new_index));
         let mut annotated_units = vec![(parse_result, dependencies, literals)];
         TypeAnnotator::lower_init_functions(
+            &get_project_init_symbol(),
             unresolvables,
             &mut annotations,
             &mut full_index,
@@ -186,6 +187,7 @@ pub mod tests {
 
         let mut annotated_units = vec![(unit, dependencies, literals)];
         TypeAnnotator::lower_init_functions(
+            &get_project_init_symbol(),
             unresolvables,
             &mut annotations,
             &mut index,
@@ -193,42 +195,43 @@ pub mod tests {
             &mut annotated_units,
         );
 
-        let (unit, dependencies, literals) = annotated_units
-            .into_iter()
-            .reduce(|acc, ele| {
-                let (mut unit1, mut set1, mut lit1) = acc;
-                let (unit2, set2, lit2) = ele;
-                unit1.import(unit2);
-                set1.extend(set2);
-                lit1.import(lit2);
-                (unit1, set1, lit1)
-            })
-            .unwrap();
-
-        let context = CodegenContext::create();
-        let path = PathBuf::from_str("src").ok();
-        let mut code_generator = crate::codegen::CodeGen::new(
-            &context,
-            path.as_deref(),
-            "main",
-            crate::OptimizationLevel::None,
-            debug_level,
-        );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
-        let llvm_index = code_generator
-            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)
-            .map_err(|err| {
-                reporter.handle(&[err]);
-                reporter.buffer().unwrap()
-            })?;
 
-        code_generator
-            .generate(&context, &unit, &annotations, &index, &llvm_index)
-            .map(|module| module.persist_to_string())
-            .map_err(|err| {
-                reporter.handle(&[err]);
-                reporter.buffer().unwrap()
+        annotated_units
+            .into_iter()
+            .map(|(unit, dependencies, literals)| {
+                let context = CodegenContext::create();
+                let path = PathBuf::from_str("src").ok();
+                let mut code_generator = crate::codegen::CodeGen::new(
+                    &context,
+                    path.as_deref(),
+                    &unit.file_name,
+                    crate::OptimizationLevel::None,
+                    debug_level,
+                );
+                let llvm_index = code_generator
+                    .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)
+                    .map_err(|err| {
+                        reporter.handle(&[err]);
+                        reporter.buffer().unwrap()
+                    })?;
+
+                code_generator
+                    .generate(&context, &unit, &annotations, &index, &llvm_index)
+                    .map(|module| module.persist_to_string())
+                    .map_err(|err| {
+                        reporter.handle(&[err]);
+                        reporter.buffer().unwrap()
+                    })
             })
+            .reduce(|acc, ir| {
+                Ok(format!(
+                    "{}\
+                        {}",
+                    acc?, ir?
+                ))
+            })
+            .unwrap()
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
@@ -273,6 +276,8 @@ pub mod tests {
             })
             .collect::<Vec<_>>();
 
+        // TODO: lowering here?
+
         let path = PathBuf::from_str("src").ok();
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
         units
@@ -313,5 +318,9 @@ pub mod tests {
     pub fn generate_with_empty_program(src: &str) -> String {
         let source = format!("{} {}", "PROGRAM main END_PROGRAM", src);
         codegen(source.as_str())
+    }
+
+    fn get_project_init_symbol() -> String {
+        format!("__init___testproject")
     }
 }

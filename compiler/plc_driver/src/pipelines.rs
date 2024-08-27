@@ -126,7 +126,6 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
         // import builtin functions
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(&builtins));
-        global_index.register_global_init_function();
 
         IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
     }
@@ -146,9 +145,10 @@ pub struct IndexedProject<T: SourceContainer + Sync> {
 impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
+        let init_name = self.get_project().get_init_symbol_name();
         //Resolve constants
-        //TODO: Not sure what we are currently doing with unresolvables
         let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
+        full_index.register_global_init_function(&init_name);
 
         //Create and call the annotator
         let mut annotated_units = Vec::new();
@@ -173,6 +173,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
         full_index.import(std::mem::take(&mut all_annotations.new_index));
 
         TypeAnnotator::lower_init_functions(
+            &init_name,
             unresolvables,
             &mut all_annotations,
             &mut full_index,
@@ -479,7 +480,7 @@ impl GeneratedProject {
                     })??;
                 codegen.persist_to_ir(output_location)
             }
-            FormatOption::Object if self.objects.len() == 1 && objects.is_empty() => {
+            FormatOption::Object if objects.is_empty() => {
                 //Just copy over the object file, no need for a linker
                 if let [obj] = &self.objects[..] {
                     if obj.get_path() != output_location {

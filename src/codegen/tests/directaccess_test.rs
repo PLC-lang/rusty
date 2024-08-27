@@ -142,8 +142,8 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     );
 
     assert_snapshot!(ir, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %FOO = type { i8, i8 }
 
@@ -218,6 +218,28 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %FOO = type { i8, i8 }
+
+    @__FOO__init = external global %FOO, section "var-$RUSTY$__FOO__init:r2u8u8"
+
+    define void @__init_foo(%FOO* %0) section "fn-$RUSTY$__init_foo:v[pr2u8u8]" {
+    entry:
+      %self = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %self, align 8
+      ret void
+    }
+
+    declare void @FOO(%FOO*) section "fn-$RUSTY$FOO:v[u8][u8]"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 
@@ -243,8 +265,8 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
     );
 
     assert_snapshot!(ir, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %FOO = type { i8 }
 
@@ -281,6 +303,28 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %FOO = type { i8 }
+
+    @__FOO__init = external global %FOO, section "var-$RUSTY$__FOO__init:r1u8"
+
+    define void @__init_foo(%FOO* %0) section "fn-$RUSTY$__init_foo:v[pr1u8]" {
+    entry:
+      %self = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %self, align 8
+      ret void
+    }
+
+    declare void @FOO(%FOO*) section "fn-$RUSTY$FOO:v[u8]"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 
@@ -306,8 +350,8 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
     );
 
     assert_snapshot!(ir, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %FOO = type { i8 }
 
@@ -344,6 +388,28 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %FOO = type { i8 }
+
+    @__FOO__init = external global %FOO, section "var-$RUSTY$__FOO__init:r1u8"
+
+    define void @__init_foo(%FOO* %0) section "fn-$RUSTY$__init_foo:v[pr1u8]" {
+    entry:
+      %self = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %self, align 8
+      ret void
+    }
+
+    declare void @FOO(%FOO*) section "fn-$RUSTY$FOO:v[u8]"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 
@@ -378,8 +444,8 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     );
 
     assert_snapshot!(ir, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %QUUX = type { i8 }
     %foo_struct = type { %bar_struct }
@@ -435,5 +501,48 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo_struct = type { %bar_struct }
+    %bar_struct = type { i64 }
+    %QUUX = type { i8 }
+
+    @__foo_struct__init = external global %foo_struct, section "var-$RUSTY$__foo_struct__init:r1r1u64"
+    @__bar_struct__init = external global %bar_struct, section "var-$RUSTY$__bar_struct__init:r1u64"
+    @__QUUX__init = external global %QUUX, section "var-$RUSTY$__QUUX__init:r1u8"
+
+    define void @__init_foo_struct(%foo_struct* %0) section "fn-$RUSTY$__init_foo_struct:v[pr1r1u64]" {
+    entry:
+      %self = alloca %foo_struct*, align 8
+      store %foo_struct* %0, %foo_struct** %self, align 8
+      %deref = load %foo_struct*, %foo_struct** %self, align 8
+      %bar = getelementptr inbounds %foo_struct, %foo_struct* %deref, i32 0, i32 0
+      call void @__init_bar_struct(%bar_struct* %bar)
+      ret void
+    }
+
+    define void @__init_bar_struct(%bar_struct* %0) section "fn-$RUSTY$__init_bar_struct:v[pr1u64]" {
+    entry:
+      %self = alloca %bar_struct*, align 8
+      store %bar_struct* %0, %bar_struct** %self, align 8
+      ret void
+    }
+
+    define void @__init_quux(%QUUX* %0) section "fn-$RUSTY$__init_quux:v[pr1u8]" {
+    entry:
+      %self = alloca %QUUX*, align 8
+      store %QUUX* %0, %QUUX** %self, align 8
+      ret void
+    }
+
+    declare void @QUUX(%QUUX*) section "fn-$RUSTY$QUUX:v[u8]"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }

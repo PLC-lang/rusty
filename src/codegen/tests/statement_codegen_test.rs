@@ -202,8 +202,8 @@ fn ref_assignment() {
     );
 
     insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     define void @main() section "fn-$RUSTY$main:v" {
     entry:
@@ -212,6 +212,13 @@ fn ref_assignment() {
       store i32* null, i32** %a, align 8
       store i32 0, i32* %b, align 4
       store i32* %b, i32** %a, align 8
+      ret void
+    }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
       ret void
     }
     "###);
@@ -245,8 +252,8 @@ fn reference_to_assignment() {
     assert_eq!(auto_deref, manual_deref);
 
     insta::assert_snapshot!(auto_deref, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     define void @main() section "fn-$RUSTY$main:v" {
     entry:
@@ -254,6 +261,13 @@ fn reference_to_assignment() {
       store i32* null, i32** %a, align 8
       %deref = load i32*, i32** %a, align 8
       store i32 5, i32* %deref, align 4
+      ret void
+    }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
       ret void
     }
     "###);
@@ -289,8 +303,8 @@ fn reference_to_string_assignment() {
     assert_eq!(auto_deref, manual_deref);
 
     insta::assert_snapshot!(auto_deref, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
@@ -308,6 +322,13 @@ fn reference_to_string_assignment() {
     declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 

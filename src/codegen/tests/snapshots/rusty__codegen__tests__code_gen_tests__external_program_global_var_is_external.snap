@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %prg = type { i32, i32 }
 

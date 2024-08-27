@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result.unwrap()
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @a = unnamed_addr constant i16 7, section "var-$RUSTY$a:i16"
 @b = unnamed_addr constant i16 21, section "var-$RUSTY$b:i16"

@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %prg = type { i32, i32 }
 
@@ -39,3 +39,34 @@ else:                                             ; preds = %entry
 continue:                                         ; preds = %else, %case2, %case1, %case
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%prg = type { i32, i32 }
+
+@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2i32i32"
+
+define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2i32i32]" {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  ret void
+}
+
+declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%prg = type { i32, i32 }
+
+@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2i32i32"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_prg(%prg* @prg_instance)
+  ret void
+}
+
+declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr2i32i32]"
+
+declare void @prg(%prg*) section "fn-$RUSTY$prg:v"

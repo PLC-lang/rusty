@@ -859,7 +859,7 @@ fn pre_processing_generates_generic_types() {
             nature: TypeNature::Any,
         },
         initializer: None,
-        location: SourceLocation::undefined(),
+        location: SourceLocation::internal(),
         scope: Some("myFunc".into()),
     };
 
@@ -893,7 +893,7 @@ fn pre_processing_generates_nested_generic_types() {
             nature: TypeNature::Any,
         },
         initializer: None,
-        location: SourceLocation::undefined(),
+        location: SourceLocation::internal(),
         scope: Some("myFunc".into()),
     };
 
@@ -1633,7 +1633,7 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     location_in_parent: 0,
                     linkage: LinkageType::Internal,
                     binding: None,
-                    source_location: SourceLocation::undefined(),
+                    source_location: SourceLocation::internal(),
                     varargs: None
                 },
                 VariableIndexEntry {
@@ -1646,7 +1646,7 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     location_in_parent: 1,
                     linkage: LinkageType::Internal,
                     binding: None,
-                    source_location: SourceLocation::undefined(),
+                    source_location: SourceLocation::internal(),
                     varargs: None
                 }
             ],
@@ -1683,12 +1683,12 @@ fn string_type_alias_without_size_is_indexed() {
 }
 
 #[test]
-fn __init_function_is_indexed_unconditionally() {
+fn init_function_is_indexed_unconditionally() {
     // GIVEN nothing
     // WHEN indexed
     let (_, index) = index("");
 
-    // THEN we expect an `__init` function to be registered regardless
-    let init = index.find_pou("__init");
+    // THEN we expect an `__init___testproject` function to be registered regardless
+    let init = index.find_pou("__init___testproject");
     assert!(init.is_some());
 }

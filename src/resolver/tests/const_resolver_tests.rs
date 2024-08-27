@@ -39,19 +39,19 @@ fn find_constant_value<'a>(index: &'a Index, reference: &str) -> Option<&'a AstN
 }
 
 fn create_int_literal(v: i128) -> AstNode {
-    AstFactory::create_literal(AstLiteral::new_integer(v), SourceLocation::undefined(), 0)
+    AstFactory::create_literal(AstLiteral::new_integer(v), SourceLocation::internal(), 0)
 }
 
 fn create_string_literal(v: &str, wide: bool) -> AstNode {
-    AstFactory::create_literal(AstLiteral::new_string(v.to_string(), wide), SourceLocation::undefined(), 0)
+    AstFactory::create_literal(AstLiteral::new_string(v.to_string(), wide), SourceLocation::internal(), 0)
 }
 
 fn create_real_literal(v: f64) -> AstNode {
-    AstFactory::create_literal(AstLiteral::new_real(format!("{v:}")), SourceLocation::undefined(), 0)
+    AstFactory::create_literal(AstLiteral::new_real(format!("{v:}")), SourceLocation::internal(), 0)
 }
 
 fn create_bool_literal(v: bool) -> AstNode {
-    AstFactory::create_literal(AstLiteral::new_bool(v), SourceLocation::undefined(), 0)
+    AstFactory::create_literal(AstLiteral::new_bool(v), SourceLocation::internal(), 0)
 }
 
 #[test]
@@ -676,7 +676,7 @@ fn illegal_cast_should_not_be_resolved() {
     // THEN a could not be resolved, because the literal is invalid
     let expected = UnresolvableConstant::new(global!(index, "a"), "").with_kind(UnresolvableKind::Overflow(
         "This will overflow for type BOOL".into(),
-        SourceLocation::internal(),
+        SourceLocation::undefined(),
     ));
     debug_assert_eq!(expected.id, unresolvable[0].id);
     debug_assert_eq!(expected.get_reason(), unresolvable[0].get_reason());

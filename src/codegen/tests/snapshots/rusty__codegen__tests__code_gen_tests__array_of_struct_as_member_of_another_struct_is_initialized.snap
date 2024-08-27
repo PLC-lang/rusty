@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: res
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %mainProg = type { %STRUCT1 }
 %STRUCT1 = type { i16, [11 x %STRUCT2] }
@@ -19,3 +19,59 @@ entry:
   %var_str1 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 0
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%STRUCT1 = type { i16, [11 x %STRUCT2] }
+%STRUCT2 = type { i8, i32 }
+%mainProg = type { %STRUCT1 }
+
+@__STRUCT1__init = external global %STRUCT1, section "var-$RUSTY$__STRUCT1__init:r2i16ar2u8i32"
+@__STRUCT2__init = external global %STRUCT2, section "var-$RUSTY$__STRUCT2__init:r2u8i32"
+@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r1r2i16ar2u8i32"
+
+define void @__init_struct1(%STRUCT1* %0) section "fn-$RUSTY$__init_struct1:v[pr2i16ar2u8i32]" {
+entry:
+  %self = alloca %STRUCT1*, align 8
+  store %STRUCT1* %0, %STRUCT1** %self, align 8
+  ret void
+}
+
+define void @__init_struct2(%STRUCT2* %0) section "fn-$RUSTY$__init_struct2:v[pr2u8i32]" {
+entry:
+  %self = alloca %STRUCT2*, align 8
+  store %STRUCT2* %0, %STRUCT2** %self, align 8
+  ret void
+}
+
+define void @__init_mainprog(%mainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr1r2i16ar2u8i32]" {
+entry:
+  %self = alloca %mainProg*, align 8
+  store %mainProg* %0, %mainProg** %self, align 8
+  %deref = load %mainProg*, %mainProg** %self, align 8
+  %var_str1 = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 0
+  call void @__init_struct1(%STRUCT1* %var_str1)
+  ret void
+}
+
+declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%mainProg = type { %STRUCT1 }
+%STRUCT1 = type { i16, [11 x %STRUCT2] }
+%STRUCT2 = type { i8, i32 }
+
+@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r1r2i16ar2u8i32"
+@__STRUCT1__init = external global %STRUCT1, section "var-$RUSTY$__STRUCT1__init:r2i16ar2u8i32"
+@__STRUCT2__init = external global %STRUCT2, section "var-$RUSTY$__STRUCT2__init:r2u8i32"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_mainprog(%mainProg* @mainProg_instance)
+  ret void
+}
+
+declare void @__init_mainprog(%mainProg*) section "fn-$RUSTY$__init_mainprog:v[pr1r2i16ar2u8i32]"
+
+declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"

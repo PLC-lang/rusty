@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %mainPROG = type { i8, i16 }
 
@@ -19,3 +19,34 @@ entry:
   store i16 66, i16* %y, align 2
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%mainPROG = type { i8, i16 }
+
+@mainPROG_instance = external global %mainPROG, section "var-$RUSTY$mainPROG_instance:r2u8u16"
+
+define void @__init_mainprog(%mainPROG* %0) section "fn-$RUSTY$__init_mainprog:v[pr2u8u16]" {
+entry:
+  %self = alloca %mainPROG*, align 8
+  store %mainPROG* %0, %mainPROG** %self, align 8
+  ret void
+}
+
+declare void @mainPROG(%mainPROG*) section "fn-$RUSTY$mainPROG:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%mainPROG = type { i8, i16 }
+
+@mainPROG_instance = external global %mainPROG, section "var-$RUSTY$mainPROG_instance:r2u8u16"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_mainprog(%mainPROG* @mainPROG_instance)
+  ret void
+}
+
+declare void @__init_mainprog(%mainPROG*) section "fn-$RUSTY$__init_mainprog:v[pr2u8u16]"
+
+declare void @mainPROG(%mainPROG*) section "fn-$RUSTY$mainPROG:v"
