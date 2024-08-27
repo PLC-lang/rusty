@@ -1208,7 +1208,7 @@
 
         <span class="kw">let </span>eval_step = || {
             step_ty.map_or_else(
-                || <span class="self">self</span>.llvm.create_const_numeric(<span class="kw-2">&amp;</span>cast_target_llty, <span class="string">"1"</span>, SourceLocation::undefined()),
+                || <span class="self">self</span>.llvm.create_const_numeric(<span class="kw-2">&amp;</span>cast_target_llty, <span class="string">"1"</span>, SourceLocation::internal()),
                 |step_ty| {
                     <span class="kw">let </span>step = exp_gen.generate_expression(by_step.as_ref().unwrap())<span class="question-mark">?</span>;
                     <span class="prelude-val">Ok</span>(<span class="macro">cast_if_needed!</span>(exp_gen, cast_target_ty, step_ty, step, <span class="prelude-val">None</span>))
@@ -1233,7 +1233,7 @@
             inkwell::IntPredicate::SGT,
             eval_step()<span class="question-mark">?</span>.into_int_value(),
             <span class="self">self</span>.llvm
-                .create_const_numeric(<span class="kw-2">&amp;</span>cast_target_llty, <span class="string">"0"</span>, SourceLocation::undefined())<span class="question-mark">?
+                .create_const_numeric(<span class="kw-2">&amp;</span>cast_target_llty, <span class="string">"0"</span>, SourceLocation::internal())<span class="question-mark">?
                 </span>.into_int_value(),
             <span class="string">"is_incrementing"</span>,
         );

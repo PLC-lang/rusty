@@ -328,6 +328,11 @@
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
 <a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     path::{Path, PathBuf},
@@ -629,6 +634,11 @@
     <span class="doccomment">/// Returns the validation schema used for this project
     </span><span class="kw">pub fn </span>get_validation_schema(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>AsRef&lt;str&gt; {
         <span class="macro">include_str!</span>(<span class="string">"../schema/plc-json.schema"</span>)
+    }
+
+    <span class="doccomment">/// Returns the symbol name of this projects main initializer function
+    </span><span class="kw">pub fn </span>get_init_symbol_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="macro">format!</span>(<span class="string">"__init___{}"</span>, <span class="self">self</span>.get_name().replace(<span class="string">'.'</span>, <span class="string">"_"</span>))
     }
 }
 

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["CodeSpan"],"struct":["NewLines","SourceLocation","SourceLocationFactory","TextLocation"]};
+window.SIDEBAR_ITEMS = {"enum":["CodeSpan","FileMarker"],"struct":["NewLines","SourceLocation","SourceLocationFactory","TextLocation"]};

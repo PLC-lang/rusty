@@ -3138,9 +3138,9 @@
         <span class="self">self</span>.init_functions.insert(init_name.clone());
     }
 
-    <span class="kw">pub fn </span>register_global_init_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="kw">pub fn </span>register_global_init_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) {
         <span class="kw">let </span>entry = PouIndexEntry::Function {
-            name: <span class="string">"__init"</span>.into(),
+            name: name.into(),
             return_type: VOID_TYPE.into(),
             generics: <span class="macro">vec!</span>[],
             linkage: LinkageType::Internal,
@@ -3149,7 +3149,7 @@
             is_generated: <span class="bool-val">true</span>,
         };
         <span class="self">self</span>.register_pou(entry);
-        <span class="self">self</span>.init_functions.insert(<span class="string">"__init"</span>.to_string());
+        <span class="self">self</span>.init_functions.insert(name.into());
     }
 
     <span class="kw">pub fn </span>find_implementation_by_name(<span class="kw-2">&amp;</span><span class="self">self</span>, call_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ImplementationIndexEntry&gt; {

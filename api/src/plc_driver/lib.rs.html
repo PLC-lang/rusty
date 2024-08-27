@@ -799,7 +799,7 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
     targets: Vec&lt;Target&gt;,
     annotated_project: AnnotatedProject&lt;PathBuf&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-    <span class="kw">let </span>res = <span class="kw">if </span>compile_options.single_module {
+    <span class="kw">let </span>res = <span class="kw">if </span>compile_options.single_module || <span class="macro">matches!</span>(linker_options.format, FormatOption::Object) {
         <span class="macro">log::info!</span>(<span class="string">"Using single module mode"</span>);
         annotated_project.codegen_single_module(compile_options, <span class="kw-2">&amp;</span>targets)<span class="question-mark">?
     </span>} <span class="kw">else </span>{

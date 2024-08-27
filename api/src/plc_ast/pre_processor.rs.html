@@ -355,7 +355,7 @@
                     <span class="kw">let </span>type_name = internal_type_name(<span class="string">""</span>, name);
                     <span class="kw">let </span>type_ref = DataTypeDeclaration::DataTypeReference {
                         referenced_type: type_name.clone(),
-                        location: SourceLocation::undefined(), <span class="comment">//return_type.get_location(),
+                        location: SourceLocation::internal(), <span class="comment">//return_type.get_location(),
                     </span>};
                     <span class="kw">let </span>datatype = std::mem::replace(referenced_type, Box::new(type_ref));
                     <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition { <span class="kw-2">mut </span>data_type, location, scope } =

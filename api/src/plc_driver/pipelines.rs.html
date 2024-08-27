@@ -535,6 +535,7 @@
 <a href="#535" id="535">535</a>
 <a href="#536" id="536">536</a>
 <a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     fs::{<span class="self">self</span>, File},
@@ -663,7 +664,6 @@
         <span class="comment">// import builtin functions
         </span><span class="kw">let </span>builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(<span class="kw-2">&amp;</span>builtins));
-        global_index.register_global_init_function();
 
         IndexedProject { project: ParsedProject { project: <span class="self">self</span>.project, units }, index: global_index }
     }
@@ -683,9 +683,10 @@
 <span class="kw">impl</span>&lt;T: SourceContainer + Sync&gt; IndexedProject&lt;T&gt; {
     <span class="doccomment">/// Creates annotations on the project in order to facilitate codegen and validation
     </span><span class="kw">pub fn </span>annotate(<span class="self">self</span>, <span class="kw-2">mut </span>id_provider: IdProvider) -&gt; AnnotatedProject&lt;T&gt; {
+        <span class="kw">let </span>init_name = <span class="self">self</span>.get_project().get_init_symbol_name();
         <span class="comment">//Resolve constants
-        //TODO: Not sure what we are currently doing with unresolvables
         </span><span class="kw">let </span>(<span class="kw-2">mut </span>full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(<span class="self">self</span>.index);
+        full_index.register_global_init_function(<span class="kw-2">&amp;</span>init_name);
 
         <span class="comment">//Create and call the annotator
         </span><span class="kw">let </span><span class="kw-2">mut </span>annotated_units = Vec::new();
@@ -710,6 +711,7 @@
         full_index.import(std::mem::take(<span class="kw-2">&amp;mut </span>all_annotations.new_index));
 
         TypeAnnotator::lower_init_functions(
+            <span class="kw-2">&amp;</span>init_name,
             unresolvables,
             <span class="kw-2">&amp;mut </span>all_annotations,
             <span class="kw-2">&amp;mut </span>full_index,
@@ -1016,7 +1018,7 @@
                     })<span class="question-mark">??</span>;
                 codegen.persist_to_ir(output_location)
             }
-            FormatOption::Object <span class="kw">if </span><span class="self">self</span>.objects.len() == <span class="number">1 </span>&amp;&amp; objects.is_empty() =&gt; {
+            FormatOption::Object <span class="kw">if </span>objects.is_empty() =&gt; {
                 <span class="comment">//Just copy over the object file, no need for a linker
                 </span><span class="kw">if let </span>[obj] = <span class="kw-2">&amp;</span><span class="self">self</span>.objects[..] {
                     <span class="kw">if </span>obj.get_path() != output_location {

@@ -5123,7 +5123,7 @@
         <span class="kw">let </span>value = <span class="self">self</span>.llvm.create_const_numeric(
             <span class="kw-2">&amp;</span><span class="self">self</span>.llvm_index.get_associated_type(LINT_TYPE)<span class="question-mark">?</span>,
             value.to_string().as_str(),
-            SourceLocation::undefined(),
+            SourceLocation::internal(),
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(value)
     }

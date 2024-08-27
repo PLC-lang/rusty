@@ -3207,7 +3207,7 @@
                 parameters: <span class="prelude-val">Some</span>(Box::new(AstNode::new(
                     AstStatement::ExpressionList(parameters),
                     parameter_list_id,
-                    SourceLocation::undefined(), <span class="comment">//TODO: get real location
+                    SourceLocation::internal(), <span class="comment">//TODO: get real location
                 </span>))),
             }),
             location: location.clone(),
@@ -3252,7 +3252,7 @@
                 )),
                 parameters: <span class="prelude-val">Some</span>(Box::new(AstFactory::create_expression_list(
                     parameters,
-                    SourceLocation::undefined(),
+                    SourceLocation::internal(),
                     id_provider.next_id(),
                 ))),
             }),

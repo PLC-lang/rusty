@@ -269,7 +269,7 @@
                         <span class="kw">let </span><span class="kw-2">mut </span>error_chapter = Chapter::new(
                             name,
                             content,
-                            <span class="kw-2">&amp;</span>target.join(name).with_extension(<span class="string">"md"</span>),
+                            target.join(name).with_extension(<span class="string">"md"</span>),
                             parents.clone(),
                         );
                         <span class="kw">let </span><span class="kw-2">mut </span>chapter_number = chapter.number.clone().unwrap_or_default();

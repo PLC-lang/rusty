@@ -1375,11 +1375,11 @@
             (
                 DataTypeDeclaration::DataTypeReference {
                     referenced_type: member_array_name,
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                 },
                 DataTypeDeclaration::DataTypeReference {
                     referenced_type: member_dimensions_name,
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                 },
             )
         } <span class="kw">else </span>{
@@ -1409,11 +1409,11 @@
                         name: <span class="prelude-val">Some</span>(member_array_name),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: dummy_array_name,
-                            location: SourceLocation::undefined(),
+                            location: SourceLocation::internal(),
                         }),
                         auto_deref: <span class="prelude-val">None</span>,
                     },
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                     scope: <span class="prelude-val">None</span>,
                 },
                 DataTypeDeclaration::DataTypeDefinition {
@@ -1427,12 +1427,12 @@
                                             AstNode::new_literal(
                                                 AstLiteral::new_integer(<span class="number">0</span>),
                                                 <span class="number">0</span>,
-                                                SourceLocation::undefined(),
+                                                SourceLocation::internal(),
                                             ),
                                             AstNode::new_literal(
                                                 AstLiteral::new_integer(<span class="number">1</span>),
                                                 <span class="number">0</span>,
-                                                SourceLocation::undefined(),
+                                                SourceLocation::internal(),
                                             ),
                                             <span class="number">0</span>,
                                         )
@@ -1440,15 +1440,15 @@
                                     .collect::&lt;<span class="kw">_</span>&gt;(),
                             ),
                             <span class="number">0</span>,
-                            SourceLocation::undefined(),
+                            SourceLocation::internal(),
                         ),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: DINT_TYPE.to_string(),
-                            location: SourceLocation::undefined(),
+                            location: SourceLocation::internal(),
                         }),
                         is_variable_length: <span class="bool-val">false</span>,
                     },
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                     scope: <span class="prelude-val">None</span>,
                 },
             )
@@ -1462,7 +1462,7 @@
             data_type_declaration: vla_arr_type_declaration,
             initializer: <span class="prelude-val">None</span>,
             address: <span class="prelude-val">None</span>,
-            location: SourceLocation::undefined(),
+            location: SourceLocation::internal(),
         },
         <span class="comment">// Dimensions Array
         </span>Variable {
@@ -1470,7 +1470,7 @@
             data_type_declaration: dim_arr_type_declaration,
             initializer: <span class="prelude-val">None</span>,
             address: <span class="prelude-val">None</span>,
-            location: SourceLocation::undefined(),
+            location: SourceLocation::internal(),
         },
     ];
 
@@ -1598,7 +1598,7 @@
                     <span class="kw-2">&amp;</span>UserTypeDeclaration {
                         data_type: data_type.clone(),
                         initializer: <span class="prelude-val">None</span>,
-                        location: SourceLocation::undefined(),
+                        location: SourceLocation::internal(),
                         scope: scope.clone(),
                     },
                 )

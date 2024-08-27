@@ -469,6 +469,10 @@
 <a href="#469" id="469">469</a>
 <a href="#470" id="470">470</a>
 <a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span><span class="kw">crate</span>::codegen::debug::Debug;
 <span class="kw">use </span><span class="kw">crate</span>::index::{FxIndexSet, Index, VariableIndexEntry, VariableType};
@@ -621,21 +625,17 @@
     }
     <span class="comment">//If we didn't resolve anything this cycle, report the remaining issues and exit
     </span><span class="kw">if </span>!types_to_init.is_empty() {
-        <span class="kw">let </span><span class="kw-2">mut </span>init_later = <span class="number">0</span>;
         <span class="comment">//Report each error as a new diagnostic, add the type's location as related to the error
         </span><span class="kw">let </span>diags = types_to_init
             .into_iter()
             .map(|(name, ty)| {
-                <span class="kw">if </span>index.type_has_init_function(name) {
-                    init_later += <span class="number">1</span>;
-                }
                 errors
                     .remove(name)
                     .map(|diag| diag.with_secondary_location(<span class="kw-2">&amp;</span>ty.location))
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-        <span class="kw">if </span>diags.len() &gt; init_later {
+        <span class="kw">if </span>!diags.is_empty() {
             <span class="comment">//Report the operation failure
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="string">"Some initial values were not generated"</span>)
                 .with_error_code(<span class="string">"E075"</span>)
@@ -850,6 +850,14 @@
                 <span class="self">self</span>.annotations,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.types_index,
             );
+
+            <span class="kw">let </span>lhs_type = <span class="self">self</span>.index.get_type_information_or_void(data_type_name);
+            <span class="kw">if </span>!initializer.is_literal() &amp;&amp; (lhs_type.is_pointer() || lhs_type.is_alias()) {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">self
+                    </span>.types_index
+                    .find_associated_type(lhs_type.get_name())
+                    .map(|it| it.const_zero().as_basic_value_enum()));
+            };
 
             generator.generate_expression(initializer).map(<span class="prelude-val">Some</span>).map_err(|<span class="kw">_</span>| {
                 Diagnostic::cannot_generate_initializer(qualified_name, initializer.get_location())
