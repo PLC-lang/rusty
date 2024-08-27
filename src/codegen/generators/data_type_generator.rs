@@ -150,21 +150,17 @@ pub fn generate_data_types<'ink>(
     }
     //If we didn't resolve anything this cycle, report the remaining issues and exit
     if !types_to_init.is_empty() {
-        let mut init_later = 0;
         //Report each error as a new diagnostic, add the type's location as related to the error
         let diags = types_to_init
             .into_iter()
-            .map(|(name, ty)| {
-                if index.type_has_init_function(name) {
-                    init_later += 1;
-                }
+            .map(|(name, ty)| {     
                 errors
                     .remove(name)
                     .map(|diag| diag.with_secondary_location(&ty.location))
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::<Vec<_>>();
-        if diags.len() > init_later {
+        if !diags.is_empty() {
             //Report the operation failure
             return Err(Diagnostic::new("Some initial values were not generated")
                 .with_error_code("E075")
@@ -379,6 +375,13 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 self.annotations,
                 &self.types_index,
             );
+
+            let lhs_type = self.index.get_type_information_or_void(data_type_name);
+            if !initializer.is_literal() && (lhs_type.is_pointer() || lhs_type.is_alias()) {
+                return Ok(self.types_index.find_associated_type(lhs_type.get_name()).map(|it| 
+                    it.const_zero().as_basic_value_enum()
+                ));
+            };
 
             generator.generate_expression(initializer).map(Some).map_err(|_| {
                 Diagnostic::cannot_generate_initializer(qualified_name, initializer.get_location())
