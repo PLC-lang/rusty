@@ -939,10 +939,13 @@ fn by_value_function_arg_structs_are_memcopied() {
       %0 = bitcast %S_TY* %s to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%S_TY, %S_TY* @__S_TY__init, i32 0, i32 0), i64 ptrtoint (%S_TY* getelementptr (%S_TY, %S_TY* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
+      call void @__init_s_ty(%S_TY* %s)
       %call = call i32 @foo(%S_TY* %s)
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
+
+    declare void @__init_s_ty(%S_TY*) section "fn-$RUSTY$__init_s_ty:v[pr2u8u8]"
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -1032,10 +1035,13 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
       %0 = bitcast %AGGREGATE_COLLECTOR_TY* %s to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%AGGREGATE_COLLECTOR_TY* @__AGGREGATE_COLLECTOR_TY__init to i8*), i64 ptrtoint (%AGGREGATE_COLLECTOR_TY* getelementptr (%AGGREGATE_COLLECTOR_TY, %AGGREGATE_COLLECTOR_TY* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
+      call void @__init_aggregate_collector_ty(%AGGREGATE_COLLECTOR_TY* %s)
       %call = call i32 @foo(%AGGREGATE_COLLECTOR_TY* %s)
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
+
+    declare void @__init_aggregate_collector_ty(%AGGREGATE_COLLECTOR_TY*) section "fn-$RUSTY$__init_aggregate_collector_ty:v[pr3ai32s8u65537r2u8u8]"
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -1119,6 +1125,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
       %2 = bitcast %FOO* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %2, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
+      call void @__init_foo(%FOO* %fb)
       %3 = getelementptr inbounds %FOO, %FOO* %fb, i32 0, i32 0
       %4 = bitcast [65537 x i8]* %3 to i8*
       %5 = bitcast [65537 x i8]* %str to i8*
@@ -1138,6 +1145,8 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
       %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
       ret void
     }
+
+    declare void @__init_foo(%FOO*) section "fn-$RUSTY$__init_foo:v[pr2s8u65537ai32]"
 
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0

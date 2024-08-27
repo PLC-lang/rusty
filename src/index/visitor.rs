@@ -196,6 +196,20 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             ));
             index.register_pou_type(datatype);
         }
+        PouType::Init => {
+            index.register_pou(PouIndexEntry::create_function_entry(
+                &pou.name,
+                return_type_name,
+                &pou.generics,
+                pou.linkage,
+                has_varargs,
+                pou.name_location.clone(),
+            ));
+            index.register_init_function(&pou.name);
+            index.register_pou_type(datatype);
+
+            // index.register_pou_type(datatype); maybe solves accessor problem in codegen?
+        }
         _ => {}
     };
 }

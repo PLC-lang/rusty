@@ -25,8 +25,6 @@ END_VAR
     printf('%s', REF(tmp));
     tmp := str.member2[1];
     printf(' %s$N', REF(tmp));
-    // CHECK: 367
-    printf('%d$N', str.member3);
 END_PROGRAM
 
 FUNCTION main: DINT

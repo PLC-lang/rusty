@@ -127,12 +127,22 @@ impl GlobalValidator {
 
     ///validates uniqueness of datatypes (types + functionblocks + classes)
     fn validate_unique_datatypes(&mut self, index: &Index) {
-        let all_declared_types = index.get_types().values().map(|dt| (dt.get_name(), &dt.location));
+        let all_declared_types = index.get_types().values().filter_map(|dt| {
+            let name = dt.get_name();
+            if !index.get_type_information_or_void(name).is_generic(index) {
+                Some((name, &dt.location))
+            } else {
+                None
+            }
+        });
+
         let all_function_blocks = index
             .get_pous()
             .values()
             .filter(|p| p.is_function_block() || p.is_class())
             .map(|p| (p.get_name(), p.get_location()));
+        let vec = all_declared_types.collect::<Vec<_>>();
+        let all_declared_types = vec.into_iter();
         self.check_uniqueness_of_cluster(
             all_declared_types.chain(all_function_blocks),
             Some("Ambiguous datatype."),
@@ -189,7 +199,7 @@ impl GlobalValidator {
     fn validate_unique_pous(&mut self, index: &Index) {
         //inner filter
         fn only_toplevel_pous(pou: &&PouIndexEntry) -> bool {
-            !pou.is_action() && !pou.is_method()
+            !pou.is_action() && !pou.is_method() && !pou.is_generic()
         }
 
         let pou_clusters = index

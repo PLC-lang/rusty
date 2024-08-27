@@ -14,9 +14,13 @@ use ast::{
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{FxIndexSet, Index},
+    lowering::AstLowerer,
     output::FormatOption,
     parser::parse_file,
-    resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
+    resolver::{
+        const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
+        TypeAnnotator,
+    },
     validation::Validator,
     ConfigFormat, Target,
 };
@@ -99,35 +103,56 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
     pub fn index(self, id_provider: IdProvider) -> IndexedProject<T> {
-        let indexed_units = self
-            .units
-            .into_par_iter()
-            .map(|mut unit| {
-                //Preprocess
-                pre_process(&mut unit, id_provider.clone());
-                //import to index
-                let index = plc::index::visitor::visit(&unit);
+        let init_symbol_name = &self.get_project().get_init_symbol_name();
 
-                (index, unit)
-            })
-            .collect::<Vec<_>>();
+        fn index_and_pre_process(
+            units: Vec<CompilationUnit>,
+            id_provider: &IdProvider,
+        ) -> (Vec<CompilationUnit>, Index, Vec<UnresolvableConstant>) {
+            let indexed_units = units
+                .into_par_iter()
+                .map(|mut unit| {
+                    //Preprocess
+                    pre_process(&mut unit, id_provider.clone());
+                    //import to index
+                    let index = plc::index::visitor::visit(&unit);
 
-        let mut global_index = Index::default();
-        let mut units = vec![];
-        for (index, unit) in indexed_units {
-            units.push(unit);
-            global_index.import(index);
+                    (index, unit)
+                })
+                .collect::<Vec<_>>();
+
+            let mut global_index = Index::default();
+            let mut units = vec![];
+            for (index, unit) in indexed_units {
+                units.push(unit);
+                global_index.import(index);
+            }
+
+            // import built-in types like INT, BOOL, etc.
+            for data_type in plc::typesystem::get_builtin_types() {
+                global_index.register_type(data_type);
+            }
+
+            // import builtin functions
+            let builtins = plc::builtins::parse_built_ins(id_provider.clone());
+            global_index.import(plc::index::visitor::visit(&builtins));
+            let (full_index, unresolvables) =
+                plc::resolver::const_evaluator::evaluate_constants(global_index);
+
+            (units, full_index, unresolvables)
         }
 
-        // import built-in types like INT, BOOL, etc.
-        for data_type in plc::typesystem::get_builtin_types() {
-            global_index.register_type(data_type);
-        }
-        // import builtin functions
-        let builtins = plc::builtins::parse_built_ins(id_provider);
-        global_index.import(plc::index::visitor::visit(&builtins));
+        // index units, pre-process and resolve constants
+        // let (units, index, unresolvables) = index_and_pre_process(self.units, &IdProvider::default());
+        let (units, index, unresolvables) = index_and_pre_process(self.units, &id_provider.clone());
 
-        IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
+        // AST lowering
+        let units = AstLowerer::lower(index, units, unresolvables, id_provider.clone(), init_symbol_name);
+
+        // Re-index lowered AST
+        let (units, index, _) = index_and_pre_process(units, &id_provider);
+
+        IndexedProject { project: ParsedProject { project: self.project, units }, index }
     }
 
     pub fn get_project(&self) -> &Project<T> {
@@ -145,15 +170,10 @@ pub struct IndexedProject<T: SourceContainer + Sync> {
 impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
-        let init_name = self.get_project().get_init_symbol_name();
-        //Resolve constants
-        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
-        full_index.register_global_init_function(&init_name);
-
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
-
+        let mut full_index = self.index;
         let result = self
             .project
             .units
@@ -172,16 +192,8 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
 
         full_index.import(std::mem::take(&mut all_annotations.new_index));
 
-        TypeAnnotator::lower_init_functions(
-            &init_name,
-            unresolvables,
-            &mut all_annotations,
-            &mut full_index,
-            &id_provider,
-            &mut annotated_units,
-        );
-
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+
         AnnotatedProject {
             project: self.project.project,
             units: annotated_units,
@@ -211,6 +223,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
     pub fn get_project(&self) -> &Project<T> {
         &self.project
     }
+
     /// Validates the project, reports any new diagnostics on the fly
     pub fn validate(
         &self,

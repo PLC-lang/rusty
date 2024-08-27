@@ -1,14 +1,14 @@
 use insta::assert_debug_snapshot;
 use plc_ast::{ast::PouType, provider::IdProvider};
 
-use crate::test_utils::tests::{annotate_and_lower_with_ids, index_with_ids};
+use crate::test_utils::tests::index_annotate_and_lower_with_ids;
 
 #[test]
 fn function_block_init_fn_created() {
     let id_provider = IdProvider::default();
     // GIVEN a function block with a ref initializer
     // WHEN lowered
-    let (unit, index) = index_with_ids(
+    let (_, index, annotated_units, _) = index_annotate_and_lower_with_ids(
         "
         FUNCTION_BLOCK foo
         VAR
@@ -20,8 +20,6 @@ fn function_block_init_fn_created() {
         id_provider.clone(),
     );
 
-    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
-
     // THEN we expect the index to now have a corresponding init function
     assert!(index.find_pou("__init_foo").is_some());
     // AND we expect a new function to be created for it
@@ -29,7 +27,7 @@ fn function_block_init_fn_created() {
     let init_foo = &units[1];
     let implementation = &init_foo.implementations[0];
     assert_eq!(implementation.name, "__init_foo");
-    assert_eq!(implementation.pou_type, PouType::Function);
+    assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
     assert_debug_snapshot!(init_foo.units[0].variable_blocks[0].variables[0], @r###"
@@ -92,7 +90,7 @@ fn program_init_fn_created() {
     let id_provider = IdProvider::default();
     // GIVEN a program with a ref initializer
     // WHEN lowered
-    let (unit, index) = index_with_ids(
+    let (_, index, annotated_units, _) = index_annotate_and_lower_with_ids(
         "
         PROGRAM foo
         VAR
@@ -104,8 +102,6 @@ fn program_init_fn_created() {
         id_provider.clone(),
     );
 
-    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
-
     // THEN we expect the index to now have a corresponding init function
     assert!(index.find_pou("__init_foo").is_some());
     // AND we expect a new function to be created for it
@@ -113,7 +109,7 @@ fn program_init_fn_created() {
     let init_foo = &units[1];
     let implementation = &init_foo.implementations[0];
     assert_eq!(implementation.name, "__init_foo");
-    assert_eq!(implementation.pou_type, PouType::Function);
+    assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
     assert_debug_snapshot!(init_foo.units[0].variable_blocks[0].variables[0], @r###"
@@ -174,7 +170,7 @@ fn program_init_fn_created() {
 #[test]
 fn init_wrapper_function_created() {
     let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids(
+    let (_, index, annotated_units, _) = index_annotate_and_lower_with_ids(
         "
         VAR_GLOBAL
             s : STRING;
@@ -195,8 +191,6 @@ fn init_wrapper_function_created() {
         ",
         id_provider.clone(),
     );
-
-    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
     let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
 
     // we expect there to be 3 `CompilationUnit`s, one for the original source, one with pou initializer functions, and finally
@@ -210,7 +204,7 @@ fn init_wrapper_function_created() {
     let init = &units[2];
     let implementation = &init.implementations[0];
     assert_eq!(implementation.name, "__init___testproject");
-    assert_eq!(implementation.pou_type, PouType::Function);
+    assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have no parameters
     assert!(init.units[0].variable_blocks.is_empty());
