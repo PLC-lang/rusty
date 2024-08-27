@@ -27,8 +27,6 @@ use std::path::{Path, PathBuf};
 use inkwell::targets::{self, TargetMachine, TargetTriple};
 
 #[cfg(test)]
-use resolver::TypeAnnotator;
-#[cfg(test)]
 use validation::Validator;
 
 pub mod builtins;

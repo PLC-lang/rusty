@@ -1,6 +1,6 @@
-use insta::{assert_debug_snapshot, assert_snapshot};
+use insta::assert_snapshot;
 
-use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
+use crate::test_utils::tests::parse_and_validate_buffered;
 
 #[test]
 fn constant_assignment_validation() {
@@ -596,7 +596,7 @@ fn array_assignment_validation() {
 fn struct_assignment_validation() {
     let diagnostics = parse_and_validate_buffered(
         r#"
-        TYPE STRUCT1 :
+    TYPE STRUCT1 :
         STRUCT
             param1 : BOOL;
         END_STRUCT
@@ -1482,7 +1482,7 @@ fn invalid_reference_to_declaration() {
 
 #[test]
 fn alias_variable_type_check() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r"
         FUNCTION foo
             VAR
@@ -1515,38 +1515,85 @@ fn alias_variable_type_check() {
         ",
     );
 
-    // Note: This assertion must fail once init functions are implemented and can then also be deleted
-    assert!(diagnostics.iter().any(|diagnostics| diagnostics.get_error_code() == "E033"));
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid assignment: cannot assign 'SINT' to 'DINT'
+       ┌─ <internal>:10:32
+       │
+    10 │                 dintVarRefB AT sintVar          : DINT; // Invalid
+       │                                ^^^^^^^ Invalid assignment: cannot assign 'SINT' to 'DINT'
 
-    // TODO: Use parse_and_validate_buffered once above assertion is deleted
-    let diagnostics_messages_without_const_error = diagnostics
-        .iter()
-        .filter(|diagnostic| diagnostic.get_error_code() != "E033")
-        .map(|diagnostic| diagnostic.get_message())
-        .collect::<Vec<_>>();
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
+       ┌─ <internal>:11:32
+       │
+    11 │                 dintVarRefC AT stringVar        : DINT; // Invalid
+       │                                ^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
-    assert_eq!(diagnostics_messages_without_const_error.len(), 12);
-    assert_debug_snapshot!(diagnostics_messages_without_const_error, @r###"
-    [
-        "Invalid assignment: cannot assign 'SINT' to 'DINT'",
-        "Invalid assignment: cannot assign 'STRING' to 'DINT'",
-        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'DINT'",
-        "Invalid assignment: cannot assign 'DINT' to 'SINT'",
-        "Invalid assignment: cannot assign 'STRING' to 'SINT'",
-        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'SINT'",
-        "Invalid assignment: cannot assign 'DINT' to 'STRING'",
-        "Invalid assignment: cannot assign 'SINT' to 'STRING'",
-        "Invalid assignment: cannot assign '__foo_arrayDintVar' to 'STRING'",
-        "Invalid assignment: cannot assign 'DINT' to 'ARRAY[1..5] OF DINT'",
-        "Invalid assignment: cannot assign 'SINT' to 'ARRAY[1..5] OF DINT'",
-        "Invalid assignment: cannot assign 'STRING' to 'ARRAY[1..5] OF DINT'",
-    ]
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'DINT'
+       ┌─ <internal>:12:32
+       │
+    12 │                 dintVarRefD AT arrayDintVar     : DINT; // Invalid
+       │                                ^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'SINT'
+       ┌─ <internal>:14:32
+       │
+    14 │                 sintVarRefA AT dintVar          : SINT; // Invalid
+       │                                ^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'SINT'
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'SINT'
+       ┌─ <internal>:16:32
+       │
+    16 │                 sintVarRefC AT stringVar        : SINT; // Invalid
+       │                                ^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'SINT'
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'SINT'
+       ┌─ <internal>:17:32
+       │
+    17 │                 sintVarRefD AT arrayDintVar     : SINT; // Invalid
+       │                                ^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'SINT'
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
+       ┌─ <internal>:19:34
+       │
+    19 │                 stringVarRefA AT dintVar        : STRING; // Invalid
+       │                                  ^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'SINT' to 'STRING'
+       ┌─ <internal>:20:34
+       │
+    20 │                 stringVarRefB AT sintVar        : STRING; // Invalid
+       │                                  ^^^^^^^ Invalid assignment: cannot assign 'SINT' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'STRING'
+       ┌─ <internal>:22:34
+       │
+    22 │                 stringVarRefD AT arrayDintVar   : STRING; // Invalid
+       │                                  ^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'ARRAY[1..5] OF DINT'
+       ┌─ <internal>:24:37
+       │
+    24 │                 arrayDintVarRefA AT dintVar        : ARRAY[1..5] OF DINT; // Invalid
+       │                                     ^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'ARRAY[1..5] OF DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'SINT' to 'ARRAY[1..5] OF DINT'
+       ┌─ <internal>:25:37
+       │
+    25 │                 arrayDintVarRefB AT sintVar        : ARRAY[1..5] OF DINT; // Invalid
+       │                                     ^^^^^^^ Invalid assignment: cannot assign 'SINT' to 'ARRAY[1..5] OF DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'ARRAY[1..5] OF DINT'
+       ┌─ <internal>:26:37
+       │
+    26 │                 arrayDintVarRefC AT stringVar      : ARRAY[1..5] OF DINT; // Invalid
+       │                                     ^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'ARRAY[1..5] OF DINT'
+
     "###);
 }
 
 #[test]
 fn reassignment_of_alias_variables_is_disallowed() {
-    let diagnostics = parse_and_validate(
+    let diagnostics = parse_and_validate_buffered(
         r"
         FUNCTION main
             VAR
@@ -1562,20 +1609,12 @@ fn reassignment_of_alias_variables_is_disallowed() {
         ",
     );
 
-    // Note: This assertion must fail once init functions are implemented and can then also be deleted
-    assert!(diagnostics.iter().any(|diagnostics| diagnostics.get_error_code() == "E033"));
+    assert_snapshot!(diagnostics, @r###"
+    error[E100]: foo is an immutable alias variable, can not change the address
+       ┌─ <internal>:11:13
+       │
+    11 │             foo REF= bar;       // Invalid, the address of `foo` is being changed
+       │             ^^^^^^^^^^^^ foo is an immutable alias variable, can not change the address
 
-    // TODO: Use parse_and_validate_buffered once above assertion is deleted
-    let diagnostics_messages_without_const_error = diagnostics
-        .iter()
-        .filter(|diagnostic| diagnostic.get_error_code() != "E033")
-        .map(|diagnostic| diagnostic.get_message())
-        .collect::<Vec<_>>();
-
-    assert_eq!(diagnostics_messages_without_const_error.len(), 1);
-    assert_debug_snapshot!(diagnostics_messages_without_const_error, @r###"
-    [
-        "foo is an immutable alias variable, can not change the address",
-    ]
     "###);
 }

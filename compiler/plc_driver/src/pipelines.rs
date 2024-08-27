@@ -11,10 +11,9 @@ use ast::{
     provider::IdProvider,
 };
 
-use plc::index::FxIndexSet;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::Index,
+    index::{FxIndexSet, Index},
     output::FormatOption,
     parser::parse_file,
     resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
@@ -127,6 +126,7 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
         // import builtin functions
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(plc::index::visitor::visit(&builtins));
+        global_index.register_global_init_function();
 
         IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
     }
@@ -148,7 +148,8 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
         //Resolve constants
         //TODO: Not sure what we are currently doing with unresolvables
-        let (mut full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
+        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
+
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
@@ -171,8 +172,15 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
 
         full_index.import(std::mem::take(&mut all_annotations.new_index));
 
-        let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+        TypeAnnotator::lower_init_functions(
+            unresolvables,
+            &mut all_annotations,
+            &mut full_index,
+            &id_provider,
+            &mut annotated_units,
+        );
 
+        let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
         AnnotatedProject {
             project: self.project.project,
             units: annotated_units,
@@ -341,7 +349,11 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                         let current_dir = env::current_dir()?;
                         let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
                         let unit_location = PathBuf::from(&unit.file_name);
-                        let unit_location = fs::canonicalize(unit_location)?;
+                        let unit_location = if unit_location.exists() {
+                            fs::canonicalize(unit_location)?
+                        } else {
+                            unit_location
+                        };
                         let output_name = if unit_location.starts_with(current_dir) {
                             unit_location.strip_prefix(current_dir).map_err(|it| {
                                 Diagnostic::new(format!(

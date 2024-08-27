@@ -1689,7 +1689,7 @@ fn aliased_hardware_access_variable_is_indexed() {
     // `1.2.3.4` of type BOOL that is being pointed at by (1)
     let (_, index) = index(
         r"
-            VAR_GLOBAL 
+            VAR_GLOBAL
             foo AT %IX1.2.3.4 : BOOL;
             END_VAR
         ",
@@ -1833,4 +1833,14 @@ fn aliased_hardware_access_variable_is_indexed() {
         },
     )
     "###);
+}
+
+fn __init_function_is_indexed_unconditionally() {
+    // GIVEN nothing
+    // WHEN indexed
+    let (_, index) = index("");
+
+    // THEN we expect an `__init` function to be registered regardless
+    let init = index.find_pou("__init");
+    assert!(init.is_some());
 }

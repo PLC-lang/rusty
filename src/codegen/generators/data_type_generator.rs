@@ -119,6 +119,7 @@ pub fn generate_data_types<'ink>(
 
     let mut tries = 0;
     let mut errors = FxHashMap::default();
+
     // If the tries are equal to the number of types remaining, it means we failed to resolve
     // anything
     while tries < types_to_init.len() {
@@ -149,20 +150,26 @@ pub fn generate_data_types<'ink>(
     }
     //If we didn't resolve anything this cycle, report the remaining issues and exit
     if !types_to_init.is_empty() {
+        let mut init_later = 0;
         //Report each error as a new diagnostic, add the type's location as related to the error
         let diags = types_to_init
             .into_iter()
             .map(|(name, ty)| {
+                if index.type_has_init_function(name) {
+                    init_later += 1;
+                }
                 errors
                     .remove(name)
                     .map(|diag| diag.with_secondary_location(&ty.location))
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::<Vec<_>>();
-        //Report the operation failure
-        return Err(Diagnostic::new("Some initial values were not generated")
-            .with_error_code("E075")
-            .with_sub_diagnostics(diags));
+        if diags.len() > init_later {
+            //Report the operation failure
+            return Err(Diagnostic::new("Some initial values were not generated")
+                .with_error_code("E075")
+                .with_sub_diagnostics(diags)); // FIXME: these sub-diagnostics aren't printed to the console
+        }
     }
     Ok(generator.types_index)
 }
@@ -372,6 +379,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 self.annotations,
                 &self.types_index,
             );
+
             generator.generate_expression(initializer).map(Some).map_err(|_| {
                 Diagnostic::cannot_generate_initializer(qualified_name, initializer.get_location())
             })

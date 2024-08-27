@@ -7,6 +7,7 @@ use plc_ast::{
 };
 
 use plc_source::source_location::SourceLocation;
+
 pub type ConstId = generational_arena::Index;
 
 /// wrapper around ConstExpression stored in the arena
@@ -37,6 +38,8 @@ pub enum ConstExpression {
         /// e.g. a const-expression inside a POU would use this POU's name as a
         /// qualifier.
         scope: Option<String>,
+        /// the name of the variable this expression is assigned to, if any
+        lhs: Option<String>,
     },
     Resolved(AstNode),
     Unresolvable {
@@ -64,6 +67,13 @@ impl ConstExpression {
         }
     }
 
+    pub fn get_lhs(&self) -> Option<&str> {
+        match &self {
+            ConstExpression::Unresolved { lhs, .. } => lhs.as_ref().map(|it| it.as_str()),
+            _ => None,
+        }
+    }
+
     pub fn is_resolved(&self) -> bool {
         matches!(self, ConstExpression::Resolved(_))
     }
@@ -73,19 +83,49 @@ impl ConstExpression {
     }
 }
 
-#[derive(Debug)]
+/// Initializers which rely on code-execution/allocated memory addresses and are
+/// therefore not resolvable before the codegen stage
+#[derive(Debug, PartialEq, Clone)]
+pub struct InitData {
+    pub initializer: Option<AstNode>,
+    pub target_type_name: String,
+    pub scope: Option<String>,
+    pub lhs: Option<String>,
+}
+
+impl InitData {
+    pub fn new(
+        initializer: Option<&AstNode>,
+        target_type: Option<&str>,
+        scope: Option<&str>,
+        target: Option<&str>,
+    ) -> Self {
+        InitData {
+            initializer: initializer.cloned(),
+            target_type_name: target_type.unwrap_or_default().to_string(),
+            scope: scope.map(|it| it.into()),
+            lhs: target.map(|it| it.into()),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum UnresolvableKind {
     /// Indicates that the const expression was not resolvable for any reason not listed in [`UnresolvableKind`].
     Misc(String),
 
     /// Indicates that the const expression was not resolvable because it would yield an overflow.
     Overflow(String, SourceLocation),
+
+    /// Indicates that the const expression is not resolvable before codegen
+    Address(InitData),
 }
 
 impl UnresolvableKind {
     pub fn get_reason(&self) -> &str {
         match self {
             UnresolvableKind::Misc(val) | UnresolvableKind::Overflow(val, ..) => val,
+            UnresolvableKind::Address { .. } => "Try to re-resolve during codegen",
         }
     }
 
@@ -117,9 +157,12 @@ impl ConstExpressions {
         statement: AstNode,
         target_type_name: String,
         scope: Option<String>,
+        lhs: Option<String>,
     ) -> ConstId {
-        self.expressions
-            .insert(ConstWrapper { expr: ConstExpression::Unresolved { statement, scope }, target_type_name })
+        self.expressions.insert(ConstWrapper {
+            expr: ConstExpression::Unresolved { statement, scope, lhs },
+            target_type_name,
+        })
     }
 
     /// returns the expression associated with the given `id` together with an optional
@@ -144,13 +187,13 @@ impl ConstExpressions {
     }
 
     /// clones the expression in the ConstExpressions and returns all of its elements
-    pub fn clone(&self, id: &ConstId) -> Option<(AstNode, String, Option<String>)> {
+    pub fn clone(&self, id: &ConstId) -> Option<(AstNode, String, Option<String>, Option<String>)> {
         self.expressions.get(*id).map(|it| match &it.expr {
-            ConstExpression::Unresolved { statement, scope } => {
-                (statement.clone(), it.target_type_name.clone(), scope.clone())
+            ConstExpression::Unresolved { statement, scope, lhs: target } => {
+                (statement.clone(), it.target_type_name.clone(), scope.clone(), target.clone())
             }
             ConstExpression::Resolved(s) | ConstExpression::Unresolvable { statement: s, .. } => {
-                (s.clone(), it.target_type_name.clone(), None)
+                (s.clone(), it.target_type_name.clone(), None, None)
             }
         })
     }
@@ -189,8 +232,9 @@ impl ConstExpressions {
         expr: AstNode,
         target_type: String,
         scope: Option<String>,
+        lhs: Option<String>,
     ) -> ConstId {
-        self.add_expression(expr, target_type, scope)
+        self.add_expression(expr, target_type, scope, lhs)
     }
 
     /// convinience-method to add the constant exression if there is some, otherwhise not
@@ -201,8 +245,9 @@ impl ConstExpressions {
         expr: Option<AstNode>,
         target_type_name: &str,
         scope: Option<String>,
+        lhs: Option<String>,
     ) -> Option<ConstId> {
-        expr.map(|it| self.add_constant_expression(it, target_type_name.to_string(), scope))
+        expr.map(|it| self.add_constant_expression(it, target_type_name.to_string(), scope, lhs))
     }
 
     /// convinience-method to query for an optional constant expression.
