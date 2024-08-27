@@ -153,7 +153,7 @@ pub fn generate_data_types<'ink>(
         //Report each error as a new diagnostic, add the type's location as related to the error
         let diags = types_to_init
             .into_iter()
-            .map(|(name, ty)| {     
+            .map(|(name, ty)| {
                 errors
                     .remove(name)
                     .map(|diag| diag.with_secondary_location(&ty.location))
@@ -378,9 +378,10 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
 
             let lhs_type = self.index.get_type_information_or_void(data_type_name);
             if !initializer.is_literal() && (lhs_type.is_pointer() || lhs_type.is_alias()) {
-                return Ok(self.types_index.find_associated_type(lhs_type.get_name()).map(|it| 
-                    it.const_zero().as_basic_value_enum()
-                ));
+                return Ok(self
+                    .types_index
+                    .find_associated_type(lhs_type.get_name())
+                    .map(|it| it.const_zero().as_basic_value_enum()));
             };
 
             generator.generate_expression(initializer).map(Some).map_err(|_| {
