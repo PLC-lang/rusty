@@ -147,24 +147,17 @@ fn create_init_unit(
     ctxt: &LoweringContext,
 ) -> Option<CompilationUnit> {
     let id_provider = &ctxt.id_provider;
-    enum InitFnType {
-        StatefulPou,
-        Function,
-        Struct,
-    }
-
     let init_fn_name = get_init_fn_name(container_name);
-    let (init_type, location) = lowerer
+    let (is_function, location) = lowerer
         .index
         .find_pou(container_name)
-        .map(|it| {
-            let ty = if it.is_function() { InitFnType::Function } else { InitFnType::StatefulPou };
-            (ty, it.get_location())
-        })
-        .unwrap_or_else(|| (InitFnType::Struct, &lowerer.index.get_type_or_panic(container_name).location));
+        .map(|it| (it.is_function(), it.get_location()))
+        .unwrap_or_else(|| (false, &lowerer.index.get_type_or_panic(container_name).location));
 
-    if matches!(init_type, InitFnType::Function) {
-        return None; // TODO: handle functions
+    if is_function {
+        // functions do not get their own init-functions -
+        // initialization-statements will be added to the function body instead
+        return None;
     };
 
     let (param, ident) = (

@@ -93,7 +93,7 @@ impl AstVisitorMut for AstLowerer {
                             it.get_name(),
                             None,
                             ctxt.get_id_provider(),
-                            &SourceLocation::internal(),
+                            &implementation.name_location,
                         ))
                     } else {
                         None
@@ -105,6 +105,7 @@ impl AstVisitorMut for AstLowerer {
             stmts.extend(std::mem::take(&mut implementation.statements));
             implementation.statements = stmts;
         }
+        dbg!(&implementation);
         implementation.walk(self, ctxt);
     }
 
