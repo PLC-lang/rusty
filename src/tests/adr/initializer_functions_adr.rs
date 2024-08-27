@@ -643,4 +643,100 @@ fn generating_init_functions() {
 
     declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
     "###);
+
+    // This example shows how more complex initializers are generated. We expect the global default struct initializer `__myStruct__init`
+    // to be initialized with two null-pointers for the `REF_TO` and `ALIAS`, but `member3` should be initialized with its assigned value
+    // before `__init_myStruct` is called.
+    let src = "
+    TYPE myStruct : STRUCT
+            member : REF_TO STRING := REF(s);
+            member2 AT s2 : ARRAY[0..1] OF STRING;
+            member3: DINT := 123456;
+        END_STRUCT
+    END_TYPE
+
+    VAR_GLOBAL
+        s : STRING := 'Hello world!';
+        s2 : ARRAY[0..1] OF STRING := ['hello', 'world'];
+    END_VAR
+
+    PROGRAM prog 
+    VAR 
+        str: myStruct;
+    END_VAR
+    END_PROGRAM
+    ";
+
+    let res = codegen(src);
+    assert_snapshot!(res, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %prog = type { %myStruct }
+    %myStruct = type { [81 x i8]*, [2 x [81 x i8]]*, i32 }
+
+    @s = global [81 x i8] c"Hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$s:s8u81"
+    @s2 = global [2 x [81 x i8]] [[81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"world\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], section "var-$RUSTY$s2:as8u81"
+    @prog_instance = global %prog { %myStruct { [81 x i8]* null, [2 x [81 x i8]]* null, i32 123456 } }, section "var-$RUSTY$prog_instance:r1r3ps8u81pas8u81i32"
+    @__myStruct__init = unnamed_addr constant %myStruct { [81 x i8]* null, [2 x [81 x i8]]* null, i32 123456 }, section "var-$RUSTY$__myStruct__init:r3ps8u81pas8u81i32"
+
+    define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+    entry:
+      %str = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %myStruct = type { [81 x i8]*, [2 x [81 x i8]]*, i32 }
+    %prog = type { %myStruct }
+
+    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r3ps8u81pas8u81i32"
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r3ps8u81pas8u81i32"
+    @s2 = external global [2 x [81 x i8]], section "var-$RUSTY$s2:as8u81"
+    @s = external global [81 x i8], section "var-$RUSTY$s:s8u81"
+
+    define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr3ps8u81pas8u81i32]" {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      %deref = load %myStruct*, %myStruct** %self, align 8
+      %member2 = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1
+      store [2 x [81 x i8]]* @s2, [2 x [81 x i8]]** %member2, align 8
+      %deref1 = load %myStruct*, %myStruct** %self, align 8
+      %member = getelementptr inbounds %myStruct, %myStruct* %deref1, i32 0, i32 0
+      store [81 x i8]* @s, [81 x i8]** %member, align 8
+      ret void
+    }
+
+    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr1r3ps8u81pas8u81i32]" {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %str = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__init_mystruct(%myStruct* %str)
+      ret void
+    }
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prog = type { %myStruct }
+    %myStruct = type { [81 x i8]*, [2 x [81 x i8]]*, i32 }
+
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r3ps8u81pas8u81i32"
+    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r3ps8u81pas8u81i32"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      ret void
+    }
+
+    declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr1r3ps8u81pas8u81i32]"
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+    "###);
 }
