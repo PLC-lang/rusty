@@ -267,6 +267,9 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
 /// collected and wrapped in a single `__init___<projectname>` function. This function does not take any arguments,
 /// since it only deals with global symbols. The symbol name is mangled with the current project name in order to avoid
 /// duplicate symbol errors when linking with previously compiled objects.
+/// collected and wrapped in a single `__init___<projectname>` function. This function does not take any arguments,
+/// since it only deals with global symbols. The symbol name is mangled with the current project name in order to avoid
+/// duplicate symbol errors when linking with previously compiled objects.
 /// Simple global variables with `REF` initializers have their respective addresses assigned,
 /// PROGRAM instances will have call statements to their initialization functions generated,
 /// passing the global instance as argument
