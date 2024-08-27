@@ -64,17 +64,11 @@ pub trait AstVisitorMut: Sized {
         element.walk(self);
     }
 
-    fn visit_data_type_declaration(
-        &mut self,
-        data_type_declaration: &mut DataTypeDeclaration,
-    ) {
+    fn visit_data_type_declaration(&mut self, data_type_declaration: &mut DataTypeDeclaration) {
         data_type_declaration.walk(self);
     }
 
-    fn visit_user_type_declaration(
-        &mut self,
-        user_type: &mut UserTypeDeclaration,
-    ) {
+    fn visit_user_type_declaration(&mut self, user_type: &mut UserTypeDeclaration) {
         user_type.walk(self);
     }
 
@@ -86,95 +80,49 @@ pub trait AstVisitorMut: Sized {
         pou.walk(self);
     }
 
-    fn visit_empty_statement(
-        &mut self,
-        _stmt: &mut EmptyStatement,
-        _node: &mut AstNode,
-    ) {
-    }
+    fn visit_empty_statement(&mut self, _stmt: &mut EmptyStatement, _node: &mut AstNode) {}
 
-    fn visit_default_value(
-        &mut self,
-        _stmt: &mut DefaultValue,
-        _node: &mut AstNode,
-    ) {
-    }
+    fn visit_default_value(&mut self, _stmt: &mut DefaultValue, _node: &mut AstNode) {}
 
     fn visit_literal(&mut self, stmt: &mut AstLiteral, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
-    fn visit_multiplied_statement(
-        &mut self,
-        stmt: &mut MultipliedStatement,
-        _node: &mut AstNode,
-    ) {
+    fn visit_multiplied_statement(&mut self, stmt: &mut MultipliedStatement, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
-    fn visit_reference_expr(
-        &mut self,
-        stmt: &mut ReferenceExpr,
-        _node: &mut AstNode,
-    ) {
+    fn visit_reference_expr(&mut self, stmt: &mut ReferenceExpr, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
     fn visit_identifier(&mut self, _stmt: &mut str, _node: &mut AstNode) {}
 
-    fn visit_direct_access(
-        &mut self,
-        stmt: &mut DirectAccess,
-        _node: &mut AstNode,
-    ) {
+    fn visit_direct_access(&mut self, stmt: &mut DirectAccess, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
-    fn visit_hardware_access(
-        &mut self,
-        stmt: &mut HardwareAccess,
-        _node: &mut AstNode,
-    ) {
+    fn visit_hardware_access(&mut self, stmt: &mut HardwareAccess, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
-    fn visit_binary_expression(
-        &mut self,
-        stmt: &mut BinaryExpression,
-        _node: &mut AstNode,
-    ) {
+    fn visit_binary_expression(&mut self, stmt: &mut BinaryExpression, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
-    fn visit_unary_expression(
-        &mut self,
-        stmt: &mut UnaryExpression,
-        _node: &mut AstNode,
-    ) {
+    fn visit_unary_expression(&mut self, stmt: &mut UnaryExpression, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
-    fn visit_expression_list(
-        &mut self,
-        stmt: &mut Vec<AstNode>,
-        _node: &mut AstNode,
-    ) {
+    fn visit_expression_list(&mut self, stmt: &mut Vec<AstNode>, _node: &mut AstNode) {
         visit_all_nodes_mut!(self, stmt);
     }
 
-    fn visit_paren_expression(
-        &mut self,
-        inner: &mut AstNode,
-        _node: &mut AstNode,
-    ) {
+    fn visit_paren_expression(&mut self, inner: &mut AstNode, _node: &mut AstNode) {
         inner.walk(self)
     }
 
-    fn visit_range_statement(
-        &mut self,
-        stmt: &mut RangeStatement,
-        _node: &mut AstNode,
-    ) {
+    fn visit_range_statement(&mut self, stmt: &mut RangeStatement, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
@@ -184,43 +132,23 @@ pub trait AstVisitorMut: Sized {
         stmt.walk(self)
     }
 
-    fn visit_output_assignment(
-        &mut self,
-        stmt: &mut Assignment,
-        _node: &mut AstNode,
-    ) {
+    fn visit_output_assignment(&mut self, stmt: &mut Assignment, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
-    fn visit_ref_assignment(
-        &mut self,
-        stmt: &mut Assignment,
-        _node: &mut AstNode,
-    ) {
+    fn visit_ref_assignment(&mut self, stmt: &mut Assignment, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
-    fn visit_call_statement(
-        &mut self,
-        stmt: &mut CallStatement,
-        _node: &mut AstNode,
-    ) {
+    fn visit_call_statement(&mut self, stmt: &mut CallStatement, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
-    fn visit_control_statement(
-        &mut self,
-        stmt: &mut AstControlStatement,
-        _node: &mut AstNode,
-    ) {
+    fn visit_control_statement(&mut self, stmt: &mut AstControlStatement, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
-    fn visit_case_condition(
-        &mut self,
-        child: &mut AstNode,
-        _node: &mut AstNode,
-    ) {
+    fn visit_case_condition(&mut self, child: &mut AstNode, _node: &mut AstNode) {
         child.walk(self)
     }
 
@@ -228,19 +156,11 @@ pub trait AstVisitorMut: Sized {
 
     fn visit_continue_statement(&mut self, _node: &mut AstNode) {}
 
-    fn visit_return_statement(
-        &mut self,
-        stmt: &mut ReturnStatement,
-        _node: &mut AstNode,
-    ) {
+    fn visit_return_statement(&mut self, stmt: &mut ReturnStatement, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
-    fn visit_jump_statement(
-        &mut self,
-        stmt: &mut JumpStatement,
-        _node: &mut AstNode,
-    ) {
+    fn visit_jump_statement(&mut self, stmt: &mut JumpStatement, _node: &mut AstNode) {
         stmt.walk(self)
     }
 
@@ -248,12 +168,7 @@ pub trait AstVisitorMut: Sized {
     /// # Arguments
     /// * `stmt` - The unwrapedyped `LabelStatement` node to visit.
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
-    fn visit_label_statement(
-        &mut self,
-        _stmt: &mut LabelStatement,
-        _node: &mut AstNode,
-    ) {
-    }
+    fn visit_label_statement(&mut self, _stmt: &mut LabelStatement, _node: &mut AstNode) {}
 }
 
 /// Helper method that walks through a slice of `ConditionalBlock` and applies the visitor's `walk` method to each node.
@@ -424,9 +339,7 @@ impl WalkerMut for AstNode {
             AstStatement::EmptyStatement(ref mut stmt) => visitor.visit_empty_statement(stmt, self),
             AstStatement::DefaultValue(ref mut stmt) => visitor.visit_default_value(stmt, self),
             AstStatement::Literal(ref mut stmt) => visitor.visit_literal(stmt, self),
-            AstStatement::MultipliedStatement(ref mut stmt) => {
-                visitor.visit_multiplied_statement(stmt, self)
-            }
+            AstStatement::MultipliedStatement(ref mut stmt) => visitor.visit_multiplied_statement(stmt, self),
             AstStatement::ReferenceExpr(ref mut stmt) => visitor.visit_reference_expr(stmt, self),
             AstStatement::Identifier(ref mut stmt) => visitor.visit_identifier(stmt, self),
             AstStatement::DirectAccess(ref mut stmt) => visitor.visit_direct_access(stmt, self),

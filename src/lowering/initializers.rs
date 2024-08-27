@@ -242,10 +242,7 @@ fn create_init_unit(
     Some(new_unit)
 }
 
-fn create_init_wrapper_function(
-    lowerer: &AstLowerer,
-    init_symbol_name: &str,
-) -> Option<CompilationUnit> {
+fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) -> Option<CompilationUnit> {
     if lowerer.unresolved_initializers.is_empty() {
         return None;
     }
