@@ -2292,7 +2292,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let value = self.llvm.create_const_numeric(
             &self.llvm_index.get_associated_type(LINT_TYPE)?,
             value.to_string().as_str(),
-            SourceLocation::undefined(),
+            SourceLocation::internal(),
         )?;
         Ok(value)
     }

@@ -110,7 +110,7 @@ fn cast_expression_literals_get_casted_types() {
         };
         let t = target.as_ref();
         assert_eq!(
-            format!("{:#?}", AstNode::new_integer(0xFFFF, 0, SourceLocation::undefined())),
+            format!("{:#?}", AstNode::new_integer(0xFFFF, 0, SourceLocation::internal())),
             format!("{t:#?}")
         );
         assert_type_and_hint!(&annotations, &index, target.as_ref(), INT_TYPE, None);
@@ -124,7 +124,7 @@ fn cast_expression_literals_get_casted_types() {
         };
         let t = target.as_ref();
         assert_eq!(
-            format!("{:#?}", AstNode::new_integer(0xFFFF, 0, SourceLocation::undefined())),
+            format!("{:#?}", AstNode::new_integer(0xFFFF, 0, SourceLocation::internal())),
             format!("{t:#?}")
         );
         assert_type_and_hint!(&annotations, &index, target.as_ref(), WORD_TYPE, None);

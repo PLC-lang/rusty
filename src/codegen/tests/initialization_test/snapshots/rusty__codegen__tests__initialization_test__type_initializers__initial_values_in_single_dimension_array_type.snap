@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @x = global [3 x i16] [i16 1, i16 2, i16 3], section "var-$RUSTY$x:ai16"
 @__MyArray__init = unnamed_addr constant [3 x i16] [i16 1, i16 2, i16 3], section "var-$RUSTY$__MyArray__init:ai16"

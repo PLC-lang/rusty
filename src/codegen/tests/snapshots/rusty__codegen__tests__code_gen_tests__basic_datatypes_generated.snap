@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @bool_1 = global i8 0, section "var-$RUSTY$bool_1:u8"
 @byte_2 = global i8 0, section "var-$RUSTY$byte_2:u8"

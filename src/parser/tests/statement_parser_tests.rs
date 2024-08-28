@@ -38,7 +38,7 @@ fn empty_statements_are_parsed_before_a_statement() {
                 empty_stmt(),
                 empty_stmt(),
                 AstFactory::create_member_reference(
-                    AstFactory::create_identifier("x", SourceLocation::undefined(), 0),
+                    AstFactory::create_identifier("x", SourceLocation::internal(), 0),
                     None,
                     0
                 ),
@@ -59,7 +59,7 @@ fn empty_statements_are_ignored_after_a_statement() {
     let expected_ast = format!(
         "{:#?}",
         AstFactory::create_member_reference(
-            AstFactory::create_identifier("x", SourceLocation::undefined(), 0),
+            AstFactory::create_identifier("x", SourceLocation::internal(), 0),
             None,
             0
         )
@@ -134,16 +134,16 @@ fn inline_enum_declaration_can_be_parsed() {
                 numeric_type: DINT_TYPE.to_string(),
                 elements: AstFactory::create_expression_list(
                     vec![ref_to("red"), ref_to("yellow"), ref_to("green")],
-                    SourceLocation::undefined(),
+                    SourceLocation::internal(),
                     0,
                 ),
             },
-            location: SourceLocation::undefined(),
+            location: SourceLocation::internal(),
             scope: None,
         },
         initializer: None,
         address: None,
-        location: SourceLocation::undefined(),
+        location: SourceLocation::internal(),
     };
     let expected_ast = format!("{:#?}", &v);
     assert_eq!(ast_string, expected_ast);

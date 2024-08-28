@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %foo = type { %bar }
 %bar = type {}
@@ -31,3 +31,70 @@ entry:
   call void @bar(%bar* %bar_inst)
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%foo = type { %bar }
+%bar = type {}
+%prg = type { %foo }
+
+@__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1r0"
+@__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r0"
+@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1r1r0"
+
+define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1r0]" {
+entry:
+  %self = alloca %foo*, align 8
+  store %foo* %0, %foo** %self, align 8
+  %deref = load %foo*, %foo** %self, align 8
+  %bar_inst = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+  call void @__init_bar(%bar* %bar_inst)
+  ret void
+}
+
+declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
+
+define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr0]" {
+entry:
+  %self = alloca %bar*, align 8
+  store %bar* %0, %bar** %self, align 8
+  ret void
+}
+
+define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr1r1r0]" {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  %deref = load %prg*, %prg** %self, align 8
+  %foo_inst = getelementptr inbounds %prg, %prg* %deref, i32 0, i32 0
+  call void @__init_foo(%foo* %foo_inst)
+  ret void
+}
+
+declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%prg = type { %foo }
+%foo = type { %bar }
+%bar = type {}
+
+@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1r1r0"
+@__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1r0"
+@__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r0"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_prg(%prg* @prg_instance)
+  ret void
+}
+
+declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr1r1r0]"
+
+declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+
+declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+declare void @bar(%bar*) section "fn-$RUSTY$bar:v"

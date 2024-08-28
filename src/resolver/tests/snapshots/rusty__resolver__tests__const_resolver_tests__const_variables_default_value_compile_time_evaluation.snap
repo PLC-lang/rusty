@@ -2,8 +2,8 @@
 source: src/resolver/tests/const_resolver_tests.rs
 expression: ir
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @false_bool = unnamed_addr constant i8 0, section "var-$RUSTY$false_bool:u8"
 @zero_int = unnamed_addr constant i16 0, section "var-$RUSTY$zero_int:i16"

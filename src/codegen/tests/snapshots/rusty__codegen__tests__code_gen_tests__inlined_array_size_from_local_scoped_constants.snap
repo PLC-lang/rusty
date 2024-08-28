@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %aaa = type { i16, i16, [5 x i8], [3 x i8] }
 
@@ -20,3 +20,34 @@ entry:
   %arr2 = getelementptr inbounds %aaa, %aaa* %0, i32 0, i32 3
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%aaa = type { i16, i16, [5 x i8], [3 x i8] }
+
+@aaa_instance = external global %aaa, section "var-$RUSTY$aaa_instance:r4i16i16au8au8"
+
+define void @__init_aaa(%aaa* %0) section "fn-$RUSTY$__init_aaa:v[pr4i16i16au8au8]" {
+entry:
+  %self = alloca %aaa*, align 8
+  store %aaa* %0, %aaa** %self, align 8
+  ret void
+}
+
+declare void @aaa(%aaa*) section "fn-$RUSTY$aaa:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%aaa = type { i16, i16, [5 x i8], [3 x i8] }
+
+@aaa_instance = external global %aaa, section "var-$RUSTY$aaa_instance:r4i16i16au8au8"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_aaa(%aaa* @aaa_instance)
+  ret void
+}
+
+declare void @__init_aaa(%aaa*) section "fn-$RUSTY$__init_aaa:v[pr4i16i16au8au8]"
+
+declare void @aaa(%aaa*) section "fn-$RUSTY$aaa:v"

@@ -544,11 +544,11 @@ fn visit_variable_length_array(
             (
                 DataTypeDeclaration::DataTypeReference {
                     referenced_type: member_array_name,
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                 },
                 DataTypeDeclaration::DataTypeReference {
                     referenced_type: member_dimensions_name,
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                 },
             )
         } else {
@@ -578,11 +578,11 @@ fn visit_variable_length_array(
                         name: Some(member_array_name),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: dummy_array_name,
-                            location: SourceLocation::undefined(),
+                            location: SourceLocation::internal(),
                         }),
                         auto_deref: None,
                     },
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                     scope: None,
                 },
                 DataTypeDeclaration::DataTypeDefinition {
@@ -596,12 +596,12 @@ fn visit_variable_length_array(
                                             AstNode::new_literal(
                                                 AstLiteral::new_integer(0),
                                                 0,
-                                                SourceLocation::undefined(),
+                                                SourceLocation::internal(),
                                             ),
                                             AstNode::new_literal(
                                                 AstLiteral::new_integer(1),
                                                 0,
-                                                SourceLocation::undefined(),
+                                                SourceLocation::internal(),
                                             ),
                                             0,
                                         )
@@ -609,15 +609,15 @@ fn visit_variable_length_array(
                                     .collect::<_>(),
                             ),
                             0,
-                            SourceLocation::undefined(),
+                            SourceLocation::internal(),
                         ),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: DINT_TYPE.to_string(),
-                            location: SourceLocation::undefined(),
+                            location: SourceLocation::internal(),
                         }),
                         is_variable_length: false,
                     },
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                     scope: None,
                 },
             )
@@ -631,7 +631,7 @@ fn visit_variable_length_array(
             data_type_declaration: vla_arr_type_declaration,
             initializer: None,
             address: None,
-            location: SourceLocation::undefined(),
+            location: SourceLocation::internal(),
         },
         // Dimensions Array
         Variable {
@@ -639,7 +639,7 @@ fn visit_variable_length_array(
             data_type_declaration: dim_arr_type_declaration,
             initializer: None,
             address: None,
-            location: SourceLocation::undefined(),
+            location: SourceLocation::internal(),
         },
     ];
 
@@ -767,7 +767,7 @@ fn visit_struct(
                     &UserTypeDeclaration {
                         data_type: data_type.clone(),
                         initializer: None,
-                        location: SourceLocation::undefined(),
+                        location: SourceLocation::internal(),
                         scope: scope.clone(),
                     },
                 )

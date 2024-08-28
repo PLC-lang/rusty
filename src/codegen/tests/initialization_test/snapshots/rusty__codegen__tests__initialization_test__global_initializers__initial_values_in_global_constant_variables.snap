@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/global_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @c_INT = unnamed_addr constant i16 7, section "var-$RUSTY$c_INT:i16"
 @c_3c = unnamed_addr constant i16 21, section "var-$RUSTY$c_3c:i16"

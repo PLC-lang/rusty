@@ -203,13 +203,13 @@ fn init_wrapper_function_created() {
     // one for the `__init` wrapper
     assert_eq!(units.len(), 3);
 
-    // we expect the index to now have an `__init` function
-    assert!(index.find_pou("__init").is_some());
+    // we expect the index to now have an `__init` function for our `TestProject`
+    assert!(index.find_pou("__init___testproject").is_some());
 
     // we expect a new function to be created for it
     let init = &units[2];
     let implementation = &init.implementations[0];
-    assert_eq!(implementation.name, "__init");
+    assert_eq!(implementation.name, "__init___testproject");
     assert_eq!(implementation.pou_type, PouType::Function);
 
     // we expect this function to have no parameters

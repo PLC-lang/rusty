@@ -126,7 +126,7 @@ impl Preprocessor for ErrorCodeGenerator {
                         let mut error_chapter = Chapter::new(
                             name,
                             content,
-                            &target.join(name).with_extension("md"),
+                            target.join(name).with_extension("md"),
                             parents.clone(),
                         );
                         let mut chapter_number = chapter.number.clone().unwrap_or_default();

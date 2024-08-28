@@ -2,8 +2,8 @@
 source: src/codegen/tests/compare_instructions_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %main = type { i64, i64, i64, i64 }
 
@@ -41,3 +41,34 @@ entry:
   %7 = zext i1 %6 to i8
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%main = type { i64, i64, i64, i64 }
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r4i64i64i64i64"
+
+define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr4i64i64i64i64]" {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { i64, i64, i64, i64 }
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r4i64i64i64i64"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr4i64i64i64i64]"
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"

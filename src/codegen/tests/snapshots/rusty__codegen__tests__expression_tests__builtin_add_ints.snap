@@ -2,8 +2,8 @@
 source: src/codegen/tests/expression_tests.rs
 expression: res
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 define i32 @main() section "fn-$RUSTY$main:i32" {
 entry:
@@ -32,4 +32,11 @@ entry:
   %tmpVar3 = add i64 %tmpVar2, %1
   %main_ret = load i32, i32* %main, align 4
   ret i32 %main_ret
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
 }

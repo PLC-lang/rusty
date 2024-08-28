@@ -2,8 +2,8 @@
 source: src/codegen/tests/statement_codegen_test.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 declare void @CONCAT([1025 x i8]*, i8*, i8*) section "fn-$RUSTY$CONCAT:s8u1025[s8u1025][s8u1025]"
 
@@ -41,3 +41,10 @@ declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noa
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
 attributes #1 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}
