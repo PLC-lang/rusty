@@ -17,7 +17,7 @@ pub(crate) const GLOBAL_SCOPE: &str = "__global";
 /// The value corresponds to the assignment data, with the key being the assigned variable name
 /// and value being the initializer `AstNode`.
 pub(crate) type Initializers = FxIndexMap<String, InitAssignments>;
-type InitAssignments = FxIndexMap<String, Option<AstNode>>;
+pub(crate) type InitAssignments = FxIndexMap<String, Option<AstNode>>;
 
 pub(crate) trait Init<'lwr>
 where

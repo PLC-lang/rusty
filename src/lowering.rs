@@ -2,7 +2,7 @@ use crate::{
     index::{get_init_fn_name, Index, VariableIndexEntry},
     resolver::const_evaluator::UnresolvableConstant,
 };
-use initializers::{Init, Initializers, GLOBAL_SCOPE};
+use initializers::{Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
     ast::{AstFactory, AstNode, CompilationUnit, DataType, LinkageType, PouType},
     mut_visitor::{AstVisitorMut, WalkerMut},
@@ -112,30 +112,45 @@ impl AstLowerer {
         let predicate = |var: &VariableIndexEntry| {
             var.is_temp() || (implementation.pou_type == PouType::Function && var.is_local())
         };
-        
-        if let Some(mut stmts) = self.unresolved_initializers.get(&implementation.name).map(|it| {
-            let assignments = it
+        let strip_temporaries = |inits: &mut InitAssignments| {
+            let mut temps = InitAssignments::default();
+            let ids = inits
                 .iter()
                 .filter(|(id, _)| {
                     self.index.find_member(&implementation.name, id).is_some_and(|it| predicate(it))
                 })
-                .filter_map(|(lhs, init)| {
-                    init.as_ref().map(|it| {
-                        let func = if it.is_call() {
-                            create_assignment
-                        } else {
-                            create_ref_assignment
-                        };
-                        func(lhs, None, &it, self.ctxt.get_id_provider())
-                    })
-                });
+                .map(|(id, _)| id.to_owned())
+                .collect::<Vec<_>>();
 
-            let delegated_calls = self
-                .index
-                .get_pou_members(&implementation.name)
-                .iter()
-                .filter(|it| predicate(it))
-                .filter_map(|it| {
+            for id in ids {
+                if let Some(init) = inits.swap_remove(&id) {
+                    temps.insert(id.to_owned(), init);
+                };
+            }
+
+            temps
+        };
+
+        // remove all initializers for the current implementation/pou
+        let Some(mut inits) = self.unresolved_initializers.swap_remove(&implementation.name) else {
+            return;
+        };
+
+        // remove all non-stateful variable entries
+        let temps = strip_temporaries(&mut inits);
+        // re-enter the remaining initializers
+        self.unresolved_initializers.insert(implementation.name.to_owned(), inits);
+
+        let assignments = temps.into_iter().filter_map(|(lhs, init)| {
+            init.as_ref().map(|it| {
+                let func = if it.is_call() { create_assignment } else { create_ref_assignment };
+                func(&lhs, None, &it, self.ctxt.get_id_provider())
+            })
+        });
+
+        let delegated_calls =
+            self.index.get_pou_members(&implementation.name).iter().filter(|it| predicate(it)).filter_map(
+                |it| {
                     let dti = self.index.get_type_information_or_void(it.get_type_name());
                     if dti.is_struct() {
                         Some(create_call_statement(
@@ -148,13 +163,14 @@ impl AstLowerer {
                     } else {
                         None
                     }
-                });
+                },
+            );
 
-            assignments.chain(delegated_calls).collect::<Vec<_>>()
-        }) {
-            stmts.extend(std::mem::take(&mut implementation.statements));
-            implementation.statements = stmts;
-        }
+        let stmts = assignments
+            .chain(delegated_calls)
+            .chain(std::mem::take(&mut implementation.statements))
+            .collect::<Vec<_>>();
+        implementation.statements = stmts;
     }
 
     /// Updates the scope and initialized variable for struct types. Adds entries for each encountered struct
@@ -186,7 +202,7 @@ impl AstLowerer {
             // add container to keys if not already present
             self.unresolved_initializers.maybe_insert_initializer(name, None, &user_type.initializer);
         }
-    }     
+    }
 }
 
 impl AstVisitorMut for AstLowerer {
@@ -198,7 +214,7 @@ impl AstVisitorMut for AstLowerer {
         unit.walk(self)
     }
 
-    fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {        
+    fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
         self.add_init_statements(implementation);
         implementation.walk(self);
     }
@@ -208,7 +224,7 @@ impl AstVisitorMut for AstLowerer {
     }
 
     fn visit_variable(&mut self, variable: &mut plc_ast::ast::Variable) {
-        self.collect_alias_and_reference_to_inits(variable);       
+        self.collect_alias_and_reference_to_inits(variable);
         variable.walk(self);
     }
 
@@ -221,7 +237,7 @@ impl AstVisitorMut for AstLowerer {
     }
 
     fn visit_user_type_declaration(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
-        self.update_struct_initializers(user_type);   
+        self.update_struct_initializers(user_type);
         user_type.walk(self);
     }
 
