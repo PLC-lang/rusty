@@ -132,6 +132,8 @@ impl AstLowerer {
         };
 
         // remove all initializers for the current implementation/pou
+        // XXX: this changes the order of init-statements in init-pous. but since assignments should still be ordered before call-statements,
+        // this should be fine => edge cases?
         let Some(mut inits) = self.unresolved_initializers.swap_remove(&implementation.name) else {
             return;
         };

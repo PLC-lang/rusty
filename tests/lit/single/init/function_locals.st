@@ -1,3 +1,4 @@
+// RUN: (%COMPILE %s && %RUN) | %CHECK %s
 VAR_GLOBAL
     ps: STRING := 'Hello world!';
     ps2: STRING;

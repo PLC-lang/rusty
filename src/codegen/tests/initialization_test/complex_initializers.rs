@@ -457,6 +457,16 @@ fn nested_initializer_pous() {
 
     declare void @baz(%baz*) section "fn-$RUSTY$baz:v"
 
+    define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr1r1ps8u81]" {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %b = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__init_baz(%baz* %b)
+      ret void
+    }
+
     define void @__init_baz(%baz* %0) section "fn-$RUSTY$__init_baz:v[pr1ps8u81]" {
     entry:
       %self = alloca %baz*, align 8
@@ -496,16 +506,6 @@ fn nested_initializer_pous() {
     }
 
     declare void @sideProg(%sideProg*) section "fn-$RUSTY$sideProg:v"
-
-    define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr1r1ps8u81]" {
-    entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
-      %b = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
-      call void @__init_baz(%baz* %b)
-      ret void
-    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -820,15 +820,15 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     source_filename = "__initializers"
 
     %myStruct = type {}
-    %prog = type {}
     %foo = type {}
+    %prog = type {}
     %cl = type {}
     %foo.m = type {}
     %cl.m = type {}
 
     @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r0"
-    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r0"
     @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r0"
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r0"
     @__cl__init = external global %cl, section "var-$RUSTY$__cl__init:r0"
 
     define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr0]" {
@@ -837,15 +837,6 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       store %myStruct* %0, %myStruct** %self, align 8
       ret void
     }
-
-    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr0]" {
-    entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
-      ret void
-    }
-
-    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
 
     define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr0]" {
     entry:
@@ -865,14 +856,14 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
 
     declare void @foo.m(%foo*, %foo.m*) section "fn-$RUSTY$foo.m:v"
 
-    define void @__init_cl(%cl* %0) section "fn-$RUSTY$__init_cl:v[pr0]" {
+    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr0]" {
     entry:
-      %self = alloca %cl*, align 8
-      store %cl* %0, %cl** %self, align 8
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
       ret void
     }
 
-    declare void @cl(%cl*) section "fn-$RUSTY$cl:v"
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
 
     define void @__init_cl.m(%cl.m* %0) section "fn-$RUSTY$__init_cl.m:v[pr0]" {
     entry:
@@ -882,6 +873,15 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     }
 
     declare void @cl.m(%cl*, %cl.m*) section "fn-$RUSTY$cl.m:v"
+
+    define void @__init_cl(%cl* %0) section "fn-$RUSTY$__init_cl:v[pr0]" {
+    entry:
+      %self = alloca %cl*, align 8
+      store %cl* %0, %cl** %self, align 8
+      ret void
+    }
+
+    declare void @cl(%cl*) section "fn-$RUSTY$cl:v"
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 

@@ -157,7 +157,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     "###);
 
     // the init-function for `bar` will have a `CallStatement` to `__init_foo` as its only statement, passing the member-instance `self.fb`
-    let init_bar_impl = &units[1].implementations[2];
+    let init_bar_impl = &units[1].implementations[1];
     assert_eq!(&init_bar_impl.name, "__init_bar");
     let statements = &init_bar_impl.statements;
     assert_eq!(statements.len(), 1);
@@ -196,7 +196,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     // the init-function for `baz` will have a `RefAssignment`, assigning `REF(d)` to `self.pd` (TODO: currently, it actually is an `Assignment`
     // in the AST which is redirected to `generate_ref_assignment` in codegen) followed by a `CallStatement` to `__init_bar`,
     // passing the member-instance `self.fb`
-    let init_baz_impl = &units[1].implementations[1];
+    let init_baz_impl = &units[1].implementations[2];
     assert_eq!(&init_baz_impl.name, "__init_baz");
     let statements = &init_baz_impl.statements;
     assert_eq!(statements.len(), 2);
@@ -367,7 +367,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
         operator: ReferenceExpr {
             kind: Member(
                 Identifier {
-                    name: "__init_bar",
+                    name: "__init_baz",
                 },
             ),
             base: None,
@@ -376,7 +376,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
             ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "bar",
+                        name: "baz",
                     },
                 ),
                 base: None,
@@ -389,7 +389,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
         operator: ReferenceExpr {
             kind: Member(
                 Identifier {
-                    name: "__init_baz",
+                    name: "__init_bar",
                 },
             ),
             base: None,
@@ -398,7 +398,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
             ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "baz",
+                        name: "bar",
                     },
                 ),
                 base: None,
@@ -563,35 +563,16 @@ fn generating_init_functions() {
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
 
+    %bar = type { %foo }
     %foo = type { [81 x i8]* }
     %myStruct = type { i8, i8 }
-    %bar = type { %foo }
     %baz = type { %bar }
 
+    @__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r1r1ps8u81"
     @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
     @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2u8u8"
-    @__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r1r1ps8u81"
     @baz_instance = external global %baz, section "var-$RUSTY$baz_instance:r1r1r1ps8u81"
     @s = external global %myStruct, section "var-$RUSTY$s:r2u8u8"
-
-    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]" {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
-      %ps = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
-      store [81 x i8]* bitcast (%myStruct* @s to [81 x i8]*), [81 x i8]** %ps, align 8
-      ret void
-    }
-
-    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
-
-    define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2u8u8]" {
-    entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
-      ret void
-    }
 
     define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr1r1ps8u81]" {
     entry:
@@ -604,6 +585,25 @@ fn generating_init_functions() {
     }
 
     declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2u8u8]" {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
+    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]" {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %ps = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store [81 x i8]* bitcast (%myStruct* @s to [81 x i8]*), [81 x i8]** %ps, align 8
+      ret void
+    }
 
     define void @__init_baz(%baz* %0) section "fn-$RUSTY$__init_baz:v[pr1r1r1ps8u81]" {
     entry:
@@ -642,3 +642,27 @@ fn generating_init_functions() {
     declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
     "###);
 }
+
+// /// When dealing with local stack-allocated variables (`VAR_TEMP`-blocks (in addition to `VAR` for functions)),
+// /// initializing these variables in a fire-and-forget manner is no longer an option, since these variables are not "stateful"
+// /// => they must be initialized upon every single call of the respective POU. For each of these variables, a new statement is
+// /// inserted at the start/at the top of the body of their parent-POU. These statements are either a simple assignment- or
+// /// a call-statement, depending on the assignee's datatype. Code written by the user will be executed as normal afterwards.
+// #[test]
+// fn intializing_temporary_variables() {
+//     let src = "
+//         TYPE myStruct : STRUCT
+//                 a : BOOL;
+//                 b : BOOL;
+//             END_STRUCT
+//         END_TYPE
+
+//         TYPE myRefStruct : STRUCT
+//                 s : REFERENCE TO myStruct;
+//             END_STRUCT
+//         END_TYPE
+//         ";
+
+//     let res = codegen(src);
+//     assert_snapshot!(res, @r###""###)
+// }
