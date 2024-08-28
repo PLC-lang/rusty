@@ -78,22 +78,41 @@ impl AstLowerer {
         t.walk(self);
         self.ctxt.qualifier(old);
     }
-}
 
-impl AstVisitorMut for AstLowerer {
-    fn visit(&mut self, node: &mut plc_ast::ast::AstNode) {
-        node.walk(self)
+    fn collect_alias_and_reference_to_inits(&mut self, variable: &mut plc_ast::ast::Variable) {
+        if let Some(initializer) = variable.initializer.as_ref() {
+            let Some(variable_ty) = variable
+                .data_type_declaration
+                .get_referenced_type()
+                .and_then(|it| self.index.find_effective_type_by_name(&it))
+            else {
+                return variable.walk(self);
+            };
+
+            let variable_is_auto_deref_pointer = {
+                variable_ty.get_type_information().is_alias()
+                    || variable_ty.get_type_information().is_reference_to()
+            };
+
+            if variable_is_auto_deref_pointer {
+                self.unresolved_initializers.insert_initializer(
+                    self.ctxt
+                        .get_pou()
+                        .as_ref()
+                        .or(self.ctxt.get_qualifier().as_ref())
+                        .unwrap_or(&GLOBAL_SCOPE.to_owned()),
+                    Some(&variable.name),
+                    &Some(initializer.clone()),
+                );
+            }
+        }
     }
 
-    fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
-        unit.walk(self)
-    }
-
-    fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
+    fn add_init_statements(&mut self, implementation: &mut plc_ast::ast::Implementation) {
         let predicate = |var: &VariableIndexEntry| {
             var.is_temp() || (implementation.pou_type == PouType::Function && var.is_local())
         };
-        // get unresolved inits
+        
         if let Some(mut stmts) = self.unresolved_initializers.get(&implementation.name).map(|it| {
             let assignments = it
                 .iter()
@@ -101,7 +120,14 @@ impl AstVisitorMut for AstLowerer {
                     self.index.find_member(&implementation.name, id).is_some_and(|it| predicate(it))
                 })
                 .filter_map(|(lhs, init)| {
-                    init.as_ref().map(|it| create_ref_assignment(lhs, None, &it, self.ctxt.get_id_provider()))
+                    init.as_ref().map(|it| {
+                        let func = if it.is_call() {
+                            create_assignment
+                        } else {
+                            create_ref_assignment
+                        };
+                        func(lhs, None, &it, self.ctxt.get_id_provider())
+                    })
                 });
 
             let delegated_calls = self
@@ -129,52 +155,11 @@ impl AstVisitorMut for AstLowerer {
             stmts.extend(std::mem::take(&mut implementation.statements));
             implementation.statements = stmts;
         }
-        implementation.walk(self);
     }
 
-    fn visit_variable_block(&mut self, block: &mut plc_ast::ast::VariableBlock) {
-        block.walk(self)
-    }
-
-    fn visit_variable(&mut self, variable: &mut plc_ast::ast::Variable) {
-        if let Some(initializer) = variable.initializer.as_ref() {
-            let Some(variable_ty) = variable
-                .data_type_declaration
-                .get_referenced_type()
-                .and_then(|it| self.index.find_effective_type_by_name(&it))
-            else {
-                return variable.walk(self);
-            };
-
-            let variable_is_auto_deref_pointer = {
-                variable_ty.get_type_information().is_alias()
-                    || variable_ty.get_type_information().is_reference_to()
-            };
-
-            if variable_is_auto_deref_pointer {
-                self.unresolved_initializers.insert_initializer(
-                    self.ctxt
-                        .get_pou()
-                        .as_ref()
-                        .or(self.ctxt.get_qualifier().as_ref())
-                        .unwrap_or(&GLOBAL_SCOPE.to_owned()),
-                    Some(&variable.name),
-                    &Some(initializer.clone()),
-                );
-            }
-        }
-        variable.walk(self);
-    }
-
-    fn visit_enum_element(&mut self, element: &mut plc_ast::ast::AstNode) {
-        element.walk(self);
-    }
-
-    fn visit_data_type_declaration(&mut self, data_type_declaration: &mut plc_ast::ast::DataTypeDeclaration) {
-        data_type_declaration.walk(self);
-    }
-
-    fn visit_user_type_declaration(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
+    /// Updates the scope and initialized variable for struct types. Adds entries for each encountered struct
+    /// (this includes POU-structs, i.e. programs, ...) to the initializer map if no entry is present
+    fn update_struct_initializers(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
         if let DataType::StructType { name, .. } = &user_type.data_type {
             let Some(name) = name else {
                 return user_type.walk(self);
@@ -198,9 +183,45 @@ impl AstVisitorMut for AstLowerer {
                 // update struct member initializers
                 self.unresolved_initializers.maybe_insert_initializer(name, Some(lhs), &init);
             }
-            // add struct-type initializer
+            // add container to keys if not already present
             self.unresolved_initializers.maybe_insert_initializer(name, None, &user_type.initializer);
         }
+    }     
+}
+
+impl AstVisitorMut for AstLowerer {
+    fn visit(&mut self, node: &mut plc_ast::ast::AstNode) {
+        node.walk(self)
+    }
+
+    fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
+        unit.walk(self)
+    }
+
+    fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {        
+        self.add_init_statements(implementation);
+        implementation.walk(self);
+    }
+
+    fn visit_variable_block(&mut self, block: &mut plc_ast::ast::VariableBlock) {
+        block.walk(self)
+    }
+
+    fn visit_variable(&mut self, variable: &mut plc_ast::ast::Variable) {
+        self.collect_alias_and_reference_to_inits(variable);       
+        variable.walk(self);
+    }
+
+    fn visit_enum_element(&mut self, element: &mut plc_ast::ast::AstNode) {
+        element.walk(self);
+    }
+
+    fn visit_data_type_declaration(&mut self, data_type_declaration: &mut plc_ast::ast::DataTypeDeclaration) {
+        data_type_declaration.walk(self);
+    }
+
+    fn visit_user_type_declaration(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
+        self.update_struct_initializers(user_type);   
         user_type.walk(self);
     }
 
@@ -459,6 +480,20 @@ fn create_ref_assignment(
         base_ident.map(|id| create_member_reference(id, id_provider.clone(), None)),
     );
     AstFactory::create_ref_assignment(lhs, rhs.to_owned(), id_provider.next_id())
+}
+
+fn create_assignment(
+    lhs_ident: &str,
+    base_ident: Option<&str>,
+    rhs: &AstNode,
+    mut id_provider: IdProvider,
+) -> AstNode {
+    let lhs = create_member_reference(
+        lhs_ident,
+        id_provider.clone(),
+        base_ident.map(|id| create_member_reference(id, id_provider.clone(), None)),
+    );
+    AstFactory::create_assignment(lhs, rhs.to_owned(), id_provider.next_id())
 }
 
 fn create_call_statement(

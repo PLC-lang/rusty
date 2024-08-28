@@ -38,7 +38,6 @@ where
         var_name: Option<&str>,
         initializer: &Option<AstNode>,
     );
-    // fn import(&mut self, other: Self);
 }
 
 impl<'lwr> Init<'lwr> for Initializers {
@@ -96,12 +95,6 @@ impl<'lwr> Init<'lwr> for Initializers {
         };
         assignments.insert(var_name.to_string(), initializer.clone());
     }
-
-    // fn import(&mut self, other: Self) {
-    //     other.into_iter().for_each(|(scope, data)| {
-    //         self.entry(scope).or_default().extend(data);
-    //     });
-    // }
 }
 
 impl AstLowerer {
@@ -175,18 +168,7 @@ fn create_init_unit(
         "self".to_string(),
     );
 
-    let init_pou = Pou {
-        name: init_fn_name.clone(),
-        variable_blocks: param,
-        pou_type: PouType::Init,
-        return_type: None,
-        location: location.clone(),
-        name_location: location.clone(),
-        poly_mode: None,
-        generics: vec![],
-        linkage: LinkageType::Internal,
-        super_class: None,
-    };
+    let init_pou = new_pou(&init_fn_name, param, location);
 
     let mut statements = assignments
         .iter()
@@ -218,28 +200,9 @@ fn create_init_unit(
         .collect::<Vec<_>>();
 
     statements.extend(member_init_calls);
-    let implementation = Implementation {
-        name: init_fn_name.clone(),
-        type_name: init_fn_name.clone(),
-        linkage: LinkageType::Internal,
-        pou_type: PouType::Init,
-        statements,
-        location: location.clone(),
-        name_location: location.clone(),
-        overriding: false,
-        generic: false,
-        access: None,
-    };
+    let implementation = new_implementation(&init_fn_name, statements, location);
 
-    let new_unit = CompilationUnit {
-        global_vars: vec![],
-        units: vec![init_pou],
-        implementations: vec![implementation],
-        user_types: vec![],
-        file_name: "__initializers".into(),
-    };
-
-    Some(new_unit)
+    Some(new_unit(init_pou, implementation, "__initializers"))
 }
 
 fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) -> Option<CompilationUnit> {
@@ -248,26 +211,14 @@ fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) ->
     }
 
     let mut id_provider = lowerer.ctxt.id_provider.clone();
-    let init_pou = Pou {
-        name: init_symbol_name.into(),
-        variable_blocks: vec![],
-        pou_type: PouType::Init,
-        return_type: None,
-        location: SourceLocation::internal(),
-        name_location: SourceLocation::internal(),
-        poly_mode: None,
-        generics: vec![],
-        linkage: LinkageType::Internal,
-        super_class: None,
-    };
+    let init_pou = new_pou(init_symbol_name, vec![], &SourceLocation::internal());
 
     let init_functions = lowerer
         .unresolved_initializers
         .iter()
         .filter_map(|(scope, _)| {
             if lowerer.index.find_pou(scope).is_some_and(|pou| pou.is_program()) {
-                let init_fn_name = get_init_fn_name(scope);
-                Some((init_fn_name, scope))
+                Some((get_init_fn_name(scope), scope))
             } else {
                 None
             }
@@ -299,26 +250,47 @@ fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) ->
         .collect::<Vec<_>>();
 
     globals.extend(body);
-    let implementation = Implementation {
-        name: init_symbol_name.into(),
-        type_name: init_symbol_name.into(),
+
+    let implementation = new_implementation(init_symbol_name, globals, &SourceLocation::internal());
+    Some(new_unit(init_pou, implementation, init_symbol_name))
+}
+
+fn new_pou(name: &str, variable_blocks: Vec<VariableBlock>, location: &SourceLocation) -> Pou {
+    Pou {
+        name: name.into(),
+        variable_blocks,
+        pou_type: PouType::Init,
+        return_type: None,
+        location: location.clone(),
+        name_location: location.to_owned(),
+        poly_mode: None,
+        generics: vec![],
+        linkage: LinkageType::Internal,
+        super_class: None,
+    }
+}
+
+fn new_implementation(name: &str, statements: Vec<AstNode>, location: &SourceLocation) -> Implementation {
+    Implementation {
+        name: name.into(),
+        type_name: name.into(),
         linkage: LinkageType::Internal,
         pou_type: PouType::Init,
-        statements: globals,
-        location: SourceLocation::internal(),
-        name_location: SourceLocation::internal(),
+        statements,
+        location: location.clone(),
+        name_location: location.to_owned(),
         overriding: false,
         generic: false,
         access: None,
-    };
+    }
+}
 
-    let init_unit = CompilationUnit {
+fn new_unit(pou: Pou, implementation: Implementation, file_name: &str) -> CompilationUnit {
+    CompilationUnit {
         global_vars: vec![],
-        units: vec![init_pou],
+        units: vec![pou],
         implementations: vec![implementation],
         user_types: vec![],
-        file_name: init_symbol_name.into(),
-    };
-
-    Some(init_unit)
+        file_name: file_name.into(),
+    }
 }
