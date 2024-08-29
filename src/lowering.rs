@@ -1,6 +1,6 @@
 use crate::{
     index::{get_init_fn_name, Index, VariableIndexEntry},
-    resolver::const_evaluator::UnresolvableConstant,
+    resolver::{const_evaluator::UnresolvableConstant, AstAnnotations},
 };
 use initializers::{Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
@@ -22,8 +22,9 @@ pub struct AstLowerer {
 
 impl AstLowerer {
     pub fn lower(
-        index: Index,
         mut units: Vec<CompilationUnit>,
+        index: Index,
+        annotations: AstAnnotations,
         unresolvables: Vec<UnresolvableConstant>,
         id_provider: IdProvider,
         init_symbol_name: &str,
@@ -198,7 +199,7 @@ impl AstLowerer {
                         .map(|node| (var.get_name(), node))
                 })
                 .collect::<Vec<_>>();
-            
+
             for (lhs, init) in member_inits {
                 // update struct member initializers
                 self.unresolved_initializers.maybe_insert_initializer(name, Some(lhs), &init);

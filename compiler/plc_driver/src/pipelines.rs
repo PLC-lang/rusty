@@ -103,56 +103,36 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
     pub fn index(self, id_provider: IdProvider) -> IndexedProject<T> {
-        let init_symbol_name = &self.get_project().get_init_symbol_name();
+        let indexed_units = self
+            .units
+            .into_par_iter()
+            .map(|mut unit| {
+                //Preprocess
+                pre_process(&mut unit, id_provider.clone());
+                //import to index
+                let index = plc::index::visitor::visit(&unit);
 
-        fn index_and_pre_process(
-            units: Vec<CompilationUnit>,
-            id_provider: &IdProvider,
-        ) -> (Vec<CompilationUnit>, Index, Vec<UnresolvableConstant>) {
-            let indexed_units = units
-                .into_par_iter()
-                .map(|mut unit| {
-                    //Preprocess
-                    pre_process(&mut unit, id_provider.clone());
-                    //import to index
-                    let index = plc::index::visitor::visit(&unit);
+                (index, unit)
+            })
+            .collect::<Vec<_>>();
 
-                    (index, unit)
-                })
-                .collect::<Vec<_>>();
-
-            let mut global_index = Index::default();
-            let mut units = vec![];
-            for (index, unit) in indexed_units {
-                units.push(unit);
-                global_index.import(index);
-            }
-
-            // import built-in types like INT, BOOL, etc.
-            for data_type in plc::typesystem::get_builtin_types() {
-                global_index.register_type(data_type);
-            }
-
-            // import builtin functions
-            let builtins = plc::builtins::parse_built_ins(id_provider.clone());
-            global_index.import(plc::index::visitor::visit(&builtins));
-            let (full_index, unresolvables) =
-                plc::resolver::const_evaluator::evaluate_constants(global_index);
-
-            (units, full_index, unresolvables)
+        let mut global_index = Index::default();
+        let mut units = vec![];
+        for (index, unit) in indexed_units {
+            units.push(unit);
+            global_index.import(index);
         }
 
-        // index units, pre-process and resolve constants
-        // let (units, index, unresolvables) = index_and_pre_process(self.units, &IdProvider::default());
-        let (units, index, unresolvables) = index_and_pre_process(self.units, &id_provider.clone());
+        // import built-in types like INT, BOOL, etc.
+        for data_type in plc::typesystem::get_builtin_types() {
+            global_index.register_type(data_type);
+        }
 
-        // AST lowering
-        let units = AstLowerer::lower(index, units, unresolvables, id_provider.clone(), init_symbol_name);
+        // import builtin functions
+        let builtins = plc::builtins::parse_built_ins(id_provider.clone());
+        global_index.import(plc::index::visitor::visit(&builtins));
 
-        // Re-index lowered AST
-        let (units, index, _) = index_and_pre_process(units, &id_provider);
-
-        IndexedProject { project: ParsedProject { project: self.project, units }, index }
+        IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
     }
 
     pub fn get_project(&self) -> &Project<T> {
@@ -170,10 +150,10 @@ pub struct IndexedProject<T: SourceContainer + Sync> {
 impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
+        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
-        let mut full_index = self.index;
         let result = self
             .project
             .units
@@ -186,7 +166,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             .collect::<Vec<_>>();
 
         for (unit, annotation, dependencies, literals) in result {
-            annotated_units.push((unit, dependencies, literals));
+            annotated_units.push(AnnotatedUnit::new(unit, dependencies, literals));
             all_annotations.import(annotation);
         }
 
@@ -199,6 +179,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             units: annotated_units,
             index: full_index,
             annotations,
+            unresolvables,
         }
     }
 
@@ -211,17 +192,48 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
     }
 }
 
+#[derive(Debug)]
+pub struct AnnotatedUnit {
+    unit: CompilationUnit,
+    dependencies: FxIndexSet<Dependency>,
+    literals: StringLiterals,
+}
+
+impl AnnotatedUnit {
+    pub fn new(unit: CompilationUnit, dependencies: FxIndexSet<Dependency>, literals: StringLiterals) -> Self {
+        Self {
+            unit, dependencies, literals
+        }
+    }
+
+    pub fn get_unit(&self) -> &CompilationUnit {
+        &self.unit
+    }
+}
+
 /// A project that has been annotated with information about different types and used units
 pub struct AnnotatedProject<T: SourceContainer + Sync> {
     pub project: Project<T>,
-    pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
+    pub units: Vec<AnnotatedUnit>,
     pub index: Index,
     pub annotations: AstAnnotations,
+    pub unresolvables: Vec<UnresolvableConstant>,
 }
 
 impl<T: SourceContainer + Sync> AnnotatedProject<T> {
     pub fn get_project(&self) -> &Project<T> {
         &self.project
+    }
+
+    pub fn lower(self, id_provider: IdProvider) -> AnnotatedProject<T> {
+        let init_symbol_name = &self.get_project().get_init_symbol_name();
+        let project = self.project;
+        let units = self.units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect::<Vec<_>>();
+        let lowered = AstLowerer::lower(units, self.index, self.annotations, self.unresolvables, id_provider.clone(), init_symbol_name);
+        // XXX: this step can be looped until there were no further lowering-changes, however at this time lowering once should suffice
+        ParsedProject { project, units: lowered }
+            .index(id_provider.clone())
+            .annotate(id_provider)
     }
 
     /// Validates the project, reports any new diagnostics on the fly
@@ -237,7 +249,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         let mut severity = diagnostician.handle(&diagnostics);
 
         //Perform per unit validation
-        self.units.iter().for_each(|(unit, _, _)| {
+        self.units.iter().for_each(|AnnotatedUnit{ unit, ..}| {
             // validate unit
             validator.visit_unit(&self.annotations, &self.index, unit);
             // log errors
@@ -254,7 +266,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
     pub fn codegen_to_string(&self, compile_options: &CompileOptions) -> Result<Vec<String>, Diagnostic> {
         self.units
             .iter()
-            .map(|(unit, dependencies, literals)| {
+            .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 let context = CodegenContext::create();
                 self.generate_module(&context, compile_options, unit, dependencies, literals)
                     .map(|it| it.persist_to_string())
@@ -270,7 +282,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         let Some(module) = self
             .units
             .iter()
-            .map(|(unit, dependencies, literals)| {
+            .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 self.generate_module(context, compile_options, unit, dependencies, literals)
             })
             .reduce(|a, b| {
@@ -359,7 +371,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                 let objects = self
                     .units
                     .par_iter()
-                    .map(|(unit, dependencies, literals)| {
+                    .map(|AnnotatedUnit { unit, dependencies, literals }| {
                         let current_dir = env::current_dir()?;
                         let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
                         let unit_location = PathBuf::from(&unit.file_name);

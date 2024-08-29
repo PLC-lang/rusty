@@ -929,7 +929,6 @@ fn alias() {
     insta::assert_snapshot!(res, @r###""###);
 }
 
-
 #[test]
 fn global_instance() {
     let res = codegen(
@@ -957,8 +956,8 @@ fn global_instance() {
 
 #[test]
 fn array_of_instances() {
-  let res = codegen(
-      r#"
+    let res = codegen(
+        r#"
     VAR_GLOBAL
         ps: STRING;
         fb: ARRAY[0..10] OF foo;
@@ -974,16 +973,16 @@ fn array_of_instances() {
         fb();
     END_PROGRAM
     "#,
-  );
+    );
 
-  insta::assert_snapshot!(res, @r###""###);
+    insta::assert_snapshot!(res, @r###""###);
 }
 
 #[test]
 #[ignore = "TODO: out of scope of this story, track in issue"]
 fn override_default_initializer() {
-  let res = codegen(
-      r#"
+    let res = codegen(
+        r#"
     VAR_GLOBAL
         ps: STRING;
     END_VAR
@@ -1001,7 +1000,7 @@ fn override_default_initializer() {
         fb();
     END_PROGRAM
     "#,
-  );
+    );
 
-  insta::assert_snapshot!(res, @r###""###);
+    insta::assert_snapshot!(res, @r###""###);
 }

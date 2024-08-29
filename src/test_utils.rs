@@ -99,75 +99,6 @@ pub mod tests {
         (unit, index)
     }
 
-    pub fn index_and_lower<T: Into<SourceCode>>(
-        src: T,
-        id_provider: IdProvider,
-    ) -> (Vec<CompilationUnit>, Index, Vec<Diagnostic>) {
-        let source = src.into();
-        let source_str = &source.source;
-        let source_path = source.get_location_str();
-        // parse
-        let builtins = builtins::parse_built_ins(id_provider.clone());
-        let range_factory = SourceLocationFactory::for_source(&source);
-        let (unit, diagnostics) = parser::parse(
-            lexer::lex_with_ids(source_str, id_provider.clone(), range_factory),
-            LinkageType::Internal,
-            source_path,
-        );
-
-        // index
-        let index_units = |units: Vec<CompilationUnit>, id_provider: &IdProvider| {
-            let indexed_units = units
-                .into_iter()
-                .map(|mut unit| {
-                    //Preprocess
-                    pre_process(&mut unit, id_provider.clone());
-                    //import to index
-                    let index = index::visitor::visit(&unit);
-
-                    (index, unit)
-                })
-                .collect::<Vec<_>>();
-
-            let mut global_index = Index::default();
-            let mut units = vec![];
-            for (index, unit) in indexed_units {
-                units.push(unit);
-                global_index.import(index);
-            }
-
-            // import built-in types like INT, BOOL, etc.
-            for data_type in get_builtin_types() {
-                global_index.register_type(data_type);
-            }
-
-            // import builtin functions
-            global_index.import(index::visitor::visit(&builtins));
-
-            (units, global_index)
-        };
-
-        let (units, index) = index_units(vec![unit], &id_provider);
-
-        //Resolve constants
-        let (full_index, unresolvables) = evaluate_constants(index);
-
-        let units = AstLowerer::lower(
-            full_index,
-            units,
-            unresolvables,
-            id_provider.clone(),
-            &get_project_init_symbol(),
-        );
-
-        let (units, index) = index_units(units, &id_provider);
-
-        //Resolve constants
-        let (full_index, _) = evaluate_constants(index);
-
-        (units, full_index, diagnostics)
-    }
-
     pub fn annotate_with_ids(
         parse_result: &CompilationUnit,
         index: &mut Index,
@@ -178,28 +109,42 @@ pub mod tests {
         annotations
     }
 
-    pub fn index_annotate_and_lower_with_ids<T: Into<SourceCode>>(
-        src: T,
-        id_provider: IdProvider,
-    ) -> (
-        AnnotationMapImpl,
-        Index,
-        Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
-        Vec<Diagnostic>,
-    ) {
-        let (lowered_units, mut index, diagnostics) = index_and_lower(src, id_provider.clone());
+    type Lowered =
+        (AnnotationMapImpl, Index, Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>);
 
-        let mut annotated_units = vec![];
-        let mut all_annotations = AnnotationMapImpl::new();
-        for unit in lowered_units {
-            let (mut annotations, dependencies, literals) =
-                TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
-            index.import(std::mem::take(&mut annotations.new_index));
-            all_annotations.import(annotations);
-            annotated_units.push((unit, dependencies, literals));
+    pub fn annotate_and_lower_with_ids(
+        parse_result: CompilationUnit,
+        index: Index,
+        mut id_provider: IdProvider,
+    ) -> Lowered {
+        let (mut index, unresolvables) = evaluate_constants(index);
+        let annotation_map = annotate_with_ids(&parse_result, &mut index, id_provider.clone());
+        let lowered = AstLowerer::lower(vec![parse_result], index, AstAnnotations::new(annotation_map, id_provider.next_id()) ,unresolvables, id_provider.clone(), &get_project_init_symbol());
+
+        let mut index = Index::default();
+        let builtins = builtins::parse_built_ins(id_provider.clone());
+        index.import(index::visitor::visit(&builtins));
+
+        for data_type in get_builtin_types() {
+            index.register_type(data_type);
         }
 
-        (all_annotations, index, annotated_units, diagnostics)
+        let indexed_units = lowered.into_iter().map(|mut unit| {
+            pre_process(&mut unit, id_provider.clone());
+            index.import(index::visitor::visit(&unit));
+            unit
+        }).collect::<Vec<_>>();
+        let (mut full_index, _) = evaluate_constants(index);
+        
+        let mut all_annotations = AnnotationMapImpl::default();
+        let annotated_units = indexed_units.into_iter().map(|unit| {
+            let (mut annotations, dependencies, literals) = TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
+            full_index.import(std::mem::take(&mut annotations.new_index));
+            all_annotations.import(annotations);
+            (unit, dependencies, literals)
+        }).collect::<Vec<_>>();     
+            
+        (all_annotations, full_index, annotated_units)
     }
 
     pub fn parse_and_validate_buffered(src: &str) -> String {
@@ -245,9 +190,11 @@ pub mod tests {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
         let mut id_provider = IdProvider::default();
-        let (annotations, index, annotated_units, diagnostics) =
-            index_annotate_and_lower_with_ids(src, id_provider.clone());
+        let (unit, index, diagnostics) = do_index(src, id_provider.clone());
         reporter.handle(&diagnostics);
+
+        let (annotations, index, annotated_units) =
+            annotate_and_lower_with_ids(unit, index, id_provider.clone());
 
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
 

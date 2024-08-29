@@ -1,15 +1,14 @@
 use insta::assert_debug_snapshot;
 use plc_ast::{ast::PouType, provider::IdProvider};
 
-use crate::test_utils::tests::index_annotate_and_lower_with_ids;
+use crate::test_utils::tests::{annotate_and_lower_with_ids, index_with_ids};
 
 #[test]
 fn function_block_init_fn_created() {
     let id_provider = IdProvider::default();
     // GIVEN a function block with a ref initializer
     // WHEN lowered
-    let (_, index, annotated_units, _) = index_annotate_and_lower_with_ids(
-        "
+    let (unit, index) = index_with_ids("
         FUNCTION_BLOCK foo
         VAR
             s : STRING;
@@ -19,6 +18,7 @@ fn function_block_init_fn_created() {
         ",
         id_provider.clone(),
     );
+    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
     // THEN we expect the index to now have a corresponding init function
     assert!(index.find_pou("__init_foo").is_some());
@@ -90,8 +90,7 @@ fn program_init_fn_created() {
     let id_provider = IdProvider::default();
     // GIVEN a program with a ref initializer
     // WHEN lowered
-    let (_, index, annotated_units, _) = index_annotate_and_lower_with_ids(
-        "
+    let (unit, index) = index_with_ids("
         PROGRAM foo
         VAR
             s : STRING;
@@ -101,7 +100,7 @@ fn program_init_fn_created() {
         ",
         id_provider.clone(),
     );
-
+    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
     // THEN we expect the index to now have a corresponding init function
     assert!(index.find_pou("__init_foo").is_some());
     // AND we expect a new function to be created for it
@@ -170,8 +169,7 @@ fn program_init_fn_created() {
 #[test]
 fn init_wrapper_function_created() {
     let id_provider = IdProvider::default();
-    let (_, index, annotated_units, _) = index_annotate_and_lower_with_ids(
-        "
+    let (unit, index) = index_with_ids("
         VAR_GLOBAL
             s : STRING;
             gs : REFERENCE TO STRING := REF(s);
@@ -191,6 +189,7 @@ fn init_wrapper_function_created() {
         ",
         id_provider.clone(),
     );
+    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
     let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
 
     // we expect there to be 3 `CompilationUnit`s, one for the original source, one with pou initializer functions, and finally

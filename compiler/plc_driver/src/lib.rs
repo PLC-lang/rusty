@@ -245,7 +245,8 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
     // 1 : Parse, 2. Index, 3. Resolve / Annotate
     let annotated_project = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
         .index(ctxt.provider())
-        .annotate(ctxt.provider());
+        .annotate(ctxt.provider())
+        .lower(ctxt.provider());
 
     if compile_parameters.output_ast {
         println!("{:#?}", annotated_project.units);
