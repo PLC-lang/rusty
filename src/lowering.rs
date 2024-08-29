@@ -15,6 +15,7 @@ mod initializers;
 
 pub struct AstLowerer {
     index: Index,
+    annotations: AstAnnotations,
     unresolved_initializers: Initializers,
     units: Vec<CompilationUnit>,
     ctxt: LoweringContext,
@@ -29,7 +30,7 @@ impl AstLowerer {
         id_provider: IdProvider,
         init_symbol_name: &str,
     ) -> Vec<CompilationUnit> {
-        let mut lowerer = Self::new(index, unresolvables, id_provider);
+        let mut lowerer = Self::new(index, annotations, unresolvables, id_provider);
         // visit all units
         units.iter_mut().for_each(|unit| {
             lowerer.visit_compilation_unit(unit);
@@ -42,11 +43,13 @@ impl AstLowerer {
 
     fn new(
         index: Index,
+        annotations: AstAnnotations,
         unresolved_initializers: Vec<UnresolvableConstant>,
         id_provider: IdProvider,
     ) -> Self {
         Self {
             index,
+            annotations,
             unresolved_initializers: Initializers::new(&unresolved_initializers),
             units: vec![],
             ctxt: LoweringContext::new(id_provider),
@@ -56,6 +59,7 @@ impl AstLowerer {
     fn with_units(self, units: Vec<CompilationUnit>) -> Self {
         Self {
             index: self.index,
+            annotations: self.annotations,
             unresolved_initializers: self.unresolved_initializers,
             units,
             ctxt: self.ctxt,
