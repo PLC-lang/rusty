@@ -900,3 +900,108 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
     "###);
 }
+
+#[test]
+fn alias() {
+    let res = codegen(
+        r#"
+      VAR_GLOBAL
+          ps: STRING;
+      END_VAR    
+
+      TYPE alias : foo; END_TYPE
+
+      FUNCTION_BLOCK foo
+      VAR
+          s: REF_TO STRING := REF(ps);
+      END_VAR
+      END_FUNCTION_BLOCK
+
+      PROGRAM prog
+      VAR
+          fb: alias;
+      END_VAR
+          fb();
+      END_PROGRAM
+      "#,
+    );
+
+    insta::assert_snapshot!(res, @r###""###);
+}
+
+
+#[test]
+fn global_instance() {
+    let res = codegen(
+        r#"
+      VAR_GLOBAL
+          ps: STRING;
+          fb: foo;
+      END_VAR    
+
+
+      FUNCTION_BLOCK foo
+      VAR
+          s: REF_TO STRING := REF(ps);
+      END_VAR
+      END_FUNCTION_BLOCK
+
+      PROGRAM prog
+          fb();
+      END_PROGRAM
+      "#,
+    );
+
+    insta::assert_snapshot!(res, @r###""###);
+}
+
+#[test]
+fn array_of_instances() {
+  let res = codegen(
+      r#"
+    VAR_GLOBAL
+        ps: STRING;
+        fb: ARRAY[0..10] OF foo;
+    END_VAR    
+
+    FUNCTION_BLOCK foo
+    VAR
+        s: REF_TO STRING := REF(ps);
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    PROGRAM prog
+        fb();
+    END_PROGRAM
+    "#,
+  );
+
+  insta::assert_snapshot!(res, @r###""###);
+}
+
+#[test]
+#[ignore = "TODO: out of scope of this story, track in issue"]
+fn override_default_initializer() {
+  let res = codegen(
+      r#"
+    VAR_GLOBAL
+        ps: STRING;
+    END_VAR
+
+    FUNCTION_BLOCK foo
+    VAR
+        s: REF_TO STRING := REF(ps);
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    PROGRAM prog
+    VAR
+        fb: foo := (s1 := REF(ps));
+    END_VAR
+        fb();
+    END_PROGRAM
+    "#,
+  );
+
+  insta::assert_snapshot!(res, @r###""###);
+}

@@ -643,26 +643,109 @@ fn generating_init_functions() {
     "###);
 }
 
-// /// When dealing with local stack-allocated variables (`VAR_TEMP`-blocks (in addition to `VAR` for functions)),
-// /// initializing these variables in a fire-and-forget manner is no longer an option, since these variables are not "stateful"
-// /// => they must be initialized upon every single call of the respective POU. For each of these variables, a new statement is
-// /// inserted at the start/at the top of the body of their parent-POU. These statements are either a simple assignment- or
-// /// a call-statement, depending on the assignee's datatype. Code written by the user will be executed as normal afterwards.
-// #[test]
-// fn intializing_temporary_variables() {
-//     let src = "
-//         TYPE myStruct : STRUCT
-//                 a : BOOL;
-//                 b : BOOL;
-//             END_STRUCT
-//         END_TYPE
+/// When dealing with local stack-allocated variables (`VAR_TEMP`-blocks (in addition to `VAR` for functions)),
+/// initializing these variables in a fire-and-forget manner is no longer an option, since these variables are not "stateful"
+/// => they must be initialized upon every single call of the respective POU. For each of these variables, a new statement is
+/// inserted at the start/at the top of the body of their parent-POU. These statements are either a simple assignment- or
+/// a call-statement, depending on the assignee's datatype. Code written by the user will be executed as normal afterwards.
+#[test]
+fn intializing_temporary_variables() {
+    let src = "
+    VAR_GLOBAL
+        ps: STRING;
+        ps2: STRING;
+    END_VAR
 
-//         TYPE myRefStruct : STRUCT
-//                 s : REFERENCE TO myStruct;
-//             END_STRUCT
-//         END_TYPE
-//         ";
+    FUNCTION_BLOCK foo
+    VAR
+        s AT ps: STRING;
+    END_VAR
+    VAR_TEMP
+        s2: REF_TO STRING := REF(ps2);
+    END_VAR
+    END_FUNCTION_BLOCK
 
-//     let res = codegen(src);
-//     assert_snapshot!(res, @r###""###)
-// }
+    FUNCTION main: DINT
+    VAR
+        fb: foo;
+        s AT ps: STRING;
+        s2: REF_TO STRING := REF(ps2);
+    END_VAR
+        fb();
+    END_FUNCTION
+        ";
+
+    let res = codegen(src);
+    assert_snapshot!(res, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { [81 x i8]* }
+
+    @ps = global [81 x i8] zeroinitializer, section "var-$RUSTY$ps:s8u81"
+    @ps2 = global [81 x i8] zeroinitializer, section "var-$RUSTY$ps2:s8u81"
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r2ps8u81ps8u81"
+
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+    entry:
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s2 = alloca [81 x i8]*, align 8
+      store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
+      store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
+      ret void
+    }
+
+    define i32 @main() section "fn-$RUSTY$main:i32" {
+    entry:
+      %main = alloca i32, align 4
+      %fb = alloca %foo, align 8
+      %s = alloca [81 x i8]*, align 8
+      %s2 = alloca [81 x i8]*, align 8
+      %0 = bitcast %foo* %fb to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      %load_ps = load [81 x i8], [81 x i8]* @ps, align 1
+      store [81 x i8] %load_ps, [81 x i8]** %s, align 1
+      store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
+      store i32 0, i32* %main, align 4
+      store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
+      call void @__init_foo(%foo* %fb)
+      call void @foo(%foo* %fb)
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    declare void @__init_foo(%foo*) section "fn-$RUSTY$__init_foo:v[pr2ps8u81ps8u81]"
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { [81 x i8]* }
+
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r2ps8u81ps8u81"
+    @ps = external global [81 x i8], section "var-$RUSTY$ps:s8u81"
+
+    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr2ps8u81ps8u81]" {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
+    "###)
+}

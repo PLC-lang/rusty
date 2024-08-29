@@ -225,7 +225,7 @@ fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) ->
         })
         .collect::<Vec<_>>();
 
-    let mut globals = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
+    let mut assignments = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
         stmts
             .iter()
             .filter_map(|(var_name, initializer)| {
@@ -235,7 +235,7 @@ fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) ->
     } else {
         vec![]
     };
-    let body = init_functions
+    let calls = init_functions
         .iter()
         .map(|(fn_name, param)| {
             let op = create_member_reference(fn_name, id_provider.clone(), None);
@@ -249,9 +249,9 @@ fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) ->
         })
         .collect::<Vec<_>>();
 
-    globals.extend(body);
+    assignments.extend(calls);
 
-    let implementation = new_implementation(init_symbol_name, globals, &SourceLocation::internal());
+    let implementation = new_implementation(init_symbol_name, assignments, &SourceLocation::internal());
     Some(new_unit(init_pou, implementation, init_symbol_name))
 }
 

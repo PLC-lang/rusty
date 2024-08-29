@@ -143,6 +143,7 @@ impl AstLowerer {
         // re-enter the remaining initializers
         self.unresolved_initializers.insert(implementation.name.to_owned(), inits);
 
+        // collect simple assignments
         let assignments = temps.into_iter().filter_map(|(lhs, init)| {
             init.as_ref().map(|it| {
                 let func = if it.is_call() { create_assignment } else { create_ref_assignment };
@@ -150,6 +151,7 @@ impl AstLowerer {
             })
         });
 
+        // collect necessary call statements to init-functions
         let delegated_calls =
             self.index.get_pou_members(&implementation.name).iter().filter(|it| predicate(it)).filter_map(
                 |it| {
@@ -196,7 +198,7 @@ impl AstLowerer {
                         .map(|node| (var.get_name(), node))
                 })
                 .collect::<Vec<_>>();
-
+            
             for (lhs, init) in member_inits {
                 // update struct member initializers
                 self.unresolved_initializers.maybe_insert_initializer(name, Some(lhs), &init);
