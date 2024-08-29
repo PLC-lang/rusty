@@ -158,20 +158,20 @@ impl AstLowerer {
 
         // collect necessary call statements to init-functions
         let delegated_calls =
-            self.index.get_pou_members(&implementation.name).iter().filter(|it| predicate(it)).filter_map(
-                |it| {
-                    let dti = self.index.get_type_information_or_void(it.get_type_name());
-                    if dti.is_struct() {
-                        Some(create_call_statement(
-                            &get_init_fn_name(&dti.get_name()),
-                            it.get_name(),
-                            None,
-                            self.ctxt.get_id_provider(),
-                            &implementation.name_location,
-                        ))
-                    } else {
-                        None
-                    }
+            self.index.get_pou_members(&implementation.name).iter().filter(|var| predicate(var)).filter_map(
+                |var| {
+                    self.index.get_effective_type_by_name(var.get_type_name()).ok().and_then(|dt|{
+                        let dti = dt.get_type_information();
+                        if dti.is_struct() {
+                            Some(create_call_statement(
+                                &get_init_fn_name(&dti.get_name()),
+                                var.get_name(),
+                                None,
+                                self.ctxt.get_id_provider(),
+                                &implementation.name_location,
+                            ))
+                        } else { None }
+                    })
                 },
             );
 
