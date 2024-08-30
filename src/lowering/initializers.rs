@@ -182,7 +182,8 @@ fn create_init_unit(
         .get_container_members(container_name)
         .iter()
         .filter_map(|member| {
-            let type_name = member.get_type_name();
+            let member_type_name = member.get_type_name();
+            let type_name = lowerer.index.get_effective_type_by_name(member_type_name).map(|it| it.get_type_information().get_name()).unwrap_or(member_type_name);
             let call_name = get_init_fn_name(type_name);
             // TODO: support temp accessors && external declarations
             if !member.is_temp() && all_init_units.contains(type_name) {
@@ -213,7 +214,25 @@ fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) ->
     let mut id_provider = lowerer.ctxt.id_provider.clone();
     let init_pou = new_pou(init_symbol_name, vec![], &SourceLocation::internal());
 
-    let init_functions = lowerer
+    let global_instances = if let Some(global_instances) = lowerer.unresolved_initializers
+        .get(GLOBAL_SCOPE)
+        .map(|it| it.keys().filter_map(|var_name| {
+            lowerer.index.find_variable(None, &[&var_name]).and_then(|it| {
+                lowerer.index.find_effective_type_by_name(it.get_type_name()).and_then(|dt| {
+                    let name = dt.get_type_information().get_name();
+                    if dt.get_type_information().is_struct() {
+                        Some((get_init_fn_name(name), var_name))
+                    } else {
+                        None
+                    }
+                })
+            })
+            
+        })) {
+            global_instances.collect::<Vec<_>>()
+        } else { vec![] };
+
+    let programs = lowerer
         .unresolved_initializers
         .iter()
         .filter_map(|(scope, _)| {
@@ -222,8 +241,7 @@ fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) ->
             } else {
                 None
             }
-        })
-        .collect::<Vec<_>>();
+        });
 
     let mut assignments = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
         stmts
@@ -235,10 +253,9 @@ fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) ->
     } else {
         vec![]
     };
-    let calls = init_functions
-        .iter()
+    let calls = programs.chain(global_instances.into_iter())
         .map(|(fn_name, param)| {
-            let op = create_member_reference(fn_name, id_provider.clone(), None);
+            let op = create_member_reference(&fn_name, id_provider.clone(), None);
             let param = create_member_reference(param, id_provider.clone(), None);
             AstFactory::create_call_statement(
                 op,
