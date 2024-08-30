@@ -66,22 +66,13 @@ impl AstLowerer {
         }
     }
 
-    fn walk_with_pou<T>(&mut self, t: &mut T, pou_name: Option<impl Into<String>>)
+    fn walk_with_scope<T>(&mut self, t: &mut T, pou_name: Option<impl Into<String>>)
     where
         T: WalkerMut,
     {
-        let old = self.ctxt.pou(pou_name.map(Into::into));
+        let old = self.ctxt.scope(pou_name.map(Into::into));
         t.walk(self);
-        self.ctxt.pou(old);
-    }
-
-    fn walk_with_qualifier<T>(&mut self, t: &mut T, qualifier: Option<impl Into<String>>)
-    where
-        T: WalkerMut,
-    {
-        let old = self.ctxt.qualifier(qualifier.map(Into::into));
-        t.walk(self);
-        self.ctxt.qualifier(old);
+        self.ctxt.scope(old);
     }
 
     fn collect_alias_and_reference_to_inits(&mut self, variable: &mut plc_ast::ast::Variable) {
@@ -102,10 +93,10 @@ impl AstLowerer {
             if variable_is_auto_deref_pointer {
                 self.unresolved_initializers.insert_initializer(
                     self.ctxt
-                        .get_pou()
+                        .get_scope()
                         .as_ref()
-                        .or(self.ctxt.get_qualifier().as_ref())
-                        .unwrap_or(&GLOBAL_SCOPE.to_owned()),
+                        .map(|it| it.as_str())
+                        .unwrap_or(&GLOBAL_SCOPE),
                     Some(&variable.name),
                     &Some(initializer.clone()),
                 );
@@ -160,18 +151,16 @@ impl AstLowerer {
         let delegated_calls =
             self.index.get_pou_members(&implementation.name).iter().filter(|var| predicate(var)).filter_map(
                 |var| {
-                    self.index.get_effective_type_by_name(var.get_type_name()).ok().and_then(|dt|{
-                        let dti = dt.get_type_information();
-                        if dti.is_struct() {
-                            Some(create_call_statement(
-                                &get_init_fn_name(&dti.get_name()),
-                                var.get_name(),
-                                None,
-                                self.ctxt.get_id_provider(),
-                                &implementation.name_location,
-                            ))
-                        } else { None }
-                    })
+                    let dti = self.index.get_effective_type_or_void_by_name(var.get_type_name()).get_type_information();
+                    if dti.is_struct() {
+                        Some(create_call_statement(
+                            &get_init_fn_name(&dti.get_name()),
+                            var.get_name(),
+                            None,
+                            self.ctxt.get_id_provider(),
+                            &implementation.name_location,
+                        ))
+                    } else { None }
                 },
             );
 
@@ -185,10 +174,13 @@ impl AstLowerer {
     /// Updates the scope and initialized variable for struct types. Adds entries for each encountered struct
     /// (this includes POU-structs, i.e. programs, ...) to the initializer map if no entry is present
     fn update_struct_initializers(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
-        if let DataType::StructType { name, .. } = &user_type.data_type {
-            let Some(name) = name else {
+        // alias == subrangetype?
+        let effective_type = user_type.data_type.get_name().and_then(|it| self.index.find_effective_type_by_name(it));
+        if let DataType::StructType { .. } = &user_type.data_type {
+            let Some(ty) = effective_type else {
                 return user_type.walk(self);
             };
+            let name = ty.get_name();
 
             let member_inits = self
                 .index
@@ -220,7 +212,7 @@ impl AstVisitorMut for AstLowerer {
     }
 
     fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
-        unit.walk(self)
+        self.walk_with_scope(unit, Some(GLOBAL_SCOPE))
     }
 
     fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
@@ -233,6 +225,12 @@ impl AstVisitorMut for AstLowerer {
     }
 
     fn visit_variable(&mut self, variable: &mut plc_ast::ast::Variable) {
+        if self.ctxt.is_global() && variable.data_type_declaration.get_referenced_type().is_some_and(|ty| {
+            // PROBLEM: global stdlib pou instances fail stdlib tests
+            self.index.get_effective_type_or_void_by_name(&ty).get_type_information().is_struct()
+        }){
+            self.unresolved_initializers.maybe_insert_initializer(GLOBAL_SCOPE, Some(variable.get_name()), &None);
+        }
         self.collect_alias_and_reference_to_inits(variable);
         variable.walk(self);
     }
@@ -252,7 +250,7 @@ impl AstVisitorMut for AstLowerer {
 
     fn visit_data_type(&mut self, data_type: &mut DataType) {
         if matches!(data_type, plc_ast::ast::DataType::StructType { .. }) {
-            self.walk_with_qualifier(data_type, data_type.get_name().map(ToOwned::to_owned))
+            self.walk_with_scope(data_type, data_type.get_name().map(ToOwned::to_owned))
         } else {
             data_type.walk(self)
         }
@@ -263,7 +261,7 @@ impl AstVisitorMut for AstLowerer {
             self.unresolved_initializers.maybe_insert_initializer(&pou.name, None, &None);
         }
 
-        self.walk_with_pou(pou, Some(&pou.name.to_owned()));
+        self.walk_with_scope(pou, Some(&pou.name.to_owned()));
     }
 
     fn visit_empty_statement(
@@ -430,10 +428,8 @@ impl AstVisitorMut for AstLowerer {
 
 #[derive(Clone, Default)]
 pub struct LoweringContext {
-    /// the type_name of the context for a reference (e.g. `a.b` where `a`'lwr type is the context of `b`)
-    qualifier: Option<String>,
-    /// optional context for references (e.g. `x` may mean `POU.x` if used inside `POU`'lwr body)
-    pou: Option<String>,
+    /// optional context for references (e.g. `x` may mean `POU.x` if used inside `POU` body or `STRUCT.x` if `x` is a member of `STRUCT`)
+    scope: Option<String>,
 
     pub id_provider: IdProvider,
 }
@@ -441,25 +437,20 @@ pub struct LoweringContext {
 // TODO: use &str with lifetimes, requires loads of changes to the visitor/walker traits
 impl LoweringContext {
     fn new(id_provider: IdProvider) -> Self {
-        Self { qualifier: None, pou: None, id_provider }
+        Self { scope: None, id_provider }
     }
 
-    /// updates the context's qualifer and returns the previous value
-    fn qualifier(&mut self, qualifier: Option<String>) -> Option<String> {
-        std::mem::replace(&mut self.qualifier, qualifier)
+    /// updates the context's scope and returns the previous value
+    fn scope(&mut self, pou: Option<String>) -> Option<String> {
+        std::mem::replace(&mut self.scope, pou)
     }
 
-    /// updates the context's pou and returns the previous value
-    fn pou(&mut self, pou: Option<String>) -> Option<String> {
-        std::mem::replace(&mut self.pou, pou)
+    fn get_scope(&self) -> &Option<String> {
+        &self.scope
     }
 
-    fn get_qualifier(&self) -> &Option<String> {
-        &self.qualifier
-    }
-
-    fn get_pou(&self) -> &Option<String> {
-        &self.pou
+    fn is_global(&self) -> bool {
+        self.scope.as_ref().is_some_and(|it| it.as_str() == GLOBAL_SCOPE)
     }
 
     fn get_id_provider(&self) -> IdProvider {

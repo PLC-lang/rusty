@@ -902,11 +902,114 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
 }
 
 #[test]
-fn alias() {
+fn global_instance() {
     let res = codegen(
         r#"
       VAR_GLOBAL
           ps: STRING;
+          fb: foo;
+      END_VAR
+
+      FUNCTION_BLOCK foo
+      VAR
+          s: REF_TO STRING := REF(ps);
+      END_VAR
+      END_FUNCTION_BLOCK
+
+      PROGRAM prog
+          fb();
+      END_PROGRAM
+      "#,
+    );
+
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { [81 x i8]* }
+    %prog = type {}
+
+    @ps = global [81 x i8] zeroinitializer, section "var-$RUSTY$ps:s8u81"
+    @fb = global %foo zeroinitializer, section "var-$RUSTY$fb:r1ps8u81"
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r0"
+
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+    entry:
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+    entry:
+      call void @foo(%foo* @fb)
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { [81 x i8]* }
+    %prog = type {}
+
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r0"
+    @ps = external global [81 x i8], section "var-$RUSTY$ps:s8u81"
+
+    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]" {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr0]" {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      ret void
+    }
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prog = type {}
+    %foo = type { [81 x i8]* }
+
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r0"
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @fb = external global %foo, section "var-$RUSTY$fb:r1ps8u81"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      call void @__init_foo(%foo* @fb)
+      ret void
+    }
+
+    declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr0]"
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+
+    declare void @__init_foo(%foo*) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]"
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+    "###);
+}
+
+
+#[test]
+fn aliased_types() {
+    let res = codegen(
+        r#"
+      VAR_GLOBAL
+          ps: STRING;
+          global_alias: alias;
       END_VAR    
 
       TYPE alias : foo; END_TYPE
@@ -926,32 +1029,88 @@ fn alias() {
       "#,
     );
 
-    insta::assert_snapshot!(res, @r###""###);
-}
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
-#[test]
-fn global_instance() {
-    let res = codegen(
-        r#"
-      VAR_GLOBAL
-          ps: STRING;
-          fb: foo;
-      END_VAR    
+    %foo = type { [81 x i8]* }
+    %prog = type { %foo }
 
+    @ps = global [81 x i8] zeroinitializer, section "var-$RUSTY$ps:s8u81"
+    @global_alias = global %foo zeroinitializer, section "var-$RUSTY$global_alias:r1ps8u81"
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r1r1ps8u81"
 
-      FUNCTION_BLOCK foo
-      VAR
-          s: REF_TO STRING := REF(ps);
-      END_VAR
-      END_FUNCTION_BLOCK
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+    entry:
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      ret void
+    }
 
-      PROGRAM prog
-          fb();
-      END_PROGRAM
-      "#,
-    );
+    define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+    entry:
+      %fb = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+      call void @foo(%foo* %fb)
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
 
-    insta::assert_snapshot!(res, @r###""###);
+    %foo = type { [81 x i8]* }
+    %prog = type { %foo }
+
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r1ps8u81"
+    @ps = external global [81 x i8], section "var-$RUSTY$ps:s8u81"
+
+    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]" {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr1r1ps8u81]" {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %fb = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__init_foo(%foo* %fb)
+      ret void
+    }
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prog = type { %foo }
+    %foo = type { [81 x i8]* }
+
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r1ps8u81"
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @global_alias = external global %foo, section "var-$RUSTY$global_alias:r1ps8u81"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      call void @__init_foo(%foo* @global_alias)
+      ret void
+    }
+
+    declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr1r1ps8u81]"
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    declare void @__init_foo(%foo*) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]"
+    "###);
 }
 
 #[test]
