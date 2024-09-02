@@ -6,8 +6,7 @@ use plc_util::convention::internal_type_name;
 
 use crate::{
     ast::{
-        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, HardwareAccess, Operator, Pou, UserTypeDeclaration, Variable, VariableBlockType,
+        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, HardwareAccess, HardwareAccessType, Operator, Pou, UserTypeDeclaration, Variable, VariableBlockType
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -154,17 +153,23 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
 
         // In any case, we have to inject initializers into aliased hardware access variables
         if let Some(ref node) = global_var.address {
-            if let AstStatement::HardwareAccess(HardwareAccess { address, .. }) = &node.stmt {
-                let mut name = address
+            if let AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) = &node.stmt {
+                let direction = match direction {
+                    HardwareAccessType::Input => "I",
+                    HardwareAccessType::Output => "O",
+                    HardwareAccessType::Memory => "M",
+                    HardwareAccessType::Global => "G",
+                };
+                let name = format!("__{direction}_{}", address
                     .iter()
                     .flat_map(|node| node.get_literal_integer_value())
                     .map(|val| val.to_string())
                     .collect::<Vec<_>>()
-                    .join(".");
+                    .join("."));
 
-                // I think "a AT %I*: DWORD;" should trigger this
-                if name.is_empty() {
-                    name = "FIXME".to_string();
+                // %I*: DWORD; should not be declared at this stage, it is just skipped
+                if matches!(access, DirectAccessType::Template) {
+                    continue;
                 }
 
                 let mangled_initializer = AstFactory::create_member_reference(

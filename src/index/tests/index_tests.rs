@@ -1683,7 +1683,7 @@ fn string_type_alias_without_size_is_indexed() {
 }
 
 #[test]
-fn aliased_hardware_access_variable_is_indexed() {
+fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
     // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
     // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
     // `1.2.3.4` of type BOOL that is being pointed at by (1)
@@ -1694,9 +1694,6 @@ fn aliased_hardware_access_variable_is_indexed() {
             END_VAR
         ",
     );
-
-    let foo = index.find_global_variable("foo").unwrap();
-    let foo_init_id = foo.initial_value.unwrap();
 
     // Although foo has no initial value in its declaration, we inject one in the pre-processor
     assert_debug_snapshot!(index.find_global_variable("foo").unwrap(), @r###"
@@ -1743,11 +1740,11 @@ fn aliased_hardware_access_variable_is_indexed() {
                         TextLocation {
                             line: 2,
                             column: 16,
-                            offset: 41,
+                            offset: 40,
                         }..TextLocation {
                             line: 2,
                             column: 29,
-                            offset: 54,
+                            offset: 53,
                         },
                     ),
                 },
@@ -1758,36 +1755,37 @@ fn aliased_hardware_access_variable_is_indexed() {
                 TextLocation {
                     line: 2,
                     column: 12,
-                    offset: 37,
+                    offset: 36,
                 }..TextLocation {
                     line: 2,
                     column: 15,
-                    offset: 40,
+                    offset: 39,
                 },
             ),
         },
         varargs: None,
     }
     "###);
+}
 
-    // ...the injected initial value is simply the internally created global mangled variabled
-    assert_debug_snapshot!(index.get_const_expressions().get_constant_statement(&foo_init_id), @r###"
-    Some(
-        ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "1.2.3.4",
-                },
-            ),
-            base: None,
-        },
-    )
-    "###);
+#[test]
+fn aliased_hardware_access_variable_creates_global_var_for_address() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
 
-    assert_debug_snapshot!(index.find_global_variable("1.2.3.4").unwrap(), @r###"
+
+    assert_debug_snapshot!(index.find_global_variable("__I_1.2.3.4").unwrap(), @r###"
     VariableIndexEntry {
-        name: "1.2.3.4",
-        qualified_name: "1.2.3.4",
+        name: "__I_1.2.3.4",
+        qualified_name: "__I_1.2.3.4",
         initial_value: None,
         argument_type: ByVal(
             Global,
@@ -1835,6 +1833,83 @@ fn aliased_hardware_access_variable_is_indexed() {
     "###);
 }
 
+#[test]
+fn aliased_hardware_access_variable_is_initialized_with_the_address_as_ref() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    let foo = index.find_global_variable("foo").unwrap();
+    let foo_init_id = foo.initial_value.unwrap();
+
+    // ...the injected initial value is simply the internally created global mangled variabled
+    assert_debug_snapshot!(index.get_const_expressions().get_constant_statement(&foo_init_id), @r###"
+    Some(
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "__I_1.2.3.4",
+                },
+            ),
+            base: None,
+        },
+    )
+    "###);
+
+}
+
+#[test]
+fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    assert_debug_snapshot!(index.find_type("__global_foo"), @r###"
+    Some(
+        DataType {
+            name: "__global_foo",
+            initial_value: None,
+            information: Pointer {
+                name: "__global_foo",
+                inner_type_name: "BOOL",
+                auto_deref: Some(
+                    Alias,
+                ),
+            },
+            nature: Any,
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 30,
+                        offset: 54,
+                    }..TextLocation {
+                        line: 2,
+                        column: 36,
+                        offset: 60,
+                    },
+                ),
+            },
+        },
+    )
+    "###);
+}
+
+#[test]
 fn init_function_is_indexed_unconditionally() {
     // GIVEN nothing
     // WHEN indexed
