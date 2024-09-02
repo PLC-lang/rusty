@@ -1781,11 +1781,10 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
         ",
     );
 
-
-    assert_debug_snapshot!(index.find_global_variable("__I_1.2.3.4").unwrap(), @r###"
+    assert_debug_snapshot!(index.find_global_variable("__PI_1.2.3.4").unwrap(), @r###"
     VariableIndexEntry {
-        name: "__I_1.2.3.4",
-        qualified_name: "__I_1.2.3.4",
+        name: "__PI_1.2.3.4",
+        qualified_name: "__PI_1.2.3.4",
         initial_value: None,
         argument_type: ByVal(
             Global,
@@ -1820,11 +1819,11 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
                     TextLocation {
                         line: 2,
                         column: 30,
-                        offset: 55,
+                        offset: 54,
                     }..TextLocation {
                         line: 2,
                         column: 36,
-                        offset: 61,
+                        offset: 60,
                     },
                 ),
             },
@@ -1855,14 +1854,13 @@ fn aliased_hardware_access_variable_is_initialized_with_the_address_as_ref() {
         ReferenceExpr {
             kind: Member(
                 Identifier {
-                    name: "__I_1.2.3.4",
+                    name: "__PI_1.2.3.4",
                 },
             ),
             base: None,
         },
     )
     "###);
-
 }
 
 #[test]
@@ -1904,6 +1902,141 @@ fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
                     },
                 ),
             },
+        },
+    )
+    "###);
+}
+
+#[test]
+fn address_used_in_2_aliases_only_created_once() {
+    // Given two aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `__I_1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            baz AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    dbg!(index.get_globals());
+    assert_debug_snapshot!(index.get_globals().get("__pi_1.2.3.4"), @r###"
+    Some(
+        VariableIndexEntry {
+            name: "__PI_1.2.3.4",
+            qualified_name: "__PI_1.2.3.4",
+            initial_value: None,
+            argument_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            data_type_name: "BOOL",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceLocation {
+                span: None,
+            },
+            varargs: None,
+        },
+    )
+    "###);
+}
+
+#[test]
+fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            bar AT %QX1.2.3.4 : BOOL;
+            foo1 AT %IW1.2.3.5 : WORD;
+            bar2 AT %QW1.2.3.5 : WORD;
+            END_VAR
+        ",
+    );
+
+    assert_debug_snapshot!(index.get_globals().get("__pi_1.2.3.4"), @r###"
+    Some(
+        VariableIndexEntry {
+            name: "__PI_1.2.3.4",
+            qualified_name: "__PI_1.2.3.4",
+            initial_value: None,
+            argument_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            data_type_name: "BOOL",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceLocation {
+                span: None,
+            },
+            varargs: None,
+        },
+    )
+    "###);
+    assert_debug_snapshot!(index.get_globals().get("__pi_1.2.3.5"), @r###"
+    Some(
+        VariableIndexEntry {
+            name: "__PI_1.2.3.5",
+            qualified_name: "__PI_1.2.3.5",
+            initial_value: None,
+            argument_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            data_type_name: "WORD",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceLocation {
+                span: None,
+            },
+            varargs: None,
+        },
+    )
+    "###);
+}
+
+#[test]
+fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            foo AT %ID1.2.3.4 : DWORD;
+            END_VAR
+        ",
+    );
+
+    assert_debug_snapshot!(index.get_globals().get("__pi_1.2.3.4"), @r###"
+    Some(
+        VariableIndexEntry {
+            name: "__PI_1.2.3.4",
+            qualified_name: "__PI_1.2.3.4",
+            initial_value: None,
+            argument_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            data_type_name: "BOOL",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceLocation {
+                span: None,
+            },
+            varargs: None,
         },
     )
     "###);
