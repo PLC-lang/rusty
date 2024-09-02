@@ -337,7 +337,7 @@ impl SourceLocation {
 
     pub fn is_in_unit(&self, unit: impl AsRef<str>) -> bool {
         if let Some(filename) = self.get_file_name() {
-            filename == unit.as_ref()
+            filename == unit.as_ref() || self.is_internal()
         } else {
             //Fallback, if no file is defined all files are local
             true
