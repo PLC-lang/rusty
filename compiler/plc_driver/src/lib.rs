@@ -242,10 +242,11 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
             None,
         )?;
 
-    // 1 : Parse, 2. Index, 3. Resolve / Annotate
+    // 1. Parse, 2. Index and 3. Resolve / Annotate
     let annotated_project = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
         .index(ctxt.provider())
         .annotate(ctxt.provider())
+    // 4. AST-lowering, re-index and re-resolve
         .lower(ctxt.provider());
 
     if compile_parameters.output_ast {
@@ -253,7 +254,7 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
         return Ok(());
     }
 
-    // 5 : Validate
+    // 5. Validate
     annotated_project.validate(&ctxt, &mut diagnostician)?;
 
     if let Some((location, format)) =
