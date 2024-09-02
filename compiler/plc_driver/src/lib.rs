@@ -246,7 +246,7 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
     let annotated_project = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
         .index(ctxt.provider())
         .annotate(ctxt.provider())
-    // 4. AST-lowering, re-index and re-resolve
+        // 4. AST-lowering, re-index and re-resolve
         .lower(ctxt.provider());
 
     if compile_parameters.output_ast {

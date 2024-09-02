@@ -207,8 +207,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             ));
             index.register_init_function(&pou.name);
             index.register_pou_type(datatype);
-
-            // index.register_pou_type(datatype); maybe solves accessor problem in codegen?
         }
         _ => {}
     };

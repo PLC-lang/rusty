@@ -244,7 +244,7 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
     }
 
     if let Some(ref initializer) = variable.initializer {
-        let type_lhs = context.index.find_type(inner_ty_name).unwrap(); // TODO: fix!
+        let type_lhs = context.index.find_type(inner_ty_name).unwrap();
         let type_rhs = context.annotations.get_type(initializer, context.index).unwrap();
 
         validate_pointer_assignment(context, validator, type_lhs, type_rhs, &initializer.location);
