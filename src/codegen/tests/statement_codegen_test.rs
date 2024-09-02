@@ -333,7 +333,7 @@ fn reference_to_string_assignment() {
 }
 
 #[test]
-#[ignore = "Not working because of REF(...) initializer; should be resolved with https://github.com/PLC-lang/rusty/pull/1259"]
+#[ignore = "REF(x) initializers where x is a local variable are not yet implemented (https://github.com/PLC-lang/rusty/issues/1286)"]
 fn alias_dint() {
     let content = codegen(
         r#"
@@ -350,7 +350,7 @@ fn alias_dint() {
 }
 
 #[test]
-#[ignore = "Not working because of REF(...) initializer; should be resolved with https://github.com/PLC-lang/rusty/pull/1259"]
+#[ignore = "REF(x) initializers where x is a local variable are not yet implemented (https://github.com/PLC-lang/rusty/issues/1286)"]
 fn alias_string() {
     let content = codegen(
         r#"
@@ -367,7 +367,7 @@ fn alias_string() {
 }
 
 #[test]
-#[ignore = "Not working because of REF(...) initializer; should be resolved with https://github.com/PLC-lang/rusty/pull/1259"]
+#[ignore = "REF(x) initializers where x is a local variable are not yet implemented (https://github.com/PLC-lang/rusty/issues/1286)"]
 fn alias_struct() {
     let content = codegen(
         r#"
@@ -379,8 +379,8 @@ fn alias_struct() {
 
         FUNCTION main
             VAR
-                foo AT bar : STRING;
-                bar : STRING;
+                foo AT bar : Node;
+                bar : Node;
             END_VAR
         END_FUNCTION
         "#,
