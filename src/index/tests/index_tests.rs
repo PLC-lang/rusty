@@ -1781,10 +1781,10 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
         ",
     );
 
-    assert_debug_snapshot!(index.find_global_variable("__PI_1.2.3.4").unwrap(), @r###"
+    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r###"
     VariableIndexEntry {
-        name: "__PI_1.2.3.4",
-        qualified_name: "__PI_1.2.3.4",
+        name: "__PI_1_2_3_4",
+        qualified_name: "__PI_1_2_3_4",
         initial_value: None,
         argument_type: ByVal(
             Global,
@@ -1854,7 +1854,7 @@ fn aliased_hardware_access_variable_is_initialized_with_the_address_as_ref() {
         ReferenceExpr {
             kind: Member(
                 Identifier {
-                    name: "__PI_1.2.3.4",
+                    name: "__PI_1_2_3_4",
                 },
             ),
             base: None,
@@ -1921,12 +1921,11 @@ fn address_used_in_2_aliases_only_created_once() {
         ",
     );
 
-    dbg!(index.get_globals());
-    assert_debug_snapshot!(index.get_globals().get("__pi_1.2.3.4"), @r###"
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
     Some(
         VariableIndexEntry {
-            name: "__PI_1.2.3.4",
-            qualified_name: "__PI_1.2.3.4",
+            name: "__PI_1_2_3_4",
+            qualified_name: "__PI_1_2_3_4",
             initial_value: None,
             argument_type: ByVal(
                 Global,
@@ -1961,11 +1960,11 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
         ",
     );
 
-    assert_debug_snapshot!(index.get_globals().get("__pi_1.2.3.4"), @r###"
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
     Some(
         VariableIndexEntry {
-            name: "__PI_1.2.3.4",
-            qualified_name: "__PI_1.2.3.4",
+            name: "__PI_1_2_3_4",
+            qualified_name: "__PI_1_2_3_4",
             initial_value: None,
             argument_type: ByVal(
                 Global,
@@ -1982,11 +1981,11 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
         },
     )
     "###);
-    assert_debug_snapshot!(index.get_globals().get("__pi_1.2.3.5"), @r###"
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_5"), @r###"
     Some(
         VariableIndexEntry {
-            name: "__PI_1.2.3.5",
-            qualified_name: "__PI_1.2.3.5",
+            name: "__PI_1_2_3_5",
+            qualified_name: "__PI_1_2_3_5",
             initial_value: None,
             argument_type: ByVal(
                 Global,
@@ -2019,11 +2018,11 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
         ",
     );
 
-    assert_debug_snapshot!(index.get_globals().get("__pi_1.2.3.4"), @r###"
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
     Some(
         VariableIndexEntry {
-            name: "__PI_1.2.3.4",
-            qualified_name: "__PI_1.2.3.4",
+            name: "__PI_1_2_3_4",
+            qualified_name: "__PI_1_2_3_4",
             initial_value: None,
             argument_type: ByVal(
                 Global,

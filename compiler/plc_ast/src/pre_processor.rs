@@ -168,7 +168,7 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
                         .flat_map(|node| node.get_literal_integer_value())
                         .map(|val| val.to_string())
                         .collect::<Vec<_>>()
-                        .join(".")
+                        .join("_")
                 );
 
                 // %I*: DWORD; should not be declared at this stage, it is just skipped
@@ -191,7 +191,6 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
                     address: None,
                     location: SourceLocation::internal(),
                 };
-                dbg!(&internal_mangled_var);
                 mangled_globals.push(internal_mangled_var);
             }
         }
