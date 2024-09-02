@@ -8,7 +8,8 @@ fn function_block_init_fn_created() {
     let id_provider = IdProvider::default();
     // GIVEN a function block with a ref initializer
     // WHEN lowered
-    let (unit, index) = index_with_ids("
+    let (unit, index) = index_with_ids(
+        "
         FUNCTION_BLOCK foo
         VAR
             s : STRING;
@@ -90,7 +91,8 @@ fn program_init_fn_created() {
     let id_provider = IdProvider::default();
     // GIVEN a program with a ref initializer
     // WHEN lowered
-    let (unit, index) = index_with_ids("
+    let (unit, index) = index_with_ids(
+        "
         PROGRAM foo
         VAR
             s : STRING;
@@ -169,7 +171,8 @@ fn program_init_fn_created() {
 #[test]
 fn init_wrapper_function_created() {
     let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids("
+    let (unit, index) = index_with_ids(
+        "
         VAR_GLOBAL
             s : STRING;
             gs : REFERENCE TO STRING := REF(s);

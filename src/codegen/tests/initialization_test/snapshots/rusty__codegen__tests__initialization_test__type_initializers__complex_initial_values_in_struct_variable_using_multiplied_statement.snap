@@ -39,7 +39,17 @@ entry:
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
+%MyStruct = type { %MyPoint, [4 x i16], i32 }
+%MyPoint = type { i32, i32 }
+
+@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r3r2i32i32ai16i32"
+@__MyPoint__init = external global %MyPoint, section "var-$RUSTY$__MyPoint__init:r2i32i32"
+@a = external global %MyStruct, section "var-$RUSTY$a:r3r2i32i32ai16i32"
+
 define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
 entry:
+  call void @__init_mystruct(%MyStruct* @a)
   ret void
 }
+
+declare void @__init_mystruct(%MyStruct*) section "fn-$RUSTY$__init_mystruct:v[pr3r2i32i32ai16i32]"

@@ -200,10 +200,12 @@ pub struct AnnotatedUnit {
 }
 
 impl AnnotatedUnit {
-    pub fn new(unit: CompilationUnit, dependencies: FxIndexSet<Dependency>, literals: StringLiterals) -> Self {
-        Self {
-            unit, dependencies, literals
-        }
+    pub fn new(
+        unit: CompilationUnit,
+        dependencies: FxIndexSet<Dependency>,
+        literals: StringLiterals,
+    ) -> Self {
+        Self { unit, dependencies, literals }
     }
 
     pub fn get_unit(&self) -> &CompilationUnit {
@@ -229,11 +231,16 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         let init_symbol_name = &self.get_project().get_init_symbol_name();
         let project = self.project;
         let units = self.units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect::<Vec<_>>();
-        let lowered = AstLowerer::lower(units, self.index, self.annotations, self.unresolvables, id_provider.clone(), init_symbol_name);
+        let lowered = AstLowerer::lower(
+            units,
+            self.index,
+            self.annotations,
+            self.unresolvables,
+            id_provider.clone(),
+            init_symbol_name,
+        );
         // XXX: this step can be looped until there were no further lowering-changes, however at this time lowering once should suffice
-        ParsedProject { project, units: lowered }
-            .index(id_provider.clone())
-            .annotate(id_provider)
+        ParsedProject { project, units: lowered }.index(id_provider.clone()).annotate(id_provider)
     }
 
     /// Validates the project, reports any new diagnostics on the fly
@@ -249,7 +256,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         let mut severity = diagnostician.handle(&diagnostics);
 
         //Perform per unit validation
-        self.units.iter().for_each(|AnnotatedUnit{ unit, ..}| {
+        self.units.iter().for_each(|AnnotatedUnit { unit, .. }| {
             // validate unit
             validator.visit_unit(&self.annotations, &self.index, unit);
             // log errors

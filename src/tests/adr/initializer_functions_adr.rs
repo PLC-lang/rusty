@@ -37,7 +37,8 @@ fn ref_initializer_is_marked_for_later_resolution() {
 #[test]
 fn ref_call_in_initializer_is_lowered_to_init_function() {
     let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids("
+    let (unit, index) = index_with_ids(
+        "
         FUNCTION_BLOCK foo
         VAR
             s : STRING;
@@ -82,7 +83,8 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
 #[test]
 fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids("
+    let (unit, index) = index_with_ids(
+        "
         FUNCTION_BLOCK foo
         VAR
             s : STRING;
@@ -276,7 +278,8 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
 #[test]
 fn global_initializers_are_wrapped_in_single_init_function() {
     let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids("
+    let (unit, index) = index_with_ids(
+        "
         VAR_GLOBAL
             s : STRING;
             gs : REFERENCE TO STRING := REF(s);
@@ -309,7 +312,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
         id_provider.clone(),
     );
     let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
-    
+
     assert!(index.find_pou("__init___testproject").is_some());
 
     let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
@@ -622,14 +625,18 @@ fn generating_init_functions() {
     %baz = type { %bar }
     %bar = type { %foo }
     %foo = type { [81 x i8]* }
+    %myStruct = type { i8, i8 }
 
     @baz_instance = external global %baz, section "var-$RUSTY$baz_instance:r1r1r1ps8u81"
     @__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r1r1ps8u81"
     @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2u8u8"
+    @s = external global %myStruct, section "var-$RUSTY$s:r2u8u8"
 
     define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
       call void @__init_baz(%baz* @baz_instance)
+      call void @__init_mystruct(%myStruct* @s)
       ret void
     }
 
@@ -640,6 +647,8 @@ fn generating_init_functions() {
     declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
 
     declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    declare void @__init_mystruct(%myStruct*) section "fn-$RUSTY$__init_mystruct:v[pr2u8u8]"
     "###);
 }
 

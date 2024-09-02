@@ -15,7 +15,6 @@ entry:
   %0 = bitcast %conditional_return* %conditional to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%conditional_return* @__conditional_return__init to i8*), i64 ptrtoint (%conditional_return* getelementptr (%conditional_return, %conditional_return* null, i32 1) to i64), i1 false)
   store i32 0, i32* %main, align 4
-  call void @__init_conditional_return(%conditional_return* %conditional)
   %val = getelementptr inbounds %conditional_return, %conditional_return* %conditional, i32 0, i32 0
   %load_my_val = load i32, i32* %my_val, align 4
   store i32 %load_my_val, i32* %val, align 4
@@ -43,18 +42,6 @@ then_block:                                       ; preds = %entry
 
 else_block:                                       ; preds = %entry
   store i32 10, i32* %val, align 4
-  ret void
-}
-
-define void @__init_conditional_return(%conditional_return* %0) section "fn-$RUSTY$__init_conditional_return:v[pr1i32]" {
-entry:
-  %self = alloca %conditional_return*, align 8
-  store %conditional_return* %0, %conditional_return** %self, align 8
-  ret void
-}
-
-define void @__init___plc() section "fn-$RUSTY$__init___plc:v" {
-entry:
   ret void
 }
 

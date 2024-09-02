@@ -92,11 +92,7 @@ impl AstLowerer {
 
             if variable_is_auto_deref_pointer {
                 self.unresolved_initializers.insert_initializer(
-                    self.ctxt
-                        .get_scope()
-                        .as_ref()
-                        .map(|it| it.as_str())
-                        .unwrap_or(&GLOBAL_SCOPE),
+                    self.ctxt.get_scope().as_ref().map(|it| it.as_str()).unwrap_or(GLOBAL_SCOPE),
                     Some(&variable.name),
                     &Some(initializer.clone()),
                 );
@@ -112,9 +108,7 @@ impl AstLowerer {
             let mut temps = InitAssignments::default();
             let ids = inits
                 .iter()
-                .filter(|(id, _)| {
-                    self.index.find_member(&implementation.name, id).is_some_and(|it| predicate(it))
-                })
+                .filter(|(id, _)| self.index.find_member(&implementation.name, id).is_some_and(predicate))
                 .map(|(id, _)| id.to_owned())
                 .collect::<Vec<_>>();
 
@@ -143,26 +137,31 @@ impl AstLowerer {
         let assignments = temps.into_iter().filter_map(|(lhs, init)| {
             init.as_ref().map(|it| {
                 let func = if it.is_call() { create_assignment } else { create_ref_assignment };
-                func(&lhs, None, &it, self.ctxt.get_id_provider())
+                func(&lhs, None, it, self.ctxt.get_id_provider())
             })
         });
 
         // collect necessary call statements to init-functions
-        let delegated_calls =
-            self.index.get_pou_members(&implementation.name).iter().filter(|var| predicate(var)).filter_map(
-                |var| {
-                    let dti = self.index.get_effective_type_or_void_by_name(var.get_type_name()).get_type_information();
-                    if dti.is_struct() {
-                        Some(create_call_statement(
-                            &get_init_fn_name(&dti.get_name()),
-                            var.get_name(),
-                            None,
-                            self.ctxt.get_id_provider(),
-                            &implementation.name_location,
-                        ))
-                    } else { None }
-                },
-            );
+        let delegated_calls = self
+            .index
+            .get_pou_members(&implementation.name)
+            .iter()
+            .filter(|var| predicate(var))
+            .filter_map(|var| {
+                let dti =
+                    self.index.get_effective_type_or_void_by_name(var.get_type_name()).get_type_information();
+                if dti.is_struct() {
+                    Some(create_call_statement(
+                        &get_init_fn_name(dti.get_name()),
+                        var.get_name(),
+                        None,
+                        self.ctxt.get_id_provider(),
+                        &implementation.name_location,
+                    ))
+                } else {
+                    None
+                }
+            });
 
         let stmts = assignments
             .chain(delegated_calls)
@@ -175,7 +174,8 @@ impl AstLowerer {
     /// (this includes POU-structs, i.e. programs, ...) to the initializer map if no entry is present
     fn update_struct_initializers(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
         // alias == subrangetype?
-        let effective_type = user_type.data_type.get_name().and_then(|it| self.index.find_effective_type_by_name(it));
+        let effective_type =
+            user_type.data_type.get_name().and_then(|it| self.index.find_effective_type_by_name(it));
         if let DataType::StructType { .. } = &user_type.data_type {
             let Some(ty) = effective_type else {
                 return user_type.walk(self);
@@ -204,18 +204,25 @@ impl AstLowerer {
             self.unresolved_initializers.maybe_insert_initializer(name, None, &user_type.initializer);
         }
     }
-    
+
     fn maybe_add_global_instance_initializer(&mut self, variable: &plc_ast::ast::Variable) {
-        if self.index.find_global_variable(variable.get_name()).is_some_and(|it| {
-            let info = self.index.get_effective_type_or_void_by_name(&it.get_type_name()).get_type_information();
-            if let Some(pou) = self.index.find_pou(info.get_name()) {
-                pou.get_linkage() != &LinkageType::External
-            } else {
-                info.is_struct()
-            }            
-        }) {
-            self.unresolved_initializers.maybe_insert_initializer(GLOBAL_SCOPE, Some(variable.get_name()), &None);
+        let Some(global) = self.index.find_global_variable(variable.get_name()) else {
+            return;
+        };
+
+        let info =
+            self.index.get_effective_type_or_void_by_name(global.get_type_name()).get_type_information();
+
+        if !info.is_struct()
+            || self
+                .index
+                .find_pou(info.get_name())
+                .is_some_and(|it| it.get_linkage() == &LinkageType::External)
+        {
+            return;
         }
+
+        self.unresolved_initializers.maybe_insert_initializer(GLOBAL_SCOPE, Some(variable.get_name()), &None);
     }
 }
 
@@ -238,7 +245,6 @@ impl AstVisitorMut for AstLowerer {
     }
 
     fn visit_variable(&mut self, variable: &mut plc_ast::ast::Variable) {
-      
         self.maybe_add_global_instance_initializer(variable);
         self.collect_alias_and_reference_to_inits(variable);
         variable.walk(self);
@@ -524,7 +530,7 @@ fn create_call_statement(
     mut id_provider: IdProvider,
     location: &SourceLocation,
 ) -> AstNode {
-    let op = create_member_reference(&operator, id_provider.clone(), None);
+    let op = create_member_reference(operator, id_provider.clone(), None);
     let param = create_member_reference(
         member_id,
         id_provider.clone(),

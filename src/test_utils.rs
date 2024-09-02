@@ -109,8 +109,7 @@ pub mod tests {
         annotations
     }
 
-    type Lowered =
-        (AnnotationMapImpl, Index, Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>);
+    type Lowered = (AnnotationMapImpl, Index, Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>);
 
     pub fn annotate_and_lower_with_ids(
         parse_result: CompilationUnit,
@@ -119,7 +118,14 @@ pub mod tests {
     ) -> Lowered {
         let (mut index, unresolvables) = evaluate_constants(index);
         let annotation_map = annotate_with_ids(&parse_result, &mut index, id_provider.clone());
-        let lowered = AstLowerer::lower(vec![parse_result], index, AstAnnotations::new(annotation_map, id_provider.next_id()) ,unresolvables, id_provider.clone(), &get_project_init_symbol());
+        let lowered = AstLowerer::lower(
+            vec![parse_result],
+            index,
+            AstAnnotations::new(annotation_map, id_provider.next_id()),
+            unresolvables,
+            id_provider.clone(),
+            &get_project_init_symbol(),
+        );
 
         let mut index = Index::default();
         let builtins = builtins::parse_built_ins(id_provider.clone());
@@ -129,21 +135,28 @@ pub mod tests {
             index.register_type(data_type);
         }
 
-        let indexed_units = lowered.into_iter().map(|mut unit| {
-            pre_process(&mut unit, id_provider.clone());
-            index.import(index::visitor::visit(&unit));
-            unit
-        }).collect::<Vec<_>>();
+        let indexed_units = lowered
+            .into_iter()
+            .map(|mut unit| {
+                pre_process(&mut unit, id_provider.clone());
+                index.import(index::visitor::visit(&unit));
+                unit
+            })
+            .collect::<Vec<_>>();
         let (mut full_index, _) = evaluate_constants(index);
-        
+
         let mut all_annotations = AnnotationMapImpl::default();
-        let annotated_units = indexed_units.into_iter().map(|unit| {
-            let (mut annotations, dependencies, literals) = TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
-            full_index.import(std::mem::take(&mut annotations.new_index));
-            all_annotations.import(annotations);
-            (unit, dependencies, literals)
-        }).collect::<Vec<_>>();     
-            
+        let annotated_units = indexed_units
+            .into_iter()
+            .map(|unit| {
+                let (mut annotations, dependencies, literals) =
+                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
+                full_index.import(std::mem::take(&mut annotations.new_index));
+                all_annotations.import(annotations);
+                (unit, dependencies, literals)
+            })
+            .collect::<Vec<_>>();
+
         (all_annotations, full_index, annotated_units)
     }
 

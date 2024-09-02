@@ -25,7 +25,15 @@ entry:
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
+%CONSTANTS_LANGUAGE = type { i16, i16, [21 x [11 x i8]], [21 x [3 x i8]], [36 x [11 x i8]], [36 x [4 x i8]], [48 x [4 x i8]] }
+
+@__CONSTANTS_LANGUAGE__init = external global %CONSTANTS_LANGUAGE, section "var-$RUSTY$__CONSTANTS_LANGUAGE__init:r7i16i16as8u11as8u3as8u11as8u4as8u4"
+@x = external global %CONSTANTS_LANGUAGE, section "var-$RUSTY$x:r7i16i16as8u11as8u3as8u11as8u4as8u4"
+
 define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
 entry:
+  call void @__init_constants_language(%CONSTANTS_LANGUAGE* @x)
   ret void
 }
+
+declare void @__init_constants_language(%CONSTANTS_LANGUAGE*) section "fn-$RUSTY$__init_constants_language:v[pr7i16i16as8u11as8u3as8u11as8u4as8u4]"

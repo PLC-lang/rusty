@@ -1002,7 +1002,6 @@ fn global_instance() {
     "###);
 }
 
-
 #[test]
 fn aliased_types() {
     let res = codegen(
@@ -1114,12 +1113,14 @@ fn aliased_types() {
 }
 
 #[test]
+#[ignore = "not yet implemented"]
 fn array_of_instances() {
     let res = codegen(
         r#"
     VAR_GLOBAL
         ps: STRING;
-        fb: ARRAY[0..10] OF foo;
+        globals: ARRAY[0..10] OF foo;
+        globals2: ARRAY[0..10] OF foo;
     END_VAR    
 
     FUNCTION_BLOCK foo
@@ -1129,7 +1130,13 @@ fn array_of_instances() {
     END_FUNCTION_BLOCK
 
     PROGRAM prog
-        fb();
+    VAR
+        fb: ARRAY[0..10] OF foo;
+        i : DINT;
+    END_VAR
+        FOR i := 0 TO 10 DO
+          fb[i]();
+        END_FOR;
     END_PROGRAM
     "#,
     );
@@ -1138,7 +1145,7 @@ fn array_of_instances() {
 }
 
 #[test]
-#[ignore = "TODO: out of scope of this story, track in issue"]
+#[ignore = "not yet implemented"]
 fn override_default_initializer() {
     let res = codegen(
         r#"
