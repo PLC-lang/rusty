@@ -1427,10 +1427,6 @@ impl Index {
         self.pous.get(&pou_name.to_lowercase())
     }
 
-    pub fn type_has_init_function(&self, type_name: &str) -> bool {
-        self.init_functions.get(&get_init_fn_name(type_name)).is_some()
-    }
-
     pub fn is_init_function(&self, pou_name: &str) -> bool {
         self.init_functions.get(pou_name).is_some()
     }

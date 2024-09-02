@@ -204,6 +204,19 @@ impl AstLowerer {
             self.unresolved_initializers.maybe_insert_initializer(name, None, &user_type.initializer);
         }
     }
+    
+    fn maybe_add_global_instance_initializer(&mut self, variable: &plc_ast::ast::Variable) {
+        if self.index.find_global_variable(variable.get_name()).is_some_and(|it| {
+            let info = self.index.get_effective_type_or_void_by_name(&it.get_type_name()).get_type_information();
+            if let Some(pou) = self.index.find_pou(info.get_name()) {
+                pou.get_linkage() != &LinkageType::External
+            } else {
+                info.is_struct()
+            }            
+        }) {
+            self.unresolved_initializers.maybe_insert_initializer(GLOBAL_SCOPE, Some(variable.get_name()), &None);
+        }
+    }
 }
 
 impl AstVisitorMut for AstLowerer {
@@ -212,7 +225,7 @@ impl AstVisitorMut for AstLowerer {
     }
 
     fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
-        self.walk_with_scope(unit, Some(GLOBAL_SCOPE))
+        unit.walk(self)
     }
 
     fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
@@ -225,12 +238,8 @@ impl AstVisitorMut for AstLowerer {
     }
 
     fn visit_variable(&mut self, variable: &mut plc_ast::ast::Variable) {
-        if self.ctxt.is_global() && variable.data_type_declaration.get_referenced_type().is_some_and(|ty| {
-            // PROBLEM: global stdlib pou instances fail stdlib tests
-            self.index.get_effective_type_or_void_by_name(&ty).get_type_information().is_struct()
-        }){
-            self.unresolved_initializers.maybe_insert_initializer(GLOBAL_SCOPE, Some(variable.get_name()), &None);
-        }
+      
+        self.maybe_add_global_instance_initializer(variable);
         self.collect_alias_and_reference_to_inits(variable);
         variable.walk(self);
     }
@@ -447,10 +456,6 @@ impl LoweringContext {
 
     fn get_scope(&self) -> &Option<String> {
         &self.scope
-    }
-
-    fn is_global(&self) -> bool {
-        self.scope.as_ref().is_some_and(|it| it.as_str() == GLOBAL_SCOPE)
     }
 
     fn get_id_provider(&self) -> IdProvider {
