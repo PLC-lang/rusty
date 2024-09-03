@@ -30,7 +30,6 @@ fn aliased_address_in_global_generated() {
       ret void
     }
     "###);
-
 }
 
 #[test]
@@ -65,7 +64,6 @@ fn duplicate_aliased_address_in_global_generated() {
       ret void
     }
     "###);
-
 }
 
 #[test]
@@ -141,4 +139,3 @@ fn address_variable_used_with_symbolic_name() {
     declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
     "###);
 }
-
