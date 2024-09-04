@@ -532,7 +532,7 @@
                     data_type_declaration: ref_ty.unwrap_or(global_var.data_type_declaration.clone()),
                     initializer: <span class="prelude-val">None</span>,
                     address: <span class="prelude-val">None</span>,
-                    location: SourceLocation::internal(),
+                    location: global_var.location.clone(),
                 };
                 mangled_globals.push(internal_mangled_var);
             }

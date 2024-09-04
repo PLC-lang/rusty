@@ -542,6 +542,14 @@
 <a href="#542" id="542">542</a>
 <a href="#543" id="543">543</a>
 <a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
     ops::Range,
@@ -873,6 +881,14 @@
     /// symbols that are created by the compiler on-the-fly.
     </span><span class="kw">pub fn </span>internal() -&gt; <span class="self">Self </span>{
         SourceLocation { span: CodeSpan::None, file: FileMarker::Internal }
+    }
+
+    <span class="doccomment">/// creates an internal SymbolLocation but specifies the CompilationUnit/File it was encountered in.
+    /// This can be necessary when checking if dependencies are located within the same unit as the internally generated
+    /// element
+    </span><span class="kw">pub fn </span>internal_in_unit(unit: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(unit) = unit <span class="kw">else </span>{ <span class="kw">return </span><span class="self">Self</span>::internal() };
+        SourceLocation { span: CodeSpan::None, file: FileMarker::File(unit) }
     }
 
     <span class="kw">pub fn </span>is_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
