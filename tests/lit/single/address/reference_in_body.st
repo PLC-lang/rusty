@@ -7,10 +7,12 @@ VAR_GLOBAL
 END_VAR
 
 FUNCTION main : DINT
+    __init___reference_in_body_st();
+
     %IX1.2.1 := TRUE;
-    printf('%d$N', a); //CHECK: 1
+    printf('%u$N', a); //CHECK: 1
     b := TRUE;
-    printf('%d$N', %QX1.2.2); //CHECK: 1
+    printf('%u$N', %QX1.2.2); //CHECK: 1
     %IX1.2.3 := 1337;
     printf('%d$N', c); //CHECK: 1337
     d := 98765;
