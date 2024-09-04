@@ -829,6 +829,8 @@
 <a href="#829" id="829">829</a>
 <a href="#830" id="830">830</a>
 <a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, Index, MemberInfo};
@@ -978,7 +980,8 @@
                 <span class="kw-2">&amp;</span>pou.name,
                 pou.name_location.clone(),
             )
-            .set_constant(<span class="bool-val">true</span>);
+            .set_constant(<span class="bool-val">true</span>)
+            .set_linkage(pou.linkage);
             index.register_global_initializer(<span class="kw-2">&amp;</span>global_struct_name, variable);
             index.register_pou(PouIndexEntry::create_function_block_entry(
                 <span class="kw-2">&amp;</span>pou.name,
@@ -996,7 +999,8 @@
                 <span class="kw-2">&amp;</span>pou.name,
                 pou.name_location.clone(),
             )
-            .set_constant(<span class="bool-val">true</span>);
+            .set_constant(<span class="bool-val">true</span>)
+            .set_linkage(pou.linkage);
             index.register_global_initializer(<span class="kw-2">&amp;</span>global_struct_name, variable);
             index.register_pou(PouIndexEntry::create_class_entry(
                 <span class="kw-2">&amp;</span>pou.name,
