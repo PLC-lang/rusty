@@ -331,6 +331,14 @@ impl SourceLocation {
         SourceLocation { span: CodeSpan::None, file: FileMarker::Internal }
     }
 
+    /// creates an internal SymbolLocation but specifies the CompilationUnit/File it was encountered in.
+    /// This can be necessary when checking if dependencies are located within the same unit as the internally generated
+    /// element
+    pub fn internal_in_unit(unit: Option<&'static str>) -> Self {
+        let Some(unit) = unit else { return Self::internal() };
+        SourceLocation { span: CodeSpan::None, file: FileMarker::File(unit) }
+    }
+
     pub fn is_internal(&self) -> bool {
         self.file.is_internal() && self.span == CodeSpan::None
     }
