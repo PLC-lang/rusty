@@ -1772,9 +1772,10 @@ impl<'i> TypeAnnotator<'i> {
                 let access_type = get_direct_access_type(&data.access);
                 self.annotate(statement, StatementAnnotation::value(access_type));
             }
-            AstStatement::HardwareAccess(data, ..) => {
-                let access_type = get_direct_access_type(&data.access);
-                self.annotate(statement, StatementAnnotation::value(access_type));
+            AstStatement::HardwareAccess(..) => {
+                if let Some(annotation) = self.resolve_reference_expression(statement, None, ctx) {
+                    self.annotate(statement, annotation.clone());
+                }
             }
             AstStatement::BinaryExpression(data, ..) => {
                 visit_all_statements!(self, ctx, &data.left, &data.right);
@@ -2103,6 +2104,12 @@ impl<'i> TypeAnnotator<'i> {
                 // x.%X1 - bit access
                 self.visit_statement(ctx, data.index.as_ref());
                 Some(StatementAnnotation::value(get_direct_access_type(&data.access)))
+            }
+            AstStatement::HardwareAccess(data, ..) => {
+                let name = data.get_mangled_variable_name();
+                ctx.resolve_strategy
+                    .iter()
+                    .find_map(|scope| scope.resolve_name(&name, qualifier, self.index, ctx))
             }
             _ => None,
         }

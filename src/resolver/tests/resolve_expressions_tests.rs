@@ -19,7 +19,7 @@ use crate::{
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, Dimension, TypeSize, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE,
-        LINT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
+        LINT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -3850,17 +3850,25 @@ fn resolve_return_variable_in_nested_call() {
 fn hardware_access_types_annotated() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
-        "PROGRAM prg
+        "
+        VAR_GLOBAL
+            a AT %IB1.1 : BYTE;
+            b AT %QW1.2 : INT;
+            c AT %MD1.3 : DINT;
+            d AT %GX1.4 : BOOL;
+            e AT %IL2.1 : LINT;
+        END_VAR
+        PROGRAM prg
         VAR
           x1,x2 : BYTE;
           y1,y2 : INT;
-          z1    : LINT;
+          z1 : LINT;
         END_VAR
-          x1 := %IB1.2;
+          x1 := %IB1.1;
           x2 := %QW1.2;
-          y1 := %MD1.2;
-          y2 := %GX1.2;
-          z1 := %Il2.3;
+          y1 := %MD1.3;
+          y2 := %GX1.4;
+          z1 := %Il2.1;
         ",
         id_provider.clone(),
     );
@@ -3869,35 +3877,35 @@ fn hardware_access_types_annotated() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[0]
     {
-        assert_type_and_hint!(&annotations, &index, right, BYTE_TYPE, Some(BYTE_TYPE));
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap());
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[1]
     {
-        assert_type_and_hint!(&annotations, &index, right, WORD_TYPE, Some(BYTE_TYPE));
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap());
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[2]
     {
-        assert_type_and_hint!(&annotations, &index, right, DWORD_TYPE, Some(INT_TYPE));
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap());
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[3]
     {
-        assert_type_and_hint!(&annotations, &index, right, BOOL_TYPE, Some(INT_TYPE));
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap());
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[4]
     {
-        assert_type_and_hint!(&annotations, &index, right, LWORD_TYPE, Some(LINT_TYPE));
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap());
     } else {
         unreachable!("Must be assignment")
     }
@@ -5449,5 +5457,59 @@ fn builtin_add_doesnt_annotate_replacement_ast_when_called_with_incorrect_type_n
     let stmt = &unit.implementations[0].statements[0];
     if let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(stmt) {
         panic!("Expected no replacement ast, got {:?}", statement)
+    }
+}
+
+#[test]
+fn hardware_address_in_body_resolves_to_global_var() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+            VAR_GLOBAL
+                myVarOut AT %QX1.2.3 : BOOL;
+                myVarIN AT %IX1.2.3 : BOOL;
+            END_VAR
+            FUNCTION main : DINT
+            VAR
+            END_VAR
+                %QX1.2.3 := TRUE;
+                myVarIn := %QX1.2.3;
+            END_FUNCTION
+            ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let stmt = &unit.implementations[0].statements[0].get_stmt();
+    if let AstStatement::Assignment(Assignment { left, .. }) = stmt {
+        insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r###"
+        Variable {
+            resulting_type: "BOOL",
+            qualified_name: "__PI_1_2_3",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
+    } else {
+        unreachable!("Should be an assignment")
+    }
+    let stmt = &unit.implementations[0].statements[1].get_stmt();
+    if let AstStatement::Assignment(Assignment { right, .. }) = stmt {
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "BOOL",
+            qualified_name: "__PI_1_2_3",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
+    } else {
+        unreachable!("Should be an assignment")
     }
 }

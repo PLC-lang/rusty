@@ -321,6 +321,6 @@ pub mod tests {
     }
 
     fn get_project_init_symbol() -> String {
-        format!("__init___testproject")
+        "__init___testproject".to_string()
     }
 }
