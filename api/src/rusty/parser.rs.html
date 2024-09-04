@@ -1216,6 +1216,8 @@
 <a href="#1216" id="1216">1216</a>
 <a href="#1217" id="1217">1217</a>
 <a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -2382,6 +2384,8 @@
 
     <span class="kw">let </span>parse_definition_opt = <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordReferenceTo) {
         parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">Some</span>(AutoDerefType::Reference))
+    } <span class="kw">else if </span>address.is_some() {
+        parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">Some</span>(AutoDerefType::Alias))
     } <span class="kw">else </span>{
         parse_full_data_type_definition(lexer, <span class="prelude-val">None</span>)
     };
