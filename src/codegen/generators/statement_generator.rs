@@ -286,10 +286,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             return self.generate_ref_assignment(left_statement, right_statement);
         };
 
-        //TODO: Also hacky but for now we cannot generate assignments for hardware access
-        if matches!(left_statement.get_stmt(), AstStatement::HardwareAccess { .. }) {
-            return Ok(());
-        }
         let exp_gen = self.create_expr_generator();
         let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
             it.get_basic_value_enum().try_into().map_err(|err| {

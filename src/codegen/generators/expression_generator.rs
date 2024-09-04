@@ -236,6 +236,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 };
                 Ok(val)
             }
+            AstStatement::HardwareAccess(..) => self
+                .create_llvm_pointer_value_for_reference(None, "address", expression)
+                .map(ExpressionValue::LValue),
             AstStatement::BinaryExpression(data) => self
                 .generate_binary_expression(&data.left, &data.right, &data.operator, expression)
                 .map(ExpressionValue::RValue),
@@ -244,10 +247,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             AstStatement::UnaryExpression(data) => {
                 self.generate_unary_expression(&data.operator, &data.value).map(ExpressionValue::RValue)
-            }
-            // TODO: Hardware access needs to be evaluated, see #648
-            AstStatement::HardwareAccess { .. } => {
-                Ok(ExpressionValue::RValue(self.llvm.i32_type().const_zero().into()))
             }
             AstStatement::ParenExpression(expr) => self.generate_expression_value(expr),
             //fallback
