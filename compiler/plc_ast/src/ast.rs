@@ -471,6 +471,20 @@ impl DataTypeDeclaration {
         let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = self else { return None };
         Some(referenced_type.to_owned())
     }
+
+    pub fn get_inner_pointer_ty(&self) -> Option<DataTypeDeclaration> {
+        match self {
+            DataTypeDeclaration::DataTypeReference { .. } => Some(self.clone()),
+
+            DataTypeDeclaration::DataTypeDefinition { data_type, .. } => {
+                if let DataType::PointerType { referenced_type, .. } = data_type {
+                    return referenced_type.get_inner_pointer_ty();
+                }
+
+                None
+            }
+        }
+    }
 }
 
 #[derive(PartialEq)]
