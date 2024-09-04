@@ -147,7 +147,8 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 &pou.name,
                 pou.name_location.clone(),
             )
-            .set_constant(true);
+            .set_constant(true)
+            .set_linkage(pou.linkage);
             index.register_global_initializer(&global_struct_name, variable);
             index.register_pou(PouIndexEntry::create_function_block_entry(
                 &pou.name,
@@ -165,7 +166,8 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 &pou.name,
                 pou.name_location.clone(),
             )
-            .set_constant(true);
+            .set_constant(true)
+            .set_linkage(pou.linkage);
             index.register_global_initializer(&global_struct_name, variable);
             index.register_pou(PouIndexEntry::create_class_entry(
                 &pou.name,
