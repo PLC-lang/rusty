@@ -5,9 +5,9 @@ use std::ops::Range;
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
-        DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
-        LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
-        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
+        Implementation, LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr,
+        TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -77,6 +77,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
                 continue;
             }
             KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
+            KeywordVarConfig => unit.var_config.extend(parse_config_variables(&mut lexer)), // can VAR_CONFIG be external?
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
                 let params = match lexer.token {
                     KeywordProgram => (PouType::Program, KeywordEndProgram),
@@ -1073,6 +1074,79 @@ fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
         variables.append(&mut line_vars);
     }
     variables
+}
+
+fn parse_config_variables(lexer: &mut ParseSession) -> Vec<ConfigVariable> {
+    lexer.advance();
+    let mut variables = vec![];
+    while lexer.token == Identifier {
+        let Some(configured_var) = try_parse_config_var(lexer) else {
+            continue;
+        };
+        variables.push(configured_var);
+    }
+    lexer.try_consume(&KeywordEndVar);
+    variables
+}
+
+fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
+    // read fully qualified var name
+    let start = lexer.location();
+    let mut segments: Vec<String> = vec![];
+    while lexer.token == Identifier {
+        let location = lexer.range();
+        let identifier_end = location.end;
+        segments.push(lexer.slice_and_advance());
+
+        if lexer.token == KeywordColon || lexer.token == KeywordAt {
+            break;
+        }
+
+        if !lexer.try_consume(&KeywordDot) {
+            let next_token_start = lexer.range().start;
+            lexer.accept_diagnostic(Diagnostic::missing_token(
+                format!("{KeywordDot:?}").as_str(),
+                lexer.source_range_factory.create_range(identifier_end..next_token_start),
+            ));
+        }
+    }
+
+    let location = start.span(&lexer.location());
+    if !lexer.try_consume(&KeywordAt) {
+        lexer.accept_diagnostic(Diagnostic::missing_token(
+            "AT", // TODO: refine message
+            lexer.location(),
+        ));
+    }
+
+    let HardwareAccess((direction, access_type)) = lexer.token else {
+        lexer.accept_diagnostic(Diagnostic::missing_token("hardware access", lexer.location()));
+        return None;
+    };
+
+    let Some(address) = parse_hardware_access(lexer, direction, access_type) else {
+        // is the diagnostic from `parse_hardware_access` enough here?
+        return None;
+    };
+
+    if !lexer.try_consume(&KeywordColon) {
+        lexer.accept_diagnostic(Diagnostic::missing_token(
+            format!("{KeywordColon:?}").as_str(),
+            lexer.location(),
+        ));
+    }
+
+    parse_data_type_definition(lexer, None).map(|(dt, init)| {
+        if init.is_some() {
+            lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+                format!("{KeywordSemicolon:?}").as_str(),
+                "Initializer",
+                lexer.last_location().span(&lexer.location()),
+            ))
+        }
+        lexer.try_consume(&KeywordSemicolon);
+        ConfigVariable::new(segments, dt, address, location)
+    })
 }
 
 fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> Option<Variable> {

@@ -285,8 +285,28 @@ impl PouType {
 }
 
 #[derive(Debug, PartialEq)]
+pub struct ConfigVariable {
+    name_segments: Vec<String>,
+    data_type: DataTypeDeclaration,
+    address: AstNode,
+    location: SourceLocation,
+}
+
+impl ConfigVariable {
+    pub fn new(
+        name_segments: Vec<String>,
+        data_type: DataTypeDeclaration,
+        address: AstNode,
+        location: SourceLocation,
+    ) -> Self {
+        Self { name_segments, data_type, address, location }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
+    pub var_config: Vec<ConfigVariable>,
     pub units: Vec<Pou>,
     pub implementations: Vec<Implementation>,
     pub user_types: Vec<UserTypeDeclaration>,
@@ -297,6 +317,7 @@ impl CompilationUnit {
     pub fn new(file_name: &str) -> Self {
         CompilationUnit {
             global_vars: Vec::new(),
+            var_config: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
             user_types: Vec::new(),
