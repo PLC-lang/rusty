@@ -1795,7 +1795,17 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {
-            span: None,
+            span: Range(
+                TextLocation {
+                    line: 2,
+                    column: 12,
+                    offset: 36,
+                }..TextLocation {
+                    line: 2,
+                    column: 15,
+                    offset: 39,
+                },
+            ),
         },
         varargs: None,
     }
@@ -1936,7 +1946,17 @@ fn address_used_in_2_aliases_only_created_once() {
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: None,
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 12,
+                        offset: 36,
+                    }..TextLocation {
+                        line: 2,
+                        column: 15,
+                        offset: 39,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -1975,7 +1995,17 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: None,
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 12,
+                        offset: 36,
+                    }..TextLocation {
+                        line: 2,
+                        column: 15,
+                        offset: 39,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -1996,7 +2026,17 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: None,
+                span: Range(
+                    TextLocation {
+                        line: 4,
+                        column: 12,
+                        offset: 112,
+                    }..TextLocation {
+                        line: 4,
+                        column: 16,
+                        offset: 116,
+                    },
+                ),
             },
             varargs: None,
         },
@@ -2033,7 +2073,17 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: None,
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 12,
+                        offset: 36,
+                    }..TextLocation {
+                        line: 2,
+                        column: 15,
+                        offset: 39,
+                    },
+                ),
             },
             varargs: None,
         },

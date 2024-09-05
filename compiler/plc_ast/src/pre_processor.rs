@@ -189,7 +189,7 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
                     data_type_declaration: ref_ty.unwrap_or(global_var.data_type_declaration.clone()),
                     initializer: None,
                     address: None,
-                    location: SourceLocation::internal(),
+                    location: global_var.location.clone(),
                 };
                 mangled_globals.push(internal_mangled_var);
             }
