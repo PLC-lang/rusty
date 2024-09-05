@@ -457,6 +457,16 @@ fn nested_initializer_pous() {
 
     declare void @baz(%baz*) section "fn-$RUSTY$baz:v"
 
+    define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr1r1ps8u81]" {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %b = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__init_baz(%baz* %b)
+      ret void
+    }
+
     define void @__init_baz(%baz* %0) section "fn-$RUSTY$__init_baz:v[pr1ps8u81]" {
     entry:
       %self = alloca %baz*, align 8
@@ -496,16 +506,6 @@ fn nested_initializer_pous() {
     }
 
     declare void @sideProg(%sideProg*) section "fn-$RUSTY$sideProg:v"
-
-    define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr1r1ps8u81]" {
-    entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
-      %b = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
-      call void @__init_baz(%baz* %b)
-      ret void
-    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -694,19 +694,19 @@ fn struct_types() {
 
     @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2ps8u81pas8u81"
     @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r2ps8u81pas8u81"
-    @s2 = external global [2 x [81 x i8]], section "var-$RUSTY$s2:as8u81"
     @s = external global [81 x i8], section "var-$RUSTY$s:s8u81"
+    @s2 = external global [2 x [81 x i8]], section "var-$RUSTY$s2:as8u81"
 
     define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2ps8u81pas8u81]" {
     entry:
       %self = alloca %myStruct*, align 8
       store %myStruct* %0, %myStruct** %self, align 8
       %deref = load %myStruct*, %myStruct** %self, align 8
-      %member2 = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1
-      store [2 x [81 x i8]]* @s2, [2 x [81 x i8]]** %member2, align 8
-      %deref1 = load %myStruct*, %myStruct** %self, align 8
-      %member = getelementptr inbounds %myStruct, %myStruct* %deref1, i32 0, i32 0
+      %member = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 0
       store [81 x i8]* @s, [81 x i8]** %member, align 8
+      %deref1 = load %myStruct*, %myStruct** %self, align 8
+      %member2 = getelementptr inbounds %myStruct, %myStruct* %deref1, i32 0, i32 1
+      store [2 x [81 x i8]]* @s2, [2 x [81 x i8]]** %member2, align 8
       ret void
     }
 
@@ -820,15 +820,15 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     source_filename = "__initializers"
 
     %myStruct = type {}
-    %prog = type {}
     %foo = type {}
+    %prog = type {}
     %cl = type {}
     %foo.m = type {}
     %cl.m = type {}
 
     @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r0"
-    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r0"
     @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r0"
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r0"
     @__cl__init = external global %cl, section "var-$RUSTY$__cl__init:r0"
 
     define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr0]" {
@@ -837,15 +837,6 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       store %myStruct* %0, %myStruct** %self, align 8
       ret void
     }
-
-    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr0]" {
-    entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
-      ret void
-    }
-
-    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
 
     define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr0]" {
     entry:
@@ -865,14 +856,14 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
 
     declare void @foo.m(%foo*, %foo.m*) section "fn-$RUSTY$foo.m:v"
 
-    define void @__init_cl(%cl* %0) section "fn-$RUSTY$__init_cl:v[pr0]" {
+    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr0]" {
     entry:
-      %self = alloca %cl*, align 8
-      store %cl* %0, %cl** %self, align 8
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
       ret void
     }
 
-    declare void @cl(%cl*) section "fn-$RUSTY$cl:v"
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
 
     define void @__init_cl.m(%cl.m* %0) section "fn-$RUSTY$__init_cl.m:v[pr0]" {
     entry:
@@ -882,6 +873,15 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     }
 
     declare void @cl.m(%cl*, %cl.m*) section "fn-$RUSTY$cl.m:v"
+
+    define void @__init_cl(%cl* %0) section "fn-$RUSTY$__init_cl:v[pr0]" {
+    entry:
+      %self = alloca %cl*, align 8
+      store %cl* %0, %cl** %self, align 8
+      ret void
+    }
+
+    declare void @cl(%cl*) section "fn-$RUSTY$cl:v"
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -899,4 +899,274 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
 
     declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
     "###);
+}
+
+#[test]
+fn global_instance() {
+    let res = codegen(
+        r#"
+      VAR_GLOBAL
+          ps: STRING;
+          fb: foo;
+      END_VAR
+
+      FUNCTION_BLOCK foo
+      VAR
+          s: REF_TO STRING := REF(ps);
+      END_VAR
+      END_FUNCTION_BLOCK
+
+      PROGRAM prog
+          fb();
+      END_PROGRAM
+      "#,
+    );
+
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { [81 x i8]* }
+    %prog = type {}
+
+    @ps = global [81 x i8] zeroinitializer, section "var-$RUSTY$ps:s8u81"
+    @fb = global %foo zeroinitializer, section "var-$RUSTY$fb:r1ps8u81"
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r0"
+
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+    entry:
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+    entry:
+      call void @foo(%foo* @fb)
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { [81 x i8]* }
+    %prog = type {}
+
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r0"
+    @ps = external global [81 x i8], section "var-$RUSTY$ps:s8u81"
+
+    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]" {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr0]" {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      ret void
+    }
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prog = type {}
+    %foo = type { [81 x i8]* }
+
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r0"
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @fb = external global %foo, section "var-$RUSTY$fb:r1ps8u81"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      call void @__init_foo(%foo* @fb)
+      ret void
+    }
+
+    declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr0]"
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+
+    declare void @__init_foo(%foo*) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]"
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+    "###);
+}
+
+#[test]
+fn aliased_types() {
+    let res = codegen(
+        r#"
+      VAR_GLOBAL
+          ps: STRING;
+          global_alias: alias;
+      END_VAR    
+
+      TYPE alias : foo; END_TYPE
+
+      FUNCTION_BLOCK foo
+      VAR
+          s: REF_TO STRING := REF(ps);
+      END_VAR
+      END_FUNCTION_BLOCK
+
+      PROGRAM prog
+      VAR
+          fb: alias;
+      END_VAR
+          fb();
+      END_PROGRAM
+      "#,
+    );
+
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { [81 x i8]* }
+    %prog = type { %foo }
+
+    @ps = global [81 x i8] zeroinitializer, section "var-$RUSTY$ps:s8u81"
+    @global_alias = global %foo zeroinitializer, section "var-$RUSTY$global_alias:r1ps8u81"
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r1r1ps8u81"
+
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+    entry:
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+    entry:
+      %fb = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+      call void @foo(%foo* %fb)
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { [81 x i8]* }
+    %prog = type { %foo }
+
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r1ps8u81"
+    @ps = external global [81 x i8], section "var-$RUSTY$ps:s8u81"
+
+    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]" {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr1r1ps8u81]" {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %fb = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__init_foo(%foo* %fb)
+      ret void
+    }
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prog = type { %foo }
+    %foo = type { [81 x i8]* }
+
+    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r1ps8u81"
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @global_alias = external global %foo, section "var-$RUSTY$global_alias:r1ps8u81"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      call void @__init_foo(%foo* @global_alias)
+      ret void
+    }
+
+    declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr1r1ps8u81]"
+
+    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    declare void @__init_foo(%foo*) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]"
+    "###);
+}
+
+#[test]
+#[ignore = "not yet implemented"]
+fn array_of_instances() {
+    let res = codegen(
+        r#"
+    VAR_GLOBAL
+        ps: STRING;
+        globals: ARRAY[0..10] OF foo;
+        globals2: ARRAY[0..10] OF foo;
+    END_VAR    
+
+    FUNCTION_BLOCK foo
+    VAR
+        s: REF_TO STRING := REF(ps);
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    PROGRAM prog
+    VAR
+        fb: ARRAY[0..10] OF foo;
+        i : DINT;
+    END_VAR
+        FOR i := 0 TO 10 DO
+          fb[i]();
+        END_FOR;
+    END_PROGRAM
+    "#,
+    );
+
+    insta::assert_snapshot!(res, @r###""###);
+}
+
+#[test]
+#[ignore = "not yet implemented"]
+fn override_default_initializer() {
+    let res = codegen(
+        r#"
+    VAR_GLOBAL
+        ps: STRING;
+    END_VAR
+
+    FUNCTION_BLOCK foo
+    VAR
+        s: REF_TO STRING := REF(ps);
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    PROGRAM prog
+    VAR
+        fb: foo := (s1 := REF(ps));
+    END_VAR
+        fb();
+    END_PROGRAM
+    "#,
+    );
+
+    insta::assert_snapshot!(res, @r###""###);
 }

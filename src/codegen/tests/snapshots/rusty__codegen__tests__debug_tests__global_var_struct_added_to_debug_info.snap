@@ -88,21 +88,48 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" !dbg !4 {
+%myStruct = type { i32, double, [11 x i32] }
+
+@__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r3i32f64ai32", !dbg !0
+@gStruct = external global %myStruct, section "var-$RUSTY$gStruct:r3i32f64ai32", !dbg !13
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" !dbg !20 {
 entry:
-  ret void, !dbg !9
+  call void @__init_mystruct(%myStruct* @gStruct), !dbg !24
+  ret void, !dbg !24
 }
 
-!llvm.module.flags = !{!0, !1}
-!llvm.dbg.cu = !{!2}
+declare !dbg !25 void @__init_mystruct(%myStruct*) section "fn-$RUSTY$__init_mystruct:v[pr3i32f64ai32]"
 
-!0 = !{i32 2, !"Dwarf Version", i32 5}
-!1 = !{i32 2, !"Debug Info Version", i32 3}
-!2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-!3 = !DIFile(filename: "__init___testproject", directory: "src")
-!4 = distinct !DISubprogram(name: "__init___testproject", linkageName: "__init___testproject", scope: !5, file: !5, type: !6, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-!5 = !DIFile(filename: "<internal>", directory: "")
-!6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
-!7 = !{null}
-!8 = !{}
-!9 = !DILocation(line: 0, scope: !4)
+!llvm.module.flags = !{!15, !16}
+!llvm.dbg.cu = !{!17}
+
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+!2 = !DIFile(filename: "<internal>", directory: "")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mystruct", scope: !2, file: !2, line: 2, size: 480, align: 64, flags: DIFlagPublic, elements: !4, identifier: "mystruct")
+!4 = !{!5, !7, !9}
+!5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 3, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+!6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 4, baseType: !8, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "LREAL", size: 64, encoding: DW_ATE_float, flags: DIFlagPublic)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !10, size: 352, align: 64, offset: 128, flags: DIFlagPublic)
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 352, align: 64, elements: !11)
+!11 = !{!12}
+!12 = !DISubrange(count: 11, lowerBound: 0)
+!13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
+!14 = distinct !DIGlobalVariable(name: "gStruct", scope: !2, file: !2, line: 11, type: !3, isLocal: false, isDefinition: true)
+!15 = !{i32 2, !"Dwarf Version", i32 5}
+!16 = !{i32 2, !"Debug Info Version", i32 3}
+!17 = distinct !DICompileUnit(language: DW_LANG_C, file: !18, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !19, splitDebugInlining: false)
+!18 = !DIFile(filename: "__init___testproject", directory: "src")
+!19 = !{!0, !13}
+!20 = distinct !DISubprogram(name: "__init___testproject", linkageName: "__init___testproject", scope: !2, file: !2, type: !21, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !23)
+!21 = !DISubroutineType(flags: DIFlagPublic, types: !22)
+!22 = !{null}
+!23 = !{}
+!24 = !DILocation(line: 0, scope: !20)
+!25 = distinct !DISubprogram(name: "__init_mystruct", linkageName: "__init_mystruct", scope: !2, file: !2, line: 2, type: !26, scopeLine: 2, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !23)
+!26 = !DISubroutineType(flags: DIFlagPublic, types: !27)
+!27 = !{null, !28}
+!28 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_myStruct", baseType: !3, size: 64, align: 64, dwarfAddressSpace: 1)

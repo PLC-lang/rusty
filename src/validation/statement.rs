@@ -830,7 +830,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
 
     // Assert that the right-hand side is a reference
-    if !assignment.right.is_reference() {
+    if !assignment.right.is_reference() && !assignment_location.is_internal() {
         validator.push_diagnostic(
             Diagnostic::new("Invalid assignment, expected a reference")
                 .with_location(&assignment.right.location)
@@ -857,9 +857,11 @@ fn validate_alias_assignment<T: AnnotationMap>(
     ref_assignment: &AstNode,
 ) {
     if let AstStatement::RefAssignment(Assignment { left, .. }) = ref_assignment.get_stmt() {
-        if context.annotations.get(left).is_some_and(|opt| {
-            opt.is_alias() && !context.qualifier.is_some_and(|it| context.index.is_init_function(it))
-        }) {
+        if context
+            .annotations
+            .get(left)
+            .is_some_and(|opt| opt.is_alias() && !ref_assignment.location.is_internal())
+        {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
                     "{} is an immutable alias variable, can not change the address",

@@ -376,6 +376,7 @@ pub enum ImplementationType {
     Action,
     Class,
     Method,
+    Init,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -419,7 +420,7 @@ impl From<&PouType> for ImplementationType {
     fn from(it: &PouType) -> Self {
         match it {
             PouType::Program => ImplementationType::Program,
-            PouType::Function => ImplementationType::Function,
+            PouType::Function | PouType::Init => ImplementationType::Function,
             PouType::FunctionBlock => ImplementationType::FunctionBlock,
             PouType::Action => ImplementationType::Action,
             PouType::Class => ImplementationType::Class,
@@ -1426,10 +1427,6 @@ impl Index {
         self.pous.get(&pou_name.to_lowercase())
     }
 
-    pub fn type_has_init_function(&self, type_name: &str) -> bool {
-        self.init_functions.get(&get_init_fn_name(type_name)).is_some()
-    }
-
     pub fn is_init_function(&self, pou_name: &str) -> bool {
         self.init_functions.get(pou_name).is_some()
     }
@@ -1448,22 +1445,7 @@ impl Index {
     }
 
     pub fn register_init_function(&mut self, name: &str) {
-        let init_name = get_init_fn_name(name);
-        self.init_functions.insert(init_name.clone());
-    }
-
-    pub fn register_global_init_function(&mut self, name: &str) {
-        let entry = PouIndexEntry::Function {
-            name: name.into(),
-            return_type: VOID_TYPE.into(),
-            generics: vec![],
-            linkage: LinkageType::Internal,
-            is_variadic: false,
-            location: SourceLocation::internal(),
-            is_generated: true,
-        };
-        self.register_pou(entry);
-        self.init_functions.insert(name.into());
+        self.init_functions.insert(name.to_string());
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {

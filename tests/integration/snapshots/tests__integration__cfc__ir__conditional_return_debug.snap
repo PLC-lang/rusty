@@ -2,61 +2,49 @@
 source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
 ---
-define i32 @foo(i32 %0) section "fn-$RUSTY$foo:i32[i32]" !dbg !6 {
+define i32 @foo(i32 %0) section "fn-$RUSTY$foo:i32[i32]" !dbg !4 {
 entry:
-  %foo = alloca i32, align 4, !dbg !11
-  %val = alloca i32, align 4, !dbg !11
-  call void @llvm.dbg.declare(metadata i32* %val, metadata !12, metadata !DIExpression()), !dbg !13
-  store i32 %0, i32* %val, align 4, !dbg !11
-  call void @llvm.dbg.declare(metadata i32* %foo, metadata !14, metadata !DIExpression()), !dbg !15
-  store i32 0, i32* %foo, align 4, !dbg !11
-  %load_val = load i32, i32* %val, align 4, !dbg !16
-  %tmpVar = icmp eq i32 %load_val, 5, !dbg !16
-  br i1 %tmpVar, label %then_block, label %else_block, !dbg !16
+  %foo = alloca i32, align 4, !dbg !9
+  %val = alloca i32, align 4, !dbg !9
+  call void @llvm.dbg.declare(metadata i32* %val, metadata !10, metadata !DIExpression()), !dbg !11
+  store i32 %0, i32* %val, align 4, !dbg !9
+  call void @llvm.dbg.declare(metadata i32* %foo, metadata !12, metadata !DIExpression()), !dbg !13
+  store i32 0, i32* %foo, align 4, !dbg !9
+  %load_val = load i32, i32* %val, align 4, !dbg !14
+  %tmpVar = icmp eq i32 %load_val, 5, !dbg !14
+  br i1 %tmpVar, label %then_block, label %else_block, !dbg !14
 
 then_block:                                       ; preds = %entry
-  %foo_ret = load i32, i32* %foo, align 4, !dbg !11
-  ret i32 %foo_ret, !dbg !11
+  %foo_ret = load i32, i32* %foo, align 4, !dbg !9
+  ret i32 %foo_ret, !dbg !9
 
 else_block:                                       ; preds = %entry
-  store i32 10, i32* %val, align 4, !dbg !17
-  %foo_ret1 = load i32, i32* %foo, align 4, !dbg !17
-  ret i32 %foo_ret1, !dbg !17
+  store i32 10, i32* %val, align 4, !dbg !15
+  %foo_ret1 = load i32, i32* %foo, align 4, !dbg !15
+  ret i32 %foo_ret1, !dbg !15
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-define void @__init___plc() section "fn-$RUSTY$__init___plc:v" !dbg !18 {
-entry:
-  ret void, !dbg !22
-}
-
 attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !llvm.module.flags = !{!0, !1}
-!llvm.dbg.cu = !{!2, !4}
+!llvm.dbg.cu = !{!2}
 
 !0 = !{i32 2, !"Dwarf Version", i32 5}
 !1 = !{i32 2, !"Debug Info Version", i32 3}
 !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
 !3 = !DIFile(filename: "<internal>.cfc", directory: "")
-!4 = distinct !DICompileUnit(language: DW_LANG_C, file: !5, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-!5 = !DIFile(filename: "__init___plc", directory: "")
-!6 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !3, file: !3, line: 1, type: !7, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !10)
-!7 = !DISubroutineType(flags: DIFlagPublic, types: !8)
-!8 = !{null, !9}
-!9 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!10 = !{}
-!11 = !DILocation(line: 3, scope: !6)
-!12 = !DILocalVariable(name: "val", scope: !6, file: !3, line: 1, type: !9)
-!13 = !DILocation(line: 1, column: 30, scope: !6)
-!14 = !DILocalVariable(name: "foo", scope: !6, file: !3, line: 1, type: !9, align: 32)
-!15 = !DILocation(line: 1, column: 9, scope: !6)
-!16 = !DILocation(line: 2, scope: !6)
-!17 = !DILocation(line: 5, scope: !6)
-!18 = distinct !DISubprogram(name: "__init___plc", linkageName: "__init___plc", scope: !19, file: !19, type: !20, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !4, retainedNodes: !10)
-!19 = !DIFile(filename: "<internal>", directory: "")
-!20 = !DISubroutineType(flags: DIFlagPublic, types: !21)
-!21 = !{null}
-!22 = !DILocation(line: 0, scope: !18)
+!4 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !3, file: !3, line: 1, type: !5, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+!5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+!6 = !{null, !7}
+!7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!8 = !{}
+!9 = !DILocation(line: 3, scope: !4)
+!10 = !DILocalVariable(name: "val", scope: !4, file: !3, line: 1, type: !7)
+!11 = !DILocation(line: 1, column: 30, scope: !4)
+!12 = !DILocalVariable(name: "foo", scope: !4, file: !3, line: 1, type: !7, align: 32)
+!13 = !DILocation(line: 1, column: 9, scope: !4)
+!14 = !DILocation(line: 2, scope: !4)
+!15 = !DILocation(line: 5, scope: !4)

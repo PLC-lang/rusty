@@ -16,8 +16,10 @@ pub mod tests {
     use crate::{
         builtins,
         codegen::{CodegenContext, GeneratedModule},
-        index::{self, Index},
-        lexer, parser,
+        index::{self, FxIndexSet, Index},
+        lexer,
+        lowering::AstLowerer,
+        parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
             StringLiterals, TypeAnnotator,
@@ -83,7 +85,6 @@ pub mod tests {
 
         pre_process(&mut unit, id_provider);
         index.import(index::visitor::visit(&unit));
-        index.register_global_init_function(&get_project_init_symbol());
         (unit, index, diagnostics)
     }
 
@@ -108,30 +109,55 @@ pub mod tests {
         annotations
     }
 
-    type Lowered =
-        (AnnotationMapImpl, Index, Vec<(CompilationUnit, index::FxIndexSet<Dependency>, StringLiterals)>);
+    type Lowered = (AnnotationMapImpl, Index, Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>);
 
     pub fn annotate_and_lower_with_ids(
         parse_result: CompilationUnit,
         index: Index,
-        id_provider: IdProvider,
+        mut id_provider: IdProvider,
     ) -> Lowered {
-        let (mut full_index, unresolvables) = evaluate_constants(index);
-
-        let (mut annotations, dependencies, literals) =
-            TypeAnnotator::visit_unit(&full_index, &parse_result, id_provider.clone());
-        full_index.import(std::mem::take(&mut annotations.new_index));
-        let mut annotated_units = vec![(parse_result, dependencies, literals)];
-        TypeAnnotator::lower_init_functions(
-            &get_project_init_symbol(),
+        let (mut index, unresolvables) = evaluate_constants(index);
+        let annotation_map = annotate_with_ids(&parse_result, &mut index, id_provider.clone());
+        let lowered = AstLowerer::lower(
+            vec![parse_result],
+            index,
+            AstAnnotations::new(annotation_map, id_provider.next_id()),
             unresolvables,
-            &mut annotations,
-            &mut full_index,
-            &id_provider,
-            &mut annotated_units,
+            id_provider.clone(),
+            &get_project_init_symbol(),
         );
 
-        (annotations, full_index, annotated_units)
+        let mut index = Index::default();
+        let builtins = builtins::parse_built_ins(id_provider.clone());
+        index.import(index::visitor::visit(&builtins));
+
+        for data_type in get_builtin_types() {
+            index.register_type(data_type);
+        }
+
+        let indexed_units = lowered
+            .into_iter()
+            .map(|mut unit| {
+                pre_process(&mut unit, id_provider.clone());
+                index.import(index::visitor::visit(&unit));
+                unit
+            })
+            .collect::<Vec<_>>();
+        let (mut full_index, _) = evaluate_constants(index);
+
+        let mut all_annotations = AnnotationMapImpl::default();
+        let annotated_units = indexed_units
+            .into_iter()
+            .map(|unit| {
+                let (mut annotations, dependencies, literals) =
+                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
+                full_index.import(std::mem::take(&mut annotations.new_index));
+                all_annotations.import(annotations);
+                (unit, dependencies, literals)
+            })
+            .collect::<Vec<_>>();
+
+        (all_annotations, full_index, annotated_units)
     }
 
     pub fn parse_and_validate_buffered(src: &str) -> String {
@@ -180,20 +206,8 @@ pub mod tests {
         let (unit, index, diagnostics) = do_index(src, id_provider.clone());
         reporter.handle(&diagnostics);
 
-        let (mut index, unresolvables) = evaluate_constants(index);
-        let (mut annotations, dependencies, literals) =
-            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
-        index.import(std::mem::take(&mut annotations.new_index));
-
-        let mut annotated_units = vec![(unit, dependencies, literals)];
-        TypeAnnotator::lower_init_functions(
-            &get_project_init_symbol(),
-            unresolvables,
-            &mut annotations,
-            &mut index,
-            &id_provider,
-            &mut annotated_units,
-        );
+        let (annotations, index, annotated_units) =
+            annotate_and_lower_with_ids(unit, index, id_provider.clone());
 
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
 
@@ -275,8 +289,6 @@ pub mod tests {
                 (unit, dependencies, literals)
             })
             .collect::<Vec<_>>();
-
-        // TODO: lowering here?
 
         let path = PathBuf::from_str("src").ok();
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());

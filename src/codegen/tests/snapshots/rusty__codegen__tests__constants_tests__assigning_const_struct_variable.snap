@@ -59,13 +59,17 @@ source_filename = "__init___testproject"
 
 @main_instance = external global %main, section "var-$RUSTY$main_instance:r1r2i16i16"
 @__Point__init = external global %Point, section "var-$RUSTY$__Point__init:r2i16i16"
+@const_strct = external global %Point, section "var-$RUSTY$const_strct:r2i16i16"
 
 define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
 entry:
   call void @__init_main(%main* @main_instance)
+  call void @__init_point(%Point* @const_strct)
   ret void
 }
 
 declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr1r2i16i16]"
 
 declare void @main(%main*) section "fn-$RUSTY$main:v"
+
+declare void @__init_point(%Point*) section "fn-$RUSTY$__init_point:v[pr2i16i16]"

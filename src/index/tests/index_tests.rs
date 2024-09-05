@@ -2090,14 +2090,3 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
     )
     "###);
 }
-
-#[test]
-fn init_function_is_indexed_unconditionally() {
-    // GIVEN nothing
-    // WHEN indexed
-    let (_, index) = index("");
-
-    // THEN we expect an `__init___testproject` function to be registered regardless
-    let init = index.find_pou("__init___testproject");
-    assert!(init.is_some());
-}

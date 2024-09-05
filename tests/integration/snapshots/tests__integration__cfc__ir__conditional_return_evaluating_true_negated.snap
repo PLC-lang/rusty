@@ -45,16 +45,4 @@ else_block:                                       ; preds = %entry
   ret void
 }
 
-define void @__init_conditional_return(%conditional_return* %0) section "fn-$RUSTY$__init_conditional_return:v[pr1i32]" {
-entry:
-  %self = alloca %conditional_return*, align 8
-  store %conditional_return* %0, %conditional_return** %self, align 8
-  ret void
-}
-
-define void @__init___plc() section "fn-$RUSTY$__init___plc:v" {
-entry:
-  ret void
-}
-
 attributes #0 = { argmemonly nofree nounwind willreturn }

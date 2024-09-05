@@ -81,11 +81,17 @@ source_filename = "__init___testproject"
 @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r2pr3u8u8u8pr3u8u8u8"
 @__STRUCT_params__init = external global %STRUCT_params, section "var-$RUSTY$__STRUCT_params__init:r3u8u8u8"
 @main_instance = external global %main, section "var-$RUSTY$main_instance:r0"
+@global1 = external global %STRUCT_params, section "var-$RUSTY$global1:r3u8u8u8"
+@global2 = external global %STRUCT_params, section "var-$RUSTY$global2:r3u8u8u8"
+@global3 = external global %STRUCT_params, section "var-$RUSTY$global3:r3u8u8u8"
 
 define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
 entry:
   call void @__init_prog(%prog* @prog_instance)
   call void @__init_main(%main* @main_instance)
+  call void @__init_struct_params(%STRUCT_params* @global1)
+  call void @__init_struct_params(%STRUCT_params* @global2)
+  call void @__init_struct_params(%STRUCT_params* @global3)
   ret void
 }
 
@@ -96,3 +102,5 @@ declare void @prog(%prog*) section "fn-$RUSTY$prog:v[pr3u8u8u8][pr3u8u8u8]"
 declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr0]"
 
 declare void @main(%main*) section "fn-$RUSTY$main:v"
+
+declare void @__init_struct_params(%STRUCT_params*) section "fn-$RUSTY$__init_struct_params:v[pr3u8u8u8]"
