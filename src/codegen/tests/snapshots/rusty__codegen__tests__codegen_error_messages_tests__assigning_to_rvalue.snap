@@ -7,5 +7,3 @@ error[E050]: Expression is not assignable
   │
 9 │             func(1 := 1);
   │                  ^^^^^^ Expression is not assignable
-
-

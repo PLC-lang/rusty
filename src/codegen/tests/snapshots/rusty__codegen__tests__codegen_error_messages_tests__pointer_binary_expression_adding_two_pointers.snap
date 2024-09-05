@@ -7,5 +7,3 @@ error[E071]: '+' operation must contain one int type
   │
 8 │         ptr := ptr + ptr;
   │                ^^^^^^^^^ '+' operation must contain one int type
-
-

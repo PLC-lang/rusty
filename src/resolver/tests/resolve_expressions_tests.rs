@@ -3877,35 +3877,85 @@ fn hardware_access_types_annotated() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[0]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap());
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "BYTE",
+            qualified_name: "__PI_1_1",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[1]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap());
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "INT",
+            qualified_name: "__PI_1_2",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[2]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap());
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "DINT",
+            qualified_name: "__M_1_3",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[3]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap());
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "BOOL",
+            qualified_name: "__G_1_4",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[4]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap());
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "LINT",
+            qualified_name: "__PI_2_1",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
     } else {
         unreachable!("Must be assignment")
     }
