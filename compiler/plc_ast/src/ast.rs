@@ -284,18 +284,6 @@ impl PouType {
     }
 }
 
-#[derive(PartialEq, Debug)]
-pub struct VarConfigBlock {
-    pub variables: Vec<ConfigVariable>,
-    pub location: SourceLocation,
-}
-
-impl Default for VarConfigBlock {
-    fn default() -> Self {
-        Self { variables: Default::default(), location: SourceLocation::undefined() }
-    }
-}
-
 #[derive(Debug, PartialEq)]
 pub struct ConfigVariable {
     pub name_segments: Vec<String>,
@@ -318,7 +306,7 @@ impl ConfigVariable {
 #[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
-    pub var_config: Vec<VarConfigBlock>,
+    pub var_config: Vec<ConfigVariable>,
     pub units: Vec<Pou>,
     pub implementations: Vec<Implementation>,
     pub user_types: Vec<UserTypeDeclaration>,

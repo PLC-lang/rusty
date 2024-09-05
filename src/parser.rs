@@ -7,7 +7,7 @@ use plc_ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
         Implementation, LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr,
-        TypeNature, UserTypeDeclaration, VarConfigBlock, Variable, VariableBlock, VariableBlockType,
+        TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -79,7 +79,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
             KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
             KeywordVarConfig => {
                 // can VAR_CONFIG be external? are multiple VAR_CONFIG blocks allowed?
-                unit.var_config.push(parse_var_config_block(&mut lexer))
+                unit.var_config.extend(parse_config_variables(&mut lexer))
             }
 
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
@@ -1077,14 +1077,6 @@ fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
         variables.append(&mut line_vars);
     }
     variables
-}
-
-fn parse_var_config_block(lexer: &mut ParseSession<'_>) -> VarConfigBlock {
-    let start = lexer.location();
-    let variables = parse_config_variables(lexer);
-    let location = start.span(&lexer.location());
-
-    VarConfigBlock { variables, location }
 }
 
 fn parse_config_variables(lexer: &mut ParseSession) -> Vec<ConfigVariable> {

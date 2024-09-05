@@ -211,42 +211,35 @@ fn mangle_hardware_access_variable_name(direction: &HardwareAccessType, address:
 }
 
 fn process_var_config_variables(unit: &mut CompilationUnit) {
-    let variables = unit.var_config.iter().map(|it| {
-        (
-            it.variables.iter().filter_map(|ConfigVariable { data_type, address, location, .. }| {
-                let AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) =
-                    &address.stmt
-                else {
-                    unreachable!("Must be parsed as hardware access")
-                };
+    let variables =
+        unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, location, .. }| {
+            let AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) = &address.stmt
+            else {
+                unreachable!("Must be parsed as hardware access")
+            };
 
-                if matches!(access, DirectAccessType::Template) {
-                    return None;
-                }
+            if matches!(access, DirectAccessType::Template) {
+                return None;
+            }
 
-                let name = mangle_hardware_access_variable_name(direction, address);
+            let name = mangle_hardware_access_variable_name(direction, address);
 
-                Some(Variable {
-                    name,
-                    data_type_declaration: data_type.clone(),
-                    initializer: None,
-                    address: None,
-                    location: location.clone(),
-                })
-            }),
-            it.location.clone(),
-        )
-    });
-    variables.into_iter().for_each(|(variables, location)| {
-        unit.global_vars.push(VariableBlock {
-            access: crate::ast::AccessModifier::Protected,
-            constant: false,
-            retain: false,
-            variables: variables.collect(),
-            variable_block_type: VariableBlockType::Global,
-            linkage: crate::ast::LinkageType::Internal,
-            location, // should this be internal?
+            Some(Variable {
+                name,
+                data_type_declaration: data_type.clone(),
+                initializer: None,
+                address: None,
+                location: location.clone(),
+            })
         });
+    unit.global_vars.push(VariableBlock {
+        access: crate::ast::AccessModifier::Protected,
+        constant: false,
+        retain: false,
+        variables: variables.collect(),
+        variable_block_type: VariableBlockType::Global,
+        linkage: crate::ast::LinkageType::Internal,
+        location: SourceLocation::internal(), // should this be internal?
     });
 }
 
