@@ -7,7 +7,7 @@ use plc_ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
         Implementation, LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr,
-        TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        TypeNature, UserTypeDeclaration, VarConfigBlock, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -77,7 +77,11 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
                 continue;
             }
             KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
-            KeywordVarConfig => unit.var_config.extend(parse_config_variables(&mut lexer)), // can VAR_CONFIG be external?
+            KeywordVarConfig => {
+                // can VAR_CONFIG be external? are multiple VAR_CONFIG blocks allowed?
+                unit.var_config.push(parse_var_config_block(&mut lexer))
+            }
+
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
                 let params = match lexer.token {
                     KeywordProgram => (PouType::Program, KeywordEndProgram),
@@ -121,7 +125,6 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
     }
     //the match in the loop will always return
 }
-
 fn parse_actions(
     lexer: &mut ParseSession,
     linkage: LinkageType,
@@ -1076,12 +1079,22 @@ fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
     variables
 }
 
+fn parse_var_config_block(lexer: &mut ParseSession<'_>) -> VarConfigBlock {
+    let start = lexer.location();
+    let variables = parse_config_variables(lexer);
+    let location = start.span(&lexer.location());
+
+    VarConfigBlock { variables, location }
+}
+
 fn parse_config_variables(lexer: &mut ParseSession) -> Vec<ConfigVariable> {
     parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| {
         lexer.advance();
         let mut variables = vec![];
         while lexer.token == Identifier {
-            let Some(configured_var) = parse_any_in_region(lexer, vec![KeywordSemicolon], try_parse_config_var) else {
+            let Some(configured_var) =
+                parse_any_in_region(lexer, vec![KeywordSemicolon], try_parse_config_var)
+            else {
                 continue;
             };
             variables.push(configured_var);

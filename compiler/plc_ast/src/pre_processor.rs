@@ -6,9 +6,9 @@ use plc_util::convention::internal_type_name;
 
 use crate::{
     ast::{
-        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, DirectAccessType, HardwareAccess, HardwareAccessType, Operator, Pou,
-        UserTypeDeclaration, Variable, VariableBlockType,
+        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit,
+        ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, HardwareAccess, HardwareAccessType,
+        Operator, Pou, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -38,6 +38,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
 
     //process all variables from GVLs
     process_global_variables(unit, &mut id_provider);
+    process_var_config_variables(unit);
 
     //process all variables in dataTypes
     let mut new_types = vec![];
@@ -156,20 +157,7 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
         // In any case, we have to inject initializers into aliased hardware access variables
         if let Some(ref node) = global_var.address {
             if let AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) = &node.stmt {
-                let direction = match direction {
-                    HardwareAccessType::Input | HardwareAccessType::Output => "PI",
-                    HardwareAccessType::Memory => "M",
-                    HardwareAccessType::Global => "G",
-                };
-                let name = format!(
-                    "__{direction}_{}",
-                    address
-                        .iter()
-                        .flat_map(|node| node.get_literal_integer_value())
-                        .map(|val| val.to_string())
-                        .collect::<Vec<_>>()
-                        .join("_")
-                );
+                let name = mangle_hardware_access_variable_name(direction, address);
 
                 // %I*: DWORD; should not be declared at this stage, it is just skipped
                 if matches!(access, DirectAccessType::Template) {
@@ -203,6 +191,63 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
             block.variables.push(new_var);
         }
     }
+}
+
+fn mangle_hardware_access_variable_name(direction: &HardwareAccessType, address: &Vec<AstNode>) -> String {
+    let direction = match direction {
+        HardwareAccessType::Input | HardwareAccessType::Output => "PI",
+        HardwareAccessType::Memory => "M",
+        HardwareAccessType::Global => "G",
+    };
+    format!(
+        "__{direction}_{}",
+        address
+            .iter()
+            .flat_map(|node| node.get_literal_integer_value())
+            .map(|val| val.to_string())
+            .collect::<Vec<_>>()
+            .join("_")
+    )
+}
+
+fn process_var_config_variables(unit: &mut CompilationUnit) {
+    let variables = unit.var_config.iter().map(|it| {
+        (
+            it.variables.iter().filter_map(|ConfigVariable { data_type, address, location, .. }| {
+                let AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) =
+                    &address.stmt
+                else {
+                    unreachable!("Must be parsed as hardware access")
+                };
+
+                if matches!(access, DirectAccessType::Template) {
+                    return None;
+                }
+
+                let name = mangle_hardware_access_variable_name(direction, address);
+
+                Some(Variable {
+                    name,
+                    data_type_declaration: data_type.clone(),
+                    initializer: None,
+                    address: None,
+                    location: location.clone(),
+                })
+            }),
+            it.location.clone(),
+        )
+    });
+    variables.into_iter().for_each(|(variables, location)| {
+        unit.global_vars.push(VariableBlock {
+            access: crate::ast::AccessModifier::Protected,
+            constant: false,
+            retain: false,
+            variables: variables.collect(),
+            variable_block_type: VariableBlockType::Global,
+            linkage: crate::ast::LinkageType::Internal,
+            location, // should this be internal?
+        });
+    });
 }
 
 fn build_enum_initializer(

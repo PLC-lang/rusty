@@ -247,3 +247,121 @@ fn date_and_time_constants_test() {
     assert_eq!(diag, vec![]);
     insta::assert_snapshot!(format!("{vars:#?}"));
 }
+
+#[test]
+fn var_config_test() {
+    let src = "
+    VAR_CONFIG
+        instance1.foo AT %IX3.1 : BOOL;
+        instance2.bar AT %IX5.6 : BOOL;
+    END_VAR
+    ";
+    let (result, diag) = parse(src);
+
+    assert!(diag.is_empty());
+    insta::assert_debug_snapshot!(result, @r###"
+    CompilationUnit {
+        global_vars: [],
+        var_config: [
+            ConfigVariable {
+                name_segments: [
+                    "instance1",
+                    "foo",
+                ],
+                data_type: DataTypeReference {
+                    referenced_type: "BOOL",
+                },
+                address: HardwareAccess {
+                    direction: Input,
+                    access: Bit,
+                    address: [
+                        LiteralInteger {
+                            value: 3,
+                        },
+                        LiteralInteger {
+                            value: 1,
+                        },
+                    ],
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 2,
+                                column: 22,
+                                offset: 38,
+                            }..TextLocation {
+                                line: 2,
+                                column: 31,
+                                offset: 47,
+                            },
+                        ),
+                    },
+                },
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 2,
+                            column: 8,
+                            offset: 24,
+                        }..TextLocation {
+                            line: 2,
+                            column: 24,
+                            offset: 40,
+                        },
+                    ),
+                },
+            },
+            ConfigVariable {
+                name_segments: [
+                    "instance2",
+                    "bar",
+                ],
+                data_type: DataTypeReference {
+                    referenced_type: "BOOL",
+                },
+                address: HardwareAccess {
+                    direction: Input,
+                    access: Bit,
+                    address: [
+                        LiteralInteger {
+                            value: 5,
+                        },
+                        LiteralInteger {
+                            value: 6,
+                        },
+                    ],
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 3,
+                                column: 22,
+                                offset: 78,
+                            }..TextLocation {
+                                line: 3,
+                                column: 31,
+                                offset: 87,
+                            },
+                        ),
+                    },
+                },
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 3,
+                            column: 8,
+                            offset: 64,
+                        }..TextLocation {
+                            line: 3,
+                            column: 24,
+                            offset: 80,
+                        },
+                    ),
+                },
+            },
+        ],
+        units: [],
+        implementations: [],
+        user_types: [],
+        file_name: "test.st",
+    }
+    "###);
+}
