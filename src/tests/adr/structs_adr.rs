@@ -92,10 +92,18 @@ fn default_values_of_a_struct() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
+    %Person = type { [6 x i8], [6 x i8], i16, i8 }
+
+    @__Person__init = external global %Person, section "var-$RUSTY$__Person__init:r4s8u6s8u6i16u8"
+    @p = external global %Person, section "var-$RUSTY$p:r4s8u6s8u6i16u8"
+
     define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
+      call void @__init_person(%Person* @p)
       ret void
     }
+
+    declare void @__init_person(%Person*) section "fn-$RUSTY$__init_person:v[pr4s8u6s8u6i16u8]"
     "###);
 }
 

@@ -5,16 +5,14 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
-use const_evaluator::UnresolvableConstant;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::hash::Hash;
 
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, pre_process, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Implementation,
-        JumpStatement, LinkageType, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
-        UserTypeDeclaration, Variable, VariableBlock,
+        self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
+        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
+        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -23,7 +21,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-use crate::index::{self, get_init_fn_name, FxIndexMap, FxIndexSet};
+use crate::index::{FxIndexMap, FxIndexSet};
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -40,8 +38,6 @@ pub mod generics;
 
 #[cfg(test)]
 mod tests;
-
-const GLOBAL_SCOPE: &str = "__global";
 
 /// helper macro that calls visit_statement for all given statements
 /// use like `visit_all_statements!(self, ctx, stmt1, stmt2, stmt3, ...)`
@@ -688,8 +684,6 @@ pub struct AnnotationMapImpl {
 
     // An index of newly created types
     pub new_index: Index,
-    // Newly encountered initializers
-    pub new_initializers: Initializers,
 }
 
 impl AnnotationMapImpl {
@@ -703,7 +697,6 @@ impl AnnotationMapImpl {
         self.type_hint_map.extend(other.type_hint_map);
         self.hidden_function_calls.extend(other.hidden_function_calls);
         self.new_index.import(other.new_index);
-        self.new_initializers.import(other.new_initializers);
     }
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name
@@ -771,78 +764,6 @@ impl StringLiterals {
         self.utf16.extend(other.utf16);
     }
 }
-
-/// POUs and datatypes which require initialization via generated function call.
-/// The key corresponds to the scope in which the initializers were encountered.
-/// The value corresponds to the assignment data, with the key being the assigned variable name
-/// and value being the initializer `AstNode`.
-type Initializers = FxIndexMap<String, InitAssignments>;
-
-trait Init<'rslv>
-where
-    Self: Sized + Default,
-{
-    fn new(candidates: &'rslv [const_evaluator::UnresolvableConstant]) -> Self;
-    fn maybe_insert_initializer(
-        &mut self,
-        scope: &str,
-        var_name: Option<&str>,
-        initializer: &Option<AstNode>,
-    );
-    fn import(&mut self, other: Self);
-}
-
-impl<'rslv> Init<'rslv> for Initializers {
-    fn new(candidates: &'rslv [const_evaluator::UnresolvableConstant]) -> Self {
-        let mut assignments = Self::default();
-        candidates
-            .iter()
-            .filter_map(|it| {
-                if let Some(index::const_expressions::UnresolvableKind::Address(init)) = &it.kind {
-                    // assume all initializers without scope/not in a container are global variables for now. type-defs are separated later
-                    Some((init.scope.clone().unwrap_or(GLOBAL_SCOPE.to_string()), init))
-                } else {
-                    None
-                }
-            })
-            .for_each(|(scope, data)| {
-                assignments.maybe_insert_initializer(
-                    &scope,
-                    Some(data.lhs.as_ref().unwrap_or(&data.target_type_name)),
-                    &data.initializer,
-                );
-            });
-
-        assignments
-    }
-
-    fn maybe_insert_initializer(
-        &mut self,
-        container_name: &str,
-        var_name: Option<&str>,
-        initializer: &Option<AstNode>,
-    ) {
-        let assignments = self.entry(container_name.to_string()).or_default();
-        let Some(var_name) = var_name else {
-            return;
-        };
-
-        // don't overwrite existing values
-        if assignments.contains_key(var_name) {
-            return;
-        }
-
-        assignments.insert(var_name.to_string(), initializer.clone());
-    }
-
-    fn import(&mut self, other: Self) {
-        other.into_iter().for_each(|(scope, data)| {
-            self.entry(scope).or_default().extend(data);
-        });
-    }
-}
-
-type InitAssignments = FxIndexMap<String, Option<AstNode>>;
 
 impl<'i> TypeAnnotator<'i> {
     /// constructs a new TypeAnnotater that works with the given index for type-lookups
@@ -925,326 +846,6 @@ impl<'i> TypeAnnotator<'i> {
         }
 
         (visitor.annotation_map, visitor.dependencies, visitor.string_literals)
-    }
-
-    // XXX: should this be part of the type annotator?
-    // once dedicated lowering pipeline-stage is introduced, think about moving to separate file/crate
-    pub fn lower_init_functions(
-        init_symbol_name: &str,
-        unresolvables: Vec<UnresolvableConstant>,
-        all_annotations: &mut AnnotationMapImpl,
-        full_index: &mut Index,
-        id_provider: &IdProvider,
-        annotated_units: &mut Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
-    ) {
-        let mut candidates = Initializers::new(&unresolvables);
-
-        // revisit all member variables without explicit initializers to find initializer-dependencies
-        // XXX: should this be done during `visit_unit` or should this be kept isolated?
-        let mut revisit_unit = |unit: &CompilationUnit| {
-            for type_ in &unit.user_types {
-                if let DataType::StructType { name, .. } = &type_.data_type {
-                    let Some(name) = name else {
-                        continue;
-                    };
-
-                    full_index
-                        .get_container_members(name)
-                        .iter()
-                        .filter_map(|var| {
-                            // struct member initializers don't have a qualifier/scope while evaluated in `const_evaluator.rs` and are registered as globals under their data-type name;
-                            // look for member initializers for this struct in the global initializers, remove them and add new entries with the correct qualifier and left-hand-side
-                            candidates
-                                .get_mut(GLOBAL_SCOPE)
-                                .and_then(|it| it.swap_remove(var.get_type_name()))
-                                .map(|node| (var.get_name(), node))
-                        })
-                        .for_each(|(lhs, it)| {
-                            all_annotations.new_initializers.maybe_insert_initializer(name, Some(lhs), &it);
-                        });
-
-                    all_annotations.new_initializers.maybe_insert_initializer(name, None, &type_.initializer);
-                }
-            }
-            for pou in &unit.units {
-                if !matches!(pou.linkage, LinkageType::External | LinkageType::BuiltIn) {
-                    all_annotations.new_initializers.maybe_insert_initializer(&pou.name, None, &None);
-                }
-            }
-        };
-
-        for unit in annotated_units.iter().map(|(units, _, _)| units) {
-            revisit_unit(unit)
-        }
-        candidates.import(std::mem::take(&mut all_annotations.new_initializers));
-
-        let res = TypeAnnotator::create_init_units(&*full_index, id_provider, &candidates);
-
-        if let Some((mut init_index, init_unit)) =
-            res.into_iter().reduce(|(mut acc_index, mut acc_unit), (index, unit)| {
-                acc_unit.import(unit);
-                acc_index.import(index);
-                (acc_index, acc_unit)
-            })
-        {
-            full_index.import(std::mem::take(&mut init_index));
-            let (annotation, dependencies, literals) =
-                TypeAnnotator::visit_unit(&*full_index, &init_unit, id_provider.clone());
-
-            annotated_units.push((init_unit, dependencies, literals));
-            all_annotations.import(annotation);
-
-            full_index.import(std::mem::take(&mut all_annotations.new_index));
-        }
-
-        if let Some((mut new_index, init_unit)) = TypeAnnotator::create_init_wrapper_function(
-            &*full_index,
-            id_provider,
-            &candidates,
-            init_symbol_name,
-        ) {
-            full_index.import(std::mem::take(&mut new_index));
-            let (a, deps, literals) =
-                TypeAnnotator::visit_unit(&*full_index, &init_unit, id_provider.clone());
-            annotated_units.push((init_unit, deps, literals));
-            all_annotations.import(a);
-        }
-
-        full_index.import(std::mem::take(&mut all_annotations.new_index));
-    }
-
-    fn create_init_units(
-        index: &Index,
-        id_provider: &IdProvider,
-        initializers: &Initializers,
-    ) -> Vec<(Index, CompilationUnit)> {
-        let lookup = initializers.keys().map(|it| it.as_str()).collect::<FxIndexSet<_>>();
-        initializers
-            .iter()
-            .filter_map(|(container, init)| {
-                // globals will be initialized in the `__init` body
-                if container == GLOBAL_SCOPE {
-                    return None;
-                }
-
-                TypeAnnotator::create_init_unit(container, index, id_provider, init, &lookup)
-            })
-            .collect()
-    }
-
-    fn create_init_unit(
-        container: &String,
-        index: &Index,
-        id_provider: &IdProvider,
-        initializations: &InitAssignments,
-        all_init_units: &FxIndexSet<&str>,
-    ) -> Option<(Index, CompilationUnit)> {
-        enum InitFnType {
-            StatefulPou,
-            Function,
-            Struct,
-        }
-
-        let init_fn_name = index::get_init_fn_name(container);
-        let (init_type, location) = index
-            .find_pou(container)
-            .map(|it| {
-                let ty = if it.is_function() { InitFnType::Function } else { InitFnType::StatefulPou };
-                (ty, it.get_location())
-            })
-            .unwrap_or_else(|| (InitFnType::Struct, &index.get_type_or_panic(container).location));
-
-        if matches!(init_type, InitFnType::Function) {
-            return None; // TODO: handle functions
-        };
-
-        let mut id_provider = id_provider.clone();
-        let (param, ident) = (
-            vec![VariableBlock::default().with_block_type(ast::VariableBlockType::InOut).with_variables(
-                vec![Variable {
-                    name: "self".into(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                        referenced_type: container.to_string(),
-                        location: location.clone(),
-                    },
-                    initializer: None,
-                    address: None,
-                    location: location.clone(),
-                }],
-            )],
-            "self".to_string(),
-        );
-
-        let init_pou = Pou {
-            name: init_fn_name.clone(),
-            variable_blocks: param,
-            pou_type: PouType::Function,
-            return_type: None,
-            location: location.clone(),
-            name_location: location.clone(),
-            poly_mode: None,
-            generics: vec![],
-            linkage: LinkageType::Internal,
-            super_class: None,
-        };
-
-        let mut statements = initializations
-            .iter()
-            .filter_map(|(lhs_name, initializer)| {
-                let lhs = create_member_reference(
-                    lhs_name,
-                    id_provider.clone(),
-                    Some(create_member_reference(&ident, id_provider.clone(), None)),
-                );
-                initializer
-                    .as_ref()
-                    .map(|node| AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
-            })
-            .collect::<Vec<_>>();
-
-        let member_init_calls = index
-            .get_container_members(container)
-            .iter()
-            .filter_map(|member| {
-                let type_name = member.get_type_name();
-                let call_name = get_init_fn_name(type_name);
-                // TODO: support temp accessors && external declarations
-                if !member.is_temp() && all_init_units.contains(type_name) {
-                    let op = create_member_reference(&call_name, id_provider.clone(), None);
-                    let param = create_member_reference(
-                        member.get_name(),
-                        id_provider.clone(),
-                        Some(create_member_reference("self", id_provider.clone(), None)),
-                    );
-                    Some(AstFactory::create_call_statement(
-                        op,
-                        Some(param),
-                        id_provider.next_id(),
-                        location.clone(),
-                    ))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-
-        statements.extend(member_init_calls);
-        let implementation = Implementation {
-            name: init_fn_name.clone(),
-            type_name: init_fn_name.clone(),
-            linkage: LinkageType::Internal,
-            pou_type: PouType::Function,
-            statements,
-            location: location.clone(),
-            name_location: location.clone(),
-            overriding: false,
-            generic: false,
-            access: None,
-        };
-
-        let mut new_unit = CompilationUnit {
-            global_vars: vec![],
-            units: vec![init_pou],
-            implementations: vec![implementation],
-            user_types: vec![],
-            file_name: "__initializers".into(),
-        };
-
-        pre_process(&mut new_unit, id_provider.clone());
-        let mut new_index = index::visitor::visit(&new_unit);
-        new_index.register_init_function(container);
-        Some((new_index, new_unit))
-    }
-
-    fn create_init_wrapper_function(
-        index: &Index,
-        id_provider: &IdProvider,
-        candidates: &Initializers,
-        symbol_name: &str,
-    ) -> Option<(Index, CompilationUnit)> {
-        if candidates.is_empty() {
-            return None;
-        }
-
-        let mut id_provider = id_provider.clone();
-        let init_pou = Pou {
-            name: symbol_name.into(),
-            variable_blocks: vec![],
-            pou_type: PouType::Function,
-            return_type: None,
-            location: SourceLocation::internal(),
-            name_location: SourceLocation::internal(),
-            poly_mode: None,
-            generics: vec![],
-            linkage: LinkageType::Internal,
-            super_class: None,
-        };
-
-        let init_functions = candidates
-            .iter()
-            .filter_map(|(scope, _)| {
-                if index.find_pou(scope).is_some_and(|pou| pou.is_program()) {
-                    let init_fn_name = get_init_fn_name(scope);
-                    Some((init_fn_name, scope))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-
-        let mut globals = if let Some(stmts) = candidates.get(GLOBAL_SCOPE) {
-            stmts
-                .iter()
-                .filter_map(|(var_name, initializer)| {
-                    initializer.as_ref().map(|it| {
-                        let global = create_member_reference(var_name, id_provider.clone(), None);
-                        AstFactory::create_assignment(global, it.clone(), id_provider.next_id())
-                    })
-                })
-                .collect::<Vec<_>>()
-        } else {
-            vec![]
-        };
-
-        let body = init_functions
-            .iter()
-            .map(|(fn_name, param)| {
-                let op = create_member_reference(fn_name, id_provider.clone(), None);
-                let param = create_member_reference(param, id_provider.clone(), None);
-                AstFactory::create_call_statement(
-                    op,
-                    Some(param),
-                    id_provider.next_id(),
-                    SourceLocation::internal(),
-                )
-            })
-            .collect::<Vec<_>>();
-
-        globals.extend(body);
-        let implementation = Implementation {
-            name: symbol_name.into(),
-            type_name: symbol_name.into(),
-            linkage: LinkageType::Internal,
-            pou_type: PouType::Function,
-            statements: globals,
-            location: SourceLocation::internal(),
-            name_location: SourceLocation::internal(),
-            overriding: false,
-            generic: false,
-            access: None,
-        };
-
-        let mut init_unit = CompilationUnit {
-            global_vars: vec![],
-            units: vec![init_pou],
-            implementations: vec![implementation],
-            user_types: vec![],
-            file_name: symbol_name.into(),
-        };
-
-        pre_process(&mut init_unit, id_provider.clone());
-        let new_index = index::visitor::visit(&init_unit);
-        Some((new_index, init_unit))
     }
 
     fn visit_user_type_declaration(&mut self, user_data_type: &UserTypeDeclaration, ctx: &VisitorContext) {
@@ -1477,47 +1078,10 @@ impl<'i> TypeAnnotator<'i> {
             return;
         }
 
-        self.replace_reference_pointer_initializer(variable_ty, initializer, ctx);
-
         self.annotation_map.annotate_type_hint(initializer, StatementAnnotation::value(&variable_ty.name));
         self.update_expected_types(variable_ty, initializer);
 
         self.type_hint_for_array_of_structs(variable_ty, initializer, ctx);
-    }
-
-    /// Wraps the initializer of a reference- or alias-pointer in a `REF` function call.
-    ///
-    /// Initializers already wrapped in a `REF` (or similiar) function call are however excluded, as we do
-    /// not want something like `REF(REF(...))`.
-    fn replace_reference_pointer_initializer(
-        &mut self,
-        variable_ty: &typesystem::DataType,
-        initializer: &AstNode,
-        ctx: &VisitorContext,
-    ) {
-        let variable_is_auto_deref_pointer = {
-            variable_ty.get_type_information().is_alias()
-                || variable_ty.get_type_information().is_reference_to()
-        };
-
-        let initializer_is_not_wrapped_in_ref_call = {
-            !(initializer.is_call()
-                && self.annotation_map.get_type(initializer, self.index).is_some_and(|opt| opt.is_pointer()))
-        };
-
-        if variable_is_auto_deref_pointer && initializer_is_not_wrapped_in_ref_call {
-            debug_assert!(builtins::get_builtin("REF").is_some(), "REF must exist for this use-case");
-            self.visit_statement(ctx, initializer);
-
-            let Some(lhs) = ctx.lhs else {
-                return;
-            };
-            self.annotation_map.new_initializers.maybe_insert_initializer(
-                ctx.pou.or(ctx.qualifier.as_deref()).as_ref().unwrap_or(&GLOBAL_SCOPE),
-                Some(lhs),
-                &Some(initializer.clone()),
-            );
-        }
     }
 
     fn type_hint_for_array_of_structs(
@@ -2452,14 +2016,6 @@ fn get_real_type_name_for(value: &str) -> &'static str {
     }
 
     REAL_TYPE
-}
-
-fn create_member_reference(name: &str, mut id_provider: IdProvider, base: Option<AstNode>) -> AstNode {
-    AstFactory::create_member_reference(
-        AstFactory::create_identifier(name, SourceLocation::internal(), id_provider.next_id()),
-        base,
-        id_provider.next_id(),
-    )
 }
 
 #[derive(Clone)]

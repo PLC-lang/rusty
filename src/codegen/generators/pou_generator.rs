@@ -108,6 +108,10 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     });
     for implementation in implementations {
         let type_name = implementation.get_type_name();
+        if index.is_init_function(type_name) {
+            // initializer functions don't need global constants to initialize members
+            continue;
+        }
         let pou_members = index.get_pou_members(type_name);
         let variables = pou_members.iter().filter(|it| it.is_local() || it.is_temp()).filter(|it| {
             let var_type =
@@ -413,7 +417,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // generate local variables
-        if implementation.pou_type == PouType::Function {
+        if matches!(implementation.pou_type, PouType::Function | PouType::Init) {
             self.generate_local_function_arguments_accessors(
                 &mut local_index,
                 &implementation.type_name,

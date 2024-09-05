@@ -6,60 +6,46 @@ expression: output_file_content_without_headers
 
 @main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r2i32i32", !dbg !0
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" !dbg !22 {
+define void @main(%main* %0) section "fn-$RUSTY$main:v" !dbg !12 {
 entry:
-  call void @llvm.dbg.declare(metadata %main* %0, metadata !26, metadata !DIExpression()), !dbg !27
-  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !28
-  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1, !dbg !28
-  store i32 0, i32* %a, align 4, !dbg !29
-  call void @main.newAction(%main* %0), !dbg !27
-  call void @main.newAction2(%main* %0), !dbg !30
-  ret void, !dbg !30
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !16, metadata !DIExpression()), !dbg !17
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !18
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1, !dbg !18
+  store i32 0, i32* %a, align 4, !dbg !19
+  call void @main.newAction(%main* %0), !dbg !17
+  call void @main.newAction2(%main* %0), !dbg !20
+  ret void, !dbg !20
 }
 
-define void @main.newAction(%main* %0) section "fn-$RUSTY$main.newAction:v" !dbg !31 {
+define void @main.newAction(%main* %0) section "fn-$RUSTY$main.newAction:v" !dbg !21 {
 entry:
-  call void @llvm.dbg.declare(metadata %main* %0, metadata !26, metadata !DIExpression()), !dbg !32
-  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !33
-  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1, !dbg !33
-  %load_a = load i32, i32* %a, align 4, !dbg !32
-  %tmpVar = add i32 %load_a, 1, !dbg !32
-  store i32 %tmpVar, i32* %a, align 4, !dbg !32
-  ret void, !dbg !32
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !16, metadata !DIExpression()), !dbg !22
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !23
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1, !dbg !23
+  %load_a = load i32, i32* %a, align 4, !dbg !22
+  %tmpVar = add i32 %load_a, 1, !dbg !22
+  store i32 %tmpVar, i32* %a, align 4, !dbg !22
+  ret void, !dbg !22
 }
 
-define void @main.newAction2(%main* %0) section "fn-$RUSTY$main.newAction2:v" !dbg !34 {
+define void @main.newAction2(%main* %0) section "fn-$RUSTY$main.newAction2:v" !dbg !24 {
 entry:
-  call void @llvm.dbg.declare(metadata %main* %0, metadata !26, metadata !DIExpression()), !dbg !35
-  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !36
-  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1, !dbg !36
-  %load_b = load i32, i32* %b, align 4, !dbg !37
-  %tmpVar = add i32 %load_b, 2, !dbg !37
-  store i32 %tmpVar, i32* %b, align 4, !dbg !37
-  ret void, !dbg !37
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !16, metadata !DIExpression()), !dbg !25
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !26
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1, !dbg !26
+  %load_b = load i32, i32* %b, align 4, !dbg !27
+  %tmpVar = add i32 %load_b, 2, !dbg !27
+  store i32 %tmpVar, i32* %b, align 4, !dbg !27
+  ret void, !dbg !27
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr2i32i32]" !dbg !38 {
-entry:
-  %self = alloca %main*, align 8, !dbg !42
-  call void @llvm.dbg.declare(metadata %main** %self, metadata !43, metadata !DIExpression()), !dbg !42
-  store %main* %0, %main** %self, align 8, !dbg !42
-  ret void, !dbg !42
-}
-
-define void @__init___plc() section "fn-$RUSTY$__init___plc:v" !dbg !44 {
-entry:
-  call void @__init_main(%main* @main_instance), !dbg !46
-  ret void, !dbg !46
-}
-
 attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !llvm.module.flags = !{!8, !9}
-!llvm.dbg.cu = !{!10, !12, !17}
+!llvm.dbg.cu = !{!10}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "main", scope: !2, file: !2, line: 1, type: !3, isLocal: false, isDefinition: true)
@@ -73,38 +59,19 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !9 = !{i32 2, !"Debug Info Version", i32 3}
 !10 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !11, splitDebugInlining: false)
 !11 = !{!0}
-!12 = distinct !DICompileUnit(language: DW_LANG_C, file: !13, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !14, splitDebugInlining: false)
-!13 = !DIFile(filename: "__initializers", directory: "")
-!14 = !{!15}
-!15 = !DIGlobalVariableExpression(var: !16, expr: !DIExpression())
-!16 = distinct !DIGlobalVariable(name: "main", scope: !2, file: !2, line: 1, type: !3, isLocal: false, isDefinition: true)
-!17 = distinct !DICompileUnit(language: DW_LANG_C, file: !18, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !19, splitDebugInlining: false)
-!18 = !DIFile(filename: "__init___plc", directory: "")
-!19 = !{!20}
-!20 = !DIGlobalVariableExpression(var: !21, expr: !DIExpression())
-!21 = distinct !DIGlobalVariable(name: "main", scope: !2, file: !2, line: 1, type: !3, isLocal: false, isDefinition: true)
-!22 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 1, type: !23, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !10, retainedNodes: !25)
-!23 = !DISubroutineType(flags: DIFlagPublic, types: !24)
-!24 = !{null}
-!25 = !{}
-!26 = !DILocalVariable(name: "main", scope: !22, file: !2, line: 1, type: !3)
-!27 = !DILocation(line: 1, scope: !22)
-!28 = !DILocation(line: 0, scope: !22)
-!29 = !DILocation(line: 3, scope: !22)
-!30 = !DILocation(line: 2, scope: !22)
-!31 = distinct !DISubprogram(name: "main.newAction", linkageName: "main.newAction", scope: !2, file: !2, type: !23, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !10, retainedNodes: !25)
-!32 = !DILocation(line: 1, scope: !31)
-!33 = !DILocation(line: 0, scope: !31)
-!34 = distinct !DISubprogram(name: "main.newAction2", linkageName: "main.newAction2", scope: !2, file: !2, type: !23, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !10, retainedNodes: !25)
-!35 = !DILocation(line: 1, scope: !34)
-!36 = !DILocation(line: 0, scope: !34)
-!37 = !DILocation(line: 2, scope: !34)
-!38 = distinct !DISubprogram(name: "__init_main", linkageName: "__init_main", scope: !2, file: !2, line: 1, type: !39, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !25)
-!39 = !DISubroutineType(flags: DIFlagPublic, types: !40)
-!40 = !{null, !41}
-!41 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_main", baseType: !3, size: 64, align: 64, dwarfAddressSpace: 1)
-!42 = !DILocation(line: 1, column: 8, scope: !38)
-!43 = !DILocalVariable(name: "self", scope: !38, file: !2, line: 1, type: !41)
-!44 = distinct !DISubprogram(name: "__init___plc", linkageName: "__init___plc", scope: !45, file: !45, type: !23, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !25)
-!45 = !DIFile(filename: "<internal>", directory: "")
-!46 = !DILocation(line: 0, scope: !44)
+!12 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 1, type: !13, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !10, retainedNodes: !15)
+!13 = !DISubroutineType(flags: DIFlagPublic, types: !14)
+!14 = !{null}
+!15 = !{}
+!16 = !DILocalVariable(name: "main", scope: !12, file: !2, line: 1, type: !3)
+!17 = !DILocation(line: 1, scope: !12)
+!18 = !DILocation(line: 0, scope: !12)
+!19 = !DILocation(line: 3, scope: !12)
+!20 = !DILocation(line: 2, scope: !12)
+!21 = distinct !DISubprogram(name: "main.newAction", linkageName: "main.newAction", scope: !2, file: !2, type: !13, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !10, retainedNodes: !15)
+!22 = !DILocation(line: 1, scope: !21)
+!23 = !DILocation(line: 0, scope: !21)
+!24 = distinct !DISubprogram(name: "main.newAction2", linkageName: "main.newAction2", scope: !2, file: !2, type: !13, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !10, retainedNodes: !15)
+!25 = !DILocation(line: 1, scope: !24)
+!26 = !DILocation(line: 0, scope: !24)
+!27 = !DILocation(line: 2, scope: !24)

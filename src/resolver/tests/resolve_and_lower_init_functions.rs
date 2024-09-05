@@ -19,7 +19,6 @@ fn function_block_init_fn_created() {
         ",
         id_provider.clone(),
     );
-
     let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
     // THEN we expect the index to now have a corresponding init function
@@ -29,7 +28,7 @@ fn function_block_init_fn_created() {
     let init_foo = &units[1];
     let implementation = &init_foo.implementations[0];
     assert_eq!(implementation.name, "__init_foo");
-    assert_eq!(implementation.pou_type, PouType::Function);
+    assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
     assert_debug_snapshot!(init_foo.units[0].variable_blocks[0].variables[0], @r###"
@@ -103,9 +102,7 @@ fn program_init_fn_created() {
         ",
         id_provider.clone(),
     );
-
     let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
-
     // THEN we expect the index to now have a corresponding init function
     assert!(index.find_pou("__init_foo").is_some());
     // AND we expect a new function to be created for it
@@ -113,7 +110,7 @@ fn program_init_fn_created() {
     let init_foo = &units[1];
     let implementation = &init_foo.implementations[0];
     assert_eq!(implementation.name, "__init_foo");
-    assert_eq!(implementation.pou_type, PouType::Function);
+    assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
     assert_debug_snapshot!(init_foo.units[0].variable_blocks[0].variables[0], @r###"
@@ -195,7 +192,6 @@ fn init_wrapper_function_created() {
         ",
         id_provider.clone(),
     );
-
     let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
     let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
 
@@ -210,7 +206,7 @@ fn init_wrapper_function_created() {
     let init = &units[2];
     let implementation = &init.implementations[0];
     assert_eq!(implementation.name, "__init___testproject");
-    assert_eq!(implementation.pou_type, PouType::Function);
+    assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have no parameters
     assert!(init.units[0].variable_blocks.is_empty());

@@ -26,7 +26,17 @@ entry:
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
+%Point = type { i32, i32, i32 }
+
+@__Point__init = external global %Point, section "var-$RUSTY$__Point__init:r3i32i32i32"
+@x = external global %Point, section "var-$RUSTY$x:r3i32i32i32"
+@empty = external global %Point, section "var-$RUSTY$empty:r3i32i32i32"
+
 define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
 entry:
+  call void @__init_point(%Point* @x)
+  call void @__init_point(%Point* @empty)
   ret void
 }
+
+declare void @__init_point(%Point*) section "fn-$RUSTY$__init_point:v[pr3i32i32i32]"

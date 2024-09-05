@@ -165,6 +165,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       %0 = bitcast %FOO* %f to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
+      call void @__init_foo(%FOO* %f)
       %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
       %load_error_bits = load i8, i8* %error_bits, align 1
       %shift = lshr i8 %load_error_bits, 0
@@ -213,6 +214,8 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
+
+    declare void @__init_foo(%FOO*) section "fn-$RUSTY$__init_foo:v[pr2u8u8]"
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -287,6 +290,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
       %0 = bitcast %FOO* %f to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
+      call void @__init_foo(%FOO* %f)
       call void @FOO(%FOO* %f)
       %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
       %2 = load i8, i8* %error_bits, align 1
@@ -298,6 +302,8 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
+
+    declare void @__init_foo(%FOO*) section "fn-$RUSTY$__init_foo:v[pr1u8]"
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -372,6 +378,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
       %0 = bitcast %FOO* %f to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
+      call void @__init_foo(%FOO* %f)
       call void @FOO(%FOO* %f)
       %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
       %2 = load i8, i8* %error_bits, align 1
@@ -383,6 +390,8 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
+
+    declare void @__init_foo(%FOO*) section "fn-$RUSTY$__init_foo:v[pr1u8]"
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -471,6 +480,8 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       %1 = bitcast %QUUX* %f to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%QUUX, %QUUX* @__QUUX__init, i32 0, i32 0), i64 ptrtoint (%QUUX* getelementptr (%QUUX, %QUUX* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
+      call void @__init_foo_struct(%foo_struct* %foo)
+      call void @__init_quux(%QUUX* %f)
       call void @QUUX(%QUUX* %f)
       %bar = getelementptr inbounds %foo_struct, %foo_struct* %foo, i32 0, i32 0
       %baz = getelementptr inbounds %bar_struct, %bar_struct* %bar, i32 0, i32 0
@@ -496,6 +507,10 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
+
+    declare void @__init_foo_struct(%foo_struct*) section "fn-$RUSTY$__init_foo_struct:v[pr1r1u64]"
+
+    declare void @__init_quux(%QUUX*) section "fn-$RUSTY$__init_quux:v[pr1u8]"
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0

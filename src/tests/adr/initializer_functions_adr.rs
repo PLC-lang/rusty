@@ -48,7 +48,6 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
         ",
         id_provider.clone(),
     );
-
     let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
     assert!(index.find_pou("__init_foo").is_some());
@@ -72,7 +71,7 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
                 variable_block_type: InOut,
             },
         ],
-        pou_type: Function,
+        pou_type: Init,
         return_type: None,
     }
     "###);
@@ -109,7 +108,6 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
         ",
         id_provider.clone(),
     );
-
     let (_, _, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
     let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
@@ -161,7 +159,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     "###);
 
     // the init-function for `bar` will have a `CallStatement` to `__init_foo` as its only statement, passing the member-instance `self.fb`
-    let init_bar_impl = &units[1].implementations[2];
+    let init_bar_impl = &units[1].implementations[1];
     assert_eq!(&init_bar_impl.name, "__init_bar");
     let statements = &init_bar_impl.statements;
     assert_eq!(statements.len(), 1);
@@ -200,7 +198,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     // the init-function for `baz` will have a `RefAssignment`, assigning `REF(d)` to `self.pd` (TODO: currently, it actually is an `Assignment`
     // in the AST which is redirected to `generate_ref_assignment` in codegen) followed by a `CallStatement` to `__init_bar`,
     // passing the member-instance `self.fb`
-    let init_baz_impl = &units[1].implementations[1];
+    let init_baz_impl = &units[1].implementations[2];
     assert_eq!(&init_baz_impl.name, "__init_baz");
     let statements = &init_baz_impl.statements;
     assert_eq!(statements.len(), 2);
@@ -271,6 +269,9 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
 /// collected and wrapped in a single `__init___<projectname>` function. This function does not take any arguments,
 /// since it only deals with global symbols. The symbol name is mangled with the current project name in order to avoid
 /// duplicate symbol errors when linking with previously compiled objects.
+/// collected and wrapped in a single `__init___<projectname>` function. This function does not take any arguments,
+/// since it only deals with global symbols. The symbol name is mangled with the current project name in order to avoid
+/// duplicate symbol errors when linking with previously compiled objects.
 /// Simple global variables with `REF` initializers have their respective addresses assigned,
 /// PROGRAM instances will have call statements to their initialization functions generated,
 /// passing the global instance as argument
@@ -310,8 +311,8 @@ fn global_initializers_are_wrapped_in_single_init_function() {
         ",
         id_provider.clone(),
     );
-
     let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
+
     assert!(index.find_pou("__init___testproject").is_some());
 
     let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
@@ -321,7 +322,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
     POU {
         name: "__init___testproject",
         variable_blocks: [],
-        pou_type: Function,
+        pou_type: Init,
         return_type: None,
     }
     "###);
@@ -369,7 +370,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
         operator: ReferenceExpr {
             kind: Member(
                 Identifier {
-                    name: "__init_bar",
+                    name: "__init_baz",
                 },
             ),
             base: None,
@@ -378,7 +379,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
             ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "bar",
+                        name: "baz",
                     },
                 ),
                 base: None,
@@ -391,7 +392,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
         operator: ReferenceExpr {
             kind: Member(
                 Identifier {
-                    name: "__init_baz",
+                    name: "__init_bar",
                 },
             ),
             base: None,
@@ -400,7 +401,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
             ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "baz",
+                        name: "bar",
                     },
                 ),
                 base: None,
@@ -565,35 +566,16 @@ fn generating_init_functions() {
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
 
+    %bar = type { %foo }
     %foo = type { [81 x i8]* }
     %myStruct = type { i8, i8 }
-    %bar = type { %foo }
     %baz = type { %bar }
 
+    @__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r1r1ps8u81"
     @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
     @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2u8u8"
-    @__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r1r1ps8u81"
     @baz_instance = external global %baz, section "var-$RUSTY$baz_instance:r1r1r1ps8u81"
     @s = external global %myStruct, section "var-$RUSTY$s:r2u8u8"
-
-    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]" {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
-      %ps = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
-      store [81 x i8]* bitcast (%myStruct* @s to [81 x i8]*), [81 x i8]** %ps, align 8
-      ret void
-    }
-
-    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
-
-    define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2u8u8]" {
-    entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
-      ret void
-    }
 
     define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr1r1ps8u81]" {
     entry:
@@ -606,6 +588,25 @@ fn generating_init_functions() {
     }
 
     declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
+
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2u8u8]" {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
+    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]" {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %ps = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store [81 x i8]* bitcast (%myStruct* @s to [81 x i8]*), [81 x i8]** %ps, align 8
+      ret void
+    }
 
     define void @__init_baz(%baz* %0) section "fn-$RUSTY$__init_baz:v[pr1r1r1ps8u81]" {
     entry:
@@ -624,14 +625,18 @@ fn generating_init_functions() {
     %baz = type { %bar }
     %bar = type { %foo }
     %foo = type { [81 x i8]* }
+    %myStruct = type { i8, i8 }
 
     @baz_instance = external global %baz, section "var-$RUSTY$baz_instance:r1r1r1ps8u81"
     @__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r1r1ps8u81"
     @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
+    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2u8u8"
+    @s = external global %myStruct, section "var-$RUSTY$s:r2u8u8"
 
     define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
       call void @__init_baz(%baz* @baz_instance)
+      call void @__init_mystruct(%myStruct* @s)
       ret void
     }
 
@@ -642,101 +647,114 @@ fn generating_init_functions() {
     declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
 
     declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+
+    declare void @__init_mystruct(%myStruct*) section "fn-$RUSTY$__init_mystruct:v[pr2u8u8]"
     "###);
+}
 
-    // This example shows how more complex initializers are generated. We expect the global default struct initializer `__myStruct__init`
-    // to be initialized with two null-pointers for the `REF_TO` and `ALIAS`, but `member3` should be initialized with its assigned value
-    // before `__init_myStruct` is called.
+/// When dealing with local stack-allocated variables (`VAR_TEMP`-blocks (in addition to `VAR` for functions)),
+/// initializing these variables in a fire-and-forget manner is no longer an option, since these variables are not "stateful"
+/// => they must be initialized upon every single call of the respective POU. For each of these variables, a new statement is
+/// inserted at the start/at the top of the body of their parent-POU. These statements are either a simple assignment- or
+/// a call-statement, depending on the assignee's datatype. Code written by the user will be executed as normal afterwards.
+#[test]
+fn intializing_temporary_variables() {
     let src = "
-    TYPE myStruct : STRUCT
-            member : REF_TO STRING := REF(s);
-            member2 AT s2 : ARRAY[0..1] OF STRING;
-            member3: DINT := 123456;
-        END_STRUCT
-    END_TYPE
-
     VAR_GLOBAL
-        s : STRING := 'Hello world!';
-        s2 : ARRAY[0..1] OF STRING := ['hello', 'world'];
+        ps: STRING;
+        ps2: STRING;
     END_VAR
 
-    PROGRAM prog 
-    VAR 
-        str: myStruct;
+    FUNCTION_BLOCK foo
+    VAR
+        s AT ps: STRING;
     END_VAR
-    END_PROGRAM
-    ";
+    VAR_TEMP
+        s2: REF_TO STRING := REF(ps2);
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION main: DINT
+    VAR
+        fb: foo;
+        s AT ps: STRING;
+        s2: REF_TO STRING := REF(ps2);
+    END_VAR
+        fb();
+    END_FUNCTION
+        ";
 
     let res = codegen(src);
     assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %prog = type { %myStruct }
-    %myStruct = type { [81 x i8]*, [2 x [81 x i8]]*, i32 }
+    %foo = type { [81 x i8]* }
 
-    @s = global [81 x i8] c"Hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "var-$RUSTY$s:s8u81"
-    @s2 = global [2 x [81 x i8]] [[81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"world\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], section "var-$RUSTY$s2:as8u81"
-    @prog_instance = global %prog { %myStruct { [81 x i8]* null, [2 x [81 x i8]]* null, i32 123456 } }, section "var-$RUSTY$prog_instance:r1r3ps8u81pas8u81i32"
-    @__myStruct__init = unnamed_addr constant %myStruct { [81 x i8]* null, [2 x [81 x i8]]* null, i32 123456 }, section "var-$RUSTY$__myStruct__init:r3ps8u81pas8u81i32"
+    @ps = global [81 x i8] zeroinitializer, section "var-$RUSTY$ps:s8u81"
+    @ps2 = global [81 x i8] zeroinitializer, section "var-$RUSTY$ps2:s8u81"
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r2ps8u81ps8u81"
 
-    define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
     entry:
-      %str = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s2 = alloca [81 x i8]*, align 8
+      store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
+      store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
       ret void
     }
+
+    define i32 @main() section "fn-$RUSTY$main:i32" {
+    entry:
+      %main = alloca i32, align 4
+      %fb = alloca %foo, align 8
+      %s = alloca [81 x i8]*, align 8
+      %s2 = alloca [81 x i8]*, align 8
+      %0 = bitcast %foo* %fb to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      %load_ps = load [81 x i8], [81 x i8]* @ps, align 1
+      store [81 x i8] %load_ps, [81 x i8]** %s, align 1
+      store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
+      store i32 0, i32* %main, align 4
+      store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
+      call void @__init_foo(%foo* %fb)
+      call void @foo(%foo* %fb)
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    declare void @__init_foo(%foo*) section "fn-$RUSTY$__init_foo:v[pr2ps8u81ps8u81]"
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
 
-    %myStruct = type { [81 x i8]*, [2 x [81 x i8]]*, i32 }
-    %prog = type { %myStruct }
+    %foo = type { [81 x i8]* }
 
-    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r3ps8u81pas8u81i32"
-    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r3ps8u81pas8u81i32"
-    @s2 = external global [2 x [81 x i8]], section "var-$RUSTY$s2:as8u81"
-    @s = external global [81 x i8], section "var-$RUSTY$s:s8u81"
+    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r2ps8u81ps8u81"
+    @ps = external global [81 x i8], section "var-$RUSTY$ps:s8u81"
 
-    define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr3ps8u81pas8u81i32]" {
+    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr2ps8u81ps8u81]" {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
-      %deref = load %myStruct*, %myStruct** %self, align 8
-      %member2 = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1
-      store [2 x [81 x i8]]* @s2, [2 x [81 x i8]]** %member2, align 8
-      %deref1 = load %myStruct*, %myStruct** %self, align 8
-      %member = getelementptr inbounds %myStruct, %myStruct* %deref1, i32 0, i32 0
-      store [81 x i8]* @s, [81 x i8]** %member, align 8
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store [81 x i8]* @ps, [81 x i8]** %s, align 8
       ret void
     }
 
-    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr1r3ps8u81pas8u81i32]" {
-    entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
-      %deref = load %prog*, %prog** %self, align 8
-      %str = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
-      call void @__init_mystruct(%myStruct* %str)
-      ret void
-    }
-
-    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    %prog = type { %myStruct }
-    %myStruct = type { [81 x i8]*, [2 x [81 x i8]]*, i32 }
-
-    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1r3ps8u81pas8u81i32"
-    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r3ps8u81pas8u81i32"
-
     define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
-      call void @__init_prog(%prog* @prog_instance)
       ret void
     }
-
-    declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr1r3ps8u81pas8u81i32]"
-
-    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
-    "###);
+    "###)
 }
