@@ -536,6 +536,38 @@
 <a href="#536" id="536">536</a>
 <a href="#537" id="537">537</a>
 <a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     env,
     fs::{<span class="self">self</span>, File},
@@ -552,9 +584,13 @@
 <span class="kw">use </span>plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{FxIndexSet, Index},
+    lowering::AstLowerer,
     output::FormatOption,
     parser::parse_file,
-    resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
+    resolver::{
+        const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
+        TypeAnnotator,
+    },
     validation::Validator,
     ConfigFormat, Target,
 };
@@ -661,8 +697,9 @@
         </span><span class="kw">for </span>data_type <span class="kw">in </span>plc::typesystem::get_builtin_types() {
             global_index.register_type(data_type);
         }
+
         <span class="comment">// import builtin functions
-        </span><span class="kw">let </span>builtins = plc::builtins::parse_built_ins(id_provider);
+        </span><span class="kw">let </span>builtins = plc::builtins::parse_built_ins(id_provider.clone());
         global_index.import(plc::index::visitor::visit(<span class="kw-2">&amp;</span>builtins));
 
         IndexedProject { project: ParsedProject { project: <span class="self">self</span>.project, units }, index: global_index }
@@ -683,15 +720,10 @@
 <span class="kw">impl</span>&lt;T: SourceContainer + Sync&gt; IndexedProject&lt;T&gt; {
     <span class="doccomment">/// Creates annotations on the project in order to facilitate codegen and validation
     </span><span class="kw">pub fn </span>annotate(<span class="self">self</span>, <span class="kw-2">mut </span>id_provider: IdProvider) -&gt; AnnotatedProject&lt;T&gt; {
-        <span class="kw">let </span>init_name = <span class="self">self</span>.get_project().get_init_symbol_name();
-        <span class="comment">//Resolve constants
-        </span><span class="kw">let </span>(<span class="kw-2">mut </span>full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(<span class="self">self</span>.index);
-        full_index.register_global_init_function(<span class="kw-2">&amp;</span>init_name);
-
+        <span class="kw">let </span>(<span class="kw-2">mut </span>full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(<span class="self">self</span>.index);
         <span class="comment">//Create and call the annotator
         </span><span class="kw">let </span><span class="kw-2">mut </span>annotated_units = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>all_annotations = AnnotationMapImpl::default();
-
         <span class="kw">let </span>result = <span class="self">self
             </span>.project
             .units
@@ -704,27 +736,20 @@
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
         <span class="kw">for </span>(unit, annotation, dependencies, literals) <span class="kw">in </span>result {
-            annotated_units.push((unit, dependencies, literals));
+            annotated_units.push(AnnotatedUnit::new(unit, dependencies, literals));
             all_annotations.import(annotation);
         }
 
         full_index.import(std::mem::take(<span class="kw-2">&amp;mut </span>all_annotations.new_index));
 
-        TypeAnnotator::lower_init_functions(
-            <span class="kw-2">&amp;</span>init_name,
-            unresolvables,
-            <span class="kw-2">&amp;mut </span>all_annotations,
-            <span class="kw-2">&amp;mut </span>full_index,
-            <span class="kw-2">&amp;</span>id_provider,
-            <span class="kw-2">&amp;mut </span>annotated_units,
-        );
-
         <span class="kw">let </span>annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+
         AnnotatedProject {
             project: <span class="self">self</span>.project.project,
             units: annotated_units,
             index: full_index,
             annotations,
+            unresolvables,
         }
     }
 
@@ -737,18 +762,57 @@
     }
 }
 
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>AnnotatedUnit {
+    unit: CompilationUnit,
+    dependencies: FxIndexSet&lt;Dependency&gt;,
+    literals: StringLiterals,
+}
+
+<span class="kw">impl </span>AnnotatedUnit {
+    <span class="kw">pub fn </span>new(
+        unit: CompilationUnit,
+        dependencies: FxIndexSet&lt;Dependency&gt;,
+        literals: StringLiterals,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ unit, dependencies, literals }
+    }
+
+    <span class="kw">pub fn </span>get_unit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CompilationUnit {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.unit
+    }
+}
+
 <span class="doccomment">/// A project that has been annotated with information about different types and used units
 </span><span class="kw">pub struct </span>AnnotatedProject&lt;T: SourceContainer + Sync&gt; {
     <span class="kw">pub </span>project: Project&lt;T&gt;,
-    <span class="kw">pub </span>units: Vec&lt;(CompilationUnit, FxIndexSet&lt;Dependency&gt;, StringLiterals)&gt;,
+    <span class="kw">pub </span>units: Vec&lt;AnnotatedUnit&gt;,
     <span class="kw">pub </span>index: Index,
     <span class="kw">pub </span>annotations: AstAnnotations,
+    <span class="kw">pub </span>unresolvables: Vec&lt;UnresolvableConstant&gt;,
 }
 
 <span class="kw">impl</span>&lt;T: SourceContainer + Sync&gt; AnnotatedProject&lt;T&gt; {
     <span class="kw">pub fn </span>get_project(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Project&lt;T&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.project
     }
+
+    <span class="kw">pub fn </span>lower(<span class="self">self</span>, id_provider: IdProvider) -&gt; AnnotatedProject&lt;T&gt; {
+        <span class="kw">let </span>init_symbol_name = <span class="kw-2">&amp;</span><span class="self">self</span>.get_project().get_init_symbol_name();
+        <span class="kw">let </span>project = <span class="self">self</span>.project;
+        <span class="kw">let </span>units = <span class="self">self</span>.units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">let </span>lowered = AstLowerer::lower(
+            units,
+            <span class="self">self</span>.index,
+            <span class="self">self</span>.annotations,
+            <span class="self">self</span>.unresolvables,
+            id_provider.clone(),
+            init_symbol_name,
+        );
+        <span class="comment">// XXX: this step can be looped until there were no further lowering-changes, however at this time lowering once should suffice
+        </span>ParsedProject { project, units: lowered }.index(id_provider.clone()).annotate(id_provider)
+    }
+
     <span class="doccomment">/// Validates the project, reports any new diagnostics on the fly
     </span><span class="kw">pub fn </span>validate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -762,7 +826,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>severity = diagnostician.handle(<span class="kw-2">&amp;</span>diagnostics);
 
         <span class="comment">//Perform per unit validation
-        </span><span class="self">self</span>.units.iter().for_each(|(unit, <span class="kw">_</span>, <span class="kw">_</span>)| {
+        </span><span class="self">self</span>.units.iter().for_each(|AnnotatedUnit { unit, .. }| {
             <span class="comment">// validate unit
             </span>validator.visit_unit(<span class="kw-2">&amp;</span><span class="self">self</span>.annotations, <span class="kw-2">&amp;</span><span class="self">self</span>.index, unit);
             <span class="comment">// log errors
@@ -779,7 +843,7 @@
     <span class="kw">pub fn </span>codegen_to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, compile_options: <span class="kw-2">&amp;</span>CompileOptions) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;String&gt;, Diagnostic&gt; {
         <span class="self">self</span>.units
             .iter()
-            .map(|(unit, dependencies, literals)| {
+            .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 <span class="kw">let </span>context = CodegenContext::create();
                 <span class="self">self</span>.generate_module(<span class="kw-2">&amp;</span>context, compile_options, unit, dependencies, literals)
                     .map(|it| it.persist_to_string())
@@ -795,7 +859,7 @@
         <span class="kw">let </span><span class="prelude-val">Some</span>(module) = <span class="self">self
             </span>.units
             .iter()
-            .map(|(unit, dependencies, literals)| {
+            .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 <span class="self">self</span>.generate_module(context, compile_options, unit, dependencies, literals)
             })
             .reduce(|a, b| {
@@ -884,7 +948,7 @@
                 <span class="kw">let </span>objects = <span class="self">self
                     </span>.units
                     .par_iter()
-                    .map(|(unit, dependencies, literals)| {
+                    .map(|AnnotatedUnit { unit, dependencies, literals }| {
                         <span class="kw">let </span>current_dir = env::current_dir()<span class="question-mark">?</span>;
                         <span class="kw">let </span>current_dir = compile_options.root.as_deref().unwrap_or(<span class="kw-2">&amp;</span>current_dir);
                         <span class="kw">let </span>unit_location = PathBuf::from(<span class="kw-2">&amp;</span>unit.file_name);

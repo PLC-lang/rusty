@@ -434,6 +434,8 @@
 <a href="#434" id="434">434</a>
 <a href="#435" id="435">435</a>
 <a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -445,6 +447,7 @@
 //!  - Executables
 
 </span><span class="kw">use </span>anyhow::{anyhow, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>pipelines::AnnotatedProject;
 <span class="kw">use </span>std::{
     env,
     ffi::OsStr,
@@ -453,7 +456,6 @@
 };
 
 <span class="kw">use </span>cli::{CompileParameters, ParameterError, SubCommands};
-<span class="kw">use </span>pipelines::AnnotatedProject;
 <span class="kw">use </span>plc::{
     codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat,
     OptimizationLevel, Target, Threads,
@@ -678,17 +680,19 @@
             <span class="prelude-val">None</span>,
         )<span class="question-mark">?</span>;
 
-    <span class="comment">// 1 : Parse, 2. Index and 3. Resolve / Annotate
+    <span class="comment">// 1. Parse, 2. Index and 3. Resolve / Annotate
     </span><span class="kw">let </span>annotated_project = pipelines::ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, project, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?
         </span>.index(ctxt.provider())
-        .annotate(ctxt.provider());
+        .annotate(ctxt.provider())
+        <span class="comment">// 4. AST-lowering, re-index and re-resolve
+        </span>.lower(ctxt.provider());
 
     <span class="kw">if </span>compile_parameters.output_ast {
         <span class="macro">println!</span>(<span class="string">"{:#?}"</span>, annotated_project.units);
         <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
 
-    <span class="comment">// 4 : Validate
+    <span class="comment">// 5. Validate
     </span>annotated_project.validate(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>((location, format)) =
@@ -758,7 +762,7 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
 
     <span class="comment">// Create an index, add builtins then resolve
     </span><span class="kw">let </span>provider = ctxt.provider();
-    <span class="prelude-val">Ok</span>((ctxt, parsed.index(provider.clone()).annotate(provider)))
+    <span class="prelude-val">Ok</span>((ctxt, parsed.index(provider.clone()).annotate(provider.clone())))
 }
 
 <span class="doccomment">/// Generates an IR string from a list of sources. Useful for tests or api calls
@@ -797,15 +801,15 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
     compile_options: <span class="kw-2">&amp;</span>CompileOptions,
     linker_options: <span class="kw-2">&amp;</span>LinkOptions,
     targets: Vec&lt;Target&gt;,
-    annotated_project: AnnotatedProject&lt;PathBuf&gt;,
+    resolved_project: AnnotatedProject&lt;PathBuf&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
     <span class="kw">let </span>res = <span class="kw">if </span>compile_options.single_module || <span class="macro">matches!</span>(linker_options.format, FormatOption::Object) {
         <span class="macro">log::info!</span>(<span class="string">"Using single module mode"</span>);
-        annotated_project.codegen_single_module(compile_options, <span class="kw-2">&amp;</span>targets)<span class="question-mark">?
+        resolved_project.codegen_single_module(compile_options, <span class="kw-2">&amp;</span>targets)<span class="question-mark">?
     </span>} <span class="kw">else </span>{
-        annotated_project.codegen(compile_options, <span class="kw-2">&amp;</span>targets)<span class="question-mark">?
+        resolved_project.codegen(compile_options, <span class="kw-2">&amp;</span>targets)<span class="question-mark">?
     </span>};
-    <span class="kw">let </span>project = annotated_project.get_project();
+    <span class="kw">let </span>project = resolved_project.get_project();
     <span class="kw">let </span>output_name = project.get_output_name();
     res.into_par_iter()
         .map(|res| {

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["AnnotatedProject","GeneratedProject","IndexedProject","ParsedProject"]};
+window.SIDEBAR_ITEMS = {"struct":["AnnotatedProject","AnnotatedUnit","GeneratedProject","IndexedProject","ParsedProject"]};

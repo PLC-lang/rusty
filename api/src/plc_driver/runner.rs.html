@@ -94,7 +94,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::null_diagnostician();
     <span class="kw">let </span>parsed_project = ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, project, <span class="kw-2">&amp;mut </span>diagnostician).unwrap();
     <span class="kw">let </span>indexed_project = parsed_project.index(ctxt.provider());
-    <span class="kw">let </span>annotated_project = indexed_project.annotate(ctxt.provider());
+    <span class="kw">let </span>annotated_project = indexed_project.annotate(ctxt.provider()).lower(ctxt.provider());
     <span class="kw">let </span>compile_options = CompileOptions {
         optimization: plc::OptimizationLevel::None,
         debug_level: plc::DebugLevel::None,

@@ -324,6 +324,18 @@
 <a href="#324" id="324">324</a>
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">pub mod </span>tests {
 
@@ -342,8 +354,10 @@
     <span class="kw">use crate</span>::{
         builtins,
         codegen::{CodegenContext, GeneratedModule},
-        index::{<span class="self">self</span>, Index},
-        lexer, parser,
+        index::{<span class="self">self</span>, FxIndexSet, Index},
+        lexer,
+        lowering::AstLowerer,
+        parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
             StringLiterals, TypeAnnotator,
@@ -409,7 +423,6 @@
 
         pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
         index.import(index::visitor::visit(<span class="kw-2">&amp;</span>unit));
-        index.register_global_init_function(<span class="kw-2">&amp;</span>get_project_init_symbol());
         (unit, index, diagnostics)
     }
 
@@ -434,30 +447,55 @@
         annotations
     }
 
-    <span class="kw">type </span>Lowered =
-        (AnnotationMapImpl, Index, Vec&lt;(CompilationUnit, index::FxIndexSet&lt;Dependency&gt;, StringLiterals)&gt;);
+    <span class="kw">type </span>Lowered = (AnnotationMapImpl, Index, Vec&lt;(CompilationUnit, FxIndexSet&lt;Dependency&gt;, StringLiterals)&gt;);
 
     <span class="kw">pub fn </span>annotate_and_lower_with_ids(
         parse_result: CompilationUnit,
         index: Index,
-        id_provider: IdProvider,
+        <span class="kw-2">mut </span>id_provider: IdProvider,
     ) -&gt; Lowered {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>full_index, unresolvables) = evaluate_constants(index);
-
-        <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, dependencies, literals) =
-            TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span>full_index, <span class="kw-2">&amp;</span>parse_result, id_provider.clone());
-        full_index.import(std::mem::take(<span class="kw-2">&amp;mut </span>annotations.new_index));
-        <span class="kw">let </span><span class="kw-2">mut </span>annotated_units = <span class="macro">vec!</span>[(parse_result, dependencies, literals)];
-        TypeAnnotator::lower_init_functions(
-            <span class="kw-2">&amp;</span>get_project_init_symbol(),
+        <span class="kw">let </span>(<span class="kw-2">mut </span>index, unresolvables) = evaluate_constants(index);
+        <span class="kw">let </span>annotation_map = annotate_with_ids(<span class="kw-2">&amp;</span>parse_result, <span class="kw-2">&amp;mut </span>index, id_provider.clone());
+        <span class="kw">let </span>lowered = AstLowerer::lower(
+            <span class="macro">vec!</span>[parse_result],
+            index,
+            AstAnnotations::new(annotation_map, id_provider.next_id()),
             unresolvables,
-            <span class="kw-2">&amp;mut </span>annotations,
-            <span class="kw-2">&amp;mut </span>full_index,
-            <span class="kw-2">&amp;</span>id_provider,
-            <span class="kw-2">&amp;mut </span>annotated_units,
+            id_provider.clone(),
+            <span class="kw-2">&amp;</span>get_project_init_symbol(),
         );
 
-        (annotations, full_index, annotated_units)
+        <span class="kw">let </span><span class="kw-2">mut </span>index = Index::default();
+        <span class="kw">let </span>builtins = builtins::parse_built_ins(id_provider.clone());
+        index.import(index::visitor::visit(<span class="kw-2">&amp;</span>builtins));
+
+        <span class="kw">for </span>data_type <span class="kw">in </span>get_builtin_types() {
+            index.register_type(data_type);
+        }
+
+        <span class="kw">let </span>indexed_units = lowered
+            .into_iter()
+            .map(|<span class="kw-2">mut </span>unit| {
+                pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider.clone());
+                index.import(index::visitor::visit(<span class="kw-2">&amp;</span>unit));
+                unit
+            })
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">let </span>(<span class="kw-2">mut </span>full_index, <span class="kw">_</span>) = evaluate_constants(index);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>all_annotations = AnnotationMapImpl::default();
+        <span class="kw">let </span>annotated_units = indexed_units
+            .into_iter()
+            .map(|unit| {
+                <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, dependencies, literals) =
+                    TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span>full_index, <span class="kw-2">&amp;</span>unit, id_provider.clone());
+                full_index.import(std::mem::take(<span class="kw-2">&amp;mut </span>annotations.new_index));
+                all_annotations.import(annotations);
+                (unit, dependencies, literals)
+            })
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+
+        (all_annotations, full_index, annotated_units)
     }
 
     <span class="kw">pub fn </span>parse_and_validate_buffered(src: <span class="kw-2">&amp;</span>str) -&gt; String {
@@ -506,20 +544,8 @@
         <span class="kw">let </span>(unit, index, diagnostics) = do_index(src, id_provider.clone());
         reporter.handle(<span class="kw-2">&amp;</span>diagnostics);
 
-        <span class="kw">let </span>(<span class="kw-2">mut </span>index, unresolvables) = evaluate_constants(index);
-        <span class="kw">let </span>(<span class="kw-2">mut </span>annotations, dependencies, literals) =
-            TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>unit, id_provider.clone());
-        index.import(std::mem::take(<span class="kw-2">&amp;mut </span>annotations.new_index));
-
-        <span class="kw">let </span><span class="kw-2">mut </span>annotated_units = <span class="macro">vec!</span>[(unit, dependencies, literals)];
-        TypeAnnotator::lower_init_functions(
-            <span class="kw-2">&amp;</span>get_project_init_symbol(),
-            unresolvables,
-            <span class="kw-2">&amp;mut </span>annotations,
-            <span class="kw-2">&amp;mut </span>index,
-            <span class="kw-2">&amp;</span>id_provider,
-            <span class="kw-2">&amp;mut </span>annotated_units,
-        );
+        <span class="kw">let </span>(annotations, index, annotated_units) =
+            annotate_and_lower_with_ids(unit, index, id_provider.clone());
 
         <span class="kw">let </span>annotations = AstAnnotations::new(annotations, id_provider.next_id());
 
@@ -602,9 +628,7 @@
             })
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-        <span class="comment">// TODO: lowering here?
-
-        </span><span class="kw">let </span>path = PathBuf::from_str(<span class="string">"src"</span>).ok();
+        <span class="kw">let </span>path = PathBuf::from_str(<span class="string">"src"</span>).ok();
         <span class="kw">let </span>annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
         units
             .into_iter()

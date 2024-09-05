@@ -1700,6 +1700,8 @@
 <a href="#1700" id="1700">1700</a>
 <a href="#1701" id="1701">1701</a>
 <a href="#1702" id="1702">1702</a>
+<a href="#1703" id="1703">1703</a>
+<a href="#1704" id="1704">1704</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
@@ -2532,7 +2534,7 @@
     <span class="kw">let </span>type_rhs = context.annotations.get_type_or_void(<span class="kw-2">&amp;</span>assignment.right, context.index);
 
     <span class="comment">// Assert that the right-hand side is a reference
-    </span><span class="kw">if </span>!assignment.right.is_reference() {
+    </span><span class="kw">if </span>!assignment.right.is_reference() &amp;&amp; !assignment_location.is_internal() {
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"Invalid assignment, expected a reference"</span>)
                 .with_location(<span class="kw-2">&amp;</span>assignment.right.location)
@@ -2559,9 +2561,11 @@
     ref_assignment: <span class="kw-2">&amp;</span>AstNode,
 ) {
     <span class="kw">if let </span>AstStatement::RefAssignment(Assignment { left, .. }) = ref_assignment.get_stmt() {
-        <span class="kw">if </span>context.annotations.get(left).is_some_and(|opt| {
-            opt.is_alias() &amp;&amp; !context.qualifier.is_some_and(|it| context.index.is_init_function(it))
-        }) {
+        <span class="kw">if </span>context
+            .annotations
+            .get(left)
+            .is_some_and(|opt| opt.is_alias() &amp;&amp; !ref_assignment.location.is_internal())
+        {
             validator.push_diagnostic(
                 Diagnostic::new(<span class="macro">format!</span>(
                     <span class="string">"{} is an immutable alias variable, can not change the address"</span>,

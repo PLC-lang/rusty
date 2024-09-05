@@ -1698,6 +1698,8 @@
 <a href="#1698" id="1698">1698</a>
 <a href="#1699" id="1699">1699</a>
 <a href="#1700" id="1700">1700</a>
+<a href="#1701" id="1701">1701</a>
+<a href="#1702" id="1702">1702</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -1956,6 +1958,7 @@
     Action,
     Class,
     Method { owner_class: String },
+    Init,
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>PouType {
@@ -1967,6 +1970,7 @@
             PouType::Action =&gt; <span class="macro">write!</span>(f, <span class="string">"Action"</span>),
             PouType::Class =&gt; <span class="macro">write!</span>(f, <span class="string">"Class"</span>),
             PouType::Method { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">"Method"</span>),
+            PouType::Init =&gt; <span class="macro">write!</span>(f, <span class="string">"Init"</span>),
         }
     }
 }
