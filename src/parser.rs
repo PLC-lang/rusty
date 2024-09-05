@@ -1077,16 +1077,17 @@ fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
 }
 
 fn parse_config_variables(lexer: &mut ParseSession) -> Vec<ConfigVariable> {
-    lexer.advance();
-    let mut variables = vec![];
-    while lexer.token == Identifier {
-        let Some(configured_var) = try_parse_config_var(lexer) else {
-            continue;
-        };
-        variables.push(configured_var);
-    }
-    lexer.try_consume(&KeywordEndVar);
-    variables
+    parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| {
+        lexer.advance();
+        let mut variables = vec![];
+        while lexer.token == Identifier {
+            let Some(configured_var) = parse_any_in_region(lexer, vec![KeywordSemicolon], try_parse_config_var) else {
+                continue;
+            };
+            variables.push(configured_var);
+        }
+        variables
+    })
 }
 
 fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
@@ -1094,21 +1095,13 @@ fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
     let start = lexer.location();
     let mut segments: Vec<String> = vec![];
     while lexer.token == Identifier {
-        let location = lexer.range();
-        let identifier_end = location.end;
         segments.push(lexer.slice_and_advance());
 
         if lexer.token == KeywordColon || lexer.token == KeywordAt {
             break;
         }
 
-        if !lexer.try_consume(&KeywordDot) {
-            let next_token_start = lexer.range().start;
-            lexer.accept_diagnostic(Diagnostic::missing_token(
-                format!("{KeywordDot:?}").as_str(),
-                lexer.source_range_factory.create_range(identifier_end..next_token_start),
-            ));
-        }
+        lexer.try_consume(&KeywordDot);
     }
 
     let location = start.span(&lexer.location());
@@ -1144,7 +1137,6 @@ fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
                 lexer.last_location().span(&lexer.location()),
             ))
         }
-        lexer.try_consume(&KeywordSemicolon);
         ConfigVariable::new(segments, dt, address, location)
     })
 }
