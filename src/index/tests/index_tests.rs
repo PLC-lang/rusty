@@ -2093,9 +2093,8 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
 
 #[test]
 fn var_config_hardware_address_creates_global_variable() {
-    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
-    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
-    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    // Given some configured hardware access variable like `foo.bar AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // an internally created global variable named `__PI_1.2.3.4` of type BOOL that is being pointed at by (1)
     let (_, index) = index(
         r"
             VAR_CONFIG

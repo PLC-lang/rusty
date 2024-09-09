@@ -1115,9 +1115,7 @@ fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
         return None;
     };
 
-    let Some(address) = parse_hardware_access(lexer, direction, access_type) else {
-        return None;
-    };
+    let address = parse_hardware_access(lexer, direction, access_type)?;
 
     if !lexer.try_consume(&KeywordColon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
