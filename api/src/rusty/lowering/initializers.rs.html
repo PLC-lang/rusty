@@ -315,6 +315,7 @@
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
     lowering::{create_assignment_if_necessary, create_call_statement, create_member_reference},
@@ -626,6 +627,7 @@
 <span class="kw">fn </span>new_unit(pou: Pou, implementation: Implementation, file_name: <span class="kw-2">&amp;</span>str) -&gt; CompilationUnit {
     CompilationUnit {
         global_vars: <span class="macro">vec!</span>[],
+        var_config: Default::default(),
         units: <span class="macro">vec!</span>[pou],
         implementations: <span class="macro">vec!</span>[implementation],
         user_types: <span class="macro">vec!</span>[],

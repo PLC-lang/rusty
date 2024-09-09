@@ -1218,6 +1218,66 @@
 <a href="#1218" id="1218">1218</a>
 <a href="#1219" id="1219">1219</a>
 <a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
+<a href="#1240" id="1240">1240</a>
+<a href="#1241" id="1241">1241</a>
+<a href="#1242" id="1242">1242</a>
+<a href="#1243" id="1243">1243</a>
+<a href="#1244" id="1244">1244</a>
+<a href="#1245" id="1245">1245</a>
+<a href="#1246" id="1246">1246</a>
+<a href="#1247" id="1247">1247</a>
+<a href="#1248" id="1248">1248</a>
+<a href="#1249" id="1249">1249</a>
+<a href="#1250" id="1250">1250</a>
+<a href="#1251" id="1251">1251</a>
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -1225,9 +1285,9 @@
 <span class="kw">use </span>plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
-        DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
-        LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
-        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
+        Implementation, LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess, ReferenceExpr,
+        TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -1297,6 +1357,8 @@
                 </span><span class="kw">continue</span>;
             }
             KeywordVarGlobal =&gt; unit.global_vars.push(parse_variable_block(<span class="kw-2">&amp;mut </span>lexer, linkage)),
+            KeywordVarConfig =&gt; unit.var_config.extend(parse_config_variables(<span class="kw-2">&amp;mut </span>lexer)),
+
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock =&gt; {
                 <span class="kw">let </span>params = <span class="kw">match </span>lexer.token {
                     KeywordProgram =&gt; (PouType::Program, KeywordEndProgram),
@@ -1340,7 +1402,6 @@
     }
     <span class="comment">//the match in the loop will always return
 </span>}
-
 <span class="kw">fn </span>parse_actions(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     linkage: LinkageType,
@@ -2293,6 +2354,65 @@
         variables.append(<span class="kw-2">&amp;mut </span>line_vars);
     }
     variables
+}
+
+<span class="kw">fn </span>parse_config_variables(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;ConfigVariable&gt; {
+    parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordEndVar], |lexer| {
+        lexer.advance();
+        <span class="kw">let </span><span class="kw-2">mut </span>variables = <span class="macro">vec!</span>[];
+        <span class="kw">while </span>lexer.token == Identifier {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(configured_var) =
+                parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordSemicolon], try_parse_config_var)
+            {
+                variables.push(configured_var);
+            }
+        }
+        variables
+    })
+}
+
+<span class="kw">fn </span>try_parse_config_var(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;ConfigVariable&gt; {
+    <span class="kw">let </span>start = lexer.location();
+    <span class="kw">let </span><span class="kw-2">mut </span>segments: Vec&lt;String&gt; = <span class="macro">vec!</span>[];
+    <span class="kw">while </span>lexer.token == Identifier {
+        segments.push(lexer.slice_and_advance());
+
+        <span class="kw">if </span>lexer.token == KeywordColon || lexer.token == KeywordAt {
+            <span class="kw">break</span>;
+        }
+
+        lexer.try_consume(<span class="kw-2">&amp;</span>KeywordDot);
+    }
+
+    <span class="kw">let </span>location = start.span(<span class="kw-2">&amp;</span>lexer.location());
+    <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAt) {
+        lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"AT"</span>, lexer.location()));
+    }
+
+    <span class="kw">let </span>HardwareAccess((direction, access_type)) = lexer.token <span class="kw">else </span>{
+        lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"hardware access"</span>, lexer.location()));
+        <span class="kw">return </span><span class="prelude-val">None</span>;
+    };
+
+    <span class="kw">let </span>address = parse_hardware_access(lexer, direction, access_type)<span class="question-mark">?</span>;
+
+    <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordColon) {
+        lexer.accept_diagnostic(Diagnostic::missing_token(
+            <span class="macro">format!</span>(<span class="string">"{KeywordColon:?}"</span>).as_str(),
+            lexer.location(),
+        ));
+    }
+
+    parse_data_type_definition(lexer, <span class="prelude-val">None</span>).map(|(dt, init)| {
+        <span class="kw">if </span>init.is_some() {
+            lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+                <span class="macro">format!</span>(<span class="string">"{KeywordSemicolon:?}"</span>).as_str(),
+                <span class="string">"Initializer"</span>,
+                lexer.last_location().span(<span class="kw-2">&amp;</span>lexer.location()),
+            ))
+        }
+        ConfigVariable::new(segments, dt, address, location)
+    })
 }
 
 <span class="kw">fn </span>parse_aliasing(lexer: <span class="kw-2">&amp;mut </span>ParseSession, names: <span class="kw-2">&amp;</span>(String, Range&lt;usize&gt;)) -&gt; <span class="prelude-ty">Option</span>&lt;Variable&gt; {

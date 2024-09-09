@@ -1731,6 +1731,27 @@
 <a href="#1731" id="1731">1731</a>
 <a href="#1732" id="1732">1732</a>
 <a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
+<a href="#1735" id="1735">1735</a>
+<a href="#1736" id="1736">1736</a>
+<a href="#1737" id="1737">1737</a>
+<a href="#1738" id="1738">1738</a>
+<a href="#1739" id="1739">1739</a>
+<a href="#1740" id="1740">1740</a>
+<a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
+<a href="#1745" id="1745">1745</a>
+<a href="#1746" id="1746">1746</a>
+<a href="#1747" id="1747">1747</a>
+<a href="#1748" id="1748">1748</a>
+<a href="#1749" id="1749">1749</a>
+<a href="#1750" id="1750">1750</a>
+<a href="#1751" id="1751">1751</a>
+<a href="#1752" id="1752">1752</a>
+<a href="#1753" id="1753">1753</a>
+<a href="#1754" id="1754">1754</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -2019,8 +2040,28 @@
 }
 
 <span class="attr">#[derive(Debug, PartialEq)]
+</span><span class="kw">pub struct </span>ConfigVariable {
+    <span class="kw">pub </span>name_segments: Vec&lt;String&gt;,
+    <span class="kw">pub </span>data_type: DataTypeDeclaration,
+    <span class="kw">pub </span>address: AstNode,
+    <span class="kw">pub </span>location: SourceLocation,
+}
+
+<span class="kw">impl </span>ConfigVariable {
+    <span class="kw">pub fn </span>new(
+        name_segments: Vec&lt;String&gt;,
+        data_type: DataTypeDeclaration,
+        address: AstNode,
+        location: SourceLocation,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ name_segments, data_type, address, location }
+    }
+}
+
+<span class="attr">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub struct </span>CompilationUnit {
     <span class="kw">pub </span>global_vars: Vec&lt;VariableBlock&gt;,
+    <span class="kw">pub </span>var_config: Vec&lt;ConfigVariable&gt;,
     <span class="kw">pub </span>units: Vec&lt;Pou&gt;,
     <span class="kw">pub </span>implementations: Vec&lt;Implementation&gt;,
     <span class="kw">pub </span>user_types: Vec&lt;UserTypeDeclaration&gt;,
@@ -2031,6 +2072,7 @@
     <span class="kw">pub fn </span>new(file_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
         CompilationUnit {
             global_vars: Vec::new(),
+            var_config: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
             user_types: Vec::new(),
