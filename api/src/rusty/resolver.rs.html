@@ -2197,6 +2197,13 @@
 <a href="#2197" id="2197">2197</a>
 <a href="#2198" id="2198">2198</a>
 <a href="#2199" id="2199">2199</a>
+<a href="#2200" id="2200">2200</a>
+<a href="#2201" id="2201">2201</a>
+<a href="#2202" id="2202">2202</a>
+<a href="#2203" id="2203">2203</a>
+<a href="#2204" id="2204">2204</a>
+<a href="#2205" id="2205">2205</a>
+<a href="#2206" id="2206">2206</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -3535,9 +3542,10 @@
                 <span class="kw">let </span>access_type = get_direct_access_type(<span class="kw-2">&amp;</span>data.access);
                 <span class="self">self</span>.annotate(statement, StatementAnnotation::value(access_type));
             }
-            AstStatement::HardwareAccess(data, ..) =&gt; {
-                <span class="kw">let </span>access_type = get_direct_access_type(<span class="kw-2">&amp;</span>data.access);
-                <span class="self">self</span>.annotate(statement, StatementAnnotation::value(access_type));
+            AstStatement::HardwareAccess(..) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(annotation) = <span class="self">self</span>.resolve_reference_expression(statement, <span class="prelude-val">None</span>, ctx) {
+                    <span class="self">self</span>.annotate(statement, annotation.clone());
+                }
             }
             AstStatement::BinaryExpression(data, ..) =&gt; {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right);
@@ -3866,6 +3874,12 @@
                 <span class="comment">// x.%X1 - bit access
                 </span><span class="self">self</span>.visit_statement(ctx, data.index.as_ref());
                 <span class="prelude-val">Some</span>(StatementAnnotation::value(get_direct_access_type(<span class="kw-2">&amp;</span>data.access)))
+            }
+            AstStatement::HardwareAccess(data, ..) =&gt; {
+                <span class="kw">let </span>name = data.get_mangled_variable_name();
+                ctx.resolve_strategy
+                    .iter()
+                    .find_map(|scope| scope.resolve_name(<span class="kw-2">&amp;</span>name, qualifier, <span class="self">self</span>.index, ctx))
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }

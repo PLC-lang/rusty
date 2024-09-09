@@ -2828,7 +2828,6 @@
 <a href="#2828" id="2828">2828</a>
 <a href="#2829" id="2829">2829</a>
 <a href="#2830" id="2830">2830</a>
-<a href="#2831" id="2831">2831</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
@@ -3067,6 +3066,9 @@
                 };
                 <span class="prelude-val">Ok</span>(val)
             }
+            AstStatement::HardwareAccess(..) =&gt; <span class="self">self
+                </span>.create_llvm_pointer_value_for_reference(<span class="prelude-val">None</span>, <span class="string">"address"</span>, expression)
+                .map(ExpressionValue::LValue),
             AstStatement::BinaryExpression(data) =&gt; <span class="self">self
                 </span>.generate_binary_expression(<span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right, <span class="kw-2">&amp;</span>data.operator, expression)
                 .map(ExpressionValue::RValue),
@@ -3075,10 +3077,6 @@
             }
             AstStatement::UnaryExpression(data) =&gt; {
                 <span class="self">self</span>.generate_unary_expression(<span class="kw-2">&amp;</span>data.operator, <span class="kw-2">&amp;</span>data.value).map(ExpressionValue::RValue)
-            }
-            <span class="comment">// TODO: Hardware access needs to be evaluated, see #648
-            </span>AstStatement::HardwareAccess { .. } =&gt; {
-                <span class="prelude-val">Ok</span>(ExpressionValue::RValue(<span class="self">self</span>.llvm.i32_type().const_zero().into()))
             }
             AstStatement::ParenExpression(expr) =&gt; <span class="self">self</span>.generate_expression_value(expr),
             <span class="comment">//fallback

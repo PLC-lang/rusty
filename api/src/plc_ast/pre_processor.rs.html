@@ -333,20 +333,6 @@
 <a href="#333" id="333">333</a>
 <a href="#334" id="334">334</a>
 <a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
-<a href="#337" id="337">337</a>
-<a href="#338" id="338">338</a>
-<a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
-<a href="#344" id="344">344</a>
-<a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>rustc_hash::FxHashMap;
@@ -356,8 +342,7 @@
 <span class="kw">use crate</span>::{
     ast::{
         flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, DirectAccessType, HardwareAccess, HardwareAccessType, Operator, Pou,
-        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -504,24 +489,11 @@
 
         <span class="comment">// In any case, we have to inject initializers into aliased hardware access variables
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>node) = global_var.address {
-            <span class="kw">if let </span>AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) = <span class="kw-2">&amp;</span>node.stmt {
-                <span class="kw">let </span>direction = <span class="kw">match </span>direction {
-                    HardwareAccessType::Input | HardwareAccessType::Output =&gt; <span class="string">"PI"</span>,
-                    HardwareAccessType::Memory =&gt; <span class="string">"M"</span>,
-                    HardwareAccessType::Global =&gt; <span class="string">"G"</span>,
-                };
-                <span class="kw">let </span>name = <span class="macro">format!</span>(
-                    <span class="string">"__{direction}_{}"</span>,
-                    address
-                        .iter()
-                        .flat_map(|node| node.get_literal_integer_value())
-                        .map(|val| val.to_string())
-                        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-                        .join(<span class="string">"_"</span>)
-                );
+            <span class="kw">if let </span>AstStatement::HardwareAccess(hardware) = <span class="kw-2">&amp;</span>node.stmt {
+                <span class="kw">let </span>name = hardware.get_mangled_variable_name();
 
                 <span class="comment">// %I*: DWORD; should not be declared at this stage, it is just skipped
-                </span><span class="kw">if </span><span class="macro">matches!</span>(access, DirectAccessType::Template) {
+                </span><span class="kw">if </span>hardware.is_template() {
                     <span class="kw">continue</span>;
                 }
 

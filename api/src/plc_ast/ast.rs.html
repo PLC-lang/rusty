@@ -1707,6 +1707,30 @@
 <a href="#1707" id="1707">1707</a>
 <a href="#1708" id="1708">1708</a>
 <a href="#1709" id="1709">1709</a>
+<a href="#1710" id="1710">1710</a>
+<a href="#1711" id="1711">1711</a>
+<a href="#1712" id="1712">1712</a>
+<a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
+<a href="#1716" id="1716">1716</a>
+<a href="#1717" id="1717">1717</a>
+<a href="#1718" id="1718">1718</a>
+<a href="#1719" id="1719">1719</a>
+<a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
+<a href="#1724" id="1724">1724</a>
+<a href="#1725" id="1725">1725</a>
+<a href="#1726" id="1726">1726</a>
+<a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -3415,5 +3439,29 @@
 </span><span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>LabelStatement {
     <span class="kw">pub </span>name: String,
+}
+
+<span class="kw">impl </span>HardwareAccess {
+    <span class="kw">pub fn </span>get_mangled_variable_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">let </span>HardwareAccess { direction, address, .. } = <span class="self">self</span>;
+        <span class="kw">let </span>direction = <span class="kw">match </span>direction {
+            HardwareAccessType::Input | HardwareAccessType::Output =&gt; <span class="string">"PI"</span>,
+            HardwareAccessType::Memory =&gt; <span class="string">"M"</span>,
+            HardwareAccessType::Global =&gt; <span class="string">"G"</span>,
+        };
+        <span class="macro">format!</span>(
+            <span class="string">"__{direction}_{}"</span>,
+            address
+                .iter()
+                .flat_map(|node| node.get_literal_integer_value())
+                .map(|val| val.to_string())
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+                .join(<span class="string">"_"</span>)
+        )
+    }
+
+    <span class="kw">pub fn </span>is_template(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.access, DirectAccessType::Template)
+    }
 }
 </code></pre></div></section></main></body></html>
