@@ -618,6 +618,29 @@ fn validate_array_access<T: AnnotationMap>(
     }
 }
 
+pub fn validate_type_compatibility<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    left: &AstNode,
+    right: &AstNode,
+) {
+    let ty_left = context.annotations.get_type_or_void(left, context.index);
+    let ty_right = context.annotations.get_type_or_void(right, context.index);
+
+    if !(ty_left.is_compatible_with_type(ty_right) && ty_right.is_compatible_with_type(ty_left)) {
+        let ty_left_name = get_datatype_name_or_slice(validator.context, ty_left);
+        let ty_right_name = get_datatype_name_or_slice(validator.context, ty_right);
+
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Invalid expression, types {ty_left_name} and {ty_right_name} are incompatible in this context"
+            ))
+            .with_error_code("E037")
+            .with_location(left.location.span(&right.location)),
+        );
+    }
+}
+
 fn visit_binary_expression<T: AnnotationMap>(
     validator: &mut Validator,
     statement: &AstNode,
@@ -660,6 +683,8 @@ fn visit_binary_expression<T: AnnotationMap>(
         }
         _ => validate_binary_expression(validator, statement, operator, left, right, context),
     }
+
+    validate_type_compatibility(validator, context, left, right);
 }
 
 fn validate_binary_expression<T: AnnotationMap>(
@@ -1230,15 +1255,16 @@ fn validate_call<T: AnnotationMap>(
     operator_arguments: Option<&AstNode>,
     context: &ValidationContext<T>,
 ) {
-    // visit called pou
     visit_statement(validator, operator, context);
 
-    if let Some(pou) = context.find_pou(operator) {
-        // additional validation for builtin calls if necessary
-        if let Some(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
-            validation(validator, operator, operator_arguments, context.annotations, context.index)
-        }
+    // Check if we're dealing with a builtin function and if so call its validation function
+    if let Some(validation) = builtins::get_builtin(operator.get_flat_reference_name().unwrap_or_default())
+        .and_then(BuiltIn::get_validation)
+    {
+        validation(validator, operator, operator_arguments, context.annotations, context.index);
+    }
 
+    if let Some(pou) = context.find_pou(operator) {
         let arguments = operator_arguments.map(flatten_expression_list).unwrap_or_default();
         let parameters = context.index.get_declared_parameters(pou.get_name());
 

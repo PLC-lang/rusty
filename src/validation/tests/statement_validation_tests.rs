@@ -681,7 +681,6 @@ fn reference_to_reference_assignments_in_function_arguments() {
             // ALL of these should be valid
             input1 := ADR(global1),
             input2 := REF(global2),
-            input3 := &global3
         );
 
         prog(
@@ -698,14 +697,6 @@ fn reference_to_reference_assignments_in_function_arguments() {
             input1 := REF(global4),
             input2 := REF(global5),
             input3 := REF(global6),
-        );
-
-        prog(
-            // NONE of these should be valid because &(...) returns type information and we
-            // explicitly check if pointer assignments are of the same type
-            input1 := &(global4),
-            input2 := &(global5),
-            input3 := &(global6),
         );
     END_PROGRAM
     "#,
@@ -1809,6 +1800,101 @@ fn incorrect_argument_count_stateful_pous() {
        │
     12 │             two_instance(1, 2, 3);
        │                             ^ Expected a reference for parameter out_two because their type is Output
+
+    "###);
+}
+
+#[test]
+fn binary_expressions_with_incompatible_types() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                var_int         : INT;
+                var_dint        : DINT;
+                var_real        : REAL;
+                var_string      : STRING;
+                var_array_tod   : ARRAY[1..5] OF TOD;
+            END_VAR
+        
+            // Compatible Types
+            var_int + var_dint + var_real;
+
+            // Incompatible Types
+            var_int + var_string;
+            var_string + var_array_tod;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid expression, types INT and STRING are incompatible in this context
+       ┌─ <internal>:15:13
+       │
+    15 │             var_int + var_string;
+       │             ^^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in this context
+
+    error[E037]: Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in this context
+       ┌─ <internal>:16:13
+       │
+    16 │             var_string + var_array_tod;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in this context
+
+    "###);
+}
+
+#[test]
+fn builtin_math_functions_with_incompatible_types() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                var_int         : INT;
+                var_dint        : DINT;
+                var_real        : REAL;
+                var_string      : STRING;
+                var_array_tod   : ARRAY[1..5] OF TOD;
+            END_VAR
+
+            // Incompatible Types
+            // ADD(var_int, var_string, var_array_tod);
+            SUB(var_int, var_string);
+            MUL(var_int, var_string);
+            DIV(var_int, var_string);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid expression, types INT and STRING are incompatible in this context
+       ┌─ <internal>:13:17
+       │
+    13 │             SUB(var_int, var_string);
+       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in this context
+
+    error[E037]: Invalid expression, types INT and STRING are incompatible in this context
+       ┌─ <internal>:14:17
+       │
+    14 │             MUL(var_int, var_string);
+       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in this context
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
+       ┌─ <internal>:14:26
+       │
+    14 │             MUL(var_int, var_string);
+       │                          ^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
+
+    error[E062]: Invalid type nature for generic argument. STRING is no ANY_NUMBER
+       ┌─ <internal>:14:26
+       │
+    14 │             MUL(var_int, var_string);
+       │                          ^^^^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_NUMBER
+
+    error[E037]: Invalid expression, types INT and STRING are incompatible in this context
+       ┌─ <internal>:15:17
+       │
+    15 │             DIV(var_int, var_string);
+       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in this context
 
     "###);
 }

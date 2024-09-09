@@ -332,8 +332,9 @@ lazy_static! {
 
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus)
                 }),
-                validation:Some(|validator, operator, parameters, _, _| {
-                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus)
+                validation:Some(|validator, operator, parameters, annotations, index| {
+                    validate_type_compatibility(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus);
                 }),
                 generic_name_resolver,
                 code: |_, _, _| {
@@ -357,7 +358,8 @@ lazy_static! {
 
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication)
                 }),
-                validation: Some(|validator, operator, parameters, _, _| {
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_type_compatibility(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Multiplication)
                 }),
                 generic_name_resolver,
@@ -382,7 +384,8 @@ lazy_static! {
                     };
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus)
                 }),
-                validation:Some(|validator, operator, parameters, _, _| {
+                validation:Some(|validator, operator, parameters, annotations, index| {
+                    validate_type_compatibility(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Minus)
                 }),
                 generic_name_resolver,
@@ -407,7 +410,8 @@ lazy_static! {
                     };
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division)
                 }),
-                validation:Some(|validator, operator, parameters, _, _| {
+                validation:Some(|validator, operator, parameters, annotations, index| {
+                    validate_type_compatibility(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division)
                 }),
                 generic_name_resolver,
@@ -563,6 +567,41 @@ lazy_static! {
             }
         ),
     ]);
+}
+
+// XXX: This function is an (almost) duplicate of `validate_type_compatibility` in `statement.rs` which kinda
+// sucks. Maybe just call in loop but then theres a dependency between the two files which we might not want
+// given we are thinking of isolating crates...
+fn validate_type_compatibility(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) {
+    let Some(params) = parameters else { return };
+
+    let types = flatten_expression_list(params);
+    let mut types = types.iter().peekable();
+
+    while let Some(node_left) = types.next() {
+        if let Some(node_right) = types.peek() {
+            let ty_left = annotations.get_type_or_void(node_left, index);
+            let ty_right = annotations.get_type_or_void(node_right, index);
+
+            if !(ty_left.is_compatible_with_type(ty_right) && ty_right.is_compatible_with_type(ty_left)) {
+                let ty_left_name = ty_left.get_name();
+                let ty_right_name = ty_right.get_name();
+
+                validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Invalid expression, types {ty_left_name} and {ty_right_name} are incompatible in this context"
+            ))
+            .with_error_code("E037")
+            .with_location(node_left.location.span(&node_right.location)),
+        );
+            }
+        }
+    }
 }
 
 fn validate_builtin_symbol_parameter_count(
