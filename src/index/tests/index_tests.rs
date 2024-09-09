@@ -2090,3 +2090,47 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
     )
     "###);
 }
+
+#[test]
+fn var_config_hardware_address_creates_global_variable() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_CONFIG
+                foo.bar AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r###"
+    VariableIndexEntry {
+        name: "__PI_1_2_3_4",
+        qualified_name: "__PI_1_2_3_4",
+        initial_value: None,
+        argument_type: ByVal(
+            Global,
+        ),
+        is_constant: false,
+        data_type_name: "BOOL",
+        location_in_parent: 0,
+        linkage: Internal,
+        binding: None,
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 2,
+                    column: 16,
+                    offset: 40,
+                }..TextLocation {
+                    line: 2,
+                    column: 26,
+                    offset: 50,
+                },
+            ),
+        },
+        varargs: None,
+    }
+    "###);
+}
