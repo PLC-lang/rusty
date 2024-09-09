@@ -1081,12 +1081,11 @@ fn parse_config_variables(lexer: &mut ParseSession) -> Vec<ConfigVariable> {
         lexer.advance();
         let mut variables = vec![];
         while lexer.token == Identifier {
-            let Some(configured_var) =
+            if let Some(configured_var) =
                 parse_any_in_region(lexer, vec![KeywordSemicolon], try_parse_config_var)
-            else {
-                continue;
-            };
-            variables.push(configured_var);
+            {
+                variables.push(configured_var);
+            }
         }
         variables
     })
