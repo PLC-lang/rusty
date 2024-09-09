@@ -1798,12 +1798,12 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
             span: Range(
                 TextLocation {
                     line: 2,
-                    column: 12,
-                    offset: 36,
+                    column: 16,
+                    offset: 40,
                 }..TextLocation {
                     line: 2,
-                    column: 15,
-                    offset: 39,
+                    column: 29,
+                    offset: 53,
                 },
             ),
         },
@@ -1949,12 +1949,12 @@ fn address_used_in_2_aliases_only_created_once() {
                 span: Range(
                     TextLocation {
                         line: 2,
-                        column: 12,
-                        offset: 36,
+                        column: 16,
+                        offset: 40,
                     }..TextLocation {
                         line: 2,
-                        column: 15,
-                        offset: 39,
+                        column: 29,
+                        offset: 53,
                     },
                 ),
             },
@@ -1998,12 +1998,12 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
                 span: Range(
                     TextLocation {
                         line: 2,
-                        column: 12,
-                        offset: 36,
+                        column: 16,
+                        offset: 40,
                     }..TextLocation {
                         line: 2,
-                        column: 15,
-                        offset: 39,
+                        column: 29,
+                        offset: 53,
                     },
                 ),
             },
@@ -2029,12 +2029,12 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
                 span: Range(
                     TextLocation {
                         line: 4,
-                        column: 12,
-                        offset: 112,
+                        column: 17,
+                        offset: 117,
                     }..TextLocation {
                         line: 4,
-                        column: 16,
-                        offset: 116,
+                        column: 30,
+                        offset: 130,
                     },
                 ),
             },
@@ -2076,12 +2076,12 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
                 span: Range(
                     TextLocation {
                         line: 2,
-                        column: 12,
-                        offset: 36,
+                        column: 16,
+                        offset: 40,
                     }..TextLocation {
                         line: 2,
-                        column: 15,
-                        offset: 39,
+                        column: 29,
+                        offset: 53,
                     },
                 ),
             },
