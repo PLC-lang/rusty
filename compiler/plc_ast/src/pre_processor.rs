@@ -7,8 +7,7 @@ use plc_util::convention::internal_type_name;
 use crate::{
     ast::{
         flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, DirectAccessType, HardwareAccess, HardwareAccessType, Operator, Pou,
-        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -155,24 +154,11 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
 
         // In any case, we have to inject initializers into aliased hardware access variables
         if let Some(ref node) = global_var.address {
-            if let AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) = &node.stmt {
-                let direction = match direction {
-                    HardwareAccessType::Input | HardwareAccessType::Output => "PI",
-                    HardwareAccessType::Memory => "M",
-                    HardwareAccessType::Global => "G",
-                };
-                let name = format!(
-                    "__{direction}_{}",
-                    address
-                        .iter()
-                        .flat_map(|node| node.get_literal_integer_value())
-                        .map(|val| val.to_string())
-                        .collect::<Vec<_>>()
-                        .join("_")
-                );
+            if let AstStatement::HardwareAccess(hardware) = &node.stmt {
+                let name = hardware.get_mangled_variable_name();
 
                 // %I*: DWORD; should not be declared at this stage, it is just skipped
-                if matches!(access, DirectAccessType::Template) {
+                if hardware.is_template() {
                     continue;
                 }
 

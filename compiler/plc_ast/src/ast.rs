@@ -1707,3 +1707,27 @@ pub struct JumpStatement {
 pub struct LabelStatement {
     pub name: String,
 }
+
+impl HardwareAccess {
+    pub fn get_mangled_variable_name(&self) -> String {
+        let HardwareAccess { direction, address, .. } = self;
+        let direction = match direction {
+            HardwareAccessType::Input | HardwareAccessType::Output => "PI",
+            HardwareAccessType::Memory => "M",
+            HardwareAccessType::Global => "G",
+        };
+        format!(
+            "__{direction}_{}",
+            address
+                .iter()
+                .flat_map(|node| node.get_literal_integer_value())
+                .map(|val| val.to_string())
+                .collect::<Vec<_>>()
+                .join("_")
+        )
+    }
+
+    pub fn is_template(&self) -> bool {
+        matches!(self.access, DirectAccessType::Template)
+    }
+}
