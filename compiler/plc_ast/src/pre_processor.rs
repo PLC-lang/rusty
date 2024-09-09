@@ -232,6 +232,7 @@ fn process_var_config_variables(unit: &mut CompilationUnit) {
                 location: location.clone(),
             })
         });
+
     unit.global_vars.push(VariableBlock {
         access: crate::ast::AccessModifier::Protected,
         constant: false,
@@ -239,7 +240,7 @@ fn process_var_config_variables(unit: &mut CompilationUnit) {
         variables: variables.collect(),
         variable_block_type: VariableBlockType::Global,
         linkage: crate::ast::LinkageType::Internal,
-        location: SourceLocation::internal(), // should this be internal?
+        location: SourceLocation::internal(),
     });
 }
 

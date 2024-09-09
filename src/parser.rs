@@ -77,10 +77,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
                 continue;
             }
             KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
-            KeywordVarConfig => {
-                // can VAR_CONFIG be external? are multiple VAR_CONFIG blocks allowed?
-                unit.var_config.extend(parse_config_variables(&mut lexer))
-            }
+            KeywordVarConfig => unit.var_config.extend(parse_config_variables(&mut lexer)),
 
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
                 let params = match lexer.token {
@@ -1096,7 +1093,6 @@ fn parse_config_variables(lexer: &mut ParseSession) -> Vec<ConfigVariable> {
 }
 
 fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
-    // read fully qualified var name
     let start = lexer.location();
     let mut segments: Vec<String> = vec![];
     while lexer.token == Identifier {
@@ -1111,10 +1107,7 @@ fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
 
     let location = start.span(&lexer.location());
     if !lexer.try_consume(&KeywordAt) {
-        lexer.accept_diagnostic(Diagnostic::missing_token(
-            "AT", // TODO: refine message
-            lexer.location(),
-        ));
+        lexer.accept_diagnostic(Diagnostic::missing_token("AT", lexer.location()));
     }
 
     let HardwareAccess((direction, access_type)) = lexer.token else {
@@ -1123,7 +1116,6 @@ fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
     };
 
     let Some(address) = parse_hardware_access(lexer, direction, access_type) else {
-        // is the diagnostic from `parse_hardware_access` enough here?
         return None;
     };
 
