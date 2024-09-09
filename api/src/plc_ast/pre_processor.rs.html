@@ -341,6 +341,12 @@
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
 <a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>rustc_hash::FxHashMap;
@@ -351,7 +357,7 @@
     ast::{
         flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
         DataTypeDeclaration, DirectAccessType, HardwareAccess, HardwareAccessType, Operator, Pou,
-        UserTypeDeclaration, Variable, VariableBlockType,
+        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -532,20 +538,26 @@
                     data_type_declaration: ref_ty.unwrap_or(global_var.data_type_declaration.clone()),
                     initializer: <span class="prelude-val">None</span>,
                     address: <span class="prelude-val">None</span>,
-                    location: global_var.location.clone(),
+                    location: node.location.clone(),
                 };
                 mangled_globals.push(internal_mangled_var);
             }
         }
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(block) =
-        unit.global_vars.iter_mut().find(|block| block.variable_block_type == VariableBlockType::Global)
-    {
-        <span class="kw">for </span>new_var <span class="kw">in </span>mangled_globals {
-            block.variables.push(new_var);
+    <span class="kw">let </span><span class="kw-2">mut </span>block = <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = unit.global_vars.iter().position(|block| {
+        block.variable_block_type == VariableBlockType::Global &amp;&amp; block.location.is_internal()
+    }) {
+        unit.global_vars.remove(index)
+    } <span class="kw">else </span>{
+        VariableBlock::default().with_block_type(VariableBlockType::Global)
+    };
+    <span class="kw">for </span>var <span class="kw">in </span>mangled_globals {
+        <span class="kw">if </span>!block.variables.contains(<span class="kw-2">&amp;</span>var) {
+            block.variables.push(var);
         }
     }
+    unit.global_vars.push(block);
 }
 
 <span class="kw">fn </span>build_enum_initializer(
