@@ -7,7 +7,7 @@ use plc_util::convention::internal_type_name;
 use crate::{
     ast::{
         flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable, VariableBlockType,
+        DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -175,20 +175,26 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
                     data_type_declaration: ref_ty.unwrap_or(global_var.data_type_declaration.clone()),
                     initializer: None,
                     address: None,
-                    location: global_var.location.clone(),
+                    location: node.location.clone(),
                 };
                 mangled_globals.push(internal_mangled_var);
             }
         }
     }
 
-    if let Some(block) =
-        unit.global_vars.iter_mut().find(|block| block.variable_block_type == VariableBlockType::Global)
-    {
-        for new_var in mangled_globals {
-            block.variables.push(new_var);
+    let mut block = if let Some(index) = unit.global_vars.iter().position(|block| {
+        block.variable_block_type == VariableBlockType::Global && block.location.is_internal()
+    }) {
+        unit.global_vars.remove(index)
+    } else {
+        VariableBlock::default().with_block_type(VariableBlockType::Global)
+    };
+    for var in mangled_globals {
+        if !block.variables.contains(&var) {
+            block.variables.push(var);
         }
     }
+    unit.global_vars.push(block);
 }
 
 fn build_enum_initializer(
