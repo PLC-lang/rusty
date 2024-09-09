@@ -2,6 +2,7 @@
 
 use std::{
     fmt::{Debug, Display, Formatter},
+    hash::Hash,
     ops::Range,
 };
 
@@ -419,13 +420,19 @@ impl Debug for VariableBlock {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub struct Variable {
     pub name: String,
     pub data_type_declaration: DataTypeDeclaration,
     pub initializer: Option<AstNode>,
     pub address: Option<AstNode>,
     pub location: SourceLocation,
+}
+
+impl PartialEq for Variable {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.location == other.location
+    }
 }
 
 impl Debug for Variable {
