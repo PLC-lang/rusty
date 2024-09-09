@@ -7,5 +7,3 @@ error[E074]: Cannot generate String-Literal for type INT
   │
 6 │         x := 'A';
   │              ^^^ Cannot generate String-Literal for type INT
-
-

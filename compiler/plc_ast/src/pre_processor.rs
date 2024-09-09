@@ -6,7 +6,9 @@ use plc_util::convention::internal_type_name;
 
 use crate::{
     ast::{
-        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, HardwareAccess, HardwareAccessType, Operator, Pou, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType
+        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit,
+        ConfigVariable, DataType, DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable,
+        VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -154,11 +156,11 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
 
         // In any case, we have to inject initializers into aliased hardware access variables
         if let Some(ref node) = global_var.address {
-            if let AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) = &node.stmt {
-                let name = mangle_hardware_access_variable_name(direction, address);
+            if let AstStatement::HardwareAccess(hardware) = &node.stmt {
+                let name = hardware.get_mangled_variable_name();
 
                 // %I*: DWORD; should not be declared at this stage, it is just skipped
-                if matches!(access, DirectAccessType::Template) {
+                if hardware.is_template() {
                     continue;
                 }
 
@@ -182,6 +184,10 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
         }
     }
 
+    update_generated_globals(unit, mangled_globals);
+}
+
+fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Variable>) {
     let mut block = if let Some(index) = unit.global_vars.iter().position(|block| {
         block.variable_block_type == VariableBlockType::Global && block.location.is_internal()
     }) {
@@ -197,36 +203,18 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
     unit.global_vars.push(block);
 }
 
-fn mangle_hardware_access_variable_name(direction: &HardwareAccessType, address: &Vec<AstNode>) -> String {
-    let direction = match direction {
-        HardwareAccessType::Input | HardwareAccessType::Output => "PI",
-        HardwareAccessType::Memory => "M",
-        HardwareAccessType::Global => "G",
-    };
-    format!(
-        "__{direction}_{}",
-        address
-            .iter()
-            .flat_map(|node| node.get_literal_integer_value())
-            .map(|val| val.to_string())
-            .collect::<Vec<_>>()
-            .join("_")
-    )
-}
-
 fn process_var_config_variables(unit: &mut CompilationUnit) {
     let variables =
         unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, location, .. }| {
-            let AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) = &address.stmt
-            else {
+            let AstStatement::HardwareAccess(hardware) = &address.stmt else {
                 unreachable!("Must be parsed as hardware access")
             };
 
-            if matches!(access, DirectAccessType::Template) {
+            if hardware.is_template() {
                 return None;
             }
 
-            let name = mangle_hardware_access_variable_name(direction, address);
+            let name = hardware.get_mangled_variable_name();
 
             Some(Variable {
                 name,
@@ -237,15 +225,7 @@ fn process_var_config_variables(unit: &mut CompilationUnit) {
             })
         });
 
-    unit.global_vars.push(VariableBlock {
-        access: crate::ast::AccessModifier::Protected,
-        constant: false,
-        retain: false,
-        variables: variables.collect(),
-        variable_block_type: VariableBlockType::Global,
-        linkage: crate::ast::LinkageType::Internal,
-        location: SourceLocation::internal(),
-    });
+    update_generated_globals(unit, variables.collect())
 }
 
 fn build_enum_initializer(
