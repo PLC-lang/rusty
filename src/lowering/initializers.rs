@@ -11,7 +11,7 @@ use plc_source::source_location::SourceLocation;
 
 use super::AstLowerer;
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
-const INIT_COMPILATION_UNIT: & str = "__initializers";
+const INIT_COMPILATION_UNIT: &str = "__initializers";
 const VAR_CONFIG_INIT: &str = "__init___var_config";
 
 /// POUs and datatypes which require initialization via generated function call.
