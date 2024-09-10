@@ -6,9 +6,9 @@ use plc_util::convention::internal_type_name;
 
 use crate::{
     ast::{
-        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, DirectAccessType, HardwareAccess, HardwareAccessType, Operator, Pou,
-        UserTypeDeclaration, Variable, VariableBlockType,
+        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit,
+        ConfigVariable, DataType, DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable,
+        VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -38,6 +38,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
 
     //process all variables from GVLs
     process_global_variables(unit, &mut id_provider);
+    process_var_config_variables(unit);
 
     //process all variables in dataTypes
     let mut new_types = vec![];
@@ -155,24 +156,11 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
 
         // In any case, we have to inject initializers into aliased hardware access variables
         if let Some(ref node) = global_var.address {
-            if let AstStatement::HardwareAccess(HardwareAccess { direction, access, address }) = &node.stmt {
-                let direction = match direction {
-                    HardwareAccessType::Input | HardwareAccessType::Output => "PI",
-                    HardwareAccessType::Memory => "M",
-                    HardwareAccessType::Global => "G",
-                };
-                let name = format!(
-                    "__{direction}_{}",
-                    address
-                        .iter()
-                        .flat_map(|node| node.get_literal_integer_value())
-                        .map(|val| val.to_string())
-                        .collect::<Vec<_>>()
-                        .join("_")
-                );
+            if let AstStatement::HardwareAccess(hardware) = &node.stmt {
+                let name = hardware.get_mangled_variable_name();
 
                 // %I*: DWORD; should not be declared at this stage, it is just skipped
-                if matches!(access, DirectAccessType::Template) {
+                if hardware.is_template() {
                     continue;
                 }
 
@@ -189,20 +177,55 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
                     data_type_declaration: ref_ty.unwrap_or(global_var.data_type_declaration.clone()),
                     initializer: None,
                     address: None,
-                    location: global_var.location.clone(),
+                    location: node.location.clone(),
                 };
                 mangled_globals.push(internal_mangled_var);
             }
         }
     }
 
-    if let Some(block) =
-        unit.global_vars.iter_mut().find(|block| block.variable_block_type == VariableBlockType::Global)
-    {
-        for new_var in mangled_globals {
-            block.variables.push(new_var);
+    update_generated_globals(unit, mangled_globals);
+}
+
+fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Variable>) {
+    let mut block = if let Some(index) = unit.global_vars.iter().position(|block| {
+        block.variable_block_type == VariableBlockType::Global && block.location.is_internal()
+    }) {
+        unit.global_vars.remove(index)
+    } else {
+        VariableBlock::default().with_block_type(VariableBlockType::Global)
+    };
+    for var in mangled_globals {
+        if !block.variables.contains(&var) {
+            block.variables.push(var);
         }
     }
+    unit.global_vars.push(block);
+}
+
+fn process_var_config_variables(unit: &mut CompilationUnit) {
+    let variables =
+        unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, location, .. }| {
+            let AstStatement::HardwareAccess(hardware) = &address.stmt else {
+                unreachable!("Must be parsed as hardware access")
+            };
+
+            if hardware.is_template() {
+                return None;
+            }
+
+            let name = hardware.get_mangled_variable_name();
+
+            Some(Variable {
+                name,
+                data_type_declaration: data_type.clone(),
+                initializer: None,
+                address: None,
+                location: location.clone(),
+            })
+        });
+
+    update_generated_globals(unit, variables.collect())
 }
 
 fn build_enum_initializer(

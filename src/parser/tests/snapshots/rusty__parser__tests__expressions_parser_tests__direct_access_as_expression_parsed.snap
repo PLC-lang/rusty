@@ -4,6 +4,7 @@ expression: result
 ---
 CompilationUnit {
     global_vars: [],
+    var_config: [],
     units: [
         POU {
             name: "prg",

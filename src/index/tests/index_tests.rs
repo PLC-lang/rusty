@@ -1798,12 +1798,12 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
             span: Range(
                 TextLocation {
                     line: 2,
-                    column: 12,
-                    offset: 36,
+                    column: 16,
+                    offset: 40,
                 }..TextLocation {
                     line: 2,
-                    column: 15,
-                    offset: 39,
+                    column: 29,
+                    offset: 53,
                 },
             ),
         },
@@ -1949,12 +1949,12 @@ fn address_used_in_2_aliases_only_created_once() {
                 span: Range(
                     TextLocation {
                         line: 2,
-                        column: 12,
-                        offset: 36,
+                        column: 16,
+                        offset: 40,
                     }..TextLocation {
                         line: 2,
-                        column: 15,
-                        offset: 39,
+                        column: 29,
+                        offset: 53,
                     },
                 ),
             },
@@ -1998,12 +1998,12 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
                 span: Range(
                     TextLocation {
                         line: 2,
-                        column: 12,
-                        offset: 36,
+                        column: 16,
+                        offset: 40,
                     }..TextLocation {
                         line: 2,
-                        column: 15,
-                        offset: 39,
+                        column: 29,
+                        offset: 53,
                     },
                 ),
             },
@@ -2029,12 +2029,12 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
                 span: Range(
                     TextLocation {
                         line: 4,
-                        column: 12,
-                        offset: 112,
+                        column: 17,
+                        offset: 117,
                     }..TextLocation {
                         line: 4,
-                        column: 16,
-                        offset: 116,
+                        column: 30,
+                        offset: 130,
                     },
                 ),
             },
@@ -2076,17 +2076,60 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
                 span: Range(
                     TextLocation {
                         line: 2,
-                        column: 12,
-                        offset: 36,
+                        column: 16,
+                        offset: 40,
                     }..TextLocation {
                         line: 2,
-                        column: 15,
-                        offset: 39,
+                        column: 29,
+                        offset: 53,
                     },
                 ),
             },
             varargs: None,
         },
     )
+    "###);
+}
+
+#[test]
+fn var_config_hardware_address_creates_global_variable() {
+    // Given some configured hardware access variable like `foo.bar AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // an internally created global variable named `__PI_1.2.3.4` of type BOOL.
+    let (_, index) = index(
+        r"
+            VAR_CONFIG
+                foo.bar AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r###"
+    VariableIndexEntry {
+        name: "__PI_1_2_3_4",
+        qualified_name: "__PI_1_2_3_4",
+        initial_value: None,
+        argument_type: ByVal(
+            Global,
+        ),
+        is_constant: false,
+        data_type_name: "BOOL",
+        location_in_parent: 0,
+        linkage: Internal,
+        binding: None,
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 2,
+                    column: 16,
+                    offset: 40,
+                }..TextLocation {
+                    line: 2,
+                    column: 26,
+                    offset: 50,
+                },
+            ),
+        },
+        varargs: None,
+    }
     "###);
 }

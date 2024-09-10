@@ -7,5 +7,3 @@ error[E071]: Invalid array access
   │
 6 │             x[3] := 3;
   │               ^ Invalid array access
-
-

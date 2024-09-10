@@ -7,5 +7,3 @@ error[E071]: Cannot break out of loop when not inside a loop
   │
 6 │             EXIT;
   │             ^^^^ Cannot break out of loop when not inside a loop
-
-
