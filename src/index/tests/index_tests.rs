@@ -2117,7 +2117,17 @@ fn var_config_hardware_address_creates_global_variable() {
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {
-            span: None,
+            span: Range(
+                TextLocation {
+                    line: 2,
+                    column: 24,
+                    offset: 48,
+                }..TextLocation {
+                    line: 2,
+                    column: 37,
+                    offset: 61,
+                },
+            ),
         },
         varargs: None,
     }

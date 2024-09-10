@@ -1227,8 +1227,6 @@ fn var_config_aliased_variables_initialized() {
 
     @__FB__init = external global %FB, section "var-$RUSTY$__FB__init:r1pi32"
     @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r2r1pi32r1pi32"
-    @__PI_1_2_1 = external global i32, section "var-$RUSTY$__PI_1_2_1:i32"
-    @__PI_1_2_2 = external global i32, section "var-$RUSTY$__PI_1_2_2:i32"
 
     define void @__init_fb(%FB* %0) section "fn-$RUSTY$__init_fb:v[pr1pi32]" {
     entry:
@@ -1253,13 +1251,6 @@ fn var_config_aliased_variables_initialized() {
     }
 
     declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
-
-    define void @__init___var_config() section "fn-$RUSTY$__init___var_config:v" {
-    entry:
-      store i32* @__PI_1_2_1, i32** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0, i32 0), align 8
-      store i32* @__PI_1_2_2, i32** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1, i32 0), align 8
-      ret void
-    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1268,6 +1259,8 @@ fn var_config_aliased_variables_initialized() {
 
     @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r2r1pi32r1pi32"
     @__FB__init = external global %FB, section "var-$RUSTY$__FB__init:r1pi32"
+    @__PI_1_2_1 = external global i32, section "var-$RUSTY$__PI_1_2_1:i32"
+    @__PI_1_2_2 = external global i32, section "var-$RUSTY$__PI_1_2_2:i32"
 
     define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
     entry:
@@ -1276,12 +1269,17 @@ fn var_config_aliased_variables_initialized() {
       ret void
     }
 
+    define void @__init___var_config() section "fn-$RUSTY$__init___var_config:v" {
+    entry:
+      store i32* @__PI_1_2_1, i32** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0, i32 0), align 8
+      store i32* @__PI_1_2_2, i32** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1, i32 0), align 8
+      ret void
+    }
+
     declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr2r1pi32r1pi32]"
 
     declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
 
     declare void @FB(%FB*) section "fn-$RUSTY$FB:v"
-
-    declare void @__init___var_config() section "fn-$RUSTY$__init___var_config:v"
     "###);
 }

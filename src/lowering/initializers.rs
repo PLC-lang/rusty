@@ -101,8 +101,7 @@ impl<'lwr> Init<'lwr> for Initializers {
 
 impl AstLowerer {
     pub fn lower_init_functions(mut self, init_symbol_name: &str) -> Self {
-        let mut units = create_init_units(&self);
-        units.push(create_var_config_init(std::mem::take(&mut self.var_config_initializers)));
+        let units = create_init_units(&self);
 
         if let Some(init_unit) = units.into_iter().reduce(|mut acc_unit, unit| {
             acc_unit.import(unit);
@@ -111,7 +110,8 @@ impl AstLowerer {
             self.units.push(init_unit);
         }
 
-        self.units.push(create_init_wrapper_function(&self, init_symbol_name));
+        let global_init = create_init_wrapper_function(&mut self, init_symbol_name);
+        self.units.push(global_init);
         self
     }
 }
@@ -217,7 +217,7 @@ fn create_init_unit(
     Some(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
 }
 
-fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) -> CompilationUnit {
+fn create_init_wrapper_function(lowerer: &mut AstLowerer, init_symbol_name: &str) -> CompilationUnit {
     let mut id_provider = lowerer.ctxt.id_provider.clone();
     let init_pou = new_pou(init_symbol_name, vec![], &SourceLocation::internal());
 
@@ -274,15 +274,27 @@ fn create_init_wrapper_function(lowerer: &AstLowerer, init_symbol_name: &str) ->
         .collect::<Vec<_>>();
 
     assignments.extend(calls);
-    assignments.push(AstFactory::create_call_statement(
-        create_member_reference(VAR_CONFIG_INIT, id_provider.clone(), None),
-        None,
-        id_provider.next_id(),
-        SourceLocation::internal(),
-    ));
+
+    let var_config_needed = !lowerer.var_config_initializers.is_empty();
+    if var_config_needed {
+        assignments.push(AstFactory::create_call_statement(
+            create_member_reference(VAR_CONFIG_INIT, id_provider.clone(), None),
+            None,
+            id_provider.next_id(),
+            SourceLocation::internal(),
+        ));
+    };    
 
     let implementation = new_implementation(init_symbol_name, assignments, &SourceLocation::internal());
-    new_unit(init_pou, implementation, init_symbol_name)
+    let mut global_init = new_unit(init_pou, implementation, init_symbol_name);
+
+    if !var_config_needed {
+        return global_init;
+    };
+    
+    let var_config_init = create_var_config_init(std::mem::take(&mut lowerer.var_config_initializers));
+    global_init.import(var_config_init);
+    global_init
 }
 
 fn new_pou(name: &str, variable_blocks: Vec<VariableBlock>, location: &SourceLocation) -> Pou {
