@@ -924,7 +924,7 @@ type CodegenFunction = for<'ink, 'b> fn(
 type ValidationFunction = fn(&mut Validator, &AstNode, Option<&AstNode>, &dyn AnnotationMap, &Index);
 
 pub struct BuiltIn {
-    pub decl: &'static str,
+    decl: &'static str,
     annotation: Option<AnnotationFunction>,
     validation: Option<ValidationFunction>,
     generic_name_resolver: GenericNameResolver,
