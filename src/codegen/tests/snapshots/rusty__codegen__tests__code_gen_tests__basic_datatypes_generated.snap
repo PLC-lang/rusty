@@ -18,3 +18,10 @@ source_filename = "<internal>"
 @lword_11 = global i64 0, section "var-$RUSTY$lword_11:u64"
 @lint_12 = global i64 0, section "var-$RUSTY$lint_12:i64"
 @ulint_13 = global i64 0, section "var-$RUSTY$ulint_13:u64"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}

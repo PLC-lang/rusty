@@ -6,3 +6,10 @@ expression: result
 source_filename = "<internal>"
 
 @arr = global [6 x i16] [i16 0, i16 1, i16 2, i16 7, i16 7, i16 7], section "var-$RUSTY$arr:ai16"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}

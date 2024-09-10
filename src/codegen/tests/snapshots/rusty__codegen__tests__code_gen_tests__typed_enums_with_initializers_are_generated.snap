@@ -17,3 +17,10 @@ source_filename = "<internal>"
 @MyEnum3.red = unnamed_addr constant i32 22, section "var-$RUSTY$red:e3i32"
 @MyEnum3.yellow = unnamed_addr constant i32 33, section "var-$RUSTY$yellow:e3i32"
 @MyEnum3.green = unnamed_addr constant i32 44, section "var-$RUSTY$green:e3i32"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}

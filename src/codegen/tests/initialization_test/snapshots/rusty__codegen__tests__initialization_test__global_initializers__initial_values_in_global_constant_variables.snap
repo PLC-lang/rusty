@@ -23,3 +23,10 @@ source_filename = "<internal>"
 @wstr = unnamed_addr constant [11 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0, i16 0, i16 0, i16 0, i16 0, i16 0], section "var-$RUSTY$wstr:s16u11"
 @r = unnamed_addr constant float 0x3FF91EB860000000, section "var-$RUSTY$r:f32"
 @tau = unnamed_addr constant double 6.283000e+00, section "var-$RUSTY$tau:f64"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}

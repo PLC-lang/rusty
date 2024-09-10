@@ -11,7 +11,7 @@ use plc_source::source_location::SourceLocation;
 
 use super::AstLowerer;
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
-const INIT_COMPILATION_UNIT: &'static str = "__initializers";
+const INIT_COMPILATION_UNIT: &str = "__initializers";
 const VAR_CONFIG_INIT: &str = "__init___var_config";
 
 /// POUs and datatypes which require initialization via generated function call.
@@ -283,7 +283,7 @@ fn create_init_wrapper_function(lowerer: &mut AstLowerer, init_symbol_name: &str
             id_provider.next_id(),
             SourceLocation::internal(),
         ));
-    };    
+    };
 
     let implementation = new_implementation(init_symbol_name, assignments, &SourceLocation::internal());
     let mut global_init = new_unit(init_pou, implementation, init_symbol_name);
@@ -291,7 +291,7 @@ fn create_init_wrapper_function(lowerer: &mut AstLowerer, init_symbol_name: &str
     if !var_config_needed {
         return global_init;
     };
-    
+
     let var_config_init = create_var_config_init(std::mem::take(&mut lowerer.var_config_initializers));
     global_init.import(var_config_init);
     global_init

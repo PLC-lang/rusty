@@ -26,6 +26,13 @@ fn enums_generate_a_global_constants_for_each_element() {
     @Color.red = unnamed_addr constant i32 0, section "var-$RUSTY$red:e3i32"
     @Color.yellow = unnamed_addr constant i32 1, section "var-$RUSTY$yellow:e3i32"
     @Color.green = unnamed_addr constant i32 2, section "var-$RUSTY$green:e3i32"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 
@@ -62,6 +69,13 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
     @State.closed = unnamed_addr constant i8 4, section "var-$RUSTY$closed:e4u8"
     @State.idle = unnamed_addr constant i8 5, section "var-$RUSTY$idle:e4u8"
     @State.running = unnamed_addr constant i8 6, section "var-$RUSTY$running:e4u8"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 
@@ -88,6 +102,13 @@ fn inline_declaration_of_enum_types() {
     @__global_backColor.red = unnamed_addr constant i32 0, section "var-$RUSTY$red:e3i32"
     @__global_backColor.green = unnamed_addr constant i32 1, section "var-$RUSTY$green:e3i32"
     @__global_backColor.yellow = unnamed_addr constant i32 2, section "var-$RUSTY$yellow:e3i32"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 

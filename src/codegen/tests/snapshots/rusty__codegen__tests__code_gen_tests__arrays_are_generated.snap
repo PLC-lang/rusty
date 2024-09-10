@@ -7,3 +7,10 @@ source_filename = "<internal>"
 
 @x = global [10 x i16] zeroinitializer, section "var-$RUSTY$x:ai16"
 @y = global [6 x float] zeroinitializer, section "var-$RUSTY$y:af32"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}

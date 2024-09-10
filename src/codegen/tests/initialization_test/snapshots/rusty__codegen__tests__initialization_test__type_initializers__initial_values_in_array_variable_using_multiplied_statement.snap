@@ -9,3 +9,10 @@ source_filename = "<internal>"
 @b = global [4 x i8] c"\02\07\07\03", section "var-$RUSTY$b:au8"
 @c = global [10 x i8] c"\00\01\00\01\00\01\00\01\00\01", section "var-$RUSTY$c:au8"
 @d = global [10 x i8] c"\00\00\01\01\02\00\00\01\01\02", section "var-$RUSTY$d:au8"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}

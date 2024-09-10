@@ -10,3 +10,10 @@ source_filename = "<internal>"
 @aa = unnamed_addr constant i16 7, section "var-$RUSTY$aa:i16"
 @bb = unnamed_addr constant i16 7, section "var-$RUSTY$bb:i16"
 @cc = unnamed_addr constant i16 14, section "var-$RUSTY$cc:i16"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}

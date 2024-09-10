@@ -20,6 +20,13 @@ fn declaring_a_string() {
 
     @myUtf8 = global [21 x i8] zeroinitializer, section "var-$RUSTY$myUtf8:s8u21"
     @myUtf16 = global [21 x i16] zeroinitializer, section "var-$RUSTY$myUtf16:s16u21"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 
@@ -43,6 +50,13 @@ fn strings_are_terminated_with_0byte() {
 
     @myUtf8 = global [6 x i8] c"Hello\00", section "var-$RUSTY$myUtf8:s8u6"
     @myUtf16 = global [6 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0], section "var-$RUSTY$myUtf16:s16u6"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 
