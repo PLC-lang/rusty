@@ -333,7 +333,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus)
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
-                    validate_type_compatibility1(validator, &parameters, annotations, index);
+                    validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus);
                 }),
                 generic_name_resolver,
@@ -359,7 +359,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication)
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
-                    validate_type_compatibility1(validator, &parameters, annotations, index);
+                    validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Multiplication)
                 }),
                 generic_name_resolver,
@@ -385,7 +385,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus)
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
-                    validate_type_compatibility1(validator, &parameters, annotations, index);
+                    validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Minus)
                 }),
                 generic_name_resolver,
@@ -411,7 +411,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division)
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
-                    validate_type_compatibility1(validator, &parameters, annotations, index);
+                    validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division)
                 }),
                 generic_name_resolver,
@@ -569,7 +569,7 @@ lazy_static! {
     ]);
 }
 
-fn validate_type_compatibility1(
+fn validate_types(
     validator: &mut Validator,
     parameters: &Option<&AstNode>,
     annotations: &dyn AnnotationMap,
@@ -924,7 +924,7 @@ type CodegenFunction = for<'ink, 'b> fn(
 type ValidationFunction = fn(&mut Validator, &AstNode, Option<&AstNode>, &dyn AnnotationMap, &Index);
 
 pub struct BuiltIn {
-    decl: &'static str,
+    pub decl: &'static str,
     annotation: Option<AnnotationFunction>,
     validation: Option<ValidationFunction>,
     generic_name_resolver: GenericNameResolver,

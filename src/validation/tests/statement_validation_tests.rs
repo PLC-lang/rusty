@@ -1828,17 +1828,17 @@ fn binary_expressions_with_incompatible_types() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E037]: Invalid expression, types INT and STRING are incompatible in this context
+    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
        ┌─ <internal>:15:13
        │
     15 │             var_int + var_string;
-       │             ^^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in this context
+       │             ^^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
 
-    error[E037]: Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in this context
+    error[E031]: Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in the given context
        ┌─ <internal>:16:13
        │
     16 │             var_string + var_array_tod;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in this context
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in the given context
 
     "###);
 }
@@ -1866,17 +1866,17 @@ fn builtin_math_functions_with_incompatible_types() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E037]: Invalid expression, types INT and STRING are incompatible in this context
+    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
        ┌─ <internal>:13:17
        │
     13 │             SUB(var_int, var_string);
-       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in this context
+       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
 
-    error[E037]: Invalid expression, types INT and STRING are incompatible in this context
+    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
        ┌─ <internal>:14:17
        │
     14 │             MUL(var_int, var_string);
-       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in this context
+       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
 
     error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
        ┌─ <internal>:14:26
@@ -1890,11 +1890,52 @@ fn builtin_math_functions_with_incompatible_types() {
     14 │             MUL(var_int, var_string);
        │                          ^^^^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_NUMBER
 
-    error[E037]: Invalid expression, types INT and STRING are incompatible in this context
+    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
        ┌─ <internal>:15:17
        │
     15 │             DIV(var_int, var_string);
-       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in this context
+       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
+
+    "###);
+}
+
+#[test]
+fn builtin_math_functions_with_incompatible_literal_types() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            ADD(1, 'string');
+            SUB(1, 'string');
+            MUL(1, 'string');
+            DIV(1, 'string');
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+      ┌─ <internal>:3:17
+      │
+    3 │             ADD(1, 'string');
+      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
+
+    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+      ┌─ <internal>:4:17
+      │
+    4 │             SUB(1, 'string');
+      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
+
+    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+      ┌─ <internal>:5:17
+      │
+    5 │             MUL(1, 'string');
+      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
+
+    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+      ┌─ <internal>:6:17
+      │
+    6 │             DIV(1, 'string');
+      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
 
     "###);
 }

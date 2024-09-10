@@ -634,9 +634,9 @@ pub fn validate_type_compatibility(
 
         validator.push_diagnostic(
             Diagnostic::new(format!(
-                "Invalid expression, types {ty_left_name} and {ty_right_name} are incompatible in this context"
+                "Invalid expression, types {ty_left_name} and {ty_right_name} are incompatible in the given context"
             ))
-            .with_error_code("E037")
+            .with_error_code("E031")
             .with_location(left.location.span(&right.location)),
         );
     }
