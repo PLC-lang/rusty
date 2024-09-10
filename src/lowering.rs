@@ -227,8 +227,8 @@ impl AstLowerer {
         self.unresolved_initializers.maybe_insert_initializer(GLOBAL_SCOPE, Some(variable.get_name()), &None);
     }
 
-    fn collect_var_config_assignments(&mut self, var_config: &mut Vec<ConfigVariable>) {
-        var_config.iter_mut().for_each(|var| {
+    fn collect_var_config_assignments(&mut self, var_config: &[ConfigVariable]) {
+        var_config.iter().for_each(|var| {
             if let Some(lhs) = var.name_segments.iter().fold(None, |qualifier, ident| {
                 Some(create_member_reference(&ident, self.ctxt.get_id_provider(), qualifier))
             }) {
