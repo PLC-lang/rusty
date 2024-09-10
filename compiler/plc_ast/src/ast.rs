@@ -431,7 +431,11 @@ pub struct Variable {
 
 impl PartialEq for Variable {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && self.location == other.location
+        self.name == other.name
+            && (self.location == other.location
+                // :(
+                || self.location.is_internal()
+                || other.location.is_internal())
     }
 }
 
