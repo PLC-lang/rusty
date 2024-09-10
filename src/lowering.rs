@@ -232,7 +232,7 @@ impl AstLowerer {
             var.name_segments
                 .iter()
                 .fold(None, |qualifier, ident| {
-                    Some(create_member_reference(&ident, self.ctxt.get_id_provider(), qualifier))
+                    Some(create_member_reference(ident, self.ctxt.get_id_provider(), qualifier))
                 })
                 .map(|lhs| AstFactory::create_assignment(lhs, var.address.clone(), self.ctxt.next_id()))
         });
@@ -246,7 +246,7 @@ impl AstVisitorMut for AstLowerer {
     }
 
     fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
-        self.collect_var_config_assignments(&mut unit.var_config);
+        self.collect_var_config_assignments(&unit.var_config);
         unit.walk(self)
     }
 
