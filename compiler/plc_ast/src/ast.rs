@@ -1075,6 +1075,13 @@ impl AstNode {
         let location = self.get_location();
         AstFactory::create_not_expression(self, location, id_provider.next_id())
     }
+
+    pub fn is_template(&self) -> bool {
+        matches!(
+            self.stmt,
+            AstStatement::HardwareAccess(HardwareAccess { access: DirectAccessType::Template, .. })
+        )
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

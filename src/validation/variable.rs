@@ -1,4 +1,7 @@
-use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
+use itertools::Itertools;
+use plc_ast::ast::{
+    ArgumentProperty, ConfigVariable, Pou, PouType, Variable, VariableBlock, VariableBlockType,
+};
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
@@ -10,6 +13,59 @@ use super::{
 use crate::index::VariableIndexEntry;
 use crate::typesystem::DataTypeInformation;
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
+
+pub fn visit_config_variable<T: AnnotationMap>(
+    validator: &mut Validator,
+    vconf_variable: &ConfigVariable,
+    context: &ValidationContext<T>,
+) {
+    let slice: Vec<&str> = vconf_variable.name_segments.iter().map(|it| it.as_str()).collect();
+    let slice: &[&str] = &slice;
+
+    match context.index.find_variable(Some(&slice[0]), &slice[1..]) {
+        // Found a variable, check if (1) their data type matches and (2) they are indeed templates (e.g. %I*)
+        Some(varref_variable) => {
+            // (1)
+            let vref_type = context.index.get_effective_type_or_void_by_name(&varref_variable.data_type_name);
+            let vref_type = context.index.find_elementary_pointer_type(vref_type.get_type_information());
+            let vconf_type = context
+                .index
+                .get_effective_type_or_void_by_name(&vconf_variable.data_type.get_name().unwrap_or_default())
+                .get_type_information();
+
+            if vref_type != vconf_type {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!("Invalid, reference and varconf variables type differ",))
+                        .with_error_code("E001")
+                        .with_location(&vconf_variable.location)
+                        .with_secondary_location(&varref_variable.source_location),
+                )
+            }
+
+            // (2)
+            if vconf_variable.address.is_template() {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!("invalid"))
+                        .with_error_code("E001")
+                        .with_location(&vconf_variable.location)
+                        .with_secondary_location(&varref_variable.source_location),
+                )
+            }
+        }
+
+        None => validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Invalid reference, could not find variable: {}",
+                slice.iter().skip(1).join(".")
+            ))
+            .with_error_code("E001")
+            .with_location(&vconf_variable.location),
+        ),
+    }
+    // if let Some(variable) = context.index.find_variable(Some(slices[0]), &slices[1..]) {
+    //     println!("Found variable: {:?}", variable);
+    // }
+}
 
 pub fn visit_variable_block<T: AnnotationMap>(
     validator: &mut Validator,

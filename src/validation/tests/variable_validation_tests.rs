@@ -459,3 +459,109 @@ fn date_invalid_declaration() {
 
     assert_snapshot!(diagnostics, @r###""###);
 }
+
+#[test]
+fn var_conf_templates_instance_not_defined() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            VAR
+                foo AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main_prg
+            VAR
+                fb_instance : fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main_prg.fb_instance.bar AT %I* : BOOL;
+        END_VAR
+        "#,
+    );
+
+    // Error because `main_prg.fb_instance.bar` references a variable that is not defined; instead it should
+    // have been `foo`
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: Invalid reference, could not find variable: fb_instance.bar
+       ┌─ <internal>:15:13
+       │
+    15 │             main_prg.fb_instance.bar AT %I* : BOOL;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid reference, could not find variable: fb_instance.bar
+
+    "###);
+}
+
+#[test]
+fn var_conf_templates_type_mismatch() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            VAR
+                foo AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main_prg
+            VAR
+                fb_instance : fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main_prg.fb_instance.foo AT %IX1.0 : DINT;
+        END_VAR
+        "#,
+    );
+
+    // Error because `main_prg.fb_instance.foo` is defined as a DINT but `foo AT %I*` is a BOOL
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: Invalid, reference and varconf variables type differ
+       ┌─ <internal>:15:13
+       │
+     4 │                 foo AT %I* : BOOL;
+       │                 --- see also
+       ·
+    15 │             main_prg.fb_instance.foo AT %IX1.0 : DINT;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid, reference and varconf variables type differ
+
+    "###);
+}
+
+#[test]
+fn var_conf_templates_not_defined_as_placeholder() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            VAR
+                foo AT %IX1.0 : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main_prg
+            VAR
+                fb_instance : fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main_prg.fb_instance.foo AT %I* : BOOL;
+        END_VAR
+        "#,
+    );
+
+    // Error because `foo AT %IX1.0` is no placeholder, i.e. it is not defined as `%I*`
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: invalid
+       ┌─ <internal>:15:13
+       │
+     4 │                 foo AT %IX1.0 : BOOL;
+       │                 --- see also
+       ·
+    15 │             main_prg.fb_instance.foo AT %I* : BOOL;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ invalid
+
+    "###);
+}
