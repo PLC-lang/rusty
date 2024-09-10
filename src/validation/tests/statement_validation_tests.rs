@@ -1857,7 +1857,7 @@ fn builtin_math_functions_with_incompatible_types() {
             END_VAR
 
             // Incompatible Types
-            // ADD(var_int, var_string, var_array_tod);
+            ADD(var_int, var_string, var_array_tod);
             SUB(var_int, var_string);
             MUL(var_int, var_string);
             DIV(var_int, var_string);
@@ -1866,6 +1866,36 @@ fn builtin_math_functions_with_incompatible_types() {
     );
 
     assert_snapshot!(diagnostics, @r###"
+    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
+       ┌─ <internal>:12:17
+       │
+    12 │             ADD(var_int, var_string, var_array_tod);
+       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
+
+    error[E031]: Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in the given context
+       ┌─ <internal>:12:26
+       │
+    12 │             ADD(var_int, var_string, var_array_tod);
+       │                          ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in the given context
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'LREAL'
+       ┌─ <internal>:12:26
+       │
+    12 │             ADD(var_int, var_string, var_array_tod);
+       │                          ^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'LREAL'
+
+    error[E062]: Invalid type nature for generic argument. STRING is no ANY_NUMBER
+       ┌─ <internal>:12:26
+       │
+    12 │             ADD(var_int, var_string, var_array_tod);
+       │                          ^^^^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_NUMBER
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..5] OF TOD' to 'LREAL'
+       ┌─ <internal>:12:38
+       │
+    12 │             ADD(var_int, var_string, var_array_tod);
+       │                                      ^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..5] OF TOD' to 'LREAL'
+
     error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
        ┌─ <internal>:13:17
        │
