@@ -188,6 +188,7 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
 }
 
 fn process_var_config_variables(unit: &mut CompilationUnit) {
+    let block = get_internal_global_block(unit);
     let variables = unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, .. }| {
         let AstStatement::HardwareAccess(hardware) = &address.stmt else {
             unreachable!("Must be parsed as hardware access")
@@ -198,15 +199,16 @@ fn process_var_config_variables(unit: &mut CompilationUnit) {
         }
 
         let name = hardware.get_mangled_variable_name();
+        if block.is_some_and(|it| it.variables.iter().any(|v| v.name == name)) {
+            return None;
+        };
 
         Some(Variable {
             name,
             data_type_declaration: data_type.get_inner_pointer_ty().unwrap_or(data_type.clone()),
             initializer: None,
             address: None,
-            // XXX: using the VAR_CONFIG location here clashes with pre-existing globals using the same address
-            location: SourceLocation::internal(),
-            // location: location.clone(),
+            location: address.get_location(),
         })
     });
 
@@ -226,7 +228,17 @@ fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Var
             block.variables.push(var);
         }
     }
+
     unit.global_vars.push(block);
+}
+
+fn get_internal_global_block(unit: &CompilationUnit) -> Option<&VariableBlock> {
+    unit.global_vars
+        .iter()
+        .position(|block| {
+            block.variable_block_type == VariableBlockType::Global && block.location.is_internal()
+        })
+        .and_then(|index| unit.global_vars.get(index))
 }
 
 fn build_enum_initializer(
