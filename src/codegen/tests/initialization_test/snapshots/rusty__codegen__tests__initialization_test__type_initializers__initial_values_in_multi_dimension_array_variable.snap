@@ -6,10 +6,3 @@ expression: result
 source_filename = "<internal>"
 
 @a = global [4 x i8] c"\01\02\03\04", section "var-$RUSTY$a:au8"
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
-entry:
-  ret void
-}

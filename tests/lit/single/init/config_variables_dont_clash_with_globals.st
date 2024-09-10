@@ -29,6 +29,6 @@ FUNCTION main : DINT
     __init___config_variables_dont_clash_with_globals_st();
 
     a := 23;
-    %QX1.2.2 := 48;
+    b := 48;
     prog();
 END_FUNCTION

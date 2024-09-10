@@ -7,10 +7,3 @@ source_filename = "<internal>"
 
 @x = global [3 x i16] [i16 1, i16 2, i16 3], section "var-$RUSTY$x:ai16"
 @__MyArray__init = unnamed_addr constant [3 x i16] [i16 1, i16 2, i16 3], section "var-$RUSTY$__MyArray__init:ai16"
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
-entry:
-  ret void
-}

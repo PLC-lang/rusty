@@ -10,10 +10,3 @@ source_filename = "<internal>"
 @MyEnum.a = unnamed_addr constant i32 3, section "var-$RUSTY$a:e3i32"
 @MyEnum.b = unnamed_addr constant i32 4, section "var-$RUSTY$b:e3i32"
 @MyEnum.c = unnamed_addr constant i32 5, section "var-$RUSTY$c:e3i32"
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
-entry:
-  ret void
-}

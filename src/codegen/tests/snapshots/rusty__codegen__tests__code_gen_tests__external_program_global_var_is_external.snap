@@ -10,10 +10,3 @@ source_filename = "<internal>"
 @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2i32i32"
 
 declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
-entry:
-  ret void
-}

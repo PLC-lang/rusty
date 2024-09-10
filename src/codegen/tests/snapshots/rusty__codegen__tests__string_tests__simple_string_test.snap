@@ -7,10 +7,3 @@ source_filename = "<internal>"
 
 @str = global [21 x i8] zeroinitializer, section "var-$RUSTY$str:s8u21"
 @wstr = global [21 x i16] zeroinitializer, section "var-$RUSTY$wstr:s16u21"
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
-entry:
-  ret void
-}

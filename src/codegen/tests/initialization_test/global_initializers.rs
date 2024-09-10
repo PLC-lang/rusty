@@ -176,13 +176,6 @@ fn external_pous_get_external_initializers() {
     declare void @ext_fb(%ext_fb*) section "fn-$RUSTY$ext_fb:v"
 
     declare void @ext_prog(%ext_prog*) section "fn-$RUSTY$ext_prog:v"
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
-    entry:
-      ret void
-    }
     "###);
 }
 

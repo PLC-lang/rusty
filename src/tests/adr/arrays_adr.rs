@@ -19,13 +19,6 @@ fn declaring_an_array() {
     source_filename = "<internal>"
 
     @d = global [10 x i32] zeroinitializer, section "var-$RUSTY$d:ai32"
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
-    entry:
-      ret void
-    }
     "###);
 }
 
@@ -49,13 +42,6 @@ fn initializing_an_array() {
 
     @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-$RUSTY$d:ai32"
     @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-$RUSTY$__Data__init:ai32"
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
-    entry:
-      ret void
-    }
     "###);
 }
 
