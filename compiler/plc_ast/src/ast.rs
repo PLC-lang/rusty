@@ -2,6 +2,7 @@
 
 use std::{
     fmt::{Debug, Display, Formatter},
+    hash::Hash,
     ops::Range,
 };
 
@@ -285,8 +286,28 @@ impl PouType {
 }
 
 #[derive(Debug, PartialEq)]
+pub struct ConfigVariable {
+    pub name_segments: Vec<String>,
+    pub data_type: DataTypeDeclaration,
+    pub address: AstNode,
+    pub location: SourceLocation,
+}
+
+impl ConfigVariable {
+    pub fn new(
+        name_segments: Vec<String>,
+        data_type: DataTypeDeclaration,
+        address: AstNode,
+        location: SourceLocation,
+    ) -> Self {
+        Self { name_segments, data_type, address, location }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
+    pub var_config: Vec<ConfigVariable>,
     pub units: Vec<Pou>,
     pub implementations: Vec<Implementation>,
     pub user_types: Vec<UserTypeDeclaration>,
@@ -297,6 +318,7 @@ impl CompilationUnit {
     pub fn new(file_name: &str) -> Self {
         CompilationUnit {
             global_vars: Vec::new(),
+            var_config: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
             user_types: Vec::new(),
@@ -398,13 +420,19 @@ impl Debug for VariableBlock {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub struct Variable {
     pub name: String,
     pub data_type_declaration: DataTypeDeclaration,
     pub initializer: Option<AstNode>,
     pub address: Option<AstNode>,
     pub location: SourceLocation,
+}
+
+impl PartialEq for Variable {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.location == other.location
+    }
 }
 
 impl Debug for Variable {
@@ -1699,4 +1727,28 @@ pub struct JumpStatement {
 #[derive(Debug, Clone, PartialEq)]
 pub struct LabelStatement {
     pub name: String,
+}
+
+impl HardwareAccess {
+    pub fn get_mangled_variable_name(&self) -> String {
+        let HardwareAccess { direction, address, .. } = self;
+        let direction = match direction {
+            HardwareAccessType::Input | HardwareAccessType::Output => "PI",
+            HardwareAccessType::Memory => "M",
+            HardwareAccessType::Global => "G",
+        };
+        format!(
+            "__{direction}_{}",
+            address
+                .iter()
+                .flat_map(|node| node.get_literal_integer_value())
+                .map(|val| val.to_string())
+                .collect::<Vec<_>>()
+                .join("_")
+        )
+    }
+
+    pub fn is_template(&self) -> bool {
+        matches!(self.access, DirectAccessType::Template)
+    }
 }

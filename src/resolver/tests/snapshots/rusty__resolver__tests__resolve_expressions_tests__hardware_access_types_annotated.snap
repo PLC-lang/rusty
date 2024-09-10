@@ -1,0 +1,13 @@
+---
+source: src/resolver/tests/resolve_expressions_tests.rs
+expression: annotations.get(right).unwrap()
+---
+Variable {
+    resulting_type: "BYTE",
+    qualified_name: "__PI_1_1",
+    constant: false,
+    argument_type: ByVal(
+        Global,
+    ),
+    auto_deref: None,
+}

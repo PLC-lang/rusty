@@ -309,6 +309,7 @@ fn new_implementation(name: &str, statements: Vec<AstNode>, location: &SourceLoc
 fn new_unit(pou: Pou, implementation: Implementation, file_name: &str) -> CompilationUnit {
     CompilationUnit {
         global_vars: vec![],
+        var_config: Default::default(),
         units: vec![pou],
         implementations: vec![implementation],
         user_types: vec![],

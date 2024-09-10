@@ -89,3 +89,81 @@ fn test_unclosed_body_error_message() {
     let diagnostics = parse_and_validate_buffered(src);
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn test_incomplete_var_config_block() {
+    let src = "
+
+            VAR_CONFIG
+                instance1;
+                instance2.bar AT;
+                instance3.bar AT %IX3.1;
+                instance4.bar AT %IX3.1 : BOOL;
+                instance5.bar : BOOL;
+                AT %IX3.1;
+                %IX3.1;
+            END_VAR
+
+
+    ";
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(diagnostics, @r###"
+    error[E006]: Missing expected Token AT
+      ┌─ <internal>:4:26
+      │
+    4 │                 instance1;
+      │                          ^ Missing expected Token AT
+
+    error[E006]: Missing expected Token hardware access
+      ┌─ <internal>:4:26
+      │
+    4 │                 instance1;
+      │                          ^ Missing expected Token hardware access
+
+    error[E006]: Missing expected Token hardware access
+      ┌─ <internal>:5:33
+      │
+    5 │                 instance2.bar AT;
+      │                                 ^ Missing expected Token hardware access
+
+    error[E006]: Missing expected Token KeywordColon
+      ┌─ <internal>:6:40
+      │
+    6 │                 instance3.bar AT %IX3.1;
+      │                                        ^ Missing expected Token KeywordColon
+
+    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordSemicolon
+      ┌─ <internal>:6:40
+      │
+    6 │                 instance3.bar AT %IX3.1;
+      │                                        ^ Unexpected token: expected DataTypeDefinition but found KeywordSemicolon
+
+    error[E006]: Missing expected Token AT
+      ┌─ <internal>:8:31
+      │
+    8 │                 instance5.bar : BOOL;
+      │                               ^ Missing expected Token AT
+
+    error[E006]: Missing expected Token hardware access
+      ┌─ <internal>:8:31
+      │
+    8 │                 instance5.bar : BOOL;
+      │                               ^ Missing expected Token hardware access
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found ': BOOL'
+      ┌─ <internal>:8:31
+      │
+    8 │                 instance5.bar : BOOL;
+      │                               ^^^^^^ Unexpected token: expected KeywordSemicolon but found ': BOOL'
+
+    error[E007]: Unexpected token: expected KeywordEndVar but found 'AT %IX3.1;
+                    %IX3.1;'
+       ┌─ <internal>:9:17
+       │  
+     9 │ ╭                 AT %IX3.1;
+    10 │ │                 %IX3.1;
+       │ ╰───────────────────────^ Unexpected token: expected KeywordEndVar but found 'AT %IX3.1;
+                    %IX3.1;'
+
+    "###);
+}

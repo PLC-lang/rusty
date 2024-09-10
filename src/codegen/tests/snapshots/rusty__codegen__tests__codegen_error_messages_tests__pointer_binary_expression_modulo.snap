@@ -7,5 +7,3 @@ error[E071]: Operator 'MOD' unimplemented for pointers
   │
 8 │         ptr := ptr MOD ptr;
   │                ^^^^^^^^^^^ Operator 'MOD' unimplemented for pointers
-
-
