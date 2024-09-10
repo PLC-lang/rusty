@@ -304,8 +304,8 @@ fn var_config_test() {
                             offset: 24,
                         }..TextLocation {
                             line: 2,
-                            column: 24,
-                            offset: 40,
+                            column: 21,
+                            offset: 37,
                         },
                     ),
                 },
@@ -351,8 +351,8 @@ fn var_config_test() {
                             offset: 64,
                         }..TextLocation {
                             line: 3,
-                            column: 24,
-                            offset: 80,
+                            column: 21,
+                            offset: 77,
                         },
                     ),
                 },
@@ -364,4 +364,17 @@ fn var_config_test() {
         file_name: "test.st",
     }
     "###);
+}
+
+#[test]
+fn var_config_location() {
+    let src = r#"
+    VAR_CONFIG
+        main.instance.foo AT %IX3.1 : BOOL;
+    END_VAR
+    "#;
+
+    let (result, _) = parse(src);
+
+    assert_eq!("main.instance.foo", &src[result.var_config[0].location.to_range().unwrap()]);
 }
