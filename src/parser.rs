@@ -1104,7 +1104,7 @@ fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
         lexer.try_consume(&KeywordDot);
     }
 
-    let location = start.span(&lexer.location());
+    let location = start.span(&lexer.last_location());
     if !lexer.try_consume(&KeywordAt) {
         lexer.accept_diagnostic(Diagnostic::missing_token("AT", lexer.location()));
     }
