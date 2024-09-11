@@ -1,4 +1,4 @@
-use plc_ast::ast::{AstNode, CompilationUnit};
+use plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
 use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
@@ -140,6 +140,18 @@ impl<'a> Validator<'a> {
     pub fn perform_global_validation(&mut self, index: &Index) {
         self.global_validator.validate(index);
         self.recursive_validator.validate(index);
+
+        for (segments, val) in index.find_instances().filter(|it| {
+            it.1.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
+        }) {
+            let mut segments = segments.names();
+            if !index.config_variables.contains(&segments) {
+                segments.pop();
+                let ty = dbg!(index.find_fully_qualified_variable(&segments.join(".")));
+                dbg!(&segments);
+                self.diagnostics.push(Diagnostic::new("blub").with_location(&ty.unwrap().source_location));
+            }
+        }
 
         // XXX: To avoid bloating up this function any further, maybe package logic into seperate module or
         //      function if another global check is introduced (including the overflow checks)?

@@ -35,6 +35,18 @@ pub struct ExpressionPath<'idx> {
 }
 
 impl<'idx> ExpressionPath<'idx> {
+    pub fn names(&self) -> Vec<String> {
+        let mut out = Vec::new();
+        for name in &self.names {
+            match name {
+                ExpressionPathElement::Name(val) => out.push(val.to_string()),
+                _ => panic!("oops"),
+            }
+        }
+
+        out
+    }
+
     pub fn join(&mut self, name: &mut ExpressionPath<'idx>) {
         self.names.append(&mut name.names)
     }

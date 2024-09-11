@@ -254,6 +254,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         validator.perform_global_validation(&self.index);
         let diagnostics = validator.diagnostics();
         let mut severity = diagnostician.handle(&diagnostics);
+        dbg!(&self.index.config_variables);
 
         //Perform per unit validation
         self.units.iter().for_each(|AnnotatedUnit { unit, .. }| {

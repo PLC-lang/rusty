@@ -3,7 +3,7 @@
 use std::hash::BuildHasherDefault;
 
 use itertools::Itertools;
-use rustc_hash::{FxHashSet, FxHasher};
+use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
@@ -862,6 +862,9 @@ pub struct Index {
 
     /// The labels contained in each pou
     labels: FxIndexMap<String, SymbolMap<String, Label>>,
+
+    /// Variables defined in VAR_CONFIG block
+    pub config_variables: FxHashSet<Vec<String>>,
 }
 
 impl Index {
@@ -968,6 +971,10 @@ impl Index {
                     self.pous.insert(name.clone(), ele);
                 }
             }
+        }
+
+        for entry in other.config_variables.drain() {
+            self.config_variables.insert(entry);
         }
 
         //init functions
@@ -1454,6 +1461,10 @@ impl Index {
 
     pub fn find_pou_implementation(&self, pou_name: &str) -> Option<&ImplementationIndexEntry> {
         self.find_pou(pou_name).and_then(|it| it.find_implementation(self))
+    }
+
+    pub fn register_config_variable(&mut self, name_segments: Vec<String>) {
+        self.config_variables.insert(name_segments);
     }
 
     /// creates a member-variable of a container to be accessed in a qualified name.
