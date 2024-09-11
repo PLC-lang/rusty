@@ -2384,7 +2384,7 @@
         lexer.try_consume(<span class="kw-2">&amp;</span>KeywordDot);
     }
 
-    <span class="kw">let </span>location = start.span(<span class="kw-2">&amp;</span>lexer.location());
+    <span class="kw">let </span>location = start.span(<span class="kw-2">&amp;</span>lexer.last_location());
     <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAt) {
         lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"AT"</span>, lexer.location()));
     }
