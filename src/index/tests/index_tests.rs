@@ -2124,8 +2124,8 @@ fn var_config_hardware_address_creates_global_variable() {
                     offset: 40,
                 }..TextLocation {
                     line: 2,
-                    column: 26,
-                    offset: 50,
+                    column: 23,
+                    offset: 47,
                 },
             ),
         },
