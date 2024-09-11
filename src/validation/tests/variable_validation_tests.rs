@@ -461,107 +461,170 @@ fn date_invalid_declaration() {
 }
 
 #[test]
-fn var_conf_templates_instance_not_defined() {
+fn var_conf_template_variable_does_not_exist() {
     let diagnostics = parse_and_validate_buffered(
         r#"
-        FUNCTION_BLOCK fb
+        FUNCTION_BLOCK foo_fb
             VAR
-                foo AT %I* : BOOL;
+                bar AT %I* : BOOL;
             END_VAR
         END_FUNCTION_BLOCK
 
-        PROGRAM main_prg
+        PROGRAM main
             VAR
-                fb_instance : fb;
+                foo : foo_fb;
             END_VAR
         END_PROGRAM
 
         VAR_CONFIG
-            main_prg.fb_instance.bar AT %I* : BOOL;
+            main.foo.qux AT %IX1.0 : BOOL;
         END_VAR
         "#,
     );
 
-    // Error because `main_prg.fb_instance.bar` references a variable that is not defined; instead it should
-    // have been `foo`
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: Invalid reference, could not find variable: fb_instance.bar
+    error[E001]: Referenced variable `qux` does not exist elsewhere in the code
        ┌─ <internal>:15:13
        │
-    15 │             main_prg.fb_instance.bar AT %I* : BOOL;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid reference, could not find variable: fb_instance.bar
+    15 │             main.foo.qux AT %IX1.0 : BOOL;
+       │             ^^^^^^^^^^^^ Referenced variable `qux` does not exist elsewhere in the code
 
     "###);
 }
 
 #[test]
-fn var_conf_templates_type_mismatch() {
+fn var_conf_config_and_template_variable_types_differ() {
     let diagnostics = parse_and_validate_buffered(
         r#"
-        FUNCTION_BLOCK fb
+        FUNCTION_BLOCK foo_fb
             VAR
-                foo AT %I* : BOOL;
+                bar AT %I* : DINT;
             END_VAR
         END_FUNCTION_BLOCK
 
-        PROGRAM main_prg
+        PROGRAM main
             VAR
-                fb_instance : fb;
+                foo : foo_fb;
             END_VAR
         END_PROGRAM
 
         VAR_CONFIG
-            main_prg.fb_instance.foo AT %IX1.0 : DINT;
+            main.foo.bar AT %IX1.0 : BOOL;
         END_VAR
         "#,
     );
 
-    // Error because `main_prg.fb_instance.foo` is defined as a DINT but `foo AT %I*` is a BOOL
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: Invalid, reference and varconf variables type differ
+    error[E101]: Types BOOL and : DINT differ
        ┌─ <internal>:15:13
        │
-     4 │                 foo AT %I* : BOOL;
+     4 │                 bar AT %I* : DINT;
        │                 --- see also
        ·
-    15 │             main_prg.fb_instance.foo AT %IX1.0 : DINT;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid, reference and varconf variables type differ
+    15 │             main.foo.bar AT %IX1.0 : BOOL;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Types BOOL and : DINT differ
 
     "###);
 }
 
 #[test]
-fn var_conf_templates_not_defined_as_placeholder() {
+fn var_conf_config_variable_has_incomplete_address() {
     let diagnostics = parse_and_validate_buffered(
         r#"
-        FUNCTION_BLOCK fb
+        FUNCTION_BLOCK foo_fb
             VAR
-                foo AT %IX1.0 : BOOL;
+                bar AT %I* : BOOL;
             END_VAR
         END_FUNCTION_BLOCK
 
-        PROGRAM main_prg
+        PROGRAM main
             VAR
-                fb_instance : fb;
+                foo : foo_fb;
             END_VAR
         END_PROGRAM
 
         VAR_CONFIG
-            main_prg.fb_instance.foo AT %I* : BOOL;
+            main.foo.bar AT %I* : BOOL;
         END_VAR
         "#,
     );
 
-    // Error because `foo AT %IX1.0` is no placeholder, i.e. it is not defined as `%I*`
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: invalid
-       ┌─ <internal>:15:13
+    error[E101]: Variables defined in a VAR_CONFIG block must have a complete address
+       ┌─ <internal>:15:26
        │
-     4 │                 foo AT %IX1.0 : BOOL;
-       │                 --- see also
+    15 │             main.foo.bar AT %I* : BOOL;
+       │                          ^^^^^^ Variables defined in a VAR_CONFIG block must have a complete address
+
+    "###);
+}
+
+#[test]
+fn var_conf_template_address_has_complete_address() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %IX1.0 : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E101]: Address is specified in VAR_CONFIG, can not be re-specifed here
+       ┌─ <internal>:4:21
+       │
+     4 │                 bar AT %IX1.0 : BOOL;
+       │                     ^^^^^^^^^ Address is specified in VAR_CONFIG, can not be re-specifed here
        ·
-    15 │             main_prg.fb_instance.foo AT %I* : BOOL;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ invalid
+    15 │             main.foo.bar AT %IX1.0 : BOOL;
+       │                          --------- see also
+
+    "###);
+}
+
+#[test]
+fn var_conf_template_variable_is_no_template() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E101]: `foo` is missing a hardware binding, did you mean `foo AT ... : ...`?
+       ┌─ <internal>:4:17
+       │
+     4 │                 bar : BOOL;
+       │                 ^^^ `foo` is missing a hardware binding, did you mean `foo AT ... : ...`?
+       ·
+    15 │             main.foo.bar AT %IX1.0 : BOOL;
+       │             ----------------------------- see also
 
     "###);
 }

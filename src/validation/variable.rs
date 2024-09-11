@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use plc_ast::ast::{
     ArgumentProperty, ConfigVariable, Pou, PouType, Variable, VariableBlock, VariableBlockType,
 };
@@ -6,65 +5,118 @@ use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
     array::validate_array_assignment,
-    statement::{validate_enum_variant_assignment, validate_pointer_assignment, visit_statement},
+    statement::{helper::get_datatype_name_or_slice, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
 use crate::index::VariableIndexEntry;
 use crate::typesystem::DataTypeInformation;
+use crate::validation::statement::validate_enum_variant_assignment;
+use crate::validation::statement::validate_pointer_assignment;
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 pub fn visit_config_variable<T: AnnotationMap>(
     validator: &mut Validator,
-    vconf_variable: &ConfigVariable,
+    var_config: &ConfigVariable,
     context: &ValidationContext<T>,
 ) {
-    let slice: Vec<&str> = vconf_variable.name_segments.iter().map(|it| it.as_str()).collect();
-    let slice: &[&str] = &slice;
+    // TODO: Possible without iterating?
+    let segments: Vec<&str> = var_config.name_segments.iter().map(|segment| segment.as_str()).collect();
+    let segments: &[&str] = &segments;
 
-    match context.index.find_variable(Some(&slice[0]), &slice[1..]) {
-        // Found a variable, check if (1) their data type matches and (2) they are indeed templates (e.g. %I*)
-        Some(varref_variable) => {
+    if segments.is_empty() {
+        return;
+    }
+
+    match context.index.find_variable(Some(segments[0]), &segments[1..]) {
+        None => {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "Referenced variable `{}` does not exist elsewhere in the code",
+                    segments.last().expect("must exist due to previous length check")
+                ))
+                .with_error_code("E001")
+                .with_location(&var_config.location),
+            );
+        }
+
+        // 1. Check types
+        // 2. Check referenced variable has hardware access (AT ...)
+        // 3. Check config variable has complete address
+        // 4. Check referenced variable has incomplete address
+        Some(var_template) => {
             // (1)
-            let vref_type = context.index.get_effective_type_or_void_by_name(&varref_variable.data_type_name);
-            let vref_type = context.index.find_elementary_pointer_type(vref_type.get_type_information());
-            let vconf_type = context
-                .index
-                .get_effective_type_or_void_by_name(&vconf_variable.data_type.get_name().unwrap_or_default())
-                .get_type_information();
+            let (var_config_ty, var_config_ty_info) = {
+                let ty_name = &var_config.data_type.get_name().unwrap_or_default();
+                let ty = context.index.get_effective_type_or_void_by_name(ty_name);
+                let ty_info = ty.get_type_information();
 
-            if vref_type != vconf_type {
+                (ty, ty_info)
+            };
+
+            let (var_template_ty, var_template_ty_info) = {
+                let ty = context.index.get_effective_type_or_void_by_name(&var_template.data_type_name);
+                let ty_info = context.index.find_elementary_pointer_type(ty.get_type_information());
+
+                (ty, ty_info)
+            };
+
+            if var_template_ty_info != var_config_ty_info {
                 validator.push_diagnostic(
-                    Diagnostic::new(format!("Invalid, reference and varconf variables type differ",))
-                        .with_error_code("E001")
-                        .with_location(&vconf_variable.location)
-                        .with_secondary_location(&varref_variable.source_location),
+                    Diagnostic::new(format!(
+                        "Types {} and {} differ",
+                        get_datatype_name_or_slice(validator.context, var_config_ty),
+                        get_datatype_name_or_slice(validator.context, var_template_ty)
+                    ))
+                    .with_error_code("E101")
+                    .with_location(var_config.location.span(&var_config.data_type.get_location()))
+                    .with_secondary_location(&var_template.source_location),
                 )
             }
 
             // (2)
-            if vconf_variable.address.is_template() {
+            if var_template.get_hardware_binding().is_none() {
                 validator.push_diagnostic(
-                    Diagnostic::new(format!("invalid"))
-                        .with_error_code("E001")
-                        .with_location(&vconf_variable.location)
-                        .with_secondary_location(&varref_variable.source_location),
+                    Diagnostic::new(format!(
+                        "`{}` is missing a hardware binding, did you mean `{} AT ... : ...`?",
+                        // TODO: I think this might panic when dealing with VAR_GLOBAL because segments.len == 1?
+                        segments[1],
+                        segments[1]
+                    ))
+                    .with_error_code("E101")
+                    .with_location(&var_template.source_location)
+                    .with_secondary_location(var_config.location.span(&var_config.data_type.get_location())),
+                );
+
+                // Early return, because we may get further false-positive errors due to incorrect declaration
+                return;
+            }
+
+            // (3)
+            if var_config.address.is_template() {
+                validator.push_diagnostic(
+                    Diagnostic::new("Variables defined in a VAR_CONFIG block must have a complete address")
+                        .with_error_code("E101")
+                        .with_location(&var_config.address.location),
+                )
+            }
+
+            // (4)
+            if !var_template.is_template() {
+                validator.push_diagnostic(
+                    Diagnostic::new("Address is specified in VAR_CONFIG, can not be re-specifed here")
+                        .with_error_code("E101")
+                        .with_location(
+                            var_template
+                                .get_hardware_binding()
+                                .map(|opt| &opt.location)
+                                .unwrap_or(&var_template.source_location),
+                        )
+                        .with_secondary_location(&var_config.address.location),
                 )
             }
         }
-
-        None => validator.push_diagnostic(
-            Diagnostic::new(format!(
-                "Invalid reference, could not find variable: {}",
-                slice.iter().skip(1).join(".")
-            ))
-            .with_error_code("E001")
-            .with_location(&vconf_variable.location),
-        ),
-    }
-    // if let Some(variable) = context.index.find_variable(Some(slices[0]), &slices[1..]) {
-    //     println!("Found variable: {:?}", variable);
-    // }
+    };
 }
 
 pub fn visit_variable_block<T: AnnotationMap>(

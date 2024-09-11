@@ -202,6 +202,7 @@ lazy_static! {
         E098,   Error,      include_str!("./error_codes/E098.md"),  // Invalid `REF=` assignment
         E099,   Error,      include_str!("./error_codes/E099.md"),  // Invalid `REFERENCE TO` declaration
         E100,   Error,      include_str!("./error_codes/E100.md"),  // Immutable variable address
+        E101,   Error,      include_str!("./error_codes/E101.md"),  // Invalid VAR_CONFIG / Template Variable Declaration
     );
 }
 
