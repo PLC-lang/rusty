@@ -26,7 +26,7 @@ use crate::{
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
     typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
-    validation::{Validator, Validators},
+    validation::{statement::validate_type_compatibility, Validator, Validators},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -332,8 +332,9 @@ lazy_static! {
 
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus)
                 }),
-                validation:Some(|validator, operator, parameters, _, _| {
-                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus)
+                validation:Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus);
                 }),
                 generic_name_resolver,
                 code: |_, _, _| {
@@ -357,7 +358,8 @@ lazy_static! {
 
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication)
                 }),
-                validation: Some(|validator, operator, parameters, _, _| {
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Multiplication)
                 }),
                 generic_name_resolver,
@@ -382,7 +384,8 @@ lazy_static! {
                     };
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus)
                 }),
-                validation:Some(|validator, operator, parameters, _, _| {
+                validation:Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Minus)
                 }),
                 generic_name_resolver,
@@ -407,7 +410,8 @@ lazy_static! {
                     };
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division)
                 }),
-                validation:Some(|validator, operator, parameters, _, _| {
+                validation:Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division)
                 }),
                 generic_name_resolver,
@@ -563,6 +567,24 @@ lazy_static! {
             }
         ),
     ]);
+}
+
+fn validate_types(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) {
+    let Some(params) = parameters else { return };
+
+    let types = flatten_expression_list(params);
+    let mut types = types.iter().peekable();
+
+    while let Some(left) = types.next() {
+        if let Some(right) = types.peek() {
+            validate_type_compatibility(validator, annotations, index, left, right);
+        }
+    }
 }
 
 fn validate_builtin_symbol_parameter_count(
