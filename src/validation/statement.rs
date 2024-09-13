@@ -17,7 +17,7 @@ use plc_source::source_location::SourceLocation;
 use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::index::ImplementationType;
 use crate::typesystem::VOID_TYPE;
-use crate::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
+use crate::validation::statement::helper::get_literal_int_or_const_expr_value;
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -275,7 +275,7 @@ where
     let kind = context.annotations.get_type_or_void(condition, context.index);
 
     if !kind.get_type_information().is_bool() {
-        let slice = get_datatype_name_or_slice(validator.context, kind);
+        let slice = validator.get_type_name_or_slice(kind);
         let message = format!("Expected a boolean, got `{slice}`");
         let location = condition.get_location();
 
@@ -618,6 +618,30 @@ fn validate_array_access<T: AnnotationMap>(
     }
 }
 
+pub fn validate_type_compatibility(
+    validator: &mut Validator,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+    left: &AstNode,
+    right: &AstNode,
+) {
+    let ty_left = annotations.get_type_or_void(left, index);
+    let ty_right = annotations.get_type_or_void(right, index);
+
+    if !(ty_left.is_compatible_with_type(ty_right) && ty_right.is_compatible_with_type(ty_left)) {
+        let ty_left_name = validator.get_type_name_or_slice(ty_left);
+        let ty_right_name = validator.get_type_name_or_slice(ty_right);
+
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Invalid expression, types {ty_left_name} and {ty_right_name} are incompatible in the given context"
+            ))
+            .with_error_code("E031")
+            .with_location(left.location.span(&right.location)),
+        );
+    }
+}
+
 fn visit_binary_expression<T: AnnotationMap>(
     validator: &mut Validator,
     statement: &AstNode,
@@ -660,6 +684,8 @@ fn visit_binary_expression<T: AnnotationMap>(
         }
         _ => validate_binary_expression(validator, statement, operator, left, right, context),
     }
+
+    validate_type_compatibility(validator, context.annotations, context.index, left, right);
 }
 
 fn validate_binary_expression<T: AnnotationMap>(
@@ -800,14 +826,14 @@ pub fn validate_pointer_assignment<T>(
 
         if len_lhs != len_rhs || inner_ty_lhs != inner_ty_rhs {
             validator.push_diagnostic(Diagnostic::invalid_assignment(
-                &get_datatype_name_or_slice(validator.context, type_rhs),
-                &get_datatype_name_or_slice(validator.context, type_lhs),
+                &validator.get_type_name_or_slice(type_rhs),
+                &validator.get_type_name_or_slice(type_lhs),
                 assignment_location,
             ));
         }
     } else if type_info_lhs != type_info_rhs {
-        let type_name_lhs = get_datatype_name_or_slice(validator.context, type_lhs);
-        let type_name_rhs = get_datatype_name_or_slice(validator.context, type_rhs);
+        let type_name_lhs = validator.get_type_name_or_slice(type_lhs);
+        let type_name_rhs = validator.get_type_name_or_slice(type_rhs);
 
         validator.push_diagnostic(Diagnostic::invalid_assignment(
             &type_name_rhs,
@@ -961,8 +987,8 @@ fn validate_assignment<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "Pointers {} and {} have different types",
-                        get_datatype_name_or_slice(validator.context, left_type),
-                        get_datatype_name_or_slice(validator.context, right_type)
+                        validator.get_type_name_or_slice(left_type),
+                        validator.get_type_name_or_slice(right_type)
                     ))
                     .with_error_code("E090")
                     .with_location(location),
@@ -1021,7 +1047,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
             validator.push_diagnostic(
                 Diagnostic::new(format!(
                     "Value evaluated at run-time, use an enum variant from `{}`",
-                    get_datatype_name_or_slice(validator.context, left_dt)
+                    validator.get_type_name_or_slice(left_dt)
                 ))
                 .with_location(right.get_location())
                 .with_secondary_location(&left_dt.location)
@@ -1055,7 +1081,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                 Diagnostic::new(format!(
                     "Invalid enum value `{}` for `{}`",
                     validator.context.slice(&right.location),
-                    get_datatype_name_or_slice(validator.context, left_dt)
+                    validator.get_type_name_or_slice(left_dt)
                 ))
                 .with_location(right.get_location())
                 .with_secondary_location(&left_dt.location)
@@ -1083,8 +1109,8 @@ fn validate_variable_length_array_assignment<T: AnnotationMap>(
 
     if left_dt != right_dt || left_dims != right_dims {
         validator.push_diagnostic(Diagnostic::invalid_assignment(
-            &get_datatype_name_or_slice(validator.context, right_type),
-            &get_datatype_name_or_slice(validator.context, left_type),
+            &validator.get_type_name_or_slice(right_type),
+            &validator.get_type_name_or_slice(left_type),
             location.clone(),
         ));
     }
@@ -1230,15 +1256,16 @@ fn validate_call<T: AnnotationMap>(
     operator_arguments: Option<&AstNode>,
     context: &ValidationContext<T>,
 ) {
-    // visit called pou
     visit_statement(validator, operator, context);
 
-    if let Some(pou) = context.find_pou(operator) {
-        // additional validation for builtin calls if necessary
-        if let Some(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
-            validation(validator, operator, operator_arguments, context.annotations, context.index)
-        }
+    // Check if we're dealing with a builtin function and if so call its validation function
+    if let Some(validation) = builtins::get_builtin(operator.get_flat_reference_name().unwrap_or_default())
+        .and_then(BuiltIn::get_validation)
+    {
+        validation(validator, operator, operator_arguments, context.annotations, context.index);
+    }
 
+    if let Some(pou) = context.find_pou(operator) {
         let arguments = operator_arguments.map(flatten_expression_list).unwrap_or_default();
         let parameters = context.index.get_declared_parameters(pou.get_name());
 
@@ -1419,7 +1446,7 @@ fn validate_for_loop<T: AnnotationMap>(
         let kind = context.annotations.get_type_or_void(node, context.index);
 
         if kind.is_real() || !kind.is_numerical() {
-            let slice = get_datatype_name_or_slice(validator.context, kind);
+            let slice = validator.get_type_name_or_slice(kind);
             let message = format!("Expected an integer value, got `{slice}`");
             validator.push_diagnostic(
                 Diagnostic::new(message).with_location(node.get_location()).with_error_code("E094"),
@@ -1574,8 +1601,8 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "Implicit downcast from '{}' to '{}'.",
-                        get_datatype_name_or_slice(validator.context, dt),
-                        get_datatype_name_or_slice(validator.context, left)
+                        validator.get_type_name_or_slice(dt),
+                        validator.get_type_name_or_slice(left)
                     ))
                     .with_error_code("E067")
                     .with_location(loc),
@@ -1625,11 +1652,9 @@ pub(crate) mod helper {
     use std::ops::Range;
 
     use plc_ast::ast::{AstNode, DirectAccessType};
-    use plc_index::GlobalContext;
 
     use crate::index::VariableIndexEntry;
     use crate::resolver::AnnotationMap;
-    use crate::typesystem::DataType;
     use crate::validation::ValidationContext;
     use crate::{index::Index, typesystem::DataTypeInformation};
 
@@ -1655,14 +1680,6 @@ pub(crate) mod helper {
     /// Returns true if the direct access can be used for the given type
     pub fn is_compatible(access: &DirectAccessType, data_type: &DataTypeInformation, index: &Index) -> bool {
         data_type.get_semantic_size(index) as u64 > access.get_bit_width()
-    }
-
-    pub fn get_datatype_name_or_slice(context: &GlobalContext, dt: &DataType) -> String {
-        if dt.is_internal() {
-            return dt.get_type_information().get_inner_name().to_string();
-        }
-
-        context.slice(&dt.location)
     }
 
     pub fn get_literal_int_or_const_expr_value<T>(

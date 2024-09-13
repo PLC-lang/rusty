@@ -9,6 +9,7 @@ use crate::{
         Index, PouIndexEntry,
     },
     resolver::AnnotationMap,
+    typesystem::DataType,
 };
 
 use self::{
@@ -23,7 +24,7 @@ mod array;
 mod global;
 mod pou;
 mod recursive;
-mod statement;
+pub(crate) mod statement;
 mod types;
 mod variable;
 
@@ -127,6 +128,14 @@ impl<'a> Validator<'a> {
             global_validator: GlobalValidator::new(),
             recursive_validator: RecursiveValidator::new(),
         }
+    }
+
+    pub fn get_type_name_or_slice(&self, dt: &DataType) -> String {
+        if dt.is_internal() {
+            return dt.get_type_information().get_inner_name().to_string();
+        }
+
+        self.context.slice(&dt.location)
     }
 
     pub fn diagnostics(&mut self) -> Vec<Diagnostic> {
