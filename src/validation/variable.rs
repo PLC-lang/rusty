@@ -5,7 +5,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
     array::validate_array_assignment,
-    statement::{helper::get_datatype_name_or_slice, visit_statement},
+    statement::visit_statement,
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
@@ -20,7 +20,6 @@ pub fn visit_config_variable<T: AnnotationMap>(
     var_config: &ConfigVariable,
     context: &ValidationContext<T>,
 ) {
-    // TODO: Possible without iterating?
     let segments: Vec<&str> = var_config.name_segments.iter().map(|segment| segment.as_str()).collect();
     let segments: &[&str] = &segments;
 
@@ -29,6 +28,7 @@ pub fn visit_config_variable<T: AnnotationMap>(
     }
 
     match context.index.find_variable(Some(segments[0]), &segments[1..]) {
+        // The template variable referenced in the VAR_CONFIG block does not exist
         None => {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
@@ -40,10 +40,11 @@ pub fn visit_config_variable<T: AnnotationMap>(
             );
         }
 
-        // 1. Check types
-        // 2. Check referenced variable has hardware access (AT ...)
-        // 3. Check config variable has complete address
-        // 4. Check referenced variable has incomplete address
+        // The template variable does exist, check
+        // (1) if the types of the config and template variable are the same
+        // (2) if the template variable has a hardware binding (`.. AT ... : ...`)
+        // (3) if the config variable has specified a full hardware address
+        // (4) if the template variable has specified a incomplete hardware address
         Some(var_template) => {
             // (1)
             let (var_config_ty, var_config_ty_info) = {
@@ -64,9 +65,9 @@ pub fn visit_config_variable<T: AnnotationMap>(
             if var_template_ty_info != var_config_ty_info {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
-                        "Types {} and {} differ",
-                        get_datatype_name_or_slice(validator.context, var_config_ty),
-                        get_datatype_name_or_slice(validator.context, var_template_ty)
+                        "Config and Template variable types differ ({} and {})",
+                        validator.get_type_name_or_slice(var_config_ty),
+                        validator.get_type_name_or_slice(var_template_ty)
                     ))
                     .with_error_code("E101")
                     .with_location(var_config.location.span(&var_config.data_type.get_location()))
@@ -78,10 +79,8 @@ pub fn visit_config_variable<T: AnnotationMap>(
             if var_template.get_hardware_binding().is_none() {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
-                        "`{}` is missing a hardware binding, did you mean `{} AT ... : ...`?",
-                        // TODO: I think this might panic when dealing with VAR_GLOBAL because segments.len == 1?
-                        segments[1],
-                        segments[1]
+                        "`{}` is missing a hardware binding",
+                        segments.get(1).unwrap_or(&segments[0]),
                     ))
                     .with_error_code("E101")
                     .with_location(&var_template.source_location)
@@ -104,7 +103,7 @@ pub fn visit_config_variable<T: AnnotationMap>(
             // (4)
             if !var_template.is_template() {
                 validator.push_diagnostic(
-                    Diagnostic::new("Address is specified in VAR_CONFIG, can not be re-specifed here")
+                    Diagnostic::new("Address already specified in VAR_CONFIG, can not re-specify here")
                         .with_error_code("E101")
                         .with_location(
                             var_template

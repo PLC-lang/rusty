@@ -515,14 +515,14 @@ fn var_conf_config_and_template_variable_types_differ() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E101]: Types BOOL and : DINT differ
+    error[E101]: Config and Template variable types differ (BOOL and : DINT)
        ┌─ <internal>:15:13
        │
      4 │                 bar AT %I* : DINT;
        │                 --- see also
        ·
     15 │             main.foo.bar AT %IX1.0 : BOOL;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Types BOOL and : DINT differ
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Config and Template variable types differ (BOOL and : DINT)
 
     "###);
 }
@@ -582,11 +582,11 @@ fn var_conf_template_address_has_complete_address() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E101]: Address is specified in VAR_CONFIG, can not be re-specifed here
+    error[E101]: Address already specified in VAR_CONFIG, can not re-specify here
        ┌─ <internal>:4:21
        │
      4 │                 bar AT %IX1.0 : BOOL;
-       │                     ^^^^^^^^^ Address is specified in VAR_CONFIG, can not be re-specifed here
+       │                     ^^^^^^^^^ Address already specified in VAR_CONFIG, can not re-specify here
        ·
     15 │             main.foo.bar AT %IX1.0 : BOOL;
        │                          --------- see also
@@ -617,11 +617,11 @@ fn var_conf_template_variable_is_no_template() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E101]: `foo` is missing a hardware binding, did you mean `foo AT ... : ...`?
+    error[E101]: `foo` is missing a hardware binding
        ┌─ <internal>:4:17
        │
      4 │                 bar : BOOL;
-       │                 ^^^ `foo` is missing a hardware binding, did you mean `foo AT ... : ...`?
+       │                 ^^^ `foo` is missing a hardware binding
        ·
     15 │             main.foo.bar AT %IX1.0 : BOOL;
        │             ----------------------------- see also
