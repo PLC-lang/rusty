@@ -203,6 +203,9 @@ lazy_static! {
         E099,   Error,      include_str!("./error_codes/E099.md"),  // Invalid `REFERENCE TO` declaration
         E100,   Error,      include_str!("./error_codes/E100.md"),  // Immutable variable address
         E101,   Error,      include_str!("./error_codes/E101.md"),  // Invalid VAR_CONFIG / Template Variable Declaration
+        E102,   Error,      include_str!("./error_codes/E102.md"),  // Template variable without hardware binding
+        E103,   Error,      include_str!("./error_codes/E103.md"),  // Immutable Hardware Binding
+        E104,   Error,      include_str!("./error_codes/E104.md"),  // Config Variable With Incomplete Address
     );
 }
 

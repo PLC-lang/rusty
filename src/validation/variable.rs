@@ -20,22 +20,22 @@ pub fn visit_config_variable<T: AnnotationMap>(
     var_config: &ConfigVariable,
     context: &ValidationContext<T>,
 ) {
-    let segments: Vec<&str> = var_config.name_segments.iter().map(|segment| segment.as_str()).collect();
-    let segments: &[&str] = &segments;
-
-    if segments.is_empty() {
+    if var_config.name_segments.is_empty() {
         return;
     }
+
+    let segments: Vec<&str> = var_config.name_segments.iter().map(|segment| segment.as_str()).collect();
+    let segments: &[&str] = &segments;
 
     match context.index.find_variable(Some(segments[0]), &segments[1..]) {
         // The template variable referenced in the VAR_CONFIG block does not exist
         None => {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
-                    "Referenced variable `{}` does not exist elsewhere in the code",
+                    "Template variable `{}` does not exist",
                     segments.last().expect("must exist due to previous length check")
                 ))
-                .with_error_code("E001")
+                .with_error_code("E101")
                 .with_location(&var_config.location),
             );
         }
@@ -69,7 +69,7 @@ pub fn visit_config_variable<T: AnnotationMap>(
                         validator.get_type_name_or_slice(var_config_ty),
                         validator.get_type_name_or_slice(var_template_ty)
                     ))
-                    .with_error_code("E101")
+                    .with_error_code("E001")
                     .with_location(var_config.location.span(&var_config.data_type.get_location()))
                     .with_secondary_location(&var_template.source_location),
                 )
@@ -82,7 +82,7 @@ pub fn visit_config_variable<T: AnnotationMap>(
                         "`{}` is missing a hardware binding",
                         segments.get(1).unwrap_or(&segments[0]),
                     ))
-                    .with_error_code("E101")
+                    .with_error_code("E102")
                     .with_location(&var_template.source_location)
                     .with_secondary_location(var_config.location.span(&var_config.data_type.get_location())),
                 );
@@ -95,7 +95,7 @@ pub fn visit_config_variable<T: AnnotationMap>(
             if var_config.address.is_template() {
                 validator.push_diagnostic(
                     Diagnostic::new("Variables defined in a VAR_CONFIG block must have a complete address")
-                        .with_error_code("E101")
+                        .with_error_code("E104")
                         .with_location(&var_config.address.location),
                 )
             }
@@ -104,7 +104,7 @@ pub fn visit_config_variable<T: AnnotationMap>(
             if !var_template.is_template() {
                 validator.push_diagnostic(
                     Diagnostic::new("Address already specified in VAR_CONFIG, can not re-specify here")
-                        .with_error_code("E101")
+                        .with_error_code("E103")
                         .with_location(
                             var_template
                                 .get_hardware_binding()

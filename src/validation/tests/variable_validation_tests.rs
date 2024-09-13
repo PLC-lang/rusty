@@ -483,11 +483,11 @@ fn var_conf_template_variable_does_not_exist() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: Referenced variable `qux` does not exist elsewhere in the code
+    error[E101]: Template variable `qux` does not exist
        ┌─ <internal>:15:13
        │
     15 │             main.foo.qux AT %IX1.0 : BOOL;
-       │             ^^^^^^^^^^^^ Referenced variable `qux` does not exist elsewhere in the code
+       │             ^^^^^^^^^^^^ Template variable `qux` does not exist
 
     "###);
 }
@@ -515,7 +515,7 @@ fn var_conf_config_and_template_variable_types_differ() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E101]: Config and Template variable types differ (BOOL and : DINT)
+    error[E001]: Config and Template variable types differ (BOOL and : DINT)
        ┌─ <internal>:15:13
        │
      4 │                 bar AT %I* : DINT;
@@ -550,7 +550,7 @@ fn var_conf_config_variable_has_incomplete_address() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E101]: Variables defined in a VAR_CONFIG block must have a complete address
+    error[E104]: Variables defined in a VAR_CONFIG block must have a complete address
        ┌─ <internal>:15:26
        │
     15 │             main.foo.bar AT %I* : BOOL;
@@ -582,7 +582,7 @@ fn var_conf_template_address_has_complete_address() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E101]: Address already specified in VAR_CONFIG, can not re-specify here
+    error[E103]: Address already specified in VAR_CONFIG, can not re-specify here
        ┌─ <internal>:4:21
        │
      4 │                 bar AT %IX1.0 : BOOL;
@@ -617,7 +617,7 @@ fn var_conf_template_variable_is_no_template() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E101]: `foo` is missing a hardware binding
+    error[E102]: `foo` is missing a hardware binding
        ┌─ <internal>:4:17
        │
      4 │                 bar : BOOL;

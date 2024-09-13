@@ -165,11 +165,11 @@ fn test_incomplete_var_config_block() {
        │ ╰───────────────────────^ Unexpected token: expected KeywordEndVar but found 'AT %IX3.1;
                     %IX3.1;'
 
-    error[E001]: Referenced variable `bar` does not exist elsewhere in the code
+    error[E101]: Template variable `bar` does not exist
       ┌─ <internal>:7:17
       │
     7 │                 instance4.bar AT %IX3.1 : BOOL;
-      │                 ^^^^^^^^^^^^^ Referenced variable `bar` does not exist elsewhere in the code
+      │                 ^^^^^^^^^^^^^ Template variable `bar` does not exist
 
     "###);
 }
