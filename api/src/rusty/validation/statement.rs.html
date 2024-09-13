@@ -1702,6 +1702,23 @@
 <a href="#1702" id="1702">1702</a>
 <a href="#1703" id="1703">1703</a>
 <a href="#1704" id="1704">1704</a>
+<a href="#1705" id="1705">1705</a>
+<a href="#1706" id="1706">1706</a>
+<a href="#1707" id="1707">1707</a>
+<a href="#1708" id="1708">1708</a>
+<a href="#1709" id="1709">1709</a>
+<a href="#1710" id="1710">1710</a>
+<a href="#1711" id="1711">1711</a>
+<a href="#1712" id="1712">1712</a>
+<a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
+<a href="#1716" id="1716">1716</a>
+<a href="#1717" id="1717">1717</a>
+<a href="#1718" id="1718">1718</a>
+<a href="#1719" id="1719">1719</a>
+<a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
@@ -1721,7 +1738,7 @@
 <span class="kw">use super</span>::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 <span class="kw">use </span><span class="kw">crate</span>::index::ImplementationType;
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::VOID_TYPE;
-<span class="kw">use </span><span class="kw">crate</span>::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
+<span class="kw">use </span><span class="kw">crate</span>::validation::statement::helper::get_literal_int_or_const_expr_value;
 <span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -1979,7 +1996,7 @@
     <span class="kw">let </span>kind = context.annotations.get_type_or_void(condition, context.index);
 
     <span class="kw">if </span>!kind.get_type_information().is_bool() {
-        <span class="kw">let </span>slice = get_datatype_name_or_slice(validator.context, kind);
+        <span class="kw">let </span>slice = validator.get_type_name_or_slice(kind);
         <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">"Expected a boolean, got `{slice}`"</span>);
         <span class="kw">let </span>location = condition.get_location();
 
@@ -2322,6 +2339,30 @@
     }
 }
 
+<span class="kw">pub fn </span>validate_type_compatibility(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    annotations: <span class="kw-2">&amp;</span><span class="kw">dyn </span>AnnotationMap,
+    index: <span class="kw-2">&amp;</span>Index,
+    left: <span class="kw-2">&amp;</span>AstNode,
+    right: <span class="kw-2">&amp;</span>AstNode,
+) {
+    <span class="kw">let </span>ty_left = annotations.get_type_or_void(left, index);
+    <span class="kw">let </span>ty_right = annotations.get_type_or_void(right, index);
+
+    <span class="kw">if </span>!(ty_left.is_compatible_with_type(ty_right) &amp;&amp; ty_right.is_compatible_with_type(ty_left)) {
+        <span class="kw">let </span>ty_left_name = validator.get_type_name_or_slice(ty_left);
+        <span class="kw">let </span>ty_right_name = validator.get_type_name_or_slice(ty_right);
+
+        validator.push_diagnostic(
+            Diagnostic::new(<span class="macro">format!</span>(
+                <span class="string">"Invalid expression, types {ty_left_name} and {ty_right_name} are incompatible in the given context"
+            </span>))
+            .with_error_code(<span class="string">"E031"</span>)
+            .with_location(left.location.span(<span class="kw-2">&amp;</span>right.location)),
+        );
+    }
+}
+
 <span class="kw">fn </span>visit_binary_expression&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     statement: <span class="kw-2">&amp;</span>AstNode,
@@ -2364,6 +2405,8 @@
         }
         <span class="kw">_ </span>=&gt; validate_binary_expression(validator, statement, operator, left, right, context),
     }
+
+    validate_type_compatibility(validator, context.annotations, context.index, left, right);
 }
 
 <span class="kw">fn </span>validate_binary_expression&lt;T: AnnotationMap&gt;(
@@ -2504,14 +2547,14 @@
 
         <span class="kw">if </span>len_lhs != len_rhs || inner_ty_lhs != inner_ty_rhs {
             validator.push_diagnostic(Diagnostic::invalid_assignment(
-                <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, type_rhs),
-                <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, type_lhs),
+                <span class="kw-2">&amp;</span>validator.get_type_name_or_slice(type_rhs),
+                <span class="kw-2">&amp;</span>validator.get_type_name_or_slice(type_lhs),
                 assignment_location,
             ));
         }
     } <span class="kw">else if </span>type_info_lhs != type_info_rhs {
-        <span class="kw">let </span>type_name_lhs = get_datatype_name_or_slice(validator.context, type_lhs);
-        <span class="kw">let </span>type_name_rhs = get_datatype_name_or_slice(validator.context, type_rhs);
+        <span class="kw">let </span>type_name_lhs = validator.get_type_name_or_slice(type_lhs);
+        <span class="kw">let </span>type_name_rhs = validator.get_type_name_or_slice(type_rhs);
 
         validator.push_diagnostic(Diagnostic::invalid_assignment(
             <span class="kw-2">&amp;</span>type_name_rhs,
@@ -2665,8 +2708,8 @@
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">"Pointers {} and {} have different types"</span>,
-                        get_datatype_name_or_slice(validator.context, left_type),
-                        get_datatype_name_or_slice(validator.context, right_type)
+                        validator.get_type_name_or_slice(left_type),
+                        validator.get_type_name_or_slice(right_type)
                     ))
                     .with_error_code(<span class="string">"E090"</span>)
                     .with_location(location),
@@ -2725,7 +2768,7 @@
             validator.push_diagnostic(
                 Diagnostic::new(<span class="macro">format!</span>(
                     <span class="string">"Value evaluated at run-time, use an enum variant from `{}`"</span>,
-                    get_datatype_name_or_slice(validator.context, left_dt)
+                    validator.get_type_name_or_slice(left_dt)
                 ))
                 .with_location(right.get_location())
                 .with_secondary_location(<span class="kw-2">&amp;</span>left_dt.location)
@@ -2759,7 +2802,7 @@
                 Diagnostic::new(<span class="macro">format!</span>(
                     <span class="string">"Invalid enum value `{}` for `{}`"</span>,
                     validator.context.slice(<span class="kw-2">&amp;</span>right.location),
-                    get_datatype_name_or_slice(validator.context, left_dt)
+                    validator.get_type_name_or_slice(left_dt)
                 ))
                 .with_location(right.get_location())
                 .with_secondary_location(<span class="kw-2">&amp;</span>left_dt.location)
@@ -2787,8 +2830,8 @@
 
     <span class="kw">if </span>left_dt != right_dt || left_dims != right_dims {
         validator.push_diagnostic(Diagnostic::invalid_assignment(
-            <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, right_type),
-            <span class="kw-2">&amp;</span>get_datatype_name_or_slice(validator.context, left_type),
+            <span class="kw-2">&amp;</span>validator.get_type_name_or_slice(right_type),
+            <span class="kw-2">&amp;</span>validator.get_type_name_or_slice(left_type),
             location.clone(),
         ));
     }
@@ -2934,15 +2977,16 @@
     operator_arguments: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
-    <span class="comment">// visit called pou
-    </span>visit_statement(validator, operator, context);
+    visit_statement(validator, operator, context);
+
+    <span class="comment">// Check if we're dealing with a builtin function and if so call its validation function
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(validation) = builtins::get_builtin(operator.get_flat_reference_name().unwrap_or_default())
+        .and_then(BuiltIn::get_validation)
+    {
+        validation(validator, operator, operator_arguments, context.annotations, context.index);
+    }
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = context.find_pou(operator) {
-        <span class="comment">// additional validation for builtin calls if necessary
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
-            validation(validator, operator, operator_arguments, context.annotations, context.index)
-        }
-
         <span class="kw">let </span>arguments = operator_arguments.map(flatten_expression_list).unwrap_or_default();
         <span class="kw">let </span>parameters = context.index.get_declared_parameters(pou.get_name());
 
@@ -3123,7 +3167,7 @@
         <span class="kw">let </span>kind = context.annotations.get_type_or_void(node, context.index);
 
         <span class="kw">if </span>kind.is_real() || !kind.is_numerical() {
-            <span class="kw">let </span>slice = get_datatype_name_or_slice(validator.context, kind);
+            <span class="kw">let </span>slice = validator.get_type_name_or_slice(kind);
             <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">"Expected an integer value, got `{slice}`"</span>);
             validator.push_diagnostic(
                 Diagnostic::new(message).with_location(node.get_location()).with_error_code(<span class="string">"E094"</span>),
@@ -3278,8 +3322,8 @@
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">"Implicit downcast from '{}' to '{}'."</span>,
-                        get_datatype_name_or_slice(validator.context, dt),
-                        get_datatype_name_or_slice(validator.context, left)
+                        validator.get_type_name_or_slice(dt),
+                        validator.get_type_name_or_slice(left)
                     ))
                     .with_error_code(<span class="string">"E067"</span>)
                     .with_location(loc),
@@ -3329,11 +3373,9 @@
     <span class="kw">use </span>std::ops::Range;
 
     <span class="kw">use </span>plc_ast::ast::{AstNode, DirectAccessType};
-    <span class="kw">use </span>plc_index::GlobalContext;
 
     <span class="kw">use </span><span class="kw">crate</span>::index::VariableIndexEntry;
     <span class="kw">use </span><span class="kw">crate</span>::resolver::AnnotationMap;
-    <span class="kw">use </span><span class="kw">crate</span>::typesystem::DataType;
     <span class="kw">use </span><span class="kw">crate</span>::validation::ValidationContext;
     <span class="kw">use crate</span>::{index::Index, typesystem::DataTypeInformation};
 
@@ -3359,14 +3401,6 @@
     <span class="doccomment">/// Returns true if the direct access can be used for the given type
     </span><span class="kw">pub fn </span>is_compatible(access: <span class="kw-2">&amp;</span>DirectAccessType, data_type: <span class="kw-2">&amp;</span>DataTypeInformation, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
         data_type.get_semantic_size(index) <span class="kw">as </span>u64 &gt; access.get_bit_width()
-    }
-
-    <span class="kw">pub fn </span>get_datatype_name_or_slice(context: <span class="kw-2">&amp;</span>GlobalContext, dt: <span class="kw-2">&amp;</span>DataType) -&gt; String {
-        <span class="kw">if </span>dt.is_internal() {
-            <span class="kw">return </span>dt.get_type_information().get_inner_name().to_string();
-        }
-
-        context.slice(<span class="kw-2">&amp;</span>dt.location)
     }
 
     <span class="kw">pub fn </span>get_literal_int_or_const_expr_value&lt;T&gt;(

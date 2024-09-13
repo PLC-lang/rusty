@@ -180,6 +180,15 @@
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, CompilationUnit};
 <span class="kw">use </span>plc_derive::Validators;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -191,6 +200,7 @@
         Index, PouIndexEntry,
     },
     resolver::AnnotationMap,
+    typesystem::DataType,
 };
 
 <span class="kw">use </span><span class="self">self</span>::{
@@ -205,7 +215,7 @@
 <span class="kw">mod </span>global;
 <span class="kw">mod </span>pou;
 <span class="kw">mod </span>recursive;
-<span class="kw">mod </span>statement;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>statement;
 <span class="kw">mod </span>types;
 <span class="kw">mod </span>variable;
 
@@ -309,6 +319,14 @@
             global_validator: GlobalValidator::new(),
             recursive_validator: RecursiveValidator::new(),
         }
+    }
+
+    <span class="kw">pub fn </span>get_type_name_or_slice(<span class="kw-2">&amp;</span><span class="self">self</span>, dt: <span class="kw-2">&amp;</span>DataType) -&gt; String {
+        <span class="kw">if </span>dt.is_internal() {
+            <span class="kw">return </span>dt.get_type_information().get_inner_name().to_string();
+        }
+
+        <span class="self">self</span>.context.slice(<span class="kw-2">&amp;</span>dt.location)
     }
 
     <span class="kw">pub fn </span>diagnostics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Diagnostic&gt; {

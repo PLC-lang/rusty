@@ -948,6 +948,28 @@
 <a href="#948" id="948">948</a>
 <a href="#949" id="949">949</a>
 <a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
     types::BasicType,
@@ -976,7 +998,7 @@
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
     typesystem::{<span class="self">self</span>, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
-    validation::{Validator, Validators},
+    validation::{statement::validate_type_compatibility, Validator, Validators},
 };
 
 <span class="comment">// Defines a set of functions that are always included in a compiled application
@@ -1282,8 +1304,9 @@
 
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus)
                 }),
-                validation:<span class="prelude-val">Some</span>(|validator, operator, parameters, <span class="kw">_</span>, <span class="kw">_</span>| {
-                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus)
+                validation:<span class="prelude-val">Some</span>(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, <span class="kw-2">&amp;</span>parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus);
                 }),
                 generic_name_resolver,
                 code: |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
@@ -1307,7 +1330,8 @@
 
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication)
                 }),
-                validation: <span class="prelude-val">Some</span>(|validator, operator, parameters, <span class="kw">_</span>, <span class="kw">_</span>| {
+                validation: <span class="prelude-val">Some</span>(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, <span class="kw-2">&amp;</span>parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Multiplication)
                 }),
                 generic_name_resolver,
@@ -1332,7 +1356,8 @@
                     };
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus)
                 }),
-                validation:<span class="prelude-val">Some</span>(|validator, operator, parameters, <span class="kw">_</span>, <span class="kw">_</span>| {
+                validation:<span class="prelude-val">Some</span>(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, <span class="kw-2">&amp;</span>parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Minus)
                 }),
                 generic_name_resolver,
@@ -1357,7 +1382,8 @@
                     };
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division)
                 }),
-                validation:<span class="prelude-val">Some</span>(|validator, operator, parameters, <span class="kw">_</span>, <span class="kw">_</span>| {
+                validation:<span class="prelude-val">Some</span>(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, <span class="kw-2">&amp;</span>parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division)
                 }),
                 generic_name_resolver,
@@ -1513,6 +1539,24 @@
             }
         ),
     ]);
+}
+
+<span class="kw">fn </span>validate_types(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    parameters: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
+    annotations: <span class="kw-2">&amp;</span><span class="kw">dyn </span>AnnotationMap,
+    index: <span class="kw-2">&amp;</span>Index,
+) {
+    <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{ <span class="kw">return </span>};
+
+    <span class="kw">let </span>types = flatten_expression_list(params);
+    <span class="kw">let </span><span class="kw-2">mut </span>types = types.iter().peekable();
+
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(left) = types.next() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(right) = types.peek() {
+            validate_type_compatibility(validator, annotations, index, left, right);
+        }
+    }
 }
 
 <span class="kw">fn </span>validate_builtin_symbol_parameter_count(
