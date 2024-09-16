@@ -208,7 +208,7 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
     }
 
     if compile_parameters.build_info {
-        println!("{}", std::env::var("RUSTY_BUILD_INFO").unwrap_or(String::from("UNKNOWN")));
+        println!("{}", option_env!("RUSTY_BUILD_INFO").unwrap_or("version information unavailable"));
         std::process::exit(0);
     }
 

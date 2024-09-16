@@ -2,8 +2,8 @@ use core::str;
 use std::process::Command;
 
 fn main() {
-    let commit_date = Command::new("git").args(&["log", "-1", "--format=%cd"]).output();
-    let commit_hash = Command::new("git").args(&["rev-parse", "--short", "HEAD"]).output();
+    let commit_date = Command::new("git").args(["log", "-1", "--format=%cd"]).output();
+    let commit_hash = Command::new("git").args(["rev-parse", "--short", "HEAD"]).output();
     let package_version = env!("CARGO_PKG_VERSION");
 
     if let (Ok(date), Ok(hash)) = (commit_date, commit_hash) {
