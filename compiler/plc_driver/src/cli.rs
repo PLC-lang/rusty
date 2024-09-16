@@ -13,9 +13,7 @@ pub type ParameterError = clap::Error;
 #[clap(
     group = ArgGroup::new("format"),
     about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
-    version,
 )]
-#[clap(propagate_version = true)]
 #[clap(subcommand_negates_reqs = true)]
 #[clap(subcommand_precedence_over_arg = true)]
 pub struct CompileParameters {
@@ -29,6 +27,9 @@ pub struct CompileParameters {
         help = "Emit AST (Abstract Syntax Tree) as output"
     )]
     pub output_ast: bool,
+
+    #[clap(long = "version", group = "format", global = true)]
+    pub build_info: bool,
 
     #[clap(
         long = "ir",
@@ -79,7 +80,7 @@ pub struct CompileParameters {
     #[clap(
         name = "input-files",
         help = "Read input from <input-files>, may be a glob expression like 'src/**/*' or a sequence of files",
-        required = true,
+        // required = true,
         min_values = 1
     )]
     // having a vec allows bash to resolve *.st itself
