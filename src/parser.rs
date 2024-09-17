@@ -1093,16 +1093,7 @@ fn parse_config_variables(lexer: &mut ParseSession) -> Vec<ConfigVariable> {
 
 fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
     let start = lexer.location();
-    let mut segments: Vec<String> = vec![];
-    while lexer.token == Identifier {
-        segments.push(lexer.slice_and_advance());
-
-        if lexer.token == KeywordColon || lexer.token == KeywordAt {
-            break;
-        }
-
-        lexer.try_consume(&KeywordDot);
-    }
+    let qualified_reference = parse_reference(lexer);
 
     let location = start.span(&lexer.last_location());
     if !lexer.try_consume(&KeywordAt) {
@@ -1131,7 +1122,7 @@ fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
                 lexer.last_location().span(&lexer.location()),
             ))
         }
-        ConfigVariable::new(segments, dt, address, location)
+        ConfigVariable::new(qualified_reference, dt, address, location)
     })
 }
 
