@@ -495,14 +495,6 @@ mod cli_tests {
     }
 
     #[test]
-    fn missing_parameters_results_in_error() {
-        // no arguments
-        expect_argument_error(vec_of_strings![], ErrorKind::MissingRequiredArgument);
-        // no input file
-        expect_argument_error(vec_of_strings!["--ir"], ErrorKind::MissingRequiredArgument);
-    }
-
-    #[test]
     fn multiple_output_formats_results_in_error() {
         expect_argument_error(vec_of_strings!["input.st", "--ir", "--shared"], ErrorKind::ArgumentConflict);
         expect_argument_error(
@@ -743,8 +735,8 @@ mod cli_tests {
     #[test]
     fn cli_supports_version() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
-            Ok(_) => panic!("expected version output, but found OK"),
-            Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayVersion),
+            Ok(version) => assert!(version.build_info),
+            _ => panic!("expected the build info flag to be true"),
         }
     }
 
