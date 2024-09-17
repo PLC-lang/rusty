@@ -436,6 +436,11 @@
 <a href="#436" id="436">436</a>
 <a href="#437" id="437">437</a>
 <a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
@@ -643,6 +648,11 @@
         compile_options;
     <span class="kw">if let </span><span class="prelude-val">Some</span>((options, _format)) = compile_parameters.get_config_options() {
         <span class="kw">return </span>print_config_options(<span class="kw-2">&amp;</span>project, <span class="kw-2">&amp;</span>diagnostician, options);
+    }
+
+    <span class="kw">if </span>compile_parameters.build_info {
+        <span class="macro">println!</span>(<span class="string">"{}"</span>, <span class="macro">option_env!</span>(<span class="string">"RUSTY_BUILD_INFO"</span>).unwrap_or(<span class="string">"version information unavailable"</span>));
+        std::process::exit(<span class="number">0</span>);
     }
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(SubCommands::Explain { error }) = <span class="kw-2">&amp;</span>compile_parameters.commands {
