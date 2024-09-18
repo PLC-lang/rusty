@@ -1,16 +1,3 @@
-(********************
-*
-* This operator returns the value of adding up the operands.
-* It overloads the variadic builtin implementation of ADD, which is impemented for ANY_NUM
-*
-*********************)
-FUNCTION ADD < T1: ANY, T2: ANY >: T1
-VAR_INPUT
-    IN1: T1;
-    IN2: T2;
-END_VAR
-END_FUNCTION
-
 (* Specialized implementation of ADD for TIME *)
 FUNCTION ADD__TIME__TIME: TIME
 VAR_INPUT
@@ -338,19 +325,6 @@ VAR_INPUT
     IN2: LDT;
 END_VAR
     SUB_LDT_LDT := SUB_DT_DT(IN1, IN2);
-END_FUNCTION
-
-(********************
-*
-* This operator produces the multiplication of the operands.
-* It overloads the variadic builtin implementation of MUL, which is impemented for ANY_NUM
-*
-*********************)
-FUNCTION MUL < T1: ANY, T2: ANY >: T1
-VAR_INPUT
-    IN1: T1;
-    IN2: T2;
-END_VAR
 END_FUNCTION
 
 (********************
