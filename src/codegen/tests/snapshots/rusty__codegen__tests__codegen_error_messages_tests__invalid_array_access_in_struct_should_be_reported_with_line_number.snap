@@ -7,5 +7,3 @@ error[E071]: Invalid array access
    │
 13 │             x.a := x.b[3];
    │                        ^ Invalid array access
-
-

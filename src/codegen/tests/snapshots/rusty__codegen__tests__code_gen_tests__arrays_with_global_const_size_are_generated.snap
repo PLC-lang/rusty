@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @THREE = unnamed_addr constant i16 3, section "var-$RUSTY$THREE:i16"
 @ZERO = unnamed_addr constant i16 0, section "var-$RUSTY$ZERO:i16"

@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: function
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %MyStrct = type { i32, i32, i32 }
 
@@ -53,3 +53,23 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%MyStrct = type { i32, i32, i32 }
+
+@__MyStrct__init = external global %MyStrct, section "var-$RUSTY$__MyStrct__init:r3i32i32i32"
+
+define void @__init_mystrct(%MyStrct* %0) section "fn-$RUSTY$__init_mystrct:v[pr3i32i32i32]" {
+entry:
+  %self = alloca %MyStrct*, align 8
+  store %MyStrct* %0, %MyStrct** %self, align 8
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}

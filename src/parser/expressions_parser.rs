@@ -213,17 +213,21 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstNode {
     };
 
     match literal_parse_result {
-        Some(statement) => {
-            if lexer.token == KeywordAssignment {
+        Some(statement) => match lexer.token {
+            KeywordAssignment => {
                 lexer.advance();
                 AstFactory::create_assignment(statement, parse_range_statement(lexer), lexer.next_id())
-            } else if lexer.token == KeywordOutputAssignment {
+            }
+            KeywordOutputAssignment => {
                 lexer.advance();
                 AstFactory::create_output_assignment(statement, parse_range_statement(lexer), lexer.next_id())
-            } else {
-                statement
             }
-        }
+            KeywordReferenceAssignment => {
+                lexer.advance();
+                AstFactory::create_ref_assignment(statement, parse_range_statement(lexer), lexer.next_id())
+            }
+            _ => statement,
+        },
         None => {
             let statement = AstFactory::create_empty_statement(
                 lexer.diagnostics.last().map_or(SourceLocation::undefined(), |d| d.get_location()),
@@ -312,7 +316,7 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Option<AstNode>
 }
 
 fn parse_identifier(lexer: &mut ParseSession<'_>) -> AstNode {
-    AstFactory::create_identifier(&lexer.slice_and_advance(), &lexer.last_location(), lexer.next_id())
+    AstFactory::create_identifier(&lexer.slice_and_advance(), lexer.last_location(), lexer.next_id())
 }
 
 fn parse_vla_range(lexer: &mut ParseSession) -> Option<AstNode> {
@@ -477,7 +481,7 @@ fn parse_direct_access(lexer: &mut ParseSession, access: DirectAccessType) -> Op
         Identifier => {
             let location = lexer.location();
             Some(AstFactory::create_member_reference(
-                AstFactory::create_identifier(lexer.slice_and_advance().as_str(), &location, lexer.next_id()),
+                AstFactory::create_identifier(lexer.slice_and_advance().as_str(), location, lexer.next_id()),
                 None,
                 lexer.next_id(),
             ))

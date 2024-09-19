@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %MyClass = type {}
 %MyClass.testMethod = type { i16 }
@@ -23,4 +23,36 @@ entry:
   store i16 1, i16* %testMethod, align 2
   %MyClass.testMethod_ret = load i16, i16* %testMethod, align 2
   ret i16 %MyClass.testMethod_ret
+}
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%MyClass = type {}
+%MyClass.testMethod = type { i16 }
+
+@__MyClass__init = external global %MyClass, section "var-$RUSTY$__MyClass__init:r0"
+
+define void @__init_myclass.testmethod(%MyClass.testMethod* %0) section "fn-$RUSTY$__init_myclass.testmethod:v[pr2i16i16]" {
+entry:
+  %self = alloca %MyClass.testMethod*, align 8
+  store %MyClass.testMethod* %0, %MyClass.testMethod** %self, align 8
+  ret void
+}
+
+declare i16 @MyClass.testMethod(%MyClass*, %MyClass.testMethod*) section "fn-$RUSTY$MyClass.testMethod:i16[i16]"
+
+define void @__init_myclass(%MyClass* %0) section "fn-$RUSTY$__init_myclass:v[pr0]" {
+entry:
+  %self = alloca %MyClass*, align 8
+  store %MyClass* %0, %MyClass** %self, align 8
+  ret void
+}
+
+declare void @MyClass(%MyClass*) section "fn-$RUSTY$MyClass:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
 }

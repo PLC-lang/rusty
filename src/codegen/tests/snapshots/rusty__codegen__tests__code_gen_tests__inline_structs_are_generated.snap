@@ -2,10 +2,38 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %__global_x = type { i32, i32 }
 
 @x = global %__global_x zeroinitializer, section "var-$RUSTY$x:r2i32i32"
 @____global_x__init = unnamed_addr constant %__global_x zeroinitializer, section "var-$RUSTY$____global_x__init:r2i32i32"
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%__global_x = type { i32, i32 }
+
+@____global_x__init = external global %__global_x, section "var-$RUSTY$____global_x__init:r2i32i32"
+
+define void @__init___global_x(%__global_x* %0) section "fn-$RUSTY$__init___global_x:v[pr2i32i32]" {
+entry:
+  %self = alloca %__global_x*, align 8
+  store %__global_x* %0, %__global_x** %self, align 8
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%__global_x = type { i32, i32 }
+
+@____global_x__init = external global %__global_x, section "var-$RUSTY$____global_x__init:r2i32i32"
+@x = external global %__global_x, section "var-$RUSTY$x:r2i32i32"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init___global_x(%__global_x* @x)
+  ret void
+}
+
+declare void @__init___global_x(%__global_x*) section "fn-$RUSTY$__init___global_x:v[pr2i32i32]"

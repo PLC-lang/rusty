@@ -236,6 +236,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 };
                 Ok(val)
             }
+            AstStatement::HardwareAccess(..) => self
+                .create_llvm_pointer_value_for_reference(None, "address", expression)
+                .map(ExpressionValue::LValue),
             AstStatement::BinaryExpression(data) => self
                 .generate_binary_expression(&data.left, &data.right, &data.operator, expression)
                 .map(ExpressionValue::RValue),
@@ -244,10 +247,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             AstStatement::UnaryExpression(data) => {
                 self.generate_unary_expression(&data.operator, &data.value).map(ExpressionValue::RValue)
-            }
-            // TODO: Hardware access needs to be evaluated, see #648
-            AstStatement::HardwareAccess { .. } => {
-                Ok(ExpressionValue::RValue(self.llvm.i32_type().const_zero().into()))
             }
             AstStatement::ParenExpression(expr) => self.generate_expression_value(expr),
             //fallback
@@ -717,7 +716,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let assigned_output = self.generate_lvalue(expr)?;
                 let assigned_output_type =
                     self.annotations.get_type_or_void(expr, self.index).get_type_information();
-
                 let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                     Diagnostic::codegen_error(
                         format!("Cannot build generate parameter: {parameter:#?}"),
@@ -844,8 +842,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .get(i)
                 .map(|it| {
                     let name = it.get_type_name();
-                    if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }) =
-                        self.index.find_effective_type_info(name)
+                    if let Some(DataTypeInformation::Pointer {
+                        inner_type_name, auto_deref: Some(_), ..
+                    }) = self.index.find_effective_type_info(name)
                     {
                         // for auto_deref pointers (VAR_INPUT {ref}, VAR_IN_OUT) we call generate_argument_by_ref()
                         // we need the inner_type and not pointer to type otherwise we would generate a double pointer
@@ -1087,11 +1086,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
+    // TODO: will be deleted once methods work properly (like functions)
     /// generates a new instance of a function called `function_name` and returns a PointerValue to it
     ///
     /// - `function_name` the name of the function as registered in the index
     /// - `context` the statement used to report a possible Diagnostic on
-    /// TODO: will be deleted once methods work properly (like functions)
     fn allocate_function_struct_instance(
         &self,
         function_name: &str,
@@ -1145,7 +1144,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn get_parameter_type(&self, parameter: &VariableIndexEntry) -> String {
-        if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }) =
+        if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. }) =
             self.index.find_effective_type_info(parameter.get_type_name())
         {
             inner_type_name.into()
@@ -1253,7 +1252,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
 
-            if let DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } = parameter {
+            if let DataTypeInformation::Pointer { auto_deref: Some(_), inner_type_name, .. } = parameter {
                 //this is a VAR_IN_OUT assignment, so don't load the value, assign the pointer
                 //expression may be empty -> generate a local variable for it
                 let generated_exp = if expression.is_empty_statement() {
@@ -1297,13 +1296,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             // don't generate param assignments for empty statements, with the exception
             // of VAR_IN_OUT params - they need an address to point to
-            let is_auto_deref = matches!(
-                self.index
-                    .find_effective_type_by_name(parameter.get_type_name())
-                    .map(|var| var.get_type_information())
-                    .unwrap_or_else(|| self.index.get_void_type().get_type_information()),
-                DataTypeInformation::Pointer { auto_deref: true, .. }
-            );
+            let is_auto_deref = self
+                .index
+                .find_effective_type_by_name(parameter.get_type_name())
+                .map(|var| var.get_type_information())
+                .unwrap_or(self.index.get_void_type().get_type_information())
+                .is_auto_deref();
             if !right.is_empty_statement() || is_auto_deref {
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                     assignment: right,
@@ -1419,9 +1417,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         accessor_ptr: PointerValue<'ink>,
         statement: &AstNode,
     ) -> PointerValue<'ink> {
-        if let Some(StatementAnnotation::Variable { is_auto_deref: true, .. }) =
-            self.annotations.get(statement)
-        {
+        if self.annotations.get(statement).is_some_and(|opt| opt.is_auto_deref()) {
             self.deref(accessor_ptr)
         } else {
             accessor_ptr
@@ -1976,7 +1972,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 }
             }
-            DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } => {
+            DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } => {
                 let inner_type = self.index.get_type_information_or_void(inner_type_name);
                 self.generate_string_literal_for_type(inner_type, value, location)
             }
@@ -2295,7 +2291,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let value = self.llvm.create_const_numeric(
             &self.llvm_index.get_associated_type(LINT_TYPE)?,
             value.to_string().as_str(),
-            SourceLocation::undefined(),
+            SourceLocation::internal(),
         )?;
         Ok(value)
     }
@@ -2507,14 +2503,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `access` the ReferenceAccess of the reference to generate
     /// - `base` the "previous" segment of an optional qualified reference-access
     /// - `original_expression` the original ast-statement used to report Diagnostics
-    fn generate_reference_expression(
+    pub(crate) fn generate_reference_expression(
         &self,
         access: &ReferenceAccess,
         base: Option<&AstNode>,
         original_expression: &AstNode,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         match (access, base) {
-
             // expressions like `base.member`, or just `member`
             (ReferenceAccess::Member(member), base) => {
                 let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;

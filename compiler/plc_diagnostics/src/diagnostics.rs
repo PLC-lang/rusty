@@ -234,7 +234,10 @@ impl Diagnostic {
             .with_location(location)
     }
 
-    pub fn invalid_assignment(right_type: &str, left_type: &str, location: SourceLocation) -> Diagnostic {
+    pub fn invalid_assignment<T>(right_type: &str, left_type: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
         Diagnostic::new(format!("Invalid assignment: cannot assign '{right_type}' to '{left_type}'"))
             .with_error_code("E037")
             .with_location(location)

@@ -2,8 +2,8 @@
 source: src/codegen/tests/parameters_tests.rs
 expression: res
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %mainProg = type { %fb_t, i8, i8 }
 %fb_t = type { i8, i8, i8*, i8, i8* }
@@ -58,3 +58,52 @@ entry:
   store i8 %load_myOtherInOut, i8* %deref, align 1
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%mainProg = type { %fb_t, i8, i8 }
+%fb_t = type { i8, i8, i8*, i8, i8* }
+
+@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r3r5u8u8pu8u8pu8u8u8"
+@__fb_t__init = external global %fb_t, section "var-$RUSTY$__fb_t__init:r5u8u8pu8u8pu8"
+
+define void @__init_mainprog(%mainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr3r5u8u8pu8u8pu8u8u8]" {
+entry:
+  %self = alloca %mainProg*, align 8
+  store %mainProg* %0, %mainProg** %self, align 8
+  %deref = load %mainProg*, %mainProg** %self, align 8
+  %fb = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 0
+  call void @__init_fb_t(%fb_t* %fb)
+  ret void
+}
+
+declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+
+declare void @fb_t(%fb_t*) section "fn-$RUSTY$fb_t:v[u8][pu8][u8][pu8]"
+
+define void @__init_fb_t(%fb_t* %0) section "fn-$RUSTY$__init_fb_t:v[pr5u8u8pu8u8pu8]" {
+entry:
+  %self = alloca %fb_t*, align 8
+  store %fb_t* %0, %fb_t** %self, align 8
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%mainProg = type { %fb_t, i8, i8 }
+%fb_t = type { i8, i8, i8*, i8, i8* }
+
+@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r3r5u8u8pu8u8pu8u8u8"
+@__fb_t__init = external global %fb_t, section "var-$RUSTY$__fb_t__init:r5u8u8pu8u8pu8"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_mainprog(%mainProg* @mainProg_instance)
+  ret void
+}
+
+declare void @__init_mainprog(%mainProg*) section "fn-$RUSTY$__init_mainprog:v[pr3r5u8u8pu8u8pu8u8u8]"
+
+declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+
+declare void @fb_t(%fb_t*) section "fn-$RUSTY$fb_t:v[u8][pu8][u8][pu8]"

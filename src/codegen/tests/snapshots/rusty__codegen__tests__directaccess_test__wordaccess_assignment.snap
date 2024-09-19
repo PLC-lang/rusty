@@ -2,8 +2,8 @@
 source: src/codegen/tests/directaccess_test.rs
 expression: prog
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 define i16 @main() section "fn-$RUSTY$main:i16" {
 entry:
@@ -17,4 +17,11 @@ entry:
   store i32 %or, i32* %c, align 4
   %main_ret = load i16, i16* %main, align 2
   ret i16 %main_ret
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
 }

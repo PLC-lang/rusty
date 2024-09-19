@@ -2,8 +2,8 @@
 source: src/codegen/tests/typesystem_test.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %main = type {}
 
@@ -37,3 +37,34 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%main = type {}
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r4s8u81f32f64i16"
+
+define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr4s8u81f32f64i16]" {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type {}
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r4s8u81f32f64i16"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr4s8u81f32f64i16]"
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"

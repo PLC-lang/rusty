@@ -114,7 +114,7 @@ impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
         let value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
 
         let target_type =
-            if let DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } = target_type {
+            if let DataTypeInformation::Pointer { auto_deref: Some(_), inner_type_name, .. } = target_type {
                 // Deref auto-deref pointers before casting
                 index.get_intrinsic_type_by_name(inner_type_name.as_str()).get_type_information()
             } else {

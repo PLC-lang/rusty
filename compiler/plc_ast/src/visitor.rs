@@ -1,16 +1,25 @@
 //! This module defines the `AstVisitor` trait and its associated macros.
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
-use crate::ast::AstNode;
-use crate::ast::*;
+use crate::ast::{
+    flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
+    CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement,
+    HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement,
+    ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
+};
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;
 
 /// Macro that calls the visitor's `visit` method for every AstNode in the passed iterator `iter`.
 macro_rules! visit_all_nodes {
     ($visitor:expr, $iter:expr) => {
-        for node in $iter {
-            $visitor.visit(node);
+        // Note: The `allow` is needed to suppress warnings about `while let Some(...)` warnings
+        // because `visit_all_nodes!` is used for both Option and Non-Option types
+        #[allow(warnings)]
+        {
+            for node in $iter {
+                $visitor.visit(node);
+            }
         }
     };
 }
@@ -312,6 +321,15 @@ pub trait AstVisitor: Sized {
         stmt.walk(self)
     }
 
+    /// Visits an `RefAssignment` node.
+    /// Make sure to call `walk` on the `Assignment` node to visit its children.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `Assignment` node to visit.
+    /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
+    fn visit_ref_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
+        stmt.walk(self)
+    }
+
     /// Visits a `CallStatement` node.
     /// Make sure to call `walk` on the `CallStatement` node to visit its children.
     /// # Arguments
@@ -556,6 +574,7 @@ impl Walker for AstNode {
             AstStatement::VlaRangeStatement => visitor.visit_vla_range_statement(node),
             AstStatement::Assignment(stmt) => visitor.visit_assignment(stmt, node),
             AstStatement::OutputAssignment(stmt) => visitor.visit_output_assignment(stmt, node),
+            AstStatement::RefAssignment(stmt) => visitor.visit_ref_assignment(stmt, node),
             AstStatement::CallStatement(stmt) => visitor.visit_call_statement(stmt, node),
             AstStatement::ControlStatement(stmt) => visitor.visit_control_statement(stmt, node),
             AstStatement::CaseCondition(stmt) => visitor.visit_case_condition(stmt, node),

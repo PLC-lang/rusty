@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %foo2 = type { i32*, i32 }
 %foo = type { i32* }
@@ -39,3 +39,70 @@ entry:
   call void @foo(%foo* @foo_instance)
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%foo = type { i32* }
+%foo2 = type { i32*, i32 }
+%prg = type { i32 }
+
+@foo_instance = external global %foo, section "var-$RUSTY$foo_instance:r1pi32"
+@foo2_instance = external global %foo2, section "var-$RUSTY$foo2_instance:r2pi32i32"
+@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1i32"
+
+define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1pi32]" {
+entry:
+  %self = alloca %foo*, align 8
+  store %foo* %0, %foo** %self, align 8
+  ret void
+}
+
+declare void @foo(%foo*) section "fn-$RUSTY$foo:v[pi32]"
+
+define void @__init_foo2(%foo2* %0) section "fn-$RUSTY$__init_foo2:v[pr2pi32i32]" {
+entry:
+  %self = alloca %foo2*, align 8
+  store %foo2* %0, %foo2** %self, align 8
+  ret void
+}
+
+declare void @foo2(%foo2*) section "fn-$RUSTY$foo2:v[pi32][i32]"
+
+define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr1i32]" {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  ret void
+}
+
+declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%foo = type { i32* }
+%foo2 = type { i32*, i32 }
+%prg = type { i32 }
+
+@foo_instance = external global %foo, section "var-$RUSTY$foo_instance:r1pi32"
+@foo2_instance = external global %foo2, section "var-$RUSTY$foo2_instance:r2pi32i32"
+@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1i32"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_foo(%foo* @foo_instance)
+  call void @__init_foo2(%foo2* @foo2_instance)
+  call void @__init_prg(%prg* @prg_instance)
+  ret void
+}
+
+declare void @__init_foo(%foo*) section "fn-$RUSTY$__init_foo:v[pr1pi32]"
+
+declare void @foo(%foo*) section "fn-$RUSTY$foo:v[pi32]"
+
+declare void @__init_foo2(%foo2*) section "fn-$RUSTY$__init_foo2:v[pr2pi32i32]"
+
+declare void @foo2(%foo2*) section "fn-$RUSTY$foo2:v[pi32][i32]"
+
+declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr1i32]"
+
+declare void @prg(%prg*) section "fn-$RUSTY$prg:v"

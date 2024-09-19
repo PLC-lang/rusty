@@ -11,13 +11,16 @@ use ast::{
     provider::IdProvider,
 };
 
-use plc::index::FxIndexSet;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::Index,
+    index::{FxIndexSet, Index},
+    lowering::AstLowerer,
     output::FormatOption,
     parser::parse_file,
-    resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
+    resolver::{
+        const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
+        TypeAnnotator,
+    },
     validation::Validator,
     ConfigFormat, Target,
 };
@@ -124,8 +127,9 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
         for data_type in plc::typesystem::get_builtin_types() {
             global_index.register_type(data_type);
         }
+
         // import builtin functions
-        let builtins = plc::builtins::parse_built_ins(id_provider);
+        let builtins = plc::builtins::parse_built_ins(id_provider.clone());
         global_index.import(plc::index::visitor::visit(&builtins));
 
         IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
@@ -146,13 +150,10 @@ pub struct IndexedProject<T: SourceContainer + Sync> {
 impl<T: SourceContainer + Sync> IndexedProject<T> {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
-        //Resolve constants
-        //TODO: Not sure what we are currently doing with unresolvables
-        let (mut full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
+        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
-
         let result = self
             .project
             .units
@@ -165,7 +166,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             .collect::<Vec<_>>();
 
         for (unit, annotation, dependencies, literals) in result {
-            annotated_units.push((unit, dependencies, literals));
+            annotated_units.push(AnnotatedUnit::new(unit, dependencies, literals));
             all_annotations.import(annotation);
         }
 
@@ -178,6 +179,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             units: annotated_units,
             index: full_index,
             annotations,
+            unresolvables,
         }
     }
 
@@ -190,18 +192,57 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
     }
 }
 
+#[derive(Debug)]
+pub struct AnnotatedUnit {
+    unit: CompilationUnit,
+    dependencies: FxIndexSet<Dependency>,
+    literals: StringLiterals,
+}
+
+impl AnnotatedUnit {
+    pub fn new(
+        unit: CompilationUnit,
+        dependencies: FxIndexSet<Dependency>,
+        literals: StringLiterals,
+    ) -> Self {
+        Self { unit, dependencies, literals }
+    }
+
+    pub fn get_unit(&self) -> &CompilationUnit {
+        &self.unit
+    }
+}
+
 /// A project that has been annotated with information about different types and used units
 pub struct AnnotatedProject<T: SourceContainer + Sync> {
     pub project: Project<T>,
-    pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
+    pub units: Vec<AnnotatedUnit>,
     pub index: Index,
     pub annotations: AstAnnotations,
+    pub unresolvables: Vec<UnresolvableConstant>,
 }
 
 impl<T: SourceContainer + Sync> AnnotatedProject<T> {
     pub fn get_project(&self) -> &Project<T> {
         &self.project
     }
+
+    pub fn lower(self, id_provider: IdProvider) -> AnnotatedProject<T> {
+        let init_symbol_name = &self.get_project().get_init_symbol_name();
+        let project = self.project;
+        let units = self.units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect::<Vec<_>>();
+        let lowered = AstLowerer::lower(
+            units,
+            self.index,
+            self.annotations,
+            self.unresolvables,
+            id_provider.clone(),
+            init_symbol_name,
+        );
+        // XXX: this step can be looped until there were no further lowering-changes, however at this time lowering once should suffice
+        ParsedProject { project, units: lowered }.index(id_provider.clone()).annotate(id_provider)
+    }
+
     /// Validates the project, reports any new diagnostics on the fly
     pub fn validate(
         &self,
@@ -215,7 +256,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         let mut severity = diagnostician.handle(&diagnostics);
 
         //Perform per unit validation
-        self.units.iter().for_each(|(unit, _, _)| {
+        self.units.iter().for_each(|AnnotatedUnit { unit, .. }| {
             // validate unit
             validator.visit_unit(&self.annotations, &self.index, unit);
             // log errors
@@ -232,7 +273,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
     pub fn codegen_to_string(&self, compile_options: &CompileOptions) -> Result<Vec<String>, Diagnostic> {
         self.units
             .iter()
-            .map(|(unit, dependencies, literals)| {
+            .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 let context = CodegenContext::create();
                 self.generate_module(&context, compile_options, unit, dependencies, literals)
                     .map(|it| it.persist_to_string())
@@ -248,7 +289,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         let Some(module) = self
             .units
             .iter()
-            .map(|(unit, dependencies, literals)| {
+            .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 self.generate_module(context, compile_options, unit, dependencies, literals)
             })
             .reduce(|a, b| {
@@ -337,11 +378,15 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                 let objects = self
                     .units
                     .par_iter()
-                    .map(|(unit, dependencies, literals)| {
+                    .map(|AnnotatedUnit { unit, dependencies, literals }| {
                         let current_dir = env::current_dir()?;
                         let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
                         let unit_location = PathBuf::from(&unit.file_name);
-                        let unit_location = fs::canonicalize(unit_location)?;
+                        let unit_location = if unit_location.exists() {
+                            fs::canonicalize(unit_location)?
+                        } else {
+                            unit_location
+                        };
                         let output_name = if unit_location.starts_with(current_dir) {
                             unit_location.strip_prefix(current_dir).map_err(|it| {
                                 Diagnostic::new(format!(
@@ -467,7 +512,7 @@ impl GeneratedProject {
                     })??;
                 codegen.persist_to_ir(output_location)
             }
-            FormatOption::Object if self.objects.len() == 1 && objects.is_empty() => {
+            FormatOption::Object if objects.is_empty() => {
                 //Just copy over the object file, no need for a linker
                 if let [obj] = &self.objects[..] {
                     if obj.get_path() != output_location {

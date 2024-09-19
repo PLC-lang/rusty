@@ -3,9 +3,9 @@ use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::index::{ArgumentType, Index, MemberInfo};
 use crate::typesystem::{self, *};
 use plc_ast::ast::{
-    self, ArgumentProperty, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-    DataTypeDeclaration, Implementation, Pou, PouType, RangeStatement, TypeNature, UserTypeDeclaration,
-    Variable, VariableBlock, VariableBlockType,
+    self, ArgumentProperty, Assignment, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
+    DataType, DataTypeDeclaration, Implementation, Pou, PouType, RangeStatement, TypeNature,
+    UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
 };
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -60,7 +60,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             };
 
             if varargs.is_some() {
-                member_varargs = varargs.clone();
+                member_varargs.clone_from(&varargs);
             }
 
             let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
@@ -74,6 +74,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 var.initializer.clone(),
                 type_name.as_str(),
                 Some(pou.name.clone()),
+                Some(var.get_name().to_string()),
             );
 
             let binding = var
@@ -146,7 +147,8 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 &pou.name,
                 pou.name_location.clone(),
             )
-            .set_constant(true);
+            .set_constant(true)
+            .set_linkage(pou.linkage);
             index.register_global_initializer(&global_struct_name, variable);
             index.register_pou(PouIndexEntry::create_function_block_entry(
                 &pou.name,
@@ -164,7 +166,8 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 &pou.name,
                 pou.name_location.clone(),
             )
-            .set_constant(true);
+            .set_constant(true)
+            .set_linkage(pou.linkage);
             index.register_global_initializer(&global_struct_name, variable);
             index.register_pou(PouIndexEntry::create_class_entry(
                 &pou.name,
@@ -193,6 +196,18 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 pou.linkage,
                 pou.name_location.clone(),
             ));
+            index.register_pou_type(datatype);
+        }
+        PouType::Init => {
+            index.register_pou(PouIndexEntry::create_function_entry(
+                &pou.name,
+                return_type_name,
+                &pou.generics,
+                pou.linkage,
+                has_varargs,
+                pou.name_location.clone(),
+            ));
+            index.register_init_function(&pou.name);
             index.register_pou_type(datatype);
         }
         _ => {}
@@ -272,7 +287,7 @@ fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
             information: DataTypeInformation::Pointer {
                 name: type_name.clone(),
                 inner_type_name: inner_type_name.to_string(),
-                auto_deref: true,
+                auto_deref: Some(AutoDerefType::Default),
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),
@@ -290,6 +305,7 @@ fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
             var.initializer.clone(),
             target_type,
             None,
+            Some(var.get_name().into()),
         );
         let variable = VariableIndexEntry::create_global(
             &var.name,
@@ -337,6 +353,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                         right.as_ref().clone(),
                         numeric_type.clone(),
                         scope.clone(),
+                        None,
                     );
 
                     variants.push(index.register_enum_variant(name, &variant, Some(init), ele.get_location()))
@@ -355,6 +372,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                 type_declaration.initializer.clone(),
                 name,
                 scope.clone(),
+                None,
             );
 
             index.register_type(typesystem::DataType {
@@ -383,6 +401,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                 type_declaration.initializer.clone(),
                 name,
                 scope.clone(),
+                None,
             );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
@@ -400,18 +419,19 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
         DataType::ArrayType { name: Some(name), bounds, referenced_type, .. } => {
             visit_array(bounds, index, scope, referenced_type, name, type_declaration);
         }
-        DataType::PointerType { name: Some(name), referenced_type, .. } => {
+        DataType::PointerType { name: Some(name), referenced_type, auto_deref: kind } => {
             let inner_type_name = referenced_type.get_name().expect("named datatype");
             let information = DataTypeInformation::Pointer {
                 name: name.clone(),
                 inner_type_name: inner_type_name.into(),
-                auto_deref: false,
+                auto_deref: *kind,
             };
 
             let init = index.get_mut_const_expressions().maybe_add_constant_expression(
                 type_declaration.initializer.clone(),
                 name,
                 scope.clone(),
+                None,
             );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
@@ -446,6 +466,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                         len_plus_1,
                         type_name.clone(),
                         scope.clone(),
+                        None,
                     ))
                 }
                 None => TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
@@ -455,6 +476,7 @@ fn visit_data_type(index: &mut Index, type_declaration: &UserTypeDeclaration) {
                 type_declaration.initializer.clone(),
                 type_name,
                 scope.clone(),
+                None,
             );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
@@ -536,11 +558,11 @@ fn visit_variable_length_array(
             (
                 DataTypeDeclaration::DataTypeReference {
                     referenced_type: member_array_name,
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                 },
                 DataTypeDeclaration::DataTypeReference {
                     referenced_type: member_dimensions_name,
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                 },
             )
         } else {
@@ -570,10 +592,11 @@ fn visit_variable_length_array(
                         name: Some(member_array_name),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: dummy_array_name,
-                            location: SourceLocation::undefined(),
+                            location: SourceLocation::internal(),
                         }),
+                        auto_deref: None,
                     },
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                     scope: None,
                 },
                 DataTypeDeclaration::DataTypeDefinition {
@@ -587,12 +610,12 @@ fn visit_variable_length_array(
                                             AstNode::new_literal(
                                                 AstLiteral::new_integer(0),
                                                 0,
-                                                SourceLocation::undefined(),
+                                                SourceLocation::internal(),
                                             ),
                                             AstNode::new_literal(
                                                 AstLiteral::new_integer(1),
                                                 0,
-                                                SourceLocation::undefined(),
+                                                SourceLocation::internal(),
                                             ),
                                             0,
                                         )
@@ -600,15 +623,15 @@ fn visit_variable_length_array(
                                     .collect::<_>(),
                             ),
                             0,
-                            SourceLocation::undefined(),
+                            SourceLocation::internal(),
                         ),
                         referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                             referenced_type: DINT_TYPE.to_string(),
-                            location: SourceLocation::undefined(),
+                            location: SourceLocation::internal(),
                         }),
                         is_variable_length: false,
                     },
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                     scope: None,
                 },
             )
@@ -622,7 +645,7 @@ fn visit_variable_length_array(
             data_type_declaration: vla_arr_type_declaration,
             initializer: None,
             address: None,
-            location: SourceLocation::undefined(),
+            location: SourceLocation::internal(),
         },
         // Dimensions Array
         Variable {
@@ -630,7 +653,7 @@ fn visit_variable_length_array(
             data_type_declaration: dim_arr_type_declaration,
             initializer: None,
             address: None,
-            location: SourceLocation::undefined(),
+            location: SourceLocation::internal(),
         },
     ];
 
@@ -672,11 +695,13 @@ fn visit_array(
                         *start.clone(),
                         typesystem::DINT_TYPE.to_string(),
                         scope.clone(),
+                        None,
                     )),
                     end_offset: TypeSize::from_expression(constants.add_constant_expression(
                         *end.clone(),
                         typesystem::DINT_TYPE.to_string(),
                         scope.clone(),
+                        None,
                     )),
                 })
             }
@@ -703,6 +728,7 @@ fn visit_array(
         type_declaration.initializer.clone(),
         name,
         scope.clone(),
+        None,
     );
     // TODO unfortunately we cannot share const-expressions between multiple
     // index-entries
@@ -710,6 +736,7 @@ fn visit_array(
         type_declaration.initializer.clone(),
         name,
         scope.clone(),
+        None,
     );
 
     index.register_type(typesystem::DataType {
@@ -754,7 +781,7 @@ fn visit_struct(
                     &UserTypeDeclaration {
                         data_type: data_type.clone(),
                         initializer: None,
-                        location: SourceLocation::undefined(),
+                        location: SourceLocation::internal(),
                         scope: scope.clone(),
                     },
                 )
@@ -765,6 +792,7 @@ fn visit_struct(
                 var.initializer.clone(),
                 member_type,
                 scope.clone(),
+                None,
             );
 
             let binding =
@@ -794,6 +822,7 @@ fn visit_struct(
         type_declaration.initializer.clone(),
         name,
         scope.clone(),
+        Some(name.into()),
     );
     index.register_type(typesystem::DataType {
         name: name.to_string(),

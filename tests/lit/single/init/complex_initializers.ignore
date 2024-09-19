@@ -1,0 +1,28 @@
+// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+TYPE myStruct : STRUCT
+        member AT arr : ARRAY[0..3] OF STRING;
+    END_STRUCT
+END_TYPE
+
+TYPE myNestedStruct : STRUCT
+        inner: myStruct;
+    END_STRUCT
+END_TYPE
+
+VAR_GLOBAL
+    arr : ARRAY[0..3] OF STRING := ['a', 'b', 'c', 'd'];
+    structarr : ARRAY[0..3] OF myNestedStruct;
+END_VAR
+
+FUNCTION main: DINT
+VAR 
+    despair AT structarr : ARRAY[0..3] OF myNestedStruct;
+    s : STRING;
+END_VAR
+    __init();
+
+    s := despair[1].inner.member[3];
+
+    // CHECK: d
+    printf('%s$N', REF(s));
+END_FUNCTION

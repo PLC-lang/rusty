@@ -2,8 +2,8 @@
 source: src/codegen/tests/string_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @__FSTRING_TO_DT.ignore__init = unnamed_addr constant [2 x i8] c"*\00"
 @__FSTRING_TO_DT.fchar__init = unnamed_addr constant [2 x i8] c"#\00"
@@ -55,3 +55,10 @@ declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) 
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
 attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}

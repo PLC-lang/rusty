@@ -13,14 +13,23 @@ pub type ParameterError = clap::Error;
 #[clap(
     group = ArgGroup::new("format"),
     about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
-    version,
 )]
-#[clap(propagate_version = true)]
 #[clap(subcommand_negates_reqs = true)]
 #[clap(subcommand_precedence_over_arg = true)]
 pub struct CompileParameters {
     #[clap(short, long, global = true, name = "output-file", help = "Write output to <output-file>")]
     pub output: Option<String>,
+
+    #[clap(
+        long = "ast",
+        group = "format",
+        global = true,
+        help = "Emit AST (Abstract Syntax Tree) as output"
+    )]
+    pub output_ast: bool,
+
+    #[clap(long = "version", group = "format", global = true)]
+    pub build_info: bool,
 
     #[clap(
         long = "ir",
@@ -71,7 +80,7 @@ pub struct CompileParameters {
     #[clap(
         name = "input-files",
         help = "Read input from <input-files>, may be a glob expression like 'src/**/*' or a sequence of files",
-        required = true,
+        // required = true,
         min_values = 1
     )]
     // having a vec allows bash to resolve *.st itself
@@ -486,14 +495,6 @@ mod cli_tests {
     }
 
     #[test]
-    fn missing_parameters_results_in_error() {
-        // no arguments
-        expect_argument_error(vec_of_strings![], ErrorKind::MissingRequiredArgument);
-        // no input file
-        expect_argument_error(vec_of_strings!["--ir"], ErrorKind::MissingRequiredArgument);
-    }
-
-    #[test]
     fn multiple_output_formats_results_in_error() {
         expect_argument_error(vec_of_strings!["input.st", "--ir", "--shared"], ErrorKind::ArgumentConflict);
         expect_argument_error(
@@ -637,6 +638,16 @@ mod cli_tests {
     fn valid_output_formats() {
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ir")).unwrap();
         assert!(parameters.output_ir);
+        assert!(!parameters.output_ast);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
+
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ast")).unwrap();
+        assert!(!parameters.output_ir);
+        assert!(parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -645,6 +656,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--bc")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -653,6 +665,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--static")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -661,6 +674,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--pic")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(parameters.output_pic_obj);
@@ -669,6 +683,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--shared")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -677,6 +692,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--relocatable")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -685,6 +701,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -718,8 +735,8 @@ mod cli_tests {
     #[test]
     fn cli_supports_version() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
-            Ok(_) => panic!("expected version output, but found OK"),
-            Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayVersion),
+            Ok(version) => assert!(version.build_info),
+            _ => panic!("expected the build info flag to be true"),
         }
     }
 

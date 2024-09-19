@@ -681,7 +681,6 @@ fn reference_to_reference_assignments_in_function_arguments() {
             // ALL of these should be valid
             input1 := ADR(global1),
             input2 := REF(global2),
-            input3 := &global3
         );
 
         prog(
@@ -698,14 +697,6 @@ fn reference_to_reference_assignments_in_function_arguments() {
             input1 := REF(global4),
             input2 := REF(global5),
             input3 := REF(global6),
-        );
-
-        prog(
-            // NONE of these should be valid because &(...) returns type information and we
-            // explicitly check if pointer assignments are of the same type
-            input1 := &(global4),
-            input2 := &(global5),
-            input3 := &(global6),
         );
     END_PROGRAM
     "#,
@@ -1615,16 +1606,7 @@ fn action_as_reference_does_not_cause_parentheses_diagnostic() {
     );
 
     // we expect no missing parentheses diagnostic
-    assert_snapshot!(diagnostics, @r###"
-    error[E037]: Invalid assignment: cannot assign 'FOO' to 'fb1'
-      ┌─ <internal>:7:28
-      │
-    7 │             address := ADR(fb1.FOO);
-      │                            ^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'fb1'
-
-    "###);
-    // XXX: change assertion to `assert!(diagnostics.is_empty())` once
-    // https://github.com/PLC-lang/rusty/issues/1165 is resolved
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -1818,6 +1800,172 @@ fn incorrect_argument_count_stateful_pous() {
        │
     12 │             two_instance(1, 2, 3);
        │                             ^ Expected a reference for parameter out_two because their type is Output
+
+    "###);
+}
+
+#[test]
+fn binary_expressions_with_incompatible_types() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                var_int         : INT;
+                var_dint        : DINT;
+                var_real        : REAL;
+                var_string      : STRING;
+                var_array_tod   : ARRAY[1..5] OF TOD;
+            END_VAR
+        
+            // Compatible Types
+            var_int + var_dint + var_real;
+
+            // Incompatible Types
+            var_int + var_string;
+            var_string + var_array_tod;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
+       ┌─ <internal>:15:13
+       │
+    15 │             var_int + var_string;
+       │             ^^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
+
+    error[E031]: Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in the given context
+       ┌─ <internal>:16:13
+       │
+    16 │             var_string + var_array_tod;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in the given context
+
+    "###);
+}
+
+#[test]
+fn builtin_math_functions_with_incompatible_types() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                var_int         : INT;
+                var_dint        : DINT;
+                var_real        : REAL;
+                var_string      : STRING;
+                var_array_tod   : ARRAY[1..5] OF TOD;
+            END_VAR
+
+            // Incompatible Types
+            ADD(var_int, var_string, var_array_tod);
+            SUB(var_int, var_string);
+            MUL(var_int, var_string);
+            DIV(var_int, var_string);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
+       ┌─ <internal>:12:17
+       │
+    12 │             ADD(var_int, var_string, var_array_tod);
+       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
+
+    error[E031]: Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in the given context
+       ┌─ <internal>:12:26
+       │
+    12 │             ADD(var_int, var_string, var_array_tod);
+       │                          ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in the given context
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'LREAL'
+       ┌─ <internal>:12:26
+       │
+    12 │             ADD(var_int, var_string, var_array_tod);
+       │                          ^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'LREAL'
+
+    error[E062]: Invalid type nature for generic argument. STRING is no ANY_NUMBER
+       ┌─ <internal>:12:26
+       │
+    12 │             ADD(var_int, var_string, var_array_tod);
+       │                          ^^^^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_NUMBER
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..5] OF TOD' to 'LREAL'
+       ┌─ <internal>:12:38
+       │
+    12 │             ADD(var_int, var_string, var_array_tod);
+       │                                      ^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..5] OF TOD' to 'LREAL'
+
+    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
+       ┌─ <internal>:13:17
+       │
+    13 │             SUB(var_int, var_string);
+       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
+
+    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
+       ┌─ <internal>:14:17
+       │
+    14 │             MUL(var_int, var_string);
+       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
+       ┌─ <internal>:14:26
+       │
+    14 │             MUL(var_int, var_string);
+       │                          ^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
+
+    error[E062]: Invalid type nature for generic argument. STRING is no ANY_NUMBER
+       ┌─ <internal>:14:26
+       │
+    14 │             MUL(var_int, var_string);
+       │                          ^^^^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_NUMBER
+
+    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
+       ┌─ <internal>:15:17
+       │
+    15 │             DIV(var_int, var_string);
+       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
+
+    "###);
+}
+
+#[test]
+fn builtin_math_functions_with_incompatible_literal_types() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            ADD(1, 'string');
+            SUB(1, 'string');
+            MUL(1, 'string');
+            DIV(1, 'string');
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+      ┌─ <internal>:3:17
+      │
+    3 │             ADD(1, 'string');
+      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
+
+    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+      ┌─ <internal>:4:17
+      │
+    4 │             SUB(1, 'string');
+      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
+
+    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+      ┌─ <internal>:5:17
+      │
+    5 │             MUL(1, 'string');
+      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
+
+    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+      ┌─ <internal>:6:17
+      │
+    6 │             DIV(1, 'string');
+      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
 
     "###);
 }

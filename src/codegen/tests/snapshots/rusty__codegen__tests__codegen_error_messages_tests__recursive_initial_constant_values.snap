@@ -9,5 +9,3 @@ error[E048]: Could not resolve reference to b
   │
 3 │             a : INT := b;
   │                        ^ Could not resolve reference to b
-
-

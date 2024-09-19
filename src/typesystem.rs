@@ -6,7 +6,7 @@ use std::{
 };
 
 use plc_ast::{
-    ast::{AstNode, Operator, PouType, TypeNature},
+    ast::{AstNode, AutoDerefType, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
 use plc_source::source_location::SourceLocation;
@@ -96,7 +96,7 @@ mod tests;
 #[derive(Debug, Clone)]
 pub struct DataType {
     pub name: String,
-    /// the initial value defined on the TYPE-declration
+    /// the initial value defined on the TYPE-declaration
     pub initial_value: Option<ConstId>,
     pub information: DataTypeInformation,
     pub nature: TypeNature,
@@ -390,7 +390,7 @@ pub enum DataTypeInformation {
     Pointer {
         name: TypeId,
         inner_type_name: TypeId,
-        auto_deref: bool,
+        auto_deref: Option<AutoDerefType>,
     },
     Integer {
         name: TypeId,
@@ -440,6 +440,13 @@ impl DataTypeInformation {
             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. } => "STRING",
             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } => "WSTRING",
             DataTypeInformation::Void => "VOID",
+        }
+    }
+
+    pub fn get_inner_name(&self) -> &str {
+        match self {
+            DataTypeInformation::Pointer { inner_type_name, .. } => inner_type_name,
+            _ => self.get_name(),
         }
     }
 
@@ -559,6 +566,20 @@ impl DataTypeInformation {
         }
     }
 
+    /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
+    pub fn is_reference_to(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { auto_deref: Some(AutoDerefType::Reference), .. })
+    }
+
+    /// Returns true if the variable was declared as `REFERENCE TO`, e.g. `foo : REFERENCE TO DINT`.
+    pub fn is_alias(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { auto_deref: Some(AutoDerefType::Alias), .. })
+    }
+
+    pub fn is_auto_deref(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { auto_deref: Some(_), .. })
+    }
+
     pub fn is_aggregate(&self) -> bool {
         matches!(
             self,
@@ -566,6 +587,14 @@ impl DataTypeInformation {
                 | DataTypeInformation::Array { .. }
                 | DataTypeInformation::String { .. }
         )
+    }
+
+    pub fn get_auto_deref_type(&self) -> Option<AutoDerefType> {
+        if let DataTypeInformation::Pointer { auto_deref: kind, .. } = self {
+            return *kind;
+        }
+
+        None
     }
 
     pub fn is_date_or_time_type(&self) -> bool {
@@ -1282,16 +1311,15 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
             matches!(rtype, DataTypeInformation::String { encoding, .. } if encoding == lenc)
         }
 
-        // We have to handle 3 different cases here:
+        // We have to handle 2 different cases here:
         // 1. foo := ADR(bar)
         // 2. foo := REF(bar)
-        // 3. foo := &bar
         DataTypeInformation::Pointer { .. } => match rtype {
             // Case 1: ADR(bar) returns a LWORD value, thus check if we're working with a LWORD
             DataTypeInformation::Integer { size, .. } => *size == POINTER_SIZE,
 
-            // Case 2 & 3:
-            // REF(bar) and &bar returns a pointer, thus deduce their inner types and check if they're equal
+            // Case 2:
+            // REF(bar) returns a pointer, thus deduce their inner types and check if they're equal
             DataTypeInformation::Pointer { .. } => {
                 let ldetails = index.find_elementary_pointer_type(ltype);
                 let rdetails = index.find_elementary_pointer_type(rtype);

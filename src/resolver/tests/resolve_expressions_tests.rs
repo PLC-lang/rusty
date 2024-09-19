@@ -15,15 +15,13 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{ArgumentType, Index, VariableType},
-    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
+    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, Dimension, TypeSize, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE,
-        LINT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
+        LINT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
-
-use crate::TypeAnnotator;
 
 #[macro_export]
 macro_rules! assert_type_and_hint {
@@ -112,7 +110,7 @@ fn cast_expression_literals_get_casted_types() {
         };
         let t = target.as_ref();
         assert_eq!(
-            format!("{:#?}", AstNode::new_integer(0xFFFF, 0, SourceLocation::undefined())),
+            format!("{:#?}", AstNode::new_integer(0xFFFF, 0, SourceLocation::internal())),
             format!("{t:#?}")
         );
         assert_type_and_hint!(&annotations, &index, target.as_ref(), INT_TYPE, None);
@@ -126,7 +124,7 @@ fn cast_expression_literals_get_casted_types() {
         };
         let t = target.as_ref();
         assert_eq!(
-            format!("{:#?}", AstNode::new_integer(0xFFFF, 0, SourceLocation::undefined())),
+            format!("{:#?}", AstNode::new_integer(0xFFFF, 0, SourceLocation::internal())),
             format!("{t:#?}")
         );
         assert_type_and_hint!(&annotations, &index, target.as_ref(), WORD_TYPE, None);
@@ -162,7 +160,7 @@ fn cast_expressions_of_enum_with_resolves_types() {
             qualified_name: "MyEnum.a".to_string(),
             constant: true,
             argument_type: ArgumentType::ByVal(VariableType::Global),
-            is_auto_deref: false
+            auto_deref: None,
         })
     );
 
@@ -178,7 +176,7 @@ fn cast_expressions_of_enum_with_resolves_types() {
             qualified_name: "MyEnum.b".to_string(),
             constant: true,
             argument_type: ArgumentType::ByVal(VariableType::Global),
-            is_auto_deref: false
+            auto_deref: None,
         })
     );
 }
@@ -1311,8 +1309,8 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
             qualified_name: "foo.foo".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false,
             argument_type: ArgumentType::ByVal(VariableType::Return),
+            auto_deref: None,
         }),
         foo_annotation
     );
@@ -1572,8 +1570,8 @@ fn qualified_expressions_dont_fallback_to_globals() {
             qualified_name: "MyStruct.y".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
+            auto_deref: None,
         }),
         annotations.get(&statements[1])
     );
@@ -1813,8 +1811,8 @@ fn method_references_are_resolved() {
             qualified_name: "cls.foo.foo".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false,
             argument_type: ArgumentType::ByVal(VariableType::Return),
+            auto_deref: None,
         }),
         annotation
     );
@@ -2448,7 +2446,7 @@ fn struct_member_explicit_initialization_test() {
             qualified_name: "myStruct.var1".to_string(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            is_auto_deref: false
+            auto_deref: None,
         }),
         annotations.get(left)
     );
@@ -2462,7 +2460,7 @@ fn struct_member_explicit_initialization_test() {
             qualified_name: "myStruct.var2".to_string(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            is_auto_deref: false
+            auto_deref: None,
         }),
         annotations.get(left)
     );
@@ -2942,8 +2940,8 @@ fn action_body_gets_resolved() {
                 qualified_name: "prg.x".to_string(),
                 resulting_type: "DINT".to_string(),
                 constant: false,
-                is_auto_deref: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local),
+                auto_deref: None,
             }),
             a
         );
@@ -3385,9 +3383,9 @@ fn address_of_is_annotated_correctly() {
     if let Some(&StatementAnnotation::Value { resulting_type }) = annotations.get(s).as_ref() {
         assert_eq!(
             Some(&DataTypeInformation::Pointer {
-                auto_deref: false,
                 inner_type_name: "INT".to_string(),
                 name: "__POINTER_TO_INT".to_string(),
+                auto_deref: None,
             }),
             index.find_effective_type_info(resulting_type),
         );
@@ -3468,7 +3466,7 @@ fn call_explicit_parameter_name_is_resolved() {
             qualified_name: "fb.b".to_string(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            is_auto_deref: false
+            auto_deref: None,
         }),
         annotations.get(b.as_ref())
     );
@@ -3479,7 +3477,7 @@ fn call_explicit_parameter_name_is_resolved() {
             qualified_name: "fb.a".to_string(),
             constant: false,
             argument_type: ArgumentType::ByVal(VariableType::Input),
-            is_auto_deref: false
+            auto_deref: None,
         }),
         annotations.get(a)
     );
@@ -3701,7 +3699,7 @@ fn function_block_initialization_test() {
                 qualified_name: "TON.PT".into(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Input),
-                is_auto_deref: false
+                auto_deref: None,
             }
         )
     } else {
@@ -3836,7 +3834,7 @@ fn resolve_return_variable_in_nested_call() {
                             qualified_name: "main.main".to_string(),
                             constant: false,
                             argument_type: ArgumentType::ByVal(VariableType::Return),
-                            is_auto_deref: false
+                            auto_deref: None,
                         }
                     )
                 }
@@ -3852,17 +3850,25 @@ fn resolve_return_variable_in_nested_call() {
 fn hardware_access_types_annotated() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
-        "PROGRAM prg
+        "
+        VAR_GLOBAL
+            a AT %IB1.1 : BYTE;
+            b AT %QW1.2 : INT;
+            c AT %MD1.3 : DINT;
+            d AT %GX1.4 : BOOL;
+            e AT %IL2.1 : LINT;
+        END_VAR
+        PROGRAM prg
         VAR
           x1,x2 : BYTE;
           y1,y2 : INT;
-          z1    : LINT;
+          z1 : LINT;
         END_VAR
-          x1 := %IB1.2;
+          x1 := %IB1.1;
           x2 := %QW1.2;
-          y1 := %MD1.2;
-          y2 := %GX1.2;
-          z1 := %Il2.3;
+          y1 := %MD1.3;
+          y2 := %GX1.4;
+          z1 := %Il2.1;
         ",
         id_provider.clone(),
     );
@@ -3871,35 +3877,85 @@ fn hardware_access_types_annotated() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[0]
     {
-        assert_type_and_hint!(&annotations, &index, right, BYTE_TYPE, Some(BYTE_TYPE));
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "BYTE",
+            qualified_name: "__PI_1_1",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[1]
     {
-        assert_type_and_hint!(&annotations, &index, right, WORD_TYPE, Some(BYTE_TYPE));
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "INT",
+            qualified_name: "__PI_1_2",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[2]
     {
-        assert_type_and_hint!(&annotations, &index, right, DWORD_TYPE, Some(INT_TYPE));
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "DINT",
+            qualified_name: "__M_1_3",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[3]
     {
-        assert_type_and_hint!(&annotations, &index, right, BOOL_TYPE, Some(INT_TYPE));
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "BOOL",
+            qualified_name: "__G_1_4",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[4]
     {
-        assert_type_and_hint!(&annotations, &index, right, LWORD_TYPE, Some(LINT_TYPE));
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "LINT",
+            qualified_name: "__PI_2_1",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
     } else {
         unreachable!("Must be assignment")
     }
@@ -5080,7 +5136,7 @@ fn annotate_variable_in_parent_class() {
                 qualified_name: "cls1.LIGHT".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5095,7 +5151,7 @@ fn annotate_variable_in_parent_class() {
                 qualified_name: "cls2.Light2".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5133,7 +5189,7 @@ fn annotate_variable_in_grandparent_class() {
                 qualified_name: "cls0.LIGHT".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5178,7 +5234,7 @@ fn annotate_variable_in_field() {
                 qualified_name: "cls0.LIGHT".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5235,7 +5291,7 @@ fn annotate_method_in_super() {
                 qualified_name: "cls0.LIGHT".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5250,7 +5306,7 @@ fn annotate_method_in_super() {
                 qualified_name: "cls1.LIGHT1".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5265,7 +5321,7 @@ fn annotate_method_in_super() {
                 qualified_name: "cls0.LIGHT".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5280,7 +5336,7 @@ fn annotate_method_in_super() {
                 qualified_name: "cls1.LIGHT1".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5295,7 +5351,7 @@ fn annotate_method_in_super() {
                 qualified_name: "cls2.LIGHT2".to_string(),
                 constant: false,
                 argument_type: ArgumentType::ByVal(VariableType::Local,),
-                is_auto_deref: false,
+                auto_deref: None,
             },
             annotation.unwrap()
         );
@@ -5451,5 +5507,59 @@ fn builtin_add_doesnt_annotate_replacement_ast_when_called_with_incorrect_type_n
     let stmt = &unit.implementations[0].statements[0];
     if let Some(StatementAnnotation::ReplacementAst { statement }) = annotations.get(stmt) {
         panic!("Expected no replacement ast, got {:?}", statement)
+    }
+}
+
+#[test]
+fn hardware_address_in_body_resolves_to_global_var() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+            VAR_GLOBAL
+                myVarOut AT %QX1.2.3 : BOOL;
+                myVarIN AT %IX1.2.3 : BOOL;
+            END_VAR
+            FUNCTION main : DINT
+            VAR
+            END_VAR
+                %QX1.2.3 := TRUE;
+                myVarIn := %QX1.2.3;
+            END_FUNCTION
+            ",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let stmt = &unit.implementations[0].statements[0].get_stmt();
+    if let AstStatement::Assignment(Assignment { left, .. }) = stmt {
+        insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r###"
+        Variable {
+            resulting_type: "BOOL",
+            qualified_name: "__PI_1_2_3",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
+    } else {
+        unreachable!("Should be an assignment")
+    }
+    let stmt = &unit.implementations[0].statements[1].get_stmt();
+    if let AstStatement::Assignment(Assignment { right, .. }) = stmt {
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "BOOL",
+            qualified_name: "__PI_1_2_3",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
+    } else {
+        unreachable!("Should be an assignment")
     }
 }

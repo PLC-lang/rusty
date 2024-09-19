@@ -2,7 +2,12 @@
 
 /// offers operations to generate global variables
 use crate::{
-    codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
+    codegen::{
+        const_expressions::{ConstExpression, UnresolvableKind},
+        debug::Debug,
+        llvm_index::LlvmTypedIndex,
+        llvm_typesystem::cast_if_needed,
+    },
     index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
 };
@@ -127,7 +132,15 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         if linkage == LinkageType::External {
             global_ir_variable = global_ir_variable.make_external();
         } else {
-            let initial_value = if let Some(initializer) = self
+            let initial_value = if let Some(ConstExpression::Unresolvable {
+                reason: UnresolvableKind::Address { .. },
+                ..
+            }) = global_variable
+                .initial_value
+                .and_then(|it| self.global_index.get_const_expressions().find_const_expression(&it))
+            {
+                None
+            } else if let Some(initializer) = self
                 .global_index
                 .get_const_expressions()
                 .maybe_get_constant_statement(&global_variable.initial_value)
@@ -153,7 +166,6 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             } else {
                 None
             };
-
             let initial_value = initial_value
                 // 2nd try: find an associated default value for the declared type
                 .or_else(|| self.types_index.find_associated_initial_value(type_name))

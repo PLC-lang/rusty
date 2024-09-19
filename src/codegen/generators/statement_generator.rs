@@ -125,7 +125,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::Assignment(data, ..) => {
                 self.generate_assignment_statement(&data.left, &data.right)?;
             }
-
+            AstStatement::RefAssignment(data, ..) => {
+                self.generate_ref_assignment(&data.left, &data.right)?;
+            }
             AstStatement::ControlStatement(ctl_statement, ..) => {
                 self.generate_control_statement(ctl_statement)?
             }
@@ -234,6 +236,31 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         }
     }
 
+    /// Generates IR for a `REF=` assignment, which is syntactic sugar for an assignment where the
+    /// right-hand side is wrapped in a `REF(...)` call. Specifically `foo REF= bar` and
+    /// `foo := REF(bar)` are the same.
+    ///
+    /// Note: Although somewhat similar to the [`generate_assignment_statement`] function, we can't
+    /// apply the code here because the left side of a `REF=` assignment is flagged as auto-deref.
+    /// For `REF=` assignments we don't want (and can't) deref without generating incorrect IR.
+    pub fn generate_ref_assignment(&self, left: &AstNode, right: &AstNode) -> Result<(), Diagnostic> {
+        let exp = self.create_expr_generator();
+        let ref_builtin = self.index.get_builtin_function("REF").expect("REF must exist");
+
+        let AstStatement::ReferenceExpr(data) = &left.stmt else {
+            unreachable!("should be covered by a validation")
+        };
+
+        let left_ptr_val = {
+            let expr = exp.generate_reference_expression(&data.access, data.base.as_deref(), left)?;
+            expr.get_basic_value_enum().into_pointer_value()
+        };
+        let right_expr_val = ref_builtin.codegen(&exp, &[right], right.get_location())?;
+
+        self.llvm.builder.build_store(left_ptr_val, right_expr_val.get_basic_value_enum());
+        Ok(())
+    }
+
     /// generates an assignment statement _left_ := _right_
     ///
     /// `left_statement` the left side of the assignment
@@ -249,10 +276,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         if left_statement.has_direct_access() {
             return self.generate_assignment_statement_direct_access(left_statement, right_statement);
         }
-        //TODO: Also hacky but for now we cannot generate assignments for hardware access
-        if matches!(left_statement.get_stmt(), AstStatement::HardwareAccess { .. }) {
-            return Ok(());
-        }
+
+        if self.annotations.get(left_statement).is_some_and(|it| {
+            // TODO(mhasel): ideally the resolver decides which assignment statement to call when lowering the init functions,
+            // but that requires refactoring of how `aliases` and `reference to` LHS/RHS nodes are annotated. this is a workaround.
+            self.index.is_init_function(self.function_context.linking_context.get_call_name())
+                && (it.is_alias() || it.is_reference_to())
+        }) {
+            return self.generate_ref_assignment(left_statement, right_statement);
+        };
+
         let exp_gen = self.create_expr_generator();
         let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
             it.get_basic_value_enum().try_into().map_err(|err| {
@@ -342,7 +375,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let eval_step = || {
             step_ty.map_or_else(
-                || self.llvm.create_const_numeric(&cast_target_llty, "1", SourceLocation::undefined()),
+                || self.llvm.create_const_numeric(&cast_target_llty, "1", SourceLocation::internal()),
                 |step_ty| {
                     let step = exp_gen.generate_expression(by_step.as_ref().unwrap())?;
                     Ok(cast_if_needed!(exp_gen, cast_target_ty, step_ty, step, None))
@@ -367,7 +400,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             inkwell::IntPredicate::SGT,
             eval_step()?.into_int_value(),
             self.llvm
-                .create_const_numeric(&cast_target_llty, "0", SourceLocation::undefined())?
+                .create_const_numeric(&cast_target_llty, "0", SourceLocation::internal())?
                 .into_int_value(),
             "is_incrementing",
         );
