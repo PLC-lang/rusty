@@ -1,9 +1,9 @@
 FROM ghcr.io/plc-lang/rust-llvm:latest
 
 # Allow invoking `plc` from anywhere
-ENV PATH="/opt/rusty:${PATH}"
 ENV PLCLOC="/opt/rusty"
 ENV STDLIBLOC="/opt/rusty/stdlib"
+ENV PATH="${PLCLOC}:${PATH}"
 
 # Give all users access to cargo and rust home
 RUN chmod -R a+rw $CARGO_HOME \
