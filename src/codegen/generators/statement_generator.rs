@@ -484,7 +484,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let exp_gen = self.create_expr_generator();
-        self.register_debug_location(selector);
         let selector_statement = exp_gen.generate_expression(selector)?;
 
         let mut cases = Vec::new();
@@ -530,7 +529,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         // now that we collected all cases, go back to the initial block and generate the switch-statement
         builder.position_at_end(basic_block);
+
+        self.register_debug_location(selector);
         builder.build_switch(selector_statement.into_int_value(), else_block, &cases);
+
+        // TODO: Not entirely sure if we have to register the debug location of every node in the else-body
+        // or some callee takes care of this...
 
         builder.position_at_end(continue_block);
         Ok(())
