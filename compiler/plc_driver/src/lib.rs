@@ -207,6 +207,11 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
         return print_config_options(&project, &diagnostician, options);
     }
 
+    if compile_parameters.build_info {
+        println!("{}", option_env!("RUSTY_BUILD_INFO").unwrap_or("version information unavailable"));
+        std::process::exit(0);
+    }
+
     if let Some(SubCommands::Explain { error }) = &compile_parameters.commands {
         //Explain the given error
         println!("{}", diagnostician.explain(error));
