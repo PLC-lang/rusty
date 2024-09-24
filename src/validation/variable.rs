@@ -24,7 +24,7 @@ pub fn visit_config_variable<T: AnnotationMap>(
         return;
     }
 
-    let segments: Vec<&str> = var_config.name_segments.iter().map(|segment| segment.as_str()).collect();
+    let segments: Vec<&str> = var_config.name_segments.iter().map(String::as_str).collect();
     let segments: &[&str] = &segments;
 
     match context.index.find_variable(Some(segments[0]), &segments[1..]) {
@@ -103,15 +103,10 @@ pub fn visit_config_variable<T: AnnotationMap>(
             // (4)
             if !var_template.is_template() {
                 validator.push_diagnostic(
-                    Diagnostic::new("Address already specified in VAR_CONFIG, can not re-specify here")
+                    Diagnostic::new("The configured variable is not a template, overriding non-template hardware addresses is not allowed")
                         .with_error_code("E103")
-                        .with_location(
-                            var_template
-                                .get_hardware_binding()
-                                .map(|opt| &opt.location)
-                                .unwrap_or(&var_template.source_location),
-                        )
-                        .with_secondary_location(&var_config.address.location),
+                        .with_location(&var_config.location)
+                        .with_secondary_location(&var_template.source_location)
                 )
             }
         }

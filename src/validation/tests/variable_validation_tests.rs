@@ -582,14 +582,14 @@ fn var_conf_template_address_has_complete_address() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E103]: Address already specified in VAR_CONFIG, can not re-specify here
-       ┌─ <internal>:4:21
+    error[E103]: The configured variable is not a template, overriding non-template hardware addresses is not allowed
+       ┌─ <internal>:15:13
        │
      4 │                 bar AT %IX1.0 : BOOL;
-       │                     ^^^^^^^^^ Address already specified in VAR_CONFIG, can not re-specify here
+       │                 --- see also
        ·
     15 │             main.foo.bar AT %IX1.0 : BOOL;
-       │                          --------- see also
+       │             ^^^^^^^^^^^^ The configured variable is not a template, overriding non-template hardware addresses is not allowed
 
     "###);
 }
