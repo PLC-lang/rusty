@@ -815,6 +815,11 @@ impl<'i> TypeAnnotator<'i> {
             i.statements.iter().for_each(|s| visitor.visit_statement(&body_ctx.with_pou(i.name.as_str()), s));
         }
 
+        for config_variable in &unit.var_config {
+            let Some(base) = &config_variable.reference.get_flat_base_reference_name() else { continue };
+            visitor.visit_statement(&ctx.with_pou(base), &config_variable.reference);
+        }
+
         // enum initializers may have been introduced by the visitor (indexer)
         // so we should try to resolve and type-annotate them here as well
         for enum_element in index.get_all_enum_variants().iter().filter(|it| it.is_in_unit(&unit.file_name)) {
