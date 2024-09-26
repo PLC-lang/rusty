@@ -9,108 +9,109 @@ use super::{
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
-use crate::index::VariableIndexEntry;
 use crate::typesystem::DataTypeInformation;
 use crate::validation::statement::validate_enum_variant_assignment;
 use crate::validation::statement::validate_pointer_assignment;
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
+use crate::{index::VariableIndexEntry, resolver::StatementAnnotation};
 
 pub fn visit_config_variable<T: AnnotationMap>(
     validator: &mut Validator,
     var_config: &ConfigVariable,
     context: &ValidationContext<T>,
 ) {
-    if var_config.name_segments.is_empty() {
+    let Some(StatementAnnotation::Variable { qualified_name, .. }) =
+        context.annotations.get(&var_config.reference)
+    else {
+        // The template variable referenced in the VAR_CONFIG block does not exist
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Template variable `{}` does not exist",
+                var_config.reference.get_flat_reference_name().unwrap_or_default(),
+            ))
+            .with_error_code("E101")
+            .with_location(&var_config.location),
+        );
+        return;
+    };
+
+    let Some(var_template) = context.index.find_fully_qualified_variable(qualified_name) else {
+        return;
+    };
+
+    // The template variable does exist, check
+    // (1) if the types of the config and template variable are the same
+    // (2) if the template variable has a hardware binding (`.. AT ... : ...`)
+    // (3) if the config variable has specified a full hardware address
+    // (4) if the template variable has specified a incomplete hardware address
+
+    // (1)
+    let (var_config_ty, var_config_ty_info) = {
+        let ty_name = &var_config.data_type.get_name().unwrap_or_default();
+        let ty = context.index.get_effective_type_or_void_by_name(ty_name);
+        let ty_info = ty.get_type_information();
+
+        (ty, ty_info)
+    };
+
+    let (var_template_ty, var_template_ty_info) = {
+        let ty = context.index.get_effective_type_or_void_by_name(&var_template.data_type_name);
+        let ty_info = context.index.find_elementary_pointer_type(ty.get_type_information());
+
+        (ty, ty_info)
+    };
+
+    if var_template_ty_info != var_config_ty_info {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Config and Template variable types differ ({} and {})",
+                validator.get_type_name_or_slice(var_config_ty),
+                validator.get_type_name_or_slice(var_template_ty)
+            ))
+            .with_error_code("E001")
+            .with_location(var_config.location.span(&var_config.data_type.get_location()))
+            .with_secondary_location(&var_template.source_location),
+        )
+    }
+
+    // (2)
+    if var_template.get_hardware_binding().is_none() {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "`{}` is missing a hardware binding",
+                var_config
+                    .reference
+                    .get_parent_name_of_reference()
+                    .or_else(|| var_config.reference.get_flat_reference_name())
+                    .unwrap_or_default(),
+            ))
+            .with_error_code("E102")
+            .with_location(&var_template.source_location)
+            .with_secondary_location(var_config.location.span(&var_config.data_type.get_location())),
+        );
+
+        // Early return, because we may get further false-positive errors due to incorrect declaration
         return;
     }
 
-    let segments: Vec<&str> = var_config.name_segments.iter().map(String::as_str).collect();
-    let segments: &[&str] = &segments;
+    // (3)
+    if var_config.address.is_template() {
+        validator.push_diagnostic(
+            Diagnostic::new("Variables defined in a VAR_CONFIG block must have a complete address")
+                .with_error_code("E104")
+                .with_location(&var_config.address.location),
+        )
+    }
 
-    match context.index.find_variable(Some(segments[0]), &segments[1..]) {
-        // The template variable referenced in the VAR_CONFIG block does not exist
-        None => {
-            validator.push_diagnostic(
-                Diagnostic::new(format!(
-                    "Template variable `{}` does not exist",
-                    segments.last().expect("must exist due to previous length check")
-                ))
-                .with_error_code("E101")
-                .with_location(&var_config.location),
-            );
-        }
-
-        // The template variable does exist, check
-        // (1) if the types of the config and template variable are the same
-        // (2) if the template variable has a hardware binding (`.. AT ... : ...`)
-        // (3) if the config variable has specified a full hardware address
-        // (4) if the template variable has specified a incomplete hardware address
-        Some(var_template) => {
-            // (1)
-            let (var_config_ty, var_config_ty_info) = {
-                let ty_name = &var_config.data_type.get_name().unwrap_or_default();
-                let ty = context.index.get_effective_type_or_void_by_name(ty_name);
-                let ty_info = ty.get_type_information();
-
-                (ty, ty_info)
-            };
-
-            let (var_template_ty, var_template_ty_info) = {
-                let ty = context.index.get_effective_type_or_void_by_name(&var_template.data_type_name);
-                let ty_info = context.index.find_elementary_pointer_type(ty.get_type_information());
-
-                (ty, ty_info)
-            };
-
-            if var_template_ty_info != var_config_ty_info {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Config and Template variable types differ ({} and {})",
-                        validator.get_type_name_or_slice(var_config_ty),
-                        validator.get_type_name_or_slice(var_template_ty)
-                    ))
-                    .with_error_code("E001")
-                    .with_location(var_config.location.span(&var_config.data_type.get_location()))
-                    .with_secondary_location(&var_template.source_location),
-                )
-            }
-
-            // (2)
-            if var_template.get_hardware_binding().is_none() {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "`{}` is missing a hardware binding",
-                        segments.get(1).unwrap_or(&segments[0]),
-                    ))
-                    .with_error_code("E102")
-                    .with_location(&var_template.source_location)
-                    .with_secondary_location(var_config.location.span(&var_config.data_type.get_location())),
-                );
-
-                // Early return, because we may get further false-positive errors due to incorrect declaration
-                return;
-            }
-
-            // (3)
-            if var_config.address.is_template() {
-                validator.push_diagnostic(
-                    Diagnostic::new("Variables defined in a VAR_CONFIG block must have a complete address")
-                        .with_error_code("E104")
-                        .with_location(&var_config.address.location),
-                )
-            }
-
-            // (4)
-            if !var_template.is_template() {
-                validator.push_diagnostic(
+    // (4)
+    if !var_template.is_template() {
+        validator.push_diagnostic(
                     Diagnostic::new("The configured variable is not a template, overriding non-template hardware addresses is not allowed")
                         .with_error_code("E103")
                         .with_location(&var_config.location)
                         .with_secondary_location(&var_template.source_location)
                 )
-            }
-        }
-    };
+    }
 }
 
 pub fn visit_variable_block<T: AnnotationMap>(
