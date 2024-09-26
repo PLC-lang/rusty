@@ -816,7 +816,7 @@ impl<'i> TypeAnnotator<'i> {
         }
 
         for config_variable in &unit.var_config {
-            visitor.visit_statement(&ctx, &config_variable.reference);
+            visitor.visit_statement(ctx, &config_variable.reference);
         }
 
         // enum initializers may have been introduced by the visitor (indexer)

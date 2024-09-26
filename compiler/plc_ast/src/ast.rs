@@ -935,6 +935,20 @@ impl AstNode {
         }
     }
 
+    pub fn get_flat_base_reference_name(&self) -> Option<&str> {
+        match &self.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }, ..) => {
+                base.as_ref().get_flat_base_reference_name()
+            }
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), base: None },
+                ..,
+            ) => reference.as_ref().get_flat_base_reference_name(),
+            AstStatement::Identifier(name, ..) => Some(name),
+            _ => None,
+        }
+    }
+
     pub fn get_label_name(&self) -> Option<&str> {
         match &self.stmt {
             AstStatement::LabelStatement(LabelStatement { name, .. }) => Some(name.as_str()),
