@@ -5,6 +5,7 @@ use plc_index::GlobalContext;
 use variable::visit_config_variable;
 
 use crate::{
+    expression_path::ExpressionPath,
     index::{
         const_expressions::{ConstExpression, UnresolvableKind},
         Index, PouIndexEntry,
@@ -150,18 +151,7 @@ impl<'a> Validator<'a> {
     pub fn perform_global_validation(&mut self, index: &Index) {
         self.global_validator.validate(index);
         self.recursive_validator.validate(index);
-
-        for (segments, val) in index.find_instances().filter(|it| {
-            it.1.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
-        }) {
-            let mut segments = segments.names();
-            if !index.config_variables.contains(&segments) {
-                segments.pop();
-                let ty = dbg!(index.find_fully_qualified_variable(&segments.join(".")));
-                dbg!(&segments);
-                self.diagnostics.push(Diagnostic::new("blub").with_location(&ty.unwrap().source_location));
-            }
-        }
+        self.hacky_af_validate_configured_templates(&index);
 
         // XXX: To avoid bloating up this function any further, maybe package logic into seperate module or
         //      function if another global check is introduced (including the overflow checks)?
@@ -204,6 +194,40 @@ impl<'a> Validator<'a> {
         // Validate implementations
         for implementation in &unit.implementations {
             visit_implementation(self, implementation, &context);
+        }
+    }
+
+    pub fn validate_configured_templates<T>(
+        &self,
+        annotations: &T,
+        index: &Index,
+        configs: &[&plc_ast::ast::ConfigVariable],
+    ) {
+        let config_expr_path = configs.iter().map(|it| ExpressionPath::from(*it)).collect::<Vec<_>>();
+
+        for (segments, val) in index.find_instances().filter(|it| {
+            it.1.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
+        }) {
+            let mut segments = segments.names();
+            // if !index.config_variables.contains_key(&segments) {
+            //     segments.pop();
+            //     let ty = dbg!(index.find_fully_qualified_variable(&segments.join(".")));
+            //     dbg!(&segments);
+            //     self.diagnostics.push(Diagnostic::new("blub").with_location(&ty.unwrap().source_location));
+            // }
+        }
+        todo!()
+    }
+
+    pub fn hacky_af_validate_configured_templates(&mut self, index: &Index) {
+        let config_expr_path: Vec<ExpressionPath<'_>> =
+            index.config_variables.iter().map(|it| ExpressionPath::from(*it)).collect::<Vec<_>>();
+        for (segments, val) in index.find_instances().filter(|it| {
+            it.1.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
+        }) {
+            if !config_expr_path.contains(&segments) {
+                self.diagnostics.push(Diagnostic::new("blub").with_location(&val.source_location));
+            }
         }
     }
 }

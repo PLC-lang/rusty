@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use plc_ast::ast::ConfigVariable;
+
 use crate::{index::Index, typesystem::Dimension};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -104,6 +106,49 @@ impl<'idx> ExpressionPath<'idx> {
             res
         })
     }
+}
+
+impl<'a> From<&'a ConfigVariable> for ExpressionPath<'a> {
+    fn from(value: &'a ConfigVariable) -> Self {
+        let names = get_expression_path_segments(&value.reference);
+
+        Self { names }
+    }
+}
+
+fn get_expression_path_segments<'a>(node: &'a plc_ast::ast::AstNode) -> Vec<ExpressionPathElement<'a>> {
+    fn inner<'a>(node: &'a plc_ast::ast::AstNode) -> Vec<ExpressionPathElement<'a>> {
+        let mut res = vec![];
+        match &node.stmt {
+            plc_ast::ast::AstStatement::ReferenceExpr(
+                plc_ast::ast::ReferenceExpr {
+                    access: plc_ast::ast::ReferenceAccess::Member(reference),
+                    base: Some(base),
+                },
+                ..,
+            ) => {
+                res.push(ExpressionPathElement::Name(
+                    reference.get_flat_reference_name().unwrap_or_default(),
+                ));
+                res.extend(inner(base));
+            }
+            plc_ast::ast::AstStatement::ReferenceExpr(plc_ast::ast::ReferenceExpr {
+                access: plc_ast::ast::ReferenceAccess::Member(reference),
+                base: None,
+            }) => {
+                res.push(ExpressionPathElement::Name(
+                    reference.get_flat_reference_name().unwrap_or_default(),
+                ));
+            }
+            // TODO: array access/dimensions
+            _ => return vec![],
+        };
+        res
+    }
+
+    let mut res = inner(node);
+    res.reverse();
+    res
 }
 
 impl<'a> From<Vec<ExpressionPathElement<'a>>> for ExpressionPath<'a> {

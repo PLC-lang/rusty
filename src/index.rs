@@ -6,8 +6,8 @@ use itertools::Itertools;
 use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
-    AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
-    TypeNature,
+    AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
+    LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -867,8 +867,7 @@ pub struct Index {
     /// The labels contained in each pou
     labels: FxIndexMap<String, SymbolMap<String, Label>>,
 
-    /// Variables defined in VAR_CONFIG block
-    pub config_variables: FxHashSet<Vec<String>>,
+    pub config_variables: Vec<&'static ConfigVariable>,
 }
 
 impl Index {
@@ -977,15 +976,13 @@ impl Index {
             }
         }
 
-        for entry in other.config_variables.drain() {
-            self.config_variables.insert(entry);
-        }
-
         //init functions
         self.init_functions.extend(other.init_functions);
 
         //labels
         self.labels.extend(other.labels);
+
+        self.config_variables.extend(other.config_variables);
 
         //Constant expressions are intentionally not imported
         // self.constant_expressions.import(other.constant_expressions)
@@ -1465,10 +1462,6 @@ impl Index {
 
     pub fn find_pou_implementation(&self, pou_name: &str) -> Option<&ImplementationIndexEntry> {
         self.find_pou(pou_name).and_then(|it| it.find_implementation(self))
-    }
-
-    pub fn register_config_variable(&mut self, name_segments: Vec<String>) {
-        self.config_variables.insert(name_segments);
     }
 
     /// creates a member-variable of a container to be accessed in a qualified name.

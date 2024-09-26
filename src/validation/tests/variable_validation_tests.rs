@@ -628,3 +628,36 @@ fn var_conf_template_variable_is_no_template() {
 
     "###);
 }
+
+#[test]
+fn blala() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+                qux AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: blub
+      ┌─ <internal>:5:17
+      │
+    5 │                 qux AT %I* : BOOL;
+      │                 ^^^ blub
+
+    "###);
+}
