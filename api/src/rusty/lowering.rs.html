@@ -538,13 +538,23 @@
 <a href="#538" id="538">538</a>
 <a href="#539" id="539">539</a>
 <a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     index::{get_init_fn_name, Index, VariableIndexEntry},
     resolver::{const_evaluator::UnresolvableConstant, AstAnnotations},
 };
 <span class="kw">use </span>initializers::{Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 <span class="kw">use </span>plc_ast::{
-    ast::{AstFactory, AstNode, CompilationUnit, DataType, LinkageType, PouType},
+    ast::{AstFactory, AstNode, CompilationUnit, ConfigVariable, DataType, LinkageType, PouType},
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     visit_all_nodes_mut,
@@ -557,6 +567,7 @@
     index: Index,
     annotations: AstAnnotations,
     unresolved_initializers: Initializers,
+    var_config_initializers: Vec&lt;AstNode&gt;,
     units: Vec&lt;CompilationUnit&gt;,
     ctxt: LoweringContext,
 }
@@ -591,6 +602,7 @@
             index,
             annotations,
             unresolved_initializers: Initializers::new(<span class="kw-2">&amp;</span>unresolved_initializers),
+            var_config_initializers: <span class="macro">vec!</span>[],
             units: <span class="macro">vec!</span>[],
             ctxt: LoweringContext::new(id_provider),
         }
@@ -601,6 +613,7 @@
             index: <span class="self">self</span>.index,
             annotations: <span class="self">self</span>.annotations,
             unresolved_initializers: <span class="self">self</span>.unresolved_initializers,
+            var_config_initializers: <span class="self">self</span>.var_config_initializers,
             units,
             ctxt: <span class="self">self</span>.ctxt,
         }
@@ -713,8 +726,7 @@
     <span class="doccomment">/// Updates the scope and initialized variable for struct types. Adds entries for each encountered struct
     /// (this includes POU-structs, i.e. programs, ...) to the initializer map if no entry is present
     </span><span class="kw">fn </span>update_struct_initializers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, user_type: <span class="kw-2">&amp;mut </span>plc_ast::ast::UserTypeDeclaration) {
-        <span class="comment">// alias == subrangetype?
-        </span><span class="kw">let </span>effective_type =
+        <span class="kw">let </span>effective_type =
             user_type.data_type.get_name().and_then(|it| <span class="self">self</span>.index.find_effective_type_by_name(it));
         <span class="kw">if let </span>DataType::StructType { .. } = <span class="kw-2">&amp;</span>user_type.data_type {
             <span class="kw">let </span><span class="prelude-val">Some</span>(ty) = effective_type <span class="kw">else </span>{
@@ -764,6 +776,13 @@
 
         <span class="self">self</span>.unresolved_initializers.maybe_insert_initializer(GLOBAL_SCOPE, <span class="prelude-val">Some</span>(variable.get_name()), <span class="kw-2">&amp;</span><span class="prelude-val">None</span>);
     }
+
+    <span class="kw">fn </span>collect_var_config_assignments(<span class="kw-2">&amp;mut </span><span class="self">self</span>, var_config: <span class="kw-2">&amp;</span>[ConfigVariable]) {
+        <span class="kw">let </span>assignments = var_config.iter().map(|var| {
+            AstFactory::create_assignment(var.reference.clone(), var.address.clone(), <span class="self">self</span>.ctxt.next_id())
+        });
+        <span class="self">self</span>.var_config_initializers.extend(assignments);
+    }
 }
 
 <span class="kw">impl </span>AstVisitorMut <span class="kw">for </span>AstLowerer {
@@ -772,6 +791,7 @@
     }
 
     <span class="kw">fn </span>visit_compilation_unit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unit: <span class="kw-2">&amp;mut </span>CompilationUnit) {
+        <span class="self">self</span>.collect_var_config_assignments(<span class="kw-2">&amp;</span>unit.var_config);
         unit.walk(<span class="self">self</span>)
     }
 
@@ -1008,7 +1028,7 @@
         <span class="self">self</span>.id_provider.clone()
     }
 
-    <span class="kw">fn </span>_next_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; usize {
+    <span class="kw">fn </span>next_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.id_provider.next_id()
     }
 }

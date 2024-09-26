@@ -316,6 +316,33 @@
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
     lowering::{create_assignment_if_necessary, create_call_statement, create_member_reference},
@@ -329,6 +356,8 @@
 
 <span class="kw">use </span><span class="kw">super</span>::AstLowerer;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>GLOBAL_SCOPE: <span class="kw-2">&amp;</span>str = <span class="string">"__global"</span>;
+<span class="kw">const </span>INIT_COMPILATION_UNIT: <span class="kw-2">&amp;</span>str = <span class="string">"__initializers"</span>;
+<span class="kw">const </span>VAR_CONFIG_INIT: <span class="kw-2">&amp;</span>str = <span class="string">"__init___var_config"</span>;
 
 <span class="doccomment">/// POUs and datatypes which require initialization via generated function call.
 /// The key corresponds to the scope in which the initializers were encountered.
@@ -417,21 +446,28 @@
 
 <span class="kw">impl </span>AstLowerer {
     <span class="kw">pub fn </span>lower_init_functions(<span class="kw-2">mut </span><span class="self">self</span>, init_symbol_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>res = create_init_units(<span class="kw-2">&amp;</span><span class="self">self</span>);
+        <span class="kw">let </span>units = create_init_units(<span class="kw-2">&amp;</span><span class="self">self</span>);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(init_unit) = res.into_iter().reduce(|<span class="kw-2">mut </span>acc_unit, unit| {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(init_unit) = units.into_iter().reduce(|<span class="kw-2">mut </span>acc_unit, unit| {
             acc_unit.import(unit);
             acc_unit
         }) {
             <span class="self">self</span>.units.push(init_unit);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(init_unit) = create_init_wrapper_function(<span class="kw-2">&amp;</span><span class="self">self</span>, init_symbol_name) {
-            <span class="self">self</span>.units.push(init_unit);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(global_init) = create_init_wrapper_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, init_symbol_name) {
+            <span class="self">self</span>.units.push(global_init);
         }
 
         <span class="self">self
     </span>}
+}
+
+<span class="kw">fn </span>create_var_config_init(statements: Vec&lt;AstNode&gt;) -&gt; CompilationUnit {
+    <span class="kw">let </span>loc = SourceLocation::internal_in_unit(<span class="prelude-val">Some</span>(INIT_COMPILATION_UNIT));
+    <span class="kw">let </span>pou = new_pou(VAR_CONFIG_INIT, <span class="macro">vec!</span>[], <span class="kw-2">&amp;</span>loc); <span class="comment">// this can probably just be internal
+    </span><span class="kw">let </span>implementation = new_implementation(VAR_CONFIG_INIT, statements, <span class="kw-2">&amp;</span>loc);
+    new_unit(pou, implementation, INIT_COMPILATION_UNIT)
 }
 
 <span class="kw">fn </span>create_init_units(lowerer: <span class="kw-2">&amp;</span>AstLowerer) -&gt; Vec&lt;CompilationUnit&gt; {
@@ -525,13 +561,14 @@
     statements.extend(member_init_calls);
     <span class="kw">let </span>implementation = new_implementation(<span class="kw-2">&amp;</span>init_fn_name, statements, location);
 
-    <span class="prelude-val">Some</span>(new_unit(init_pou, implementation, <span class="string">"__initializers"</span>))
+    <span class="prelude-val">Some</span>(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
 }
 
-<span class="kw">fn </span>create_init_wrapper_function(lowerer: <span class="kw-2">&amp;</span>AstLowerer, init_symbol_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;CompilationUnit&gt; {
-    <span class="kw">if </span>lowerer.unresolved_initializers.is_empty() {
+<span class="kw">fn </span>create_init_wrapper_function(lowerer: <span class="kw-2">&amp;mut </span>AstLowerer, init_symbol_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;CompilationUnit&gt; {
+    <span class="kw">let </span>skip_var_config = lowerer.var_config_initializers.is_empty();
+    <span class="kw">if </span>skip_var_config &amp;&amp; lowerer.unresolved_initializers.is_empty() {
         <span class="kw">return </span><span class="prelude-val">None</span>;
-    }
+    };
 
     <span class="kw">let </span><span class="kw-2">mut </span>id_provider = lowerer.ctxt.id_provider.clone();
     <span class="kw">let </span>init_pou = new_pou(init_symbol_name, <span class="macro">vec!</span>[], <span class="kw-2">&amp;</span>SourceLocation::internal());
@@ -590,8 +627,25 @@
 
     assignments.extend(calls);
 
+    <span class="kw">if </span>!skip_var_config {
+        assignments.push(AstFactory::create_call_statement(
+            create_member_reference(VAR_CONFIG_INIT, id_provider.clone(), <span class="prelude-val">None</span>),
+            <span class="prelude-val">None</span>,
+            id_provider.next_id(),
+            SourceLocation::internal(),
+        ));
+    };
+
     <span class="kw">let </span>implementation = new_implementation(init_symbol_name, assignments, <span class="kw-2">&amp;</span>SourceLocation::internal());
-    <span class="prelude-val">Some</span>(new_unit(init_pou, implementation, init_symbol_name))
+    <span class="kw">let </span><span class="kw-2">mut </span>global_init = new_unit(init_pou, implementation, init_symbol_name);
+
+    <span class="kw">if </span>skip_var_config {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(global_init);
+    };
+
+    <span class="kw">let </span>var_config_init = create_var_config_init(std::mem::take(<span class="kw-2">&amp;mut </span>lowerer.var_config_initializers));
+    global_init.import(var_config_init);
+    <span class="prelude-val">Some</span>(global_init)
 }
 
 <span class="kw">fn </span>new_pou(name: <span class="kw-2">&amp;</span>str, variable_blocks: Vec&lt;VariableBlock&gt;, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; Pou {
