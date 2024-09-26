@@ -287,7 +287,7 @@ impl PouType {
 
 #[derive(Debug, PartialEq)]
 pub struct ConfigVariable {
-    pub name_segments: Vec<String>,
+    pub reference: AstNode,
     pub data_type: DataTypeDeclaration,
     pub address: AstNode,
     pub location: SourceLocation,
@@ -295,12 +295,12 @@ pub struct ConfigVariable {
 
 impl ConfigVariable {
     pub fn new(
-        name_segments: Vec<String>,
+        reference: AstNode,
         data_type: DataTypeDeclaration,
         address: AstNode,
         location: SourceLocation,
     ) -> Self {
-        Self { name_segments, data_type, address, location }
+        Self { reference, data_type, address, location }
     }
 }
 
@@ -930,6 +930,20 @@ impl AstNode {
                 ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
                 ..,
             ) => reference.as_ref().get_flat_reference_name(),
+            AstStatement::Identifier(name, ..) => Some(name),
+            _ => None,
+        }
+    }
+
+    pub fn get_flat_base_reference_name(&self) -> Option<&str> {
+        match &self.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }, ..) => {
+                base.as_ref().get_flat_base_reference_name()
+            }
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), base: None },
+                ..,
+            ) => reference.as_ref().get_flat_base_reference_name(),
             AstStatement::Identifier(name, ..) => Some(name),
             _ => None,
         }
