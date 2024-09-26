@@ -935,17 +935,11 @@ impl AstNode {
         }
     }
 
-    pub fn get_flat_base_reference_name(&self) -> Option<&str> {
-        match &self.stmt {
-            AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }, ..) => {
-                base.as_ref().get_flat_base_reference_name()
-            }
-            AstStatement::ReferenceExpr(
-                ReferenceExpr { access: ReferenceAccess::Member(reference), base: None },
-                ..,
-            ) => reference.as_ref().get_flat_base_reference_name(),
-            AstStatement::Identifier(name, ..) => Some(name),
-            _ => None,
+    pub fn get_parent_name_of_reference(&self) -> Option<&str> {
+        if let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }, ..) = &self.stmt {
+            base.as_ref().get_flat_reference_name()
+        } else {
+            None
         }
     }
 
@@ -1088,6 +1082,13 @@ impl AstNode {
     pub fn negate(self: AstNode, mut id_provider: IdProvider) -> AstNode {
         let location = self.get_location();
         AstFactory::create_not_expression(self, location, id_provider.next_id())
+    }
+
+    pub fn is_template(&self) -> bool {
+        matches!(
+            self.stmt,
+            AstStatement::HardwareAccess(HardwareAccess { access: DirectAccessType::Template, .. })
+        )
     }
 }
 
