@@ -1092,7 +1092,7 @@ fn parse_config_variables(lexer: &mut ParseSession) -> Vec<ConfigVariable> {
 }
 
 fn try_parse_config_var(lexer: &mut ParseSession) -> Option<ConfigVariable> {
-    let start = lexer.location();    
+    let start = lexer.location();
     let qualified_reference = parse_reference(lexer);
     let location = start.span(&lexer.last_location());
     if !lexer.try_consume(&KeywordAt) {
