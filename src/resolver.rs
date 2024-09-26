@@ -816,8 +816,7 @@ impl<'i> TypeAnnotator<'i> {
         }
 
         for config_variable in &unit.var_config {
-            let Some(base) = &config_variable.reference.get_flat_base_reference_name() else { continue };
-            visitor.visit_statement(&ctx.with_pou(base), &config_variable.reference);
+            visitor.visit_statement(&ctx, &config_variable.reference);
         }
 
         // enum initializers may have been introduced by the visitor (indexer)
