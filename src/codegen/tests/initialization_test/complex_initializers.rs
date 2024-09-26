@@ -1202,18 +1202,18 @@ fn var_config_aliased_variables_initialized() {
     %FB = type { i32* }
     %prog = type { %FB, %FB }
 
-    @__PI_1_2_1 = global i32 0, section "var-$RUSTY$__PI_1_2_1:i32"
-    @__PI_1_2_2 = global i32 0, section "var-$RUSTY$__PI_1_2_2:i32"
-    @__FB__init = unnamed_addr constant %FB zeroinitializer, section "var-$RUSTY$__FB__init:r1pi32"
-    @prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r2r1pi32r1pi32"
+    @__PI_1_2_1 = global i32 0
+    @__PI_1_2_2 = global i32 0
+    @__FB__init = unnamed_addr constant %FB zeroinitializer
+    @prog_instance = global %prog zeroinitializer
 
-    define void @FB(%FB* %0) section "fn-$RUSTY$FB:v" {
+    define void @FB(%FB* %0) {
     entry:
       %foo = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
       ret void
     }
 
-    define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+    define void @prog(%prog* %0) {
     entry:
       %instance1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
       %instance2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
@@ -1225,19 +1225,19 @@ fn var_config_aliased_variables_initialized() {
     %FB = type { i32* }
     %prog = type { %FB, %FB }
 
-    @__FB__init = external global %FB, section "var-$RUSTY$__FB__init:r1pi32"
-    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r2r1pi32r1pi32"
+    @__FB__init = external global %FB
+    @prog_instance = external global %prog
 
-    define void @__init_fb(%FB* %0) section "fn-$RUSTY$__init_fb:v[pr1pi32]" {
+    define void @__init_fb(%FB* %0) {
     entry:
       %self = alloca %FB*, align 8
       store %FB* %0, %FB** %self, align 8
       ret void
     }
 
-    declare void @FB(%FB*) section "fn-$RUSTY$FB:v"
+    declare void @FB(%FB*)
 
-    define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr2r1pi32r1pi32]" {
+    define void @__init_prog(%prog* %0) {
     entry:
       %self = alloca %prog*, align 8
       store %prog* %0, %prog** %self, align 8
@@ -1250,36 +1250,36 @@ fn var_config_aliased_variables_initialized() {
       ret void
     }
 
-    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+    declare void @prog(%prog*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %prog = type { %FB, %FB }
     %FB = type { i32* }
 
-    @prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r2r1pi32r1pi32"
-    @__FB__init = external global %FB, section "var-$RUSTY$__FB__init:r1pi32"
-    @__PI_1_2_1 = external global i32, section "var-$RUSTY$__PI_1_2_1:i32"
-    @__PI_1_2_2 = external global i32, section "var-$RUSTY$__PI_1_2_2:i32"
+    @prog_instance = external global %prog
+    @__FB__init = external global %FB
+    @__PI_1_2_1 = external global i32
+    @__PI_1_2_2 = external global i32
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       call void @__init___var_config()
       ret void
     }
 
-    define void @__init___var_config() section "fn-$RUSTY$__init___var_config:v" {
+    define void @__init___var_config() {
     entry:
       store i32* @__PI_1_2_1, i32** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0, i32 0), align 8
       store i32* @__PI_1_2_2, i32** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1, i32 0), align 8
       ret void
     }
 
-    declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr2r1pi32r1pi32]"
+    declare void @__init_prog(%prog*)
 
-    declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+    declare void @prog(%prog*)
 
-    declare void @FB(%FB*) section "fn-$RUSTY$FB:v"
+    declare void @FB(%FB*)
     "###);
 }
