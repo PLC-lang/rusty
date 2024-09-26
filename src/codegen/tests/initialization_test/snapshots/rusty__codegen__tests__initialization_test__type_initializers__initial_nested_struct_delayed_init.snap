@@ -8,18 +8,18 @@ source_filename = "<internal>"
 %MyStruct2 = type { %MyStruct, %MyStruct }
 %MyStruct = type { i32, i32 }
 
-@a = global %MyStruct2 { %MyStruct { i32 5, i32 7 }, %MyStruct { i32 3, i32 2 } }, section "$RUSTY$var-a:r2r2i32i32r2i32i32"
-@__MyStruct2__init = unnamed_addr constant %MyStruct2 { %MyStruct { i32 5, i32 3 }, %MyStruct { i32 0, i32 7 } }, section "$RUSTY$var-__mystruct2__init:r2r2i32i32r2i32i32"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r2i32i32"
-@b = global %MyStruct2 { %MyStruct { i32 5, i32 3 }, %MyStruct { i32 9, i32 0 } }, section "$RUSTY$var-b:r2r2i32i32r2i32i32"
+@a = global %MyStruct2 { %MyStruct { i32 5, i32 7 }, %MyStruct { i32 3, i32 2 } }
+@__MyStruct2__init = unnamed_addr constant %MyStruct2 { %MyStruct { i32 5, i32 3 }, %MyStruct { i32 0, i32 7 } }
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
+@b = global %MyStruct2 { %MyStruct { i32 5, i32 3 }, %MyStruct { i32 9, i32 0 } }
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
 
 %MyStruct2 = type { %MyStruct, %MyStruct }
 %MyStruct = type { i32, i32 }
 
-@__MyStruct2__init = external global %MyStruct2, section "$RUSTY$var-__mystruct2__init:r2r2i32i32r2i32i32"
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r2i32i32"
+@__MyStruct2__init = external global %MyStruct2
+@__MyStruct__init = external global %MyStruct
 
 define void @__init_mystruct2(%MyStruct2* %0) {
 entry:
@@ -46,10 +46,10 @@ source_filename = "__init___testproject"
 %MyStruct2 = type { %MyStruct, %MyStruct }
 %MyStruct = type { i32, i32 }
 
-@__MyStruct2__init = external global %MyStruct2, section "$RUSTY$var-__mystruct2__init:r2r2i32i32r2i32i32"
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r2i32i32"
-@a = external global %MyStruct2, section "$RUSTY$var-a:r2r2i32i32r2i32i32"
-@b = external global %MyStruct2, section "$RUSTY$var-b:r2r2i32i32r2i32i32"
+@__MyStruct2__init = external global %MyStruct2
+@__MyStruct__init = external global %MyStruct
+@a = external global %MyStruct2
+@b = external global %MyStruct2
 
 define void @__init___testproject() {
 entry:

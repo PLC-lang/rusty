@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %fb = type {}
 %main = type { %fb }
 
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "$RUSTY$var-__fb__init:r0"
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r1r0"
+@__fb__init = unnamed_addr constant %fb zeroinitializer
+@main_instance = global %main zeroinitializer
 
 define void @fb(%fb* %0) {
 entry:
@@ -51,8 +51,8 @@ source_filename = "__initializers"
 %fb = type {}
 %main = type { %fb }
 
-@__fb__init = external global %fb, section "$RUSTY$var-__fb__init:r0"
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1r0"
+@__fb__init = external global %fb
+@main_instance = external global %main
 
 define void @__init_fb(%fb* %0) {
 entry:
@@ -80,8 +80,8 @@ source_filename = "__init___testproject"
 %main = type { %fb }
 %fb = type {}
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1r0"
-@__fb__init = external global %fb, section "$RUSTY$var-__fb__init:r0"
+@main_instance = external global %main
+@__fb__init = external global %fb
 
 define void @__init___testproject() {
 entry:

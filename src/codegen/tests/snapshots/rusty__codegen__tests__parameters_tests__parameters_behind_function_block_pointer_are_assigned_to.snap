@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %main = type { %file_t, %file_t* }
 %file_t = type { i8, i8 }
 
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r2r2u8u8pr2u8u8"
-@__file_t__init = unnamed_addr constant %file_t zeroinitializer, section "$RUSTY$var-__file_t__init:r2u8u8"
+@main_instance = global %main zeroinitializer
+@__file_t__init = unnamed_addr constant %file_t zeroinitializer
 
 define void @main(%main* %0) {
 entry:
@@ -35,8 +35,8 @@ source_filename = "__initializers"
 %main = type { %file_t, %file_t* }
 %file_t = type { i8, i8 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r2r2u8u8pr2u8u8"
-@__file_t__init = external global %file_t, section "$RUSTY$var-__file_t__init:r2u8u8"
+@main_instance = external global %main
+@__file_t__init = external global %file_t
 
 define void @__init_main(%main* %0) {
 entry:
@@ -64,8 +64,8 @@ source_filename = "__init___testproject"
 %main = type { %file_t, %file_t* }
 %file_t = type { i8, i8 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r2r2u8u8pr2u8u8"
-@__file_t__init = external global %file_t, section "$RUSTY$var-__file_t__init:r2u8u8"
+@main_instance = external global %main
+@__file_t__init = external global %file_t
 
 define void @__init___testproject() {
 entry:

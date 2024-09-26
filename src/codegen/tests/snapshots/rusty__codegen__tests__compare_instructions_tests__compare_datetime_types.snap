@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %main = type { i64, i64, i64, i64 }
 
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r4i64i64i64i64"
+@main_instance = global %main zeroinitializer
 
 define void @main(%main* %0) {
 entry:
@@ -46,7 +46,7 @@ source_filename = "__initializers"
 
 %main = type { i64, i64, i64, i64 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r4i64i64i64i64"
+@main_instance = external global %main
 
 define void @__init_main(%main* %0) {
 entry:
@@ -61,7 +61,7 @@ source_filename = "__init___testproject"
 
 %main = type { i64, i64, i64, i64 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r4i64i64i64i64"
+@main_instance = external global %main
 
 define void @__init___testproject() {
 entry:

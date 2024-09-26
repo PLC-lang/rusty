@@ -50,7 +50,7 @@ pub struct PouGenerator<'ink, 'cg> {
     index: &'cg Index,
     annotations: &'cg AstAnnotations,
     llvm_index: &'cg LlvmTypedIndex<'ink>,
-    online_change: OnlineChange,
+    online_change: &'cg OnlineChange,
 }
 
 /// Creates opaque implementations for all callable items in the index
@@ -65,7 +65,7 @@ pub fn generate_implementation_stubs<'ink>(
     annotations: &AstAnnotations,
     types_index: &LlvmTypedIndex<'ink>,
     debug: &mut DebugBuilderEnum<'ink>,
-    online_change: OnlineChange,
+    online_change: &OnlineChange,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut llvm_index = LlvmTypedIndex::default();
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index, online_change);
@@ -159,7 +159,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         index: &'cg Index,
         annotations: &'cg AstAnnotations,
         llvm_index: &'cg LlvmTypedIndex<'ink>,
-        online_change: OnlineChange,
+        online_change: &'cg OnlineChange,
     ) -> PouGenerator<'ink, 'cg> {
         PouGenerator { llvm, index, annotations, llvm_index, online_change }
     }
@@ -296,7 +296,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let curr_f = module.add_function(implementation.get_call_name(), function_declaration, None);
 
-        if let OnlineChange::Enabled(_) = self.online_change {
+        if self.online_change.is_enabled() {
             let section_name = self.mangle_function(implementation)?;
             curr_f.set_section(Some(&section_name));
         }

@@ -7,8 +7,8 @@ source_filename = "<internal>"
 
 %STRUCT1 = type { i32 }
 
-@MyStruct = unnamed_addr constant %STRUCT1 { i32 99 }, section "$RUSTY$var-mystruct:r1i32"
-@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "$RUSTY$var-__struct1__init:r1i32"
+@MyStruct = unnamed_addr constant %STRUCT1 { i32 99 }
+@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer
 
 define i32 @main() {
 entry:
@@ -26,7 +26,7 @@ source_filename = "__initializers"
 
 %STRUCT1 = type { i32 }
 
-@__STRUCT1__init = external global %STRUCT1, section "$RUSTY$var-__struct1__init:r1i32"
+@__STRUCT1__init = external global %STRUCT1
 
 define void @__init_struct1(%STRUCT1* %0) {
 entry:
@@ -39,8 +39,8 @@ source_filename = "__init___testproject"
 
 %STRUCT1 = type { i32 }
 
-@__STRUCT1__init = external global %STRUCT1, section "$RUSTY$var-__struct1__init:r1i32"
-@MyStruct = external global %STRUCT1, section "$RUSTY$var-mystruct:r1i32"
+@__STRUCT1__init = external global %STRUCT1
+@MyStruct = external global %STRUCT1
 
 define void @__init___testproject() {
 entry:

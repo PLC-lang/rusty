@@ -8,18 +8,18 @@ source_filename = "<internal>"
 %MyStruct = type { i32, i16 }
 %__global_y = type { i8, i8 }
 
-@x = global %MyStruct zeroinitializer, section "$RUSTY$var-x:r2i32i16"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r2i32i16"
-@y = global %__global_y zeroinitializer, section "$RUSTY$var-y:r2u8u8"
-@____global_y__init = unnamed_addr constant %__global_y zeroinitializer, section "$RUSTY$var-____global_y__init:r2u8u8"
+@x = global %MyStruct zeroinitializer
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
+@y = global %__global_y zeroinitializer
+@____global_y__init = unnamed_addr constant %__global_y zeroinitializer
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
 
 %MyStruct = type { i32, i16 }
 %__global_y = type { i8, i8 }
 
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r2i32i16"
-@____global_y__init = external global %__global_y, section "$RUSTY$var-____global_y__init:r2u8u8"
+@__MyStruct__init = external global %MyStruct
+@____global_y__init = external global %__global_y
 
 define void @__init_mystruct(%MyStruct* %0) {
 entry:
@@ -40,10 +40,10 @@ source_filename = "__init___testproject"
 %MyStruct = type { i32, i16 }
 %__global_y = type { i8, i8 }
 
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r2i32i16"
-@x = external global %MyStruct, section "$RUSTY$var-x:r2i32i16"
-@____global_y__init = external global %__global_y, section "$RUSTY$var-____global_y__init:r2u8u8"
-@y = external global %__global_y, section "$RUSTY$var-y:r2u8u8"
+@__MyStruct__init = external global %MyStruct
+@x = external global %MyStruct
+@____global_y__init = external global %__global_y
+@y = external global %__global_y
 
 define void @__init___testproject() {
 entry:

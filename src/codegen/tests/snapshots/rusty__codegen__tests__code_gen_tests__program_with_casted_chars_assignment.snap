@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %mainPROG = type { i8, i16 }
 
-@mainPROG_instance = global %mainPROG zeroinitializer, section "$RUSTY$var-mainprog_instance:r2u8u16"
+@mainPROG_instance = global %mainPROG zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"B\00"
 @utf16_literal_0 = private unnamed_addr constant [2 x i16] [i16 65, i16 0]
 
@@ -24,7 +24,7 @@ source_filename = "__initializers"
 
 %mainPROG = type { i8, i16 }
 
-@mainPROG_instance = external global %mainPROG, section "$RUSTY$var-mainprog_instance:r2u8u16"
+@mainPROG_instance = external global %mainPROG
 
 define void @__init_mainprog(%mainPROG* %0) {
 entry:
@@ -39,7 +39,7 @@ source_filename = "__init___testproject"
 
 %mainPROG = type { i8, i16 }
 
-@mainPROG_instance = external global %mainPROG, section "$RUSTY$var-mainprog_instance:r2u8u16"
+@mainPROG_instance = external global %mainPROG
 
 define void @__init___testproject() {
 entry:

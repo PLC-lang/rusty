@@ -7,11 +7,11 @@ source_filename = "<internal>"
 
 %main = type { i32 }
 
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r1e4i32"
-@TrafficLight.White = unnamed_addr constant i32 0, section "$RUSTY$var-trafficlight.white:e4i32"
-@TrafficLight.Red = unnamed_addr constant i32 1, section "$RUSTY$var-trafficlight.red:e4i32"
-@TrafficLight.Yellow = unnamed_addr constant i32 2, section "$RUSTY$var-trafficlight.yellow:e4i32"
-@TrafficLight.Green = unnamed_addr constant i32 3, section "$RUSTY$var-trafficlight.green:e4i32"
+@main_instance = global %main zeroinitializer
+@TrafficLight.White = unnamed_addr constant i32 0
+@TrafficLight.Red = unnamed_addr constant i32 1
+@TrafficLight.Yellow = unnamed_addr constant i32 2
+@TrafficLight.Green = unnamed_addr constant i32 3
 
 define void @main(%main* %0) {
 entry:
@@ -23,7 +23,7 @@ source_filename = "__initializers"
 
 %main = type { i32 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1e4i32"
+@main_instance = external global %main
 
 define void @__init_main(%main* %0) {
 entry:
@@ -38,7 +38,7 @@ source_filename = "__init___testproject"
 
 %main = type { i32 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1e4i32"
+@main_instance = external global %main
 
 define void @__init___testproject() {
 entry:

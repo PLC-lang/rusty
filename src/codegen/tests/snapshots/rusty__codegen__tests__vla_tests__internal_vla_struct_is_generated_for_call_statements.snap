@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %__foo_vla = type { i16*, [2 x i32] }
 
-@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer, section "$RUSTY$var-____foo_vla__init:r2pai16ai32"
+@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
 
 define void @foo(%__foo_vla* %0) {
 entry:

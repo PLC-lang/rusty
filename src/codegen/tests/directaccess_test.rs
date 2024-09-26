@@ -147,7 +147,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     %FOO = type { i8, i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO zeroinitializer, section "$RUSTY$var-__foo__init:r2u8u8"
+    @__FOO__init = unnamed_addr constant %FOO zeroinitializer
 
     define void @FOO(%FOO* %0) {
     entry:
@@ -226,7 +226,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     %FOO = type { i8, i8 }
 
-    @__FOO__init = external global %FOO, section "$RUSTY$var-__foo__init:r2u8u8"
+    @__FOO__init = external global %FOO
 
     define void @__init_foo(%FOO* %0) {
     entry:
@@ -273,7 +273,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }, section "$RUSTY$var-__foo__init:r1u8"
+    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
 
     define void @FOO(%FOO* %0) {
     entry:
@@ -314,7 +314,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = external global %FOO, section "$RUSTY$var-__foo__init:r1u8"
+    @__FOO__init = external global %FOO
 
     define void @__init_foo(%FOO* %0) {
     entry:
@@ -361,7 +361,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }, section "$RUSTY$var-__foo__init:r1u8"
+    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
 
     define void @FOO(%FOO* %0) {
     entry:
@@ -402,7 +402,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = external global %FOO, section "$RUSTY$var-__foo__init:r1u8"
+    @__FOO__init = external global %FOO
 
     define void @__init_foo(%FOO* %0) {
     entry:
@@ -460,9 +460,9 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     %foo_struct = type { %bar_struct }
     %bar_struct = type { i64 }
 
-    @__QUUX__init = unnamed_addr constant %QUUX zeroinitializer, section "$RUSTY$var-__quux__init:r1u8"
-    @__foo_struct__init = unnamed_addr constant %foo_struct zeroinitializer, section "$RUSTY$var-__foo_struct__init:r1r1u64"
-    @__bar_struct__init = unnamed_addr constant %bar_struct zeroinitializer, section "$RUSTY$var-__bar_struct__init:r1u64"
+    @__QUUX__init = unnamed_addr constant %QUUX zeroinitializer
+    @__foo_struct__init = unnamed_addr constant %foo_struct zeroinitializer
+    @__bar_struct__init = unnamed_addr constant %bar_struct zeroinitializer
 
     define void @QUUX(%QUUX* %0) {
     entry:
@@ -523,9 +523,9 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     %bar_struct = type { i64 }
     %QUUX = type { i8 }
 
-    @__foo_struct__init = external global %foo_struct, section "$RUSTY$var-__foo_struct__init:r1r1u64"
-    @__bar_struct__init = external global %bar_struct, section "$RUSTY$var-__bar_struct__init:r1u64"
-    @__QUUX__init = external global %QUUX, section "$RUSTY$var-__quux__init:r1u8"
+    @__foo_struct__init = external global %foo_struct
+    @__bar_struct__init = external global %bar_struct
+    @__QUUX__init = external global %QUUX
 
     define void @__init_foo_struct(%foo_struct* %0) {
     entry:

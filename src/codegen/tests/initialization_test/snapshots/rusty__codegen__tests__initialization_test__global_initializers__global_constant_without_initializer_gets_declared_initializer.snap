@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %commands = type { i8, i8 }
 
-@__commands__init = unnamed_addr constant %commands { i8 1, i8 0 }, section "$RUSTY$var-__commands__init:r2u8u8"
+@__commands__init = unnamed_addr constant %commands { i8 1, i8 0 }
 
 define i32 @main() {
 entry:
@@ -40,7 +40,7 @@ source_filename = "__initializers"
 
 %commands = type { i8, i8 }
 
-@__commands__init = external global %commands, section "$RUSTY$var-__commands__init:r2u8u8"
+@__commands__init = external global %commands
 
 define void @__init_commands(%commands* %0) {
 entry:

@@ -9,8 +9,8 @@ source_filename = "<internal>"
 %prg = type { %MyClass, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "$RUSTY$var-__myclass__init:r2i16i16"
-@prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r2r2i16i16i16"
+@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
 define void @MyClass(%MyClass* %0) {
 entry:
@@ -64,8 +64,8 @@ source_filename = "__initializers"
 %prg = type { %MyClass, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@__MyClass__init = external global %MyClass, section "$RUSTY$var-__myclass__init:r2i16i16"
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2r2i16i16i16"
+@__MyClass__init = external global %MyClass
+@prg_instance = external global %prg
 
 define void @__init_myclass.testmethod(%MyClass.testMethod* %0) {
 entry:
@@ -102,8 +102,8 @@ source_filename = "__init___testproject"
 %prg = type { %MyClass, i16 }
 %MyClass = type { i16, i16 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2r2i16i16i16"
-@__MyClass__init = external global %MyClass, section "$RUSTY$var-__myclass__init:r2i16i16"
+@prg_instance = external global %prg
+@__MyClass__init = external global %MyClass
 
 define void @__init___testproject() {
 entry:

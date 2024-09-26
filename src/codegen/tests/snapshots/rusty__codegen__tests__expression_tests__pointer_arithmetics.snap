@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %main = type { i16, i16, i16* }
 
-@main_instance = global %main { i16 10, i16 20, i16* null }, section "$RUSTY$var-main_instance:r3i16i16pi16"
+@main_instance = global %main { i16 10, i16 20, i16* null }
 
 define void @main(%main* %0) {
 entry:
@@ -65,7 +65,7 @@ source_filename = "__initializers"
 
 %main = type { i16, i16, i16* }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r3i16i16pi16"
+@main_instance = external global %main
 
 define void @__init_main(%main* %0) {
 entry:
@@ -80,7 +80,7 @@ source_filename = "__init___testproject"
 
 %main = type { i16, i16, i16* }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r3i16i16pi16"
+@main_instance = external global %main
 
 define void @__init___testproject() {
 entry:

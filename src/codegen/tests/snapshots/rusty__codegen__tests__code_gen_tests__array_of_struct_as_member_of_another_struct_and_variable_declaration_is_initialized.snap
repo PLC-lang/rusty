@@ -9,9 +9,9 @@ source_filename = "<internal>"
 %STRUCT1 = type { i16, [5 x %STRUCT2] }
 %STRUCT2 = type { i8, i32 }
 
-@mainProg_instance = global %mainProg { [5 x %STRUCT1] [%STRUCT1 { i16 1, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 { i16 2, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 256 }, %STRUCT2 { i8 0, i32 2048 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer] }, section "$RUSTY$var-mainprog_instance:r1ar2i16ar2u8i32"
-@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "$RUSTY$var-__struct1__init:r2i16ar2u8i32"
-@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer, section "$RUSTY$var-__struct2__init:r2u8i32"
+@mainProg_instance = global %mainProg { [5 x %STRUCT1] [%STRUCT1 { i16 1, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 { i16 2, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 256 }, %STRUCT2 { i8 0, i32 2048 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer] }
+@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer
+@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer
 @__mainProg.var_str1__init = unnamed_addr constant [5 x %STRUCT1] [%STRUCT1 { i16 1, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 { i16 2, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 256 }, %STRUCT2 { i8 0, i32 2048 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer]
 
 define void @mainProg(%mainProg* %0) {
@@ -26,9 +26,9 @@ source_filename = "__initializers"
 %STRUCT2 = type { i8, i32 }
 %mainProg = type { [5 x %STRUCT1] }
 
-@__STRUCT1__init = external global %STRUCT1, section "$RUSTY$var-__struct1__init:r2i16ar2u8i32"
-@__STRUCT2__init = external global %STRUCT2, section "$RUSTY$var-__struct2__init:r2u8i32"
-@mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r1ar2i16ar2u8i32"
+@__STRUCT1__init = external global %STRUCT1
+@__STRUCT2__init = external global %STRUCT2
+@mainProg_instance = external global %mainProg
 
 define void @__init_struct1(%STRUCT1* %0) {
 entry:
@@ -59,9 +59,9 @@ source_filename = "__init___testproject"
 %STRUCT1 = type { i16, [5 x %STRUCT2] }
 %STRUCT2 = type { i8, i32 }
 
-@mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r1ar2i16ar2u8i32"
-@__STRUCT1__init = external global %STRUCT1, section "$RUSTY$var-__struct1__init:r2i16ar2u8i32"
-@__STRUCT2__init = external global %STRUCT2, section "$RUSTY$var-__struct2__init:r2u8i32"
+@mainProg_instance = external global %mainProg
+@__STRUCT1__init = external global %STRUCT1
+@__STRUCT2__init = external global %STRUCT2
 
 define void @__init___testproject() {
 entry:

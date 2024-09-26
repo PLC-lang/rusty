@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %prg = type { i16, i16, i32 }
 
-@prg_instance = global %prg { i16 0, i16 1, i32 2 }, section "$RUSTY$var-prg_instance:r3i16i16i32"
+@prg_instance = global %prg { i16 0, i16 1, i32 2 }
 
 define void @prg(%prg* %0) {
 entry:
@@ -21,7 +21,7 @@ source_filename = "__initializers"
 
 %prg = type { i16, i16, i32 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r3i16i16i32"
+@prg_instance = external global %prg
 
 define void @__init_prg(%prg* %0) {
 entry:
@@ -36,7 +36,7 @@ source_filename = "__init___testproject"
 
 %prg = type { i16, i16, i32 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r3i16i16i32"
+@prg_instance = external global %prg
 
 define void @__init___testproject() {
 entry:

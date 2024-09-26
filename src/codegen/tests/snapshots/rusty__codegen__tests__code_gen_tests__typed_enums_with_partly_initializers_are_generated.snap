@@ -5,15 +5,15 @@ expression: result
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-@twenty = unnamed_addr constant i16 20, section "$RUSTY$var-twenty:i16"
-@x = global i8 0, section "$RUSTY$var-x:e3u8"
-@MyEnum.red = unnamed_addr constant i8 7, section "$RUSTY$var-myenum.red:e3u8"
-@MyEnum.yellow = unnamed_addr constant i8 8, section "$RUSTY$var-myenum.yellow:e3u8"
-@MyEnum.green = unnamed_addr constant i8 9, section "$RUSTY$var-myenum.green:e3u8"
-@MyEnum2.a = unnamed_addr constant i8 0, section "$RUSTY$var-myenum2.a:e7u8"
-@MyEnum2.b = unnamed_addr constant i8 1, section "$RUSTY$var-myenum2.b:e7u8"
-@MyEnum2.c = unnamed_addr constant i8 7, section "$RUSTY$var-myenum2.c:e7u8"
-@MyEnum2.d = unnamed_addr constant i8 8, section "$RUSTY$var-myenum2.d:e7u8"
-@MyEnum2.e = unnamed_addr constant i8 9, section "$RUSTY$var-myenum2.e:e7u8"
-@MyEnum2.f = unnamed_addr constant i8 20, section "$RUSTY$var-myenum2.f:e7u8"
-@MyEnum2.g = unnamed_addr constant i8 21, section "$RUSTY$var-myenum2.g:e7u8"
+@twenty = unnamed_addr constant i16 20
+@x = global i8 0
+@MyEnum.red = unnamed_addr constant i8 7
+@MyEnum.yellow = unnamed_addr constant i8 8
+@MyEnum.green = unnamed_addr constant i8 9
+@MyEnum2.a = unnamed_addr constant i8 0
+@MyEnum2.b = unnamed_addr constant i8 1
+@MyEnum2.c = unnamed_addr constant i8 7
+@MyEnum2.d = unnamed_addr constant i8 8
+@MyEnum2.e = unnamed_addr constant i8 9
+@MyEnum2.f = unnamed_addr constant i8 20
+@MyEnum2.g = unnamed_addr constant i8 21

@@ -18,7 +18,7 @@ fn declaring_an_array() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @d = global [10 x i32] zeroinitializer, section "$RUSTY$var-d:ai32"
+    @d = global [10 x i32] zeroinitializer
     "###);
 }
 
@@ -40,8 +40,8 @@ fn initializing_an_array() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "$RUSTY$var-d:ai32"
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "$RUSTY$var-__data__init:ai32"
+    @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
+    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
     "###);
 }
 
@@ -70,8 +70,8 @@ fn assigning_full_arrays() {
 
     %prg = type { [10 x i32], [10 x i32] }
 
-    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }, section "$RUSTY$var-prg_instance:r2ai32ai32"
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "$RUSTY$var-__data__init:ai32"
+    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }
+    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
 
     define void @prg(%prg* %0) {
     entry:
@@ -92,8 +92,8 @@ fn assigning_full_arrays() {
 
     %prg = type { [10 x i32], [10 x i32] }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2ai32ai32"
-    @__Data__init = external global [10 x i32], section "$RUSTY$var-__data__init:ai32"
+    @prg_instance = external global %prg
+    @__Data__init = external global [10 x i32]
 
     define void @__init_prg(%prg* %0) {
     entry:
@@ -108,8 +108,8 @@ fn assigning_full_arrays() {
 
     %prg = type { [10 x i32], [10 x i32] }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2ai32ai32"
-    @__Data__init = external global [10 x i32], section "$RUSTY$var-__data__init:ai32"
+    @prg_instance = external global %prg
+    @__Data__init = external global [10 x i32]
 
     define void @__init___testproject() {
     entry:
@@ -155,8 +155,8 @@ fn accessing_array_elements() {
 
     %prg = type { [10 x i32], [3 x i32] }
 
-    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [3 x i32] [i32 3, i32 4, i32 5] }, section "$RUSTY$var-prg_instance:r2ai32ai32"
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "$RUSTY$var-__data__init:ai32"
+    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [3 x i32] [i32 3, i32 4, i32 5] }
+    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
     @__prg.b__init = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
 
     define void @prg(%prg* %0) {
@@ -174,8 +174,8 @@ fn accessing_array_elements() {
 
     %prg = type { [10 x i32], [3 x i32] }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2ai32ai32"
-    @__Data__init = external global [10 x i32], section "$RUSTY$var-__data__init:ai32"
+    @prg_instance = external global %prg
+    @__Data__init = external global [10 x i32]
 
     define void @__init_prg(%prg* %0) {
     entry:
@@ -190,8 +190,8 @@ fn accessing_array_elements() {
 
     %prg = type { [10 x i32], [3 x i32] }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2ai32ai32"
-    @__Data__init = external global [10 x i32], section "$RUSTY$var-__data__init:ai32"
+    @prg_instance = external global %prg
+    @__Data__init = external global [10 x i32]
 
     define void @__init___testproject() {
     entry:

@@ -126,8 +126,15 @@ impl<'ink> CodeGen<'ink> {
         )?;
         index.merge(llvm_type_index);
 
-        let mut variable_generator =
-            VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
+        let mut variable_generator = VariableGenerator::new(
+            &self.module,
+            &llvm,
+            global_index,
+            annotations,
+            &index,
+            &mut self.debug,
+            &self.online_change,
+        );
 
         //Generate global variables
         let llvm_gv_index =
@@ -166,7 +173,7 @@ impl<'ink> CodeGen<'ink> {
                 acc
             });
 
-        if let OnlineChange::Enabled((_, _)) = self.online_change {
+        if self.online_change.is_enabled() {
             let got_entries = &mut *got_layout.lock().unwrap();
 
             let mut new_symbols = Vec::new();
@@ -226,7 +233,7 @@ impl<'ink> CodeGen<'ink> {
             annotations,
             &index,
             &mut self.debug,
-            self.online_change.clone(),
+            &self.online_change,
         )?;
         let llvm = Llvm::new(context, context.create_builder());
         index.merge(llvm_impl_index);
@@ -290,7 +297,7 @@ impl<'ink> CodeGen<'ink> {
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
         let pou_generator =
-            PouGenerator::new(llvm, global_index, annotations, &llvm_index, self.online_change);
+            PouGenerator::new(llvm, global_index, annotations, &llvm_index, &self.online_change);
 
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {

@@ -5,11 +5,11 @@ expression: function
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-@x = global i32 10, section "$RUSTY$var-x:i32"
-@__foo_position.x = unnamed_addr constant i32 1, section "$RUSTY$var-__foo_position.x:e2i32"
-@__bar_position.x = unnamed_addr constant i32 3, section "$RUSTY$var-__bar_position.x:e2i32"
-@__foo_position.y = unnamed_addr constant i32 2, section "$RUSTY$var-__foo_position.y:e2i32"
-@__bar_position.y = unnamed_addr constant i32 4, section "$RUSTY$var-__bar_position.y:e2i32"
+@x = global i32 10
+@__foo_position.x = unnamed_addr constant i32 1
+@__bar_position.x = unnamed_addr constant i32 3
+@__foo_position.y = unnamed_addr constant i32 2
+@__bar_position.y = unnamed_addr constant i32 4
 
 define i32 @foo() {
 entry:

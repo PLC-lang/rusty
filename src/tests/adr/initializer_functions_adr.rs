@@ -464,16 +464,16 @@ fn generating_init_functions() {
     %myStruct = type { i8, i8 }
     %myRefStruct = type { %myStruct* }
 
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r2u8u8"
-    @__myRefStruct__init = unnamed_addr constant %myRefStruct zeroinitializer, section "$RUSTY$var-__myrefstruct__init:r1pr2u8u8"
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+    @__myRefStruct__init = unnamed_addr constant %myRefStruct zeroinitializer
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
 
     %myStruct = type { i8, i8 }
     %myRefStruct = type { %myStruct* }
 
-    @__myStruct__init = external global %myStruct, section "$RUSTY$var-__mystruct__init:r2u8u8"
-    @__myRefStruct__init = external global %myRefStruct, section "$RUSTY$var-__myrefstruct__init:r1pr2u8u8"
+    @__myStruct__init = external global %myStruct
+    @__myRefStruct__init = external global %myRefStruct
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
@@ -540,11 +540,11 @@ fn generating_init_functions() {
     %bar = type { %foo }
     %baz = type { %bar }
 
-    @s = global %myStruct zeroinitializer, section "$RUSTY$var-s:r2u8u8"
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r2u8u8"
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "$RUSTY$var-__foo__init:r1ps8u81"
-    @__bar__init = unnamed_addr constant %bar zeroinitializer, section "$RUSTY$var-__bar__init:r1r1ps8u81"
-    @baz_instance = global %baz zeroinitializer, section "$RUSTY$var-baz_instance:r1r1r1ps8u81"
+    @s = global %myStruct zeroinitializer
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__bar__init = unnamed_addr constant %bar zeroinitializer
+    @baz_instance = global %baz zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -571,11 +571,11 @@ fn generating_init_functions() {
     %myStruct = type { i8, i8 }
     %baz = type { %bar }
 
-    @__bar__init = external global %bar, section "$RUSTY$var-__bar__init:r1r1ps8u81"
-    @__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r1ps8u81"
-    @__myStruct__init = external global %myStruct, section "$RUSTY$var-__mystruct__init:r2u8u8"
-    @baz_instance = external global %baz, section "$RUSTY$var-baz_instance:r1r1r1ps8u81"
-    @s = external global %myStruct, section "$RUSTY$var-s:r2u8u8"
+    @__bar__init = external global %bar
+    @__foo__init = external global %foo
+    @__myStruct__init = external global %myStruct
+    @baz_instance = external global %baz
+    @s = external global %myStruct
 
     define void @__init_bar(%bar* %0) {
     entry:
@@ -627,11 +627,11 @@ fn generating_init_functions() {
     %foo = type { [81 x i8]* }
     %myStruct = type { i8, i8 }
 
-    @baz_instance = external global %baz, section "$RUSTY$var-baz_instance:r1r1r1ps8u81"
-    @__bar__init = external global %bar, section "$RUSTY$var-__bar__init:r1r1ps8u81"
-    @__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r1ps8u81"
-    @__myStruct__init = external global %myStruct, section "$RUSTY$var-__mystruct__init:r2u8u8"
-    @s = external global %myStruct, section "$RUSTY$var-s:r2u8u8"
+    @baz_instance = external global %baz
+    @__bar__init = external global %bar
+    @__foo__init = external global %foo
+    @__myStruct__init = external global %myStruct
+    @s = external global %myStruct
 
     define void @__init___testproject() {
     entry:
@@ -691,9 +691,9 @@ fn intializing_temporary_variables() {
 
     %foo = type { [81 x i8]* }
 
-    @ps = global [81 x i8] zeroinitializer, section "$RUSTY$var-ps:s8u81"
-    @ps2 = global [81 x i8] zeroinitializer, section "$RUSTY$var-ps2:s8u81"
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "$RUSTY$var-__foo__init:r2ps8u81ps8u81"
+    @ps = global [81 x i8] zeroinitializer
+    @ps2 = global [81 x i8] zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -735,8 +735,8 @@ fn intializing_temporary_variables() {
 
     %foo = type { [81 x i8]* }
 
-    @__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r2ps8u81ps8u81"
-    @ps = external global [81 x i8], section "$RUSTY$var-ps:s8u81"
+    @__foo__init = external global %foo
+    @ps = external global [81 x i8]
 
     define void @__init_foo(%foo* %0) {
     entry:

@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %main = type { i32, i32, i32 }
 
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r3i32i32i32"
+@main_instance = global %main zeroinitializer
 
 define i32 @foo(i32 %0, i32* %1, i32* %2, i32* %3) {
 entry:
@@ -42,7 +42,7 @@ source_filename = "__initializers"
 
 %main = type { i32, i32, i32 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r3i32i32i32"
+@main_instance = external global %main
 
 define void @__init_main(%main* %0) {
 entry:
@@ -57,7 +57,7 @@ source_filename = "__init___testproject"
 
 %main = type { i32, i32, i32 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r3i32i32i32"
+@main_instance = external global %main
 
 define void @__init___testproject() {
 entry:

@@ -918,7 +918,7 @@ fn by_value_function_arg_structs_are_memcopied() {
 
     %S_TY = type { i8, i8 }
 
-    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "$RUSTY$var-__s_ty__init:r2u8u8"
+    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer
 
     define i32 @foo(%S_TY* %0) {
     entry:
@@ -956,7 +956,7 @@ fn by_value_function_arg_structs_are_memcopied() {
 
     %S_TY = type { i8, i8 }
 
-    @__S_TY__init = external global %S_TY, section "$RUSTY$var-__s_ty__init:r2u8u8"
+    @__S_TY__init = external global %S_TY
 
     define void @__init_s_ty(%S_TY* %0) {
     entry:
@@ -1013,8 +1013,8 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     %AGGREGATE_COLLECTOR_TY = type { [65537 x i32], [65537 x i8], %S_TY }
     %S_TY = type { i8, i8 }
 
-    @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer, section "$RUSTY$var-__aggregate_collector_ty__init:r3ai32s8u65537r2u8u8"
-    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "$RUSTY$var-__s_ty__init:r2u8u8"
+    @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer
+    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer
 
     define i32 @foo(%AGGREGATE_COLLECTOR_TY* %0) {
     entry:
@@ -1053,8 +1053,8 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     %S_TY = type { i8, i8 }
     %AGGREGATE_COLLECTOR_TY = type { [65537 x i32], [65537 x i8], %S_TY }
 
-    @__S_TY__init = external global %S_TY, section "$RUSTY$var-__s_ty__init:r2u8u8"
-    @__AGGREGATE_COLLECTOR_TY__init = external global %AGGREGATE_COLLECTOR_TY, section "$RUSTY$var-__aggregate_collector_ty__init:r3ai32s8u65537r2u8u8"
+    @__S_TY__init = external global %S_TY
+    @__AGGREGATE_COLLECTOR_TY__init = external global %AGGREGATE_COLLECTOR_TY
 
     define void @__init_s_ty(%S_TY* %0) {
     entry:
@@ -1110,7 +1110,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     %FOO = type { [65537 x i8], [1024 x i32] }
 
-    @__FOO__init = unnamed_addr constant %FOO zeroinitializer, section "$RUSTY$var-__foo__init:r2s8u65537ai32"
+    @__FOO__init = unnamed_addr constant %FOO zeroinitializer
 
     define i32 @main() {
     entry:
@@ -1164,7 +1164,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     %FOO = type { [65537 x i8], [1024 x i32] }
 
-    @__FOO__init = external global %FOO, section "$RUSTY$var-__foo__init:r2s8u65537ai32"
+    @__FOO__init = external global %FOO
 
     define void @__init_foo(%FOO* %0) {
     entry:
@@ -1225,9 +1225,9 @@ fn var_output_aggregate_types_are_memcopied() {
     %OUT_TYPE = type { i8 }
     %PRG = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16], %FB }
 
-    @__FB__init = unnamed_addr constant %FB zeroinitializer, section "$RUSTY$var-__fb__init:r5r1u8ai32ar1u8s8u81s16u81"
-    @__OUT_TYPE__init = unnamed_addr constant %OUT_TYPE zeroinitializer, section "$RUSTY$var-__out_type__init:r1u8"
-    @PRG_instance = global %PRG zeroinitializer, section "$RUSTY$var-prg_instance:r6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81"
+    @__FB__init = unnamed_addr constant %FB zeroinitializer
+    @__OUT_TYPE__init = unnamed_addr constant %OUT_TYPE zeroinitializer
+    @PRG_instance = global %PRG zeroinitializer
 
     define void @FB(%FB* %0) {
     entry:
@@ -1285,9 +1285,9 @@ fn var_output_aggregate_types_are_memcopied() {
     %FB = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16] }
     %PRG = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16], %FB }
 
-    @__OUT_TYPE__init = external global %OUT_TYPE, section "$RUSTY$var-__out_type__init:r1u8"
-    @__FB__init = external global %FB, section "$RUSTY$var-__fb__init:r5r1u8ai32ar1u8s8u81s16u81"
-    @PRG_instance = external global %PRG, section "$RUSTY$var-prg_instance:r6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81"
+    @__OUT_TYPE__init = external global %OUT_TYPE
+    @__FB__init = external global %FB
+    @PRG_instance = external global %PRG
 
     define void @__init_out_type(%OUT_TYPE* %0) {
     entry:
@@ -1329,9 +1329,9 @@ fn var_output_aggregate_types_are_memcopied() {
     %OUT_TYPE = type { i8 }
     %FB = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16] }
 
-    @PRG_instance = external global %PRG, section "$RUSTY$var-prg_instance:r6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81"
-    @__OUT_TYPE__init = external global %OUT_TYPE, section "$RUSTY$var-__out_type__init:r1u8"
-    @__FB__init = external global %FB, section "$RUSTY$var-__fb__init:r5r1u8ai32ar1u8s8u81s16u81"
+    @PRG_instance = external global %PRG
+    @__OUT_TYPE__init = external global %OUT_TYPE
+    @__FB__init = external global %FB
 
     define void @__init___testproject() {
     entry:

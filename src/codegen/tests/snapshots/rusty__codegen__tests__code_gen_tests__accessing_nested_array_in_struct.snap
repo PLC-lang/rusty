@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %Main = type { %MyStruct }
 %MyStruct = type { [5 x i16] }
 
-@Main_instance = global %Main zeroinitializer, section "$RUSTY$var-main_instance:r1r1ai16"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r1ai16"
+@Main_instance = global %Main zeroinitializer
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 
 define void @Main(%Main* %0) {
 entry:
@@ -25,8 +25,8 @@ source_filename = "__initializers"
 %MyStruct = type { [5 x i16] }
 %Main = type { %MyStruct }
 
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r1ai16"
-@Main_instance = external global %Main, section "$RUSTY$var-main_instance:r1r1ai16"
+@__MyStruct__init = external global %MyStruct
+@Main_instance = external global %Main
 
 define void @__init_mystruct(%MyStruct* %0) {
 entry:
@@ -52,8 +52,8 @@ source_filename = "__init___testproject"
 %Main = type { %MyStruct }
 %MyStruct = type { [5 x i16] }
 
-@Main_instance = external global %Main, section "$RUSTY$var-main_instance:r1r1ai16"
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r1ai16"
+@Main_instance = external global %Main
+@__MyStruct__init = external global %MyStruct
 
 define void @__init___testproject() {
 entry:

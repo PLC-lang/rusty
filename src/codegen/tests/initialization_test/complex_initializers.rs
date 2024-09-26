@@ -15,13 +15,13 @@ fn simple_global() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "$RUSTY$var-s:s8u81"
-    @ps = global [81 x i8]* null, section "$RUSTY$var-ps:ps8u81"
+    @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+    @ps = global [81 x i8]* null
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    @s = external global [81 x i8], section "$RUSTY$var-s:s8u81"
-    @ps = external global [81 x i8]*, section "$RUSTY$var-ps:ps8u81"
+    @s = external global [81 x i8]
+    @ps = external global [81 x i8]*
 
     define void @__init___testproject() {
     entry:
@@ -46,13 +46,13 @@ fn global_alias() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "$RUSTY$var-s:s8u81"
-    @ps = global [81 x i8]* null, section "$RUSTY$var-ps:ps8u81"
+    @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+    @ps = global [81 x i8]* null
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    @s = external global [81 x i8], section "$RUSTY$var-s:s8u81"
-    @ps = external global [81 x i8]*, section "$RUSTY$var-ps:ps8u81"
+    @s = external global [81 x i8]
+    @ps = external global [81 x i8]*
 
     define void @__init___testproject() {
     entry:
@@ -77,13 +77,13 @@ fn global_reference_to() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "$RUSTY$var-s:s8u81"
-    @ps = global [81 x i8]* null, section "$RUSTY$var-ps:ps8u81"
+    @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+    @ps = global [81 x i8]* null
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    @s = external global [81 x i8], section "$RUSTY$var-s:s8u81"
-    @ps = external global [81 x i8]*, section "$RUSTY$var-ps:ps8u81"
+    @s = external global [81 x i8]
+    @ps = external global [81 x i8]*
 
     define void @__init___testproject() {
     entry:
@@ -115,8 +115,8 @@ fn init_functions_generated_for_programs() {
 
     %PLC_PRG = type { [81 x i8]* }
 
-    @s = global [81 x i8] zeroinitializer, section "$RUSTY$var-s:s8u81"
-    @PLC_PRG_instance = global %PLC_PRG zeroinitializer, section "$RUSTY$var-plc_prg_instance:r1ps8u81"
+    @s = global [81 x i8] zeroinitializer
+    @PLC_PRG_instance = global %PLC_PRG zeroinitializer
 
     define void @PLC_PRG(%PLC_PRG* %0) {
     entry:
@@ -128,8 +128,8 @@ fn init_functions_generated_for_programs() {
 
     %PLC_PRG = type { [81 x i8]* }
 
-    @PLC_PRG_instance = external global %PLC_PRG, section "$RUSTY$var-plc_prg_instance:r1ps8u81"
-    @s = external global [81 x i8], section "$RUSTY$var-s:s8u81"
+    @PLC_PRG_instance = external global %PLC_PRG
+    @s = external global [81 x i8]
 
     define void @__init_plc_prg(%PLC_PRG* %0) {
     entry:
@@ -147,7 +147,7 @@ fn init_functions_generated_for_programs() {
 
     %PLC_PRG = type { [81 x i8]* }
 
-    @PLC_PRG_instance = external global %PLC_PRG, section "$RUSTY$var-plc_prg_instance:r1ps8u81"
+    @PLC_PRG_instance = external global %PLC_PRG
 
     define void @__init___testproject() {
     entry:
@@ -183,8 +183,8 @@ fn init_functions_work_with_adr() {
 
     %PLC_PRG = type { [81 x i8]* }
 
-    @s = global [81 x i8] zeroinitializer, section "$RUSTY$var-s:s8u81"
-    @PLC_PRG_instance = global %PLC_PRG zeroinitializer, section "$RUSTY$var-plc_prg_instance:r1ps8u81"
+    @s = global [81 x i8] zeroinitializer
+    @PLC_PRG_instance = global %PLC_PRG zeroinitializer
 
     define void @PLC_PRG(%PLC_PRG* %0) {
     entry:
@@ -196,8 +196,8 @@ fn init_functions_work_with_adr() {
 
     %PLC_PRG = type { [81 x i8]* }
 
-    @PLC_PRG_instance = external global %PLC_PRG, section "$RUSTY$var-plc_prg_instance:r1ps8u81"
-    @s = external global [81 x i8], section "$RUSTY$var-s:s8u81"
+    @PLC_PRG_instance = external global %PLC_PRG
+    @s = external global [81 x i8]
 
     define void @__init_plc_prg(%PLC_PRG* %0) {
     entry:
@@ -215,7 +215,7 @@ fn init_functions_work_with_adr() {
 
     %PLC_PRG = type { [81 x i8]* }
 
-    @PLC_PRG_instance = external global %PLC_PRG, section "$RUSTY$var-plc_prg_instance:r1ps8u81"
+    @PLC_PRG_instance = external global %PLC_PRG
 
     define void @__init___testproject() {
     entry:
@@ -251,8 +251,8 @@ fn init_functions_generated_for_function_blocks() {
 
     %foo = type { [81 x i8]* }
 
-    @s = global [81 x i8] zeroinitializer, section "$RUSTY$var-s:s8u81"
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "$RUSTY$var-__foo__init:r1ps8u81"
+    @s = global [81 x i8] zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -264,8 +264,8 @@ fn init_functions_generated_for_function_blocks() {
 
     %foo = type { [81 x i8]* }
 
-    @__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r1ps8u81"
-    @s = external global [81 x i8], section "$RUSTY$var-s:s8u81"
+    @__foo__init = external global %foo
+    @s = external global [81 x i8]
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -359,12 +359,12 @@ fn nested_initializer_pous() {
     %mainProg = type { [81 x i8]*, %foo }
     %sideProg = type { [81 x i8]*, %foo }
 
-    @str = global [81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "$RUSTY$var-str:s8u81"
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "$RUSTY$var-__foo__init:r2ps8u81r1r1ps8u81"
-    @__bar__init = unnamed_addr constant %bar zeroinitializer, section "$RUSTY$var-__bar__init:r1r1ps8u81"
-    @__baz__init = unnamed_addr constant %baz zeroinitializer, section "$RUSTY$var-__baz__init:r1ps8u81"
-    @mainProg_instance = global %mainProg zeroinitializer, section "$RUSTY$var-mainprog_instance:r2ps8u81r2ps8u81r1r1ps8u81"
-    @sideProg_instance = global %sideProg zeroinitializer, section "$RUSTY$var-sideprog_instance:r2ps8u81r2ps8u81r1r1ps8u81"
+    @str = global [81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__bar__init = unnamed_addr constant %bar zeroinitializer
+    @__baz__init = unnamed_addr constant %baz zeroinitializer
+    @mainProg_instance = global %mainProg zeroinitializer
+    @sideProg_instance = global %sideProg zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -431,12 +431,12 @@ fn nested_initializer_pous() {
     %mainProg = type { [81 x i8]*, %foo }
     %sideProg = type { [81 x i8]*, %foo }
 
-    @__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r2ps8u81r1r1ps8u81"
-    @__bar__init = external global %bar, section "$RUSTY$var-__bar__init:r1r1ps8u81"
-    @__baz__init = external global %baz, section "$RUSTY$var-__baz__init:r1ps8u81"
-    @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r2ps8u81r2ps8u81r1r1ps8u81"
-    @sideProg_instance = external global %sideProg, section "$RUSTY$var-sideprog_instance:r2ps8u81r2ps8u81r1r1ps8u81"
-    @str = external global [81 x i8], section "$RUSTY$var-str:s8u81"
+    @__foo__init = external global %foo
+    @__bar__init = external global %bar
+    @__baz__init = external global %baz
+    @mainProg_instance = external global %mainProg
+    @sideProg_instance = external global %sideProg
+    @str = external global [81 x i8]
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -515,11 +515,11 @@ fn nested_initializer_pous() {
     %baz = type { [81 x i8]* }
     %sideProg = type { [81 x i8]*, %foo }
 
-    @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r2ps8u81r2ps8u81r1r1ps8u81"
-    @__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r2ps8u81r1r1ps8u81"
-    @__bar__init = external global %bar, section "$RUSTY$var-__bar__init:r1r1ps8u81"
-    @__baz__init = external global %baz, section "$RUSTY$var-__baz__init:r1ps8u81"
-    @sideProg_instance = external global %sideProg, section "$RUSTY$var-sideprog_instance:r2ps8u81r2ps8u81r1r1ps8u81"
+    @mainProg_instance = external global %mainProg
+    @__foo__init = external global %foo
+    @__bar__init = external global %bar
+    @__baz__init = external global %baz
+    @sideProg_instance = external global %sideProg
 
     define void @__init___testproject() {
     entry:
@@ -676,10 +676,10 @@ fn struct_types() {
     %prog = type { %myStruct }
     %myStruct = type { [81 x i8]*, [2 x [81 x i8]]* }
 
-    @s = global [81 x i8] c"Hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", section "$RUSTY$var-s:s8u81"
-    @s2 = global [2 x [81 x i8]] [[81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"world\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], section "$RUSTY$var-s2:as8u81"
-    @prog_instance = global %prog zeroinitializer, section "$RUSTY$var-prog_instance:r1r2ps8u81pas8u81"
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r2ps8u81pas8u81"
+    @s = global [81 x i8] c"Hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+    @s2 = global [2 x [81 x i8]] [[81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"world\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"]
+    @prog_instance = global %prog zeroinitializer
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
     define void @prog(%prog* %0) {
     entry:
@@ -692,10 +692,10 @@ fn struct_types() {
     %myStruct = type { [81 x i8]*, [2 x [81 x i8]]* }
     %prog = type { %myStruct }
 
-    @__myStruct__init = external global %myStruct, section "$RUSTY$var-__mystruct__init:r2ps8u81pas8u81"
-    @prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r1r2ps8u81pas8u81"
-    @s = external global [81 x i8], section "$RUSTY$var-s:s8u81"
-    @s2 = external global [2 x [81 x i8]], section "$RUSTY$var-s2:as8u81"
+    @__myStruct__init = external global %myStruct
+    @prog_instance = external global %prog
+    @s = external global [81 x i8]
+    @s2 = external global [2 x [81 x i8]]
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
@@ -727,8 +727,8 @@ fn struct_types() {
     %prog = type { %myStruct }
     %myStruct = type { [81 x i8]*, [2 x [81 x i8]]* }
 
-    @prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r1r2ps8u81pas8u81"
-    @__myStruct__init = external global %myStruct, section "$RUSTY$var-__mystruct__init:r2ps8u81pas8u81"
+    @prog_instance = external global %prog
+    @__myStruct__init = external global %myStruct
 
     define void @__init___testproject() {
     entry:
@@ -782,10 +782,10 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     %foo.m = type {}
     %cl.m = type {}
 
-    @prog_instance = global %prog zeroinitializer, section "$RUSTY$var-prog_instance:r0"
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "$RUSTY$var-__foo__init:r0"
-    @__cl__init = unnamed_addr constant %cl zeroinitializer, section "$RUSTY$var-__cl__init:r0"
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r0"
+    @prog_instance = global %prog zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__cl__init = unnamed_addr constant %cl zeroinitializer
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
     define void @prog(%prog* %0) {
     entry:
@@ -826,10 +826,10 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     %foo.m = type {}
     %cl.m = type {}
 
-    @__myStruct__init = external global %myStruct, section "$RUSTY$var-__mystruct__init:r0"
-    @__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r0"
-    @prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r0"
-    @__cl__init = external global %cl, section "$RUSTY$var-__cl__init:r0"
+    @__myStruct__init = external global %myStruct
+    @__foo__init = external global %foo
+    @prog_instance = external global %prog
+    @__cl__init = external global %cl
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
@@ -887,7 +887,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
 
     %prog = type {}
 
-    @prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r0"
+    @prog_instance = external global %prog
 
     define void @__init___testproject() {
     entry:
@@ -929,10 +929,10 @@ fn global_instance() {
     %foo = type { [81 x i8]* }
     %prog = type {}
 
-    @ps = global [81 x i8] zeroinitializer, section "$RUSTY$var-ps:s8u81"
-    @fb = global %foo zeroinitializer, section "$RUSTY$var-fb:r1ps8u81"
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "$RUSTY$var-__foo__init:r1ps8u81"
-    @prog_instance = global %prog zeroinitializer, section "$RUSTY$var-prog_instance:r0"
+    @ps = global [81 x i8] zeroinitializer
+    @fb = global %foo zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @prog_instance = global %prog zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -951,9 +951,9 @@ fn global_instance() {
     %foo = type { [81 x i8]* }
     %prog = type {}
 
-    @__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r1ps8u81"
-    @prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r0"
-    @ps = external global [81 x i8], section "$RUSTY$var-ps:s8u81"
+    @__foo__init = external global %foo
+    @prog_instance = external global %prog
+    @ps = external global [81 x i8]
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -981,9 +981,9 @@ fn global_instance() {
     %prog = type {}
     %foo = type { [81 x i8]* }
 
-    @prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r0"
-    @__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r1ps8u81"
-    @fb = external global %foo, section "$RUSTY$var-fb:r1ps8u81"
+    @prog_instance = external global %prog
+    @__foo__init = external global %foo
+    @fb = external global %foo
 
     define void @__init___testproject() {
     entry:
@@ -1035,10 +1035,10 @@ fn aliased_types() {
     %foo = type { [81 x i8]* }
     %prog = type { %foo }
 
-    @ps = global [81 x i8] zeroinitializer, section "$RUSTY$var-ps:s8u81"
-    @global_alias = global %foo zeroinitializer, section "$RUSTY$var-global_alias:r1ps8u81"
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "$RUSTY$var-__foo__init:r1ps8u81"
-    @prog_instance = global %prog zeroinitializer, section "$RUSTY$var-prog_instance:r1r1ps8u81"
+    @ps = global [81 x i8] zeroinitializer
+    @global_alias = global %foo zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @prog_instance = global %prog zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1058,9 +1058,9 @@ fn aliased_types() {
     %foo = type { [81 x i8]* }
     %prog = type { %foo }
 
-    @__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r1ps8u81"
-    @prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r1r1ps8u81"
-    @ps = external global [81 x i8], section "$RUSTY$var-ps:s8u81"
+    @__foo__init = external global %foo
+    @prog_instance = external global %prog
+    @ps = external global [81 x i8]
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1091,9 +1091,9 @@ fn aliased_types() {
     %prog = type { %foo }
     %foo = type { [81 x i8]* }
 
-    @prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r1r1ps8u81"
-    @__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r1ps8u81"
-    @global_alias = external global %foo, section "$RUSTY$var-global_alias:r1ps8u81"
+    @prog_instance = external global %prog
+    @__foo__init = external global %foo
+    @global_alias = external global %foo
 
     define void @__init___testproject() {
     entry:

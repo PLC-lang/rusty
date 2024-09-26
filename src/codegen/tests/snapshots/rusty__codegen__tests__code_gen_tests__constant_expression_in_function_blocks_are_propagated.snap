@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %fbWithConstant = type { i16, i16 }
 
-@__fbWithConstant__init = unnamed_addr constant %fbWithConstant { i16 0, i16 2 }, section "$RUSTY$var-__fbwithconstant__init:r2i16i16"
+@__fbWithConstant__init = unnamed_addr constant %fbWithConstant { i16 0, i16 2 }
 
 define void @fbWithConstant(%fbWithConstant* %0) {
 entry:
@@ -21,7 +21,7 @@ source_filename = "__initializers"
 
 %fbWithConstant = type { i16, i16 }
 
-@__fbWithConstant__init = external global %fbWithConstant, section "$RUSTY$var-__fbwithconstant__init:r2i16i16"
+@__fbWithConstant__init = external global %fbWithConstant
 
 define void @__init_fbwithconstant(%fbWithConstant* %0) {
 entry:

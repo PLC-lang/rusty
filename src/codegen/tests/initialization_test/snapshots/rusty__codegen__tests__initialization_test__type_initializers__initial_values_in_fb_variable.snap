@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %TON = type { i16, i16 }
 %main = type { i16, %TON, %TON }
 
-@__TON__init = unnamed_addr constant %TON zeroinitializer, section "$RUSTY$var-__ton__init:r2i16i16"
-@main_instance = global %main { i16 10, %TON { i16 10, i16 17 }, %TON { i16 17, i16 10 } }, section "$RUSTY$var-main_instance:r3i16r2i16i16r2i16i16"
+@__TON__init = unnamed_addr constant %TON zeroinitializer
+@main_instance = global %main { i16 10, %TON { i16 10, i16 17 }, %TON { i16 17, i16 10 } }
 @__main.struct1__init = unnamed_addr constant %TON { i16 10, i16 17 }
 @__main.struct2__init = unnamed_addr constant %TON { i16 17, i16 10 }
 
@@ -33,8 +33,8 @@ source_filename = "__initializers"
 %TON = type { i16, i16 }
 %main = type { i16, %TON, %TON }
 
-@__TON__init = external global %TON, section "$RUSTY$var-__ton__init:r2i16i16"
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r3i16r2i16i16r2i16i16"
+@__TON__init = external global %TON
+@main_instance = external global %main
 
 define void @__init_ton(%TON* %0) {
 entry:
@@ -65,8 +65,8 @@ source_filename = "__init___testproject"
 %main = type { i16, %TON, %TON }
 %TON = type { i16, i16 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r3i16r2i16i16r2i16i16"
-@__TON__init = external global %TON, section "$RUSTY$var-__ton__init:r2i16i16"
+@main_instance = external global %main
+@__TON__init = external global %TON
 
 define void @__init___testproject() {
 entry:

@@ -370,7 +370,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             &unit.file_name,
             compile_options.optimization,
             compile_options.debug_level,
-            //(compile_options.got_layout_file.clone(), compile_options.got_layout_format),
+            //FIXME don't clone here
             compile_options.online_change.clone(),
         );
         //Create a types codegen, this contains all the type declarations

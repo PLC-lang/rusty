@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %prg = type { float, float, float, double, float, float, float, double }
 
-@prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
+@prg_instance = global %prg zeroinitializer
 
 define float @foo__REAL(float %0) {
 entry:
@@ -62,7 +62,7 @@ source_filename = "__initializers"
 
 %prg = type { float, float, float, double, float, float, float, double }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
+@prg_instance = external global %prg
 
 define void @__init_prg(%prg* %0) {
 entry:
@@ -77,7 +77,7 @@ source_filename = "__init___testproject"
 
 %prg = type { float, float, float, double, float, float, float, double }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
+@prg_instance = external global %prg
 
 define void @__init___testproject() {
 entry:

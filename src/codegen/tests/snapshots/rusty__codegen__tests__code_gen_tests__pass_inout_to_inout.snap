@@ -9,9 +9,9 @@ source_filename = "<internal>"
 %foo = type { i32* }
 %prg = type { i32 }
 
-@foo2_instance = global %foo2 zeroinitializer, section "$RUSTY$var-foo2_instance:r2pi32i32"
-@foo_instance = global %foo zeroinitializer, section "$RUSTY$var-foo_instance:r1pi32"
-@prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r1i32"
+@foo2_instance = global %foo2 zeroinitializer
+@foo_instance = global %foo zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
 define void @foo2(%foo2* %0) {
 entry:
@@ -46,9 +46,9 @@ source_filename = "__initializers"
 %foo2 = type { i32*, i32 }
 %prg = type { i32 }
 
-@foo_instance = external global %foo, section "$RUSTY$var-foo_instance:r1pi32"
-@foo2_instance = external global %foo2, section "$RUSTY$var-foo2_instance:r2pi32i32"
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i32"
+@foo_instance = external global %foo
+@foo2_instance = external global %foo2
+@prg_instance = external global %prg
 
 define void @__init_foo(%foo* %0) {
 entry:
@@ -83,9 +83,9 @@ source_filename = "__init___testproject"
 %foo2 = type { i32*, i32 }
 %prg = type { i32 }
 
-@foo_instance = external global %foo, section "$RUSTY$var-foo_instance:r1pi32"
-@foo2_instance = external global %foo2, section "$RUSTY$var-foo2_instance:r2pi32i32"
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i32"
+@foo_instance = external global %foo
+@foo2_instance = external global %foo2
+@prg_instance = external global %prg
 
 define void @__init___testproject() {
 entry:

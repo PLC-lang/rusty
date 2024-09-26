@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %main = type { [81 x i8] }
 
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r1s8u81"
+@main_instance = global %main zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [154 x i8] c"abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc\00"
 
 define void @read_string([81 x i8]* %0, i8* %1) {
@@ -55,7 +55,7 @@ source_filename = "__initializers"
 
 %main = type { [81 x i8] }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1s8u81"
+@main_instance = external global %main
 
 define void @__init_main(%main* %0) {
 entry:
@@ -70,7 +70,7 @@ source_filename = "__init___testproject"
 
 %main = type { [81 x i8] }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1s8u81"
+@main_instance = external global %main
 
 define void @__init___testproject() {
 entry:

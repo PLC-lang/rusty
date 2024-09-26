@@ -8,7 +8,7 @@ source_filename = "<internal>"
 %MyClass = type { i16, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "$RUSTY$var-__myclass__init:r2i16i16"
+@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 
 define void @MyClass(%MyClass* %0) {
 entry:
@@ -41,7 +41,7 @@ source_filename = "__initializers"
 %MyClass = type { i16, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@__MyClass__init = external global %MyClass, section "$RUSTY$var-__myclass__init:r2i16i16"
+@__MyClass__init = external global %MyClass
 
 define void @__init_myclass.testmethod(%MyClass.testMethod* %0) {
 entry:

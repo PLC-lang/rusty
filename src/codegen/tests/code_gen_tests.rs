@@ -1164,7 +1164,7 @@ fn for_statement_with_binary_expressions() {
 
     %prg = type { i32, i32, i32, i32 }
 
-    @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r4i32i32i32i32"
+    @prg_instance = global %prg zeroinitializer
 
     define void @prg(%prg* %0) {
     entry:
@@ -1214,7 +1214,7 @@ fn for_statement_with_binary_expressions() {
 
     %prg = type { i32, i32, i32, i32 }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r4i32i32i32i32"
+    @prg_instance = external global %prg
 
     define void @__init_prg(%prg* %0) {
     entry:
@@ -1229,7 +1229,7 @@ fn for_statement_with_binary_expressions() {
 
     %prg = type { i32, i32, i32, i32 }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r4i32i32i32i32"
+    @prg_instance = external global %prg
 
     define void @__init___testproject() {
     entry:

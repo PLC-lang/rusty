@@ -8,11 +8,11 @@ source_filename = "<internal>"
 %myStruct = type { i32, i32, [2 x i32] }
 %main = type { [2 x %myStruct], [2 x %myStruct] }
 
-@str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }, section "$RUSTY$var-str:r3i32i32ai32"
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r3i32i32ai32"
-@alias_str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }, section "$RUSTY$var-alias_str:r3i32i32ai32"
-@global_arr = unnamed_addr constant [2 x i32] [i32 30, i32 40], section "$RUSTY$var-global_arr:ai32"
-@main_instance = global %main { [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }], [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }] }, section "$RUSTY$var-main_instance:r2ar3i32i32ai32ar3i32i32ai32"
+@str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+@alias_str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }
+@global_arr = unnamed_addr constant [2 x i32] [i32 30, i32 40]
+@main_instance = global %main { [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }], [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }] }
 @__main.arr__init = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
 @__main.alias_arr__init = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
 
@@ -28,8 +28,8 @@ source_filename = "__initializers"
 %myStruct = type { i32, i32, [2 x i32] }
 %main = type { [2 x %myStruct], [2 x %myStruct] }
 
-@__myStruct__init = external global %myStruct, section "$RUSTY$var-__mystruct__init:r3i32i32ai32"
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r2ar3i32i32ai32ar3i32i32ai32"
+@__myStruct__init = external global %myStruct
+@main_instance = external global %main
 
 define void @__init_mystruct(%myStruct* %0) {
 entry:
@@ -52,10 +52,10 @@ source_filename = "__init___testproject"
 %main = type { [2 x %myStruct], [2 x %myStruct] }
 %myStruct = type { i32, i32, [2 x i32] }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r2ar3i32i32ai32ar3i32i32ai32"
-@__myStruct__init = external global %myStruct, section "$RUSTY$var-__mystruct__init:r3i32i32ai32"
-@str = external global %myStruct, section "$RUSTY$var-str:r3i32i32ai32"
-@alias_str = external global %myStruct, section "$RUSTY$var-alias_str:r3i32i32ai32"
+@main_instance = external global %main
+@__myStruct__init = external global %myStruct
+@str = external global %myStruct
+@alias_str = external global %myStruct
 
 define void @__init___testproject() {
 entry:

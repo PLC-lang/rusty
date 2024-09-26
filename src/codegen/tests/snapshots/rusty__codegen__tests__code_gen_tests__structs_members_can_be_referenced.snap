@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %MainProg = type { %MyStruct }
 %MyStruct = type { i32, i32 }
 
-@MainProg_instance = global %MainProg zeroinitializer, section "$RUSTY$var-mainprog_instance:r1r2i32i32"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r2i32i32"
+@MainProg_instance = global %MainProg zeroinitializer
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 
 define void @MainProg(%MainProg* %0) {
 entry:
@@ -24,8 +24,8 @@ source_filename = "__initializers"
 %MyStruct = type { i32, i32 }
 %MainProg = type { %MyStruct }
 
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r2i32i32"
-@MainProg_instance = external global %MainProg, section "$RUSTY$var-mainprog_instance:r1r2i32i32"
+@__MyStruct__init = external global %MyStruct
+@MainProg_instance = external global %MainProg
 
 define void @__init_mystruct(%MyStruct* %0) {
 entry:
@@ -51,8 +51,8 @@ source_filename = "__init___testproject"
 %MainProg = type { %MyStruct }
 %MyStruct = type { i32, i32 }
 
-@MainProg_instance = external global %MainProg, section "$RUSTY$var-mainprog_instance:r1r2i32i32"
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r2i32i32"
+@MainProg_instance = external global %MainProg
+@__MyStruct__init = external global %MyStruct
 
 define void @__init___testproject() {
 entry:

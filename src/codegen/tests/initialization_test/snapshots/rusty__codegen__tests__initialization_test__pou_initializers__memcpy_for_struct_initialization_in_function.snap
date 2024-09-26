@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %__func_a = type { i16 }
 
-@____func_a__init = unnamed_addr constant %__func_a zeroinitializer, section "$RUSTY$var-____func_a__init:r1i16"
+@____func_a__init = unnamed_addr constant %__func_a zeroinitializer
 
 define i16 @func() {
 entry:
@@ -32,7 +32,7 @@ source_filename = "__initializers"
 
 %__func_a = type { i16 }
 
-@____func_a__init = external global %__func_a, section "$RUSTY$var-____func_a__init:r1i16"
+@____func_a__init = external global %__func_a
 
 define void @__init___func_a(%__func_a* %0) {
 entry:

@@ -183,6 +183,15 @@ pub enum OnlineChange {
     Disabled,
 }
 
+impl OnlineChange {
+    pub fn is_enabled(&self) -> bool {
+        match self {
+            OnlineChange::Enabled(_) => true,
+            OnlineChange::Disabled => false,
+        }
+    }
+}
+
 impl From<OptimizationLevel> for inkwell::OptimizationLevel {
     fn from(val: OptimizationLevel) -> Self {
         match val {

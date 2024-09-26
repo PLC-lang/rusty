@@ -24,13 +24,13 @@ fn declaring_a_struct() {
 
     %Person = type { [81 x i8], [81 x i8], i16, i8 }
 
-    @__Person__init = unnamed_addr constant %Person zeroinitializer, section "$RUSTY$var-__person__init:r4s8u81s8u81i16u8"
+    @__Person__init = unnamed_addr constant %Person zeroinitializer
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
 
     %Person = type { [81 x i8], [81 x i8], i16, i8 }
 
-    @__Person__init = external global %Person, section "$RUSTY$var-__person__init:r4s8u81s8u81i16u8"
+    @__Person__init = external global %Person
 
     define void @__init_person(%Person* %0) {
     entry:
@@ -74,14 +74,14 @@ fn default_values_of_a_struct() {
 
     %Person = type { [6 x i8], [6 x i8], i16, i8 }
 
-    @p = global %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }, section "$RUSTY$var-p:r4s8u6s8u6i16u8"
-    @__Person__init = unnamed_addr constant %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }, section "$RUSTY$var-__person__init:r4s8u6s8u6i16u8"
+    @p = global %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }
+    @__Person__init = unnamed_addr constant %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
 
     %Person = type { [6 x i8], [6 x i8], i16, i8 }
 
-    @__Person__init = external global %Person, section "$RUSTY$var-__person__init:r4s8u6s8u6i16u8"
+    @__Person__init = external global %Person
 
     define void @__init_person(%Person* %0) {
     entry:
@@ -94,8 +94,8 @@ fn default_values_of_a_struct() {
 
     %Person = type { [6 x i8], [6 x i8], i16, i8 }
 
-    @__Person__init = external global %Person, section "$RUSTY$var-__person__init:r4s8u6s8u6i16u8"
-    @p = external global %Person, section "$RUSTY$var-p:r4s8u6s8u6i16u8"
+    @__Person__init = external global %Person
+    @p = external global %Person
 
     define void @__init___testproject() {
     entry:
@@ -145,9 +145,9 @@ fn initializing_a_struct() {
     %Rect = type { %Point, %Point }
     %Point = type { i16, i16 }
 
-    @prg_instance = global %prg { %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }, %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } } }, section "$RUSTY$var-prg_instance:r2r2r2i16i16r2i16i16r2r2i16i16r2i16i16"
-    @__Rect__init = unnamed_addr constant %Rect zeroinitializer, section "$RUSTY$var-__rect__init:r2r2i16i16r2i16i16"
-    @__Point__init = unnamed_addr constant %Point zeroinitializer, section "$RUSTY$var-__point__init:r2i16i16"
+    @prg_instance = global %prg { %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }, %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } } }
+    @__Rect__init = unnamed_addr constant %Rect zeroinitializer
+    @__Point__init = unnamed_addr constant %Point zeroinitializer
     @__prg.rect1__init = unnamed_addr constant %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }
     @__prg.rect2__init = unnamed_addr constant %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } }
 
@@ -164,9 +164,9 @@ fn initializing_a_struct() {
     %Rect = type { %Point, %Point }
     %prg = type { %Rect, %Rect }
 
-    @__Point__init = external global %Point, section "$RUSTY$var-__point__init:r2i16i16"
-    @__Rect__init = external global %Rect, section "$RUSTY$var-__rect__init:r2r2i16i16r2i16i16"
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2r2r2i16i16r2i16i16r2r2i16i16r2i16i16"
+    @__Point__init = external global %Point
+    @__Rect__init = external global %Rect
+    @prg_instance = external global %prg
 
     define void @__init_point(%Point* %0) {
     entry:
@@ -209,9 +209,9 @@ fn initializing_a_struct() {
     %Rect = type { %Point, %Point }
     %Point = type { i16, i16 }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2r2r2i16i16r2i16i16r2r2i16i16r2i16i16"
-    @__Rect__init = external global %Rect, section "$RUSTY$var-__rect__init:r2r2i16i16r2i16i16"
-    @__Point__init = external global %Point, section "$RUSTY$var-__point__init:r2i16i16"
+    @prg_instance = external global %prg
+    @__Rect__init = external global %Rect
+    @__Point__init = external global %Point
 
     define void @__init___testproject() {
     entry:
@@ -256,8 +256,8 @@ fn assigning_structs() {
     %prg = type { %Point, %Point }
     %Point = type { i16, i16 }
 
-    @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r2r2i16i16r2i16i16"
-    @__Point__init = unnamed_addr constant %Point zeroinitializer, section "$RUSTY$var-__point__init:r2i16i16"
+    @prg_instance = global %prg zeroinitializer
+    @__Point__init = unnamed_addr constant %Point zeroinitializer
 
     define void @prg(%prg* %0) {
     entry:
@@ -279,8 +279,8 @@ fn assigning_structs() {
     %Point = type { i16, i16 }
     %prg = type { %Point, %Point }
 
-    @__Point__init = external global %Point, section "$RUSTY$var-__point__init:r2i16i16"
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2r2i16i16r2i16i16"
+    @__Point__init = external global %Point
+    @prg_instance = external global %prg
 
     define void @__init_point(%Point* %0) {
     entry:
@@ -309,8 +309,8 @@ fn assigning_structs() {
     %prg = type { %Point, %Point }
     %Point = type { i16, i16 }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2r2i16i16r2i16i16"
-    @__Point__init = external global %Point, section "$RUSTY$var-__point__init:r2i16i16"
+    @prg_instance = external global %prg
+    @__Point__init = external global %Point
 
     define void @__init___testproject() {
     entry:
@@ -361,9 +361,9 @@ fn accessing_struct_members() {
     %Rect = type { %Point, %Point }
     %Point = type { i16, i16 }
 
-    @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r2r2r2i16i16r2i16i16r2r2i16i16r2i16i16"
-    @__Rect__init = unnamed_addr constant %Rect zeroinitializer, section "$RUSTY$var-__rect__init:r2r2i16i16r2i16i16"
-    @__Point__init = unnamed_addr constant %Point zeroinitializer, section "$RUSTY$var-__point__init:r2i16i16"
+    @prg_instance = global %prg zeroinitializer
+    @__Rect__init = unnamed_addr constant %Rect zeroinitializer
+    @__Point__init = unnamed_addr constant %Point zeroinitializer
 
     define void @prg(%prg* %0) {
     entry:
@@ -384,9 +384,9 @@ fn accessing_struct_members() {
     %Rect = type { %Point, %Point }
     %prg = type { %Rect, %Rect }
 
-    @__Point__init = external global %Point, section "$RUSTY$var-__point__init:r2i16i16"
-    @__Rect__init = external global %Rect, section "$RUSTY$var-__rect__init:r2r2i16i16r2i16i16"
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2r2r2i16i16r2i16i16r2r2i16i16r2i16i16"
+    @__Point__init = external global %Point
+    @__Rect__init = external global %Rect
+    @prg_instance = external global %prg
 
     define void @__init_point(%Point* %0) {
     entry:
@@ -429,9 +429,9 @@ fn accessing_struct_members() {
     %Rect = type { %Point, %Point }
     %Point = type { i16, i16 }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2r2r2i16i16r2i16i16r2r2i16i16r2i16i16"
-    @__Rect__init = external global %Rect, section "$RUSTY$var-__rect__init:r2r2i16i16r2i16i16"
-    @__Point__init = external global %Point, section "$RUSTY$var-__point__init:r2i16i16"
+    @prg_instance = external global %prg
+    @__Rect__init = external global %Rect
+    @__Point__init = external global %Point
 
     define void @__init___testproject() {
     entry:

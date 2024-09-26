@@ -16,13 +16,13 @@ fn aliased_address_in_global_generated() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @foo = global i8* null, section "$RUSTY$var-foo:pu8"
-    @__PI_1_2_3_4 = global i8 0, section "$RUSTY$var-__pi_1_2_3_4:u8"
+    @foo = global i8* null
+    @__PI_1_2_3_4 = global i8 0
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    @__PI_1_2_3_4 = external global i8, section "$RUSTY$var-__pi_1_2_3_4:u8"
-    @foo = external global i8*, section "$RUSTY$var-foo:pu8"
+    @__PI_1_2_3_4 = external global i8
+    @foo = external global i8*
 
     define void @__init___testproject() {
     entry:
@@ -47,15 +47,15 @@ fn duplicate_aliased_address_in_global_generated() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @foo = global i8* null, section "$RUSTY$var-foo:pu8"
-    @__PI_1_2_3_4 = global i8 0, section "$RUSTY$var-__pi_1_2_3_4:u8"
-    @baz = global i8* null, section "$RUSTY$var-baz:pu8"
+    @foo = global i8* null
+    @__PI_1_2_3_4 = global i8 0
+    @baz = global i8* null
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    @__PI_1_2_3_4 = external global i8, section "$RUSTY$var-__pi_1_2_3_4:u8"
-    @foo = external global i8*, section "$RUSTY$var-foo:pu8"
-    @baz = external global i8*, section "$RUSTY$var-baz:pu8"
+    @__PI_1_2_3_4 = external global i8
+    @foo = external global i8*
+    @baz = external global i8*
 
     define void @__init___testproject() {
     entry:
@@ -88,10 +88,10 @@ fn address_variable_used_with_symbolic_name() {
 
     %mainProg = type {}
 
-    @foo = global i8* null, section "$RUSTY$var-foo:pu8"
-    @__PI_1_2_3_4 = global i8 0, section "$RUSTY$var-__pi_1_2_3_4:u8"
-    @baz = global i8* null, section "$RUSTY$var-baz:pu8"
-    @mainProg_instance = global %mainProg zeroinitializer, section "$RUSTY$var-mainprog_instance:r0"
+    @foo = global i8* null
+    @__PI_1_2_3_4 = global i8 0
+    @baz = global i8* null
+    @mainProg_instance = global %mainProg zeroinitializer
 
     define void @mainProg(%mainProg* %0) {
     entry:
@@ -106,7 +106,7 @@ fn address_variable_used_with_symbolic_name() {
 
     %mainProg = type {}
 
-    @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0"
+    @mainProg_instance = external global %mainProg
 
     define void @__init_mainprog(%mainProg* %0) {
     entry:
@@ -121,10 +121,10 @@ fn address_variable_used_with_symbolic_name() {
 
     %mainProg = type {}
 
-    @__PI_1_2_3_4 = external global i8, section "$RUSTY$var-__pi_1_2_3_4:u8"
-    @foo = external global i8*, section "$RUSTY$var-foo:pu8"
-    @baz = external global i8*, section "$RUSTY$var-baz:pu8"
-    @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0"
+    @__PI_1_2_3_4 = external global i8
+    @foo = external global i8*
+    @baz = external global i8*
+    @mainProg_instance = external global %mainProg
 
     define void @__init___testproject() {
     entry:
@@ -163,12 +163,12 @@ fn address_used_in_body() {
 
     %mainProg = type {}
 
-    @foo = global i8* null, section "$RUSTY$var-foo:pu8"
-    @__PI_1_2_3_4 = global i8 0, section "$RUSTY$var-__pi_1_2_3_4:u8"
-    @baz = global i8* null, section "$RUSTY$var-baz:pu8"
-    @__PI_1_2_3_5 = global i8 0, section "$RUSTY$var-__pi_1_2_3_5:u8"
-    @x = global i8 1, section "$RUSTY$var-x:u8"
-    @mainProg_instance = global %mainProg zeroinitializer, section "$RUSTY$var-mainprog_instance:r0"
+    @foo = global i8* null
+    @__PI_1_2_3_4 = global i8 0
+    @baz = global i8* null
+    @__PI_1_2_3_5 = global i8 0
+    @x = global i8 1
+    @mainProg_instance = global %mainProg zeroinitializer
 
     define void @mainProg(%mainProg* %0) {
     entry:
@@ -182,7 +182,7 @@ fn address_used_in_body() {
 
     %mainProg = type {}
 
-    @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0"
+    @mainProg_instance = external global %mainProg
 
     define void @__init_mainprog(%mainProg* %0) {
     entry:
@@ -197,11 +197,11 @@ fn address_used_in_body() {
 
     %mainProg = type {}
 
-    @__PI_1_2_3_4 = external global i8, section "$RUSTY$var-__pi_1_2_3_4:u8"
-    @foo = external global i8*, section "$RUSTY$var-foo:pu8"
-    @__PI_1_2_3_5 = external global i8, section "$RUSTY$var-__pi_1_2_3_5:u8"
-    @baz = external global i8*, section "$RUSTY$var-baz:pu8"
-    @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0"
+    @__PI_1_2_3_4 = external global i8
+    @foo = external global i8*
+    @__PI_1_2_3_5 = external global i8
+    @baz = external global i8*
+    @mainProg_instance = external global %mainProg
 
     define void @__init___testproject() {
     entry:

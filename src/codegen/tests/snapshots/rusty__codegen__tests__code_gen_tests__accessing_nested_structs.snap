@@ -9,9 +9,9 @@ source_filename = "<internal>"
 %OuterStruct = type { %InnerStruct, %InnerStruct }
 %InnerStruct = type { i16, i16 }
 
-@Main_instance = global %Main zeroinitializer, section "$RUSTY$var-main_instance:r1r2r2i16i16r2i16i16"
-@__OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer, section "$RUSTY$var-__outerstruct__init:r2r2i16i16r2i16i16"
-@__InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer, section "$RUSTY$var-__innerstruct__init:r2i16i16"
+@Main_instance = global %Main zeroinitializer
+@__OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer
+@__InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer
 
 define void @Main(%Main* %0) {
 entry:
@@ -31,9 +31,9 @@ source_filename = "__initializers"
 %OuterStruct = type { %InnerStruct, %InnerStruct }
 %Main = type { %OuterStruct }
 
-@__InnerStruct__init = external global %InnerStruct, section "$RUSTY$var-__innerstruct__init:r2i16i16"
-@__OuterStruct__init = external global %OuterStruct, section "$RUSTY$var-__outerstruct__init:r2r2i16i16r2i16i16"
-@Main_instance = external global %Main, section "$RUSTY$var-main_instance:r1r2r2i16i16r2i16i16"
+@__InnerStruct__init = external global %InnerStruct
+@__OuterStruct__init = external global %OuterStruct
+@Main_instance = external global %Main
 
 define void @__init_innerstruct(%InnerStruct* %0) {
 entry:
@@ -73,9 +73,9 @@ source_filename = "__init___testproject"
 %OuterStruct = type { %InnerStruct, %InnerStruct }
 %InnerStruct = type { i16, i16 }
 
-@Main_instance = external global %Main, section "$RUSTY$var-main_instance:r1r2r2i16i16r2i16i16"
-@__OuterStruct__init = external global %OuterStruct, section "$RUSTY$var-__outerstruct__init:r2r2i16i16r2i16i16"
-@__InnerStruct__init = external global %InnerStruct, section "$RUSTY$var-__innerstruct__init:r2i16i16"
+@Main_instance = external global %Main
+@__OuterStruct__init = external global %OuterStruct
+@__InnerStruct__init = external global %InnerStruct
 
 define void @__init___testproject() {
 entry:

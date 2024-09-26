@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %fb_t = type { i32, i32 }
 %main = type { %fb_t }
 
-@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer, section "$RUSTY$var-__fb_t__init:r2i32i32"
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r1r2i32i32"
+@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
+@main_instance = global %main zeroinitializer
 
 define void @fb_t(%fb_t* %0) {
 entry:
@@ -32,8 +32,8 @@ source_filename = "__initializers"
 %fb_t = type { i32, i32 }
 %main = type { %fb_t }
 
-@__fb_t__init = external global %fb_t, section "$RUSTY$var-__fb_t__init:r2i32i32"
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1r2i32i32"
+@__fb_t__init = external global %fb_t
+@main_instance = external global %main
 
 define void @__init_fb_t(%fb_t* %0) {
 entry:
@@ -61,8 +61,8 @@ source_filename = "__init___testproject"
 %main = type { %fb_t }
 %fb_t = type { i32, i32 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1r2i32i32"
-@__fb_t__init = external global %fb_t, section "$RUSTY$var-__fb_t__init:r2i32i32"
+@main_instance = external global %main
+@__fb_t__init = external global %fb_t
 
 define void @__init___testproject() {
 entry:

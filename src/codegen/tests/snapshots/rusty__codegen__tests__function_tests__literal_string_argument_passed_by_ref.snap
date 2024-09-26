@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %main = type { [81 x i8] }
 
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r1s8u81"
+@main_instance = global %main zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
 declare void @func([81 x i8]*, i8*)
@@ -32,7 +32,7 @@ source_filename = "__initializers"
 
 %main = type { [81 x i8] }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1s8u81"
+@main_instance = external global %main
 
 define void @__init_main(%main* %0) {
 entry:
@@ -47,7 +47,7 @@ source_filename = "__init___testproject"
 
 %main = type { [81 x i8] }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1s8u81"
+@main_instance = external global %main
 
 define void @__init___testproject() {
 entry:

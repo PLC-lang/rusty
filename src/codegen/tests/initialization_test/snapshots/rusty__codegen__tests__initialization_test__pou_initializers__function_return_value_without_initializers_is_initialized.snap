@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %MyStrct = type { i32, i32, i32 }
 
-@__MyStrct__init = unnamed_addr constant %MyStrct zeroinitializer, section "$RUSTY$var-__mystrct__init:r3i32i32i32"
+@__MyStrct__init = unnamed_addr constant %MyStrct zeroinitializer
 
 define i16 @foo_int() {
 entry:
@@ -60,7 +60,7 @@ source_filename = "__initializers"
 
 %MyStrct = type { i32, i32, i32 }
 
-@__MyStrct__init = external global %MyStrct, section "$RUSTY$var-__mystrct__init:r3i32i32i32"
+@__MyStrct__init = external global %MyStrct
 
 define void @__init_mystrct(%MyStrct* %0) {
 entry:

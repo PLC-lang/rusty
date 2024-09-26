@@ -8,17 +8,17 @@ source_filename = "<internal>"
 %MyStruct = type { %MyPoint, [4 x i16], i32 }
 %MyPoint = type { i32, i32 }
 
-@a = global %MyStruct { %MyPoint { i32 1, i32 2 }, [4 x i16] [i16 0, i16 1, i16 2, i16 3], i32 7 }, section "$RUSTY$var-a:r3r2i32i32ai16i32"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r3r2i32i32ai16i32"
-@__MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer, section "$RUSTY$var-__mypoint__init:r2i32i32"
+@a = global %MyStruct { %MyPoint { i32 1, i32 2 }, [4 x i16] [i16 0, i16 1, i16 2, i16 3], i32 7 }
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
+@__MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
 
 %MyPoint = type { i32, i32 }
 %MyStruct = type { %MyPoint, [4 x i16], i32 }
 
-@__MyPoint__init = external global %MyPoint, section "$RUSTY$var-__mypoint__init:r2i32i32"
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r3r2i32i32ai16i32"
+@__MyPoint__init = external global %MyPoint
+@__MyStruct__init = external global %MyStruct
 
 define void @__init_mypoint(%MyPoint* %0) {
 entry:
@@ -42,9 +42,9 @@ source_filename = "__init___testproject"
 %MyStruct = type { %MyPoint, [4 x i16], i32 }
 %MyPoint = type { i32, i32 }
 
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r3r2i32i32ai16i32"
-@__MyPoint__init = external global %MyPoint, section "$RUSTY$var-__mypoint__init:r2i32i32"
-@a = external global %MyStruct, section "$RUSTY$var-a:r3r2i32i32ai16i32"
+@__MyStruct__init = external global %MyStruct
+@__MyPoint__init = external global %MyPoint
+@a = external global %MyStruct
 
 define void @__init___testproject() {
 entry:

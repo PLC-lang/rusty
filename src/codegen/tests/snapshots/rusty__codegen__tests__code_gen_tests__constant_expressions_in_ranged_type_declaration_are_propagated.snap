@@ -7,8 +7,8 @@ source_filename = "<internal>"
 
 %prg = type { i16 }
 
-@MIN = unnamed_addr constant i16 7, section "$RUSTY$var-min:i16"
-@prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r1i16"
+@MIN = unnamed_addr constant i16 7
+@prg_instance = global %prg zeroinitializer
 
 define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
@@ -38,7 +38,7 @@ source_filename = "__initializers"
 
 %prg = type { i16 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i16"
+@prg_instance = external global %prg
 
 define void @__init_prg(%prg* %0) {
 entry:
@@ -53,7 +53,7 @@ source_filename = "__init___testproject"
 
 %prg = type { i16 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i16"
+@prg_instance = external global %prg
 
 define void @__init___testproject() {
 entry:

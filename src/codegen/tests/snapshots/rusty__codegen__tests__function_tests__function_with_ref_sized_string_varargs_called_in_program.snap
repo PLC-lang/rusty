@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %prg = type { i32 }
 
-@prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r1i32"
+@prg_instance = global %prg zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"a\00"
 @utf08_literal_1 = private unnamed_addr constant [4 x i8] c"abc\00"
 @utf08_literal_2 = private unnamed_addr constant [7 x i8] c"abcdef\00"
@@ -34,7 +34,7 @@ source_filename = "__initializers"
 
 %prg = type { i32 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i32"
+@prg_instance = external global %prg
 
 define void @__init_prg(%prg* %0) {
 entry:
@@ -49,7 +49,7 @@ source_filename = "__init___testproject"
 
 %prg = type { i32 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i32"
+@prg_instance = external global %prg
 
 define void @__init___testproject() {
 entry:

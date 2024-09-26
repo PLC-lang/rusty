@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %myPrg = type {}
 %myFb = type {}
 
-@myPrg_instance = global %myPrg zeroinitializer, section "$RUSTY$var-myprg_instance:r0", !dbg !0
-@__myFb__init = unnamed_addr constant %myFb zeroinitializer, section "$RUSTY$var-__myfb__init:r0", !dbg !5
+@myPrg_instance = global %myPrg zeroinitializer, !dbg !0
+@__myFb__init = unnamed_addr constant %myFb zeroinitializer, !dbg !5
 
 define i32 @myFunc() !dbg !13 {
 entry:
@@ -72,8 +72,8 @@ source_filename = "__initializers"
 %myPrg = type {}
 %myFb = type {}
 
-@myPrg_instance = external global %myPrg, section "$RUSTY$var-myprg_instance:r0", !dbg !0
-@__myFb__init = external global %myFb, section "$RUSTY$var-__myfb__init:r0", !dbg !5
+@myPrg_instance = external global %myPrg, !dbg !0
+@__myFb__init = external global %myFb, !dbg !5
 
 define void @__init_myprg(%myPrg* %0) !dbg !13 {
 entry:
@@ -137,7 +137,7 @@ source_filename = "__init___testproject"
 
 %myPrg = type {}
 
-@myPrg_instance = external global %myPrg, section "$RUSTY$var-myprg_instance:r0", !dbg !0
+@myPrg_instance = external global %myPrg, !dbg !0
 
 define void @__init___testproject() !dbg !10 {
 entry:

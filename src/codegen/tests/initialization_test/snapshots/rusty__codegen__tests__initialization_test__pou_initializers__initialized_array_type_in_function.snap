@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-@__arr__init = unnamed_addr constant [4 x i32] [i32 1, i32 2, i32 3, i32 4], section "$RUSTY$var-__arr__init:ai32"
+@__arr__init = unnamed_addr constant [4 x i32] [i32 1, i32 2, i32 3, i32 4]
 
 define i16 @func() {
 entry:

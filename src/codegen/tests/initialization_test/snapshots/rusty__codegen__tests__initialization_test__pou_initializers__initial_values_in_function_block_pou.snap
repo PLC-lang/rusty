@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %FB = type { i16, i16, i8, i8, float, float }
 %main = type { %FB }
 
-@__FB__init = unnamed_addr constant %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }, section "$RUSTY$var-__fb__init:r6i16i16u8u8f32f32"
-@main_instance = global %main { %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }, section "$RUSTY$var-main_instance:r1r6i16i16u8u8f32f32"
+@__FB__init = unnamed_addr constant %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
+@main_instance = global %main { %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }
 
 define void @FB(%FB* %0) {
 entry:
@@ -33,8 +33,8 @@ source_filename = "__initializers"
 %FB = type { i16, i16, i8, i8, float, float }
 %main = type { %FB }
 
-@__FB__init = external global %FB, section "$RUSTY$var-__fb__init:r6i16i16u8u8f32f32"
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1r6i16i16u8u8f32f32"
+@__FB__init = external global %FB
+@main_instance = external global %main
 
 define void @__init_fb(%FB* %0) {
 entry:
@@ -62,8 +62,8 @@ source_filename = "__init___testproject"
 %main = type { %FB }
 %FB = type { i16, i16, i8, i8, float, float }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1r6i16i16u8u8f32f32"
-@__FB__init = external global %FB, section "$RUSTY$var-__fb__init:r6i16i16u8u8f32f32"
+@main_instance = external global %main
+@__FB__init = external global %FB
 
 define void @__init___testproject() {
 entry:

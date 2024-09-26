@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %main = type {}
 
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r0"
+@main_instance = global %main zeroinitializer
 
 define i32 @func(i16* %0, i32* %1, i16 %2, i32 %3) {
 entry:
@@ -52,7 +52,7 @@ source_filename = "__initializers"
 
 %main = type {}
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r0"
+@main_instance = external global %main
 
 define void @__init_main(%main* %0) {
 entry:
@@ -67,7 +67,7 @@ source_filename = "__init___testproject"
 
 %main = type {}
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r0"
+@main_instance = external global %main
 
 define void @__init___testproject() {
 entry:

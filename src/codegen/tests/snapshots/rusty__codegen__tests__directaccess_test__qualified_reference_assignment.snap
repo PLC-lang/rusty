@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %myStruct = type { i8 }
 
-@__myStruct__init = unnamed_addr constant %myStruct { i8 1 }, section "$RUSTY$var-__mystruct__init:r1u8"
+@__myStruct__init = unnamed_addr constant %myStruct { i8 1 }
 
 define i16 @main() {
 entry:
@@ -42,7 +42,7 @@ source_filename = "__initializers"
 
 %myStruct = type { i8 }
 
-@__myStruct__init = external global %myStruct, section "$RUSTY$var-__mystruct__init:r1u8"
+@__myStruct__init = external global %myStruct
 
 define void @__init_mystruct(%myStruct* %0) {
 entry:

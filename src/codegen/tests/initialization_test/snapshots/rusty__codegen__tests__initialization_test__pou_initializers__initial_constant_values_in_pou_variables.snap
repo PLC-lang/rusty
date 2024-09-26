@@ -7,10 +7,10 @@ source_filename = "<internal>"
 
 %prg = type { i16, i16 }
 
-@MAX_LEN = unnamed_addr constant i16 99, section "$RUSTY$var-max_len:i16"
-@MIN_LEN = unnamed_addr constant i16 10, section "$RUSTY$var-min_len:i16"
-@LEN = unnamed_addr constant i16 20, section "$RUSTY$var-len:i16"
-@prg_instance = global %prg { i16 24, i16 89 }, section "$RUSTY$var-prg_instance:r2i16i16"
+@MAX_LEN = unnamed_addr constant i16 99
+@MIN_LEN = unnamed_addr constant i16 10
+@LEN = unnamed_addr constant i16 20
+@prg_instance = global %prg { i16 24, i16 89 }
 
 define void @prg(%prg* %0) {
 entry:
@@ -23,7 +23,7 @@ source_filename = "__initializers"
 
 %prg = type { i16, i16 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2i16i16"
+@prg_instance = external global %prg
 
 define void @__init_prg(%prg* %0) {
 entry:
@@ -38,7 +38,7 @@ source_filename = "__init___testproject"
 
 %prg = type { i16, i16 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2i16i16"
+@prg_instance = external global %prg
 
 define void @__init___testproject() {
 entry:

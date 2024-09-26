@@ -18,7 +18,7 @@ source_filename = "fb.st"
 
 %fb = type {}
 
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "$RUSTY$var-__fb__init:r0"
+@__fb__init = unnamed_addr constant %fb zeroinitializer
 
 define void @fb(%fb* %0) {
 entry:
@@ -30,7 +30,7 @@ source_filename = "prg.st"
 
 %prg = type { i32 }
 
-@prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r1i32"
+@prg_instance = global %prg zeroinitializer
 
 define void @prg(%prg* %0) {
 entry:
@@ -43,7 +43,7 @@ source_filename = "prg2.st"
 
 %prg2 = type { i32 }
 
-@prg2_instance = global %prg2 zeroinitializer, section "$RUSTY$var-prg2_instance:r1i32"
+@prg2_instance = global %prg2 zeroinitializer
 
 define void @prg2(%prg2* %0) {
 entry:
@@ -59,10 +59,10 @@ source_filename = "prog.st"
 %prg.5 = type { i32 }
 %prg2.6 = type { i32 }
 
-@prog_instance = global %prog zeroinitializer, section "$RUSTY$var-prog_instance:r1r0"
-@__fb__init = external global %fb.4, section "$RUSTY$var-__fb__init:r0"
-@prg_instance = external global %prg.5, section "$RUSTY$var-prg_instance:r1i32"
-@prg2_instance = external global %prg2.6, section "$RUSTY$var-prg2_instance:r1i32"
+@prog_instance = global %prog zeroinitializer
+@__fb__init = external global %fb.4
+@prg_instance = external global %prg.5
+@prg2_instance = external global %prg2.6
 
 define void @prog(%prog* %0) {
 entry:

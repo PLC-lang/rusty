@@ -4,7 +4,7 @@ expression: output_file_content_without_headers
 ---
 %conditional_return = type { i32 }
 
-@__conditional_return__init = constant %conditional_return zeroinitializer, section "$RUSTY$var-__conditional_return__init:r1i32"
+@__conditional_return__init = constant %conditional_return zeroinitializer
 
 define i32 @main() {
 entry:

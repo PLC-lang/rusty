@@ -7,16 +7,16 @@ source_filename = "<internal>"
 
 %prg = type { i8, i16, i32 }
 
-@prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r3u8u16i32"
-@MyEnum.red = unnamed_addr constant i8 5, section "$RUSTY$var-myenum.red:e3u8"
-@MyEnum.yellow = unnamed_addr constant i8 6, section "$RUSTY$var-myenum.yellow:e3u8"
-@MyEnum.green = unnamed_addr constant i8 7, section "$RUSTY$var-myenum.green:e3u8"
-@MyEnum2.red = unnamed_addr constant i16 15, section "$RUSTY$var-myenum2.red:e3u16"
-@MyEnum2.yellow = unnamed_addr constant i16 16, section "$RUSTY$var-myenum2.yellow:e3u16"
-@MyEnum2.green = unnamed_addr constant i16 17, section "$RUSTY$var-myenum2.green:e3u16"
-@MyEnum3.red = unnamed_addr constant i32 25, section "$RUSTY$var-myenum3.red:e3i32"
-@MyEnum3.yellow = unnamed_addr constant i32 26, section "$RUSTY$var-myenum3.yellow:e3i32"
-@MyEnum3.green = unnamed_addr constant i32 27, section "$RUSTY$var-myenum3.green:e3i32"
+@prg_instance = global %prg zeroinitializer
+@MyEnum.red = unnamed_addr constant i8 5
+@MyEnum.yellow = unnamed_addr constant i8 6
+@MyEnum.green = unnamed_addr constant i8 7
+@MyEnum2.red = unnamed_addr constant i16 15
+@MyEnum2.yellow = unnamed_addr constant i16 16
+@MyEnum2.green = unnamed_addr constant i16 17
+@MyEnum3.red = unnamed_addr constant i32 25
+@MyEnum3.yellow = unnamed_addr constant i32 26
+@MyEnum3.green = unnamed_addr constant i32 27
 
 define void @prg(%prg* %0) {
 entry:
@@ -33,7 +33,7 @@ source_filename = "__initializers"
 
 %prg = type { i8, i16, i32 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r3u8u16i32"
+@prg_instance = external global %prg
 
 define void @__init_prg(%prg* %0) {
 entry:
@@ -48,7 +48,7 @@ source_filename = "__init___testproject"
 
 %prg = type { i8, i16, i32 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r3u8u16i32"
+@prg_instance = external global %prg
 
 define void @__init___testproject() {
 entry:

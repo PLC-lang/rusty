@@ -7,8 +7,8 @@ source_filename = "<internal>"
 
 %main = type { [4 x i16] }
 
-@const_arr = unnamed_addr constant [4 x i16] [i16 1, i16 2, i16 3, i16 4], section "$RUSTY$var-const_arr:ai16"
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r1ai16"
+@const_arr = unnamed_addr constant [4 x i16] [i16 1, i16 2, i16 3, i16 4]
+@main_instance = global %main zeroinitializer
 
 define void @main(%main* %0) {
 entry:
@@ -27,7 +27,7 @@ source_filename = "__initializers"
 
 %main = type { [4 x i16] }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1ai16"
+@main_instance = external global %main
 
 define void @__init_main(%main* %0) {
 entry:
@@ -42,7 +42,7 @@ source_filename = "__init___testproject"
 
 %main = type { [4 x i16] }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1ai16"
+@main_instance = external global %main
 
 define void @__init___testproject() {
 entry:

@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %prog = type { i32, i32 }
 %main = type { i32 }
 
-@prog_instance = global %prog zeroinitializer, section "$RUSTY$var-prog_instance:r2i32i32"
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r1i32"
+@prog_instance = global %prog zeroinitializer
+@main_instance = global %main zeroinitializer
 
 define void @prog(%prog* %0) {
 entry:
@@ -34,8 +34,8 @@ source_filename = "__initializers"
 %prog = type { i32, i32 }
 %main = type { i32 }
 
-@prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r2i32i32"
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1i32"
+@prog_instance = external global %prog
+@main_instance = external global %main
 
 define void @__init_prog(%prog* %0) {
 entry:
@@ -60,8 +60,8 @@ source_filename = "__init___testproject"
 %prog = type { i32, i32 }
 %main = type { i32 }
 
-@prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r2i32i32"
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r1i32"
+@prog_instance = external global %prog
+@main_instance = external global %main
 
 define void @__init___testproject() {
 entry:

@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %mainProg = type { %fb_t, i8, i8 }
 %fb_t = type { i8, i8, i8*, i8, i8* }
 
-@mainProg_instance = global %mainProg zeroinitializer, section "$RUSTY$var-mainprog_instance:r3r5u8u8pu8u8pu8u8u8"
-@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer, section "$RUSTY$var-__fb_t__init:r5u8u8pu8u8pu8"
+@mainProg_instance = global %mainProg zeroinitializer
+@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
 
 define void @mainProg(%mainProg* %0) {
 entry:
@@ -64,8 +64,8 @@ source_filename = "__initializers"
 %mainProg = type { %fb_t, i8, i8 }
 %fb_t = type { i8, i8, i8*, i8, i8* }
 
-@mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r3r5u8u8pu8u8pu8u8u8"
-@__fb_t__init = external global %fb_t, section "$RUSTY$var-__fb_t__init:r5u8u8pu8u8pu8"
+@mainProg_instance = external global %mainProg
+@__fb_t__init = external global %fb_t
 
 define void @__init_mainprog(%mainProg* %0) {
 entry:
@@ -93,8 +93,8 @@ source_filename = "__init___testproject"
 %mainProg = type { %fb_t, i8, i8 }
 %fb_t = type { i8, i8, i8*, i8, i8* }
 
-@mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r3r5u8u8pu8u8pu8u8u8"
-@__fb_t__init = external global %fb_t, section "$RUSTY$var-__fb_t__init:r5u8u8pu8u8pu8"
+@mainProg_instance = external global %mainProg
+@__fb_t__init = external global %fb_t
 
 define void @__init___testproject() {
 entry:

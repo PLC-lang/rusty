@@ -18,8 +18,8 @@ fn declaring_a_string() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @myUtf8 = global [21 x i8] zeroinitializer, section "$RUSTY$var-myutf8:s8u21"
-    @myUtf16 = global [21 x i16] zeroinitializer, section "$RUSTY$var-myutf16:s16u21"
+    @myUtf8 = global [21 x i8] zeroinitializer
+    @myUtf16 = global [21 x i16] zeroinitializer
     "###);
 }
 
@@ -41,8 +41,8 @@ fn strings_are_terminated_with_0byte() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @myUtf8 = global [6 x i8] c"Hello\00", section "$RUSTY$var-myutf8:s8u6"
-    @myUtf16 = global [6 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0], section "$RUSTY$var-myutf16:s16u6"
+    @myUtf8 = global [6 x i8] c"Hello\00"
+    @myUtf16 = global [6 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0]
     "###);
 }
 
@@ -68,7 +68,7 @@ fn assigning_strings() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
+    @prg_instance = global %prg zeroinitializer
 
     define void @prg(%prg* %0) {
     entry:
@@ -89,7 +89,7 @@ fn assigning_strings() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
+    @prg_instance = external global %prg
 
     define void @__init_prg(%prg* %0) {
     entry:
@@ -104,7 +104,7 @@ fn assigning_strings() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
+    @prg_instance = external global %prg
 
     define void @__init___testproject() {
     entry:
@@ -140,7 +140,7 @@ fn assigning_string_literals() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
+    @prg_instance = global %prg zeroinitializer
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
 
@@ -164,7 +164,7 @@ fn assigning_string_literals() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
+    @prg_instance = external global %prg
 
     define void @__init_prg(%prg* %0) {
     entry:
@@ -179,7 +179,7 @@ fn assigning_string_literals() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
+    @prg_instance = external global %prg
 
     define void @__init___testproject() {
     entry:

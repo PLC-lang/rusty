@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %baz = type { [11 x i8], i8*, [10 x i8]* }
 
-@baz_instance = global %baz zeroinitializer, section "$RUSTY$var-baz_instance:r3s8u11pu8pau8"
+@baz_instance = global %baz zeroinitializer
 
 define void @baz(%baz* %0) {
 entry:
@@ -25,7 +25,7 @@ source_filename = "__initializers"
 
 %baz = type { [11 x i8], i8*, [10 x i8]* }
 
-@baz_instance = external global %baz, section "$RUSTY$var-baz_instance:r3s8u11pu8pau8"
+@baz_instance = external global %baz
 
 define void @__init_baz(%baz* %0) {
 entry:
@@ -40,7 +40,7 @@ source_filename = "__init___testproject"
 
 %baz = type { [11 x i8], i8*, [10 x i8]* }
 
-@baz_instance = external global %baz, section "$RUSTY$var-baz_instance:r3s8u11pu8pau8"
+@baz_instance = external global %baz
 
 define void @__init___testproject() {
 entry:

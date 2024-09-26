@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %main = type { [2 x i32], i32 }
 %__foo_vla = type { i32*, [2 x i32] }
 
-@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r2ai32i32"
-@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer, section "$RUSTY$var-____foo_vla__init:r2pai32ai32"
+@main_instance = global %main zeroinitializer
+@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
 
 define void @main(%main* %0) {
 entry:
@@ -49,7 +49,7 @@ source_filename = "__initializers"
 
 %main = type { [2 x i32], i32 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r2ai32i32"
+@main_instance = external global %main
 
 define void @__init_main(%main* %0) {
 entry:
@@ -64,7 +64,7 @@ source_filename = "__init___testproject"
 
 %main = type { [2 x i32], i32 }
 
-@main_instance = external global %main, section "$RUSTY$var-main_instance:r2ai32i32"
+@main_instance = external global %main
 
 define void @__init___testproject() {
 entry:

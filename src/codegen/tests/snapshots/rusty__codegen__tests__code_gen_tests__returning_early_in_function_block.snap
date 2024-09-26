@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %abcdef = type { i8 }
 
-@__abcdef__init = unnamed_addr constant %abcdef zeroinitializer, section "$RUSTY$var-__abcdef__init:r1i8"
+@__abcdef__init = unnamed_addr constant %abcdef zeroinitializer
 
 define void @abcdef(%abcdef* %0) {
 entry:
@@ -33,7 +33,7 @@ source_filename = "__initializers"
 
 %abcdef = type { i8 }
 
-@__abcdef__init = external global %abcdef, section "$RUSTY$var-__abcdef__init:r1i8"
+@__abcdef__init = external global %abcdef
 
 define void @__init_abcdef(%abcdef* %0) {
 entry:

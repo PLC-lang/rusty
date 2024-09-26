@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %bar = type { %fb }
 %fb = type { i32 }
 
-@bar_instance = global %bar zeroinitializer, section "$RUSTY$var-bar_instance:r1r1i32"
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "$RUSTY$var-__fb__init:r1i32"
+@bar_instance = global %bar zeroinitializer
+@__fb__init = unnamed_addr constant %fb zeroinitializer
 
 define void @bar(%bar* %0) {
 entry:
@@ -36,8 +36,8 @@ source_filename = "__initializers"
 %bar = type { %fb }
 %fb = type { i32 }
 
-@bar_instance = external global %bar, section "$RUSTY$var-bar_instance:r1r1i32"
-@__fb__init = external global %fb, section "$RUSTY$var-__fb__init:r1i32"
+@bar_instance = external global %bar
+@__fb__init = external global %fb
 
 define void @__init_bar(%bar* %0) {
 entry:
@@ -65,8 +65,8 @@ source_filename = "__init___testproject"
 %bar = type { %fb }
 %fb = type { i32 }
 
-@bar_instance = external global %bar, section "$RUSTY$var-bar_instance:r1r1i32"
-@__fb__init = external global %fb, section "$RUSTY$var-__fb__init:r1i32"
+@bar_instance = external global %bar
+@__fb__init = external global %fb
 
 define void @__init___testproject() {
 entry:

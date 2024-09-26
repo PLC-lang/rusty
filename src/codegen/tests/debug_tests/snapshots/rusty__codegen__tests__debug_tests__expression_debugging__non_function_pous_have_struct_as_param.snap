@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %myProg = type { i32 }
 %fb = type { i32 }
 
-@myProg_instance = global %myProg zeroinitializer, section "$RUSTY$var-myprog_instance:r1i32", !dbg !0
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "$RUSTY$var-__fb__init:r1i32", !dbg !7
+@myProg_instance = global %myProg zeroinitializer, !dbg !0
+@__fb__init = unnamed_addr constant %fb zeroinitializer, !dbg !7
 
 define void @myProg(%myProg* %0) !dbg !17 {
 entry:
@@ -71,8 +71,8 @@ source_filename = "__initializers"
 %myProg = type { i32 }
 %fb = type { i32 }
 
-@myProg_instance = external global %myProg, section "$RUSTY$var-myprog_instance:r1i32", !dbg !0
-@__fb__init = external global %fb, section "$RUSTY$var-__fb__init:r1i32", !dbg !7
+@myProg_instance = external global %myProg, !dbg !0
+@__fb__init = external global %fb, !dbg !7
 
 define void @__init_myprog(%myProg* %0) !dbg !17 {
 entry:
@@ -141,7 +141,7 @@ source_filename = "__init___testproject"
 
 %myProg = type { i32 }
 
-@myProg_instance = external global %myProg, section "$RUSTY$var-myprog_instance:r1i32", !dbg !0
+@myProg_instance = external global %myProg, !dbg !0
 
 define void @__init___testproject() !dbg !12 {
 entry:

@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %myPrg = type {}
 %myFb = type {}
 
-@myPrg_instance = external global %myPrg, section "$RUSTY$var-myprg_instance:r0", !dbg !0
-@__myFb__init = external global %myFb, section "$RUSTY$var-__myfb__init:r0", !dbg !5
+@myPrg_instance = external global %myPrg, !dbg !0
+@__myFb__init = external global %myFb, !dbg !5
 
 declare i32 @myFunc()
 

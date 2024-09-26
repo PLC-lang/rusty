@@ -7,7 +7,7 @@ source_filename = "app/file1.st"
 
 %mainProg = type {}
 
-@mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0", !dbg !0
+@mainProg_instance = external global %mainProg, !dbg !0
 
 define i16 @main() !dbg !10 {
 entry:
@@ -54,7 +54,7 @@ source_filename = "lib/file2.st"
 
 %mainProg = type {}
 
-@mainProg_instance = global %mainProg zeroinitializer, section "$RUSTY$var-mainprog_instance:r0", !dbg !0
+@mainProg_instance = global %mainProg zeroinitializer, !dbg !0
 
 define void @mainProg(%mainProg* %0) !dbg !10 {
 entry:
@@ -91,7 +91,7 @@ source_filename = "__initializers"
 
 %mainProg = type {}
 
-@mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0", !dbg !0
+@mainProg_instance = external global %mainProg, !dbg !0
 
 define void @__init_mainprog(%mainProg* %0) !dbg !10 {
 entry:
@@ -136,7 +136,7 @@ source_filename = "__init___TestProject"
 
 %mainProg = type {}
 
-@mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0", !dbg !0
+@mainProg_instance = external global %mainProg, !dbg !0
 
 define void @__init___TestProject() !dbg !10 {
 entry:

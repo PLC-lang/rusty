@@ -7,15 +7,15 @@ source_filename = "<internal>"
 
 %Point = type { i32, i32, i32 }
 
-@x = unnamed_addr constant %Point { i32 1, i32 2, i32 3 }, section "$RUSTY$var-x:r3i32i32i32"
-@__Point__init = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }, section "$RUSTY$var-__point__init:r3i32i32i32"
-@empty = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }, section "$RUSTY$var-empty:r3i32i32i32"
+@x = unnamed_addr constant %Point { i32 1, i32 2, i32 3 }
+@__Point__init = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }
+@empty = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
 
 %Point = type { i32, i32, i32 }
 
-@__Point__init = external global %Point, section "$RUSTY$var-__point__init:r3i32i32i32"
+@__Point__init = external global %Point
 
 define void @__init_point(%Point* %0) {
 entry:
@@ -28,9 +28,9 @@ source_filename = "__init___testproject"
 
 %Point = type { i32, i32, i32 }
 
-@__Point__init = external global %Point, section "$RUSTY$var-__point__init:r3i32i32i32"
-@x = external global %Point, section "$RUSTY$var-x:r3i32i32i32"
-@empty = external global %Point, section "$RUSTY$var-empty:r3i32i32i32"
+@__Point__init = external global %Point
+@x = external global %Point
+@empty = external global %Point
 
 define void @__init___testproject() {
 entry:

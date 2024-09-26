@@ -7,6 +7,6 @@ source_filename = "<internal>"
 
 %prg = type { i32, i32 }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2i32i32"
+@prg_instance = external global %prg
 
 declare void @prg(%prg*)

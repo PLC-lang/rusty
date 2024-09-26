@@ -8,8 +8,8 @@ source_filename = "<internal>"
 %foo = type { i32, i8 }
 %prg = type {}
 
-@foo_instance = global %foo zeroinitializer, section "$RUSTY$var-foo_instance:r2i32u8"
-@prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r0"
+@foo_instance = global %foo zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
 define void @foo(%foo* %0) {
 entry:
@@ -31,8 +31,8 @@ source_filename = "__initializers"
 %foo = type { i32, i8 }
 %prg = type {}
 
-@foo_instance = external global %foo, section "$RUSTY$var-foo_instance:r2i32u8"
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r0"
+@foo_instance = external global %foo
+@prg_instance = external global %prg
 
 define void @__init_foo(%foo* %0) {
 entry:
@@ -57,8 +57,8 @@ source_filename = "__init___testproject"
 %foo = type { i32, i8 }
 %prg = type {}
 
-@foo_instance = external global %foo, section "$RUSTY$var-foo_instance:r2i32u8"
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r0"
+@foo_instance = external global %foo
+@prg_instance = external global %prg
 
 define void @__init___testproject() {
 entry:

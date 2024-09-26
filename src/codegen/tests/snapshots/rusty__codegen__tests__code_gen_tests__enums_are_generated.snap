@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-@x = global i32 0, section "$RUSTY$var-x:e3i32"
-@MyEnum.red = unnamed_addr constant i32 0, section "$RUSTY$var-myenum.red:e3i32"
-@MyEnum.yellow = unnamed_addr constant i32 1, section "$RUSTY$var-myenum.yellow:e3i32"
-@MyEnum.green = unnamed_addr constant i32 2, section "$RUSTY$var-myenum.green:e3i32"
+@x = global i32 0
+@MyEnum.red = unnamed_addr constant i32 0
+@MyEnum.yellow = unnamed_addr constant i32 1
+@MyEnum.green = unnamed_addr constant i32 2

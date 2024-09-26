@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %Main = type { i16 }
 
-@Main_instance = global %Main zeroinitializer, section "$RUSTY$var-main_instance:r1i16"
+@Main_instance = global %Main zeroinitializer
 
 define i16 @Check_XX_RangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
@@ -36,7 +36,7 @@ source_filename = "__initializers"
 
 %Main = type { i16 }
 
-@Main_instance = external global %Main, section "$RUSTY$var-main_instance:r1i16"
+@Main_instance = external global %Main
 
 define void @__init_main(%Main* %0) {
 entry:
@@ -51,7 +51,7 @@ source_filename = "__init___testproject"
 
 %Main = type { i16 }
 
-@Main_instance = external global %Main, section "$RUSTY$var-main_instance:r1i16"
+@Main_instance = external global %Main
 
 define void @__init___testproject() {
 entry:

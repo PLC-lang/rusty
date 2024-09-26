@@ -7,9 +7,9 @@ source_filename = "<internal>"
 
 %prg = type { [16 x i8], [4 x i8], [31 x i16], [7 x i16] }
 
-@LONG_STRING = unnamed_addr constant i16 15, section "$RUSTY$var-long_string:i16"
-@SHORT_STRING = unnamed_addr constant i16 3, section "$RUSTY$var-short_string:i16"
-@prg_instance = global %prg { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [31 x i16] zeroinitializer, [7 x i16] [i16 120, i16 121, i16 122, i16 0, i16 0, i16 0, i16 0] }, section "$RUSTY$var-prg_instance:r4vvvv"
+@LONG_STRING = unnamed_addr constant i16 15
+@SHORT_STRING = unnamed_addr constant i16 3
+@prg_instance = global %prg { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [31 x i16] zeroinitializer, [7 x i16] [i16 120, i16 121, i16 122, i16 0, i16 0, i16 0, i16 0] }
 @__prg.z__init = unnamed_addr constant [4 x i8] c"xyz\00"
 @__prg.wz__init = unnamed_addr constant [7 x i16] [i16 120, i16 121, i16 122, i16 0, i16 0, i16 0, i16 0]
 @utf08_literal_0 = private unnamed_addr constant [12 x i8] c"im a genius\00"
@@ -37,7 +37,7 @@ source_filename = "__initializers"
 
 %prg = type { [16 x i8], [4 x i8], [31 x i16], [7 x i16] }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r4vvvv"
+@prg_instance = external global %prg
 
 define void @__init_prg(%prg* %0) {
 entry:
@@ -52,7 +52,7 @@ source_filename = "__init___testproject"
 
 %prg = type { [16 x i8], [4 x i8], [31 x i16], [7 x i16] }
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r4vvvv"
+@prg_instance = external global %prg
 
 define void @__init___testproject() {
 entry:

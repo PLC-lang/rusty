@@ -170,8 +170,8 @@ fn external_pous_get_external_initializers() {
     %ext_fb = type {}
     %ext_prog = type {}
 
-    @__ext_fb__init = external global %ext_fb, section "$RUSTY$var-__ext_fb__init:r0"
-    @ext_prog_instance = external global %ext_prog, section "$RUSTY$var-ext_prog_instance:r0"
+    @__ext_fb__init = external global %ext_fb
+    @ext_prog_instance = external global %ext_prog
 
     declare void @ext_fb(%ext_fb*)
 

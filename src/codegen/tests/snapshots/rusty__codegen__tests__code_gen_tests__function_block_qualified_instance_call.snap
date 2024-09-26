@@ -9,9 +9,9 @@ source_filename = "<internal>"
 %bar = type {}
 %prg = type { %foo }
 
-@__foo__init = unnamed_addr constant %foo zeroinitializer, section "$RUSTY$var-__foo__init:r1r0"
-@__bar__init = unnamed_addr constant %bar zeroinitializer, section "$RUSTY$var-__bar__init:r0"
-@prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r1r1r0"
+@__foo__init = unnamed_addr constant %foo zeroinitializer
+@__bar__init = unnamed_addr constant %bar zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
 define void @foo(%foo* %0) {
 entry:
@@ -38,9 +38,9 @@ source_filename = "__initializers"
 %foo = type { %bar }
 %prg = type { %foo }
 
-@__bar__init = external global %bar, section "$RUSTY$var-__bar__init:r0"
-@__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r1r0"
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1r1r0"
+@__bar__init = external global %bar
+@__foo__init = external global %foo
+@prg_instance = external global %prg
 
 define void @__init_bar(%bar* %0) {
 entry:
@@ -81,9 +81,9 @@ source_filename = "__init___testproject"
 %foo = type { %bar }
 %bar = type {}
 
-@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1r1r0"
-@__foo__init = external global %foo, section "$RUSTY$var-__foo__init:r1r0"
-@__bar__init = external global %bar, section "$RUSTY$var-__bar__init:r0"
+@prg_instance = external global %prg
+@__foo__init = external global %foo
+@__bar__init = external global %bar
 
 define void @__init___testproject() {
 entry:

@@ -5,14 +5,14 @@ expression: function
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-@__a_position.x = unnamed_addr constant i32 1, section "$RUSTY$var-__a_position.x:e2i32"
-@__aa_position.x = unnamed_addr constant i32 2, section "$RUSTY$var-__aa_position.x:e2i32"
-@__bb_position.x = unnamed_addr constant i32 3, section "$RUSTY$var-__bb_position.x:e2i32"
-@__b_position.x = unnamed_addr constant i32 4, section "$RUSTY$var-__b_position.x:e2i32"
-@__a_position.y = unnamed_addr constant i32 5, section "$RUSTY$var-__a_position.y:e2i32"
-@__aa_position.y = unnamed_addr constant i32 5, section "$RUSTY$var-__aa_position.y:e2i32"
-@__bb_position.y = unnamed_addr constant i32 5, section "$RUSTY$var-__bb_position.y:e2i32"
-@__b_position.y = unnamed_addr constant i32 5, section "$RUSTY$var-__b_position.y:e2i32"
+@__a_position.x = unnamed_addr constant i32 1
+@__aa_position.x = unnamed_addr constant i32 2
+@__bb_position.x = unnamed_addr constant i32 3
+@__b_position.x = unnamed_addr constant i32 4
+@__a_position.y = unnamed_addr constant i32 5
+@__aa_position.y = unnamed_addr constant i32 5
+@__bb_position.y = unnamed_addr constant i32 5
+@__b_position.y = unnamed_addr constant i32 5
 
 define i32 @a() {
 entry:

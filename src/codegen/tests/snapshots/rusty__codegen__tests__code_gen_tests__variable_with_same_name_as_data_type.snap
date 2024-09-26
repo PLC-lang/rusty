@@ -7,7 +7,7 @@ source_filename = "<internal>"
 
 %prog = type { i64 }
 
-@prog_instance = global %prog zeroinitializer, section "$RUSTY$var-prog_instance:r1i64"
+@prog_instance = global %prog zeroinitializer
 
 define i64 @func() {
 entry:
@@ -29,7 +29,7 @@ source_filename = "__initializers"
 
 %prog = type { i64 }
 
-@prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r1i64"
+@prog_instance = external global %prog
 
 define void @__init_prog(%prog* %0) {
 entry:
@@ -44,7 +44,7 @@ source_filename = "__init___testproject"
 
 %prog = type { i64 }
 
-@prog_instance = external global %prog, section "$RUSTY$var-prog_instance:r1i64"
+@prog_instance = external global %prog
 
 define void @__init___testproject() {
 entry:

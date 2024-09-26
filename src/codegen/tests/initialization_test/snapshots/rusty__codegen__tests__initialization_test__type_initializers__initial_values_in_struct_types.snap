@@ -7,14 +7,14 @@ source_filename = "<internal>"
 
 %MyStruct = type { i16, i16, i8, i8, float, float }
 
-@x = global %MyStruct { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }, section "$RUSTY$var-x:r6i16i16u8u8f32f32"
-@__MyStruct__init = unnamed_addr constant %MyStruct { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }, section "$RUSTY$var-__mystruct__init:r6i16i16u8u8f32f32"
+@x = global %MyStruct { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
+@__MyStruct__init = unnamed_addr constant %MyStruct { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
 
 %MyStruct = type { i16, i16, i8, i8, float, float }
 
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r6i16i16u8u8f32f32"
+@__MyStruct__init = external global %MyStruct
 
 define void @__init_mystruct(%MyStruct* %0) {
 entry:
@@ -27,8 +27,8 @@ source_filename = "__init___testproject"
 
 %MyStruct = type { i16, i16, i8, i8, float, float }
 
-@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r6i16i16u8u8f32f32"
-@x = external global %MyStruct, section "$RUSTY$var-x:r6i16i16u8u8f32f32"
+@__MyStruct__init = external global %MyStruct
+@x = external global %MyStruct
 
 define void @__init___testproject() {
 entry:

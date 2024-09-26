@@ -5,8 +5,8 @@ expression: "results.join(\"\\n\")"
 ; ModuleID = 'main.st'
 source_filename = "main.st"
 
-@x = external global i16, section "$RUSTY$var-x:i16"
-@y = external global i16, section "$RUSTY$var-y:i16"
+@x = external global i16
+@y = external global i16
 
 define i16 @main() {
 entry:
@@ -24,8 +24,8 @@ declare i16 @external()
 ; ModuleID = 'external.st'
 source_filename = "external.st"
 
-@x = external global i16, section "$RUSTY$var-x:i16"
-@y = external global i16, section "$RUSTY$var-y:i16"
+@x = external global i16
+@y = external global i16
 
 declare i16 @external()
 
