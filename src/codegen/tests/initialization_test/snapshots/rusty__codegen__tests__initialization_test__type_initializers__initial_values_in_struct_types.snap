@@ -2,10 +2,38 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %MyStruct = type { i16, i16, i8, i8, float, float }
 
 @x = global %MyStruct { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }, section "var-$RUSTY$x:r6i16i16u8u8f32f32"
 @__MyStruct__init = unnamed_addr constant %MyStruct { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }, section "var-$RUSTY$__MyStruct__init:r6i16i16u8u8f32f32"
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%MyStruct = type { i16, i16, i8, i8, float, float }
+
+@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r6i16i16u8u8f32f32"
+
+define void @__init_mystruct(%MyStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr6i16i16u8u8f32f32]" {
+entry:
+  %self = alloca %MyStruct*, align 8
+  store %MyStruct* %0, %MyStruct** %self, align 8
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%MyStruct = type { i16, i16, i8, i8, float, float }
+
+@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r6i16i16u8u8f32f32"
+@x = external global %MyStruct, section "var-$RUSTY$x:r6i16i16u8u8f32f32"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_mystruct(%MyStruct* @x)
+  ret void
+}
+
+declare void @__init_mystruct(%MyStruct*) section "fn-$RUSTY$__init_mystruct:v[pr6i16i16u8u8f32f32]"

@@ -1,16 +1,25 @@
 //! This module defines the `AstVisitor` trait and its associated macros.
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
-use crate::ast::AstNode;
-use crate::ast::*;
+use crate::ast::{
+    flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
+    CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement,
+    HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement,
+    ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
+};
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;
 
 /// Macro that calls the visitor's `visit` method for every AstNode in the passed iterator `iter`.
 macro_rules! visit_all_nodes {
     ($visitor:expr, $iter:expr) => {
-        for node in $iter {
-            $visitor.visit(node);
+        // Note: The `allow` is needed to suppress warnings about `while let Some(...)` warnings
+        // because `visit_all_nodes!` is used for both Option and Non-Option types
+        #[allow(warnings)]
+        {
+            for node in $iter {
+                $visitor.visit(node);
+            }
         }
     };
 }

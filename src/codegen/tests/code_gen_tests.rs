@@ -1,7 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::test_utils::tests::{codegen, codegen_debug_without_unwrap, generate_with_empty_program};
-use insta::assert_snapshot;
+use crate::test_utils::tests::{codegen, generate_with_empty_program};
 
 #[test]
 fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
@@ -513,20 +512,6 @@ fn date_comparisons() {
         END_PROGRAM"#,
     );
     insta::assert_snapshot!(result);
-}
-
-#[test]
-fn date_invalid_declaration() {
-    let msg = codegen_debug_without_unwrap(
-        r#"PROGRAM prg
-        VAR
-          a : DATE := D#2001-02-29; (* feb29 on non-leap year should not pass *)
-        END_VAR
-        END_PROGRAM"#,
-        crate::DebugLevel::None,
-    )
-    .unwrap_err();
-    assert_snapshot!(msg);
 }
 
 #[test]
@@ -1174,8 +1159,8 @@ fn for_statement_with_binary_expressions() {
     );
 
     insta::assert_snapshot!(result,  @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %prg = type { i32, i32, i32, i32 }
 
@@ -1224,6 +1209,37 @@ fn for_statement_with_binary_expressions() {
     continue:                                         ; preds = %predicate_sge, %predicate_sle
       ret void
     }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %prg = type { i32, i32, i32, i32 }
+
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r4i32i32i32i32"
+
+    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr4i32i32i32i32]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prg = type { i32, i32, i32, i32 }
+
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r4i32i32i32i32"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prg(%prg* @prg_instance)
+      ret void
+    }
+
+    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr4i32i32i32i32]"
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
     "###);
 }
 
@@ -1241,8 +1257,8 @@ fn for_statement_type_casting() {
         END_FUNCTION",
     );
     insta::assert_snapshot!(result,  @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     define void @main() section "fn-$RUSTY$main:v" {
     entry:
@@ -1289,6 +1305,13 @@ fn for_statement_type_casting() {
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     continue:                                         ; preds = %predicate_sge, %predicate_sle
+      ret void
+    }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
       ret void
     }
     "###);

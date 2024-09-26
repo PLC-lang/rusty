@@ -2,6 +2,7 @@
 
 use std::{
     fmt::{Debug, Display, Formatter},
+    hash::Hash,
     ops::Range,
 };
 
@@ -256,6 +257,7 @@ pub enum PouType {
     Action,
     Class,
     Method { owner_class: String },
+    Init,
 }
 
 impl Display for PouType {
@@ -267,6 +269,7 @@ impl Display for PouType {
             PouType::Action => write!(f, "Action"),
             PouType::Class => write!(f, "Class"),
             PouType::Method { .. } => write!(f, "Method"),
+            PouType::Init => write!(f, "Init"),
         }
     }
 }
@@ -283,8 +286,28 @@ impl PouType {
 }
 
 #[derive(Debug, PartialEq)]
+pub struct ConfigVariable {
+    pub name_segments: Vec<String>,
+    pub data_type: DataTypeDeclaration,
+    pub address: AstNode,
+    pub location: SourceLocation,
+}
+
+impl ConfigVariable {
+    pub fn new(
+        name_segments: Vec<String>,
+        data_type: DataTypeDeclaration,
+        address: AstNode,
+        location: SourceLocation,
+    ) -> Self {
+        Self { name_segments, data_type, address, location }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
+    pub var_config: Vec<ConfigVariable>,
     pub units: Vec<Pou>,
     pub implementations: Vec<Implementation>,
     pub user_types: Vec<UserTypeDeclaration>,
@@ -295,6 +318,7 @@ impl CompilationUnit {
     pub fn new(file_name: &str) -> Self {
         CompilationUnit {
             global_vars: Vec::new(),
+            var_config: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
             user_types: Vec::new(),
@@ -361,6 +385,32 @@ pub struct VariableBlock {
     pub location: SourceLocation,
 }
 
+impl VariableBlock {
+    pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
+        self.variable_block_type = block_type;
+        self
+    }
+
+    pub fn with_variables(mut self, variables: Vec<Variable>) -> Self {
+        self.variables = variables;
+        self
+    }
+}
+
+impl Default for VariableBlock {
+    fn default() -> Self {
+        VariableBlock {
+            access: AccessModifier::Internal,
+            constant: false,
+            retain: false,
+            variables: vec![],
+            variable_block_type: VariableBlockType::Local,
+            linkage: LinkageType::Internal,
+            location: SourceLocation::internal(),
+        }
+    }
+}
+
 impl Debug for VariableBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("VariableBlock")
@@ -370,13 +420,19 @@ impl Debug for VariableBlock {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub struct Variable {
     pub name: String,
     pub data_type_declaration: DataTypeDeclaration,
     pub initializer: Option<AstNode>,
     pub address: Option<AstNode>,
     pub location: SourceLocation,
+}
+
+impl PartialEq for Variable {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.location == other.location
+    }
 }
 
 impl Debug for Variable {
@@ -400,6 +456,10 @@ impl Variable {
             location: self.data_type_declaration.get_location(),
         };
         std::mem::replace(&mut self.data_type_declaration, new_data_type)
+    }
+
+    pub fn get_name(&self) -> &str {
+        &self.name
     }
 }
 
@@ -440,6 +500,20 @@ impl DataTypeDeclaration {
     pub fn get_referenced_type(&self) -> Option<String> {
         let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = self else { return None };
         Some(referenced_type.to_owned())
+    }
+
+    pub fn get_inner_pointer_ty(&self) -> Option<DataTypeDeclaration> {
+        match self {
+            DataTypeDeclaration::DataTypeReference { .. } => Some(self.clone()),
+
+            DataTypeDeclaration::DataTypeDefinition { data_type, .. } => {
+                if let DataType::PointerType { referenced_type, .. } = data_type {
+                    return referenced_type.get_inner_pointer_ty();
+                }
+
+                None
+            }
+        }
     }
 }
 
@@ -1491,7 +1565,7 @@ impl AstFactory {
                 parameters: Some(Box::new(AstNode::new(
                     AstStatement::ExpressionList(parameters),
                     parameter_list_id,
-                    SourceLocation::undefined(), //TODO: get real location
+                    SourceLocation::internal(), //TODO: get real location
                 ))),
             }),
             location: location.clone(),
@@ -1536,7 +1610,7 @@ impl AstFactory {
                 )),
                 parameters: Some(Box::new(AstFactory::create_expression_list(
                     parameters,
-                    SourceLocation::undefined(),
+                    SourceLocation::internal(),
                     id_provider.next_id(),
                 ))),
             }),
@@ -1653,4 +1727,28 @@ pub struct JumpStatement {
 #[derive(Debug, Clone, PartialEq)]
 pub struct LabelStatement {
     pub name: String,
+}
+
+impl HardwareAccess {
+    pub fn get_mangled_variable_name(&self) -> String {
+        let HardwareAccess { direction, address, .. } = self;
+        let direction = match direction {
+            HardwareAccessType::Input | HardwareAccessType::Output => "PI",
+            HardwareAccessType::Memory => "M",
+            HardwareAccessType::Global => "G",
+        };
+        format!(
+            "__{direction}_{}",
+            address
+                .iter()
+                .flat_map(|node| node.get_literal_integer_value())
+                .map(|val| val.to_string())
+                .collect::<Vec<_>>()
+                .join("_")
+        )
+    }
+
+    pub fn is_template(&self) -> bool {
+        matches!(self.access, DirectAccessType::Template)
+    }
 }

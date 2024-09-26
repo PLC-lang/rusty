@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %MyStruct = type { %MyPoint, [4 x i16], i32 }
 %MyPoint = type { i32, i32 }
@@ -11,3 +11,45 @@ source_filename = "main"
 @a = global %MyStruct { %MyPoint { i32 1, i32 2 }, [4 x i16] [i16 0, i16 1, i16 2, i16 3], i32 7 }, section "var-$RUSTY$a:r3r2i32i32ai16i32"
 @__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-$RUSTY$__MyStruct__init:r3r2i32i32ai16i32"
 @__MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer, section "var-$RUSTY$__MyPoint__init:r2i32i32"
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%MyPoint = type { i32, i32 }
+%MyStruct = type { %MyPoint, [4 x i16], i32 }
+
+@__MyPoint__init = external global %MyPoint, section "var-$RUSTY$__MyPoint__init:r2i32i32"
+@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r3r2i32i32ai16i32"
+
+define void @__init_mypoint(%MyPoint* %0) section "fn-$RUSTY$__init_mypoint:v[pr2i32i32]" {
+entry:
+  %self = alloca %MyPoint*, align 8
+  store %MyPoint* %0, %MyPoint** %self, align 8
+  ret void
+}
+
+define void @__init_mystruct(%MyStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr3r2i32i32ai16i32]" {
+entry:
+  %self = alloca %MyStruct*, align 8
+  store %MyStruct* %0, %MyStruct** %self, align 8
+  %deref = load %MyStruct*, %MyStruct** %self, align 8
+  %point = getelementptr inbounds %MyStruct, %MyStruct* %deref, i32 0, i32 0
+  call void @__init_mypoint(%MyPoint* %point)
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%MyStruct = type { %MyPoint, [4 x i16], i32 }
+%MyPoint = type { i32, i32 }
+
+@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r3r2i32i32ai16i32"
+@__MyPoint__init = external global %MyPoint, section "var-$RUSTY$__MyPoint__init:r2i32i32"
+@a = external global %MyStruct, section "var-$RUSTY$a:r3r2i32i32ai16i32"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_mystruct(%MyStruct* @a)
+  ret void
+}
+
+declare void @__init_mystruct(%MyStruct*) section "fn-$RUSTY$__init_mystruct:v[pr3r2i32i32ai16i32]"

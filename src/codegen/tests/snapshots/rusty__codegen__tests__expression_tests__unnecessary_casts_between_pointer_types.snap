@@ -2,8 +2,8 @@
 source: src/codegen/tests/expression_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %baz = type { i8*, i8, i8, i8 }
 
@@ -20,3 +20,34 @@ entry:
   store i8* %mb, i8** %ptr, align 8
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%baz = type { i8*, i8, i8, i8 }
+
+@baz_instance = external global %baz, section "var-$RUSTY$baz_instance:r4pu8u8i8u8"
+
+define void @__init_baz(%baz* %0) section "fn-$RUSTY$__init_baz:v[pr4pu8u8i8u8]" {
+entry:
+  %self = alloca %baz*, align 8
+  store %baz* %0, %baz** %self, align 8
+  ret void
+}
+
+declare void @baz(%baz*) section "fn-$RUSTY$baz:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%baz = type { i8*, i8, i8, i8 }
+
+@baz_instance = external global %baz, section "var-$RUSTY$baz_instance:r4pu8u8i8u8"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_baz(%baz* @baz_instance)
+  ret void
+}
+
+declare void @__init_baz(%baz*) section "fn-$RUSTY$__init_baz:v[pr4pu8u8i8u8]"
+
+declare void @baz(%baz*) section "fn-$RUSTY$baz:v"

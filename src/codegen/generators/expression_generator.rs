@@ -236,6 +236,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 };
                 Ok(val)
             }
+            AstStatement::HardwareAccess(..) => self
+                .create_llvm_pointer_value_for_reference(None, "address", expression)
+                .map(ExpressionValue::LValue),
             AstStatement::BinaryExpression(data) => self
                 .generate_binary_expression(&data.left, &data.right, &data.operator, expression)
                 .map(ExpressionValue::RValue),
@@ -244,10 +247,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             AstStatement::UnaryExpression(data) => {
                 self.generate_unary_expression(&data.operator, &data.value).map(ExpressionValue::RValue)
-            }
-            // TODO: Hardware access needs to be evaluated, see #648
-            AstStatement::HardwareAccess { .. } => {
-                Ok(ExpressionValue::RValue(self.llvm.i32_type().const_zero().into()))
             }
             AstStatement::ParenExpression(expr) => self.generate_expression_value(expr),
             //fallback
@@ -790,7 +789,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let assigned_output = self.generate_lvalue(expr)?;
                 let assigned_output_type =
                     self.annotations.get_type_or_void(expr, self.index).get_type_information();
-
                 let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                     Diagnostic::codegen_error(
                         format!("Cannot build generate parameter: {parameter:#?}"),
@@ -1161,11 +1159,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
+    // TODO: will be deleted once methods work properly (like functions)
     /// generates a new instance of a function called `function_name` and returns a PointerValue to it
     ///
     /// - `function_name` the name of the function as registered in the index
     /// - `context` the statement used to report a possible Diagnostic on
-    /// TODO: will be deleted once methods work properly (like functions)
     fn allocate_function_struct_instance(
         &self,
         function_name: &str,
@@ -2372,7 +2370,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let value = self.llvm.create_const_numeric(
             &self.llvm_index.get_associated_type(LINT_TYPE)?,
             value.to_string().as_str(),
-            SourceLocation::undefined(),
+            SourceLocation::internal(),
         )?;
         Ok(value)
     }

@@ -19,12 +19,32 @@ fn declaring_a_struct() {
 
     // ... just translates to a llvm struct type
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %Person = type { [81 x i8], [81 x i8], i16, i8 }
 
     @__Person__init = unnamed_addr constant %Person zeroinitializer, section "var-$RUSTY$__Person__init:r4s8u81s8u81i16u8"
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %Person = type { [81 x i8], [81 x i8], i16, i8 }
+
+    @__Person__init = external global %Person, section "var-$RUSTY$__Person__init:r4s8u81s8u81i16u8"
+
+    define void @__init_person(%Person* %0) section "fn-$RUSTY$__init_person:v[pr4s8u81s8u81i16u8]" {
+    entry:
+      %self = alloca %Person*, align 8
+      store %Person* %0, %Person** %self, align 8
+      ret void
+    }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      ret void
+    }
     "###);
 }
 
@@ -49,13 +69,41 @@ fn default_values_of_a_struct() {
 
     // ... instances of this struct-type will be initialized accordingly
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %Person = type { [6 x i8], [6 x i8], i16, i8 }
 
     @p = global %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }, section "var-$RUSTY$p:r4s8u6s8u6i16u8"
     @__Person__init = unnamed_addr constant %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }, section "var-$RUSTY$__Person__init:r4s8u6s8u6i16u8"
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %Person = type { [6 x i8], [6 x i8], i16, i8 }
+
+    @__Person__init = external global %Person, section "var-$RUSTY$__Person__init:r4s8u6s8u6i16u8"
+
+    define void @__init_person(%Person* %0) section "fn-$RUSTY$__init_person:v[pr4s8u6s8u6i16u8]" {
+    entry:
+      %self = alloca %Person*, align 8
+      store %Person* %0, %Person** %self, align 8
+      ret void
+    }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %Person = type { [6 x i8], [6 x i8], i16, i8 }
+
+    @__Person__init = external global %Person, section "var-$RUSTY$__Person__init:r4s8u6s8u6i16u8"
+    @p = external global %Person, section "var-$RUSTY$p:r4s8u6s8u6i16u8"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_person(%Person* @p)
+      ret void
+    }
+
+    declare void @__init_person(%Person*) section "fn-$RUSTY$__init_person:v[pr4s8u6s8u6i16u8]"
     "###);
 }
 
@@ -90,8 +138,8 @@ fn initializing_a_struct() {
 
     // ... will be initialized directly in the variable's definition
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %prg = type { %Rect, %Rect }
     %Rect = type { %Point, %Point }
@@ -109,6 +157,71 @@ fn initializing_a_struct() {
       %rect2 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
       ret void
     }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %Point = type { i16, i16 }
+    %Rect = type { %Point, %Point }
+    %prg = type { %Rect, %Rect }
+
+    @__Point__init = external global %Point, section "var-$RUSTY$__Point__init:r2i16i16"
+    @__Rect__init = external global %Rect, section "var-$RUSTY$__Rect__init:r2r2i16i16r2i16i16"
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2r2r2i16i16r2i16i16r2r2i16i16r2i16i16"
+
+    define void @__init_point(%Point* %0) section "fn-$RUSTY$__init_point:v[pr2i16i16]" {
+    entry:
+      %self = alloca %Point*, align 8
+      store %Point* %0, %Point** %self, align 8
+      ret void
+    }
+
+    define void @__init_rect(%Rect* %0) section "fn-$RUSTY$__init_rect:v[pr2r2i16i16r2i16i16]" {
+    entry:
+      %self = alloca %Rect*, align 8
+      store %Rect* %0, %Rect** %self, align 8
+      %deref = load %Rect*, %Rect** %self, align 8
+      %topLeft = getelementptr inbounds %Rect, %Rect* %deref, i32 0, i32 0
+      call void @__init_point(%Point* %topLeft)
+      %deref1 = load %Rect*, %Rect** %self, align 8
+      %bottomRight = getelementptr inbounds %Rect, %Rect* %deref1, i32 0, i32 1
+      call void @__init_point(%Point* %bottomRight)
+      ret void
+    }
+
+    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2r2r2i16i16r2i16i16r2r2i16i16r2i16i16]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      %deref = load %prg*, %prg** %self, align 8
+      %rect1 = getelementptr inbounds %prg, %prg* %deref, i32 0, i32 0
+      call void @__init_rect(%Rect* %rect1)
+      %deref1 = load %prg*, %prg** %self, align 8
+      %rect2 = getelementptr inbounds %prg, %prg* %deref1, i32 0, i32 1
+      call void @__init_rect(%Rect* %rect2)
+      ret void
+    }
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prg = type { %Rect, %Rect }
+    %Rect = type { %Point, %Point }
+    %Point = type { i16, i16 }
+
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2r2r2i16i16r2i16i16r2r2i16i16r2i16i16"
+    @__Rect__init = external global %Rect, section "var-$RUSTY$__Rect__init:r2r2i16i16r2i16i16"
+    @__Point__init = external global %Point, section "var-$RUSTY$__Point__init:r2i16i16"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prg(%prg* @prg_instance)
+      ret void
+    }
+
+    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr2r2r2i16i16r2i16i16r2r2i16i16r2i16i16]"
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
     "###);
 }
 
@@ -137,8 +250,8 @@ fn assigning_structs() {
 
     // ... the assignment p1 := p2 will be performed as a memcpy
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %prg = type { %Point, %Point }
     %Point = type { i16, i16 }
@@ -160,6 +273,54 @@ fn assigning_structs() {
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %Point = type { i16, i16 }
+    %prg = type { %Point, %Point }
+
+    @__Point__init = external global %Point, section "var-$RUSTY$__Point__init:r2i16i16"
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2r2i16i16r2i16i16"
+
+    define void @__init_point(%Point* %0) section "fn-$RUSTY$__init_point:v[pr2i16i16]" {
+    entry:
+      %self = alloca %Point*, align 8
+      store %Point* %0, %Point** %self, align 8
+      ret void
+    }
+
+    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2r2i16i16r2i16i16]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      %deref = load %prg*, %prg** %self, align 8
+      %p1 = getelementptr inbounds %prg, %prg* %deref, i32 0, i32 0
+      call void @__init_point(%Point* %p1)
+      %deref1 = load %prg*, %prg** %self, align 8
+      %p2 = getelementptr inbounds %prg, %prg* %deref1, i32 0, i32 1
+      call void @__init_point(%Point* %p2)
+      ret void
+    }
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prg = type { %Point, %Point }
+    %Point = type { i16, i16 }
+
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2r2i16i16r2i16i16"
+    @__Point__init = external global %Point, section "var-$RUSTY$__Point__init:r2i16i16"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prg(%prg* @prg_instance)
+      ret void
+    }
+
+    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr2r2i16i16r2i16i16]"
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
     "###);
 }
 
@@ -193,8 +354,8 @@ fn accessing_struct_members() {
 
     // ... will be initialized directly in the variable's definition
     insta::assert_snapshot!(codegen(src), @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %prg = type { %Rect, %Rect }
     %Rect = type { %Point, %Point }
@@ -216,5 +377,70 @@ fn accessing_struct_members() {
       store i16 %load_x, i16* %x, align 2
       ret void
     }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %Point = type { i16, i16 }
+    %Rect = type { %Point, %Point }
+    %prg = type { %Rect, %Rect }
+
+    @__Point__init = external global %Point, section "var-$RUSTY$__Point__init:r2i16i16"
+    @__Rect__init = external global %Rect, section "var-$RUSTY$__Rect__init:r2r2i16i16r2i16i16"
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2r2r2i16i16r2i16i16r2r2i16i16r2i16i16"
+
+    define void @__init_point(%Point* %0) section "fn-$RUSTY$__init_point:v[pr2i16i16]" {
+    entry:
+      %self = alloca %Point*, align 8
+      store %Point* %0, %Point** %self, align 8
+      ret void
+    }
+
+    define void @__init_rect(%Rect* %0) section "fn-$RUSTY$__init_rect:v[pr2r2i16i16r2i16i16]" {
+    entry:
+      %self = alloca %Rect*, align 8
+      store %Rect* %0, %Rect** %self, align 8
+      %deref = load %Rect*, %Rect** %self, align 8
+      %topLeft = getelementptr inbounds %Rect, %Rect* %deref, i32 0, i32 0
+      call void @__init_point(%Point* %topLeft)
+      %deref1 = load %Rect*, %Rect** %self, align 8
+      %bottomRight = getelementptr inbounds %Rect, %Rect* %deref1, i32 0, i32 1
+      call void @__init_point(%Point* %bottomRight)
+      ret void
+    }
+
+    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2r2r2i16i16r2i16i16r2r2i16i16r2i16i16]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      %deref = load %prg*, %prg** %self, align 8
+      %rect1 = getelementptr inbounds %prg, %prg* %deref, i32 0, i32 0
+      call void @__init_rect(%Rect* %rect1)
+      %deref1 = load %prg*, %prg** %self, align 8
+      %rect2 = getelementptr inbounds %prg, %prg* %deref1, i32 0, i32 1
+      call void @__init_rect(%Rect* %rect2)
+      ret void
+    }
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %prg = type { %Rect, %Rect }
+    %Rect = type { %Point, %Point }
+    %Point = type { i16, i16 }
+
+    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2r2r2i16i16r2i16i16r2r2i16i16r2i16i16"
+    @__Rect__init = external global %Rect, section "var-$RUSTY$__Rect__init:r2r2i16i16r2i16i16"
+    @__Point__init = external global %Point, section "var-$RUSTY$__Point__init:r2i16i16"
+
+    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    entry:
+      call void @__init_prg(%prg* @prg_instance)
+      ret void
+    }
+
+    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr2r2r2i16i16r2i16i16r2r2i16i16r2i16i16]"
+
+    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
     "###);
 }

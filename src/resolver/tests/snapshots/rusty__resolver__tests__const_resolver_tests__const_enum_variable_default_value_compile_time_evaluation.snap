@@ -2,8 +2,8 @@
 source: src/resolver/tests/const_resolver_tests.rs
 expression: ir
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @me = unnamed_addr constant i32 3, section "var-$RUSTY$me:e3i32"
 @THREE = unnamed_addr constant i16 3, section "var-$RUSTY$THREE:i16"

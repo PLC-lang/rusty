@@ -2,8 +2,8 @@
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: function
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %fb = type {}
 %main = type { %fb }
@@ -27,6 +27,7 @@ entry:
   %3 = bitcast %fb* %x to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %3, i8* align 1 bitcast (%fb* @__fb__init to i8*), i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
   store i32 0, i32* %func, align 4
+  call void @__init_fb(%fb* %x)
   %func_ret = load i32, i32* %func, align 4
   ret i32 %func_ret
 }
@@ -38,7 +39,58 @@ entry:
   ret void
 }
 
+declare void @__init_fb(%fb*) section "fn-$RUSTY$__init_fb:v[pr0]"
+
 ; Function Attrs: argmemonly nofree nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%fb = type {}
+%main = type { %fb }
+
+@__fb__init = external global %fb, section "var-$RUSTY$__fb__init:r0"
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r1r0"
+
+define void @__init_fb(%fb* %0) section "fn-$RUSTY$__init_fb:v[pr0]" {
+entry:
+  %self = alloca %fb*, align 8
+  store %fb* %0, %fb** %self, align 8
+  ret void
+}
+
+declare void @fb(%fb*) section "fn-$RUSTY$fb:v"
+
+define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr1r0]" {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  %deref = load %main*, %main** %self, align 8
+  %fb0 = getelementptr inbounds %main, %main* %deref, i32 0, i32 0
+  call void @__init_fb(%fb* %fb0)
+  ret void
+}
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { %fb }
+%fb = type {}
+
+@main_instance = external global %main, section "var-$RUSTY$main_instance:r1r0"
+@__fb__init = external global %fb, section "var-$RUSTY$__fb__init:r0"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr1r0]"
+
+declare void @main(%main*) section "fn-$RUSTY$main:v"
+
+declare void @fb(%fb*) section "fn-$RUSTY$fb:v"

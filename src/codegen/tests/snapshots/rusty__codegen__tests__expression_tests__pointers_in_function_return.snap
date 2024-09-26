@@ -2,8 +2,8 @@
 source: src/codegen/tests/expression_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 define i16* @func() section "fn-$RUSTY$func:pi16" {
 entry:
@@ -11,4 +11,11 @@ entry:
   store i16* null, i16** %func, align 8
   %func_ret = load i16*, i16** %func, align 8
   ret i16* %func_ret
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
 }

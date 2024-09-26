@@ -110,6 +110,7 @@ impl HardwareBinding {
                             expr.clone(),
                             typesystem::DINT_SIZE.to_string(),
                             scope.clone(),
+                            None,
                         )
                     })
                     .collect(),
@@ -375,6 +376,7 @@ pub enum ImplementationType {
     Action,
     Class,
     Method,
+    Init,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -418,7 +420,7 @@ impl From<&PouType> for ImplementationType {
     fn from(it: &PouType) -> Self {
         match it {
             PouType::Program => ImplementationType::Program,
-            PouType::Function => ImplementationType::Function,
+            PouType::Function | PouType::Init => ImplementationType::Function,
             PouType::FunctionBlock => ImplementationType::FunctionBlock,
             PouType::Action => ImplementationType::Action,
             PouType::Class => ImplementationType::Class,
@@ -715,12 +717,14 @@ impl PouIndexEntry {
         }
     }
 
-    /// returns true if this pou is an action
     pub fn is_action(&self) -> bool {
         matches!(self, PouIndexEntry::Action { .. })
     }
 
-    /// return true if this pou is a function
+    pub fn is_program(&self) -> bool {
+        matches!(self, PouIndexEntry::Program { .. })
+    }
+
     pub fn is_function(&self) -> bool {
         matches!(self, PouIndexEntry::Function { .. })
     }
@@ -839,6 +843,10 @@ pub struct Index {
     // all pous,
     pous: SymbolMap<String, PouIndexEntry>,
 
+    // initializer functions are registered here in addition to the `pous` field. this is because they are
+    // excempt from certain validations/codegen will redirect certain statements and thus a quick lookup is advantageous
+    init_functions: FxIndexSet<String>,
+
     /// all implementations
     // we keep an IndexMap for implementations since duplication issues regarding implementations
     // is handled by the `pous` SymbolMap
@@ -861,8 +869,7 @@ impl Index {
     ///
     /// imports all global_variables, types and implementations
     /// # Arguments
-    /// - `other` the other index. The elements are drained from the given index and moved
-    /// into the current one
+    /// - `other` the other index. The elements are drained from the given index and moved into the current one
     pub fn import(&mut self, mut other: Index) {
         //global variables
         for (name, e) in other.global_variables.drain(..) {
@@ -963,6 +970,9 @@ impl Index {
             }
         }
 
+        //init functions
+        self.init_functions.extend(other.init_functions);
+
         //labels
         self.labels.extend(other.labels);
 
@@ -1005,8 +1015,8 @@ impl Index {
         import_from: &mut ConstExpressions,
         initializer_id: &Option<ConstId>,
     ) -> Option<ConstId> {
-        initializer_id.as_ref().and_then(|it| import_from.clone(it)).map(|(init, target_type, scope)| {
-            self.get_mut_const_expressions().add_constant_expression(init, target_type, scope)
+        initializer_id.as_ref().and_then(|it| import_from.clone(it)).map(|(init, target_type, scope, lhs)| {
+            self.get_mut_const_expressions().add_constant_expression(init, target_type, scope, lhs)
         })
     }
 
@@ -1020,8 +1030,8 @@ impl Index {
             TypeSize::LiteralInteger(_) => Some(*type_size),
             TypeSize::ConstExpression(id) => import_from
                 .clone(id)
-                .map(|(expr, target_type, scope)| {
-                    self.get_mut_const_expressions().add_constant_expression(expr, target_type, scope)
+                .map(|(expr, target_type, scope, lhs)| {
+                    self.get_mut_const_expressions().add_constant_expression(expr, target_type, scope, lhs)
                 })
                 .map(TypeSize::from_expression),
             TypeSize::Undetermined => Some(*type_size),
@@ -1083,9 +1093,15 @@ impl Index {
             .find_type(container_name)
             .and_then(|it| it.find_member(variable_name))
             .or(self.find_enum_variant_in_pou(container_name, variable_name))
+            // underlying type of an `ACTION`
             .or(container_name
                 .rfind('.')
                 .map(|p| &container_name[..p])
+                .and_then(|qualifier| self.find_member(qualifier, variable_name)))
+            // 'self' instance of a POUs init function
+            .or(container_name
+                .rfind('_')
+                .map(|p| &container_name[p + 1..])
                 .and_then(|qualifier| self.find_member(qualifier, variable_name)))
     }
 
@@ -1411,6 +1427,10 @@ impl Index {
         self.pous.get(&pou_name.to_lowercase())
     }
 
+    pub fn is_init_function(&self, pou_name: &str) -> bool {
+        self.init_functions.get(pou_name).is_some()
+    }
+
     pub fn register_program(&mut self, name: &str, location: SourceLocation, linkage: LinkageType) {
         let instance_variable =
             VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone()) // TODO: Naming convention (see plc_util/src/convention.rs)
@@ -1422,6 +1442,10 @@ impl Index {
 
     pub fn register_pou(&mut self, entry: PouIndexEntry) {
         self.pous.insert(entry.get_name().to_lowercase(), entry);
+    }
+
+    pub fn register_init_function(&mut self, name: &str) {
+        self.init_functions.insert(name.to_string());
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
@@ -1553,16 +1577,13 @@ impl Index {
         &'idx self,
         initial_type: &'idx DataTypeInformation,
     ) -> &'idx DataTypeInformation {
-        match initial_type {
-            DataTypeInformation::Pointer { inner_type_name, .. } => {
-                let inner_type = self
-                    .find_effective_type_info(inner_type_name)
-                    .map(|t| self.find_intrinsic_type(t))
-                    .unwrap_or_else(|| initial_type);
-                self.find_elementary_pointer_type(inner_type)
+        if let DataTypeInformation::Pointer { inner_type_name, .. } = initial_type {
+            if let Some(ty) = self.find_effective_type_info(inner_type_name) {
+                return self.find_elementary_pointer_type(self.find_intrinsic_type(ty));
             }
-            _ => initial_type,
         }
+
+        initial_type
     }
 
     /// Creates an iterator over all instances in the index
@@ -1640,4 +1661,8 @@ impl Index {
 /// Returns a default initialization name for a variable or type
 pub fn get_initializer_name(name: &str) -> String {
     format!("__{name}__init")
+}
+
+pub fn get_init_fn_name(name: &str) -> String {
+    format!("__init_{name}").to_lowercase()
 }

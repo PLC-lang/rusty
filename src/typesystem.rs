@@ -1311,16 +1311,15 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
             matches!(rtype, DataTypeInformation::String { encoding, .. } if encoding == lenc)
         }
 
-        // We have to handle 3 different cases here:
+        // We have to handle 2 different cases here:
         // 1. foo := ADR(bar)
         // 2. foo := REF(bar)
-        // 3. foo := &bar
         DataTypeInformation::Pointer { .. } => match rtype {
             // Case 1: ADR(bar) returns a LWORD value, thus check if we're working with a LWORD
             DataTypeInformation::Integer { size, .. } => *size == POINTER_SIZE,
 
-            // Case 2 & 3:
-            // REF(bar) and &bar returns a pointer, thus deduce their inner types and check if they're equal
+            // Case 2:
+            // REF(bar) returns a pointer, thus deduce their inner types and check if they're equal
             DataTypeInformation::Pointer { .. } => {
                 let ldetails = index.find_elementary_pointer_type(ltype);
                 let rdetails = index.find_elementary_pointer_type(rtype);

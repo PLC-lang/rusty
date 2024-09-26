@@ -2,8 +2,8 @@
 source: src/codegen/tests/generics_test.rs
 expression: codegen(src)
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 define double @main() section "fn-$RUSTY$main:f64" {
 entry:
@@ -26,3 +26,10 @@ entry:
 }
 
 declare double @MAX__LREAL(i32, double*) section "fn-$RUSTY$MAX__LREAL:f64"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+entry:
+  ret void
+}
