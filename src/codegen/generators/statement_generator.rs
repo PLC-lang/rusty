@@ -533,9 +533,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         self.register_debug_location(selector);
         builder.build_switch(selector_statement.into_int_value(), else_block, &cases);
 
-        // TODO: Not entirely sure if we have to register the debug location of every node in the else-body
-        // or some callee takes care of this...
-
         builder.position_at_end(continue_block);
         Ok(())
     }
