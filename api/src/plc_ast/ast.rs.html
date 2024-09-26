@@ -1752,6 +1752,20 @@
 <a href="#1752" id="1752">1752</a>
 <a href="#1753" id="1753">1753</a>
 <a href="#1754" id="1754">1754</a>
+<a href="#1755" id="1755">1755</a>
+<a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
+<a href="#1763" id="1763">1763</a>
+<a href="#1764" id="1764">1764</a>
+<a href="#1765" id="1765">1765</a>
+<a href="#1766" id="1766">1766</a>
+<a href="#1767" id="1767">1767</a>
+<a href="#1768" id="1768">1768</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -2041,7 +2055,7 @@
 
 <span class="attr">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub struct </span>ConfigVariable {
-    <span class="kw">pub </span>name_segments: Vec&lt;String&gt;,
+    <span class="kw">pub </span>reference: AstNode,
     <span class="kw">pub </span>data_type: DataTypeDeclaration,
     <span class="kw">pub </span>address: AstNode,
     <span class="kw">pub </span>location: SourceLocation,
@@ -2049,12 +2063,12 @@
 
 <span class="kw">impl </span>ConfigVariable {
     <span class="kw">pub fn </span>new(
-        name_segments: Vec&lt;String&gt;,
+        reference: AstNode,
         data_type: DataTypeDeclaration,
         address: AstNode,
         location: SourceLocation,
     ) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ name_segments, data_type, address, location }
+        <span class="self">Self </span>{ reference, data_type, address, location }
     }
 }
 
@@ -2684,6 +2698,20 @@
                 ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
                 ..,
             ) =&gt; reference.as_ref().get_flat_reference_name(),
+            AstStatement::Identifier(name, ..) =&gt; <span class="prelude-val">Some</span>(name),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>get_flat_base_reference_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { base: <span class="prelude-val">Some</span>(base), .. }, ..) =&gt; {
+                base.as_ref().get_flat_base_reference_name()
+            }
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), base: <span class="prelude-val">None </span>},
+                ..,
+            ) =&gt; reference.as_ref().get_flat_base_reference_name(),
             AstStatement::Identifier(name, ..) =&gt; <span class="prelude-val">Some</span>(name),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }

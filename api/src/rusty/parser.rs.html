@@ -1268,16 +1268,6 @@
 <a href="#1268" id="1268">1268</a>
 <a href="#1269" id="1269">1269</a>
 <a href="#1270" id="1270">1270</a>
-<a href="#1271" id="1271">1271</a>
-<a href="#1272" id="1272">1272</a>
-<a href="#1273" id="1273">1273</a>
-<a href="#1274" id="1274">1274</a>
-<a href="#1275" id="1275">1275</a>
-<a href="#1276" id="1276">1276</a>
-<a href="#1277" id="1277">1277</a>
-<a href="#1278" id="1278">1278</a>
-<a href="#1279" id="1279">1279</a>
-<a href="#1280" id="1280">1280</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -2373,17 +2363,7 @@
 
 <span class="kw">fn </span>try_parse_config_var(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;ConfigVariable&gt; {
     <span class="kw">let </span>start = lexer.location();
-    <span class="kw">let </span><span class="kw-2">mut </span>segments: Vec&lt;String&gt; = <span class="macro">vec!</span>[];
-    <span class="kw">while </span>lexer.token == Identifier {
-        segments.push(lexer.slice_and_advance());
-
-        <span class="kw">if </span>lexer.token == KeywordColon || lexer.token == KeywordAt {
-            <span class="kw">break</span>;
-        }
-
-        lexer.try_consume(<span class="kw-2">&amp;</span>KeywordDot);
-    }
-
+    <span class="kw">let </span>qualified_reference = parse_reference(lexer);
     <span class="kw">let </span>location = start.span(<span class="kw-2">&amp;</span>lexer.last_location());
     <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAt) {
         lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"AT"</span>, lexer.location()));
@@ -2411,7 +2391,7 @@
                 lexer.last_location().span(<span class="kw-2">&amp;</span>lexer.location()),
             ))
         }
-        ConfigVariable::new(segments, dt, address, location)
+        ConfigVariable::new(qualified_reference, dt, address, location)
     })
 }
 
