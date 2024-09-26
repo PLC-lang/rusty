@@ -43,14 +43,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         types_index: &'b LlvmTypedIndex<'ctx>,
         debug: &'b mut DebugBuilderEnum<'ctx>,
     ) -> Self {
-        VariableGenerator {
-            module,
-            llvm,
-            global_index,
-            annotations,
-            types_index,
-            debug,
-        }
+        VariableGenerator { module, llvm, global_index, annotations, types_index, debug }
     }
 
     pub fn generate_global_variables(

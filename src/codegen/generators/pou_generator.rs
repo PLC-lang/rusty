@@ -55,6 +55,8 @@ pub struct PouGenerator<'ink, 'cg> {
 
 /// Creates opaque implementations for all callable items in the index
 /// Returns a Typed index containing the associated implementations.
+/// FIXME: Ignoring the arguments warning for now, should refactor later to pass the options in a struct
+#[allow(clippy::too_many_arguments)]
 pub fn generate_implementation_stubs<'ink>(
     module: &Module<'ink>,
     llvm: Llvm<'ink>,

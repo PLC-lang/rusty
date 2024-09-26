@@ -102,12 +102,7 @@ impl<'ink> CodeGen<'ink> {
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
         let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
-        CodeGen {
-            module,
-            debug,
-            module_location: module_location.to_string(),
-            online_change,
-        }
+        CodeGen { module, debug, module_location: module_location.to_string(), online_change }
     }
 
     pub fn generate_llvm_index(
@@ -131,14 +126,8 @@ impl<'ink> CodeGen<'ink> {
         )?;
         index.merge(llvm_type_index);
 
-        let mut variable_generator = VariableGenerator::new(
-            &self.module,
-            &llvm,
-            global_index,
-            annotations,
-            &index,
-            &mut self.debug,
-        );
+        let mut variable_generator =
+            VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
 
         //Generate global variables
         let llvm_gv_index =
@@ -177,8 +166,7 @@ impl<'ink> CodeGen<'ink> {
                 acc
             });
 
-
-        if let OnlineChange::Enabled((_,_)) = self.online_change {
+        if let OnlineChange::Enabled((_, _)) = self.online_change {
             let got_entries = &mut *got_layout.lock().unwrap();
 
             let mut new_symbols = Vec::new();
