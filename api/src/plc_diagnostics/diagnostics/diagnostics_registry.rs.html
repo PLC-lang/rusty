@@ -262,6 +262,10 @@
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
 <a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Returns a diagnostics map with the error code, default severity and a description
 </span><span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -460,12 +464,16 @@
         E092,   Info,       <span class="macro">include_str!</span>(<span class="string">"./error_codes/E092.md"</span>),
         E093,   Warning,    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E093.md"</span>),
         E094,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E094.md"</span>),
-        E095,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E095.md"</span>), <span class="comment">// Action call without `()`
-        </span>E096,   Warning,    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E096.md"</span>), <span class="comment">// Integer Condition
-        </span>E097,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E097.md"</span>), <span class="comment">// Invalid Array Range
-        </span>E098,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E098.md"</span>), <span class="comment">// Invalid `REF=` assignment
-        </span>E099,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E099.md"</span>), <span class="comment">// Invalid `REFERENCE TO` declaration
-        </span>E100,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E100.md"</span>), <span class="comment">// Immutable variable address
+        E095,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E095.md"</span>),  <span class="comment">// Action call without `()`
+        </span>E096,   Warning,    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E096.md"</span>),  <span class="comment">// Integer Condition
+        </span>E097,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E097.md"</span>),  <span class="comment">// Invalid Array Range
+        </span>E098,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E098.md"</span>),  <span class="comment">// Invalid `REF=` assignment
+        </span>E099,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E099.md"</span>),  <span class="comment">// Invalid `REFERENCE TO` declaration
+        </span>E100,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E100.md"</span>),  <span class="comment">// Immutable variable address
+        </span>E101,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E101.md"</span>),  <span class="comment">// Invalid VAR_CONFIG / Template Variable Declaration
+        </span>E102,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E102.md"</span>),  <span class="comment">// Template variable without hardware binding
+        </span>E103,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E103.md"</span>),  <span class="comment">// Immutable Hardware Binding
+        </span>E104,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E104.md"</span>),  <span class="comment">// Config Variable With Incomplete Address
     </span>);
 }
 

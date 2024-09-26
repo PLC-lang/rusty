@@ -189,10 +189,17 @@
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, CompilationUnit};
 <span class="kw">use </span>plc_derive::Validators;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_index::GlobalContext;
+<span class="kw">use </span>variable::visit_config_variable;
 
 <span class="kw">use crate</span>::{
     index::{
@@ -359,22 +366,27 @@
 
     <span class="kw">pub fn </span>visit_unit&lt;T: AnnotationMap&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotations: <span class="kw-2">&amp;</span>T, index: <span class="kw-2">&amp;</span>Index, unit: <span class="kw-2">&amp;</span>CompilationUnit) {
         <span class="kw">let </span>context = ValidationContext { annotations, index, qualifier: <span class="prelude-val">None</span>, is_call: <span class="bool-val">false </span>};
-        <span class="comment">// validate POU and declared Variables
+        <span class="comment">// Validate POU and declared Variables
         </span><span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>unit.units {
             visit_pou(<span class="self">self</span>, pou, <span class="kw-2">&amp;</span>context.with_qualifier(pou.name.as_str()));
         }
 
-        <span class="comment">// validate user declared types
+        <span class="comment">// Validate user declared types
         </span><span class="kw">for </span>t <span class="kw">in </span><span class="kw-2">&amp;</span>unit.user_types {
             visit_user_type_declaration(<span class="self">self</span>, t, <span class="kw-2">&amp;</span>context);
         }
 
-        <span class="comment">// validate global variables
+        <span class="comment">// Validate config variables (VAR_CONFIG)
+        </span><span class="kw">for </span>variable <span class="kw">in </span><span class="kw-2">&amp;</span>unit.var_config {
+            visit_config_variable(<span class="self">self</span>, variable, <span class="kw-2">&amp;</span>context);
+        }
+
+        <span class="comment">// Validate global variables
         </span><span class="kw">for </span>gv <span class="kw">in </span><span class="kw-2">&amp;</span>unit.global_vars {
             visit_variable_block(<span class="self">self</span>, <span class="prelude-val">None</span>, gv, <span class="kw-2">&amp;</span>context);
         }
 
-        <span class="comment">// validate implementations
+        <span class="comment">// Validate implementations
         </span><span class="kw">for </span>implementation <span class="kw">in </span><span class="kw-2">&amp;</span>unit.implementations {
             visit_implementation(<span class="self">self</span>, implementation, <span class="kw-2">&amp;</span>context);
         }
