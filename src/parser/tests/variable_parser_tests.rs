@@ -252,8 +252,8 @@ fn date_and_time_constants_test() {
 fn var_config_test() {
     let src = "
     VAR_CONFIG
-        instance1.foo AT %IX3.1 : BOOL;
-        instance2.bar AT %IX5.6 : BOOL;
+        instance1.foo.qux AT %IX3.1 : BOOL;
+        instance2.bar.qux AT %IX5.6 : BOOL;
     END_VAR
     ";
     let (result, diag) = parse(src);
@@ -264,10 +264,32 @@ fn var_config_test() {
         global_vars: [],
         var_config: [
             ConfigVariable {
-                name_segments: [
-                    "instance1",
-                    "foo",
-                ],
+                reference: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "qux",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "instance1",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
                 data_type: DataTypeReference {
                     referenced_type: "BOOL",
                 },
@@ -286,12 +308,12 @@ fn var_config_test() {
                         span: Range(
                             TextLocation {
                                 line: 2,
-                                column: 22,
-                                offset: 38,
+                                column: 26,
+                                offset: 42,
                             }..TextLocation {
                                 line: 2,
-                                column: 31,
-                                offset: 47,
+                                column: 35,
+                                offset: 51,
                             },
                         ),
                     },
@@ -304,17 +326,39 @@ fn var_config_test() {
                             offset: 24,
                         }..TextLocation {
                             line: 2,
-                            column: 21,
-                            offset: 37,
+                            column: 25,
+                            offset: 41,
                         },
                     ),
                 },
             },
             ConfigVariable {
-                name_segments: [
-                    "instance2",
-                    "bar",
-                ],
+                reference: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "qux",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "bar",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "instance2",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
                 data_type: DataTypeReference {
                     referenced_type: "BOOL",
                 },
@@ -333,12 +377,12 @@ fn var_config_test() {
                         span: Range(
                             TextLocation {
                                 line: 3,
-                                column: 22,
-                                offset: 78,
+                                column: 26,
+                                offset: 86,
                             }..TextLocation {
                                 line: 3,
-                                column: 31,
-                                offset: 87,
+                                column: 35,
+                                offset: 95,
                             },
                         ),
                     },
@@ -348,11 +392,11 @@ fn var_config_test() {
                         TextLocation {
                             line: 3,
                             column: 8,
-                            offset: 64,
+                            offset: 68,
                         }..TextLocation {
                             line: 3,
-                            column: 21,
-                            offset: 77,
+                            column: 25,
+                            offset: 85,
                         },
                     ),
                 },

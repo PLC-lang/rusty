@@ -273,6 +273,10 @@ impl VariableIndexEntry {
         self.binding.is_some()
     }
 
+    pub fn is_template(&self) -> bool {
+        matches!(self.binding, Some(HardwareBinding { access: DirectAccessType::Template, .. }))
+    }
+
     pub fn get_hardware_binding(&self) -> Option<&HardwareBinding> {
         self.binding.as_ref()
     }

@@ -187,6 +187,34 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
     update_generated_globals(unit, mangled_globals);
 }
 
+fn process_var_config_variables(unit: &mut CompilationUnit) {
+    let block = get_internal_global_block(unit);
+    let variables = unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, .. }| {
+        let AstStatement::HardwareAccess(hardware) = &address.stmt else {
+            unreachable!("Must be parsed as hardware access")
+        };
+
+        if hardware.is_template() {
+            return None;
+        }
+
+        let name = hardware.get_mangled_variable_name();
+        if block.is_some_and(|it| it.variables.iter().any(|v| v.name == name)) {
+            return None;
+        };
+
+        Some(Variable {
+            name,
+            data_type_declaration: data_type.get_inner_pointer_ty().unwrap_or(data_type.clone()),
+            initializer: None,
+            address: None,
+            location: address.get_location(),
+        })
+    });
+
+    update_generated_globals(unit, variables.collect())
+}
+
 fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Variable>) {
     let mut block = if let Some(index) = unit.global_vars.iter().position(|block| {
         block.variable_block_type == VariableBlockType::Global && block.location.is_internal()
@@ -200,32 +228,17 @@ fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Var
             block.variables.push(var);
         }
     }
+
     unit.global_vars.push(block);
 }
 
-fn process_var_config_variables(unit: &mut CompilationUnit) {
-    let variables =
-        unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, location, .. }| {
-            let AstStatement::HardwareAccess(hardware) = &address.stmt else {
-                unreachable!("Must be parsed as hardware access")
-            };
-
-            if hardware.is_template() {
-                return None;
-            }
-
-            let name = hardware.get_mangled_variable_name();
-
-            Some(Variable {
-                name,
-                data_type_declaration: data_type.clone(),
-                initializer: None,
-                address: None,
-                location: location.clone(),
-            })
-        });
-
-    update_generated_globals(unit, variables.collect())
+fn get_internal_global_block(unit: &CompilationUnit) -> Option<&VariableBlock> {
+    unit.global_vars
+        .iter()
+        .position(|block| {
+            block.variable_block_type == VariableBlockType::Global && block.location.is_internal()
+        })
+        .and_then(|index| unit.global_vars.get(index))
 }
 
 fn build_enum_initializer(

@@ -196,12 +196,16 @@ lazy_static! {
         E092,   Info,       include_str!("./error_codes/E092.md"),
         E093,   Warning,    include_str!("./error_codes/E093.md"),
         E094,   Error,      include_str!("./error_codes/E094.md"),
-        E095,   Error,      include_str!("./error_codes/E095.md"), // Action call without `()`
-        E096,   Warning,    include_str!("./error_codes/E096.md"), // Integer Condition
-        E097,   Error,      include_str!("./error_codes/E097.md"), // Invalid Array Range
-        E098,   Error,      include_str!("./error_codes/E098.md"), // Invalid `REF=` assignment
-        E099,   Error,      include_str!("./error_codes/E099.md"), // Invalid `REFERENCE TO` declaration
-        E100,   Error,      include_str!("./error_codes/E100.md"), // Immutable variable address
+        E095,   Error,      include_str!("./error_codes/E095.md"),  // Action call without `()`
+        E096,   Warning,    include_str!("./error_codes/E096.md"),  // Integer Condition
+        E097,   Error,      include_str!("./error_codes/E097.md"),  // Invalid Array Range
+        E098,   Error,      include_str!("./error_codes/E098.md"),  // Invalid `REF=` assignment
+        E099,   Error,      include_str!("./error_codes/E099.md"),  // Invalid `REFERENCE TO` declaration
+        E100,   Error,      include_str!("./error_codes/E100.md"),  // Immutable variable address
+        E101,   Error,      include_str!("./error_codes/E101.md"),  // Invalid VAR_CONFIG / Template Variable Declaration
+        E102,   Error,      include_str!("./error_codes/E102.md"),  // Template variable without hardware binding
+        E103,   Error,      include_str!("./error_codes/E103.md"),  // Immutable Hardware Binding
+        E104,   Error,      include_str!("./error_codes/E104.md"),  // Config Variable With Incomplete Address
     );
 }
 
