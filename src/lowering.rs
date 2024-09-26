@@ -228,13 +228,8 @@ impl AstLowerer {
     }
 
     fn collect_var_config_assignments(&mut self, var_config: &[ConfigVariable]) {
-        let assignments = var_config.iter().filter_map(|var| {
-            var.name_segments
-                .iter()
-                .fold(None, |qualifier, ident| {
-                    Some(create_member_reference(ident, self.ctxt.get_id_provider(), qualifier))
-                })
-                .map(|lhs| AstFactory::create_assignment(lhs, var.address.clone(), self.ctxt.next_id()))
+        let assignments = var_config.iter().map(|var| {
+            AstFactory::create_assignment(var.reference.clone(), var.address.clone(), self.ctxt.next_id())
         });
         self.var_config_initializers.extend(assignments);
     }
