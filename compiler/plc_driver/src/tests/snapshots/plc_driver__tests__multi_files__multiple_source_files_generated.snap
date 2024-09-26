@@ -9,7 +9,7 @@ source_filename = "external_file1.st"
 
 @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0"
 
-define i16 @main() section "$RUSTY$fn-main:i16[]" {
+define i16 @main() {
 entry:
   %main = alloca i16, align 2
   store i16 0, i16* %main, align 2
@@ -18,7 +18,7 @@ entry:
   ret i16 %main_ret
 }
 
-declare void @mainProg(%mainProg*) section "$RUSTY$fn-mainprog:v[]"
+declare void @mainProg(%mainProg*)
 
 ; ModuleID = 'external_file2.st'
 source_filename = "external_file2.st"
@@ -27,7 +27,7 @@ source_filename = "external_file2.st"
 
 @mainProg_instance = global %mainProg zeroinitializer, section "$RUSTY$var-mainprog_instance:r0"
 
-define void @mainProg(%mainProg* %0) section "$RUSTY$fn-mainprog:v[]" {
+define void @mainProg(%mainProg* %0) {
 entry:
   ret void
 }
@@ -39,14 +39,14 @@ source_filename = "__initializers"
 
 @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0"
 
-define void @__init_mainprog(%mainProg* %0) section "$RUSTY$fn-__init_mainprog:v[pr0]" {
+define void @__init_mainprog(%mainProg* %0) {
 entry:
   %self = alloca %mainProg*, align 8
   store %mainProg* %0, %mainProg** %self, align 8
   ret void
 }
 
-declare void @mainProg(%mainProg*) section "$RUSTY$fn-mainprog:v[]"
+declare void @mainProg(%mainProg*)
 
 ; ModuleID = '__init___TestProject'
 source_filename = "__init___TestProject"
@@ -55,12 +55,12 @@ source_filename = "__init___TestProject"
 
 @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0"
 
-define void @__init___TestProject() section "$RUSTY$fn-__init___testproject:v[]" {
+define void @__init___TestProject() {
 entry:
   call void @__init_mainprog(%mainProg* @mainProg_instance)
   ret void
 }
 
-declare void @__init_mainprog(%mainProg*) section "$RUSTY$fn-__init_mainprog:v[pr0]"
+declare void @__init_mainprog(%mainProg*)
 
-declare void @mainProg(%mainProg*) section "$RUSTY$fn-mainprog:v[]"
+declare void @mainProg(%mainProg*)

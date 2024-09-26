@@ -18,8 +18,8 @@ fn declaring_a_string() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @myUtf8 = global [21 x i8] zeroinitializer, section "var-$RUSTY$myUtf8:s8u21"
-    @myUtf16 = global [21 x i16] zeroinitializer, section "var-$RUSTY$myUtf16:s16u21"
+    @myUtf8 = global [21 x i8] zeroinitializer, section "$RUSTY$var-myutf8:s8u21"
+    @myUtf16 = global [21 x i16] zeroinitializer, section "$RUSTY$var-myutf16:s16u21"
     "###);
 }
 
@@ -41,8 +41,8 @@ fn strings_are_terminated_with_0byte() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @myUtf8 = global [6 x i8] c"Hello\00", section "var-$RUSTY$myUtf8:s8u6"
-    @myUtf16 = global [6 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0], section "var-$RUSTY$myUtf16:s16u6"
+    @myUtf8 = global [6 x i8] c"Hello\00", section "$RUSTY$var-myutf8:s8u6"
+    @myUtf16 = global [6 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0], section "$RUSTY$var-myutf16:s16u6"
     "###);
 }
 
@@ -68,9 +68,9 @@ fn assigning_strings() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2s8u11s8u11"
+    @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -89,32 +89,32 @@ fn assigning_strings() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2s8u11s8u11"
+    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
 
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2s8u11s8u11]" {
+    define void @__init_prg(%prg* %0) {
     entry:
       %self = alloca %prg*, align 8
       store %prg* %0, %prg** %self, align 8
       ret void
     }
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2s8u11s8u11"
+    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
       ret void
     }
 
-    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr2s8u11s8u11]"
+    declare void @__init_prg(%prg*)
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     "###);
 }
 
@@ -140,11 +140,11 @@ fn assigning_string_literals() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2s8u11s8u11"
+    @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -164,31 +164,31 @@ fn assigning_string_literals() {
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2s8u11s8u11"
+    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
 
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2s8u11s8u11]" {
+    define void @__init_prg(%prg* %0) {
     entry:
       %self = alloca %prg*, align 8
       store %prg* %0, %prg** %self, align 8
       ret void
     }
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %prg = type { [11 x i8], [11 x i8] }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2s8u11s8u11"
+    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r2s8u11s8u11"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
       ret void
     }
 
-    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr2s8u11s8u11]"
+    declare void @__init_prg(%prg*)
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     "###);
 }

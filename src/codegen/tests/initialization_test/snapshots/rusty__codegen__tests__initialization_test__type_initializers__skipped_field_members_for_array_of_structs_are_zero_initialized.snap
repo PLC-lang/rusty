@@ -9,12 +9,12 @@ source_filename = "<internal>"
 %STRUCT1 = type { i32, [2 x %STRUCT2] }
 %STRUCT2 = type { i32, i32 }
 
-@main_instance = global %main { [3 x %STRUCT1] [%STRUCT1 { i32 0, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 2, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 1 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 1, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 { i32 0, i32 2 }] }] }, section "var-$RUSTY$main_instance:r1ar2i32ar2i32i32"
-@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "var-$RUSTY$__STRUCT1__init:r2i32ar2i32i32"
-@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer, section "var-$RUSTY$__STRUCT2__init:r2i32i32"
+@main_instance = global %main { [3 x %STRUCT1] [%STRUCT1 { i32 0, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 2, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 1 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 1, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 { i32 0, i32 2 }] }] }, section "$RUSTY$var-main_instance:r1ar2i32ar2i32i32"
+@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "$RUSTY$var-__struct1__init:r2i32ar2i32i32"
+@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer, section "$RUSTY$var-__struct2__init:r2i32i32"
 @__main.var_init1__init = unnamed_addr constant [3 x %STRUCT1] [%STRUCT1 { i32 0, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 2, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 1 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 1, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 { i32 0, i32 2 }] }]
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %var_init1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   ret void
@@ -26,32 +26,32 @@ source_filename = "__initializers"
 %STRUCT2 = type { i32, i32 }
 %main = type { [3 x %STRUCT1] }
 
-@__STRUCT1__init = external global %STRUCT1, section "var-$RUSTY$__STRUCT1__init:r2i32ar2i32i32"
-@__STRUCT2__init = external global %STRUCT2, section "var-$RUSTY$__STRUCT2__init:r2i32i32"
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r1ar2i32ar2i32i32"
+@__STRUCT1__init = external global %STRUCT1, section "$RUSTY$var-__struct1__init:r2i32ar2i32i32"
+@__STRUCT2__init = external global %STRUCT2, section "$RUSTY$var-__struct2__init:r2i32i32"
+@main_instance = external global %main, section "$RUSTY$var-main_instance:r1ar2i32ar2i32i32"
 
-define void @__init_struct1(%STRUCT1* %0) section "fn-$RUSTY$__init_struct1:v[pr2i32ar2i32i32]" {
+define void @__init_struct1(%STRUCT1* %0) {
 entry:
   %self = alloca %STRUCT1*, align 8
   store %STRUCT1* %0, %STRUCT1** %self, align 8
   ret void
 }
 
-define void @__init_struct2(%STRUCT2* %0) section "fn-$RUSTY$__init_struct2:v[pr2i32i32]" {
+define void @__init_struct2(%STRUCT2* %0) {
 entry:
   %self = alloca %STRUCT2*, align 8
   store %STRUCT2* %0, %STRUCT2** %self, align 8
   ret void
 }
 
-define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr1ar2i32ar2i32i32]" {
+define void @__init_main(%main* %0) {
 entry:
   %self = alloca %main*, align 8
   store %main* %0, %main** %self, align 8
   ret void
 }
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
@@ -59,16 +59,16 @@ source_filename = "__init___testproject"
 %STRUCT1 = type { i32, [2 x %STRUCT2] }
 %STRUCT2 = type { i32, i32 }
 
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r1ar2i32ar2i32i32"
-@__STRUCT1__init = external global %STRUCT1, section "var-$RUSTY$__STRUCT1__init:r2i32ar2i32i32"
-@__STRUCT2__init = external global %STRUCT2, section "var-$RUSTY$__STRUCT2__init:r2i32i32"
+@main_instance = external global %main, section "$RUSTY$var-main_instance:r1ar2i32ar2i32i32"
+@__STRUCT1__init = external global %STRUCT1, section "$RUSTY$var-__struct1__init:r2i32ar2i32i32"
+@__STRUCT2__init = external global %STRUCT2, section "$RUSTY$var-__struct2__init:r2i32i32"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_main(%main* @main_instance)
   ret void
 }
 
-declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr1ar2i32ar2i32i32]"
+declare void @__init_main(%main*)
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)

@@ -7,10 +7,10 @@ source_filename = "<internal>"
 
 %__foo_vla = type { i16*, [2 x i32] }
 
-@arr = global [2 x i16] zeroinitializer, section "var-$RUSTY$arr:ai16"
-@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer, section "var-$RUSTY$____foo_vla__init:r2pai16ai32"
+@arr = global [2 x i16] zeroinitializer, section "$RUSTY$var-arr:ai16"
+@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer, section "$RUSTY$var-____foo_vla__init:r2pai16ai32"
 
-define i16 @foo(%__foo_vla* %0) section "fn-$RUSTY$foo:i16[r2pai16ai32]" {
+define i16 @foo(%__foo_vla* %0) {
 entry:
   %foo = alloca i16, align 2
   %vla = alloca %__foo_vla, align 8
@@ -32,7 +32,7 @@ entry:
   ret i16 %foo_ret
 }
 
-define i32 @main() section "fn-$RUSTY$main:i32" {
+define i32 @main() {
 entry:
   %main = alloca i32, align 4
   store i32 0, i32* %main, align 4
@@ -57,7 +57,7 @@ attributes #0 = { argmemonly nofree nounwind willreturn }
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   ret void
 }

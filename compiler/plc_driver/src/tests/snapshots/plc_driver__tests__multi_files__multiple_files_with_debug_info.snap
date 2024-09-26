@@ -9,7 +9,7 @@ source_filename = "file1.st"
 
 @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0", !dbg !0
 
-define i16 @main() section "$RUSTY$fn-main:i16[]" !dbg !10 {
+define i16 @main() !dbg !10 {
 entry:
   %main = alloca i16, align 2, !dbg !14
   call void @llvm.dbg.declare(metadata i16* %main, metadata !15, metadata !DIExpression()), !dbg !17
@@ -19,7 +19,7 @@ entry:
   ret i16 %main_ret, !dbg !14
 }
 
-declare !dbg !18 void @mainProg(%mainProg*) section "$RUSTY$fn-mainprog:v[]"
+declare !dbg !18 void @mainProg(%mainProg*)
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
@@ -56,7 +56,7 @@ source_filename = "file2.st"
 
 @mainProg_instance = global %mainProg zeroinitializer, section "$RUSTY$var-mainprog_instance:r0", !dbg !0
 
-define void @mainProg(%mainProg* %0) section "$RUSTY$fn-mainprog:v[]" !dbg !10 {
+define void @mainProg(%mainProg* %0) !dbg !10 {
 entry:
   call void @llvm.dbg.declare(metadata %mainProg* %0, metadata !13, metadata !DIExpression()), !dbg !14
   ret void, !dbg !14
@@ -93,7 +93,7 @@ source_filename = "__initializers"
 
 @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0", !dbg !0
 
-define void @__init_mainprog(%mainProg* %0) section "$RUSTY$fn-__init_mainprog:v[pr0]" !dbg !10 {
+define void @__init_mainprog(%mainProg* %0) !dbg !10 {
 entry:
   %self = alloca %mainProg*, align 8, !dbg !14
   call void @llvm.dbg.declare(metadata %mainProg** %self, metadata !15, metadata !DIExpression()), !dbg !14
@@ -101,7 +101,7 @@ entry:
   ret void, !dbg !14
 }
 
-declare !dbg !16 void @mainProg(%mainProg*) section "$RUSTY$fn-mainprog:v[]"
+declare !dbg !16 void @mainProg(%mainProg*)
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
@@ -138,15 +138,15 @@ source_filename = "__init___TestProject"
 
 @mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r0", !dbg !0
 
-define void @__init___TestProject() section "$RUSTY$fn-__init___testproject:v[]" !dbg !10 {
+define void @__init___TestProject() !dbg !10 {
 entry:
   call void @__init_mainprog(%mainProg* @mainProg_instance), !dbg !14
   ret void, !dbg !14
 }
 
-declare !dbg !15 void @__init_mainprog(%mainProg*) section "$RUSTY$fn-__init_mainprog:v[pr0]"
+declare !dbg !15 void @__init_mainprog(%mainProg*)
 
-declare !dbg !19 void @mainProg(%mainProg*) section "$RUSTY$fn-mainprog:v[]"
+declare !dbg !19 void @mainProg(%mainProg*)
 
 !llvm.module.flags = !{!5, !6}
 !llvm.dbg.cu = !{!7}

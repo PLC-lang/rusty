@@ -7,9 +7,9 @@ source_filename = "<internal>"
 
 %prg = type { float, float, float, double, float, float, float, double }
 
-@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
+@prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
 
-define float @foo__REAL(float %0) section "fn-$RUSTY$foo__REAL:f32[f32]" {
+define float @foo__REAL(float %0) {
 entry:
   %foo__REAL = alloca float, align 4
   %in1 = alloca float, align 4
@@ -19,7 +19,7 @@ entry:
   ret float %foo__REAL_ret
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %res_sint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %res_int = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -56,35 +56,35 @@ entry:
   ret void
 }
 
-declare double @foo__LREAL(double) section "fn-$RUSTY$foo__LREAL:f64[f64]"
+declare double @foo__LREAL(double)
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
 
 %prg = type { float, float, float, double, float, float, float, double }
 
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
+@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
 
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr10f32f32f32f64f32f32f32f64i32i32]" {
+define void @__init_prg(%prg* %0) {
 entry:
   %self = alloca %prg*, align 8
   store %prg* %0, %prg** %self, align 8
   ret void
 }
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %prg = type { float, float, float, double, float, float, float, double }
 
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
+@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r10f32f32f32f64f32f32f32f64i32i32"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_prg(%prg* @prg_instance)
   ret void
 }
 
-declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr10f32f32f32f64f32f32f32f64i32i32]"
+declare void @__init_prg(%prg*)
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)

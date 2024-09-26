@@ -7,11 +7,11 @@ source_filename = "<internal>"
 
 %main = type {}
 
-@gX = global i16 0, section "var-$RUSTY$gX:i16"
-@gY = global i8 0, section "var-$RUSTY$gY:u8"
-@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r0"
+@gX = global i16 0, section "$RUSTY$var-gx:i16"
+@gY = global i8 0, section "$RUSTY$var-gy:u8"
+@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r0"
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   ret void
 }
@@ -20,29 +20,29 @@ source_filename = "__initializers"
 
 %main = type {}
 
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r0"
+@main_instance = external global %main, section "$RUSTY$var-main_instance:r0"
 
-define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr0]" {
+define void @__init_main(%main* %0) {
 entry:
   %self = alloca %main*, align 8
   store %main* %0, %main** %self, align 8
   ret void
 }
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %main = type {}
 
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r0"
+@main_instance = external global %main, section "$RUSTY$var-main_instance:r0"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_main(%main* @main_instance)
   ret void
 }
 
-declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr0]"
+declare void @__init_main(%main*)
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)

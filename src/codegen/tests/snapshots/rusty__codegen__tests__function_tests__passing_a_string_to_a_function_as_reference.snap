@@ -7,10 +7,10 @@ source_filename = "<internal>"
 
 %main = type { [6 x i8] }
 
-@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1s8u6"
+@main_instance = global %main zeroinitializer, section "$RUSTY$var-main_instance:r1s8u6"
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"12345\00"
 
-define i32 @func(i8* %0) section "fn-$RUSTY$func:i32[ps8u6]" {
+define i32 @func(i8* %0) {
 entry:
   %func = alloca i32, align 4
   %x = alloca i8*, align 8
@@ -20,7 +20,7 @@ entry:
   ret i32 %func_ret
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = bitcast [6 x i8]* %a to i8*
@@ -33,29 +33,29 @@ source_filename = "__initializers"
 
 %main = type { [6 x i8] }
 
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r1s8u6"
+@main_instance = external global %main, section "$RUSTY$var-main_instance:r1s8u6"
 
-define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr1s8u6]" {
+define void @__init_main(%main* %0) {
 entry:
   %self = alloca %main*, align 8
   store %main* %0, %main** %self, align 8
   ret void
 }
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %main = type { [6 x i8] }
 
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r1s8u6"
+@main_instance = external global %main, section "$RUSTY$var-main_instance:r1s8u6"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_main(%main* @main_instance)
   ret void
 }
 
-declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr1s8u6]"
+declare void @__init_main(%main*)
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)

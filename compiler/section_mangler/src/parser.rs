@@ -12,6 +12,7 @@ use nom::{IResult, Parser};
 
 type ParseResult<'i, O> = IResult<&'i str, O>;
 
+#[derive(Debug)]
 enum Prefix {
     Fn,
     Var,
@@ -307,12 +308,12 @@ mod tests {
             "$RUSTY$var-__TOF_LTIME__init:r7u8i64u8i64u8u8au8",
             "$RUSTY$fn-CosineSignal:v[f64][i32][f64]",
             "$RUSTY$fn-File:v[s8u1025][s8u2049][s8u3]",
-            "$RUSTY$fn-File.Open:v",
-            "$RUSTY$fn-File.Write:v",
-            "$RUSTY$fn-File.Close:v",
-            "$RUSTY$fn-File.Clear:v",
+            "$RUSTY$fn-File.Open:v[]",
+            "$RUSTY$fn-File.Write:v[]",
+            "$RUSTY$fn-File.Close:v[]",
+            "$RUSTY$fn-File.Clear:v[]",
             "$RUSTY$fn-SineSignal:v[f64][i32][f64]",
-            "$RUSTY$fn-mainProg:v",
+            "$RUSTY$fn-mainProg:v[]",
             "$RUSTY$var-mainProg:r7i32r4f64i32f64f64r4f64i32f64f64e3i32r5s8u1025s8u2049s8u3u64s8u3r5s8u1025s8u2049s8u3u64s8u3r5s8u1025s8u2049s8u3u64s8u3"
         ];
 

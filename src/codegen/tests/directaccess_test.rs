@@ -147,16 +147,16 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     %FOO = type { i8, i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO zeroinitializer, section "var-$RUSTY$__FOO__init:r2u8u8"
+    @__FOO__init = unnamed_addr constant %FOO zeroinitializer, section "$RUSTY$var-__foo__init:r2u8u8"
 
-    define void @FOO(%FOO* %0) section "fn-$RUSTY$FOO:v[u8][u8]" {
+    define void @FOO(%FOO* %0) {
     entry:
       %X = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       %Y = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
       ret void
     }
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %error_bits = alloca i8, align 1
@@ -215,7 +215,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       ret i32 %main_ret
     }
 
-    declare void @__init_foo(%FOO*) section "fn-$RUSTY$__init_foo:v[pr2u8u8]"
+    declare void @__init_foo(%FOO*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -226,20 +226,20 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     %FOO = type { i8, i8 }
 
-    @__FOO__init = external global %FOO, section "var-$RUSTY$__FOO__init:r2u8u8"
+    @__FOO__init = external global %FOO, section "$RUSTY$var-__foo__init:r2u8u8"
 
-    define void @__init_foo(%FOO* %0) section "fn-$RUSTY$__init_foo:v[pr2u8u8]" {
+    define void @__init_foo(%FOO* %0) {
     entry:
       %self = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %self, align 8
       ret void
     }
 
-    declare void @FOO(%FOO*) section "fn-$RUSTY$FOO:v[u8][u8]"
+    declare void @FOO(%FOO*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -273,15 +273,15 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }, section "var-$RUSTY$__FOO__init:r1u8"
+    @__FOO__init = unnamed_addr constant %FOO { i8 1 }, section "$RUSTY$var-__foo__init:r1u8"
 
-    define void @FOO(%FOO* %0) section "fn-$RUSTY$FOO:v[u8]" {
+    define void @FOO(%FOO* %0) {
     entry:
       %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       ret void
     }
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %error_bits = alloca i8, align 1
@@ -303,7 +303,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
       ret i32 %main_ret
     }
 
-    declare void @__init_foo(%FOO*) section "fn-$RUSTY$__init_foo:v[pr1u8]"
+    declare void @__init_foo(%FOO*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -314,20 +314,20 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = external global %FOO, section "var-$RUSTY$__FOO__init:r1u8"
+    @__FOO__init = external global %FOO, section "$RUSTY$var-__foo__init:r1u8"
 
-    define void @__init_foo(%FOO* %0) section "fn-$RUSTY$__init_foo:v[pr1u8]" {
+    define void @__init_foo(%FOO* %0) {
     entry:
       %self = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %self, align 8
       ret void
     }
 
-    declare void @FOO(%FOO*) section "fn-$RUSTY$FOO:v[u8]"
+    declare void @FOO(%FOO*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -361,15 +361,15 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }, section "var-$RUSTY$__FOO__init:r1u8"
+    @__FOO__init = unnamed_addr constant %FOO { i8 1 }, section "$RUSTY$var-__foo__init:r1u8"
 
-    define void @FOO(%FOO* %0) section "fn-$RUSTY$FOO:v[u8]" {
+    define void @FOO(%FOO* %0) {
     entry:
       %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       ret void
     }
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %error_bits = alloca i8, align 1
@@ -391,7 +391,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
       ret i32 %main_ret
     }
 
-    declare void @__init_foo(%FOO*) section "fn-$RUSTY$__init_foo:v[pr1u8]"
+    declare void @__init_foo(%FOO*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -402,20 +402,20 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = external global %FOO, section "var-$RUSTY$__FOO__init:r1u8"
+    @__FOO__init = external global %FOO, section "$RUSTY$var-__foo__init:r1u8"
 
-    define void @__init_foo(%FOO* %0) section "fn-$RUSTY$__init_foo:v[pr1u8]" {
+    define void @__init_foo(%FOO* %0) {
     entry:
       %self = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %self, align 8
       ret void
     }
 
-    declare void @FOO(%FOO*) section "fn-$RUSTY$FOO:v[u8]"
+    declare void @FOO(%FOO*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -460,17 +460,17 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     %foo_struct = type { %bar_struct }
     %bar_struct = type { i64 }
 
-    @__QUUX__init = unnamed_addr constant %QUUX zeroinitializer, section "var-$RUSTY$__QUUX__init:r1u8"
-    @__foo_struct__init = unnamed_addr constant %foo_struct zeroinitializer, section "var-$RUSTY$__foo_struct__init:r1r1u64"
-    @__bar_struct__init = unnamed_addr constant %bar_struct zeroinitializer, section "var-$RUSTY$__bar_struct__init:r1u64"
+    @__QUUX__init = unnamed_addr constant %QUUX zeroinitializer, section "$RUSTY$var-__quux__init:r1u8"
+    @__foo_struct__init = unnamed_addr constant %foo_struct zeroinitializer, section "$RUSTY$var-__foo_struct__init:r1r1u64"
+    @__bar_struct__init = unnamed_addr constant %bar_struct zeroinitializer, section "$RUSTY$var-__bar_struct__init:r1u64"
 
-    define void @QUUX(%QUUX* %0) section "fn-$RUSTY$QUUX:v[u8]" {
+    define void @QUUX(%QUUX* %0) {
     entry:
       %Q = getelementptr inbounds %QUUX, %QUUX* %0, i32 0, i32 0
       ret void
     }
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %foo = alloca %foo_struct, align 8
@@ -508,9 +508,9 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       ret i32 %main_ret
     }
 
-    declare void @__init_foo_struct(%foo_struct*) section "fn-$RUSTY$__init_foo_struct:v[pr1r1u64]"
+    declare void @__init_foo_struct(%foo_struct*)
 
-    declare void @__init_quux(%QUUX*) section "fn-$RUSTY$__init_quux:v[pr1u8]"
+    declare void @__init_quux(%QUUX*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -523,11 +523,11 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     %bar_struct = type { i64 }
     %QUUX = type { i8 }
 
-    @__foo_struct__init = external global %foo_struct, section "var-$RUSTY$__foo_struct__init:r1r1u64"
-    @__bar_struct__init = external global %bar_struct, section "var-$RUSTY$__bar_struct__init:r1u64"
-    @__QUUX__init = external global %QUUX, section "var-$RUSTY$__QUUX__init:r1u8"
+    @__foo_struct__init = external global %foo_struct, section "$RUSTY$var-__foo_struct__init:r1r1u64"
+    @__bar_struct__init = external global %bar_struct, section "$RUSTY$var-__bar_struct__init:r1u64"
+    @__QUUX__init = external global %QUUX, section "$RUSTY$var-__quux__init:r1u8"
 
-    define void @__init_foo_struct(%foo_struct* %0) section "fn-$RUSTY$__init_foo_struct:v[pr1r1u64]" {
+    define void @__init_foo_struct(%foo_struct* %0) {
     entry:
       %self = alloca %foo_struct*, align 8
       store %foo_struct* %0, %foo_struct** %self, align 8
@@ -537,25 +537,25 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       ret void
     }
 
-    define void @__init_bar_struct(%bar_struct* %0) section "fn-$RUSTY$__init_bar_struct:v[pr1u64]" {
+    define void @__init_bar_struct(%bar_struct* %0) {
     entry:
       %self = alloca %bar_struct*, align 8
       store %bar_struct* %0, %bar_struct** %self, align 8
       ret void
     }
 
-    define void @__init_quux(%QUUX* %0) section "fn-$RUSTY$__init_quux:v[pr1u8]" {
+    define void @__init_quux(%QUUX* %0) {
     entry:
       %self = alloca %QUUX*, align 8
       store %QUUX* %0, %QUUX** %self, align 8
       ret void
     }
 
-    declare void @QUUX(%QUUX*) section "fn-$RUSTY$QUUX:v[u8]"
+    declare void @QUUX(%QUUX*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       ret void
     }

@@ -24,7 +24,7 @@ use plc::{
         TypeAnnotator,
     },
     validation::Validator,
-    ConfigFormat, Target,
+    ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,
@@ -309,27 +309,19 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
     }
 
     pub fn codegen_to_string(&self, compile_options: &CompileOptions) -> Result<Vec<String>, Diagnostic> {
-        let got_layout = compile_options
-            .got_layout_file
-            .as_ref()
-            .map(|path| read_got_layout(path, ConfigFormat::JSON))
-            .transpose()?;
-
+        let got_layout = if let OnlineChange::Enabled((file, format)) = &compile_options.online_change {
+            read_got_layout(file, *format)?
+        } else {
+            HashMap::default()
+        };
         let got_layout = Mutex::new(got_layout);
 
         self.units
             .iter()
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 let context = CodegenContext::create();
-                self.generate_module(
-                    &context,
-                    compile_options,
-                    unit,
-                    dependencies,
-                    literals,
-                    &got_layout
-                )
-                .map(|it| it.persist_to_string())
+                self.generate_module(&context, compile_options, unit, dependencies, literals, &got_layout)
+                    .map(|it| it.persist_to_string())
             })
             .collect()
     }
@@ -339,26 +331,18 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         context: &'ctx CodegenContext,
         compile_options: &CompileOptions,
     ) -> Result<Option<GeneratedModule<'ctx>>, Diagnostic> {
-        let got_layout = compile_options
-            .got_layout_file
-            .as_ref()
-            .map(|path| read_got_layout(path, ConfigFormat::JSON))
-            .transpose()?;
-
+        let got_layout = if let OnlineChange::Enabled((file, format)) = &compile_options.online_change {
+            read_got_layout(file, *format)?
+        } else {
+            HashMap::default()
+        };
         let got_layout = Mutex::new(got_layout);
 
         let Some(module) = self
             .units
             .iter()
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
-                self.generate_module(
-                    context,
-                    compile_options,
-                    unit,
-                    dependencies,
-                    literals,
-                    &got_layout
-                )
+                self.generate_module(context, compile_options, unit, dependencies, literals, &got_layout)
             })
             .reduce(|a, b| {
                 let a = a?;
@@ -378,15 +362,16 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         unit: &CompilationUnit,
         dependencies: &FxIndexSet<Dependency>,
         literals: &StringLiterals,
-        got_layout: &Mutex<Option<HashMap<String, u64>>>,
+        got_layout: &Mutex<HashMap<String, u64>>,
     ) -> Result<GeneratedModule<'ctx>, Diagnostic> {
         let mut code_generator = plc::codegen::CodeGen::new(
             context,
             compile_options.root.as_deref(),
             &unit.file_name,
-            compile_options.got_layout_file.clone().zip(compile_options.got_layout_format),
             compile_options.optimization,
             compile_options.debug_level,
+            //(compile_options.got_layout_file.clone(), compile_options.got_layout_format),
+            compile_options.online_change.clone(),
         );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types
@@ -444,12 +429,11 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         ensure_compile_dirs(targets, &compile_directory)?;
         let targets = if targets.is_empty() { &[Target::System] } else { targets };
 
-        let got_layout = compile_options
-            .got_layout_file
-            .as_ref()
-            .map(|path| read_got_layout(path, ConfigFormat::JSON))
-            .transpose()?;
-
+        let got_layout = if let OnlineChange::Enabled((file, format)) = &compile_options.online_change {
+            read_got_layout(file, *format)?
+        } else {
+            HashMap::default()
+        };
         let got_layout = Mutex::new(got_layout);
 
         let res = targets
@@ -516,9 +500,9 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
 
-        compile_options.got_layout_file.as_ref().map(|path| {
-            write_got_layout(got_layout.into_inner().unwrap().unwrap(), path, ConfigFormat::JSON)
-        });
+        if let OnlineChange::Enabled((file, format)) = &compile_options.online_change {
+            write_got_layout(got_layout.into_inner().unwrap(), file, *format)?;
+        }
 
         Ok(res)
     }

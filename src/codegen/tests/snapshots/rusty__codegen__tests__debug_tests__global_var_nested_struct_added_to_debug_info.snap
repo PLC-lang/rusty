@@ -8,9 +8,9 @@ source_filename = "<internal>"
 %myStruct = type { i32, %myStruct2 }
 %myStruct2 = type { i32, double }
 
-@gStruct = global %myStruct zeroinitializer, section "var-$RUSTY$gStruct:r2i32r2i32f64", !dbg !0
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r2i32r2i32f64", !dbg !13
-@__myStruct2__init = unnamed_addr constant %myStruct2 zeroinitializer, section "var-$RUSTY$__myStruct2__init:r2i32f64", !dbg !15
+@gStruct = global %myStruct zeroinitializer, section "$RUSTY$var-gstruct:r2i32r2i32f64", !dbg !0
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r2i32r2i32f64", !dbg !13
+@__myStruct2__init = unnamed_addr constant %myStruct2 zeroinitializer, section "$RUSTY$var-__mystruct2__init:r2i32f64", !dbg !15
 
 !llvm.module.flags = !{!17, !18}
 !llvm.dbg.cu = !{!19}
@@ -43,10 +43,10 @@ source_filename = "__initializers"
 %myStruct = type { i32, %myStruct2 }
 %myStruct2 = type { i32, double }
 
-@__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2i32r2i32f64", !dbg !0
-@__myStruct2__init = external global %myStruct2, section "var-$RUSTY$__myStruct2__init:r2i32f64", !dbg !13
+@__myStruct__init = external global %myStruct, section "$RUSTY$var-__mystruct__init:r2i32r2i32f64", !dbg !0
+@__myStruct2__init = external global %myStruct2, section "$RUSTY$var-__mystruct2__init:r2i32f64", !dbg !13
 
-define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2i32r2i32f64]" !dbg !20 {
+define void @__init_mystruct(%myStruct* %0) !dbg !20 {
 entry:
   %self = alloca %myStruct*, align 8, !dbg !25
   call void @llvm.dbg.declare(metadata %myStruct** %self, metadata !26, metadata !DIExpression()), !dbg !25
@@ -57,7 +57,7 @@ entry:
   ret void, !dbg !27
 }
 
-define void @__init_mystruct2(%myStruct2* %0) section "fn-$RUSTY$__init_mystruct2:v[pr2i32f64]" !dbg !28 {
+define void @__init_mystruct2(%myStruct2* %0) !dbg !28 {
 entry:
   %self = alloca %myStruct2*, align 8, !dbg !32
   call void @llvm.dbg.declare(metadata %myStruct2** %self, metadata !33, metadata !DIExpression()), !dbg !32
@@ -113,17 +113,17 @@ source_filename = "__init___testproject"
 %myStruct = type { i32, %myStruct2 }
 %myStruct2 = type { i32, double }
 
-@__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2i32r2i32f64", !dbg !0
-@__myStruct2__init = external global %myStruct2, section "var-$RUSTY$__myStruct2__init:r2i32f64", !dbg !13
-@gStruct = external global %myStruct, section "var-$RUSTY$gStruct:r2i32r2i32f64", !dbg !15
+@__myStruct__init = external global %myStruct, section "$RUSTY$var-__mystruct__init:r2i32r2i32f64", !dbg !0
+@__myStruct2__init = external global %myStruct2, section "$RUSTY$var-__mystruct2__init:r2i32f64", !dbg !13
+@gStruct = external global %myStruct, section "$RUSTY$var-gstruct:r2i32r2i32f64", !dbg !15
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" !dbg !22 {
+define void @__init___testproject() !dbg !22 {
 entry:
   call void @__init_mystruct(%myStruct* @gStruct), !dbg !26
   ret void, !dbg !26
 }
 
-declare !dbg !27 void @__init_mystruct(%myStruct*) section "fn-$RUSTY$__init_mystruct:v[pr2i32r2i32f64]"
+declare !dbg !27 void @__init_mystruct(%myStruct*)
 
 !llvm.module.flags = !{!17, !18}
 !llvm.dbg.cu = !{!19}

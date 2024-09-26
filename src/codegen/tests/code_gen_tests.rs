@@ -1164,9 +1164,9 @@ fn for_statement_with_binary_expressions() {
 
     %prg = type { i32, i32, i32, i32 }
 
-    @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r4i32i32i32i32"
+    @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r4i32i32i32i32"
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %step = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -1214,32 +1214,32 @@ fn for_statement_with_binary_expressions() {
 
     %prg = type { i32, i32, i32, i32 }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r4i32i32i32i32"
+    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r4i32i32i32i32"
 
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr4i32i32i32i32]" {
+    define void @__init_prg(%prg* %0) {
     entry:
       %self = alloca %prg*, align 8
       store %prg* %0, %prg** %self, align 8
       ret void
     }
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %prg = type { i32, i32, i32, i32 }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r4i32i32i32i32"
+    @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r4i32i32i32i32"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
       ret void
     }
 
-    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr4i32i32i32i32]"
+    declare void @__init_prg(%prg*)
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     "###);
 }
 
@@ -1260,7 +1260,7 @@ fn for_statement_type_casting() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    define void @main() section "fn-$RUSTY$main:v" {
+    define void @main() {
     entry:
       %a = alloca i8, align 1
       %b = alloca i16, align 2
@@ -1310,7 +1310,7 @@ fn for_statement_type_casting() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       ret void
     }

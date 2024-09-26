@@ -7,9 +7,9 @@ source_filename = "<internal>"
 
 %MyStruct = type { i32, i16 }
 
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-$RUSTY$__MyStruct__init:r2i32i16"
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "$RUSTY$var-__mystruct__init:r2i32i16"
 
-define i16 @foo_int() section "fn-$RUSTY$foo_int:i16" {
+define i16 @foo_int() {
 entry:
   %foo_int = alloca i16, align 2
   store i16 0, i16* %foo_int, align 2
@@ -17,7 +17,7 @@ entry:
   ret i16 %foo_int_ret
 }
 
-define void @foo_str([11 x i8]* %0) section "fn-$RUSTY$foo_str:s8u11" {
+define void @foo_str([11 x i8]* %0) {
 entry:
   %foo_str = alloca [11 x i8]*, align 8
   store [11 x i8]* %0, [11 x i8]** %foo_str, align 8
@@ -27,7 +27,7 @@ entry:
   ret void
 }
 
-define void @foo_arr([10 x float]* %0) section "fn-$RUSTY$foo_arr:af32" {
+define void @foo_arr([10 x float]* %0) {
 entry:
   %foo_arr = alloca [10 x float]*, align 8
   store [10 x float]* %0, [10 x float]** %foo_arr, align 8
@@ -37,7 +37,7 @@ entry:
   ret void
 }
 
-define void @foo_struct(%MyStruct* %0) section "fn-$RUSTY$foo_struct:r2i32i16" {
+define void @foo_struct(%MyStruct* %0) {
 entry:
   %foo_struct = alloca %MyStruct*, align 8
   store %MyStruct* %0, %MyStruct** %foo_struct, align 8
@@ -60,9 +60,9 @@ source_filename = "__initializers"
 
 %MyStruct = type { i32, i16 }
 
-@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r2i32i16"
+@__MyStruct__init = external global %MyStruct, section "$RUSTY$var-__mystruct__init:r2i32i16"
 
-define void @__init_mystruct(%MyStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2i32i16]" {
+define void @__init_mystruct(%MyStruct* %0) {
 entry:
   %self = alloca %MyStruct*, align 8
   store %MyStruct* %0, %MyStruct** %self, align 8
@@ -71,7 +71,7 @@ entry:
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   ret void
 }

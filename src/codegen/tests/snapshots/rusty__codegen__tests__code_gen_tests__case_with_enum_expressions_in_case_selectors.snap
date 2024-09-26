@@ -5,12 +5,12 @@ expression: result
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-@BASE = unnamed_addr constant i32 7, section "var-$RUSTY$BASE:i32"
-@Direction.FORWARD = unnamed_addr constant i32 7, section "var-$RUSTY$FORWARD:e3i32"
-@Direction.UP = unnamed_addr constant i32 8, section "var-$RUSTY$UP:e3i32"
-@Direction.DOWN = unnamed_addr constant i32 28, section "var-$RUSTY$DOWN:e3i32"
+@BASE = unnamed_addr constant i32 7, section "$RUSTY$var-base:i32"
+@Direction.FORWARD = unnamed_addr constant i32 7, section "$RUSTY$var-direction.forward:e3i32"
+@Direction.UP = unnamed_addr constant i32 8, section "$RUSTY$var-direction.up:e3i32"
+@Direction.DOWN = unnamed_addr constant i32 28, section "$RUSTY$var-direction.down:e3i32"
 
-define i32 @drive() section "fn-$RUSTY$drive:i32" {
+define i32 @drive() {
 entry:
   %drive = alloca i32, align 4
   %input = alloca i32, align 4
@@ -62,7 +62,7 @@ continue:                                         ; preds = %else, %case6, %case
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   ret void
 }

@@ -21,7 +21,7 @@ use self::{
 use crate::{
     output::FormatOption,
     resolver::{AstAnnotations, Dependency, StringLiterals},
-    ConfigFormat, DebugLevel, OptimizationLevel, Target,
+    DebugLevel, OnlineChange, OptimizationLevel, Target,
 };
 
 use super::index::*;
@@ -75,8 +75,8 @@ pub struct CodeGen<'ink> {
     pub module: Module<'ink>,
     /// the debugging module creates debug information at appropriate locations
     pub debug: DebugBuilderEnum<'ink>,
-
-    pub got_layout_file: Option<(String, ConfigFormat)>,
+    /// Whether we are generating a hot-reloadable binary or not
+    pub online_change: OnlineChange,
 
     pub module_location: String,
 }
@@ -95,14 +95,19 @@ impl<'ink> CodeGen<'ink> {
         context: &'ink CodegenContext,
         root: Option<&Path>,
         module_location: &str,
-        got_layout_file: Option<(String, ConfigFormat)>,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
+        online_change: OnlineChange,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
         let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
-        CodeGen { module, debug, got_layout_file, module_location: module_location.to_string() }
+        CodeGen {
+            module,
+            debug,
+            module_location: module_location.to_string(),
+            online_change,
+        }
     }
 
     pub fn generate_llvm_index(
@@ -112,7 +117,7 @@ impl<'ink> CodeGen<'ink> {
         literals: &StringLiterals,
         dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
-        got_layout: &Mutex<Option<HashMap<String, u64>>>,
+        got_layout: &Mutex<HashMap<String, u64>>,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
@@ -126,8 +131,14 @@ impl<'ink> CodeGen<'ink> {
         )?;
         index.merge(llvm_type_index);
 
-        let mut variable_generator =
-            VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
+        let mut variable_generator = VariableGenerator::new(
+            &self.module,
+            &llvm,
+            global_index,
+            annotations,
+            &index,
+            &mut self.debug,
+        );
 
         //Generate global variables
         let llvm_gv_index =
@@ -166,7 +177,10 @@ impl<'ink> CodeGen<'ink> {
                 acc
             });
 
-        if let Some(got_entries) = &mut *got_layout.lock().unwrap() {
+
+        if let OnlineChange::Enabled((_,_)) = self.online_change {
+            let got_entries = &mut *got_layout.lock().unwrap();
+
             let mut new_symbols = Vec::new();
             let mut new_got_entries = HashMap::new();
             let mut new_got = HashMap::new();
@@ -224,6 +238,7 @@ impl<'ink> CodeGen<'ink> {
             annotations,
             &index,
             &mut self.debug,
+            self.online_change.clone(),
         )?;
         let llvm = Llvm::new(context, context.create_builder());
         index.merge(llvm_impl_index);
@@ -286,7 +301,8 @@ impl<'ink> CodeGen<'ink> {
     ) -> Result<GeneratedModule<'ink>, Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
-        let pou_generator = PouGenerator::new(llvm, global_index, annotations, &llvm_index);
+        let pou_generator =
+            PouGenerator::new(llvm, global_index, annotations, &llvm_index, self.online_change);
 
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {

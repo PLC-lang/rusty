@@ -5,4 +5,4 @@ expression: result
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-@x = global i16 7, section "var-$RUSTY$x:i16"
+@x = global i16 7, section "$RUSTY$var-x:i16"

@@ -711,7 +711,7 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %str = alloca [81 x i8], align 1
@@ -724,7 +724,7 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
       ret i32 %main_ret
     }
 
-    define i32 @foo(i8* %0) section "fn-$RUSTY$foo:i32[s8u81]" {
+    define i32 @foo(i8* %0) {
     entry:
       %foo = alloca i32, align 4
       %val = alloca [81 x i8], align 1
@@ -747,7 +747,7 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -777,7 +777,7 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %str = alloca [65537 x i8], align 1
@@ -790,7 +790,7 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
       ret i32 %main_ret
     }
 
-    define i32 @foo(i8* %0) section "fn-$RUSTY$foo:i32[s8u65537]" {
+    define i32 @foo(i8* %0) {
     entry:
       %foo = alloca i32, align 4
       %val = alloca [65537 x i8], align 1
@@ -813,7 +813,7 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -843,7 +843,7 @@ fn by_value_function_arg_arrays_are_memcopied() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %arr = alloca [65537 x i32], align 4
@@ -856,7 +856,7 @@ fn by_value_function_arg_arrays_are_memcopied() {
       ret i32 %main_ret
     }
 
-    define i32 @foo(i32* %0) section "fn-$RUSTY$foo:i32[ai32]" {
+    define i32 @foo(i32* %0) {
     entry:
       %foo = alloca i32, align 4
       %val = alloca [65537 x i32], align 4
@@ -880,7 +880,7 @@ fn by_value_function_arg_arrays_are_memcopied() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -918,9 +918,9 @@ fn by_value_function_arg_structs_are_memcopied() {
 
     %S_TY = type { i8, i8 }
 
-    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "var-$RUSTY$__S_TY__init:r2u8u8"
+    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "$RUSTY$var-__s_ty__init:r2u8u8"
 
-    define i32 @foo(%S_TY* %0) section "fn-$RUSTY$foo:i32[r2u8u8]" {
+    define i32 @foo(%S_TY* %0) {
     entry:
       %foo = alloca i32, align 4
       %val = alloca %S_TY, align 8
@@ -932,7 +932,7 @@ fn by_value_function_arg_structs_are_memcopied() {
       ret i32 %foo_ret
     }
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %s = alloca %S_TY, align 8
@@ -945,7 +945,7 @@ fn by_value_function_arg_structs_are_memcopied() {
       ret i32 %main_ret
     }
 
-    declare void @__init_s_ty(%S_TY*) section "fn-$RUSTY$__init_s_ty:v[pr2u8u8]"
+    declare void @__init_s_ty(%S_TY*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -956,9 +956,9 @@ fn by_value_function_arg_structs_are_memcopied() {
 
     %S_TY = type { i8, i8 }
 
-    @__S_TY__init = external global %S_TY, section "var-$RUSTY$__S_TY__init:r2u8u8"
+    @__S_TY__init = external global %S_TY, section "$RUSTY$var-__s_ty__init:r2u8u8"
 
-    define void @__init_s_ty(%S_TY* %0) section "fn-$RUSTY$__init_s_ty:v[pr2u8u8]" {
+    define void @__init_s_ty(%S_TY* %0) {
     entry:
       %self = alloca %S_TY*, align 8
       store %S_TY* %0, %S_TY** %self, align 8
@@ -967,7 +967,7 @@ fn by_value_function_arg_structs_are_memcopied() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -1013,10 +1013,10 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     %AGGREGATE_COLLECTOR_TY = type { [65537 x i32], [65537 x i8], %S_TY }
     %S_TY = type { i8, i8 }
 
-    @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer, section "var-$RUSTY$__AGGREGATE_COLLECTOR_TY__init:r3ai32s8u65537r2u8u8"
-    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "var-$RUSTY$__S_TY__init:r2u8u8"
+    @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer, section "$RUSTY$var-__aggregate_collector_ty__init:r3ai32s8u65537r2u8u8"
+    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer, section "$RUSTY$var-__s_ty__init:r2u8u8"
 
-    define i32 @foo(%AGGREGATE_COLLECTOR_TY* %0) section "fn-$RUSTY$foo:i32[r3ai32s8u65537r2u8u8]" {
+    define i32 @foo(%AGGREGATE_COLLECTOR_TY* %0) {
     entry:
       %foo = alloca i32, align 4
       %val = alloca %AGGREGATE_COLLECTOR_TY, align 8
@@ -1028,7 +1028,7 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
       ret i32 %foo_ret
     }
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %s = alloca %AGGREGATE_COLLECTOR_TY, align 8
@@ -1041,7 +1041,7 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
       ret i32 %main_ret
     }
 
-    declare void @__init_aggregate_collector_ty(%AGGREGATE_COLLECTOR_TY*) section "fn-$RUSTY$__init_aggregate_collector_ty:v[pr3ai32s8u65537r2u8u8]"
+    declare void @__init_aggregate_collector_ty(%AGGREGATE_COLLECTOR_TY*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -1053,17 +1053,17 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     %S_TY = type { i8, i8 }
     %AGGREGATE_COLLECTOR_TY = type { [65537 x i32], [65537 x i8], %S_TY }
 
-    @__S_TY__init = external global %S_TY, section "var-$RUSTY$__S_TY__init:r2u8u8"
-    @__AGGREGATE_COLLECTOR_TY__init = external global %AGGREGATE_COLLECTOR_TY, section "var-$RUSTY$__AGGREGATE_COLLECTOR_TY__init:r3ai32s8u65537r2u8u8"
+    @__S_TY__init = external global %S_TY, section "$RUSTY$var-__s_ty__init:r2u8u8"
+    @__AGGREGATE_COLLECTOR_TY__init = external global %AGGREGATE_COLLECTOR_TY, section "$RUSTY$var-__aggregate_collector_ty__init:r3ai32s8u65537r2u8u8"
 
-    define void @__init_s_ty(%S_TY* %0) section "fn-$RUSTY$__init_s_ty:v[pr2u8u8]" {
+    define void @__init_s_ty(%S_TY* %0) {
     entry:
       %self = alloca %S_TY*, align 8
       store %S_TY* %0, %S_TY** %self, align 8
       ret void
     }
 
-    define void @__init_aggregate_collector_ty(%AGGREGATE_COLLECTOR_TY* %0) section "fn-$RUSTY$__init_aggregate_collector_ty:v[pr3ai32s8u65537r2u8u8]" {
+    define void @__init_aggregate_collector_ty(%AGGREGATE_COLLECTOR_TY* %0) {
     entry:
       %self = alloca %AGGREGATE_COLLECTOR_TY*, align 8
       store %AGGREGATE_COLLECTOR_TY* %0, %AGGREGATE_COLLECTOR_TY** %self, align 8
@@ -1075,7 +1075,7 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -1110,9 +1110,9 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     %FOO = type { [65537 x i8], [1024 x i32] }
 
-    @__FOO__init = unnamed_addr constant %FOO zeroinitializer, section "var-$RUSTY$__FOO__init:r2s8u65537ai32"
+    @__FOO__init = unnamed_addr constant %FOO zeroinitializer, section "$RUSTY$var-__foo__init:r2s8u65537ai32"
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %str = alloca [65537 x i8], align 1
@@ -1139,14 +1139,14 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
       ret i32 %main_ret
     }
 
-    define void @FOO(%FOO* %0) section "fn-$RUSTY$FOO:v[s8u65537][ai32]" {
+    define void @FOO(%FOO* %0) {
     entry:
       %val = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
       ret void
     }
 
-    declare void @__init_foo(%FOO*) section "fn-$RUSTY$__init_foo:v[pr2s8u65537ai32]"
+    declare void @__init_foo(%FOO*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
@@ -1164,20 +1164,20 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     %FOO = type { [65537 x i8], [1024 x i32] }
 
-    @__FOO__init = external global %FOO, section "var-$RUSTY$__FOO__init:r2s8u65537ai32"
+    @__FOO__init = external global %FOO, section "$RUSTY$var-__foo__init:r2s8u65537ai32"
 
-    define void @__init_foo(%FOO* %0) section "fn-$RUSTY$__init_foo:v[pr2s8u65537ai32]" {
+    define void @__init_foo(%FOO* %0) {
     entry:
       %self = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %self, align 8
       ret void
     }
 
-    declare void @FOO(%FOO*) section "fn-$RUSTY$FOO:v[s8u65537][ai32]"
+    declare void @FOO(%FOO*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -1225,11 +1225,11 @@ fn var_output_aggregate_types_are_memcopied() {
     %OUT_TYPE = type { i8 }
     %PRG = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16], %FB }
 
-    @__FB__init = unnamed_addr constant %FB zeroinitializer, section "var-$RUSTY$__FB__init:r5r1u8ai32ar1u8s8u81s16u81"
-    @__OUT_TYPE__init = unnamed_addr constant %OUT_TYPE zeroinitializer, section "var-$RUSTY$__OUT_TYPE__init:r1u8"
-    @PRG_instance = global %PRG zeroinitializer, section "var-$RUSTY$PRG_instance:r6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81"
+    @__FB__init = unnamed_addr constant %FB zeroinitializer, section "$RUSTY$var-__fb__init:r5r1u8ai32ar1u8s8u81s16u81"
+    @__OUT_TYPE__init = unnamed_addr constant %OUT_TYPE zeroinitializer, section "$RUSTY$var-__out_type__init:r1u8"
+    @PRG_instance = global %PRG zeroinitializer, section "$RUSTY$var-prg_instance:r6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81"
 
-    define void @FB(%FB* %0) section "fn-$RUSTY$FB:v[r1u8][ai32][ar1u8][s8u81][s16u81]" {
+    define void @FB(%FB* %0) {
     entry:
       %output = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
       %output2 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
@@ -1239,7 +1239,7 @@ fn var_output_aggregate_types_are_memcopied() {
       ret void
     }
 
-    define void @PRG(%PRG* %0) section "fn-$RUSTY$PRG:v" {
+    define void @PRG(%PRG* %0) {
     entry:
       %out = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 0
       %out2 = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 1
@@ -1285,18 +1285,18 @@ fn var_output_aggregate_types_are_memcopied() {
     %FB = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16] }
     %PRG = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16], %FB }
 
-    @__OUT_TYPE__init = external global %OUT_TYPE, section "var-$RUSTY$__OUT_TYPE__init:r1u8"
-    @__FB__init = external global %FB, section "var-$RUSTY$__FB__init:r5r1u8ai32ar1u8s8u81s16u81"
-    @PRG_instance = external global %PRG, section "var-$RUSTY$PRG_instance:r6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81"
+    @__OUT_TYPE__init = external global %OUT_TYPE, section "$RUSTY$var-__out_type__init:r1u8"
+    @__FB__init = external global %FB, section "$RUSTY$var-__fb__init:r5r1u8ai32ar1u8s8u81s16u81"
+    @PRG_instance = external global %PRG, section "$RUSTY$var-prg_instance:r6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81"
 
-    define void @__init_out_type(%OUT_TYPE* %0) section "fn-$RUSTY$__init_out_type:v[pr1u8]" {
+    define void @__init_out_type(%OUT_TYPE* %0) {
     entry:
       %self = alloca %OUT_TYPE*, align 8
       store %OUT_TYPE* %0, %OUT_TYPE** %self, align 8
       ret void
     }
 
-    define void @__init_fb(%FB* %0) section "fn-$RUSTY$__init_fb:v[pr5r1u8ai32ar1u8s8u81s16u81]" {
+    define void @__init_fb(%FB* %0) {
     entry:
       %self = alloca %FB*, align 8
       store %FB* %0, %FB** %self, align 8
@@ -1306,9 +1306,9 @@ fn var_output_aggregate_types_are_memcopied() {
       ret void
     }
 
-    declare void @FB(%FB*) section "fn-$RUSTY$FB:v[r1u8][ai32][ar1u8][s8u81][s16u81]"
+    declare void @FB(%FB*)
 
-    define void @__init_prg(%PRG* %0) section "fn-$RUSTY$__init_prg:v[pr6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81]" {
+    define void @__init_prg(%PRG* %0) {
     entry:
       %self = alloca %PRG*, align 8
       store %PRG* %0, %PRG** %self, align 8
@@ -1321,7 +1321,7 @@ fn var_output_aggregate_types_are_memcopied() {
       ret void
     }
 
-    declare void @PRG(%PRG*) section "fn-$RUSTY$PRG:v"
+    declare void @PRG(%PRG*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1329,20 +1329,20 @@ fn var_output_aggregate_types_are_memcopied() {
     %OUT_TYPE = type { i8 }
     %FB = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16] }
 
-    @PRG_instance = external global %PRG, section "var-$RUSTY$PRG_instance:r6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81"
-    @__OUT_TYPE__init = external global %OUT_TYPE, section "var-$RUSTY$__OUT_TYPE__init:r1u8"
-    @__FB__init = external global %FB, section "var-$RUSTY$__FB__init:r5r1u8ai32ar1u8s8u81s16u81"
+    @PRG_instance = external global %PRG, section "$RUSTY$var-prg_instance:r6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81"
+    @__OUT_TYPE__init = external global %OUT_TYPE, section "$RUSTY$var-__out_type__init:r1u8"
+    @__FB__init = external global %FB, section "$RUSTY$var-__fb__init:r5r1u8ai32ar1u8s8u81s16u81"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       call void @__init_prg(%PRG* @PRG_instance)
       ret void
     }
 
-    declare void @__init_prg(%PRG*) section "fn-$RUSTY$__init_prg:v[pr6r1u8ai32ar1u8s8u81s16u81r5r1u8ai32ar1u8s8u81s16u81]"
+    declare void @__init_prg(%PRG*)
 
-    declare void @PRG(%PRG*) section "fn-$RUSTY$PRG:v"
+    declare void @PRG(%PRG*)
 
-    declare void @FB(%FB*) section "fn-$RUSTY$FB:v[r1u8][ai32][ar1u8][s8u81][s16u81]"
+    declare void @FB(%FB*)
     "###);
 }

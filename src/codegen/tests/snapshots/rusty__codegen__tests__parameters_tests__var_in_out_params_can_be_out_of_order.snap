@@ -8,10 +8,10 @@ source_filename = "<internal>"
 %mainProg = type { %fb_t, i8, i8 }
 %fb_t = type { i8, i8, i8*, i8, i8* }
 
-@mainProg_instance = global %mainProg zeroinitializer, section "var-$RUSTY$mainProg_instance:r3r5u8u8pu8u8pu8u8u8"
-@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer, section "var-$RUSTY$__fb_t__init:r5u8u8pu8u8pu8"
+@mainProg_instance = global %mainProg zeroinitializer, section "$RUSTY$var-mainprog_instance:r3r5u8u8pu8u8pu8u8u8"
+@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer, section "$RUSTY$var-__fb_t__init:r5u8u8pu8u8pu8"
 
-define void @mainProg(%mainProg* %0) section "fn-$RUSTY$mainProg:v" {
+define void @mainProg(%mainProg* %0) {
 entry:
   %fb = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 0
   %out1 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 1
@@ -35,7 +35,7 @@ entry:
   ret void
 }
 
-define void @fb_t(%fb_t* %0) section "fn-$RUSTY$fb_t:v[u8][pu8][u8][pu8]" {
+define void @fb_t(%fb_t* %0) {
 entry:
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
@@ -45,7 +45,7 @@ entry:
   ret void
 }
 
-define void @fb_t.foo(%fb_t* %0) section "fn-$RUSTY$fb_t.foo:v" {
+define void @fb_t.foo(%fb_t* %0) {
 entry:
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
@@ -64,10 +64,10 @@ source_filename = "__initializers"
 %mainProg = type { %fb_t, i8, i8 }
 %fb_t = type { i8, i8, i8*, i8, i8* }
 
-@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r3r5u8u8pu8u8pu8u8u8"
-@__fb_t__init = external global %fb_t, section "var-$RUSTY$__fb_t__init:r5u8u8pu8u8pu8"
+@mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r3r5u8u8pu8u8pu8u8u8"
+@__fb_t__init = external global %fb_t, section "$RUSTY$var-__fb_t__init:r5u8u8pu8u8pu8"
 
-define void @__init_mainprog(%mainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr3r5u8u8pu8u8pu8u8u8]" {
+define void @__init_mainprog(%mainProg* %0) {
 entry:
   %self = alloca %mainProg*, align 8
   store %mainProg* %0, %mainProg** %self, align 8
@@ -77,11 +77,11 @@ entry:
   ret void
 }
 
-declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+declare void @mainProg(%mainProg*)
 
-declare void @fb_t(%fb_t*) section "fn-$RUSTY$fb_t:v[u8][pu8][u8][pu8]"
+declare void @fb_t(%fb_t*)
 
-define void @__init_fb_t(%fb_t* %0) section "fn-$RUSTY$__init_fb_t:v[pr5u8u8pu8u8pu8]" {
+define void @__init_fb_t(%fb_t* %0) {
 entry:
   %self = alloca %fb_t*, align 8
   store %fb_t* %0, %fb_t** %self, align 8
@@ -93,17 +93,17 @@ source_filename = "__init___testproject"
 %mainProg = type { %fb_t, i8, i8 }
 %fb_t = type { i8, i8, i8*, i8, i8* }
 
-@mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r3r5u8u8pu8u8pu8u8u8"
-@__fb_t__init = external global %fb_t, section "var-$RUSTY$__fb_t__init:r5u8u8pu8u8pu8"
+@mainProg_instance = external global %mainProg, section "$RUSTY$var-mainprog_instance:r3r5u8u8pu8u8pu8u8u8"
+@__fb_t__init = external global %fb_t, section "$RUSTY$var-__fb_t__init:r5u8u8pu8u8pu8"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_mainprog(%mainProg* @mainProg_instance)
   ret void
 }
 
-declare void @__init_mainprog(%mainProg*) section "fn-$RUSTY$__init_mainprog:v[pr3r5u8u8pu8u8pu8u8u8]"
+declare void @__init_mainprog(%mainProg*)
 
-declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+declare void @mainProg(%mainProg*)
 
-declare void @fb_t(%fb_t*) section "fn-$RUSTY$fb_t:v[u8][pu8][u8][pu8]"
+declare void @fb_t(%fb_t*)

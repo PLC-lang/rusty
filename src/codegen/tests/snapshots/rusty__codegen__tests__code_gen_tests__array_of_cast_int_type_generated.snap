@@ -7,9 +7,9 @@ source_filename = "<internal>"
 
 %prg = type { [11 x i16] }
 
-@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1ai16"
+@prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r1ai16"
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   ret void
@@ -19,29 +19,29 @@ source_filename = "__initializers"
 
 %prg = type { [11 x i16] }
 
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1ai16"
+@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1ai16"
 
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr1ai16]" {
+define void @__init_prg(%prg* %0) {
 entry:
   %self = alloca %prg*, align 8
   store %prg* %0, %prg** %self, align 8
   ret void
 }
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %prg = type { [11 x i16] }
 
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1ai16"
+@prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1ai16"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_prg(%prg* @prg_instance)
   ret void
 }
 
-declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr1ai16]"
+declare void @__init_prg(%prg*)
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)

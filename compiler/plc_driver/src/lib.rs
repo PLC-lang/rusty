@@ -19,8 +19,8 @@ use std::{
 
 use cli::{CompileParameters, ParameterError, SubCommands};
 use plc::{
-    codegen::CodegenContext, linker::LinkerType, output::FormatOption, ConfigFormat, DebugLevel,
-    ErrorFormat, OptimizationLevel, Target, Threads,
+    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat,
+    OnlineChange, OptimizationLevel, Target, Threads,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
@@ -50,12 +50,11 @@ pub struct CompileOptions {
     /// The name of the resulting compiled file
     pub output: String,
     pub output_format: FormatOption,
-    pub got_layout_file: Option<String>,
-    pub got_layout_format: Option<ConfigFormat>,
     pub optimization: OptimizationLevel,
     pub error_format: ErrorFormat,
     pub debug_level: DebugLevel,
     pub single_module: bool,
+    pub online_change: OnlineChange,
 }
 
 impl Default for CompileOptions {
@@ -65,12 +64,11 @@ impl Default for CompileOptions {
             build_location: None,
             output: String::new(),
             output_format: Default::default(),
-            got_layout_file: None,
-            got_layout_format: None,
             optimization: OptimizationLevel::None,
             error_format: ErrorFormat::None,
             debug_level: DebugLevel::None,
             single_module: false,
+            online_change: OnlineChange::Disabled,
         }
     }
 }
@@ -176,12 +174,15 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
         build_location: compile_parameters.get_build_location(),
         output: project.get_output_name(),
         output_format,
-        got_layout_file: compile_parameters.got_layout_file.clone(),
-        got_layout_format: compile_parameters.got_layout_format(),
         optimization: compile_parameters.optimization,
         error_format: compile_parameters.error_format,
         debug_level: compile_parameters.debug_level(),
         single_module: compile_parameters.single_module,
+        online_change: if compile_parameters.online_change {
+            OnlineChange::Enabled((compile_parameters.got_layout_file.clone(),compile_parameters.got_layout_format()))
+        } else {
+            OnlineChange::Disabled
+        },
     };
 
     let libraries =
