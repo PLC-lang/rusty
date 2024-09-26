@@ -10,23 +10,23 @@ entry:
   %myFunc = alloca i32, align 4, !dbg !9
   call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !10, metadata !DIExpression()), !dbg !12
   store i32 0, i32* %myFunc, align 4, !dbg !9
-  %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !13
+  %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !9
   switch i32 %load_myFunc, label %else [
     i32 1, label %case
     i32 2, label %case1
-  ], !dbg !14
+  ], !dbg !13
 
 case:                                             ; preds = %entry
+  store i32 1, i32* %myFunc, align 4, !dbg !14
+  br label %continue, !dbg !14
+
+case1:                                            ; preds = %entry
   store i32 1, i32* %myFunc, align 4, !dbg !15
   br label %continue, !dbg !15
 
-case1:                                            ; preds = %entry
+else:                                             ; preds = %entry
   store i32 1, i32* %myFunc, align 4, !dbg !16
   br label %continue, !dbg !16
-
-else:                                             ; preds = %entry
-  store i32 1, i32* %myFunc, align 4, !dbg !14
-  br label %continue, !dbg !14
 
 continue:                                         ; preds = %else, %case1, %case
   store i32 1, i32* %myFunc, align 4, !dbg !17
@@ -56,9 +56,9 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !11 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !12 = !DILocation(line: 2, column: 17, scope: !4)
 !13 = !DILocation(line: 3, column: 17, scope: !4)
-!14 = !DILocation(line: 9, column: 16, scope: !4)
-!15 = !DILocation(line: 5, column: 16, scope: !4)
-!16 = !DILocation(line: 7, column: 16, scope: !4)
+!14 = !DILocation(line: 5, column: 16, scope: !4)
+!15 = !DILocation(line: 7, column: 16, scope: !4)
+!16 = !DILocation(line: 9, column: 16, scope: !4)
 !17 = !DILocation(line: 11, column: 12, scope: !4)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"

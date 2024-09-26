@@ -287,7 +287,7 @@ impl PouType {
 
 #[derive(Debug, PartialEq)]
 pub struct ConfigVariable {
-    pub name_segments: Vec<String>,
+    pub reference: AstNode,
     pub data_type: DataTypeDeclaration,
     pub address: AstNode,
     pub location: SourceLocation,
@@ -295,12 +295,12 @@ pub struct ConfigVariable {
 
 impl ConfigVariable {
     pub fn new(
-        name_segments: Vec<String>,
+        reference: AstNode,
         data_type: DataTypeDeclaration,
         address: AstNode,
         location: SourceLocation,
     ) -> Self {
-        Self { name_segments, data_type, address, location }
+        Self { reference, data_type, address, location }
     }
 }
 
@@ -935,6 +935,14 @@ impl AstNode {
         }
     }
 
+    pub fn get_parent_name_of_reference(&self) -> Option<&str> {
+        if let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }, ..) = &self.stmt {
+            base.as_ref().get_flat_reference_name()
+        } else {
+            None
+        }
+    }
+
     pub fn get_label_name(&self) -> Option<&str> {
         match &self.stmt {
             AstStatement::LabelStatement(LabelStatement { name, .. }) => Some(name.as_str()),
@@ -1074,6 +1082,13 @@ impl AstNode {
     pub fn negate(self: AstNode, mut id_provider: IdProvider) -> AstNode {
         let location = self.get_location();
         AstFactory::create_not_expression(self, location, id_provider.next_id())
+    }
+
+    pub fn is_template(&self) -> bool {
+        matches!(
+            self.stmt,
+            AstStatement::HardwareAccess(HardwareAccess { access: DirectAccessType::Template, .. })
+        )
     }
 }
 

@@ -3,7 +3,7 @@
 use std::hash::BuildHasherDefault;
 
 use itertools::Itertools;
-use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
+use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
@@ -271,6 +271,10 @@ impl VariableIndexEntry {
 
     pub fn has_hardware_binding(&self) -> bool {
         self.binding.is_some()
+    }
+
+    pub fn is_template(&self) -> bool {
+        matches!(self.binding, Some(HardwareBinding { access: DirectAccessType::Template, .. }))
     }
 
     pub fn get_hardware_binding(&self) -> Option<&HardwareBinding> {

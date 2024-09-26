@@ -2,6 +2,7 @@ use plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
 use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
+use variable::visit_config_variable;
 
 use crate::{
     index::{
@@ -9,6 +10,7 @@ use crate::{
         Index, PouIndexEntry,
     },
     resolver::AnnotationMap,
+    typesystem::DataType,
 };
 
 use self::{
@@ -23,7 +25,7 @@ mod array;
 mod global;
 mod pou;
 mod recursive;
-mod statement;
+pub(crate) mod statement;
 mod types;
 mod variable;
 
@@ -129,6 +131,14 @@ impl<'a> Validator<'a> {
         }
     }
 
+    pub fn get_type_name_or_slice(&self, dt: &DataType) -> String {
+        if dt.is_internal() {
+            return dt.get_type_information().get_inner_name().to_string();
+        }
+
+        self.context.slice(&dt.location)
+    }
+
     pub fn diagnostics(&mut self) -> Vec<Diagnostic> {
         let mut all_diagnostics = Vec::new();
         all_diagnostics.append(&mut self.take_diagnostics());
@@ -171,22 +181,27 @@ impl<'a> Validator<'a> {
 
     pub fn visit_unit<T: AnnotationMap>(&mut self, annotations: &T, index: &Index, unit: &CompilationUnit) {
         let context = ValidationContext { annotations, index, qualifier: None, is_call: false };
-        // validate POU and declared Variables
+        // Validate POU and declared Variables
         for pou in &unit.units {
             visit_pou(self, pou, &context.with_qualifier(pou.name.as_str()));
         }
 
-        // validate user declared types
+        // Validate user declared types
         for t in &unit.user_types {
             visit_user_type_declaration(self, t, &context);
         }
 
-        // validate global variables
+        // Validate config variables (VAR_CONFIG)
+        for variable in &unit.var_config {
+            visit_config_variable(self, variable, &context);
+        }
+
+        // Validate global variables
         for gv in &unit.global_vars {
             visit_variable_block(self, None, gv, &context);
         }
 
-        // validate implementations
+        // Validate implementations
         for implementation in &unit.implementations {
             visit_implementation(self, implementation, &context);
         }
