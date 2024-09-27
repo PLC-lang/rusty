@@ -1,14 +1,14 @@
 use std::fmt::Display;
 
-use plc_ast::ast::{AstStatement, ConfigVariable, ReferenceAccess, ReferenceExpr};
+use plc_ast::{ast::{AstStatement, ConfigVariable, ReferenceAccess, ReferenceExpr}, literals::AstLiteral};
 
 use crate::{index::Index, typesystem::{Dimension, TypeSize}};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ExpressionPathElement<'idx> {
     Name(&'idx str),
     ArrayAccess(&'idx [Dimension]),
-    Foo(Option<TypeSize>)
+    Foo(Vec<TypeSize>)
 }
 
 impl Display for ExpressionPathElement<'_> {
@@ -79,12 +79,17 @@ impl<'idx> ExpressionPath<'idx> {
                     array
                 }
                 ExpressionPathElement::Foo(idx) => {
-                    let idx = idx.map(|it| it.as_int_value(index).ok()).flatten();
-                    vec![if let Some(idx) = idx {
-                        format!("[{idx}]")
-                    } else {
-                        format!("__DIAG__") // :(
-                    }]
+                    let Some(first) = idx.first().map(|it| it.as_int_value(index).ok()).flatten() else {
+                        return vec![]
+                    };
+                    let mut res = format!("{first}");                    
+                    idx.iter().skip(1).for_each(|it|{
+                        if let Ok(i) = it.as_int_value(index) {
+                            res = format!("{res},{i}"); 
+                        };
+                                    
+                    });
+                    vec![format!("[{res}]")]
                 },
             };
             levels.push(level);
@@ -137,7 +142,13 @@ fn get_expression_path_segments<'a>(node: &'a plc_ast::ast::AstNode) -> Vec<Expr
                 base,
             }) => {
                 res.push(ExpressionPathElement::Foo(
-                    idx.get_literal_integer_value().map(|it| TypeSize::LiteralInteger(it as i64))
+                    match &idx.as_ref().stmt {
+                        AstStatement::Literal(_) => idx.get_literal_integer_value().map(|it| vec![TypeSize::LiteralInteger(it as i64)]),
+                        AstStatement::ExpressionList(vec) => {
+                            vec.iter().map(|it| it.get_literal_integer_value().map(|it| TypeSize::LiteralInteger(it as i64))).collect()
+                        },
+                        _ => unimplemented!()
+                    }.unwrap_or_default()
                 ));
                 if let Some(base) = base {
                     res.extend(inner(base));

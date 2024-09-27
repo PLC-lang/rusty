@@ -723,6 +723,46 @@ fn arrays() {
 
 
 #[test]
+fn arrays_with_multi_dim() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[0..1, 2..3] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo[0, 2].bar AT %IX1.0 : BOOL;
+            main.foo[1, 2].bar AT %IX1.1 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: Not all template instances in array are configured
+      ┌─ <internal>:4:17
+      │
+    4 │                 bar AT %I* : BOOL;
+      │                 ^^^ Not all template instances in array are configured
+
+    error[E001]: Not all template instances in array are configured
+      ┌─ <internal>:4:17
+      │
+    4 │                 bar AT %I* : BOOL;
+      │                 ^^^ Not all template instances in array are configured
+
+    "###);
+}
+
+
+#[test]
 fn arrays_with_const_dim() {
     let diagnostics = parse_and_validate_buffered(
         r#"
