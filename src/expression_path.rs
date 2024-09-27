@@ -1,13 +1,14 @@
 use std::fmt::Display;
 
-use plc_ast::ast::ConfigVariable;
+use plc_ast::ast::{AstStatement, ConfigVariable, ReferenceAccess, ReferenceExpr};
 
-use crate::{index::Index, typesystem::Dimension};
+use crate::{index::Index, typesystem::{Dimension, TypeSize}};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ExpressionPathElement<'idx> {
     Name(&'idx str),
     ArrayAccess(&'idx [Dimension]),
+    Foo(Option<TypeSize>)
 }
 
 impl Display for ExpressionPathElement<'_> {
@@ -15,6 +16,7 @@ impl Display for ExpressionPathElement<'_> {
         match self {
             ExpressionPathElement::Name(name) => write!(f, "{name}"),
             ExpressionPathElement::ArrayAccess(_) => unimplemented!(),
+            ExpressionPathElement::Foo(_) => unimplemented!(),
         }
     }
 }
@@ -37,18 +39,6 @@ pub struct ExpressionPath<'idx> {
 }
 
 impl<'idx> ExpressionPath<'idx> {
-    pub fn names(&self) -> Vec<String> {
-        let mut out = Vec::new();
-        for name in &self.names {
-            match name {
-                ExpressionPathElement::Name(val) => out.push(val.to_string()),
-                _ => panic!("oops"),
-            }
-        }
-
-        out
-    }
-
     pub fn join(&mut self, name: &mut ExpressionPath<'idx>) {
         self.names.append(&mut name.names)
     }
@@ -65,8 +55,8 @@ impl<'idx> ExpressionPath<'idx> {
         let mut levels: Vec<Vec<String>> = vec![];
         for seg in self.names.iter() {
             let level = match seg {
-                crate::expression_path::ExpressionPathElement::Name(s) => vec![s.to_string()],
-                crate::expression_path::ExpressionPathElement::ArrayAccess(dimensions) => {
+                ExpressionPathElement::Name(s) => vec![s.to_string()],
+                ExpressionPathElement::ArrayAccess(dimensions) => {
                     let mut array = dimensions.iter().map(|it| it.get_range_inclusive(index).unwrap()).fold(
                         vec![],
                         |curr, it| {
@@ -88,6 +78,14 @@ impl<'idx> ExpressionPath<'idx> {
                     array.iter_mut().for_each(|s| *s = format!("[{s}]"));
                     array
                 }
+                ExpressionPathElement::Foo(idx) => {
+                    let idx = idx.map(|it| it.as_int_value(index).ok()).flatten();
+                    vec![if let Some(idx) = idx {
+                        format!("[{idx}]")
+                    } else {
+                        format!("__DIAG__") // :(
+                    }]
+                },
             };
             levels.push(level);
         }
@@ -120,28 +118,32 @@ fn get_expression_path_segments<'a>(node: &'a plc_ast::ast::AstNode) -> Vec<Expr
     fn inner<'a>(node: &'a plc_ast::ast::AstNode) -> Vec<ExpressionPathElement<'a>> {
         let mut res = vec![];
         match &node.stmt {
-            plc_ast::ast::AstStatement::ReferenceExpr(
-                plc_ast::ast::ReferenceExpr {
-                    access: plc_ast::ast::ReferenceAccess::Member(reference),
-                    base: Some(base),
+            AstStatement::ReferenceExpr(
+                ReferenceExpr {
+                    access: ReferenceAccess::Member(reference),
+                    base,
                 },
                 ..,
             ) => {
                 res.push(ExpressionPathElement::Name(
                     reference.get_flat_reference_name().unwrap_or_default(),
                 ));
-                res.extend(inner(base));
-            }
-            plc_ast::ast::AstStatement::ReferenceExpr(plc_ast::ast::ReferenceExpr {
-                access: plc_ast::ast::ReferenceAccess::Member(reference),
-                base: None,
+                if let Some(base) = base {
+                    res.extend(inner(base));
+                }
+            }         
+            AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Index(idx),
+                base,
             }) => {
-                res.push(ExpressionPathElement::Name(
-                    reference.get_flat_reference_name().unwrap_or_default(),
+                res.push(ExpressionPathElement::Foo(
+                    idx.get_literal_integer_value().map(|it| TypeSize::LiteralInteger(it as i64))
                 ));
+                if let Some(base) = base {
+                    res.extend(inner(base));
+                }
             }
-            // TODO: array access/dimensions
-            _ => return vec![],
+            _ => { dbg!(node); return vec![] },
         };
         res
     }

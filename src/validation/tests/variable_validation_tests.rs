@@ -661,3 +661,93 @@ fn blala() {
 
     "###);
 }
+
+
+#[test]
+fn all_array_elements_configured_causes_no_errors() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[0..1] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo[0].bar AT %IX1.0 : BOOL;
+            main.foo[1].bar AT %IX1.1 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn arrays() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[0..1] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo[0].bar AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: Not all template instances in array are configured
+      ┌─ <internal>:4:17
+      │
+    4 │                 bar AT %I* : BOOL;
+      │                 ^^^ Not all template instances in array are configured
+
+    "###);
+}
+
+
+#[test]
+fn arrays_with_const_dim() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL CONSTANT
+            START: DINT := 0;
+        END_VAR
+
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[START..1] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo[START].bar AT %IX1.0 : BOOL;
+            main.foo[1].bar AT %IX1.1 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###""###);
+}
