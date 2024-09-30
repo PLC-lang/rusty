@@ -2,6 +2,7 @@ use plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
 use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
+use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
 use variable::visit_config_variable;
 
@@ -152,7 +153,7 @@ impl<'a> Validator<'a> {
     pub fn perform_global_validation(&mut self, index: &Index) {
         self.global_validator.validate(index);
         self.recursive_validator.validate(index);
-        self.hacky_af_validate_configured_templates(&index);
+        self.validate_configured_templates(index);
 
         // XXX: To avoid bloating up this function any further, maybe package logic into seperate module or
         //      function if another global check is introduced (including the overflow checks)?
@@ -198,69 +199,67 @@ impl<'a> Validator<'a> {
         }
     }
 
-    // pub fn validate_configured_templates<T>(
-    //     &self,
-    //     annotations: &T,
-    //     index: &Index,
-    //     configs: &[&plc_ast::ast::ConfigVariable],
-    // ) {
-    //     let config_expr_path = configs.iter().map(|it| ExpressionPath::from(*it)).collect::<Vec<_>>();
-
-    //     for (segments, val) in index.find_instances().filter(|it| {
-    //         it.1.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
-    //     }) {
-    //         // let mut segments = segments.names();
-    //         // if !index.config_variables.contains_key(&segments) {
-    //         //     segments.pop();
-    //         //     let ty = dbg!(index.find_fully_qualified_variable(&segments.join(".")));
-    //         //     dbg!(&segments);
-    //         //     self.diagnostics.push(Diagnostic::new("blub").with_location(&ty.unwrap().source_location));
-    //         // }
-    //     }
-    //     todo!()
-    // }
-
-    pub fn hacky_af_validate_configured_templates(&mut self, index: &Index) {
-        let config_expr_path = index
-            .config_variables
-            .iter()
-            .filter_map(|it| match ExpressionPath::try_from(*it) {
-                Ok(p) => Some(p.expand(index)),
-                Err(e) => {
-                    self.diagnostics.extend(e);
-                    None
+    pub fn validate_configured_templates(&mut self, index: &Index) {
+        // get config variables as string, along with their locations
+        let config_variables =
+            index.get_config_variables().iter().fold(FxHashMap::default(), |mut acc, var| {
+                match ExpressionPath::try_from(var) {
+                    Ok(p) => p.expand(index).into_iter().for_each(|p| {
+                        acc.entry(p)
+                            .and_modify(|entry: &mut Vec<SourceLocation>| entry.push(var.location.clone()))
+                            .or_insert(vec![var.location.clone()]);
+                    }),
+                    Err(e) => {
+                        self.diagnostics.extend(e);
+                    }
                 }
-            })
-            .flatten()
-            .collect::<Vec<_>>();
+                acc
+            });
+        // check for ambiguously configured template-variables
+        config_variables.values().for_each(|loc| {
+            if loc.len() > 1 {
+                self.diagnostics.push(
+                    Diagnostic::new("Template variable configured multiple times")
+                        .with_location(&loc[0])
+                        .with_secondary_locations(loc.iter().skip(1).map(|it| it.clone()).collect()),
+                )
+            }
+        });
 
-        let mut instances = vec![];
-        index
-            .find_instances()
-            .filter(|(_, idxentry)| {
-                idxentry.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
+        // collect all template-instances
+        let instances = index
+            .filter_instances(|entry, _| !entry.is_constant())
+            .filter(|(_, entry)| {
+                entry.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
             })
-            .for_each(|(path, idxentry)| {
-                let paths = path.expand(index);
-                let is_array = paths.len() > 1;
-                paths.into_iter().for_each(|p| {
-                    instances.push((p, (idxentry, is_array)));
+            .fold(vec![], |mut acc, (path, idxentry)| {
+                let path = path.expand(index);
+                let is_array = path.len() > 1;
+                path.into_iter().for_each(|p| {
+                    acc.push((p, (idxentry, is_array)));
                 });
+                acc
             });
 
+        let mut incomplete_array_configurations = crate::index::FxIndexSet::default();
+        // validate if all template-instances are configured in VAR_CONFIG blocks
         for (segments, (val, is_array)) in instances {
-            if !config_expr_path.contains(&segments) {
+            if config_variables.get(&segments).is_none() {
                 if is_array {
-                    // TODO: display location of the array in question - best way to find the array location?
-                    self.diagnostics.push(
-                        Diagnostic::new("Not all template instances in array are configured")
-                            .with_location(&val.source_location),
-                    );
+                    incomplete_array_configurations.insert(&val.source_location);
                 } else {
                     self.diagnostics
                         .push(Diagnostic::new("Template not configured").with_location(&val.source_location));
                 }
             }
         }
+
+        // report arrays which have elements that without configuration
+        incomplete_array_configurations.iter().for_each(|array_location| {
+            self.diagnostics.push(
+                Diagnostic::new("One or more template-elements in array have not been configured")
+                    .with_location(*array_location),
+            );
+        });
     }
 }

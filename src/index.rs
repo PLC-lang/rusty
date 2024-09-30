@@ -867,7 +867,7 @@ pub struct Index {
     /// The labels contained in each pou
     labels: FxIndexMap<String, SymbolMap<String, Label>>,
 
-    pub config_variables: Vec<&'static ConfigVariable>,
+    config_variables: Vec<ConfigVariable>,
 }
 
 impl Index {
@@ -1663,6 +1663,10 @@ impl Index {
 
     pub fn get_labels(&self, pou_name: &str) -> Option<&SymbolMap<String, Label>> {
         self.labels.get(pou_name)
+    }
+
+    pub fn get_config_variables(&self) -> &Vec<ConfigVariable> {
+        &self.config_variables
     }
 }
 

@@ -255,18 +255,14 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         let diagnostics = validator.diagnostics();
         let mut severity = diagnostician.handle(&diagnostics);
 
-        // let mut configs = vec![];
         //Perform per unit validation
         self.units.iter().for_each(|AnnotatedUnit { unit, .. }| {
             // validate unit
             validator.visit_unit(&self.annotations, &self.index, unit);
-            // configs.extend(&unit.var_config);
             // log errors
             let diagnostics = validator.diagnostics();
             severity = severity.max(diagnostician.handle(&diagnostics));
         });
-
-        // validator.validate_configured_templates(&self.annotations, &self.index, &configs);
 
         if severity == Severity::Error {
             Err(Diagnostic::new("Compilation aborted due to critical errors"))

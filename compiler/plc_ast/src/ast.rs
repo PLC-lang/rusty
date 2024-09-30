@@ -285,7 +285,7 @@ impl PouType {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ConfigVariable {
     pub reference: AstNode,
     pub data_type: DataTypeDeclaration,

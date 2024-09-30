@@ -34,7 +34,7 @@ pub fn visit(unit: &CompilationUnit) -> Index {
     }
 
     for config_variable in &unit.var_config {
-        index.config_variables.push(unsafe { std::mem::transmute(config_variable) });
+        index.config_variables.push(config_variable.clone());
     }
 
     index

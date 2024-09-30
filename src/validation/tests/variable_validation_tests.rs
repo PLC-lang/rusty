@@ -483,6 +483,12 @@ fn var_conf_template_variable_does_not_exist() {
     );
 
     assert_snapshot!(diagnostics, @r###"
+    error[E001]: Template not configured
+      ┌─ <internal>:4:17
+      │
+    4 │                 bar AT %I* : BOOL;
+      │                 ^^^ Template not configured
+
     error[E101]: Template variable `qux` does not exist
        ┌─ <internal>:15:13
        │
@@ -663,6 +669,44 @@ fn unconfigured_template_variables_are_validated() {
 }
 
 #[test]
+fn variable_configured_multiple_times() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX1.0 : BOOL;
+            main.foo.bar AT %IX1.1 : BOOL;
+            main.foo.bar AT %IX1.2 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: Template variable configured multiple times
+       ┌─ <internal>:15:13
+       │
+    15 │             main.foo.bar AT %IX1.0 : BOOL;
+       │             ^^^^^^^^^^^^ Template variable configured multiple times
+    16 │             main.foo.bar AT %IX1.1 : BOOL;
+       │             ------------ see also
+    17 │             main.foo.bar AT %IX1.2 : BOOL;
+       │             ------------ see also
+
+    "###);
+}
+
+#[test]
 fn all_array_elements_configured_causes_no_errors() {
     let diagnostics = parse_and_validate_buffered(
         r#"
@@ -711,11 +755,11 @@ fn arrays() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: Not all template instances in array are configured
+    error[E001]: One or more template-elements in array have not been configured
       ┌─ <internal>:4:17
       │
     4 │                 bar AT %I* : BOOL;
-      │                 ^^^ Not all template instances in array are configured
+      │                 ^^^ One or more template-elements in array have not been configured
 
     "###);
 }
@@ -744,17 +788,11 @@ fn arrays_with_multi_dim() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: Not all template instances in array are configured
+    error[E001]: One or more template-elements in array have not been configured
       ┌─ <internal>:4:17
       │
     4 │                 bar AT %I* : BOOL;
-      │                 ^^^ Not all template instances in array are configured
-
-    error[E001]: Not all template instances in array are configured
-      ┌─ <internal>:4:17
-      │
-    4 │                 bar AT %I* : BOOL;
-      │                 ^^^ Not all template instances in array are configured
+      │                 ^^^ One or more template-elements in array have not been configured
 
     "###);
 }
@@ -787,17 +825,17 @@ fn arrays_with_const_dim() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: Non-literal VAR_CONFIG array access is not validated
+    error[E001]: VAR_CONFIG array access must be a literal integer
        ┌─ <internal>:19:22
        │
     19 │             main.foo[START].bar AT %IX1.0 : BOOL;
-       │                      ^^^^^ Non-literal VAR_CONFIG array access is not validated
+       │                      ^^^^^ VAR_CONFIG array access must be a literal integer
 
-    error[E001]: Not all template instances in array are configured
+    error[E001]: One or more template-elements in array have not been configured
       ┌─ <internal>:8:17
       │
     8 │                 bar AT %I* : BOOL;
-      │                 ^^^ Not all template instances in array are configured
+      │                 ^^^ One or more template-elements in array have not been configured
 
     "###);
 }
@@ -832,41 +870,29 @@ fn multi_dim_arrays_with_consts() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: Non-literal VAR_CONFIG array access is not validated
+    error[E001]: VAR_CONFIG array access must be a literal integer
        ┌─ <internal>:19:22
        │
     19 │             main.foo[START + 3, 0].bar AT %IX1.0 : BOOL;
-       │                      ^^^^^^^^^ Non-literal VAR_CONFIG array access is not validated
+       │                      ^^^^^^^^^ VAR_CONFIG array access must be a literal integer
 
-    error[E001]: Non-literal VAR_CONFIG array access is not validated
+    error[E001]: VAR_CONFIG array access must be a literal integer
        ┌─ <internal>:20:22
        │
     20 │             main.foo[START - 23, 1].bar AT %IX1.1 : BOOL;
-       │                      ^^^^^^^^^^ Non-literal VAR_CONFIG array access is not validated
+       │                      ^^^^^^^^^^ VAR_CONFIG array access must be a literal integer
 
-    error[E001]: Non-literal VAR_CONFIG array access is not validated
+    error[E001]: VAR_CONFIG array access must be a literal integer
        ┌─ <internal>:21:25
        │
     21 │             main.foo[1, START * 2].bar AT %IX1.2 : BOOL;
-       │                         ^^^^^^^^^ Non-literal VAR_CONFIG array access is not validated
+       │                         ^^^^^^^^^ VAR_CONFIG array access must be a literal integer
 
-    error[E001]: Not all template instances in array are configured
+    error[E001]: One or more template-elements in array have not been configured
       ┌─ <internal>:8:17
       │
     8 │                 bar AT %I* : BOOL;
-      │                 ^^^ Not all template instances in array are configured
-
-    error[E001]: Not all template instances in array are configured
-      ┌─ <internal>:8:17
-      │
-    8 │                 bar AT %I* : BOOL;
-      │                 ^^^ Not all template instances in array are configured
-
-    error[E001]: Not all template instances in array are configured
-      ┌─ <internal>:8:17
-      │
-    8 │                 bar AT %I* : BOOL;
-      │                 ^^^ Not all template instances in array are configured
+      │                 ^^^ One or more template-elements in array have not been configured
 
     "###);
 }
