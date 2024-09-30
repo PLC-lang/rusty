@@ -2,6 +2,7 @@ use plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
 use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
+use rustc_hash::FxHashMap;
 use variable::visit_config_variable;
 
 use crate::{
@@ -197,51 +198,69 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn validate_configured_templates<T>(
-        &self,
-        annotations: &T,
-        index: &Index,
-        configs: &[&plc_ast::ast::ConfigVariable],
-    ) {
-        let config_expr_path = configs.iter().map(|it| ExpressionPath::from(*it)).collect::<Vec<_>>();
+    // pub fn validate_configured_templates<T>(
+    //     &self,
+    //     annotations: &T,
+    //     index: &Index,
+    //     configs: &[&plc_ast::ast::ConfigVariable],
+    // ) {
+    //     let config_expr_path = configs.iter().map(|it| ExpressionPath::from(*it)).collect::<Vec<_>>();
 
-        for (segments, val) in index.find_instances().filter(|it| {
-            it.1.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
-        }) {
-            // let mut segments = segments.names();
-            // if !index.config_variables.contains_key(&segments) {
-            //     segments.pop();
-            //     let ty = dbg!(index.find_fully_qualified_variable(&segments.join(".")));
-            //     dbg!(&segments);
-            //     self.diagnostics.push(Diagnostic::new("blub").with_location(&ty.unwrap().source_location));
-            // }
-        }
-        todo!()
-    }
+    //     for (segments, val) in index.find_instances().filter(|it| {
+    //         it.1.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
+    //     }) {
+    //         // let mut segments = segments.names();
+    //         // if !index.config_variables.contains_key(&segments) {
+    //         //     segments.pop();
+    //         //     let ty = dbg!(index.find_fully_qualified_variable(&segments.join(".")));
+    //         //     dbg!(&segments);
+    //         //     self.diagnostics.push(Diagnostic::new("blub").with_location(&ty.unwrap().source_location));
+    //         // }
+    //     }
+    //     todo!()
+    // }
 
     pub fn hacky_af_validate_configured_templates(&mut self, index: &Index) {
-        let config_expr_path =
-            index.config_variables.iter().map(|it| ExpressionPath::from(*it).expand(index)).flatten().collect::<Vec<_>>();
+        let config_expr_path = index
+            .config_variables
+            .iter()
+            .filter_map(|it| match ExpressionPath::try_from(*it) {
+                Ok(p) => Some(p.expand(index)),
+                Err(e) => {
+                    self.diagnostics.extend(e);
+                    None
+                }
+            })
+            .flatten()
+            .collect::<Vec<_>>();
 
-            let mut instances = vec![];
-            index.find_instances().filter(|(_, idxentry)| {
+        let mut instances = vec![];
+        index
+            .find_instances()
+            .filter(|(_, idxentry)| {
                 idxentry.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
-            }).for_each(|(path, idxentry)| {
+            })
+            .for_each(|(path, idxentry)| {
                 let paths = path.expand(index);
                 let is_array = paths.len() > 1;
                 paths.into_iter().for_each(|p| {
                     instances.push((p, (idxentry, is_array)));
-                });            
+                });
             });
-    
-            for (segments, (val, is_array)) in instances {
-                if !config_expr_path.contains(&segments) {
-                    if is_array {
-                        self.diagnostics.push(Diagnostic::new("Not all template instances in array are configured").with_location(&val.source_location));                    
-                    } else {
-                        self.diagnostics.push(Diagnostic::new("Template not configured").with_location(&val.source_location));
-                    }
+
+        for (segments, (val, is_array)) in instances {
+            if !config_expr_path.contains(&segments) {
+                if is_array {
+                    // TODO: display location of the array in question - best way to find the array location?
+                    self.diagnostics.push(
+                        Diagnostic::new("Not all template instances in array are configured")
+                            .with_location(&val.source_location),
+                    );
+                } else {
+                    self.diagnostics
+                        .push(Diagnostic::new("Template not configured").with_location(&val.source_location));
                 }
             }
+        }
     }
 }

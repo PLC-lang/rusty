@@ -1,6 +1,7 @@
-use std::fmt::Display;
+use std::{fmt::Display, vec};
 
-use plc_ast::{ast::{AstStatement, ConfigVariable, ReferenceAccess, ReferenceExpr}, literals::AstLiteral};
+use plc_ast::ast::{AstNode, AstStatement, ConfigVariable, ReferenceAccess, ReferenceExpr};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{index::Index, typesystem::{Dimension, TypeSize}};
 
@@ -111,17 +112,23 @@ impl<'idx> ExpressionPath<'idx> {
     }
 }
 
-impl<'a> From<&'a ConfigVariable> for ExpressionPath<'a> {
-    fn from(value: &'a ConfigVariable) -> Self {
-        let names = get_expression_path_segments(&value.reference);
+impl<'a> TryFrom<&'a ConfigVariable> for ExpressionPath<'a> {
+    type Error = Vec<Diagnostic>;
 
-        Self { names }
+    fn try_from(value: &'a ConfigVariable) -> Result<Self, Self::Error> {
+        let (mut names, diags) = get_expression_path_segments(&value.reference);
+
+        if !diags.is_empty() {
+            return Err(diags)
+        };
+        names.reverse();
+        Ok(Self { names })
     }
 }
 
-fn get_expression_path_segments<'a>(node: &'a plc_ast::ast::AstNode) -> Vec<ExpressionPathElement<'a>> {
-    fn inner<'a>(node: &'a plc_ast::ast::AstNode) -> Vec<ExpressionPathElement<'a>> {
-        let mut res = vec![];
+fn get_expression_path_segments<'a>(node: &'a AstNode) -> (Vec<ExpressionPathElement<'a>>, Vec<Diagnostic>) {
+        let mut paths = vec![];
+        let mut diagnostics = vec![];
         match &node.stmt {
             AstStatement::ReferenceExpr(
                 ReferenceExpr {
@@ -130,38 +137,51 @@ fn get_expression_path_segments<'a>(node: &'a plc_ast::ast::AstNode) -> Vec<Expr
                 },
                 ..,
             ) => {
-                res.push(ExpressionPathElement::Name(
+                paths.push(ExpressionPathElement::Name(
                     reference.get_flat_reference_name().unwrap_or_default(),
                 ));
                 if let Some(base) = base {
-                    res.extend(inner(base));
+                    let (vals, errs) = get_expression_path_segments(base);
+                    paths.extend(vals);
+                    diagnostics.extend(errs);
                 }
             }         
             AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Index(idx),
                 base,
             }) => {
-                res.push(ExpressionPathElement::Foo(
-                    match &idx.as_ref().stmt {
-                        AstStatement::Literal(_) => idx.get_literal_integer_value().map(|it| vec![TypeSize::LiteralInteger(it as i64)]),
-                        AstStatement::ExpressionList(vec) => {
-                            vec.iter().map(|it| it.get_literal_integer_value().map(|it| TypeSize::LiteralInteger(it as i64))).collect()
-                        },
-                        _ => unimplemented!()
-                    }.unwrap_or_default()
-                ));
+                match &idx.as_ref().stmt {
+                    AstStatement::Literal(_) => {
+                        if let Some(v) = idx.get_literal_integer_value().map(|it| vec![TypeSize::LiteralInteger(it as i64)]) {
+                            paths.push(ExpressionPathElement::Foo(v))
+                        }
+                    }
+                    AstStatement::ExpressionList(vec) => {
+                        let mut res = vec![];
+                        vec.iter().for_each(|idx: &AstNode| {
+                            if let Some(v) = idx.get_literal_integer_value() { //.map(|it| vec![TypeSize::LiteralInteger(it as i64)]) {
+                                res.push(TypeSize::LiteralInteger(v as i64));
+                            } else {
+                                diagnostics.push(Diagnostic::new("Non-literal VAR_CONFIG array access is not validated").with_location(&idx.location));
+                            }
+                        });
+                        paths.push(ExpressionPathElement::Foo(res));
+                    },
+                    _ => {
+                        diagnostics.push(Diagnostic::new("Non-literal VAR_CONFIG array access is not validated").with_location(&idx.location));                        
+                    }
+                }
                 if let Some(base) = base {
-                    res.extend(inner(base));
+                    let (vals, errs) = get_expression_path_segments(base);
+                    paths.extend(vals);
+                    diagnostics.extend(errs);
                 }
             }
-            _ => { dbg!(node); return vec![] },
+            _ => { 
+                unimplemented!() 
+            },
         };
-        res
-    }
-
-    let mut res = inner(node);
-    res.reverse();
-    res
+        (paths, diagnostics)
 }
 
 impl<'a> From<Vec<ExpressionPathElement<'a>>> for ExpressionPath<'a> {

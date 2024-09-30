@@ -630,7 +630,7 @@ fn var_conf_template_variable_is_no_template() {
 }
 
 #[test]
-fn blala() {
+fn unconfigured_template_variables_are_validated() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK foo_fb
@@ -653,15 +653,14 @@ fn blala() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: blub
+    error[E001]: Template not configured
       ┌─ <internal>:5:17
       │
     5 │                 qux AT %I* : BOOL;
-      │                 ^^^ blub
+      │                 ^^^ Template not configured
 
     "###);
 }
-
 
 #[test]
 fn all_array_elements_configured_causes_no_errors() {
@@ -721,7 +720,6 @@ fn arrays() {
     "###);
 }
 
-
 #[test]
 fn arrays_with_multi_dim() {
     let diagnostics = parse_and_validate_buffered(
@@ -761,7 +759,6 @@ fn arrays_with_multi_dim() {
     "###);
 }
 
-
 #[test]
 fn arrays_with_const_dim() {
     let diagnostics = parse_and_validate_buffered(
@@ -789,5 +786,87 @@ fn arrays_with_const_dim() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###""###);
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: Non-literal VAR_CONFIG array access is not validated
+       ┌─ <internal>:19:22
+       │
+    19 │             main.foo[START].bar AT %IX1.0 : BOOL;
+       │                      ^^^^^ Non-literal VAR_CONFIG array access is not validated
+
+    error[E001]: Not all template instances in array are configured
+      ┌─ <internal>:8:17
+      │
+    8 │                 bar AT %I* : BOOL;
+      │                 ^^^ Not all template instances in array are configured
+
+    "###);
+}
+
+#[test]
+fn multi_dim_arrays_with_consts() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL CONSTANT
+            START: DINT := 0;
+        END_VAR
+
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[START..1, 0..1] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo[START + 3, 0].bar AT %IX1.0 : BOOL;
+            main.foo[START - 23, 1].bar AT %IX1.1 : BOOL;
+            main.foo[1, START * 2].bar AT %IX1.2 : BOOL;
+            main.foo[1, 1].bar AT %IX1.3 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: Non-literal VAR_CONFIG array access is not validated
+       ┌─ <internal>:19:22
+       │
+    19 │             main.foo[START + 3, 0].bar AT %IX1.0 : BOOL;
+       │                      ^^^^^^^^^ Non-literal VAR_CONFIG array access is not validated
+
+    error[E001]: Non-literal VAR_CONFIG array access is not validated
+       ┌─ <internal>:20:22
+       │
+    20 │             main.foo[START - 23, 1].bar AT %IX1.1 : BOOL;
+       │                      ^^^^^^^^^^ Non-literal VAR_CONFIG array access is not validated
+
+    error[E001]: Non-literal VAR_CONFIG array access is not validated
+       ┌─ <internal>:21:25
+       │
+    21 │             main.foo[1, START * 2].bar AT %IX1.2 : BOOL;
+       │                         ^^^^^^^^^ Non-literal VAR_CONFIG array access is not validated
+
+    error[E001]: Not all template instances in array are configured
+      ┌─ <internal>:8:17
+      │
+    8 │                 bar AT %I* : BOOL;
+      │                 ^^^ Not all template instances in array are configured
+
+    error[E001]: Not all template instances in array are configured
+      ┌─ <internal>:8:17
+      │
+    8 │                 bar AT %I* : BOOL;
+      │                 ^^^ Not all template instances in array are configured
+
+    error[E001]: Not all template instances in array are configured
+      ┌─ <internal>:8:17
+      │
+    8 │                 bar AT %I* : BOOL;
+      │                 ^^^ Not all template instances in array are configured
+
+    "###);
 }
