@@ -9,17 +9,17 @@ source_filename = "<internal>"
 %foo = type { i32, i32, %fb }
 %prg = type { i32 }
 
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-$RUSTY$__fb__init:r1i32"
-@foo_instance = global %foo zeroinitializer, section "var-$RUSTY$foo_instance:r3i32i32r1i32"
-@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1i32"
+@__fb__init = unnamed_addr constant %fb zeroinitializer
+@foo_instance = global %foo zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @fb(%fb* %0) section "fn-$RUSTY$fb:v[i32]" {
+define void @fb(%fb* %0) {
 entry:
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   ret void
 }
 
-define void @foo(%foo* %0) section "fn-$RUSTY$foo:v[i32][i32][r1i32]" {
+define void @foo(%foo* %0) {
 entry:
   %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
@@ -27,7 +27,7 @@ entry:
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %load_x = load i32, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 4
@@ -45,11 +45,11 @@ source_filename = "__initializers"
 %fb = type { i32 }
 %prg = type { i32 }
 
-@foo_instance = external global %foo, section "var-$RUSTY$foo_instance:r3i32i32r1i32"
-@__fb__init = external global %fb, section "var-$RUSTY$__fb__init:r1i32"
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1i32"
+@foo_instance = external global %foo
+@__fb__init = external global %fb
+@prg_instance = external global %prg
 
-define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr3i32i32r1i32]" {
+define void @__init_foo(%foo* %0) {
 entry:
   %self = alloca %foo*, align 8
   store %foo* %0, %foo** %self, align 8
@@ -59,25 +59,25 @@ entry:
   ret void
 }
 
-declare void @foo(%foo*) section "fn-$RUSTY$foo:v[i32][i32][r1i32]"
+declare void @foo(%foo*)
 
-declare void @fb(%fb*) section "fn-$RUSTY$fb:v[i32]"
+declare void @fb(%fb*)
 
-define void @__init_fb(%fb* %0) section "fn-$RUSTY$__init_fb:v[pr1i32]" {
+define void @__init_fb(%fb* %0) {
 entry:
   %self = alloca %fb*, align 8
   store %fb* %0, %fb** %self, align 8
   ret void
 }
 
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr1i32]" {
+define void @__init_prg(%prg* %0) {
 entry:
   %self = alloca %prg*, align 8
   store %prg* %0, %prg** %self, align 8
   ret void
 }
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
@@ -85,23 +85,23 @@ source_filename = "__init___testproject"
 %fb = type { i32 }
 %prg = type { i32 }
 
-@foo_instance = external global %foo, section "var-$RUSTY$foo_instance:r3i32i32r1i32"
-@__fb__init = external global %fb, section "var-$RUSTY$__fb__init:r1i32"
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1i32"
+@foo_instance = external global %foo
+@__fb__init = external global %fb
+@prg_instance = external global %prg
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_foo(%foo* @foo_instance)
   call void @__init_prg(%prg* @prg_instance)
   ret void
 }
 
-declare void @__init_foo(%foo*) section "fn-$RUSTY$__init_foo:v[pr3i32i32r1i32]"
+declare void @__init_foo(%foo*)
 
-declare void @foo(%foo*) section "fn-$RUSTY$foo:v[i32][i32][r1i32]"
+declare void @foo(%foo*)
 
-declare void @fb(%fb*) section "fn-$RUSTY$fb:v[i32]"
+declare void @fb(%fb*)
 
-declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr1i32]"
+declare void @__init_prg(%prg*)
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)

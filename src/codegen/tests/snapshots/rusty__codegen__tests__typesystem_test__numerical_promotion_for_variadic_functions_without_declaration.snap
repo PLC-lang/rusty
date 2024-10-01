@@ -7,12 +7,12 @@ source_filename = "<internal>"
 
 %main = type {}
 
-@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r4s8u81f32f64i16"
+@main_instance = global %main zeroinitializer
 @__main.s__init = unnamed_addr constant [81 x i8] c"\0A numbers: %f %f %f %d \0A \0A\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
-declare i32 @printf(i8*, ...) section "fn-$RUSTY$printf:i32[ps8u81]"
+declare i32 @printf(i8*, ...)
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %s = alloca [81 x i8], align 1
   %float = alloca float, align 4
@@ -42,29 +42,29 @@ source_filename = "__initializers"
 
 %main = type {}
 
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r4s8u81f32f64i16"
+@main_instance = external global %main
 
-define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr4s8u81f32f64i16]" {
+define void @__init_main(%main* %0) {
 entry:
   %self = alloca %main*, align 8
   store %main* %0, %main** %self, align 8
   ret void
 }
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %main = type {}
 
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r4s8u81f32f64i16"
+@main_instance = external global %main
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_main(%main* @main_instance)
   ret void
 }
 
-declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr4s8u81f32f64i16]"
+declare void @__init_main(%main*)
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)

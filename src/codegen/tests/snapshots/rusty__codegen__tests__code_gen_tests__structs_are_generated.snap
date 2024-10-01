@@ -8,27 +8,27 @@ source_filename = "<internal>"
 %MyStruct = type { i32, i16 }
 %__global_y = type { i8, i8 }
 
-@x = global %MyStruct zeroinitializer, section "var-$RUSTY$x:r2i32i16"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-$RUSTY$__MyStruct__init:r2i32i16"
-@y = global %__global_y zeroinitializer, section "var-$RUSTY$y:r2u8u8"
-@____global_y__init = unnamed_addr constant %__global_y zeroinitializer, section "var-$RUSTY$____global_y__init:r2u8u8"
+@x = global %MyStruct zeroinitializer
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
+@y = global %__global_y zeroinitializer
+@____global_y__init = unnamed_addr constant %__global_y zeroinitializer
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
 
 %MyStruct = type { i32, i16 }
 %__global_y = type { i8, i8 }
 
-@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r2i32i16"
-@____global_y__init = external global %__global_y, section "var-$RUSTY$____global_y__init:r2u8u8"
+@__MyStruct__init = external global %MyStruct
+@____global_y__init = external global %__global_y
 
-define void @__init_mystruct(%MyStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2i32i16]" {
+define void @__init_mystruct(%MyStruct* %0) {
 entry:
   %self = alloca %MyStruct*, align 8
   store %MyStruct* %0, %MyStruct** %self, align 8
   ret void
 }
 
-define void @__init___global_y(%__global_y* %0) section "fn-$RUSTY$__init___global_y:v[pr2u8u8]" {
+define void @__init___global_y(%__global_y* %0) {
 entry:
   %self = alloca %__global_y*, align 8
   store %__global_y* %0, %__global_y** %self, align 8
@@ -40,18 +40,18 @@ source_filename = "__init___testproject"
 %MyStruct = type { i32, i16 }
 %__global_y = type { i8, i8 }
 
-@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r2i32i16"
-@x = external global %MyStruct, section "var-$RUSTY$x:r2i32i16"
-@____global_y__init = external global %__global_y, section "var-$RUSTY$____global_y__init:r2u8u8"
-@y = external global %__global_y, section "var-$RUSTY$y:r2u8u8"
+@__MyStruct__init = external global %MyStruct
+@x = external global %MyStruct
+@____global_y__init = external global %__global_y
+@y = external global %__global_y
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_mystruct(%MyStruct* @x)
   call void @__init___global_y(%__global_y* @y)
   ret void
 }
 
-declare void @__init_mystruct(%MyStruct*) section "fn-$RUSTY$__init_mystruct:v[pr2i32i16]"
+declare void @__init_mystruct(%MyStruct*)
 
-declare void @__init___global_y(%__global_y*) section "fn-$RUSTY$__init___global_y:v[pr2u8u8]"
+declare void @__init___global_y(%__global_y*)

@@ -7,9 +7,9 @@ source_filename = "<internal>"
 
 %main = type { i32, i32, i32, i32, i32 }
 
-@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r5i32i32i32i32i32"
+@main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -54,29 +54,29 @@ source_filename = "__initializers"
 
 %main = type { i32, i32, i32, i32, i32 }
 
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r5i32i32i32i32i32"
+@main_instance = external global %main
 
-define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr5i32i32i32i32i32]" {
+define void @__init_main(%main* %0) {
 entry:
   %self = alloca %main*, align 8
   store %main* %0, %main** %self, align 8
   ret void
 }
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %main = type { i32, i32, i32, i32, i32 }
 
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r5i32i32i32i32i32"
+@main_instance = external global %main
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_main(%main* @main_instance)
   ret void
 }
 
-declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr5i32i32i32i32i32]"
+declare void @__init_main(%main*)
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)

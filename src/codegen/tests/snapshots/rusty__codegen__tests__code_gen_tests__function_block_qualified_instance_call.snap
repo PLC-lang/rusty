@@ -9,22 +9,22 @@ source_filename = "<internal>"
 %bar = type {}
 %prg = type { %foo }
 
-@__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r1r0"
-@__bar__init = unnamed_addr constant %bar zeroinitializer, section "var-$RUSTY$__bar__init:r0"
-@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1r1r0"
+@__foo__init = unnamed_addr constant %foo zeroinitializer
+@__bar__init = unnamed_addr constant %bar zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+define void @foo(%foo* %0) {
 entry:
   %bar_inst = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   ret void
 }
 
-define void @bar(%bar* %0) section "fn-$RUSTY$bar:v" {
+define void @bar(%bar* %0) {
 entry:
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %foo_inst = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %bar_inst = getelementptr inbounds %foo, %foo* %foo_inst, i32 0, i32 0
@@ -38,20 +38,20 @@ source_filename = "__initializers"
 %foo = type { %bar }
 %prg = type { %foo }
 
-@__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r0"
-@__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1r0"
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1r1r0"
+@__bar__init = external global %bar
+@__foo__init = external global %foo
+@prg_instance = external global %prg
 
-define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr0]" {
+define void @__init_bar(%bar* %0) {
 entry:
   %self = alloca %bar*, align 8
   store %bar* %0, %bar** %self, align 8
   ret void
 }
 
-declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
+declare void @bar(%bar*)
 
-define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1r0]" {
+define void @__init_foo(%foo* %0) {
 entry:
   %self = alloca %foo*, align 8
   store %foo* %0, %foo** %self, align 8
@@ -61,9 +61,9 @@ entry:
   ret void
 }
 
-declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+declare void @foo(%foo*)
 
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr1r1r0]" {
+define void @__init_prg(%prg* %0) {
 entry:
   %self = alloca %prg*, align 8
   store %prg* %0, %prg** %self, align 8
@@ -73,7 +73,7 @@ entry:
   ret void
 }
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
@@ -81,20 +81,20 @@ source_filename = "__init___testproject"
 %foo = type { %bar }
 %bar = type {}
 
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1r1r0"
-@__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1r0"
-@__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r0"
+@prg_instance = external global %prg
+@__foo__init = external global %foo
+@__bar__init = external global %bar
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_prg(%prg* @prg_instance)
   ret void
 }
 
-declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr1r1r0]"
+declare void @__init_prg(%prg*)
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 
-declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+declare void @foo(%foo*)
 
-declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
+declare void @bar(%bar*)

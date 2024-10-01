@@ -8,17 +8,17 @@ source_filename = "<internal>"
 %foo = type { i32, i8 }
 %prg = type {}
 
-@foo_instance = global %foo zeroinitializer, section "var-$RUSTY$foo_instance:r2i32u8"
-@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r0"
+@foo_instance = global %foo zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo* %0) section "fn-$RUSTY$foo:v[i32][u8]" {
+define void @foo(%foo* %0) {
 entry:
   %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %buz = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   store i8 1, i8* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 1), align 1
   store i32 2, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 4
@@ -31,46 +31,46 @@ source_filename = "__initializers"
 %foo = type { i32, i8 }
 %prg = type {}
 
-@foo_instance = external global %foo, section "var-$RUSTY$foo_instance:r2i32u8"
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r0"
+@foo_instance = external global %foo
+@prg_instance = external global %prg
 
-define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr2i32u8]" {
+define void @__init_foo(%foo* %0) {
 entry:
   %self = alloca %foo*, align 8
   store %foo* %0, %foo** %self, align 8
   ret void
 }
 
-declare void @foo(%foo*) section "fn-$RUSTY$foo:v[i32][u8]"
+declare void @foo(%foo*)
 
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr0]" {
+define void @__init_prg(%prg* %0) {
 entry:
   %self = alloca %prg*, align 8
   store %prg* %0, %prg** %self, align 8
   ret void
 }
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %foo = type { i32, i8 }
 %prg = type {}
 
-@foo_instance = external global %foo, section "var-$RUSTY$foo_instance:r2i32u8"
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r0"
+@foo_instance = external global %foo
+@prg_instance = external global %prg
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_foo(%foo* @foo_instance)
   call void @__init_prg(%prg* @prg_instance)
   ret void
 }
 
-declare void @__init_foo(%foo*) section "fn-$RUSTY$__init_foo:v[pr2i32u8]"
+declare void @__init_foo(%foo*)
 
-declare void @foo(%foo*) section "fn-$RUSTY$foo:v[i32][u8]"
+declare void @foo(%foo*)
 
-declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr0]"
+declare void @__init_prg(%prg*)
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)

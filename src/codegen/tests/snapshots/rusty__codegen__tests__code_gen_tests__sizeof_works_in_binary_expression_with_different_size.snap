@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-define i32 @main() section "fn-$RUSTY$main:i32" {
+define i32 @main() {
 entry:
   %main = alloca i32, align 4
   %i = alloca i32, align 4
@@ -26,7 +26,7 @@ entry:
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   ret void
 }
