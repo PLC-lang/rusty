@@ -2,30 +2,79 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %bar = type {}
 %prg = type { i32 }
 
-@bar_instance = global %bar zeroinitializer, section "var-$RUSTY$bar_instance:r0"
-@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1i32"
+@bar_instance = global %bar zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @bar(%bar* %0) section "fn-$RUSTY$bar:v" {
+define void @bar(%bar* %0) {
 entry:
   call void @prg.foo(%prg* @prg_instance)
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   ret void
 }
 
-define void @prg.foo(%prg* %0) section "fn-$RUSTY$prg.foo:v" {
+define void @prg.foo(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i32 2, i32* %x, align 4
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%bar = type {}
+%prg = type { i32 }
+
+@bar_instance = external global %bar
+@prg_instance = external global %prg
+
+define void @__init_bar(%bar* %0) {
+entry:
+  %self = alloca %bar*, align 8
+  store %bar* %0, %bar** %self, align 8
+  ret void
+}
+
+declare void @bar(%bar*)
+
+define void @__init_prg(%prg* %0) {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  ret void
+}
+
+declare void @prg(%prg*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%bar = type {}
+%prg = type { i32 }
+
+@bar_instance = external global %bar
+@prg_instance = external global %prg
+
+define void @__init___testproject() {
+entry:
+  call void @__init_bar(%bar* @bar_instance)
+  call void @__init_prg(%prg* @prg_instance)
+  ret void
+}
+
+declare void @__init_bar(%bar*)
+
+declare void @bar(%bar*)
+
+declare void @__init_prg(%prg*)
+
+declare void @prg(%prg*)

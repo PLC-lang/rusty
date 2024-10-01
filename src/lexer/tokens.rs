@@ -46,6 +46,9 @@ pub enum Token {
     #[token("VAR", ignore(case))]
     KeywordVar,
 
+    #[token("VAR_CONFIG", ignore(case))]
+    KeywordVarConfig,
+
     #[token("ABSTRACT", ignore(case))]
     KeywordAbstract,
 

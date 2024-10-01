@@ -153,3 +153,45 @@ fn global_constant_without_initializer_gets_declared_initializer() {
     //should initialize cmd1 and cmd2 with @__comamnds__init
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn external_pous_get_external_initializers() {
+    let result = codegen(
+        "
+        {external} FUNCTION_BLOCK ext_fb END_FUNCTION_BLOCK
+        {external} PROGRAM ext_prog END_PROGRAM
+        ",
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %ext_fb = type {}
+    %ext_prog = type {}
+
+    @__ext_fb__init = external global %ext_fb
+    @ext_prog_instance = external global %ext_prog
+
+    declare void @ext_fb(%ext_fb*)
+
+    declare void @ext_prog(%ext_prog*)
+    "###);
+}
+
+#[test]
+#[ignore = "external struct initializers are not declared external"]
+fn external_aggregate_types_get_external_initializers() {
+    let result = codegen(
+        "
+        {external} 
+        VAR_GLOBAL
+          a: ARRAY[0..10] OF DINT;
+          b: STRING;
+          c: STRUCT a: INT; END_STRUCT
+        END_VAR
+        ",
+    );
+
+    insta::assert_snapshot!(result, @r###""###);
+}

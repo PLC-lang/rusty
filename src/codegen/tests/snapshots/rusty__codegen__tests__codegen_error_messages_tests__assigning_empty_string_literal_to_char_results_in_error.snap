@@ -7,5 +7,3 @@ error[E071]: Cannot generate CHAR from empty literal
   │
 6 │         x := '';
   │              ^^ Cannot generate CHAR from empty literal
-
-

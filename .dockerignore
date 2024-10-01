@@ -1,0 +1,21 @@
+# Ignore target directory
+target/
+
+# Ignore any build artifacts
+**/*.rs.bk
+
+# Ignore any generated files
+**/Cargo.lock
+**/Cargo.toml.orig
+**/Cargo.toml.bk
+
+# Ignore any IDE-specific files
+.vscode/
+.idea/
+
+# Ignore Dockerfile and dockerignore file
+Dockerfile
+.dockerignore
+
+# Workflow
+.github

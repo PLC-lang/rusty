@@ -2,15 +2,15 @@
 source: src/codegen/tests/string_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %main = type { [61 x i8], [81 x i8] }
 
-@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r2s8u61s8u81"
+@main_instance = global %main zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [4 x i8] c"abc\00"
 
-define void @MID__STRING([81 x i8]* %0, i8* %1, i32 %2, i32 %3) section "fn-$RUSTY$MID__STRING:s8u81[ps8u81][i32][i32]" {
+define void @MID__STRING([81 x i8]* %0, i8* %1, i32 %2, i32 %3) {
 entry:
   %MID__STRING = alloca [81 x i8]*, align 8
   store [81 x i8]* %0, [81 x i8]** %MID__STRING, align 8
@@ -29,7 +29,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v[s8u61][s8u81]" {
+define void @main(%main* %0) {
 entry:
   %fmt = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -50,3 +50,34 @@ declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noa
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
 attributes #1 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%main = type { [61 x i8], [81 x i8] }
+
+@main_instance = external global %main
+
+define void @__init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { [61 x i8], [81 x i8] }
+
+@main_instance = external global %main
+
+define void @__init___testproject() {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*)
+
+declare void @main(%main*)

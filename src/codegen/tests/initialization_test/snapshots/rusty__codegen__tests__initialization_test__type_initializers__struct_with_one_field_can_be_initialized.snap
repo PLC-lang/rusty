@@ -2,10 +2,38 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %MyPoint = type { i32 }
 
-@a = global %MyPoint { i32 7 }, section "var-$RUSTY$a:r1i32"
-@__MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer, section "var-$RUSTY$__MyPoint__init:r1i32"
+@a = global %MyPoint { i32 7 }
+@__MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%MyPoint = type { i32 }
+
+@__MyPoint__init = external global %MyPoint
+
+define void @__init_mypoint(%MyPoint* %0) {
+entry:
+  %self = alloca %MyPoint*, align 8
+  store %MyPoint* %0, %MyPoint** %self, align 8
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%MyPoint = type { i32 }
+
+@__MyPoint__init = external global %MyPoint
+@a = external global %MyPoint
+
+define void @__init___testproject() {
+entry:
+  call void @__init_mypoint(%MyPoint* @a)
+  ret void
+}
+
+declare void @__init_mypoint(%MyPoint*)

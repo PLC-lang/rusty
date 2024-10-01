@@ -202,16 +202,23 @@ fn ref_assignment() {
     );
 
     insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
-    define void @main() section "fn-$RUSTY$main:v" {
+    define void @main() {
     entry:
       %a = alloca i32*, align 8
       %b = alloca i32, align 4
       store i32* null, i32** %a, align 8
       store i32 0, i32* %b, align 4
       store i32* %b, i32** %a, align 8
+      ret void
+    }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() {
+    entry:
       ret void
     }
     "###);
@@ -245,15 +252,22 @@ fn reference_to_assignment() {
     assert_eq!(auto_deref, manual_deref);
 
     insta::assert_snapshot!(auto_deref, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
-    define void @main() section "fn-$RUSTY$main:v" {
+    define void @main() {
     entry:
       %a = alloca i32*, align 8
       store i32* null, i32** %a, align 8
       %deref = load i32*, i32** %a, align 8
       store i32 5, i32* %deref, align 4
+      ret void
+    }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() {
+    entry:
       ret void
     }
     "###);
@@ -289,12 +303,12 @@ fn reference_to_string_assignment() {
     assert_eq!(auto_deref, manual_deref);
 
     insta::assert_snapshot!(auto_deref, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
-    define void @main() section "fn-$RUSTY$main:v" {
+    define void @main() {
     entry:
       %a = alloca [81 x i8]*, align 8
       store [81 x i8]* null, [81 x i8]** %a, align 8
@@ -308,12 +322,18 @@ fn reference_to_string_assignment() {
     declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
     "###);
 }
 
 #[test]
-#[ignore = "Not working because of REF(...) initializer; should be resolved with https://github.com/PLC-lang/rusty/pull/1259"]
-fn alias_dint() {
+fn local_alias() {
     let content = codegen(
         r#"
         FUNCTION main
@@ -325,12 +345,32 @@ fn alias_dint() {
         "#,
     );
 
-    assert_snapshot!(content, @r"");
+    assert_snapshot!(content, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    define void @main() {
+    entry:
+      %foo = alloca i32*, align 8
+      %bar = alloca i32, align 4
+      %load_bar = load i32, i32* %bar, align 4
+      store i32 %load_bar, i32** %foo, align 4
+      store i32 0, i32* %bar, align 4
+      store i32* %bar, i32** %foo, align 8
+      ret void
+    }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
+    "###);
 }
 
 #[test]
-#[ignore = "Not working because of REF(...) initializer; should be resolved with https://github.com/PLC-lang/rusty/pull/1259"]
-fn alias_string() {
+fn local_string_alias() {
     let content = codegen(
         r#"
         FUNCTION main
@@ -342,12 +382,39 @@ fn alias_string() {
         "#,
     );
 
-    assert_snapshot!(content, @r"");
+    assert_snapshot!(content, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    define void @main() {
+    entry:
+      %foo = alloca [81 x i8]*, align 8
+      %bar = alloca [81 x i8], align 1
+      %load_bar = load [81 x i8], [81 x i8]* %bar, align 1
+      store [81 x i8] %load_bar, [81 x i8]** %foo, align 1
+      %0 = bitcast [81 x i8]* %bar to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      store [81 x i8]* %bar, [81 x i8]** %foo, align 8
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
+    "###);
 }
 
 #[test]
-#[ignore = "Not working because of REF(...) initializer; should be resolved with https://github.com/PLC-lang/rusty/pull/1259"]
-fn alias_struct() {
+#[ignore = "stack overflow regression with 28b6b41"]
+fn local_struct_alias() {
     let content = codegen(
         r#"
         TYPE Node : STRUCT
@@ -358,10 +425,27 @@ fn alias_struct() {
 
         FUNCTION main
             VAR
+                foo AT bar : Node;
+                bar : Node;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(content, @r"");
+}
+
+#[test]
+#[ignore = "REF(x) initializers where x is a member variable are not yet implemented (https://github.com/PLC-lang/rusty/issues/1286)"]
+fn stateful_local() {
+    let content = codegen(
+        r#"
+        FUNCTION_BLOCK foo
+            VAR
                 foo AT bar : STRING;
                 bar : STRING;
             END_VAR
-        END_FUNCTION
+        END_FUNCTION_BLOCK
         "#,
     );
 

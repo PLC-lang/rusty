@@ -1,8 +1,13 @@
 ---
 source: src/codegen/tests/generics_test.rs
 expression: prg
-
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
 
+define void @__init___testproject() {
+entry:
+  ret void
+}

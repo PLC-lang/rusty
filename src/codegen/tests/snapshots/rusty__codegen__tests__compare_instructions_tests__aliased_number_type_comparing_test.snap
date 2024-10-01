@@ -2,10 +2,10 @@
 source: src/codegen/tests/compare_instructions_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
-define i16 @baz() section "fn-$RUSTY$baz:i16" {
+define i16 @baz() {
 entry:
   %baz = alloca i16, align 2
   %x = alloca i16, align 2
@@ -26,4 +26,11 @@ entry:
   %tmpVar4 = icmp sle i32 %3, 0
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() {
+entry:
+  ret void
 }

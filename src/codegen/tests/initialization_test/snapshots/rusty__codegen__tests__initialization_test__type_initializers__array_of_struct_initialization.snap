@@ -2,23 +2,71 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %myStruct = type { i32, i32, [2 x i32] }
 %main = type { [2 x %myStruct], [2 x %myStruct] }
 
-@str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }, section "var-$RUSTY$str:r3i32i32ai32"
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r3i32i32ai32"
-@alias_str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }, section "var-$RUSTY$alias_str:r3i32i32ai32"
-@global_arr = unnamed_addr constant [2 x i32] [i32 30, i32 40], section "var-$RUSTY$global_arr:ai32"
-@main_instance = global %main { [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }], [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }] }, section "var-$RUSTY$main_instance:r2ar3i32i32ai32ar3i32i32ai32"
+@str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+@alias_str = unnamed_addr constant %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }
+@global_arr = unnamed_addr constant [2 x i32] [i32 30, i32 40]
+@main_instance = global %main { [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }], [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }] }
 @__main.arr__init = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
 @__main.alias_arr__init = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %arr = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %alias_arr = getelementptr inbounds %main, %main* %0, i32 0, i32 1
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%myStruct = type { i32, i32, [2 x i32] }
+%main = type { [2 x %myStruct], [2 x %myStruct] }
+
+@__myStruct__init = external global %myStruct
+@main_instance = external global %main
+
+define void @__init_mystruct(%myStruct* %0) {
+entry:
+  %self = alloca %myStruct*, align 8
+  store %myStruct* %0, %myStruct** %self, align 8
+  ret void
+}
+
+define void @__init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { [2 x %myStruct], [2 x %myStruct] }
+%myStruct = type { i32, i32, [2 x i32] }
+
+@main_instance = external global %main
+@__myStruct__init = external global %myStruct
+@str = external global %myStruct
+@alias_str = external global %myStruct
+
+define void @__init___testproject() {
+entry:
+  call void @__init_main(%main* @main_instance)
+  call void @__init_mystruct(%myStruct* @str)
+  call void @__init_mystruct(%myStruct* @alias_str)
+  ret void
+}
+
+declare void @__init_main(%main*)
+
+declare void @main(%main*)
+
+declare void @__init_mystruct(%myStruct*)

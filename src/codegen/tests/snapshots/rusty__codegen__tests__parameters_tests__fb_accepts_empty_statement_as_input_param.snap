@@ -2,23 +2,23 @@
 source: src/codegen/tests/parameters_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %fb_t = type { i32, i32 }
 %main = type { %fb_t }
 
-@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer, section "var-$RUSTY$__fb_t__init:r2i32i32"
-@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1r2i32i32"
+@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
+@main_instance = global %main zeroinitializer
 
-define void @fb_t(%fb_t* %0) section "fn-$RUSTY$fb_t:v[i32][i32]" {
+define void @fb_t(%fb_t* %0) {
 entry:
   %in1 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %in2 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 0
@@ -26,3 +26,52 @@ entry:
   call void @fb_t(%fb_t* %fb)
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%fb_t = type { i32, i32 }
+%main = type { %fb_t }
+
+@__fb_t__init = external global %fb_t
+@main_instance = external global %main
+
+define void @__init_fb_t(%fb_t* %0) {
+entry:
+  %self = alloca %fb_t*, align 8
+  store %fb_t* %0, %fb_t** %self, align 8
+  ret void
+}
+
+declare void @fb_t(%fb_t*)
+
+define void @__init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  %deref = load %main*, %main** %self, align 8
+  %fb = getelementptr inbounds %main, %main* %deref, i32 0, i32 0
+  call void @__init_fb_t(%fb_t* %fb)
+  ret void
+}
+
+declare void @main(%main*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { %fb_t }
+%fb_t = type { i32, i32 }
+
+@main_instance = external global %main
+@__fb_t__init = external global %fb_t
+
+define void @__init___testproject() {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*)
+
+declare void @main(%main*)
+
+declare void @fb_t(%fb_t*)

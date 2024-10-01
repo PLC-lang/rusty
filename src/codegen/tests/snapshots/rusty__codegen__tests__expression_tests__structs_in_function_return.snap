@@ -2,14 +2,14 @@
 source: src/codegen/tests/expression_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %myStruct = type { i16 }
 
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r1i16"
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
-define void @func(%myStruct* %0, %myStruct* %1) section "fn-$RUSTY$func:r1i16[pr1i16]" {
+define void @func(%myStruct* %0, %myStruct* %1) {
 entry:
   %func = alloca %myStruct*, align 8
   store %myStruct* %0, %myStruct** %func, align 8
@@ -25,3 +25,23 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%myStruct = type { i16 }
+
+@__myStruct__init = external global %myStruct
+
+define void @__init_mystruct(%myStruct* %0) {
+entry:
+  %self = alloca %myStruct*, align 8
+  store %myStruct* %0, %myStruct** %self, align 8
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() {
+entry:
+  ret void
+}

@@ -2,19 +2,19 @@
 source: src/codegen/tests/debug_tests.rs
 expression: codegen
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
-@a = global [11 x i32] zeroinitializer, section "var-$RUSTY$a:ai32", !dbg !0
-@b = global [110 x i32] zeroinitializer, section "var-$RUSTY$b:ai32", !dbg !7
-@c = global [11 x [10 x i32]] zeroinitializer, section "var-$RUSTY$c:aai32", !dbg !12
+@a = global [11 x i32] zeroinitializer, !dbg !0
+@b = global [110 x i32] zeroinitializer, !dbg !7
+@c = global [11 x [10 x i32]] zeroinitializer, !dbg !12
 
 !llvm.module.flags = !{!17, !18}
 !llvm.dbg.cu = !{!19}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "a", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "main", directory: "src")
+!2 = !DIFile(filename: "<internal>", directory: "")
 !3 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 352, align: 64, elements: !5)
 !4 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !5 = !{!6}
@@ -31,5 +31,6 @@ source_filename = "main"
 !16 = !{!11}
 !17 = !{i32 2, !"Dwarf Version", i32 5}
 !18 = !{i32 2, !"Debug Info Version", i32 3}
-!19 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !20, splitDebugInlining: false)
-!20 = !{!0, !7, !12}
+!19 = distinct !DICompileUnit(language: DW_LANG_C, file: !20, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !21, splitDebugInlining: false)
+!20 = !DIFile(filename: "<internal>", directory: "src")
+!21 = !{!0, !7, !12}

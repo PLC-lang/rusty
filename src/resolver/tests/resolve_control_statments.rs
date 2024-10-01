@@ -6,7 +6,7 @@ use plc_ast::{
     provider::IdProvider,
 };
 
-use crate::{assert_type_and_hint, test_utils::tests::index_with_ids, TypeAnnotator};
+use crate::{assert_type_and_hint, resolver::TypeAnnotator, test_utils::tests::index_with_ids};
 
 #[test]
 fn binary_expressions_resolves_types() {

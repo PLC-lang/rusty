@@ -2,14 +2,14 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %main = type { float, float, double, double }
 
-@main_instance = global %main { float 0xC7EFFFFFE0000000, float 0x47EFFFFFE0000000, double 0xFFEFFFFFFFFFFFFF, double 0x7FEFFFFFFFFFFFFF }, section "var-$RUSTY$main_instance:r4f32f32f64f64"
+@main_instance = global %main { float 0xC7EFFFFFE0000000, float 0x47EFFFFFE0000000, double 0xFFEFFFFFFFFFFFFF, double 0x7FEFFFFFFFFFFFFF }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %F32_MIN = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %F32_MAX = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -17,3 +17,34 @@ entry:
   %F64_MAX = getelementptr inbounds %main, %main* %0, i32 0, i32 3
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%main = type { float, float, double, double }
+
+@main_instance = external global %main
+
+define void @__init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { float, float, double, double }
+
+@main_instance = external global %main
+
+define void @__init___testproject() {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*)
+
+declare void @main(%main*)

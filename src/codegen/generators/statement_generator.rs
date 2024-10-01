@@ -261,7 +261,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let expr = exp.generate_reference_expression(&data.access, data.base.as_deref(), left)?;
             expr.get_basic_value_enum().into_pointer_value()
         };
-        let right_expr_val = ref_builtin.codegen(&exp, &[&right], right.get_location())?;
+        let right_expr_val = ref_builtin.codegen(&exp, &[right], right.get_location())?;
 
         self.llvm
             .builder
@@ -285,10 +285,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         if left_statement.has_direct_access() {
             return self.generate_assignment_statement_direct_access(left_statement, right_statement);
         }
-        //TODO: Also hacky but for now we cannot generate assignments for hardware access
-        if matches!(left_statement.get_stmt(), AstStatement::HardwareAccess { .. }) {
-            return Ok(());
-        }
+
+        if self.annotations.get(left_statement).is_some_and(|it| {
+            // TODO(mhasel): ideally the resolver decides which assignment statement to call when lowering the init functions,
+            // but that requires refactoring of how `aliases` and `reference to` LHS/RHS nodes are annotated. this is a workaround.
+            self.index.is_init_function(self.function_context.linking_context.get_call_name())
+                && (it.is_alias() || it.is_reference_to())
+        }) {
+            return self.generate_ref_assignment(left_statement, right_statement);
+        };
+
         let exp_gen = self.create_expr_generator();
         let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
             it.get_basic_value_enum().try_into().map_err(|err| {
@@ -378,7 +384,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let eval_step = || {
             step_ty.map_or_else(
-                || self.llvm.create_const_numeric(&cast_target_llty, "1", SourceLocation::undefined()),
+                || self.llvm.create_const_numeric(&cast_target_llty, "1", SourceLocation::internal()),
                 |step_ty| {
                     let step = exp_gen.generate_expression(by_step.as_ref().unwrap())?;
                     Ok(cast_if_needed!(exp_gen, cast_target_ty, step_ty, step, None)?)
@@ -399,18 +405,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         // XXX(mhasel): IR could possibly be improved by generating phi instructions.
         //              Candidate for frontend optimization for builds without optimization when `STEP`
         //              is a compile-time constant
-        let is_incrementing = builder
-            .build_int_compare(
-                inkwell::IntPredicate::SGT,
-                eval_step()?.into_int_value(),
-                self.llvm
-                    .create_const_numeric(&cast_target_llty, "0", SourceLocation::undefined())?
-                    .into_int_value(),
-                "is_incrementing",
-            )
+        let is_incrementing = builder.build_int_compare(
+            inkwell::IntPredicate::SGT,
+            eval_step()?.into_int_value(),
+            self.llvm
+                .create_const_numeric(&cast_target_llty, "0", SourceLocation::internal())?
+                .into_int_value(),
+            "is_incrementing",
+        )
             .map_err(CodegenDiagnostic::from)?;
-        builder
-            .build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing)
+        builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing)
             .map_err(CodegenDiagnostic::from)?;
         // generate predicates for incrementing and decrementing counters
         let generate_predicate = |predicate| -> Result<(), Diagnostic> {
@@ -506,7 +510,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let exp_gen = self.create_expr_generator();
-        self.register_debug_location(selector);
         let selector_statement = exp_gen.generate_expression(selector)?;
 
         let mut cases = Vec::new();
@@ -552,6 +555,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         // now that we collected all cases, go back to the initial block and generate the switch-statement
         builder.position_at_end(basic_block);
+        self.register_debug_location(selector);
         builder
             .build_switch(selector_statement.into_int_value(), else_block, &cases)
             .map_err(CodegenDiagnostic::from)?;

@@ -2,18 +2,18 @@
 source: src/codegen/tests/expression_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %main = type { [81 x i8] }
 
-@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1s8u81"
+@main_instance = global %main zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"dolor\00"
 @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"ipsum\00"
 @utf08_literal_2 = private unnamed_addr constant [6 x i8] c"lorem\00"
 @utf08_literal_3 = private unnamed_addr constant [4 x i8] c"sit\00"
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %str1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = alloca [81 x i8], align 1
@@ -55,3 +55,34 @@ continue_block:                                   ; preds = %entry, %8, %6, %4, 
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%main = type { [81 x i8] }
+
+@main_instance = external global %main
+
+define void @__init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { [81 x i8] }
+
+@main_instance = external global %main
+
+define void @__init___testproject() {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*)
+
+declare void @main(%main*)

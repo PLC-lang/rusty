@@ -53,6 +53,7 @@ where
         .index(ctxt.provider())
         //Resolve
         .annotate(ctxt.provider())
+        .lower(ctxt.provider())
         //Codegen
         .codegen_to_string(&compile_options)
 }

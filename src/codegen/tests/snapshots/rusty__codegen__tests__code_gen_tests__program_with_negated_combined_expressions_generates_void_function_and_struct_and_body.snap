@@ -2,14 +2,14 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %prg = type { i32, i8 }
 
-@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2i32u8"
+@prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -38,3 +38,34 @@ entry:
   %8 = phi i1 [ %tmpVar3, %3 ], [ %6, %5 ]
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%prg = type { i32, i8 }
+
+@prg_instance = external global %prg
+
+define void @__init_prg(%prg* %0) {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  ret void
+}
+
+declare void @prg(%prg*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%prg = type { i32, i8 }
+
+@prg_instance = external global %prg
+
+define void @__init___testproject() {
+entry:
+  call void @__init_prg(%prg* @prg_instance)
+  ret void
+}
+
+declare void @__init_prg(%prg*)
+
+declare void @prg(%prg*)

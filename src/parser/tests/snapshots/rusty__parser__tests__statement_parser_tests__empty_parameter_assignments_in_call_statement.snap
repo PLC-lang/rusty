@@ -4,6 +4,7 @@ expression: ast_string
 ---
 CompilationUnit {
     global_vars: [],
+    var_config: [],
     units: [
         POU {
             name: "foo",

@@ -2,30 +2,30 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %main = type {}
 
-@cT = unnamed_addr constant i64 1000000000, section "var-$RUSTY$cT:i64"
-@cT_SHORT = unnamed_addr constant i64 1000000000, section "var-$RUSTY$cT_SHORT:i64"
-@cLT = unnamed_addr constant i64 1000000000000, section "var-$RUSTY$cLT:i64"
-@cLT_SHORT = unnamed_addr constant i64 1000000000000, section "var-$RUSTY$cLT_SHORT:i64"
-@cD = unnamed_addr constant i64 0, section "var-$RUSTY$cD:i64"
-@cD_SHORT = unnamed_addr constant i64 161308800000000000, section "var-$RUSTY$cD_SHORT:i64"
-@cLD = unnamed_addr constant i64 161308800000000000, section "var-$RUSTY$cLD:i64"
-@cLD_SHORT = unnamed_addr constant i64 161308800000000000, section "var-$RUSTY$cLD_SHORT:i64"
-@cTOD = unnamed_addr constant i64 0, section "var-$RUSTY$cTOD:i64"
-@cTOD_SHORT = unnamed_addr constant i64 0, section "var-$RUSTY$cTOD_SHORT:i64"
-@cLTOD = unnamed_addr constant i64 86399999999999, section "var-$RUSTY$cLTOD:i64"
-@cLTOD_SHORT = unnamed_addr constant i64 86399999999999, section "var-$RUSTY$cLTOD_SHORT:i64"
-@cDT = unnamed_addr constant i64 172799000000000, section "var-$RUSTY$cDT:i64"
-@cDT_SHORT = unnamed_addr constant i64 172799000000000, section "var-$RUSTY$cDT_SHORT:i64"
-@cLDT = unnamed_addr constant i64 172799123000000, section "var-$RUSTY$cLDT:i64"
-@cLDT_SHORT = unnamed_addr constant i64 172799123000000, section "var-$RUSTY$cLDT_SHORT:i64"
-@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r16i64i64i64i64i64i64i64i64i64i64i64i64i64i64i64i64"
+@cT = unnamed_addr constant i64 1000000000
+@cT_SHORT = unnamed_addr constant i64 1000000000
+@cLT = unnamed_addr constant i64 1000000000000
+@cLT_SHORT = unnamed_addr constant i64 1000000000000
+@cD = unnamed_addr constant i64 0
+@cD_SHORT = unnamed_addr constant i64 161308800000000000
+@cLD = unnamed_addr constant i64 161308800000000000
+@cLD_SHORT = unnamed_addr constant i64 161308800000000000
+@cTOD = unnamed_addr constant i64 0
+@cTOD_SHORT = unnamed_addr constant i64 0
+@cLTOD = unnamed_addr constant i64 86399999999999
+@cLTOD_SHORT = unnamed_addr constant i64 86399999999999
+@cDT = unnamed_addr constant i64 172799000000000
+@cDT_SHORT = unnamed_addr constant i64 172799000000000
+@cLDT = unnamed_addr constant i64 172799123000000
+@cLDT_SHORT = unnamed_addr constant i64 172799123000000
+@main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %t1 = alloca i64, align 8
   %t2 = alloca i64, align 8
@@ -77,3 +77,34 @@ entry:
   store i64 172799123000000, i64* %ldt2, align 4
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%main = type {}
+
+@main_instance = external global %main
+
+define void @__init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type {}
+
+@main_instance = external global %main
+
+define void @__init___testproject() {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*)
+
+declare void @main(%main*)

@@ -247,3 +247,178 @@ fn date_and_time_constants_test() {
     assert_eq!(diag, vec![]);
     insta::assert_snapshot!(format!("{vars:#?}"));
 }
+
+#[test]
+fn var_config_test() {
+    let src = "
+    VAR_CONFIG
+        instance1.foo.qux AT %IX3.1 : BOOL;
+        instance2.bar.qux AT %IX5.6 : BOOL;
+    END_VAR
+    ";
+    let (result, diag) = parse(src);
+
+    assert!(diag.is_empty());
+    insta::assert_debug_snapshot!(result, @r###"
+    CompilationUnit {
+        global_vars: [],
+        var_config: [
+            ConfigVariable {
+                reference: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "qux",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "instance1",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                data_type: DataTypeReference {
+                    referenced_type: "BOOL",
+                },
+                address: HardwareAccess {
+                    direction: Input,
+                    access: Bit,
+                    address: [
+                        LiteralInteger {
+                            value: 3,
+                        },
+                        LiteralInteger {
+                            value: 1,
+                        },
+                    ],
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 2,
+                                column: 26,
+                                offset: 42,
+                            }..TextLocation {
+                                line: 2,
+                                column: 35,
+                                offset: 51,
+                            },
+                        ),
+                    },
+                },
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 2,
+                            column: 8,
+                            offset: 24,
+                        }..TextLocation {
+                            line: 2,
+                            column: 25,
+                            offset: 41,
+                        },
+                    ),
+                },
+            },
+            ConfigVariable {
+                reference: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "qux",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "bar",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "instance2",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                data_type: DataTypeReference {
+                    referenced_type: "BOOL",
+                },
+                address: HardwareAccess {
+                    direction: Input,
+                    access: Bit,
+                    address: [
+                        LiteralInteger {
+                            value: 5,
+                        },
+                        LiteralInteger {
+                            value: 6,
+                        },
+                    ],
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 3,
+                                column: 26,
+                                offset: 86,
+                            }..TextLocation {
+                                line: 3,
+                                column: 35,
+                                offset: 95,
+                            },
+                        ),
+                    },
+                },
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 3,
+                            column: 8,
+                            offset: 68,
+                        }..TextLocation {
+                            line: 3,
+                            column: 25,
+                            offset: 85,
+                        },
+                    ),
+                },
+            },
+        ],
+        units: [],
+        implementations: [],
+        user_types: [],
+        file_name: "test.st",
+    }
+    "###);
+}
+
+#[test]
+fn var_config_location() {
+    let src = r#"
+    VAR_CONFIG
+        main.instance.foo AT %IX3.1 : BOOL;
+    END_VAR
+    "#;
+
+    let (result, _) = parse(src);
+
+    assert_eq!("main.instance.foo", &src[result.var_config[0].location.to_range().unwrap()]);
+}

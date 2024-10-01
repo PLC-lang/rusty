@@ -415,3 +415,216 @@ fn assignment_suggestion_for_equal_operation_with_no_effect() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn invalid_initial_constant_values_in_pou_variables() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL CONSTANT
+            MAX_LEN : INT := 99;
+        END_VAR
+        VAR_GLOBAL
+            LEN : DINT := MAX_LEN - 2;
+        END_VAR
+        PROGRAM prg
+          VAR_INPUT
+            my_len: INT := LEN + 4;  //cannot be evaluated at compile time!
+          END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E033]: Unresolved constant `my_len` variable: `LEN` is no const reference
+       ┌─ <internal>:10:28
+       │
+    10 │             my_len: INT := LEN + 4;  //cannot be evaluated at compile time!
+       │                            ^^^^^^^ Unresolved constant `my_len` variable: `LEN` is no const reference
+
+    "###);
+}
+
+#[test]
+#[ignore = "no validation for non-leap-year date literals yet"]
+fn date_invalid_declaration() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"PROGRAM prg
+        VAR
+          a : DATE := D#2001-02-29; (* feb29 on non-leap year should not pass *)
+        END_VAR
+        END_PROGRAM"#,
+    );
+
+    assert!(!diagnostics.is_empty());
+
+    assert_snapshot!(diagnostics, @r###""###);
+}
+
+#[test]
+fn var_conf_template_variable_does_not_exist() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.qux AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E101]: Template variable `qux` does not exist
+       ┌─ <internal>:15:13
+       │
+    15 │             main.foo.qux AT %IX1.0 : BOOL;
+       │             ^^^^^^^^^^^^ Template variable `qux` does not exist
+
+    "###);
+}
+
+#[test]
+fn var_conf_config_and_template_variable_types_differ() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: Config and Template variable types differ (BOOL and : DINT)
+       ┌─ <internal>:15:13
+       │
+     4 │                 bar AT %I* : DINT;
+       │                 --- see also
+       ·
+    15 │             main.foo.bar AT %IX1.0 : BOOL;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Config and Template variable types differ (BOOL and : DINT)
+
+    "###);
+}
+
+#[test]
+fn var_conf_config_variable_has_incomplete_address() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %I* : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E104]: Variables defined in a VAR_CONFIG block must have a complete address
+       ┌─ <internal>:15:26
+       │
+    15 │             main.foo.bar AT %I* : BOOL;
+       │                          ^^^^^^ Variables defined in a VAR_CONFIG block must have a complete address
+
+    "###);
+}
+
+#[test]
+fn var_conf_template_address_has_complete_address() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %IX1.0 : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E103]: The configured variable is not a template, overriding non-template hardware addresses is not allowed
+       ┌─ <internal>:15:13
+       │
+     4 │                 bar AT %IX1.0 : BOOL;
+       │                 --- see also
+       ·
+    15 │             main.foo.bar AT %IX1.0 : BOOL;
+       │             ^^^^^^^^^^^^ The configured variable is not a template, overriding non-template hardware addresses is not allowed
+
+    "###);
+}
+
+#[test]
+fn var_conf_template_variable_is_no_template() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E102]: `foo` is missing a hardware binding
+       ┌─ <internal>:4:17
+       │
+     4 │                 bar : BOOL;
+       │                 ^^^ `foo` is missing a hardware binding
+       ·
+    15 │             main.foo.bar AT %IX1.0 : BOOL;
+       │             ----------------------------- see also
+
+    "###);
+}

@@ -2,16 +2,16 @@
 source: src/codegen/tests/parameters_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %prog = type { i32, i32, i32* }
 %main = type { i32, i32, i32 }
 
-@prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r3i32i32pi32"
-@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r3i32i32i32"
+@prog_instance = global %prog zeroinitializer
+@main_instance = global %main zeroinitializer
 
-define void @prog(%prog* %0) section "fn-$RUSTY$prog:v[i32][i32][pi32]" {
+define void @prog(%prog* %0) {
 entry:
   %input1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %output1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
@@ -19,7 +19,7 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %var1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %var2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
@@ -38,3 +38,52 @@ entry:
   store i32 %2, i32* %var2, align 4
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%prog = type { i32, i32, i32* }
+%main = type { i32, i32, i32 }
+
+@prog_instance = external global %prog
+@main_instance = external global %main
+
+define void @__init_prog(%prog* %0) {
+entry:
+  %self = alloca %prog*, align 8
+  store %prog* %0, %prog** %self, align 8
+  ret void
+}
+
+declare void @prog(%prog*)
+
+define void @__init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%prog = type { i32, i32, i32* }
+%main = type { i32, i32, i32 }
+
+@prog_instance = external global %prog
+@main_instance = external global %main
+
+define void @__init___testproject() {
+entry:
+  call void @__init_prog(%prog* @prog_instance)
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_prog(%prog*)
+
+declare void @prog(%prog*)
+
+declare void @__init_main(%main*)
+
+declare void @main(%main*)

@@ -290,7 +290,7 @@ fn builtin_function_call_adr() {
         ",
     );
     // WHEN compiled
-    // We expect a direct conversion to lword and subsequent assignment (no call)
+    // We expect the same behaviour as if REF was called, due to the assignee being a pointer
     insta::assert_snapshot!(result);
 }
 
@@ -513,48 +513,6 @@ fn compare_date_time_literals() {
         cmp8 := LDT#2022-10-20-23:59:59.999 > LDT#1999-01-01-10:32;
     END_PROGRAM
     ",
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn hardware_access_codegen() {
-    let result = codegen(
-        "
-        PROGRAM prg
-        VAR
-          x,y,z : BYTE;
-        END_VAR
-          x := %IB1.2;
-          y := %MB1.2;
-          z := %GB1.2;
-          x := %IX1.2;
-          y := %MD1.2;
-          z := %GW1.2;
-        END_PROGRAM
-        ",
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn hardware_access_assign_codegen() {
-    let result = codegen(
-        "
-        PROGRAM prg
-        VAR
-          x,y,z : BYTE;
-        END_VAR
-          %IB1.2 := 1;
-          %MB1.2 := 1;
-          %GB1.2 := 1;
-          %IX1.2 := 1;
-          %MD1.2 := 1;
-          %GW1.2 := 1;
-        END_PROGRAM
-        ",
     );
 
     insta::assert_snapshot!(result);

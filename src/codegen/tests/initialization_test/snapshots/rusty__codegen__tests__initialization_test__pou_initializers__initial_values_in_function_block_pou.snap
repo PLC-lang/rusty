@@ -2,16 +2,16 @@
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %FB = type { i16, i16, i8, i8, float, float }
 %main = type { %FB }
 
-@__FB__init = unnamed_addr constant %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }, section "var-$RUSTY$__FB__init:r6i16i16u8u8f32f32"
-@main_instance = global %main { %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }, section "var-$RUSTY$main_instance:r1r6i16i16u8u8f32f32"
+@__FB__init = unnamed_addr constant %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
+@main_instance = global %main { %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }
 
-define void @FB(%FB* %0) section "fn-$RUSTY$FB:v" {
+define void @FB(%FB* %0) {
 entry:
   %x = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
   %xx = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
@@ -22,8 +22,57 @@ entry:
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%FB = type { i16, i16, i8, i8, float, float }
+%main = type { %FB }
+
+@__FB__init = external global %FB
+@main_instance = external global %main
+
+define void @__init_fb(%FB* %0) {
+entry:
+  %self = alloca %FB*, align 8
+  store %FB* %0, %FB** %self, align 8
+  ret void
+}
+
+declare void @FB(%FB*)
+
+define void @__init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  %deref = load %main*, %main** %self, align 8
+  %fb = getelementptr inbounds %main, %main* %deref, i32 0, i32 0
+  call void @__init_fb(%FB* %fb)
+  ret void
+}
+
+declare void @main(%main*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { %FB }
+%FB = type { i16, i16, i8, i8, float, float }
+
+@main_instance = external global %main
+@__FB__init = external global %FB
+
+define void @__init___testproject() {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*)
+
+declare void @main(%main*)
+
+declare void @FB(%FB*)

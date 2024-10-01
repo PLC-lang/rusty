@@ -2,17 +2,39 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %fbWithConstant = type { i16, i16 }
 
-@__fbWithConstant__init = unnamed_addr constant %fbWithConstant { i16 0, i16 2 }, section "var-$RUSTY$__fbWithConstant__init:r2i16i16"
+@__fbWithConstant__init = unnamed_addr constant %fbWithConstant { i16 0, i16 2 }
 
-define void @fbWithConstant(%fbWithConstant* %0) section "fn-$RUSTY$fbWithConstant:v" {
+define void @fbWithConstant(%fbWithConstant* %0) {
 entry:
   %x = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 0
   %const = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 1
   store i16 2, i16* %x, align 2
+  ret void
+}
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%fbWithConstant = type { i16, i16 }
+
+@__fbWithConstant__init = external global %fbWithConstant
+
+define void @__init_fbwithconstant(%fbWithConstant* %0) {
+entry:
+  %self = alloca %fbWithConstant*, align 8
+  store %fbWithConstant* %0, %fbWithConstant** %self, align 8
+  ret void
+}
+
+declare void @fbWithConstant(%fbWithConstant*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() {
+entry:
   ret void
 }

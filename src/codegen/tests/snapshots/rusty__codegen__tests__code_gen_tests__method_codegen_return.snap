@@ -2,20 +2,20 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %MyClass = type {}
 %MyClass.testMethod = type { i16 }
 
-@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "var-$RUSTY$__MyClass__init:r0"
+@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 
-define void @MyClass(%MyClass* %0) section "fn-$RUSTY$MyClass:v" {
+define void @MyClass(%MyClass* %0) {
 entry:
   ret void
 }
 
-define i16 @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) section "fn-$RUSTY$MyClass.testMethod:i16[i16]" {
+define i16 @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
 entry:
   %myMethodArg = getelementptr inbounds %MyClass.testMethod, %MyClass.testMethod* %1, i32 0, i32 0
   %testMethod = alloca i16, align 2
@@ -23,4 +23,36 @@ entry:
   store i16 1, i16* %testMethod, align 2
   %MyClass.testMethod_ret = load i16, i16* %testMethod, align 2
   ret i16 %MyClass.testMethod_ret
+}
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%MyClass = type {}
+%MyClass.testMethod = type { i16 }
+
+@__MyClass__init = external global %MyClass
+
+define void @__init_myclass.testmethod(%MyClass.testMethod* %0) {
+entry:
+  %self = alloca %MyClass.testMethod*, align 8
+  store %MyClass.testMethod* %0, %MyClass.testMethod** %self, align 8
+  ret void
+}
+
+declare i16 @MyClass.testMethod(%MyClass*, %MyClass.testMethod*)
+
+define void @__init_myclass(%MyClass* %0) {
+entry:
+  %self = alloca %MyClass*, align 8
+  store %MyClass* %0, %MyClass** %self, align 8
+  ret void
+}
+
+declare void @MyClass(%MyClass*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+define void @__init___testproject() {
+entry:
+  ret void
 }

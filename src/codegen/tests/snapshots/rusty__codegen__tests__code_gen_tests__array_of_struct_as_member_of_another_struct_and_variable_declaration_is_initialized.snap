@@ -2,20 +2,73 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: res
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %mainProg = type { [5 x %STRUCT1] }
 %STRUCT1 = type { i16, [5 x %STRUCT2] }
 %STRUCT2 = type { i8, i32 }
 
-@mainProg_instance = global %mainProg { [5 x %STRUCT1] [%STRUCT1 { i16 1, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 { i16 2, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 256 }, %STRUCT2 { i8 0, i32 2048 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer] }, section "var-$RUSTY$mainProg_instance:r1ar2i16ar2u8i32"
-@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "var-$RUSTY$__STRUCT1__init:r2i16ar2u8i32"
-@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer, section "var-$RUSTY$__STRUCT2__init:r2u8i32"
+@mainProg_instance = global %mainProg { [5 x %STRUCT1] [%STRUCT1 { i16 1, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 { i16 2, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 256 }, %STRUCT2 { i8 0, i32 2048 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer] }
+@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer
+@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer
 @__mainProg.var_str1__init = unnamed_addr constant [5 x %STRUCT1] [%STRUCT1 { i16 1, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 { i16 2, [5 x %STRUCT2] [%STRUCT2 { i8 1, i32 256 }, %STRUCT2 { i8 0, i32 2048 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer, %STRUCT1 zeroinitializer]
 
-define void @mainProg(%mainProg* %0) section "fn-$RUSTY$mainProg:v" {
+define void @mainProg(%mainProg* %0) {
 entry:
   %var_str1 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 0
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%STRUCT1 = type { i16, [5 x %STRUCT2] }
+%STRUCT2 = type { i8, i32 }
+%mainProg = type { [5 x %STRUCT1] }
+
+@__STRUCT1__init = external global %STRUCT1
+@__STRUCT2__init = external global %STRUCT2
+@mainProg_instance = external global %mainProg
+
+define void @__init_struct1(%STRUCT1* %0) {
+entry:
+  %self = alloca %STRUCT1*, align 8
+  store %STRUCT1* %0, %STRUCT1** %self, align 8
+  ret void
+}
+
+define void @__init_struct2(%STRUCT2* %0) {
+entry:
+  %self = alloca %STRUCT2*, align 8
+  store %STRUCT2* %0, %STRUCT2** %self, align 8
+  ret void
+}
+
+define void @__init_mainprog(%mainProg* %0) {
+entry:
+  %self = alloca %mainProg*, align 8
+  store %mainProg* %0, %mainProg** %self, align 8
+  ret void
+}
+
+declare void @mainProg(%mainProg*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%mainProg = type { [5 x %STRUCT1] }
+%STRUCT1 = type { i16, [5 x %STRUCT2] }
+%STRUCT2 = type { i8, i32 }
+
+@mainProg_instance = external global %mainProg
+@__STRUCT1__init = external global %STRUCT1
+@__STRUCT2__init = external global %STRUCT2
+
+define void @__init___testproject() {
+entry:
+  call void @__init_mainprog(%mainProg* @mainProg_instance)
+  ret void
+}
+
+declare void @__init_mainprog(%mainProg*)
+
+declare void @mainProg(%mainProg*)

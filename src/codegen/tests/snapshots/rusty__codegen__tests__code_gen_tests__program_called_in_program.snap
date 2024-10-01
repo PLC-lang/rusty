@@ -2,22 +2,71 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %foo = type {}
 %prg = type {}
 
-@foo_instance = global %foo zeroinitializer, section "var-$RUSTY$foo_instance:r0"
-@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r0"
+@foo_instance = global %foo zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+define void @foo(%foo* %0) {
 entry:
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   call void @foo(%foo* @foo_instance)
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%foo = type {}
+%prg = type {}
+
+@foo_instance = external global %foo
+@prg_instance = external global %prg
+
+define void @__init_foo(%foo* %0) {
+entry:
+  %self = alloca %foo*, align 8
+  store %foo* %0, %foo** %self, align 8
+  ret void
+}
+
+declare void @foo(%foo*)
+
+define void @__init_prg(%prg* %0) {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  ret void
+}
+
+declare void @prg(%prg*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%foo = type {}
+%prg = type {}
+
+@foo_instance = external global %foo
+@prg_instance = external global %prg
+
+define void @__init___testproject() {
+entry:
+  call void @__init_foo(%foo* @foo_instance)
+  call void @__init_prg(%prg* @prg_instance)
+  ret void
+}
+
+declare void @__init_foo(%foo*)
+
+declare void @foo(%foo*)
+
+declare void @__init_prg(%prg*)
+
+declare void @prg(%prg*)

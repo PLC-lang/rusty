@@ -2,6 +2,7 @@
 name = "plc_driver"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -16,6 +17,7 @@ plc_index = { path = "../plc_index" }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
+toml = "0.5"
 clap = { version = "3.0", features = ["derive"] }
 rayon = "1.6.1"
 tempfile = "3"

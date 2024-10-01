@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::test_utils::tests::{codegen_debug_without_unwrap, codegen_without_unwrap};
+use crate::test_utils::tests::codegen_without_unwrap;
 use insta::assert_snapshot;
 
 #[test]
@@ -176,31 +176,6 @@ fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
     } else {
         panic!("expected code-gen error but got none")
     }
-}
-
-#[test]
-fn invalid_initial_constant_values_in_pou_variables() {
-    let err = codegen_debug_without_unwrap(
-        r#"
-        VAR_GLOBAL CONSTANT
-            MAX_LEN : INT := 99;
-        END_VAR
-
-        VAR_GLOBAL
-            LEN : DINT := MAX_LEN - 2;
-        END_VAR
-
-        PROGRAM prg
-          VAR_INPUT
-            my_len: INT := LEN + 4;  //cannot be evaluated at compile time!
-          END_VAR
-        END_PROGRAM
-
-        "#,
-        crate::DebugLevel::None,
-    )
-    .unwrap_err();
-    assert_snapshot!(err);
 }
 
 #[test]

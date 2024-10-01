@@ -2,15 +2,15 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %STRUCT1 = type { i32 }
 
-@MyStruct = unnamed_addr constant %STRUCT1 { i32 99 }, section "var-$RUSTY$MyStruct:r1i32"
-@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer, section "var-$RUSTY$__STRUCT1__init:r1i32"
+@MyStruct = unnamed_addr constant %STRUCT1 { i32 99 }
+@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer
 
-define i32 @main() section "fn-$RUSTY$main:i32" {
+define i32 @main() {
 entry:
   %main = alloca i32, align 4
   %local_value = alloca i32, align 4
@@ -21,3 +21,31 @@ entry:
   %main_ret = load i32, i32* %main, align 4
   ret i32 %main_ret
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%STRUCT1 = type { i32 }
+
+@__STRUCT1__init = external global %STRUCT1
+
+define void @__init_struct1(%STRUCT1* %0) {
+entry:
+  %self = alloca %STRUCT1*, align 8
+  store %STRUCT1* %0, %STRUCT1** %self, align 8
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%STRUCT1 = type { i32 }
+
+@__STRUCT1__init = external global %STRUCT1
+@MyStruct = external global %STRUCT1
+
+define void @__init___testproject() {
+entry:
+  call void @__init_struct1(%STRUCT1* @MyStruct)
+  ret void
+}
+
+declare void @__init_struct1(%STRUCT1*)
