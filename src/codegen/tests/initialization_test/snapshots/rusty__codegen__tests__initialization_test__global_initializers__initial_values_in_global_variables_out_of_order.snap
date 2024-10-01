@@ -8,17 +8,17 @@ source_filename = "<internal>"
 %MyFB = type { i16 }
 %prg = type { %MyFB }
 
-@x = global %MyFB { i16 77 }, section "var-$RUSTY$x:r1i16"
-@__MyFB__init = unnamed_addr constant %MyFB { i16 77 }, section "var-$RUSTY$__MyFB__init:r1i16"
-@prg_instance = global %prg { %MyFB { i16 77 } }, section "var-$RUSTY$prg_instance:r1r1i16"
+@x = global %MyFB { i16 77 }
+@__MyFB__init = unnamed_addr constant %MyFB { i16 77 }
+@prg_instance = global %prg { %MyFB { i16 77 } }
 
-define void @MyFB(%MyFB* %0) section "fn-$RUSTY$MyFB:v" {
+define void @MyFB(%MyFB* %0) {
 entry:
   %x = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 0
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   ret void
@@ -29,10 +29,10 @@ source_filename = "__initializers"
 %prg = type { %MyFB }
 %MyFB = type { i16 }
 
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1r1i16"
-@__MyFB__init = external global %MyFB, section "var-$RUSTY$__MyFB__init:r1i16"
+@prg_instance = external global %prg
+@__MyFB__init = external global %MyFB
 
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr1r1i16]" {
+define void @__init_prg(%prg* %0) {
 entry:
   %self = alloca %prg*, align 8
   store %prg* %0, %prg** %self, align 8
@@ -42,11 +42,11 @@ entry:
   ret void
 }
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 
-declare void @MyFB(%MyFB*) section "fn-$RUSTY$MyFB:v"
+declare void @MyFB(%MyFB*)
 
-define void @__init_myfb(%MyFB* %0) section "fn-$RUSTY$__init_myfb:v[pr1i16]" {
+define void @__init_myfb(%MyFB* %0) {
 entry:
   %self = alloca %MyFB*, align 8
   store %MyFB* %0, %MyFB** %self, align 8
@@ -58,21 +58,21 @@ source_filename = "__init___testproject"
 %prg = type { %MyFB }
 %MyFB = type { i16 }
 
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1r1i16"
-@__MyFB__init = external global %MyFB, section "var-$RUSTY$__MyFB__init:r1i16"
-@x = external global %MyFB, section "var-$RUSTY$x:r1i16"
+@prg_instance = external global %prg
+@__MyFB__init = external global %MyFB
+@x = external global %MyFB
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_prg(%prg* @prg_instance)
   call void @__init_myfb(%MyFB* @x)
   ret void
 }
 
-declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr1r1i16]"
+declare void @__init_prg(%prg*)
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 
-declare void @MyFB(%MyFB*) section "fn-$RUSTY$MyFB:v"
+declare void @MyFB(%MyFB*)
 
-declare void @__init_myfb(%MyFB*) section "fn-$RUSTY$__init_myfb:v[pr1i16]"
+declare void @__init_myfb(%MyFB*)

@@ -7,14 +7,14 @@ source_filename = "<internal>"
 
 %prg = type { i32 }
 
-@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1i32"
+@prg_instance = global %prg zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"a\00"
 @utf08_literal_1 = private unnamed_addr constant [4 x i8] c"abc\00"
 @utf08_literal_2 = private unnamed_addr constant [7 x i8] c"abcdef\00"
 
-declare i32 @foo(i32, i8**) section "fn-$RUSTY$foo:i32"
+declare i32 @foo(i32, i8**)
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %1 = alloca [3 x i8*], align 8
@@ -34,29 +34,29 @@ source_filename = "__initializers"
 
 %prg = type { i32 }
 
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1i32"
+@prg_instance = external global %prg
 
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr1i32]" {
+define void @__init_prg(%prg* %0) {
 entry:
   %self = alloca %prg*, align 8
   store %prg* %0, %prg** %self, align 8
   ret void
 }
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %prg = type { i32 }
 
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1i32"
+@prg_instance = external global %prg
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_prg(%prg* @prg_instance)
   ret void
 }
 
-declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr1i32]"
+declare void @__init_prg(%prg*)
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)

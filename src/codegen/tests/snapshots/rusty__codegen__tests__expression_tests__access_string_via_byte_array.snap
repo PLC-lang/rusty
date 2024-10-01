@@ -7,9 +7,9 @@ source_filename = "<internal>"
 
 %baz = type { [11 x i8], i8*, [10 x i8]* }
 
-@baz_instance = global %baz zeroinitializer, section "var-$RUSTY$baz_instance:r3s8u11pu8pau8"
+@baz_instance = global %baz zeroinitializer
 
-define void @baz(%baz* %0) section "fn-$RUSTY$baz:v" {
+define void @baz(%baz* %0) {
 entry:
   %str = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
   %ptr = getelementptr inbounds %baz, %baz* %0, i32 0, i32 1
@@ -25,29 +25,29 @@ source_filename = "__initializers"
 
 %baz = type { [11 x i8], i8*, [10 x i8]* }
 
-@baz_instance = external global %baz, section "var-$RUSTY$baz_instance:r3s8u11pu8pau8"
+@baz_instance = external global %baz
 
-define void @__init_baz(%baz* %0) section "fn-$RUSTY$__init_baz:v[pr3s8u11pu8pau8]" {
+define void @__init_baz(%baz* %0) {
 entry:
   %self = alloca %baz*, align 8
   store %baz* %0, %baz** %self, align 8
   ret void
 }
 
-declare void @baz(%baz*) section "fn-$RUSTY$baz:v"
+declare void @baz(%baz*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %baz = type { [11 x i8], i8*, [10 x i8]* }
 
-@baz_instance = external global %baz, section "var-$RUSTY$baz_instance:r3s8u11pu8pau8"
+@baz_instance = external global %baz
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_baz(%baz* @baz_instance)
   ret void
 }
 
-declare void @__init_baz(%baz*) section "fn-$RUSTY$__init_baz:v[pr3s8u11pu8pau8]"
+declare void @__init_baz(%baz*)
 
-declare void @baz(%baz*) section "fn-$RUSTY$baz:v"
+declare void @baz(%baz*)

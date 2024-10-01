@@ -7,9 +7,9 @@ source_filename = "<internal>"
 
 %prog = type { i64 }
 
-@prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r1i64"
+@prog_instance = global %prog zeroinitializer
 
-define i64 @func() section "fn-$RUSTY$func:i64" {
+define i64 @func() {
 entry:
   %func = alloca i64, align 8
   %TIME = alloca i64, align 8
@@ -19,7 +19,7 @@ entry:
   ret i64 %func_ret
 }
 
-define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+define void @prog(%prog* %0) {
 entry:
   %TIME = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   ret void
@@ -29,29 +29,29 @@ source_filename = "__initializers"
 
 %prog = type { i64 }
 
-@prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1i64"
+@prog_instance = external global %prog
 
-define void @__init_prog(%prog* %0) section "fn-$RUSTY$__init_prog:v[pr1i64]" {
+define void @__init_prog(%prog* %0) {
 entry:
   %self = alloca %prog*, align 8
   store %prog* %0, %prog** %self, align 8
   ret void
 }
 
-declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+declare void @prog(%prog*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %prog = type { i64 }
 
-@prog_instance = external global %prog, section "var-$RUSTY$prog_instance:r1i64"
+@prog_instance = external global %prog
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_prog(%prog* @prog_instance)
   ret void
 }
 
-declare void @__init_prog(%prog*) section "fn-$RUSTY$__init_prog:v[pr1i64]"
+declare void @__init_prog(%prog*)
 
-declare void @prog(%prog*) section "fn-$RUSTY$prog:v"
+declare void @prog(%prog*)

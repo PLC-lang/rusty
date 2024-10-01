@@ -7,17 +7,17 @@ source_filename = "<internal>"
 
 %MyStruct = type { i32, i32, i32 }
 
-@a = global %MyStruct { i32 5, i32 0, i32 10 }, section "var-$RUSTY$a:r3i32i32i32"
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer, section "var-$RUSTY$__MyStruct__init:r3i32i32i32"
-@b = global %MyStruct { i32 0, i32 3, i32 10 }, section "var-$RUSTY$b:r3i32i32i32"
+@a = global %MyStruct { i32 5, i32 0, i32 10 }
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
+@b = global %MyStruct { i32 0, i32 3, i32 10 }
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
 
 %MyStruct = type { i32, i32, i32 }
 
-@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r3i32i32i32"
+@__MyStruct__init = external global %MyStruct
 
-define void @__init_mystruct(%MyStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr3i32i32i32]" {
+define void @__init_mystruct(%MyStruct* %0) {
 entry:
   %self = alloca %MyStruct*, align 8
   store %MyStruct* %0, %MyStruct** %self, align 8
@@ -28,15 +28,15 @@ source_filename = "__init___testproject"
 
 %MyStruct = type { i32, i32, i32 }
 
-@__MyStruct__init = external global %MyStruct, section "var-$RUSTY$__MyStruct__init:r3i32i32i32"
-@a = external global %MyStruct, section "var-$RUSTY$a:r3i32i32i32"
-@b = external global %MyStruct, section "var-$RUSTY$b:r3i32i32i32"
+@__MyStruct__init = external global %MyStruct
+@a = external global %MyStruct
+@b = external global %MyStruct
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_mystruct(%MyStruct* @a)
   call void @__init_mystruct(%MyStruct* @b)
   ret void
 }
 
-declare void @__init_mystruct(%MyStruct*) section "fn-$RUSTY$__init_mystruct:v[pr3i32i32i32]"
+declare void @__init_mystruct(%MyStruct*)

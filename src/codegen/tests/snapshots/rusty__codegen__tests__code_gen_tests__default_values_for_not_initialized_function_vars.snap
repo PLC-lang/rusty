@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-define i16 @func() section "fn-$RUSTY$func:i16" {
+define i16 @func() {
 entry:
   %func = alloca i16, align 2
   %int_var = alloca i16, align 2
@@ -29,7 +29,7 @@ attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   ret void
 }

@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod tests {
 
-    use std::{path::PathBuf, str::FromStr};
+    use std::{collections::HashMap, path::PathBuf, str::FromStr, sync::Mutex};
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
@@ -25,7 +25,7 @@ pub mod tests {
             StringLiterals, TypeAnnotator,
         },
         typesystem::get_builtin_types,
-        DebugLevel, Validator,
+        DebugLevel, OnlineChange, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -195,11 +195,28 @@ pub mod tests {
         codegen_debug_without_unwrap(src, DebugLevel::None)
     }
 
+    pub fn codegen_with_online_change(src: &str) -> String {
+        codegen_debug_without_unwrap_oc(
+            src,
+            DebugLevel::None,
+            OnlineChange::Enabled { file_name: "test".into(), format: crate::ConfigFormat::JSON },
+        )
+        .unwrap()
+    }
+
+    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, String> {
+        codegen_debug_without_unwrap_oc(src, debug_level, OnlineChange::Disabled)
+    }
+
     /// Returns either a string or an error, in addition it always returns
     /// reported diagnostics. Therefor the return value of this method is always a tuple.
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
-    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, String> {
+    pub fn codegen_debug_without_unwrap_oc(
+        src: &str,
+        debug_level: DebugLevel,
+        online_change: OnlineChange,
+    ) -> Result<String, String> {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
         let mut id_provider = IdProvider::default();
@@ -210,6 +227,8 @@ pub mod tests {
             annotate_and_lower_with_ids(unit, index, id_provider.clone());
 
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
+
+        let got_layout = Mutex::new(HashMap::default());
 
         annotated_units
             .into_iter()
@@ -222,16 +241,24 @@ pub mod tests {
                     &unit.file_name,
                     crate::OptimizationLevel::None,
                     debug_level,
+                    online_change.clone(),
                 );
                 let llvm_index = code_generator
-                    .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)
+                    .generate_llvm_index(
+                        &context,
+                        &annotations,
+                        &literals,
+                        &dependencies,
+                        &index,
+                        &got_layout,
+                    )
                     .map_err(|err| {
                         reporter.handle(&[err]);
                         reporter.buffer().unwrap()
                     })?;
 
                 code_generator
-                    .generate(&context, &unit, &annotations, &index, &llvm_index)
+                    .generate(&context, &unit, &annotations, &index, llvm_index)
                     .map(|module| module.persist_to_string())
                     .map_err(|err| {
                         reporter.handle(&[err]);
@@ -301,16 +328,20 @@ pub mod tests {
                     &unit.file_name,
                     crate::OptimizationLevel::None,
                     debug_level,
+                    crate::OnlineChange::Disabled,
                 );
+                let got_layout = Mutex::new(HashMap::default());
+
                 let llvm_index = code_generator.generate_llvm_index(
                     context,
                     &annotations,
                     &literals,
                     &dependencies,
                     &index,
+                    &got_layout,
                 )?;
 
-                code_generator.generate(context, &unit, &annotations, &index, &llvm_index)
+                code_generator.generate(context, &unit, &annotations, &index, llvm_index)
             })
             .collect::<Result<Vec<_>, Diagnostic>>()
     }
