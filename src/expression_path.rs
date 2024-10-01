@@ -140,6 +140,11 @@ fn get_expression_path_segments(node: &AstNode) -> (Vec<ExpressionPathElement>, 
                 AstStatement::Literal(_) => {
                     if let Some(v) = idx.get_literal_integer_value().map(|it| vec![it]) {
                         paths.push(ExpressionPathElement::ArrayAccess(v))
+                    } else {
+                        diagnostics.push(
+                            Diagnostic::new("VAR_CONFIG array access must be a literal integer")
+                                .with_location(&idx.location),
+                        );
                     }
                 }
                 AstStatement::ExpressionList(vec) => {

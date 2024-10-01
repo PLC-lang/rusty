@@ -901,3 +901,48 @@ fn multi_dim_arrays_with_const_expr_access_cause_errors() {
 
     "###);
 }
+
+#[test]
+fn array_access_with_non_integer_literal_causes_error() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[0..1] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo['hello world'].bar AT %IX1.0 : BOOL;
+            main.foo[1.4].bar AT %IX1.1 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: VAR_CONFIG array access must be a literal integer
+       ┌─ <internal>:15:22
+       │
+    15 │             main.foo['hello world'].bar AT %IX1.0 : BOOL;
+       │                      ^^^^^^^^^^^^^ VAR_CONFIG array access must be a literal integer
+
+    error[E001]: VAR_CONFIG array access must be a literal integer
+       ┌─ <internal>:16:22
+       │
+    16 │             main.foo[1.4].bar AT %IX1.1 : BOOL;
+       │                      ^^^ VAR_CONFIG array access must be a literal integer
+
+    error[E105]: One or more template-elements in array have not been configured
+      ┌─ <internal>:4:17
+      │
+    4 │                 bar AT %I* : BOOL;
+      │                 ^^^ One or more template-elements in array have not been configured
+
+    "###);
+}
