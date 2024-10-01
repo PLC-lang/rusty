@@ -7,17 +7,17 @@ source_filename = "<internal>"
 
 %Point = type { i32, i32, i32 }
 
-@x = unnamed_addr constant %Point { i32 1, i32 2, i32 3 }, section "var-$RUSTY$x:r3i32i32i32"
-@__Point__init = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }, section "var-$RUSTY$__Point__init:r3i32i32i32"
-@empty = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }, section "var-$RUSTY$empty:r3i32i32i32"
+@x = unnamed_addr constant %Point { i32 1, i32 2, i32 3 }
+@__Point__init = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }
+@empty = unnamed_addr constant %Point { i32 0, i32 2, i32 3 }
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
 
 %Point = type { i32, i32, i32 }
 
-@__Point__init = external global %Point, section "var-$RUSTY$__Point__init:r3i32i32i32"
+@__Point__init = external global %Point
 
-define void @__init_point(%Point* %0) section "fn-$RUSTY$__init_point:v[pr3i32i32i32]" {
+define void @__init_point(%Point* %0) {
 entry:
   %self = alloca %Point*, align 8
   store %Point* %0, %Point** %self, align 8
@@ -28,15 +28,15 @@ source_filename = "__init___testproject"
 
 %Point = type { i32, i32, i32 }
 
-@__Point__init = external global %Point, section "var-$RUSTY$__Point__init:r3i32i32i32"
-@x = external global %Point, section "var-$RUSTY$x:r3i32i32i32"
-@empty = external global %Point, section "var-$RUSTY$empty:r3i32i32i32"
+@__Point__init = external global %Point
+@x = external global %Point
+@empty = external global %Point
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_point(%Point* @x)
   call void @__init_point(%Point* @empty)
   ret void
 }
 
-declare void @__init_point(%Point*) section "fn-$RUSTY$__init_point:v[pr3i32i32i32]"
+declare void @__init_point(%Point*)

@@ -5,7 +5,7 @@ expression: codegen(src)
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-define double @main() section "fn-$RUSTY$main:f64" {
+define double @main() {
 entry:
   %main = alloca double, align 8
   store double 0.000000e+00, double* %main, align 8
@@ -25,11 +25,11 @@ entry:
   ret double %main_ret
 }
 
-declare double @MAX__LREAL(i32, double*) section "fn-$RUSTY$MAX__LREAL:f64"
+declare double @MAX__LREAL(i32, double*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   ret void
 }

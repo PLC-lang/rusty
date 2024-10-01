@@ -19,7 +19,7 @@ use std::{
 
 use cli::{CompileParameters, ParameterError, SubCommands};
 use plc::{
-    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat,
+    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
     OptimizationLevel, Target, Threads,
 };
 
@@ -54,6 +54,7 @@ pub struct CompileOptions {
     pub error_format: ErrorFormat,
     pub debug_level: DebugLevel,
     pub single_module: bool,
+    pub online_change: OnlineChange,
 }
 
 impl Default for CompileOptions {
@@ -67,6 +68,7 @@ impl Default for CompileOptions {
             error_format: ErrorFormat::None,
             debug_level: DebugLevel::None,
             single_module: false,
+            online_change: OnlineChange::Disabled,
         }
     }
 }
@@ -176,6 +178,14 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
         error_format: compile_parameters.error_format,
         debug_level: compile_parameters.debug_level(),
         single_module: compile_parameters.single_module,
+        online_change: if compile_parameters.online_change {
+            OnlineChange::Enabled {
+                file_name: compile_parameters.got_layout_file.clone(),
+                format: compile_parameters.got_layout_format(),
+            }
+        } else {
+            OnlineChange::Disabled
+        },
     };
 
     let libraries =

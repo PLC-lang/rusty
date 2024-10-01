@@ -9,17 +9,17 @@ source_filename = "<internal>"
 %prg = type { %MyClass, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "var-$RUSTY$__MyClass__init:r2i16i16"
-@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r2r2i16i16i16"
+@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @MyClass(%MyClass* %0) section "fn-$RUSTY$MyClass:v" {
+define void @MyClass(%MyClass* %0) {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) section "fn-$RUSTY$MyClass.testMethod:v[i16]" {
+define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
@@ -38,7 +38,7 @@ entry:
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %cl = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -64,28 +64,28 @@ source_filename = "__initializers"
 %prg = type { %MyClass, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@__MyClass__init = external global %MyClass, section "var-$RUSTY$__MyClass__init:r2i16i16"
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2r2i16i16i16"
+@__MyClass__init = external global %MyClass
+@prg_instance = external global %prg
 
-define void @__init_myclass.testmethod(%MyClass.testMethod* %0) section "fn-$RUSTY$__init_myclass.testmethod:v[pr2i16i16]" {
+define void @__init_myclass.testmethod(%MyClass.testMethod* %0) {
 entry:
   %self = alloca %MyClass.testMethod*, align 8
   store %MyClass.testMethod* %0, %MyClass.testMethod** %self, align 8
   ret void
 }
 
-declare void @MyClass.testMethod(%MyClass*, %MyClass.testMethod*) section "fn-$RUSTY$MyClass.testMethod:v[i16]"
+declare void @MyClass.testMethod(%MyClass*, %MyClass.testMethod*)
 
-define void @__init_myclass(%MyClass* %0) section "fn-$RUSTY$__init_myclass:v[pr2i16i16]" {
+define void @__init_myclass(%MyClass* %0) {
 entry:
   %self = alloca %MyClass*, align 8
   store %MyClass* %0, %MyClass** %self, align 8
   ret void
 }
 
-declare void @MyClass(%MyClass*) section "fn-$RUSTY$MyClass:v"
+declare void @MyClass(%MyClass*)
 
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2r2i16i16i16]" {
+define void @__init_prg(%prg* %0) {
 entry:
   %self = alloca %prg*, align 8
   store %prg* %0, %prg** %self, align 8
@@ -95,24 +95,24 @@ entry:
   ret void
 }
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %prg = type { %MyClass, i16 }
 %MyClass = type { i16, i16 }
 
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2r2i16i16i16"
-@__MyClass__init = external global %MyClass, section "var-$RUSTY$__MyClass__init:r2i16i16"
+@prg_instance = external global %prg
+@__MyClass__init = external global %MyClass
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_prg(%prg* @prg_instance)
   ret void
 }
 
-declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr2r2i16i16i16]"
+declare void @__init_prg(%prg*)
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 
-declare void @MyClass(%MyClass*) section "fn-$RUSTY$MyClass:v"
+declare void @MyClass(%MyClass*)

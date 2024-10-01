@@ -7,9 +7,9 @@ source_filename = "<internal>"
 
 %Main = type { i16, i16, i8, i8, float, float }
 
-@Main_instance = global %Main { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }, section "var-$RUSTY$Main_instance:r6i16i16u8u8f32f32"
+@Main_instance = global %Main { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
 
-define void @Main(%Main* %0) section "fn-$RUSTY$Main:v" {
+define void @Main(%Main* %0) {
 entry:
   %x = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
   %xx = getelementptr inbounds %Main, %Main* %0, i32 0, i32 1
@@ -24,29 +24,29 @@ source_filename = "__initializers"
 
 %Main = type { i16, i16, i8, i8, float, float }
 
-@Main_instance = external global %Main, section "var-$RUSTY$Main_instance:r6i16i16u8u8f32f32"
+@Main_instance = external global %Main
 
-define void @__init_main(%Main* %0) section "fn-$RUSTY$__init_main:v[pr6i16i16u8u8f32f32]" {
+define void @__init_main(%Main* %0) {
 entry:
   %self = alloca %Main*, align 8
   store %Main* %0, %Main** %self, align 8
   ret void
 }
 
-declare void @Main(%Main*) section "fn-$RUSTY$Main:v"
+declare void @Main(%Main*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %Main = type { i16, i16, i8, i8, float, float }
 
-@Main_instance = external global %Main, section "var-$RUSTY$Main_instance:r6i16i16u8u8f32f32"
+@Main_instance = external global %Main
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_main(%Main* @Main_instance)
   ret void
 }
 
-declare void @__init_main(%Main*) section "fn-$RUSTY$__init_main:v[pr6i16i16u8u8f32f32]"
+declare void @__init_main(%Main*)
 
-declare void @Main(%Main*) section "fn-$RUSTY$Main:v"
+declare void @Main(%Main*)

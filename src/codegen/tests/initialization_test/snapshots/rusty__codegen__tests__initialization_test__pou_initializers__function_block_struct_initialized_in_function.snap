@@ -8,15 +8,15 @@ source_filename = "<internal>"
 %fb = type {}
 %main = type { %fb }
 
-@__fb__init = unnamed_addr constant %fb zeroinitializer, section "var-$RUSTY$__fb__init:r0"
-@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r1r0"
+@__fb__init = unnamed_addr constant %fb zeroinitializer
+@main_instance = global %main zeroinitializer
 
-define void @fb(%fb* %0) section "fn-$RUSTY$fb:v" {
+define void @fb(%fb* %0) {
 entry:
   ret void
 }
 
-define i32 @func(%fb* %0) section "fn-$RUSTY$func:i32[r0]" {
+define i32 @func(%fb* %0) {
 entry:
   %func = alloca i32, align 4
   %in = alloca %fb, align 8
@@ -32,14 +32,14 @@ entry:
   ret i32 %func_ret
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %fb0 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %call = call i32 @func(%fb* %fb0)
   ret void
 }
 
-declare void @__init_fb(%fb*) section "fn-$RUSTY$__init_fb:v[pr0]"
+declare void @__init_fb(%fb*)
 
 ; Function Attrs: argmemonly nofree nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -51,19 +51,19 @@ source_filename = "__initializers"
 %fb = type {}
 %main = type { %fb }
 
-@__fb__init = external global %fb, section "var-$RUSTY$__fb__init:r0"
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r1r0"
+@__fb__init = external global %fb
+@main_instance = external global %main
 
-define void @__init_fb(%fb* %0) section "fn-$RUSTY$__init_fb:v[pr0]" {
+define void @__init_fb(%fb* %0) {
 entry:
   %self = alloca %fb*, align 8
   store %fb* %0, %fb** %self, align 8
   ret void
 }
 
-declare void @fb(%fb*) section "fn-$RUSTY$fb:v"
+declare void @fb(%fb*)
 
-define void @__init_main(%main* %0) section "fn-$RUSTY$__init_main:v[pr1r0]" {
+define void @__init_main(%main* %0) {
 entry:
   %self = alloca %main*, align 8
   store %main* %0, %main** %self, align 8
@@ -73,24 +73,24 @@ entry:
   ret void
 }
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
 %main = type { %fb }
 %fb = type {}
 
-@main_instance = external global %main, section "var-$RUSTY$main_instance:r1r0"
-@__fb__init = external global %fb, section "var-$RUSTY$__fb__init:r0"
+@main_instance = external global %main
+@__fb__init = external global %fb
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_main(%main* @main_instance)
   ret void
 }
 
-declare void @__init_main(%main*) section "fn-$RUSTY$__init_main:v[pr1r0]"
+declare void @__init_main(%main*)
 
-declare void @main(%main*) section "fn-$RUSTY$main:v"
+declare void @main(%main*)
 
-declare void @fb(%fb*) section "fn-$RUSTY$fb:v"
+declare void @fb(%fb*)

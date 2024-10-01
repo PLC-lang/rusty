@@ -8,10 +8,10 @@ source_filename = "<internal>"
 %myPrg = type {}
 %myFb = type {}
 
-@myPrg_instance = global %myPrg zeroinitializer, section "var-$RUSTY$myPrg_instance:r3i32i32i32", !dbg !0
-@__myFb__init = unnamed_addr constant %myFb zeroinitializer, section "var-$RUSTY$__myFb__init:r3i32i32i32", !dbg !9
+@myPrg_instance = global %myPrg zeroinitializer, !dbg !0
+@__myFb__init = unnamed_addr constant %myFb zeroinitializer, !dbg !9
 
-define i32 @myFunc() section "fn-$RUSTY$myFunc:i32" !dbg !21 {
+define i32 @myFunc() !dbg !21 {
 entry:
   %myFunc = alloca i32, align 4, !dbg !25
   %a = alloca i32, align 4, !dbg !25
@@ -29,7 +29,7 @@ entry:
   ret i32 %myFunc_ret, !dbg !25
 }
 
-define void @myPrg(%myPrg* %0) section "fn-$RUSTY$myPrg:v" !dbg !34 {
+define void @myPrg(%myPrg* %0) !dbg !34 {
 entry:
   call void @llvm.dbg.declare(metadata %myPrg* %0, metadata !35, metadata !DIExpression()), !dbg !36
   %a = alloca i32, align 4, !dbg !36
@@ -44,7 +44,7 @@ entry:
   ret void, !dbg !36
 }
 
-define void @myFb(%myFb* %0) section "fn-$RUSTY$myFb:v" !dbg !43 {
+define void @myFb(%myFb* %0) !dbg !43 {
 entry:
   call void @llvm.dbg.declare(metadata %myFb* %0, metadata !44, metadata !DIExpression()), !dbg !45
   %a = alloca i32, align 4, !dbg !45
@@ -125,10 +125,10 @@ source_filename = "__initializers"
 %myPrg = type {}
 %myFb = type {}
 
-@myPrg_instance = external global %myPrg, section "var-$RUSTY$myPrg_instance:r3i32i32i32", !dbg !0
-@__myFb__init = external global %myFb, section "var-$RUSTY$__myFb__init:r3i32i32i32", !dbg !9
+@myPrg_instance = external global %myPrg, !dbg !0
+@__myFb__init = external global %myFb, !dbg !9
 
-define void @__init_myprg(%myPrg* %0) section "fn-$RUSTY$__init_myprg:v[pr3i32i32i32]" !dbg !21 {
+define void @__init_myprg(%myPrg* %0) !dbg !21 {
 entry:
   %self = alloca %myPrg*, align 8, !dbg !26
   call void @llvm.dbg.declare(metadata %myPrg** %self, metadata !27, metadata !DIExpression()), !dbg !26
@@ -136,9 +136,9 @@ entry:
   ret void, !dbg !26
 }
 
-declare !dbg !28 void @myPrg(%myPrg*) section "fn-$RUSTY$myPrg:v"
+declare !dbg !28 void @myPrg(%myPrg*)
 
-define void @__init_myfb(%myFb* %0) section "fn-$RUSTY$__init_myfb:v[pr3i32i32i32]" !dbg !31 {
+define void @__init_myfb(%myFb* %0) !dbg !31 {
 entry:
   %self = alloca %myFb*, align 8, !dbg !35
   call void @llvm.dbg.declare(metadata %myFb** %self, metadata !36, metadata !DIExpression()), !dbg !35
@@ -146,7 +146,7 @@ entry:
   ret void, !dbg !35
 }
 
-declare !dbg !37 void @myFb(%myFb*) section "fn-$RUSTY$myFb:v"
+declare !dbg !37 void @myFb(%myFb*)
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
@@ -199,17 +199,17 @@ source_filename = "__init___testproject"
 
 %myPrg = type {}
 
-@myPrg_instance = external global %myPrg, section "var-$RUSTY$myPrg_instance:r3i32i32i32", !dbg !0
+@myPrg_instance = external global %myPrg, !dbg !0
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" !dbg !14 {
+define void @__init___testproject() !dbg !14 {
 entry:
   call void @__init_myprg(%myPrg* @myPrg_instance), !dbg !18
   ret void, !dbg !18
 }
 
-declare !dbg !19 void @__init_myprg(%myPrg*) section "fn-$RUSTY$__init_myprg:v[pr3i32i32i32]"
+declare !dbg !19 void @__init_myprg(%myPrg*)
 
-declare !dbg !23 void @myPrg(%myPrg*) section "fn-$RUSTY$myPrg:v"
+declare !dbg !23 void @myPrg(%myPrg*)
 
 !llvm.module.flags = !{!9, !10}
 !llvm.dbg.cu = !{!11}
