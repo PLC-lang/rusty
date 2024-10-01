@@ -179,10 +179,10 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
         debug_level: compile_parameters.debug_level(),
         single_module: compile_parameters.single_module,
         online_change: if compile_parameters.online_change {
-            OnlineChange::Enabled((
-                compile_parameters.got_layout_file.clone(),
-                compile_parameters.got_layout_format(),
-            ))
+            OnlineChange::Enabled {
+                file_name: compile_parameters.got_layout_file.clone(),
+                format: compile_parameters.got_layout_format(),
+            }
         } else {
             OnlineChange::Disabled
         },

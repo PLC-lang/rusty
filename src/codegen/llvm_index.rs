@@ -14,7 +14,6 @@ pub struct LlvmTypedIndex<'ink> {
     type_associations: FxHashMap<String, BasicTypeEnum<'ink>>,
     pou_type_associations: FxHashMap<String, BasicTypeEnum<'ink>>,
     global_values: FxHashMap<String, GlobalValue<'ink>>,
-    // TODO: Should this be an Option?
     got_indices: FxHashMap<String, u64>,
     initial_value_associations: FxHashMap<String, BasicValueEnum<'ink>>,
     loaded_variable_associations: FxHashMap<String, PointerValue<'ink>>,

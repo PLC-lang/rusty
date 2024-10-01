@@ -309,8 +309,8 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
     }
 
     pub fn codegen_to_string(&self, compile_options: &CompileOptions) -> Result<Vec<String>, Diagnostic> {
-        let got_layout = if let OnlineChange::Enabled((file, format)) = &compile_options.online_change {
-            read_got_layout(file, *format)?
+        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            read_got_layout(file_name, *format)?
         } else {
             HashMap::default()
         };
@@ -331,8 +331,8 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         context: &'ctx CodegenContext,
         compile_options: &CompileOptions,
     ) -> Result<Option<GeneratedModule<'ctx>>, Diagnostic> {
-        let got_layout = if let OnlineChange::Enabled((file, format)) = &compile_options.online_change {
-            read_got_layout(file, *format)?
+        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            read_got_layout(file_name, *format)?
         } else {
             HashMap::default()
         };
@@ -429,8 +429,8 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         ensure_compile_dirs(targets, &compile_directory)?;
         let targets = if targets.is_empty() { &[Target::System] } else { targets };
 
-        let got_layout = if let OnlineChange::Enabled((file, format)) = &compile_options.online_change {
-            read_got_layout(file, *format)?
+        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            read_got_layout(file_name, *format)?
         } else {
             HashMap::default()
         };
@@ -500,8 +500,8 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
 
-        if let OnlineChange::Enabled((file, format)) = &compile_options.online_change {
-            write_got_layout(got_layout.into_inner().unwrap(), file, *format)?;
+        if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            write_got_layout(got_layout.into_inner().unwrap(), file_name, *format)?;
         }
 
         Ok(res)

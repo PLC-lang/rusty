@@ -318,7 +318,7 @@ mod tests {
         ];
 
         inputs.into_iter().for_each(|input| {
-            let _ = SectionMangler::from(dbg!(input));
+            let _ = SectionMangler::from(input);
         });
     }
 }
