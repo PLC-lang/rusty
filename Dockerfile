@@ -16,11 +16,11 @@ RUN ln -sf /usr/bin/ld.lld-$LLVM_VER /usr/bin/ld.lld
 # Install the local RuSTy version
 WORKDIR /rusty
 COPY . .
-RUN ./scripts/build.sh --build --release && \
-    mkdir -p ${PLCLOC} && \
-    cp /rusty/target/release/plc ${PLCLOC} && \
-    cp /rusty/target/release/libiec61131std.a ${STDLIBLOC} && \
-    cp /rusty/target/release/libiec61131std.so ${STDLIBLOC}
+RUN ./scripts/build.sh --build --release --package
+RUN mkdir -p ${PLCLOC} && \
+    cp /rusty/target/release/plc ${PLCLOC}
+RUN mkdir -p ${STDLIBLOC} && \
+    cp -r /rusty/output/* ${STDLIBLOC}
 
 ENTRYPOINT [ "/bin/bash", "-c" ]
 CMD ["plc", "--help"]
