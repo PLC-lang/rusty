@@ -483,11 +483,11 @@ fn var_conf_template_variable_does_not_exist() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: Template not configured
+    error[E105]: Template-variable must have a configuration
       ┌─ <internal>:4:17
       │
     4 │                 bar AT %I* : BOOL;
-      │                 ^^^ Template not configured
+      │                 ^^^ Template-variable must have a configuration
 
     error[E101]: Template variable `qux` does not exist
        ┌─ <internal>:15:13
@@ -659,11 +659,11 @@ fn unconfigured_template_variables_are_validated() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: Template not configured
+    error[E105]: Template-variable must have a configuration
       ┌─ <internal>:5:17
       │
     5 │                 qux AT %I* : BOOL;
-      │                 ^^^ Template not configured
+      │                 ^^^ Template-variable must have a configuration
 
     "###);
 }
@@ -693,7 +693,7 @@ fn variable_configured_multiple_times() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: Template variable configured multiple times
+    error[E106]: Template variable configured multiple times
        ┌─ <internal>:15:13
        │
     15 │             main.foo.bar AT %IX1.0 : BOOL;
@@ -755,7 +755,7 @@ fn arrays() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: One or more template-elements in array have not been configured
+    error[E105]: One or more template-elements in array have not been configured
       ┌─ <internal>:4:17
       │
     4 │                 bar AT %I* : BOOL;
@@ -788,7 +788,7 @@ fn arrays_with_multi_dim() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E001]: One or more template-elements in array have not been configured
+    error[E105]: One or more template-elements in array have not been configured
       ┌─ <internal>:4:17
       │
     4 │                 bar AT %I* : BOOL;
@@ -831,7 +831,7 @@ fn arrays_with_const_dim() {
     19 │             main.foo[START].bar AT %IX1.0 : BOOL;
        │                      ^^^^^ VAR_CONFIG array access must be a literal integer
 
-    error[E001]: One or more template-elements in array have not been configured
+    error[E105]: One or more template-elements in array have not been configured
       ┌─ <internal>:8:17
       │
     8 │                 bar AT %I* : BOOL;
@@ -888,7 +888,7 @@ fn multi_dim_arrays_with_consts() {
     21 │             main.foo[1, START * 2].bar AT %IX1.2 : BOOL;
        │                         ^^^^^^^^^ VAR_CONFIG array access must be a literal integer
 
-    error[E001]: One or more template-elements in array have not been configured
+    error[E105]: One or more template-elements in array have not been configured
       ┌─ <internal>:8:17
       │
     8 │                 bar AT %I* : BOOL;

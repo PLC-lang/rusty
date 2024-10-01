@@ -86,12 +86,6 @@ impl<'idx> ExpressionPath<'idx> {
                     let Some(first) = idx.first().and_then(|it| it.as_int_value(index).ok()) else {
                         return vec![];
                     };
-                    // let mut res = format!("{first}");
-                    // idx.iter().skip(1).for_each(|it| {
-                    //     if let Ok(i) = it.as_int_value(index) {
-                    //         res = format!("{res},{i}");
-                    //     };
-                    // });
 
                     let access = idx.iter().skip(1).fold(format!("{first}"), |mut acc, idx| {
                         if let Ok(i) = idx.as_int_value(index) {
@@ -140,10 +134,7 @@ fn get_expression_path_segments(node: &AstNode) -> (Vec<ExpressionPathElement>, 
     let mut paths = vec![];
     let mut diagnostics = vec![];
     match &node.stmt {
-        AstStatement::ReferenceExpr(
-            ReferenceExpr { access: ReferenceAccess::Member(reference), base },
-            ..,
-        ) => {
+        AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) => {
             paths.push(ExpressionPathElement::Name(reference.get_flat_reference_name().unwrap_or_default()));
             if let Some(base) = base {
                 let (vals, errs) = get_expression_path_segments(base);
