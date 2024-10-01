@@ -14,10 +14,18 @@ pub mod tests {
     use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
-        builtins, codegen::{CodegenContext, GeneratedModule}, index::{self, FxIndexSet, Index}, lexer, lowering::AstLowerer, parser, resolver::{
+        builtins,
+        codegen::{CodegenContext, GeneratedModule},
+        index::{self, FxIndexSet, Index},
+        lexer,
+        lowering::AstLowerer,
+        parser,
+        resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
             StringLiterals, TypeAnnotator,
-        }, typesystem::get_builtin_types, DebugLevel, OnlineChange, Validator
+        },
+        typesystem::get_builtin_types,
+        DebugLevel, OnlineChange, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -188,7 +196,12 @@ pub mod tests {
     }
 
     pub fn codegen_with_online_change(src: &str) -> String {
-        codegen_debug_without_unwrap_oc(src, DebugLevel::None, OnlineChange::Enabled{ file_name: "test".into(), format: crate::ConfigFormat::JSON }).unwrap()
+        codegen_debug_without_unwrap_oc(
+            src,
+            DebugLevel::None,
+            OnlineChange::Enabled { file_name: "test".into(), format: crate::ConfigFormat::JSON },
+        )
+        .unwrap()
     }
 
     pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, String> {
@@ -199,7 +212,11 @@ pub mod tests {
     /// reported diagnostics. Therefor the return value of this method is always a tuple.
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
-    pub fn codegen_debug_without_unwrap_oc(src: &str, debug_level: DebugLevel, online_change: OnlineChange) -> Result<String, String> {
+    pub fn codegen_debug_without_unwrap_oc(
+        src: &str,
+        debug_level: DebugLevel,
+        online_change: OnlineChange,
+    ) -> Result<String, String> {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
         let mut id_provider = IdProvider::default();

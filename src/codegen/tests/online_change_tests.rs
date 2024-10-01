@@ -4,13 +4,15 @@ use crate::test_utils::tests::codegen_with_online_change as codegen;
 
 #[test]
 fn generate_function_with_online_change() {
-    let src = codegen("
+    let src = codegen(
+        "
         FUNCTION foo : DINT
            VAR
             x : DINT;
            END_VAR
         END_FUNCTION
-        ");
+        ",
+    );
     assert_snapshot!(src, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
@@ -40,13 +42,15 @@ fn generate_function_with_online_change() {
 
 #[test]
 fn generate_program_with_online_change() {
-    let src = codegen("
+    let src = codegen(
+        "
         PROGRAM prg
            VAR
             x : DINT;
            END_VAR
         END_PROGRAM
-        ");
+        ",
+    );
     assert_snapshot!(src, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
@@ -100,7 +104,8 @@ fn generate_program_with_online_change() {
 
 #[test]
 fn generate_program_and_var_with_online_change() {
-    let src = codegen("
+    let src = codegen(
+        "
         PROGRAM prg
            VAR
             x : DINT;
@@ -110,7 +115,8 @@ fn generate_program_and_var_with_online_change() {
         VAR_GLOBAL
             gV : DINT;
         END_VAR
-        ");
+        ",
+    );
     assert_snapshot!(src, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
@@ -168,7 +174,8 @@ fn generate_program_and_var_with_online_change() {
 
 #[test]
 fn generate_function_and_var_with_online_change() {
-    let src = codegen("
+    let src = codegen(
+        "
         FUNCTION foo : DINT
            VAR
             x : DINT;
@@ -178,7 +185,8 @@ fn generate_function_and_var_with_online_change() {
         VAR_GLOBAL
             gV : DINT;
         END_VAR
-        ");
+        ",
+    );
     assert_snapshot!(src, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
