@@ -214,6 +214,34 @@
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
 <a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>inkwell::types::BasicTypeEnum;
 <span class="kw">use </span>inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
@@ -230,6 +258,7 @@
     type_associations: FxHashMap&lt;String, BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
     pou_type_associations: FxHashMap&lt;String, BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
     global_values: FxHashMap&lt;String, GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    got_indices: FxHashMap&lt;String, u64&gt;,
     initial_value_associations: FxHashMap&lt;String, BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
     loaded_variable_associations: FxHashMap&lt;String, PointerValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
     implementations: FxHashMap&lt;String, FunctionValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
@@ -245,6 +274,7 @@
             type_associations: FxHashMap::default(),
             pou_type_associations: FxHashMap::default(),
             global_values: FxHashMap::default(),
+            got_indices: FxHashMap::default(),
             initial_value_associations: FxHashMap::default(),
             loaded_variable_associations: FxHashMap::default(),
             implementations: FxHashMap::default(),
@@ -266,6 +296,9 @@
         }
         <span class="kw">for </span>(name, value) <span class="kw">in </span>other.global_values.drain() {
             <span class="self">self</span>.global_values.insert(name, value);
+        }
+        <span class="kw">for </span>(name, index) <span class="kw">in </span>other.got_indices.drain() {
+            <span class="self">self</span>.got_indices.insert(name, index);
         }
         <span class="kw">for </span>(name, assocication) <span class="kw">in </span>other.initial_value_associations.drain() {
             <span class="self">self</span>.initial_value_associations.insert(name, assocication);
@@ -326,6 +359,13 @@
             .or_else(|| <span class="self">self</span>.parent_index.and_then(|it| it.find_global_value(name)))
     }
 
+    <span class="kw">pub fn </span>find_got_index(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+        <span class="self">self</span>.got_indices
+            .get(<span class="kw-2">&amp;</span>name.to_lowercase())
+            .copied()
+            .or_else(|| <span class="self">self</span>.parent_index.and_then(|it| it.find_got_index(name)))
+    }
+
     <span class="kw">pub fn </span>find_associated_type(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt; {
         <span class="self">self</span>.type_associations
             .get(<span class="kw-2">&amp;</span>type_name.to_lowercase())
@@ -366,6 +406,22 @@
         <span class="self">self</span>.global_values.insert(variable_name.to_lowercase(), global_variable);
         <span class="self">self</span>.initial_value_associations
             .insert(variable_name.to_lowercase(), global_variable.as_pointer_value().into());
+
+        <span class="comment">// FIXME: Do we want to call .insert_new_got_index() here?
+
+        </span><span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub fn </span>associate_got_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, variable_name: <span class="kw-2">&amp;</span>str, index: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+        <span class="self">self</span>.got_indices.insert(variable_name.to_lowercase(), index);
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub fn </span>insert_new_got_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, variable_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+        <span class="kw">let </span>idx = <span class="self">self</span>.got_indices.values().max().copied().unwrap_or(<span class="number">0</span>);
+
+        <span class="self">self</span>.got_indices.insert(variable_name.to_lowercase(), idx);
+
         <span class="prelude-val">Ok</span>(())
     }
 

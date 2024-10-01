@@ -968,6 +968,34 @@
 <a href="#968" id="968">968</a>
 <a href="#969" id="969">969</a>
 <a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
@@ -975,7 +1003,8 @@
 <span class="kw">use </span>plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
 <span class="kw">use </span>std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
-<span class="kw">use </span>plc::{output::FormatOption, ConfigFormat, DebugLevel, ErrorFormat, Target, Threads};
+<span class="kw">use </span>plc::output::FormatOption;
+<span class="kw">use </span>plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
 
 <span class="kw">pub type </span>ParameterError = clap::Error;
 
@@ -1080,6 +1109,22 @@
     </span><span class="kw">pub </span>hardware_config: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
     <span class="attr">#[clap(
+        name = <span class="string">"got-layout-file"</span>,
+        long,
+        global = <span class="bool-val">true</span>,
+        help = <span class="string">"Obtain information about the current custom GOT layout from the given file if it exists.
+    Save information about the generated custom GOT layout to the given file.
+    Format is detected by extension.
+    Supported formats : json, toml"</span>,
+        default_value = DEFAULT_GOT_LAYOUT_FILE,
+        parse(try_from_str = validate_config),
+        <span class="comment">// FIXME: For some reason, this does not work at the moment but it really should
+        // The binary behaves as expected but the tests fail
+        // requires = "online-change"
+    </span>) ]
+    </span><span class="kw">pub </span>got_layout_file: String,
+
+    <span class="attr">#[clap(
         name = <span class="string">"optimization"</span>,
         long,
         short = <span class="string">'O'</span>,
@@ -1171,6 +1216,12 @@
 
     <span class="attr">#[clap(name = <span class="string">"check"</span>, long, help = <span class="string">"Check only, do not generate any output"</span>, global = <span class="bool-val">true</span>)]
     </span><span class="kw">pub </span>check_only: bool,
+
+    <span class="attr">#[clap(
+        long,
+        help = <span class="string">"Emit a binary with specific compilation information, suitable for online changes when ran under a conforming runtime"
+    </span>)]
+    </span><span class="kw">pub </span>online_change: bool,
 
     <span class="attr">#[clap(subcommand)]
     </span><span class="kw">pub </span>commands: <span class="prelude-ty">Option</span>&lt;SubCommands&gt;,
@@ -1356,6 +1407,11 @@
 
     <span class="kw">pub fn </span>config_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ConfigFormat&gt; {
         <span class="self">self</span>.hardware_config.as_deref().and_then(get_config_format)
+    }
+
+    <span class="kw">pub fn </span>got_layout_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ConfigFormat {
+        <span class="comment">// It is safe to unwrap here, since the provided argument to `--got-online-change` has been checked with `validate_config`
+        </span>get_config_format(<span class="kw-2">&amp;</span><span class="self">self</span>.got_layout_file).unwrap()
     }
 
     <span class="doccomment">/// Returns the location where the build artifacts should be stored / output

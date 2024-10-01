@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["AnnotatedProject","AnnotatedUnit","GeneratedProject","IndexedProject","ParsedProject"]};
+window.SIDEBAR_ITEMS = {"fn":["read_got_layout"],"struct":["AnnotatedProject","AnnotatedUnit","GeneratedProject","IndexedProject","ParsedProject"]};

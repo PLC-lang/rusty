@@ -197,6 +197,17 @@
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">/// offers operations to generate global variables
@@ -209,11 +220,12 @@
     },
     index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
+    OnlineChange,
 };
-
 <span class="kw">use </span>inkwell::{module::Module, values::GlobalValue};
 <span class="kw">use </span>plc_ast::ast::LinkageType;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>section_mangler::SectionMangler;
 
 <span class="kw">use super</span>::{
     data_type_generator::get_default_for,
@@ -231,6 +243,7 @@
     annotations: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>AstAnnotations,
     types_index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>LlvmTypedIndex&lt;<span class="lifetime">'ctx</span>&gt;,
     debug: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>DebugBuilderEnum&lt;<span class="lifetime">'ctx</span>&gt;,
+    online_change: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>OnlineChange,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'b</span>&gt; VariableGenerator&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'b</span>&gt; {
@@ -241,8 +254,9 @@
         annotations: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>AstAnnotations,
         types_index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>LlvmTypedIndex&lt;<span class="lifetime">'ctx</span>&gt;,
         debug: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>DebugBuilderEnum&lt;<span class="lifetime">'ctx</span>&gt;,
+        online_change: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>OnlineChange,
     ) -&gt; <span class="self">Self </span>{
-        VariableGenerator { module, llvm, global_index, annotations, types_index, debug }
+        VariableGenerator { module, llvm, global_index, annotations, types_index, debug, online_change }
     }
 
     <span class="kw">pub fn </span>generate_global_variables(
@@ -280,7 +294,7 @@
             }
         });
 
-        <span class="kw">for </span>(name, variable) <span class="kw">in </span>globals {
+        <span class="kw">for </span>(name, variable) <span class="kw">in </span><span class="kw-2">&amp;</span>globals {
             <span class="kw">let </span>linkage =
                 <span class="kw">if </span>!variable.is_in_unit(location) { LinkageType::External } <span class="kw">else </span>{ variable.get_linkage() };
             <span class="kw">let </span>global_variable = <span class="self">self</span>.generate_global_variable(variable, linkage).map_err(|err| {
@@ -382,16 +396,24 @@
             }
         }
 
-        <span class="kw">let </span>section = section_mangler::SectionMangler::variable(
-            global_variable.get_name(),
-            section_names::mangle_type(
-                <span class="self">self</span>.global_index,
-                <span class="self">self</span>.global_index.get_effective_type_by_name(global_variable.get_type_name())<span class="question-mark">?</span>,
-            )<span class="question-mark">?</span>,
-        )
-        .mangle();
+        <span class="kw">let </span>global_name = <span class="kw">if </span>global_variable.get_name().ends_with(<span class="string">"instance"</span>) {
+            global_variable.get_name()
+        } <span class="kw">else </span>{
+            global_variable.get_qualified_name()
+        };
+        <span class="kw">let </span>global_name = global_name.to_lowercase();
 
-        global_ir_variable.set_section(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>section));
+        <span class="kw">if </span><span class="self">self</span>.online_change.is_enabled() {
+            <span class="kw">let </span>section = SectionMangler::variable(
+                global_name,
+                section_names::mangle_type(
+                    <span class="self">self</span>.global_index,
+                    <span class="self">self</span>.global_index.get_effective_type_by_name(global_variable.get_type_name())<span class="question-mark">?</span>,
+                )<span class="question-mark">?</span>,
+            )
+            .mangle();
+            global_ir_variable.set_section(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>section));
+        }
 
         <span class="prelude-val">Ok</span>(global_ir_variable)
     }

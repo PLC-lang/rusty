@@ -265,6 +265,11 @@
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This crate provides functionality for encoding and decoding the type
 //! information of Strutured Text functions and variables. The goal is to store
 //! that information in the resulting binary, in the section name containing the
@@ -335,6 +340,27 @@
     ty: Type,
 }
 
+<span class="kw">pub const </span>RUSTY_PREFIX: <span class="kw-2">&amp;</span>str = <span class="string">"$RUSTY$"</span>;
+
+<span class="comment">// TODO: How to encode variadics?
+</span><span class="kw">fn </span>mangle_function(FunctionMangler { name, parameters, return_type }: FunctionMangler) -&gt; String {
+    <span class="comment">/* FIXME: Is that correct? */
+    </span><span class="kw">let </span>return_type = return_type.unwrap_or(Type::Void);
+
+    <span class="kw">let </span>mangled = <span class="kw">match </span>parameters.as_slice() {
+        [] =&gt; <span class="macro">format!</span>(<span class="string">"{return_type}[]"</span>),
+        parameters =&gt; {
+            parameters.iter().fold(return_type.to_string(), |mangled, arg| <span class="macro">format!</span>(<span class="string">"{mangled}[{arg}]"</span>))
+        }
+    };
+
+    <span class="macro">format!</span>(<span class="string">"{name}:{mangled}"</span>)
+}
+
+<span class="kw">fn </span>mangle_variable(VariableMangler { name, ty }: VariableMangler) -&gt; String {
+    <span class="macro">format!</span>(<span class="string">"{name}:{ty}"</span>)
+}
+
 <span class="kw">impl </span>SectionMangler {
     <span class="kw">pub fn </span>function&lt;S: Into&lt;String&gt;&gt;(name: S) -&gt; SectionMangler {
         SectionMangler::Function(FunctionMangler { name: name.into(), parameters: <span class="macro">vec!</span>[], return_type: <span class="prelude-val">None </span>})
@@ -378,7 +404,7 @@
             SectionMangler::Variable(v) =&gt; (<span class="string">"var"</span>, mangle_variable(v)),
         };
 
-        <span class="macro">format!</span>(<span class="string">"{prefix}-{content}"</span>)
+        <span class="macro">format!</span>(<span class="string">"{RUSTY_PREFIX}{prefix}-{content}"</span>)
     }
 }
 
@@ -515,21 +541,5 @@
             Type::Generic {} =&gt; <span class="macro">todo!</span>(),
         }
     }
-}
-
-<span class="kw">pub const </span>PREFIX: <span class="kw-2">&amp;</span>str = <span class="string">"$RUSTY$"</span>;
-
-<span class="comment">// TODO: How to encode variadics?
-</span><span class="kw">fn </span>mangle_function(FunctionMangler { name, parameters, return_type }: FunctionMangler) -&gt; String {
-    <span class="kw">let </span>mangled = parameters
-        .into_iter()
-        <span class="comment">/* FIXME: Is that correct? */
-        </span>.fold(return_type.unwrap_or(Type::Void).to_string(), |mangled, arg| <span class="macro">format!</span>(<span class="string">"{mangled}[{arg}]"</span>));
-
-    <span class="macro">format!</span>(<span class="string">"{PREFIX}{name}:{mangled}"</span>)
-}
-
-<span class="kw">fn </span>mangle_variable(VariableMangler { name, ty }: VariableMangler) -&gt; String {
-    <span class="macro">format!</span>(<span class="string">"{PREFIX}{name}:{ty}"</span>)
 }
 </code></pre></div></section></main></body></html>

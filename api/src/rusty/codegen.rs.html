@@ -519,11 +519,113 @@
 <a href="#519" id="519">519</a>
 <a href="#520" id="520">520</a>
 <a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     cell::RefCell,
+    collections::HashMap,
     ops::Deref,
     path::{Path, PathBuf},
+    sync::Mutex,
 };
 
 <span class="doccomment">/// module to generate llvm intermediate representation for a CompilationUnit
@@ -540,7 +642,7 @@
 <span class="kw">use crate</span>::{
     output::FormatOption,
     resolver::{AstAnnotations, Dependency, StringLiterals},
-    DebugLevel, OptimizationLevel, Target,
+    DebugLevel, OnlineChange, OptimizationLevel, Target,
 };
 
 <span class="kw">use </span><span class="kw">super</span>::index::<span class="kw-2">*</span>;
@@ -550,11 +652,14 @@
     execution_engine::{ExecutionEngine, JitFunction},
     memory_buffer::MemoryBuffer,
     types::BasicType,
+    values::BasicValue,
+    AddressSpace,
 };
 <span class="kw">use </span>inkwell::{
     module::Module,
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
+    types::BasicTypeEnum,
 };
 <span class="kw">use </span>plc_ast::ast::{CompilationUnit, LinkageType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -591,6 +696,8 @@
     </span><span class="kw">pub </span>module: Module&lt;<span class="lifetime">'ink</span>&gt;,
     <span class="doccomment">/// the debugging module creates debug information at appropriate locations
     </span><span class="kw">pub </span>debug: DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
+    <span class="doccomment">/// Whether we are generating a hot-reloadable binary or not
+    </span><span class="kw">pub </span>online_change: OnlineChange,
 
     <span class="kw">pub </span>module_location: String,
 }
@@ -611,11 +718,12 @@
         module_location: <span class="kw-2">&amp;</span>str,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
+        online_change: OnlineChange,
     ) -&gt; CodeGen&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">let </span>module = context.create_module(module_location);
         module.set_source_file_name(module_location);
         <span class="kw">let </span>debug = debug::DebugBuilderEnum::new(context, <span class="kw-2">&amp;</span>module, root, optimization_level, debug_level);
-        CodeGen { module, debug, module_location: module_location.to_string() }
+        CodeGen { module, debug, module_location: module_location.to_string(), online_change }
     }
 
     <span class="kw">pub fn </span>generate_llvm_index(
@@ -625,6 +733,7 @@
         literals: <span class="kw-2">&amp;</span>StringLiterals,
         dependencies: <span class="kw-2">&amp;</span>FxIndexSet&lt;Dependency&gt;,
         global_index: <span class="kw-2">&amp;</span>Index,
+        got_layout: <span class="kw-2">&amp;</span>Mutex&lt;HashMap&lt;String, u64&gt;&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>llvm = Llvm::new(context, context.create_builder());
         <span class="kw">let </span><span class="kw-2">mut </span>index = LlvmTypedIndex::default();
@@ -638,13 +747,102 @@
         )<span class="question-mark">?</span>;
         index.merge(llvm_type_index);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>variable_generator =
-            VariableGenerator::new(<span class="kw-2">&amp;</span><span class="self">self</span>.module, <span class="kw-2">&amp;</span>llvm, global_index, annotations, <span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;mut </span><span class="self">self</span>.debug);
+        <span class="kw">let </span><span class="kw-2">mut </span>variable_generator = VariableGenerator::new(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.module,
+            <span class="kw-2">&amp;</span>llvm,
+            global_index,
+            annotations,
+            <span class="kw-2">&amp;</span>index,
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.debug,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.online_change,
+        );
 
         <span class="comment">//Generate global variables
         </span><span class="kw">let </span>llvm_gv_index =
             variable_generator.generate_global_variables(dependencies, <span class="kw-2">&amp;</span><span class="self">self</span>.module_location)<span class="question-mark">?</span>;
         index.merge(llvm_gv_index);
+
+        <span class="comment">// Build our GOT layout here. We need to find all the names for globals, programs, and
+        // functions and assign them indices in the GOT, taking into account prior indices.
+        </span><span class="kw">let </span>program_globals =
+            global_index.get_program_instances().into_iter().fold(Vec::new(), |<span class="kw-2">mut </span>acc, p| {
+                acc.push(p.get_name().to_owned());
+                acc.push(p.get_qualified_name().to_owned());
+                acc.push(<span class="macro">format!</span>(<span class="string">"{}_instance"</span>, p.get_name()));
+                acc
+            });
+
+        <span class="kw">let </span>functions = global_index.get_pous().values().filter_map(|p| <span class="kw">match </span>p {
+            PouIndexEntry::Function { name, linkage: LinkageType::Internal, is_generated: <span class="bool-val">false</span>, .. }
+            | PouIndexEntry::FunctionBlock { name, linkage: LinkageType::Internal, .. } =&gt; {
+                <span class="prelude-val">Some</span>(String::from(name))
+            }
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        });
+        <span class="kw">let </span>all_names = global_index
+            .get_globals()
+            .values()
+            .map(VariableIndexEntry::get_qualified_name)
+            .map(String::from)
+            .chain(program_globals)
+            .chain(functions)
+            .map(|s| s.to_lowercase())
+            .map(|s| (<span class="kw">crate</span>::index::get_initializer_name(<span class="kw-2">&amp;</span>s), s))
+            .fold(Vec::new(), |<span class="kw-2">mut </span>acc, (s, s1)| {
+                acc.push(s);
+                acc.push(s1);
+                acc
+            });
+
+        <span class="kw">if </span><span class="self">self</span>.online_change.is_enabled() {
+            <span class="kw">let </span>got_entries = <span class="kw-2">&amp;mut *</span>got_layout.lock().unwrap();
+
+            <span class="kw">let </span><span class="kw-2">mut </span>new_symbols = Vec::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>new_got_entries = HashMap::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>new_got = HashMap::new();
+
+            <span class="kw">for </span>name <span class="kw">in </span>all_names {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(idx) = got_entries.get(<span class="kw-2">&amp;</span>name.to_string()) {
+                    new_got_entries.insert(name.to_string(), <span class="kw-2">*</span>idx);
+                    index.associate_got_index(<span class="kw-2">&amp;</span>name, <span class="kw-2">*</span>idx)<span class="question-mark">?</span>;
+                    new_got.insert(<span class="kw-2">*</span>idx, name.to_string());
+                } <span class="kw">else </span>{
+                    new_symbols.push(name.to_string());
+                }
+            }
+
+            <span class="comment">// Put any names that weren't there last time in any free space in the GOT.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>idx: u64 = <span class="number">0</span>;
+            <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>new_symbols {
+                <span class="kw">while </span>new_got.contains_key(<span class="kw-2">&amp;</span>idx) {
+                    idx += <span class="number">1</span>;
+                }
+                new_got_entries.insert(name.to_string(), idx);
+                index.associate_got_index(name, idx)<span class="question-mark">?</span>;
+                new_got.insert(idx, name.to_string());
+            }
+
+            <span class="comment">// Construct our GOT as a new global array. We initialise this array in the loader code.
+            </span><span class="kw">let </span>got_size: u32 = new_got
+                .keys()
+                .max()
+                .map_or(<span class="number">0</span>, |m| <span class="kw-2">*</span>m + <span class="number">1</span>)
+                .try_into()
+                .expect(<span class="string">"the computed custom GOT size is too large"</span>);
+
+            <span class="kw">let </span>ptr_ty = llvm.context.i8_type().ptr_type(AddressSpace::default());
+            <span class="kw">let </span>empty_got = ptr_ty
+                .const_array(<span class="macro">vec!</span>[ptr_ty.const_null(); got_size <span class="kw">as </span>usize].as_slice())
+                .as_basic_value_enum();
+            <span class="kw">let </span>custom_got_ty =
+                BasicTypeEnum::ArrayType(Llvm::get_array_type(BasicTypeEnum::PointerType(ptr_ty), got_size));
+
+            <span class="kw">let </span>custom_got = llvm.create_global_variable(<span class="kw-2">&amp;</span><span class="self">self</span>.module, <span class="string">"__custom_got"</span>, custom_got_ty);
+            custom_got.set_linkage(inkwell::module::Linkage::WeakODR);
+            custom_got.set_initial_value(<span class="prelude-val">Some</span>(empty_got), custom_got_ty);
+
+            <span class="kw-2">*</span>got_entries = new_got_entries;
+        }
 
         <span class="comment">//Generate opaque functions for implementations and associate them with their types
         </span><span class="kw">let </span>llvm = Llvm::new(context, context.create_builder());
@@ -656,6 +854,7 @@
             annotations,
             <span class="kw-2">&amp;</span>index,
             <span class="kw-2">&amp;mut </span><span class="self">self</span>.debug,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.online_change,
         )<span class="question-mark">?</span>;
         <span class="kw">let </span>llvm = Llvm::new(context, context.create_builder());
         index.merge(llvm_impl_index);
@@ -714,11 +913,12 @@
         unit: <span class="kw-2">&amp;</span>CompilationUnit,
         annotations: <span class="kw-2">&amp;</span>AstAnnotations,
         global_index: <span class="kw-2">&amp;</span>Index,
-        llvm_index: <span class="kw-2">&amp;</span>LlvmTypedIndex,
+        llvm_index: LlvmTypedIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;GeneratedModule&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">//generate all pous
         </span><span class="kw">let </span>llvm = Llvm::new(context, context.create_builder());
-        <span class="kw">let </span>pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);
+        <span class="kw">let </span>pou_generator =
+            PouGenerator::new(llvm, global_index, annotations, <span class="kw-2">&amp;</span>llvm_index, <span class="kw-2">&amp;</span><span class="self">self</span>.online_change);
 
         <span class="comment">//Generate the POU stubs in the first go to make sure they can be referenced.
         </span><span class="kw">for </span>implementation <span class="kw">in </span><span class="kw-2">&amp;</span>unit.implementations {

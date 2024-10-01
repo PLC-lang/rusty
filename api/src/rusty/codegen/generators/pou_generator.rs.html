@@ -869,6 +869,15 @@
 <a href="#869" id="869">869</a>
 <a href="#870" id="870">870</a>
 <a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use super</span>::{
@@ -887,6 +896,7 @@
     index::{<span class="self">self</span>, ImplementationType},
     resolver::{AstAnnotations, Dependency},
     typesystem::{DataType, DataTypeInformation, VarArgs, DINT_TYPE},
+    OnlineChange,
 };
 
 <span class="doccomment">/// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -920,10 +930,13 @@
     index: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>Index,
     annotations: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>AstAnnotations,
     llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
+    online_change: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>OnlineChange,
 }
 
 <span class="doccomment">/// Creates opaque implementations for all callable items in the index
 /// Returns a Typed index containing the associated implementations.
+/// FIXME: Ignoring the arguments warning for now, should refactor later to pass the options in a struct
+</span><span class="attr">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">pub fn </span>generate_implementation_stubs&lt;<span class="lifetime">'ink</span>&gt;(
     module: <span class="kw-2">&amp;</span>Module&lt;<span class="lifetime">'ink</span>&gt;,
     llvm: Llvm&lt;<span class="lifetime">'ink</span>&gt;,
@@ -932,9 +945,10 @@
     annotations: <span class="kw-2">&amp;</span>AstAnnotations,
     types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
     debug: <span class="kw-2">&amp;mut </span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
+    online_change: <span class="kw-2">&amp;</span>OnlineChange,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>llvm_index = LlvmTypedIndex::default();
-    <span class="kw">let </span>pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
+    <span class="kw">let </span>pou_generator = PouGenerator::new(llvm, index, annotations, types_index, online_change);
     <span class="kw">let </span>implementations = dependencies
         .into_iter()
         .filter_map(|it| {
@@ -1008,6 +1022,7 @@
                         .make_constant()
                         .set_initial_value(<span class="prelude-val">Some</span>(value), variable_type);
                     local_llvm_index.associate_global(<span class="kw-2">&amp;</span>name, global_value)<span class="question-mark">?</span>;
+                    local_llvm_index.insert_new_got_index(<span class="kw-2">&amp;</span>name)<span class="question-mark">?</span>;
                 }
             }
         }
@@ -1024,12 +1039,13 @@
         index: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>Index,
         annotations: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>AstAnnotations,
         llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
+        online_change: <span class="kw-2">&amp;</span><span class="lifetime">'cg </span>OnlineChange,
     ) -&gt; PouGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'cg</span>&gt; {
-        PouGenerator { llvm, index, annotations, llvm_index }
+        PouGenerator { llvm, index, annotations, llvm_index, online_change }
     }
 
     <span class="kw">fn </span>mangle_function(<span class="kw-2">&amp;</span><span class="self">self</span>, implementation: <span class="kw-2">&amp;</span>ImplementationIndexEntry) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
-        <span class="kw">let </span>ctx = SectionMangler::function(implementation.get_call_name());
+        <span class="kw">let </span>ctx = SectionMangler::function(implementation.get_call_name().to_lowercase());
 
         <span class="kw">let </span>params = <span class="self">self</span>.index.get_declared_parameters(implementation.get_call_name());
 
@@ -1160,8 +1176,10 @@
 
         <span class="kw">let </span>curr_f = module.add_function(implementation.get_call_name(), function_declaration, <span class="prelude-val">None</span>);
 
-        <span class="kw">let </span>section_name = <span class="self">self</span>.mangle_function(implementation)<span class="question-mark">?</span>;
-        curr_f.set_section(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>section_name));
+        <span class="kw">if </span><span class="self">self</span>.online_change.is_enabled() {
+            <span class="kw">let </span>section_name = <span class="self">self</span>.mangle_function(implementation)<span class="question-mark">?</span>;
+            curr_f.set_section(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>section_name));
+        }
 
         <span class="kw">let </span>pou_name = implementation.get_call_name();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = <span class="self">self</span>.index.find_pou(pou_name) {

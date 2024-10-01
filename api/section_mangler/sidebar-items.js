@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["PREFIX"],"enum":["FunctionArgument","SectionMangler","StringEncoding","Type"],"struct":["FunctionMangler","VariableMangler"]};
+window.SIDEBAR_ITEMS = {"constant":["RUSTY_PREFIX"],"enum":["FunctionArgument","SectionMangler","StringEncoding","Type"],"struct":["FunctionMangler","VariableMangler"]};
