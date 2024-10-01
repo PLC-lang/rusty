@@ -113,26 +113,23 @@ impl<'a> TryFrom<&'a ConfigVariable> for ExpressionPath<'a> {
     type Error = Vec<Diagnostic>;
 
     fn try_from(value: &'a ConfigVariable) -> Result<Self, Self::Error> {
-        let (mut names, diags) = get_expression_path_segments(&value.reference);
-        if !diags.is_empty() {
-            return Err(diags);
-        };
-
+        let mut names = get_expression_path_segments(&value.reference)?;
         names.reverse();
         Ok(Self { names })
     }
 }
 
-fn get_expression_path_segments(node: &AstNode) -> (Vec<ExpressionPathElement>, Vec<Diagnostic>) {
+fn get_expression_path_segments(node: &AstNode) -> Result<Vec<ExpressionPathElement>, Vec<Diagnostic>> {
     let mut paths = vec![];
     let mut diagnostics = vec![];
     match &node.stmt {
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) => {
             paths.push(ExpressionPathElement::Name(reference.get_flat_reference_name().unwrap_or_default()));
             if let Some(base) = base {
-                let (vals, errs) = get_expression_path_segments(base);
-                paths.extend(vals);
-                diagnostics.extend(errs);
+                match get_expression_path_segments(base) {
+                    Ok(v) => paths.extend(v),
+                    Err(e) => diagnostics.extend(e),
+                };
             }
         }
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(idx), base }) => {
@@ -169,16 +166,22 @@ fn get_expression_path_segments(node: &AstNode) -> (Vec<ExpressionPathElement>, 
                 }
             }
             if let Some(base) = base {
-                let (vals, errs) = get_expression_path_segments(base);
-                paths.extend(vals);
-                diagnostics.extend(errs);
+                match get_expression_path_segments(base) {
+                    Ok(v) => paths.extend(v),
+                    Err(e) => diagnostics.extend(e),
+                };
             }
         }
         _ => {
             unimplemented!()
         }
     };
-    (paths, diagnostics)
+
+    if !diagnostics.is_empty() {
+        return Err(diagnostics);
+    }
+
+    Ok(paths)
 }
 
 impl<'a> From<Vec<ExpressionPathElement<'a>>> for ExpressionPath<'a> {
