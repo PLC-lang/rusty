@@ -2120,12 +2120,12 @@ fn var_config_hardware_address_creates_global_variable() {
             span: Range(
                 TextLocation {
                     line: 2,
-                    column: 16,
-                    offset: 40,
+                    column: 24,
+                    offset: 48,
                 }..TextLocation {
                     line: 2,
-                    column: 23,
-                    offset: 47,
+                    column: 37,
+                    offset: 61,
                 },
             ),
         },

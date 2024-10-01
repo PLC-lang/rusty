@@ -5563,3 +5563,52 @@ fn hardware_address_in_body_resolves_to_global_var() {
         unreachable!("Should be an assignment")
     }
 }
+
+#[test]
+fn internal_var_config_global_resolves() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        VAR_CONFIG
+            prog.instance1.foo AT %IX1.2.1 : DINT;
+        END_VAR
+
+        FUNCTION_BLOCK FB 
+        VAR 
+            foo AT %I* : DINT; 
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM prog 
+        VAR
+            instance1: FB;
+        END_VAR
+            instance1();
+        END_PROGRAM
+
+        FUNCTION main : DINT
+            %IX1.2.1 := 23;
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { left, .. }), .. } =
+        &unit.implementations[2].statements[0]
+    {
+        insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r###"
+        Variable {
+            resulting_type: "DINT",
+            qualified_name: "__PI_1_2_1",
+            constant: false,
+            argument_type: ByVal(
+                Global,
+            ),
+            auto_deref: None,
+        }
+        "###);
+    } else {
+        unreachable!("Must be assignment")
+    }
+}

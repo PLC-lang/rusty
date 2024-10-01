@@ -4,7 +4,7 @@ use crate::{
 };
 use initializers::{Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
-    ast::{AstFactory, AstNode, CompilationUnit, DataType, LinkageType, PouType},
+    ast::{AstFactory, AstNode, CompilationUnit, ConfigVariable, DataType, LinkageType, PouType},
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     visit_all_nodes_mut,
@@ -17,6 +17,7 @@ pub struct AstLowerer {
     index: Index,
     annotations: AstAnnotations,
     unresolved_initializers: Initializers,
+    var_config_initializers: Vec<AstNode>,
     units: Vec<CompilationUnit>,
     ctxt: LoweringContext,
 }
@@ -51,6 +52,7 @@ impl AstLowerer {
             index,
             annotations,
             unresolved_initializers: Initializers::new(&unresolved_initializers),
+            var_config_initializers: vec![],
             units: vec![],
             ctxt: LoweringContext::new(id_provider),
         }
@@ -61,6 +63,7 @@ impl AstLowerer {
             index: self.index,
             annotations: self.annotations,
             unresolved_initializers: self.unresolved_initializers,
+            var_config_initializers: self.var_config_initializers,
             units,
             ctxt: self.ctxt,
         }
@@ -173,7 +176,6 @@ impl AstLowerer {
     /// Updates the scope and initialized variable for struct types. Adds entries for each encountered struct
     /// (this includes POU-structs, i.e. programs, ...) to the initializer map if no entry is present
     fn update_struct_initializers(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
-        // alias == subrangetype?
         let effective_type =
             user_type.data_type.get_name().and_then(|it| self.index.find_effective_type_by_name(it));
         if let DataType::StructType { .. } = &user_type.data_type {
@@ -224,6 +226,13 @@ impl AstLowerer {
 
         self.unresolved_initializers.maybe_insert_initializer(GLOBAL_SCOPE, Some(variable.get_name()), &None);
     }
+
+    fn collect_var_config_assignments(&mut self, var_config: &[ConfigVariable]) {
+        let assignments = var_config.iter().map(|var| {
+            AstFactory::create_assignment(var.reference.clone(), var.address.clone(), self.ctxt.next_id())
+        });
+        self.var_config_initializers.extend(assignments);
+    }
 }
 
 impl AstVisitorMut for AstLowerer {
@@ -232,6 +241,7 @@ impl AstVisitorMut for AstLowerer {
     }
 
     fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
+        self.collect_var_config_assignments(&unit.var_config);
         unit.walk(self)
     }
 
@@ -468,7 +478,7 @@ impl LoweringContext {
         self.id_provider.clone()
     }
 
-    fn _next_id(&mut self) -> usize {
+    fn next_id(&mut self) -> usize {
         self.id_provider.next_id()
     }
 }
