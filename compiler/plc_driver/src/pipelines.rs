@@ -263,7 +263,6 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             let diagnostics = validator.diagnostics();
             severity = severity.max(diagnostician.handle(&diagnostics));
         });
-
         if severity == Severity::Error {
             Err(Diagnostic::new("Compilation aborted due to critical errors"))
         } else {

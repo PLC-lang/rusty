@@ -11,16 +11,16 @@ use crate::{
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ExpressionPathElement<'idx> {
     Name(&'idx str),
-    ArrayAccess(&'idx [Dimension]),
-    Foo(Vec<TypeSize>),
+    ArrayDimensions(&'idx [Dimension]),
+    ArrayAccess(Vec<TypeSize>),
 }
 
 impl Display for ExpressionPathElement<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ExpressionPathElement::Name(name) => write!(f, "{name}"),
+            ExpressionPathElement::ArrayDimensions(_) => unimplemented!(),
             ExpressionPathElement::ArrayAccess(_) => unimplemented!(),
-            ExpressionPathElement::Foo(_) => unimplemented!(),
         }
     }
 }
@@ -33,7 +33,7 @@ impl<'idx> From<&'idx str> for ExpressionPathElement<'idx> {
 
 impl<'idx> From<&'idx [Dimension]> for ExpressionPathElement<'idx> {
     fn from(dims: &'idx [Dimension]) -> Self {
-        ExpressionPathElement::ArrayAccess(dims)
+        ExpressionPathElement::ArrayDimensions(dims)
     }
 }
 
@@ -60,7 +60,7 @@ impl<'idx> ExpressionPath<'idx> {
         for seg in self.names.iter() {
             let level = match seg {
                 ExpressionPathElement::Name(s) => vec![s.to_string()],
-                ExpressionPathElement::ArrayAccess(dimensions) => {
+                ExpressionPathElement::ArrayDimensions(dimensions) => {
                     let mut array = dimensions.iter().map(|it| it.get_range_inclusive(index).unwrap()).fold(
                         vec![],
                         |curr, it| {
@@ -82,17 +82,25 @@ impl<'idx> ExpressionPath<'idx> {
                     array.iter_mut().for_each(|s| *s = format!("[{s}]"));
                     array
                 }
-                ExpressionPathElement::Foo(idx) => {
-                    let Some(first) = idx.first().map(|it| it.as_int_value(index).ok()).flatten() else {
+                ExpressionPathElement::ArrayAccess(idx) => {
+                    let Some(first) = idx.first().and_then(|it| it.as_int_value(index).ok()) else {
                         return vec![];
                     };
-                    let mut res = format!("{first}");
-                    idx.iter().skip(1).for_each(|it| {
-                        if let Ok(i) = it.as_int_value(index) {
-                            res = format!("{res},{i}");
-                        };
+                    // let mut res = format!("{first}");
+                    // idx.iter().skip(1).for_each(|it| {
+                    //     if let Ok(i) = it.as_int_value(index) {
+                    //         res = format!("{res},{i}");
+                    //     };
+                    // });
+
+                    let access = idx.iter().skip(1).fold(format!("{first}"), |mut acc, idx| {
+                        if let Ok(i) = idx.as_int_value(index) {
+                            acc = format!("{acc}, {i}");
+                        }
+                        acc
                     });
-                    vec![format!("[{res}]")]
+
+                    vec![format!("[{access}]")]
                 }
             };
             levels.push(level);
@@ -119,16 +127,16 @@ impl<'a> TryFrom<&'a ConfigVariable> for ExpressionPath<'a> {
 
     fn try_from(value: &'a ConfigVariable) -> Result<Self, Self::Error> {
         let (mut names, diags) = get_expression_path_segments(&value.reference);
-
         if !diags.is_empty() {
             return Err(diags);
         };
+
         names.reverse();
         Ok(Self { names })
     }
 }
 
-fn get_expression_path_segments<'a>(node: &'a AstNode) -> (Vec<ExpressionPathElement<'a>>, Vec<Diagnostic>) {
+fn get_expression_path_segments(node: &AstNode) -> (Vec<ExpressionPathElement>, Vec<Diagnostic>) {
     let mut paths = vec![];
     let mut diagnostics = vec![];
     match &node.stmt {
@@ -149,7 +157,7 @@ fn get_expression_path_segments<'a>(node: &'a AstNode) -> (Vec<ExpressionPathEle
                     if let Some(v) =
                         idx.get_literal_integer_value().map(|it| vec![TypeSize::LiteralInteger(it as i64)])
                     {
-                        paths.push(ExpressionPathElement::Foo(v))
+                        paths.push(ExpressionPathElement::ArrayAccess(v))
                     }
                 }
                 AstStatement::ExpressionList(vec) => {
@@ -164,7 +172,7 @@ fn get_expression_path_segments<'a>(node: &'a AstNode) -> (Vec<ExpressionPathEle
                             );
                         }
                     });
-                    paths.push(ExpressionPathElement::Foo(res));
+                    paths.push(ExpressionPathElement::ArrayAccess(res));
                 }
                 _ => {
                     diagnostics.push(
@@ -224,7 +232,7 @@ mod tests {
         }];
 
         let name = ExpressionPath {
-            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayAccess(&dims)],
+            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayDimensions(&dims)],
         };
         let index = Index::default();
         assert_eq!(name.expand(&index), vec!["a[-1]".to_string(), "a[0]".to_string(), "a[1]".to_string(),])
@@ -238,7 +246,7 @@ mod tests {
         }];
 
         let name = ExpressionPath {
-            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayAccess(&dims)],
+            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayDimensions(&dims)],
         };
         let index = Index::default();
         assert_eq!(name.expand(&index), vec!["a[1]".to_string(),])
@@ -253,7 +261,7 @@ mod tests {
         ];
 
         let name = ExpressionPath {
-            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayAccess(&dims)],
+            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayDimensions(&dims)],
         };
         let index = Index::default();
         let mut res = name.expand(&index);
@@ -289,9 +297,9 @@ mod tests {
         let name = ExpressionPath {
             names: vec![
                 ExpressionPathElement::Name("a"),
-                ExpressionPathElement::ArrayAccess(&dims1),
-                ExpressionPathElement::ArrayAccess(&dims2),
-                ExpressionPathElement::ArrayAccess(&dims3),
+                ExpressionPathElement::ArrayDimensions(&dims1),
+                ExpressionPathElement::ArrayDimensions(&dims2),
+                ExpressionPathElement::ArrayDimensions(&dims3),
             ],
         };
         let index = Index::default();

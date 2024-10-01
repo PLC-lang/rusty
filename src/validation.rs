@@ -221,7 +221,7 @@ impl<'a> Validator<'a> {
                 self.diagnostics.push(
                     Diagnostic::new("Template variable configured multiple times")
                         .with_location(&loc[0])
-                        .with_secondary_locations(loc.iter().skip(1).map(|it| it.clone()).collect()),
+                        .with_secondary_locations(loc.iter().skip(1).cloned().collect()),
                 )
             }
         });
@@ -244,7 +244,7 @@ impl<'a> Validator<'a> {
         let mut incomplete_array_configurations = crate::index::FxIndexSet::default();
         // validate if all template-instances are configured in VAR_CONFIG blocks
         for (segments, (val, is_array)) in instances {
-            if config_variables.get(&segments).is_none() {
+            if !config_variables.contains_key(&segments) {
                 if is_array {
                     incomplete_array_configurations.insert(&val.source_location);
                 } else {
