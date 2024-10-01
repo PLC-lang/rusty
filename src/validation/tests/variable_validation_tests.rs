@@ -719,12 +719,17 @@ fn all_array_elements_configured_causes_no_errors() {
         PROGRAM main
             VAR
                 foo : ARRAY[0..1] OF foo_fb;
+                bar : ARRAY[0..1, 0..1] OF foo_fb;
             END_VAR
         END_PROGRAM
 
         VAR_CONFIG
             main.foo[0].bar AT %IX1.0 : BOOL;
             main.foo[1].bar AT %IX1.1 : BOOL;
+            main.bar[0, 0].bar AT %IX1.2 : BOOL;
+            main.bar[0, 1].bar AT %IX1.3 : BOOL;
+            main.bar[1, 0].bar AT %IX1.4 : BOOL;
+            main.bar[1, 1].bar AT %IX1.5 : BOOL;
         END_VAR
         "#,
     );
@@ -733,7 +738,7 @@ fn all_array_elements_configured_causes_no_errors() {
 }
 
 #[test]
-fn arrays() {
+fn missing_array_elements_are_reported() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK foo_fb
@@ -765,7 +770,7 @@ fn arrays() {
 }
 
 #[test]
-fn arrays_with_multi_dim() {
+fn missing_configurations_in_arrays_with_multiple_dimensions_are_validated() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK foo_fb
@@ -798,7 +803,7 @@ fn arrays_with_multi_dim() {
 }
 
 #[test]
-fn arrays_with_const_dim() {
+fn arrays_with_const_expr_access_cause_errors() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         VAR_GLOBAL CONSTANT
@@ -841,7 +846,7 @@ fn arrays_with_const_dim() {
 }
 
 #[test]
-fn multi_dim_arrays_with_consts() {
+fn multi_dim_arrays_with_const_expr_access_cause_errors() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         VAR_GLOBAL CONSTANT

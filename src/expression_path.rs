@@ -3,16 +3,13 @@ use std::{fmt::Display, vec};
 use plc_ast::ast::{AstNode, AstStatement, ConfigVariable, ReferenceAccess, ReferenceExpr};
 use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::{
-    index::Index,
-    typesystem::{Dimension, TypeSize},
-};
+use crate::{index::Index, typesystem::Dimension};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ExpressionPathElement<'idx> {
     Name(&'idx str),
     ArrayDimensions(&'idx [Dimension]),
-    ArrayAccess(Vec<TypeSize>),
+    ArrayAccess(Vec<i128>),
 }
 
 impl Display for ExpressionPathElement<'_> {
@@ -83,16 +80,12 @@ impl<'idx> ExpressionPath<'idx> {
                     array
                 }
                 ExpressionPathElement::ArrayAccess(idx) => {
-                    let Some(first) = idx.first().and_then(|it| it.as_int_value(index).ok()) else {
+                    let Some(first) = idx.first() else {
                         return vec![];
                     };
 
-                    let access = idx.iter().skip(1).fold(format!("{first}"), |mut acc, idx| {
-                        if let Ok(i) = idx.as_int_value(index) {
-                            acc = format!("{acc}, {i}");
-                        }
-                        acc
-                    });
+                    let access =
+                        idx.iter().skip(1).fold(format!("{first}"), |acc, idx| format!("{acc},{idx}"));
 
                     vec![format!("[{access}]")]
                 }
@@ -145,9 +138,7 @@ fn get_expression_path_segments(node: &AstNode) -> (Vec<ExpressionPathElement>, 
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(idx), base }) => {
             match &idx.as_ref().stmt {
                 AstStatement::Literal(_) => {
-                    if let Some(v) =
-                        idx.get_literal_integer_value().map(|it| vec![TypeSize::LiteralInteger(it as i64)])
-                    {
+                    if let Some(v) = idx.get_literal_integer_value().map(|it| vec![it]) {
                         paths.push(ExpressionPathElement::ArrayAccess(v))
                     }
                 }
@@ -155,7 +146,7 @@ fn get_expression_path_segments(node: &AstNode) -> (Vec<ExpressionPathElement>, 
                     let mut res = vec![];
                     vec.iter().for_each(|idx: &AstNode| {
                         if let Some(v) = idx.get_literal_integer_value() {
-                            res.push(TypeSize::LiteralInteger(v as i64));
+                            res.push(v);
                         } else {
                             diagnostics.push(
                                 Diagnostic::new("VAR_CONFIG array access must be a literal integer")
