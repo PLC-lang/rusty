@@ -62,7 +62,7 @@ END_PROGRAM
 
 A pointer variable can be initialized with the address of a global reference or an IEC-address using the `AT` or `REFERENCE TO` syntax. `REF_TO` pointers can be initialized using the built-in `REF` function in its initializer.
 
-This initialization, however, does not take place during compile time. Instead, each pointer initialized with an address will be zero-initialized to a null pointer by default. The compiler collects all pointer initializations during compilation and creates internal initializer functions for each POU. These functions are then called in a single overarching project-initialization function, which can be called either manually in your main function or by the runtime. Additionally, global variables — whether they are initialized pointers or POU instances containing pointer initializers — are also assigned within this overarching function.
+This initialization, however, does not take place during compile time. Instead, each pointer initialized with an address will be zero-initialized to a null pointer by default. The compiler collects all pointer initializations during compilation and creates internal initializer functions for each POU. These functions are then called in a single overarching project-initialization function, which can be called either manually in your main function or by a runtime. Additionally, global variables — whether they are initialized pointers or POU instances containing pointer initializers — are also assigned within this overarching function.
 
 This function follows a naming scheme (`__init___<project name>`) that varies slightly depending on whether a build config (`plc.json`) was used.
 
