@@ -1489,6 +1489,56 @@ PROGRAM PLC_PRG
     ...
 END_PROGRAM
 </code></pre>
+<h3 id="pointer-initialization"><a class="header" href="#pointer-initialization">Pointer Initialization</a></h3>
+<p>A pointer variable can be initialized with the address of a global reference or an IEC-address using the <code>AT</code> or <code>REFERENCE TO</code> syntax. <code>REF_TO</code> pointers can be initialized using the built-in <code>REF</code> function in its initializer.</p>
+<p>This initialization, however, does not take place during compile time. Instead, each pointer initialized with an address will be zero-initialized to a null pointer by default. The compiler collects all pointer initializations during compilation and creates internal initializer functions for each POU. These functions are then called in a single overarching project-initialization function, which can be called either manually in your main function or by a runtime. Additionally, global variables — whether they are initialized pointers or POU instances containing pointer initializers — are also assigned within this overarching function.</p>
+<p>This function follows a naming scheme (<code>__init___&lt;project name&gt;</code>) that varies slightly depending on whether a build config (<code>plc.json</code>) was used.</p>
+<ul>
+<li>
+<p><strong>When using a build config (<code>plc.json</code>)</strong>, the project name is used:</p>
+<p><em>Build config snippet:</em></p>
+<pre><code class="language-json">{
+    "name": "myProject",
+    "files": []
+}
+</code></pre>
+<p><em>Resulting symbol:</em></p>
+<pre><code class="language-iecst">    __init___myProject()
+</code></pre>
+</li>
+<li>
+<p><strong>When compiling without a build config</strong>, the name of the first file passed via CLI is used as the base for the name.</p>
+<p><em>CLI command:</em></p>
+<pre><code class="language-bash">    # build command
+    plc myFile1.st myFile2.st
+</code></pre>
+<p><em>Resulting symbol:</em></p>
+<pre><code class="language-iecst">    __init___myFile1_st()
+</code></pre>
+</li>
+</ul>
+<p>It is important to note that if there are pointer initializations present in your project, failing to call the initialization function in your runtime or in <code>main</code> will result in <strong>null pointer dereferences</strong> at runtime.</p>
+<h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
+<p><em>myProject.st</em>:</p>
+<pre><code class="language-iecst">VAR_GLOBAL
+    myGlobal : STRING;
+END_VAR
+
+PROGRAM prog
+VAR
+    myString : REF_TO STRING := REF(myGlobal);
+    myOtherString : REFERENCE TO STRING REF= myGlobal;
+    myAlias AT myGlobal: STRING;
+    myAnalogSignal AT %IX1.0 : REAL;
+END_VAR
+    // ...
+END_PROGRAM
+
+FUNCTION main: DINT
+    __init___myProject_st();
+    prog();
+END_FUNCTION
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="datatypes-1"><a class="header" href="#datatypes-1">Datatypes</a></h1>
 <h2 id="numeric-types"><a class="header" href="#numeric-types">Numeric types</a></h2>
 <p>A variety of numeric types exist with different sizes and properties complying with IEC61131.</p>
@@ -1657,7 +1707,7 @@ RuSTy supports this functionalty and extends it to support all <code>INT</code> 
 <blockquote>
 <p><em>For <code>Bit</code> access, the <code>%X</code> is optional.</em></p>
 </blockquote>
-<h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
+<h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR
     variable    : LWORD;
@@ -1686,7 +1736,7 @@ The provided varibale has to be a direct Reference variable (non Qualified).</p>
 <blockquote>
 <p><em>Short hand access for Bit (Without the <code>%X</code> modifier) is not allowed.</em></p>
 </blockquote>
-<h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
+<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR
     variable    : LWORD;
@@ -1813,7 +1863,7 @@ While this approach needs much more code and hand-written changes, its benefits 
 Every element of the AST is easily identified, debugged and understood.
 E.g. while in a generic node based AST it is easily possible to have a binary-statement with no, one, or seven child-nodes, the RuSTy-AST enforces the structure of every node. So the RuSTy-Binary-Statement has exactly two children.
 It is impossible to construct it differently.</p>
-<h4 id="example-7"><a class="header" href="#example-7">Example</a></h4>
+<h4 id="example-8"><a class="header" href="#example-8">Example</a></h4>
 <p>So an assignment <code>a := 3;</code> will be parsed with the help of the following Structures:</p>
 <pre><code class="language-rs">struct Reference {
    name: string
