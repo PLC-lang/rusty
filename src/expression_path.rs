@@ -86,12 +86,6 @@ impl<'idx> ExpressionPath<'idx> {
                     let Some(first) = idx.first().and_then(|it| it.as_int_value(index).ok()) else {
                         return vec![];
                     };
-                    // let mut res = format!("{first}");
-                    // idx.iter().skip(1).for_each(|it| {
-                    //     if let Ok(i) = it.as_int_value(index) {
-                    //         res = format!("{res},{i}");
-                    //     };
-                    // });
 
                     let access = idx.iter().skip(1).fold(format!("{first}"), |mut acc, idx| {
                         if let Ok(i) = idx.as_int_value(index) {

@@ -10,7 +10,7 @@ use crate::{
     expression_path::ExpressionPath,
     index::{
         const_expressions::{ConstExpression, UnresolvableKind},
-        Index, PouIndexEntry,
+        FxIndexSet, Index, PouIndexEntry,
     },
     resolver::AnnotationMap,
     typesystem::DataType,
@@ -220,6 +220,7 @@ impl<'a> Validator<'a> {
             if loc.len() > 1 {
                 self.diagnostics.push(
                     Diagnostic::new("Template variable configured multiple times")
+                        .with_error_code("E106")
                         .with_location(&loc[0])
                         .with_secondary_locations(loc.iter().skip(1).cloned().collect()),
                 )
@@ -241,24 +242,28 @@ impl<'a> Validator<'a> {
                 acc
             });
 
-        let mut incomplete_array_configurations = crate::index::FxIndexSet::default();
+        let mut incomplete_array_configurations = FxIndexSet::default();
         // validate if all template-instances are configured in VAR_CONFIG blocks
         for (segments, (val, is_array)) in instances {
             if !config_variables.contains_key(&segments) {
                 if is_array {
                     incomplete_array_configurations.insert(&val.source_location);
                 } else {
-                    self.diagnostics
-                        .push(Diagnostic::new("Template not configured").with_location(&val.source_location));
+                    self.diagnostics.push(
+                        Diagnostic::new("Template-variable must have a configuration")
+                            .with_error_code("E105")
+                            .with_location(&val.source_location),
+                    );
                 }
             }
         }
 
-        // report arrays which have elements that without configuration
+        // report arrays which have elements that are missing configuration
         incomplete_array_configurations.iter().for_each(|array_location| {
             self.diagnostics.push(
                 Diagnostic::new("One or more template-elements in array have not been configured")
-                    .with_location(*array_location),
+                    .with_location(*array_location)
+                    .with_error_code("E105"),
             );
         });
     }
