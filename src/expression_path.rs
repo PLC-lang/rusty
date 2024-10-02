@@ -122,6 +122,11 @@ impl<'a> TryFrom<&'a ConfigVariable> for ExpressionPath<'a> {
 fn get_expression_path_segments(node: &AstNode) -> Result<Vec<ExpressionPathElement>, Vec<Diagnostic>> {
     let mut paths = vec![];
     let mut diagnostics = vec![];
+    let mut add_diagnostic = |location| {
+        diagnostics.push(
+            Diagnostic::new("VAR_CONFIG array access must be a literal integer").with_location(location),
+        );
+    };
     match &node.stmt {
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) => {
             paths.push(ExpressionPathElement::Name(reference.get_flat_reference_name().unwrap_or_default()));
@@ -138,10 +143,7 @@ fn get_expression_path_segments(node: &AstNode) -> Result<Vec<ExpressionPathElem
                     if let Some(v) = idx.get_literal_integer_value().map(|it| vec![it]) {
                         paths.push(ExpressionPathElement::ArrayAccess(v))
                     } else {
-                        diagnostics.push(
-                            Diagnostic::new("VAR_CONFIG array access must be a literal integer")
-                                .with_location(&idx.location),
-                        );
+                        add_diagnostic(&idx.location);
                     }
                 }
                 AstStatement::ExpressionList(vec) => {
@@ -150,20 +152,12 @@ fn get_expression_path_segments(node: &AstNode) -> Result<Vec<ExpressionPathElem
                         if let Some(v) = idx.get_literal_integer_value() {
                             res.push(v);
                         } else {
-                            diagnostics.push(
-                                Diagnostic::new("VAR_CONFIG array access must be a literal integer")
-                                    .with_location(&idx.location),
-                            );
+                            add_diagnostic(&idx.location);
                         }
                     });
                     paths.push(ExpressionPathElement::ArrayAccess(res));
                 }
-                _ => {
-                    diagnostics.push(
-                        Diagnostic::new("VAR_CONFIG array access must be a literal integer")
-                            .with_location(&idx.location),
-                    );
-                }
+                _ => add_diagnostic(&idx.location),
             }
             if let Some(base) = base {
                 match get_expression_path_segments(base) {
@@ -172,10 +166,7 @@ fn get_expression_path_segments(node: &AstNode) -> Result<Vec<ExpressionPathElem
                 };
             }
         }
-        _ => diagnostics.push(
-            Diagnostic::new("VAR_CONFIG array access must be a literal integer")
-                .with_location(&node.location),
-        ),
+        _ => add_diagnostic(&node.location),
     };
 
     if !diagnostics.is_empty() {
