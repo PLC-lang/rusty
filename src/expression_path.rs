@@ -172,9 +172,10 @@ fn get_expression_path_segments(node: &AstNode) -> Result<Vec<ExpressionPathElem
                 };
             }
         }
-        _ => {
-            unimplemented!()
-        }
+        _ => diagnostics.push(
+            Diagnostic::new("VAR_CONFIG array access must be a literal integer")
+                .with_location(&node.location),
+        ),
     };
 
     if !diagnostics.is_empty() {
