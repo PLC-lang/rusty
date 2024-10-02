@@ -177,7 +177,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         if let DataTypeInformation::Struct { source, members, .. } = information {
             let members = members
                 .iter()
-                .filter(|it| !it.is_temp() && !(it.is_return() || it.is_var_external()))
+                .filter(|it| !(it.is_temp() || it.is_return() || it.is_var_external()))
                 .map(|m| self.types_index.get_associated_type(m.get_type_name()))
                 .collect::<Result<Vec<BasicTypeEnum>, Diagnostic>>()?;
 

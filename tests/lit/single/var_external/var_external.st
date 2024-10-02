@@ -3,7 +3,7 @@ VAR_GLOBAL
     arr : ARRAY [0..10] OF INT;
 END_VAR
 
-FUNCTION main
+FUNCTION write_to_array
 VAR_EXTERNAL CONSTANT
     arr : ARRAY [0..10] OF INT;
 END_VAR
@@ -13,7 +13,10 @@ END_VAR
     FOR i := 0 TO 10 DO
         arr[i] := i;
     END_FOR;
+END_FUNCTION
 
+FUNCTION main : DINT
+    write_to_array();
     printf('%d$N', arr[0]); // CHECK: 0
     printf('%d$N', arr[1]); // CHECK: 1
     printf('%d$N', arr[2]); // CHECK: 2
