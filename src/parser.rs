@@ -202,8 +202,14 @@ fn parse_pou(
             // parse variable declarations. note that var in/out/inout
             // blocks are not allowed inside of class declarations.
             let mut variable_blocks = vec![];
-            let allowed_var_types =
-                [KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp];
+            let allowed_var_types = [
+                KeywordVar,
+                KeywordVarInput,
+                KeywordVarOutput,
+                KeywordVarInOut,
+                KeywordVarTemp,
+                KeywordVarExternal,
+            ];
             while allowed_var_types.contains(&lexer.token) {
                 variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
             }
@@ -1040,6 +1046,7 @@ fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
         KeywordVarOutput => VariableBlockType::Output,
         KeywordVarGlobal => VariableBlockType::Global,
         KeywordVarInOut => VariableBlockType::InOut,
+        KeywordVarExternal => VariableBlockType::External,
         _ => VariableBlockType::Local,
     }
 }
@@ -1057,7 +1064,7 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
 
     let mut variables = parse_any_in_region(lexer, vec![KeywordEndVar], parse_variable_list);
 
-    if constant {
+    if constant && !matches!(variable_block_type, VariableBlockType::External) {
         // sneak in the DefaultValue-Statements if no initializers were defined
         variables.iter_mut().filter(|it| it.initializer.is_none()).for_each(|it| {
             it.initializer = Some(AstFactory::create_default_value(it.location.clone(), lexer.next_id()));

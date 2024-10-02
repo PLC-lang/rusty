@@ -99,6 +99,9 @@ pub enum Token {
     #[token("VARINOUT", ignore(case))]
     KeywordVarInOut,
 
+    #[token("VAR_EXTERNAL", ignore(case))]
+    KeywordVarExternal,
+
     #[token("END_VAR", ignore(case))]
     #[token("ENDVAR", ignore(case))]
     KeywordEndVar,

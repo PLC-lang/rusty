@@ -105,7 +105,9 @@ impl AstLowerer {
 
     fn add_init_statements(&mut self, implementation: &mut plc_ast::ast::Implementation) {
         let predicate = |var: &VariableIndexEntry| {
-            var.is_temp() || (implementation.pou_type == PouType::Function && var.is_local())
+            var.is_temp()
+                || var.is_var_external()
+                || (implementation.pou_type == PouType::Function && var.is_local())
         };
         let strip_temporaries = |inits: &mut InitAssignments| {
             let mut temps = InitAssignments::default();

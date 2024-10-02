@@ -89,6 +89,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                     variable_linkage: block_type,
                     variable_type_name: &type_name,
                     is_constant: block.constant,
+                    is_var_external: matches!(block.variable_block_type, VariableBlockType::External),
                     binding,
                     varargs,
                 },
@@ -110,7 +111,8 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 variable_name: pou.get_return_name(),
                 variable_linkage: ArgumentType::ByVal(VariableType::Return),
                 variable_type_name: return_type_name,
-                is_constant: false, //return variables are not constants
+                is_constant: false,     //return variables are not constants
+                is_var_external: false, // see above
                 binding: None,
                 varargs: None,
             },
@@ -331,6 +333,7 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
         VariableBlockType::Output => VariableType::Output,
         VariableBlockType::Global => VariableType::Global,
         VariableBlockType::InOut => VariableType::InOut,
+        VariableBlockType::External => VariableType::External,
     }
 }
 
@@ -805,6 +808,7 @@ fn visit_struct(
                     variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
                     variable_type_name: member_type,
                     is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+                    is_var_external: false, // structs cannot have VAR_EXTERNAL blocks
                     binding,
                     varargs: None,
                 },
