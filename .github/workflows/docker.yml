@@ -45,9 +45,6 @@ jobs:
           # Extract branch name
           BRANCH_NAME=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
-          # Append branch name to image ID
-          IMAGE_ID=$IMAGE_ID-$BRANCH_NAME
-
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
