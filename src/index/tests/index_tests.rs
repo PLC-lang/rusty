@@ -2185,5 +2185,5 @@ fn var_externals_constants_are_both_flagged_as_external_and_constant() {
     );
 
     let external = &index.get_pou_members("foo")[0];
-    assert!(external.is_var_external_constant());
+    assert!(external.is_var_external() && external.is_constant());
 }

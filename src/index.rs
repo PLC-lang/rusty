@@ -267,10 +267,6 @@ impl VariableIndexEntry {
         self.is_var_external
     }
 
-    pub fn is_var_external_constant(&self) -> bool {
-        self.is_var_external && self.is_constant
-    }
-
     pub fn get_declaration_type(&self) -> ArgumentType {
         self.argument_type
     }
