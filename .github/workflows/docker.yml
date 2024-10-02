@@ -87,5 +87,8 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=latest
+          echo IMAGE_NAME=$IMAGE_NAME
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
           docker manifest create $IMAGE_ID:$VERSION $IMAGE_ID:$VERSION-x86_64
           docker manifest push $IMAGE_ID:$VERSION
