@@ -45,9 +45,6 @@ jobs:
           # Extract branch name
           BRANCH_NAME=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
-          # Append branch name to image ID
-          IMAGE_ID=$IMAGE_ID-$BRANCH_NAME
-
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
@@ -73,7 +70,7 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         # This is where you will update the PAT to GITHUB_TOKEN
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-        
+
       - name: Get images
         shell: bash
         run: |
@@ -87,5 +84,8 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=latest
-          docker manifest create $IMAGE_ID:$VERSION $IMAGE_ID:$VERSION-arm64 $IMAGE_ID:$VERSION-x86_64
+          echo IMAGE_NAME=$IMAGE_NAME
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker manifest create $IMAGE_ID:$VERSION $IMAGE_ID:$VERSION-x86_64
           docker manifest push $IMAGE_ID:$VERSION
