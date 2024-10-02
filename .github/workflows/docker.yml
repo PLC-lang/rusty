@@ -73,7 +73,7 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         # This is where you will update the PAT to GITHUB_TOKEN
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-        
+
       - name: Get images
         shell: bash
         run: |
@@ -87,5 +87,5 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=latest
-          docker manifest create $IMAGE_ID:$VERSION $IMAGE_ID:$VERSION-arm64 $IMAGE_ID:$VERSION-x86_64
+          docker manifest create $IMAGE_ID:$VERSION $IMAGE_ID:$VERSION-x86_64
           docker manifest push $IMAGE_ID:$VERSION
