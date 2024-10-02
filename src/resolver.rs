@@ -1979,12 +1979,6 @@ fn to_variable_annotation(
     index: &Index,
     constant_override: bool,
 ) -> StatementAnnotation {
-    let (v, constant_override) = if v.is_var_external() {
-        // VAR_EXTERNAL variables should resolve to the global they are referencing
-        (index.find_global_variable(v.get_name()).unwrap(), v.is_constant())
-    } else {
-        (v, constant_override)
-    };
     let v_type = index.get_effective_type_or_void_by_name(v.get_type_name());
 
     //see if this is an auto-deref variable

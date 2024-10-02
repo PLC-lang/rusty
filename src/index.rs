@@ -1128,13 +1128,18 @@ impl Index {
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
     pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         // Find pou in index
-        self.find_local_member(container_name, variable_name).or_else(|| {
-            if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                self.find_member(class, variable_name)
-            } else {
-                None
-            }
-        })
+        self.find_local_member(container_name, variable_name)
+            .or_else(|| {
+                if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
+                    self.find_member(class, variable_name)
+                } else {
+                    None
+                }
+            })
+            .filter(|it| {
+                // VAR_EXTERNAL variables are not local members
+                !it.is_var_external()
+            })
     }
 
     /// Searches for method names in the given container, if not found, attempts to search for it in super class
