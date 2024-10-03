@@ -234,3 +234,50 @@ fn assigning_return_value_to_void_functions_returns_error() {
 
     "###);
 }
+
+#[test]
+fn constant_keyword_in_pous_is_an_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK foo CONSTANT END_FUNCTION_BLOCK
+        PROGRAM bar CONSTANT END_PROGRAM 
+        CLASS qux CONSTANT 
+            METHOD quux : DINT CONSTANT END_METHOD 
+        END_CLASS 
+        FUNCTION corge  : BOOL CONSTANT END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E105]: CONSTANT specifier is not allowed in POU declaration
+      ┌─ <internal>:2:28
+      │
+    2 │         FUNCTION_BLOCK foo CONSTANT END_FUNCTION_BLOCK
+      │                            ^^^^^^^^ CONSTANT specifier is not allowed in POU declaration
+
+    error[E105]: CONSTANT specifier is not allowed in POU declaration
+      ┌─ <internal>:3:21
+      │
+    3 │         PROGRAM bar CONSTANT END_PROGRAM 
+      │                     ^^^^^^^^ CONSTANT specifier is not allowed in POU declaration
+
+    error[E105]: CONSTANT specifier is not allowed in POU declaration
+      ┌─ <internal>:4:19
+      │
+    4 │         CLASS qux CONSTANT 
+      │                   ^^^^^^^^ CONSTANT specifier is not allowed in POU declaration
+
+    error[E105]: CONSTANT specifier is not allowed in POU declaration
+      ┌─ <internal>:5:32
+      │
+    5 │             METHOD quux : DINT CONSTANT END_METHOD 
+      │                                ^^^^^^^^ CONSTANT specifier is not allowed in POU declaration
+
+    error[E105]: CONSTANT specifier is not allowed in POU declaration
+      ┌─ <internal>:7:32
+      │
+    7 │         FUNCTION corge  : BOOL CONSTANT END_FUNCTION
+      │                                ^^^^^^^^ CONSTANT specifier is not allowed in POU declaration
+
+    "###);
+}

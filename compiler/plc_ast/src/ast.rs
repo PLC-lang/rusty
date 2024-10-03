@@ -42,6 +42,7 @@ pub struct Pou {
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
     pub super_class: Option<String>,
+    pub is_const: bool,
 }
 
 #[derive(Debug, PartialEq, Eq)]

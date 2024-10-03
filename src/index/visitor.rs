@@ -185,6 +185,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 pou.linkage,
                 has_varargs,
                 pou.name_location.clone(),
+                pou.is_const,
             ));
             index.register_pou_type(datatype);
         }
@@ -206,6 +207,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 pou.linkage,
                 has_varargs,
                 pou.name_location.clone(),
+                false,
             ));
             index.register_init_function(&pou.name);
             index.register_pou_type(datatype);

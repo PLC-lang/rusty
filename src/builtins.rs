@@ -35,7 +35,7 @@ lazy_static! {
         (
             "ADR",
             BuiltIn {
-                decl: "FUNCTION ADR<U: ANY> : LWORD
+                decl: "FUNCTION ADR<U: ANY> : LWORD CONSTANT
                 VAR_INPUT
                     in : U;
                 END_VAR
@@ -63,7 +63,7 @@ lazy_static! {
         (
             "REF",
             BuiltIn {
-                decl: "FUNCTION REF<U: ANY> : REF_TO U
+                decl: "FUNCTION REF<U: ANY> : REF_TO U CONSTANT
                 VAR_INPUT
                     in : U;
                 END_VAR

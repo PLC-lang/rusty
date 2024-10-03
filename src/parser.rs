@@ -199,6 +199,19 @@ fn parse_pou(
             // classes do not have a return type (check in validator)
             let return_type = parse_return_type(lexer, &pou_type);
 
+            // parse optional const specifier for const-builtins
+            let constant = lexer.try_consume(&KeywordConstant);
+            if constant && !matches!(linkage, LinkageType::BuiltIn) {
+                lexer.accept_diagnostic(
+                    Diagnostic::new("CONSTANT specifier is not allowed in POU declaration")
+                        .with_location(
+                            lexer
+                                .source_range_factory
+                                .create_range(lexer.last_range.start..lexer.last_range.end),
+                        )
+                        .with_error_code("E105"),
+                );
+            }
             // parse variable declarations. note that var in/out/inout
             // blocks are not allowed inside of class declarations.
             let mut variable_blocks = vec![];
@@ -247,6 +260,7 @@ fn parse_pou(
                 generics,
                 linkage,
                 super_class,
+                is_const: constant,
             }];
             pous.append(&mut impl_pous);
 
@@ -426,6 +440,16 @@ fn parse_method(
         let (name, name_location) = parse_identifier(lexer)?;
         let generics = parse_generics(lexer);
         let return_type = parse_return_type(lexer, &pou_type);
+        let constant = lexer.try_consume(&KeywordConstant);
+        if constant {
+            lexer.accept_diagnostic(
+                Diagnostic::new("CONSTANT specifier is not allowed in POU declaration")
+                    .with_location(
+                        lexer.source_range_factory.create_range(lexer.last_range.start..lexer.last_range.end),
+                    )
+                    .with_error_code("E105"),
+            );
+        }
 
         let mut variable_blocks = vec![];
         while lexer.token == KeywordVar
@@ -465,6 +489,7 @@ fn parse_method(
                 generics,
                 linkage,
                 super_class: None,
+                is_const: constant,
             },
             implementation,
         ))

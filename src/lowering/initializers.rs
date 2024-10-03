@@ -315,6 +315,7 @@ fn new_pou(name: &str, variable_blocks: Vec<VariableBlock>, location: &SourceLoc
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        is_const: false,
     }
 }
 

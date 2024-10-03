@@ -240,6 +240,7 @@ fn varargs_parameters_can_be_parsed() {
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        is_const: false,
     };
     assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
 }
@@ -310,6 +311,7 @@ fn sized_varargs_parameters_can_be_parsed() {
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        is_const: false,
     };
     assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
 }
@@ -519,4 +521,122 @@ fn var_input_by_ref_parsed() {
         ),
     }
     "###)
+}
+
+#[test]
+fn constant_keyword_can_be_parsed_but_errs() {
+    let src = r#"
+        FUNCTION_BLOCK foo CONSTANT END_FUNCTION_BLOCK
+        PROGRAM bar CONSTANT END_PROGRAM 
+        CLASS qux CONSTANT 
+            METHOD quux : DINT CONSTANT END_METHOD 
+        END_CLASS         
+        FUNCTION corge  : BOOL CONSTANT END_FUNCTION
+    "#;
+    let (_, diagnostics) = parse(src);
+
+    insta::assert_debug_snapshot!(diagnostics, @r###"
+    [
+        Diagnostic {
+            message: "CONSTANT specifier is not allowed in POU declaration",
+            primary_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 27,
+                        offset: 28,
+                    }..TextLocation {
+                        line: 1,
+                        column: 35,
+                        offset: 36,
+                    },
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E105",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "CONSTANT specifier is not allowed in POU declaration",
+            primary_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 20,
+                        offset: 76,
+                    }..TextLocation {
+                        line: 2,
+                        column: 28,
+                        offset: 84,
+                    },
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E105",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "CONSTANT specifier is not allowed in POU declaration",
+            primary_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 3,
+                        column: 18,
+                        offset: 116,
+                    }..TextLocation {
+                        line: 3,
+                        column: 26,
+                        offset: 124,
+                    },
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E105",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "CONSTANT specifier is not allowed in POU declaration",
+            primary_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 4,
+                        column: 31,
+                        offset: 157,
+                    }..TextLocation {
+                        line: 4,
+                        column: 39,
+                        offset: 165,
+                    },
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E105",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "CONSTANT specifier is not allowed in POU declaration",
+            primary_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 31,
+                        offset: 236,
+                    }..TextLocation {
+                        line: 6,
+                        column: 39,
+                        offset: 244,
+                    },
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E105",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+    ]
+    "###);
 }
