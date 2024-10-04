@@ -280,8 +280,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         if self.annotations.get(left_statement).is_some_and(|it| {
             // TODO(mhasel): ideally the resolver decides which assignment statement to call when lowering the init functions,
             // but that requires refactoring of how `aliases` and `reference to` LHS/RHS nodes are annotated. this is a workaround.
-            self.function_context.linking_context.is_init()
-                && (it.is_alias() || it.is_reference_to())
+            self.function_context.linking_context.is_init() && (it.is_alias() || it.is_reference_to())
         }) {
             return self.generate_ref_assignment(left_statement, right_statement);
         };

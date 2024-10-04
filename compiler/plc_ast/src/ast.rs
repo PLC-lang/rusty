@@ -285,6 +285,10 @@ impl PouType {
             None
         }
     }
+
+    pub fn is_function_or_init(&self) -> bool {
+        matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit)
+    }
 }
 
 #[derive(Debug, PartialEq)]

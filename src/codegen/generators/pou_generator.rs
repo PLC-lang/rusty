@@ -30,8 +30,8 @@ use crate::index::Index;
 use index::VariableType;
 
 use inkwell::{
-    module::Module,
-    types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
+    module::{Linkage, Module},
+    types::{AnyType, AsTypeRef, BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
     values::{BasicValue, BasicValueEnum, FunctionValue},
     AddressSpace,
 };
@@ -116,7 +116,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
         if implementation.is_init() {
             // initializer functions don't need global constants to initialize members
             continue;
-            }
+        }
         let pou_members = index.get_pou_members(type_name);
         let variables = pou_members.iter().filter(|it| it.is_local() || it.is_temp()).filter(|it| {
             let var_type =
@@ -296,6 +296,41 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let section_name = self.get_section(implementation)?;
         curr_f.set_section(section_name.as_deref());
 
+        if self.index.is_project_init(implementation) {
+            // %0 = type { i32, ptr, ptr }
+            // @llvm.global_ctors = appending global [1 x %0] [%0 { i32 65535, ptr @ctor, ptr @data }]
+
+            let ctor_str = self.llvm.context.struct_type(
+                &[
+                    self.llvm.context.i32_type().as_basic_type_enum(),
+                    curr_f.as_global_value().as_basic_value_enum().get_type(),
+                    self.llvm.context.i8_type().ptr_type(AddressSpace::default()).as_basic_type_enum(),
+                ],
+                false,
+            );
+
+            // let global_ctors_type = ctor_str.array_type(1);
+            let str_value = ctor_str.const_named_struct(&[
+                self.llvm.context.i32_type().const_zero().as_basic_value_enum(),
+                curr_f.as_global_value().as_basic_value_enum(),
+                self.llvm
+                    .context
+                    .i8_type()
+                    .ptr_type(AddressSpace::default())
+                    .const_zero()
+                    .as_basic_value_enum(),
+            ]);
+            let arr = ctor_str.const_array(&[str_value]);
+            let global_ctors = module.get_global("llvm.global_ctors").unwrap_or_else(|| {
+                module.add_global(arr.get_type().as_basic_type_enum(), None, "llvm.global_ctors")
+            });
+
+            global_ctors.set_initializer(&arr);
+            global_ctors.set_linkage(Linkage::Appending)
+
+            // module.add_global(type_, address_space, name);
+        }
+
         let pou_name = implementation.get_call_name();
         if let Some(pou) = self.index.find_pou(pou_name) {
             let parameter_types = declared_parameters
@@ -421,7 +456,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // generate local variables
-        if matches!(implementation.pou_type, PouType::Function | PouType::Init) {
+        if implementation.pou_type.is_function_or_init() {
             self.generate_local_function_arguments_accessors(
                 &mut local_index,
                 &implementation.type_name,
