@@ -638,7 +638,8 @@ fn only_constant_builtins_are_allowed_in_initializer() {
             gb2: BOOL;
         END_VAR
 
-        FUNCTION AlwaysTrue : BOOL CONSTANT
+        {constant}
+        FUNCTION AlwaysTrue : BOOL
             AlwaysTrue := TRUE;
         END_FUNCTION
 
@@ -662,28 +663,29 @@ fn only_constant_builtins_are_allowed_in_initializer() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E105]: CONSTANT specifier is not allowed in POU declaration
-      ┌─ <internal>:7:36
-      │
-    7 │         FUNCTION AlwaysTrue : BOOL CONSTANT
-      │                                    ^^^^^^^^ CONSTANT specifier is not allowed in POU declaration
+    error[E105]: Pragma {constant} is not allowed in POU declaration
+      ┌─ <internal>:7:9
+      │  
+    7 │ ╭         {constant}
+    8 │ │         FUNCTION AlwaysTrue : BOOL
+      │ ╰────────────────^ Pragma {constant} is not allowed in POU declaration
 
     error[E033]: Unresolved constant `qux` variable: Call-statement 'AlwaysTrue' in initializer is not constant.
-       ┌─ <internal>:21:31
+       ┌─ <internal>:22:31
        │
-    21 │                 qux : BOOL := AlwaysTrue(); // is const but no builtin, should err
+    22 │                 qux : BOOL := AlwaysTrue(); // is const but no builtin, should err
        │                               ^^^^^^^^^^^^^ Unresolved constant `qux` variable: Call-statement 'AlwaysTrue' in initializer is not constant.
 
     error[E033]: Unresolved constant `quux` variable: Call-statement 'Negate' in initializer is not constant.
-       ┌─ <internal>:22:32
+       ┌─ <internal>:23:32
        │
-    22 │                 quux : BOOL := Negate(gb); // Should err
+    23 │                 quux : BOOL := Negate(gb); // Should err
        │                                ^^^^^^^^^^ Unresolved constant `quux` variable: Call-statement 'Negate' in initializer is not constant.
 
     error[E033]: Unresolved constant `grault` variable: Call-statement 'SEL' in initializer is not constant.
-       ┌─ <internal>:24:34
+       ┌─ <internal>:25:34
        │
-    24 │                 grault : BOOL := SEL(TRUE, gb, gb2); // is builtin but no const, should err
+    25 │                 grault : BOOL := SEL(TRUE, gb, gb2); // is builtin but no const, should err
        │                                  ^^^^^^^^^^^^^^^^^^ Unresolved constant `grault` variable: Call-statement 'SEL' in initializer is not constant.
 
     "###);

@@ -524,31 +524,38 @@ fn var_input_by_ref_parsed() {
 }
 
 #[test]
-fn constant_keyword_can_be_parsed_but_errs() {
+fn constant_pragma_can_be_parsed_but_errs() {
     let src = r#"
-        FUNCTION_BLOCK foo CONSTANT END_FUNCTION_BLOCK
-        PROGRAM bar CONSTANT END_PROGRAM 
-        CLASS qux CONSTANT 
-            METHOD quux : DINT CONSTANT END_METHOD 
-        END_CLASS         
-        FUNCTION corge  : BOOL CONSTANT END_FUNCTION
+        {constant}
+        FUNCTION_BLOCK foo END_FUNCTION_BLOCK
+        {constant}
+        PROGRAM bar END_PROGRAM 
+        {constant}
+        CLASS qux 
+            {constant}
+            METHOD quux : DINT END_METHOD 
+        END_CLASS 
+        {constant}
+        FUNCTION corge  : BOOL END_FUNCTION
+        // {constant} pragma in comment does not cause validation
+        FUNCTION corge  : BOOL END_FUNCTION
     "#;
     let (_, diagnostics) = parse(src);
 
     insta::assert_debug_snapshot!(diagnostics, @r###"
     [
         Diagnostic {
-            message: "CONSTANT specifier is not allowed in POU declaration",
+            message: "Pragma {constant} is not allowed in POU declaration",
             primary_location: SourceLocation {
                 span: Range(
                     TextLocation {
                         line: 1,
-                        column: 27,
-                        offset: 28,
+                        column: 8,
+                        offset: 9,
                     }..TextLocation {
-                        line: 1,
-                        column: 35,
-                        offset: 36,
+                        line: 2,
+                        column: 22,
+                        offset: 42,
                     },
                 ),
             },
@@ -558,37 +565,57 @@ fn constant_keyword_can_be_parsed_but_errs() {
             internal_error: None,
         },
         Diagnostic {
-            message: "CONSTANT specifier is not allowed in POU declaration",
-            primary_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 20,
-                        offset: 76,
-                    }..TextLocation {
-                        line: 2,
-                        column: 28,
-                        offset: 84,
-                    },
-                ),
-            },
-            secondary_locations: None,
-            error_code: "E105",
-            sub_diagnostics: [],
-            internal_error: None,
-        },
-        Diagnostic {
-            message: "CONSTANT specifier is not allowed in POU declaration",
+            message: "Pragma {constant} is not allowed in POU declaration",
             primary_location: SourceLocation {
                 span: Range(
                     TextLocation {
                         line: 3,
+                        column: 8,
+                        offset: 74,
+                    }..TextLocation {
+                        line: 4,
+                        column: 15,
+                        offset: 100,
+                    },
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E105",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Pragma {constant} is not allowed in POU declaration",
+            primary_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 5,
+                        column: 8,
+                        offset: 126,
+                    }..TextLocation {
+                        line: 6,
+                        column: 13,
+                        offset: 150,
+                    },
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E105",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Pragma {constant} is not allowed in POU declaration",
+            primary_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 7,
+                        column: 12,
+                        offset: 168,
+                    }..TextLocation {
+                        line: 8,
                         column: 18,
-                        offset: 116,
-                    }..TextLocation {
-                        line: 3,
-                        column: 26,
-                        offset: 124,
+                        offset: 197,
                     },
                 ),
             },
@@ -598,37 +625,17 @@ fn constant_keyword_can_be_parsed_but_errs() {
             internal_error: None,
         },
         Diagnostic {
-            message: "CONSTANT specifier is not allowed in POU declaration",
+            message: "Pragma {constant} is not allowed in POU declaration",
             primary_location: SourceLocation {
                 span: Range(
                     TextLocation {
-                        line: 4,
-                        column: 31,
-                        offset: 157,
+                        line: 10,
+                        column: 8,
+                        offset: 249,
                     }..TextLocation {
-                        line: 4,
-                        column: 39,
-                        offset: 165,
-                    },
-                ),
-            },
-            secondary_locations: None,
-            error_code: "E105",
-            sub_diagnostics: [],
-            internal_error: None,
-        },
-        Diagnostic {
-            message: "CONSTANT specifier is not allowed in POU declaration",
-            primary_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 6,
-                        column: 31,
-                        offset: 236,
-                    }..TextLocation {
-                        line: 6,
-                        column: 39,
-                        offset: 244,
+                        line: 11,
+                        column: 16,
+                        offset: 276,
                     },
                 ),
             },
