@@ -198,7 +198,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             ));
             index.register_pou_type(datatype);
         }
-        PouType::Init => {
+        PouType::Init | PouType::ProjectInit => {
             index.register_pou(PouIndexEntry::create_function_entry(
                 &pou.name,
                 return_type_name,
@@ -207,7 +207,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 has_varargs,
                 pou.name_location.clone(),
             ));
-            index.register_init_function(&pou.name);
             index.register_pou_type(datatype);
         }
         _ => {}

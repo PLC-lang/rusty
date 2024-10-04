@@ -113,10 +113,10 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     });
     for implementation in implementations {
         let type_name = implementation.get_type_name();
-        if index.is_init_function(type_name) {
+        if implementation.is_init() {
             // initializer functions don't need global constants to initialize members
             continue;
-        }
+            }
         let pou_members = index.get_pou_members(type_name);
         let variables = pou_members.iter().filter(|it| it.is_local() || it.is_temp()).filter(|it| {
             let var_type =
@@ -235,10 +235,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     }
                     _ => {
                         dti.map(|it| {
-                            if !matches!(
-                                implementation.get_implementation_type(),
-                                ImplementationType::Function
-                            ) {
+                            if !implementation.get_implementation_type().is_function_or_init() {
                                 return *p;
                             }
                             // for aggregate function parameters we will generate a pointer instead of the value type.
@@ -296,10 +293,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let curr_f = module.add_function(implementation.get_call_name(), function_declaration, None);
 
-        if self.online_change.is_enabled() {
-            let section_name = self.mangle_function(implementation)?;
-            curr_f.set_section(Some(&section_name));
-        }
+        let section_name = self.get_section(implementation)?;
+        curr_f.set_section(section_name.as_deref());
 
         let pou_name = implementation.get_call_name();
         if let Some(pou) = self.index.find_pou(pou_name) {
@@ -327,7 +322,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         implementation: &ImplementationIndexEntry,
     ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, Diagnostic> {
-        if implementation.implementation_type != ImplementationType::Function {
+        if !implementation.implementation_type.is_function_or_init() {
             let mut parameters = vec![];
             if implementation.get_implementation_type() == &ImplementationType::Method {
                 let class_name =
@@ -875,6 +870,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             Some([size, ty])
         } else {
             None
+        }
+    }
+
+    fn get_section(&self, implementation: &ImplementationIndexEntry) -> Result<Option<String>, Diagnostic> {
+        if self.index.is_project_init(implementation) {
+            Ok(Some(".text.startup".to_string()))
+        } else if self.online_change.is_enabled() {
+            self.mangle_function(implementation).map(Some)
+        } else {
+            Ok(None)
         }
     }
 }
