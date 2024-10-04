@@ -1,4 +1,4 @@
-use crate::test_utils::tests::{parse, parse_and_validate_buffered};
+use crate::test_utils::tests::{parse, parse_and_validate_buffered, parse_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
     AccessModifier, ArgumentProperty, DataType, DataTypeDeclaration, LinkageType, Pou, PouType, Variable,
@@ -540,110 +540,43 @@ fn constant_pragma_can_be_parsed_but_errs() {
         // {constant} pragma in comment does not cause validation
         FUNCTION corge  : BOOL END_FUNCTION
     "#;
-    let (_, diagnostics) = parse(src);
+    let (_, diagnostics) = parse_buffered(src);
 
-    insta::assert_debug_snapshot!(diagnostics, @r###"
-    [
-        Diagnostic {
-            message: "Pragma {constant} is not allowed in POU declaration",
-            primary_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 8,
-                        offset: 9,
-                    }..TextLocation {
-                        line: 2,
-                        column: 22,
-                        offset: 42,
-                    },
-                ),
-            },
-            secondary_locations: None,
-            error_code: "E105",
-            sub_diagnostics: [],
-            internal_error: None,
-        },
-        Diagnostic {
-            message: "Pragma {constant} is not allowed in POU declaration",
-            primary_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 3,
-                        column: 8,
-                        offset: 74,
-                    }..TextLocation {
-                        line: 4,
-                        column: 15,
-                        offset: 100,
-                    },
-                ),
-            },
-            secondary_locations: None,
-            error_code: "E105",
-            sub_diagnostics: [],
-            internal_error: None,
-        },
-        Diagnostic {
-            message: "Pragma {constant} is not allowed in POU declaration",
-            primary_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 5,
-                        column: 8,
-                        offset: 126,
-                    }..TextLocation {
-                        line: 6,
-                        column: 13,
-                        offset: 150,
-                    },
-                ),
-            },
-            secondary_locations: None,
-            error_code: "E105",
-            sub_diagnostics: [],
-            internal_error: None,
-        },
-        Diagnostic {
-            message: "Pragma {constant} is not allowed in POU declaration",
-            primary_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 7,
-                        column: 12,
-                        offset: 168,
-                    }..TextLocation {
-                        line: 8,
-                        column: 18,
-                        offset: 197,
-                    },
-                ),
-            },
-            secondary_locations: None,
-            error_code: "E105",
-            sub_diagnostics: [],
-            internal_error: None,
-        },
-        Diagnostic {
-            message: "Pragma {constant} is not allowed in POU declaration",
-            primary_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 10,
-                        column: 8,
-                        offset: 249,
-                    }..TextLocation {
-                        line: 11,
-                        column: 16,
-                        offset: 276,
-                    },
-                ),
-            },
-            secondary_locations: None,
-            error_code: "E105",
-            sub_diagnostics: [],
-            internal_error: None,
-        },
-    ]
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E105]: Pragma {constant} is not allowed in POU declaration
+      ┌─ <internal>:2:9
+      │  
+    2 │ ╭         {constant}
+    3 │ │         FUNCTION_BLOCK foo END_FUNCTION_BLOCK
+      │ ╰──────────────────────^ Pragma {constant} is not allowed in POU declaration
+
+    error[E105]: Pragma {constant} is not allowed in POU declaration
+      ┌─ <internal>:4:9
+      │  
+    4 │ ╭         {constant}
+    5 │ │         PROGRAM bar END_PROGRAM 
+      │ ╰───────────────^ Pragma {constant} is not allowed in POU declaration
+
+    error[E105]: Pragma {constant} is not allowed in POU declaration
+      ┌─ <internal>:6:9
+      │  
+    6 │ ╭         {constant}
+    7 │ │         CLASS qux 
+      │ ╰─────────────^ Pragma {constant} is not allowed in POU declaration
+
+    error[E105]: Pragma {constant} is not allowed in POU declaration
+      ┌─ <internal>:8:13
+      │  
+    8 │ ╭             {constant}
+    9 │ │             METHOD quux : DINT END_METHOD 
+      │ ╰──────────────────^ Pragma {constant} is not allowed in POU declaration
+
+    error[E105]: Pragma {constant} is not allowed in POU declaration
+       ┌─ <internal>:11:9
+       │  
+    11 │ ╭         {constant}
+    12 │ │         FUNCTION corge  : BOOL END_FUNCTION
+       │ ╰────────────────^ Pragma {constant} is not allowed in POU declaration
+
     "###);
 }
