@@ -22,6 +22,7 @@ fn simple_global() {
 
     @s = external global [81 x i8]
     @ps = external global [81 x i8]*
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -53,6 +54,7 @@ fn global_alias() {
 
     @s = external global [81 x i8]
     @ps = external global [81 x i8]*
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -84,6 +86,7 @@ fn global_reference_to() {
 
     @s = external global [81 x i8]
     @ps = external global [81 x i8]*
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -148,6 +151,7 @@ fn init_functions_generated_for_programs() {
     %PLC_PRG = type { [81 x i8]* }
 
     @PLC_PRG_instance = external global %PLC_PRG
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -216,6 +220,7 @@ fn init_functions_work_with_adr() {
     %PLC_PRG = type { [81 x i8]* }
 
     @PLC_PRG_instance = external global %PLC_PRG
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -280,6 +285,8 @@ fn init_functions_generated_for_function_blocks() {
     declare void @foo(%foo*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -520,6 +527,7 @@ fn nested_initializer_pous() {
     @__bar__init = external global %bar
     @__baz__init = external global %baz
     @sideProg_instance = external global %sideProg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -729,6 +737,7 @@ fn struct_types() {
 
     @prog_instance = external global %prog
     @__myStruct__init = external global %myStruct
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -888,6 +897,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     %prog = type {}
 
     @prog_instance = external global %prog
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -984,6 +994,7 @@ fn global_instance() {
     @prog_instance = external global %prog
     @__foo__init = external global %foo
     @fb = external global %foo
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -1094,6 +1105,7 @@ fn aliased_types() {
     @prog_instance = external global %prog
     @__foo__init = external global %foo
     @global_alias = external global %foo
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -1261,6 +1273,7 @@ fn var_config_aliased_variables_initialized() {
     @__FB__init = external global %FB
     @__PI_1_2_1 = external global i32
     @__PI_1_2_2 = external global i32
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:

@@ -1230,6 +1230,7 @@ fn for_statement_with_binary_expressions() {
     %prg = type { i32, i32, i32, i32 }
 
     @prg_instance = external global %prg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -1309,6 +1310,8 @@ fn for_statement_type_casting() {
     }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:

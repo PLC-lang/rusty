@@ -271,6 +271,7 @@ fn codegen_of_a_program_pou() {
     %main_prg = type { i16, i16*, i16, i16 }
 
     @main_prg_instance = external global %main_prg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -357,6 +358,7 @@ fn calling_a_program() {
     %main_prg = type { i16, i16*, i16, i16 }
 
     @main_prg_instance = external global %main_prg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -431,6 +433,8 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
     declare void @main_fb(%main_fb*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -530,6 +534,7 @@ fn calling_a_function_block() {
 
     @foo_instance = external global %foo
     @__main_fb__init = external global %main_fb
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -588,6 +593,8 @@ fn function_get_a_method_with_by_ref_parameters() {
     }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -670,6 +677,7 @@ fn calling_a_function() {
     %prg = type { i16, i8 }
 
     @prg_instance = external global %prg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -769,6 +777,7 @@ fn return_a_complex_type_from_function() {
     %prg = type { [81 x i8] }
 
     @prg_instance = external global %prg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -911,6 +920,7 @@ fn passing_aggregate_types_to_functions_by_value() {
 
     @main_instance = external global %main
     @__myStruct__init = external global %myStruct
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -1001,6 +1011,7 @@ fn passing_by_ref_to_functions() {
     %main = type { [81 x i8], [81 x i8] }
 
     @main_instance = external global %main
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
