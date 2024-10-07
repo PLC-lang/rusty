@@ -80,9 +80,7 @@ impl<'idx> ExpressionPath<'idx> {
                     array
                 }
                 ExpressionPathElement::ArrayAccess(idx) => {
-                    let Some(first) = idx.first() else {
-                        unreachable!("Caught at the parsing stage")
-                    };
+                    let Some(first) = idx.first() else { unreachable!("Caught at the parsing stage") };
 
                     let access =
                         idx.iter().skip(1).fold(format!("{first}"), |acc, idx| format!("{acc},{idx}"));
@@ -120,7 +118,7 @@ impl<'a> TryFrom<&'a ConfigVariable> for ExpressionPath<'a> {
 }
 
 // Transforms a `ConfigVariable`'s 'AstNode' into a collection of corresponding `ExpressionPathElement`s.
-// This function will traverse the AST top-to-bottom, collecting segments along the way, which means the order of the collection 
+// This function will traverse the AST top-to-bottom, collecting segments along the way, which means the order of the collection
 // needs to be reversed by the caller to match the written expression.
 fn get_expression_path_segments(node: &AstNode) -> Result<Vec<ExpressionPathElement>, Vec<Diagnostic>> {
     let mut paths = vec![];
