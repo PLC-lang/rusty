@@ -217,6 +217,8 @@ fn ref_assignment() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
     define void @__init___testproject() {
     entry:
       ret void
@@ -265,6 +267,8 @@ fn reference_to_assignment() {
     }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -325,6 +329,8 @@ fn reference_to_string_assignment() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
     define void @__init___testproject() {
     entry:
       ret void
@@ -361,6 +367,8 @@ fn local_alias() {
     }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -404,6 +412,8 @@ fn local_string_alias() {
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:

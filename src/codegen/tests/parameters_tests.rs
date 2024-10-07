@@ -747,6 +747,8 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
     define void @__init___testproject() {
     entry:
       ret void
@@ -812,6 +814,8 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
     attributes #1 = { argmemonly nofree nounwind willreturn }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -879,6 +883,8 @@ fn by_value_function_arg_arrays_are_memcopied() {
     attributes #1 = { argmemonly nofree nounwind willreturn }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -966,6 +972,8 @@ fn by_value_function_arg_structs_are_memcopied() {
     }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -1075,6 +1083,8 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
     define void @__init___testproject() {
     entry:
       ret void
@@ -1176,6 +1186,8 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     declare void @FOO(%FOO*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -1332,6 +1344,7 @@ fn var_output_aggregate_types_are_memcopied() {
     @PRG_instance = external global %PRG
     @__OUT_TYPE__init = external global %OUT_TYPE
     @__FB__init = external global %FB
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:

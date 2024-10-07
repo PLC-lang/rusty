@@ -15,12 +15,10 @@ VAR_GLOBAL
 END_VAR
 
 FUNCTION main: DINT
-VAR 
+VAR
     despair AT structarr : ARRAY[0..3] OF myNestedStruct;
     s : STRING;
 END_VAR
-    __init();
-
     s := despair[1].inner.member[3];
 
     // CHECK: d
