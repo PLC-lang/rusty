@@ -23,6 +23,7 @@ fn aliased_address_in_global_generated() {
 
     @__PI_1_2_3_4 = external global i8
     @foo = external global i8*
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -56,6 +57,7 @@ fn duplicate_aliased_address_in_global_generated() {
     @__PI_1_2_3_4 = external global i8
     @foo = external global i8*
     @baz = external global i8*
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -125,6 +127,7 @@ fn address_variable_used_with_symbolic_name() {
     @foo = external global i8*
     @baz = external global i8*
     @mainProg_instance = external global %mainProg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -202,6 +205,7 @@ fn address_used_in_body() {
     @__PI_1_2_3_5 = external global i8
     @baz = external global i8*
     @mainProg_instance = external global %mainProg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:

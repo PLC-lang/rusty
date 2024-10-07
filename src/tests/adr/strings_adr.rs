@@ -105,6 +105,7 @@ fn assigning_strings() {
     %prg = type { [11 x i8], [11 x i8] }
 
     @prg_instance = external global %prg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -180,6 +181,7 @@ fn assigning_string_literals() {
     %prg = type { [11 x i8], [11 x i8] }
 
     @prg_instance = external global %prg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:

@@ -357,6 +357,8 @@ fn pass() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
     define void @__init___testproject() {
     entry:
       ret void
@@ -413,6 +415,8 @@ fn access() {
     }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -504,6 +508,8 @@ fn multi_dimensional() {
     }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:

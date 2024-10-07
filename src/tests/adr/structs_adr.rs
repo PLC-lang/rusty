@@ -41,6 +41,8 @@ fn declaring_a_struct() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
     define void @__init___testproject() {
     entry:
       ret void
@@ -96,6 +98,7 @@ fn default_values_of_a_struct() {
 
     @__Person__init = external global %Person
     @p = external global %Person
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -212,6 +215,7 @@ fn initializing_a_struct() {
     @prg_instance = external global %prg
     @__Rect__init = external global %Rect
     @__Point__init = external global %Point
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -311,6 +315,7 @@ fn assigning_structs() {
 
     @prg_instance = external global %prg
     @__Point__init = external global %Point
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -432,6 +437,7 @@ fn accessing_struct_members() {
     @prg_instance = external global %prg
     @__Rect__init = external global %Rect
     @__Point__init = external global %Point
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
