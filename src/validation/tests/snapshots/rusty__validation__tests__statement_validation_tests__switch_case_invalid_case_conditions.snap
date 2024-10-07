@@ -8,36 +8,14 @@ error[E079]: Invalid case condition!
 11 │                 foo():
    │                 ^^^^^^ Invalid case condition!
 
-error[E080]: Cannot resolve constant: CallStatement {
-    operator: ReferenceExpr {
-        kind: Member(
-            Identifier {
-                name: "foo",
-            },
-        ),
-        base: None,
-    },
-    parameters: None,
-}. Non constant variables are not supported in case conditions
+error[E080]: Call-statement 'foo' in initializer is not constant.. Non constant variables are not supported in case conditions
    ┌─ <internal>:11:17
    │
 11 │                 foo():
-   │                 ^^^^^^ Cannot resolve constant: CallStatement {
-    operator: ReferenceExpr {
-        kind: Member(
-            Identifier {
-                name: "foo",
-            },
-        ),
-        base: None,
-    },
-    parameters: None,
-}. Non constant variables are not supported in case conditions
+   │                 ^^^^^^ Call-statement 'foo' in initializer is not constant.. Non constant variables are not supported in case conditions
 
 error[E079]: Invalid case condition!
    ┌─ <internal>:13:17
    │
 13 │                 res := 2:
    │                 ^^^^^^^^ Invalid case condition!
-
-

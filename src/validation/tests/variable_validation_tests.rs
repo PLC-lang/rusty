@@ -628,3 +628,87 @@ fn var_conf_template_variable_is_no_template() {
 
     "###);
 }
+
+#[test]
+fn only_constant_builtins_are_allowed_in_initializer() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL 
+            gb: BOOL;
+            gb2: BOOL;
+        END_VAR
+
+        {constant}
+        FUNCTION AlwaysTrue : BOOL
+            AlwaysTrue := TRUE;
+        END_FUNCTION
+
+        FUNCTION Negate : BOOL
+        VAR_INPUT
+            in: BOOL;
+        END_VAR
+            Negate := NOT in;
+        END_FUNCTION
+
+        FUNCTION_BLOCK foo
+            VAR
+                bar : REF_TO BOOL := REF(gb); // OK
+                qux : BOOL := AlwaysTrue(); // is const but no builtin, should err
+                quux : BOOL := Negate(gb); // Should err
+                corge : LWORD := ADR(gb); // OK
+                grault : BOOL := SEL(TRUE, gb, gb2); // is builtin but no const, should err
+            END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E105]: Pragma {constant} is not allowed in POU declarations
+      ┌─ <internal>:7:9
+      │  
+    7 │ ╭         {constant}
+    8 │ │         FUNCTION AlwaysTrue : BOOL
+      │ ╰────────────────^ Pragma {constant} is not allowed in POU declarations
+
+    error[E033]: Unresolved constant `qux` variable: Call-statement 'AlwaysTrue' in initializer is not constant.
+       ┌─ <internal>:22:31
+       │
+    22 │                 qux : BOOL := AlwaysTrue(); // is const but no builtin, should err
+       │                               ^^^^^^^^^^^^^ Unresolved constant `qux` variable: Call-statement 'AlwaysTrue' in initializer is not constant.
+
+    error[E033]: Unresolved constant `quux` variable: Call-statement 'Negate' in initializer is not constant.
+       ┌─ <internal>:23:32
+       │
+    23 │                 quux : BOOL := Negate(gb); // Should err
+       │                                ^^^^^^^^^^ Unresolved constant `quux` variable: Call-statement 'Negate' in initializer is not constant.
+
+    error[E033]: Unresolved constant `grault` variable: Call-statement 'SEL' in initializer is not constant.
+       ┌─ <internal>:25:34
+       │
+    25 │                 grault : BOOL := SEL(TRUE, gb, gb2); // is builtin but no const, should err
+       │                                  ^^^^^^^^^^^^^^^^^^ Unresolved constant `grault` variable: Call-statement 'SEL' in initializer is not constant.
+
+    "###);
+}
+
+#[test]
+fn unresolved_references_to_const_builtins_in_initializer_are_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo
+            VAR
+                bar : REF_TO BOOL := REF(gb); // unresolved reference to gb
+            END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E048]: Could not resolve reference to gb
+      ┌─ <internal>:4:42
+      │
+    4 │                 bar : REF_TO BOOL := REF(gb); // unresolved reference to gb
+      │                                          ^^ Could not resolve reference to gb
+
+    "###);
+}

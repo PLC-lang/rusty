@@ -477,6 +477,7 @@ pub enum PouIndexEntry {
         is_variadic: bool,
         location: SourceLocation,
         is_generated: bool, // true if this entry was added automatically (e.g. by generics)
+        is_const: bool,
     },
     Class {
         name: String,
@@ -549,6 +550,7 @@ impl PouIndexEntry {
         linkage: LinkageType,
         is_variadic: bool,
         location: SourceLocation,
+        is_const: bool,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -558,6 +560,7 @@ impl PouIndexEntry {
             is_variadic,
             location,
             is_generated: false,
+            is_const,
         }
     }
 
@@ -570,6 +573,7 @@ impl PouIndexEntry {
         linkage: LinkageType,
         is_variadic: bool,
         location: SourceLocation,
+        is_const: bool,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -579,6 +583,7 @@ impl PouIndexEntry {
             is_variadic,
             location,
             is_generated: true,
+            is_const,
         }
     }
 
@@ -770,6 +775,10 @@ impl PouIndexEntry {
 
     pub(crate) fn is_method(&self) -> bool {
         matches!(self, PouIndexEntry::Method { .. })
+    }
+
+    pub(crate) fn is_constant(&self) -> bool {
+        matches!(self, PouIndexEntry::Function { is_const: true, .. })
     }
 
     pub fn get_location(&self) -> &SourceLocation {
