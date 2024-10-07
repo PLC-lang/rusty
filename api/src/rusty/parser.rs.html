@@ -1268,6 +1268,35 @@
 <a href="#1268" id="1268">1268</a>
 <a href="#1269" id="1269">1269</a>
 <a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -1338,6 +1367,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>unit = CompilationUnit::new(file_name);
 
     <span class="kw">let </span><span class="kw-2">mut </span>linkage = lnk;
+    <span class="kw">let </span><span class="kw-2">mut </span>constant = <span class="bool-val">false</span>;
     <span class="kw">loop </span>{
         <span class="kw">match </span>lexer.token {
             PropertyExternal =&gt; {
@@ -1345,6 +1375,12 @@
                 lexer.advance();
                 <span class="comment">//Don't reset linkage
                 </span><span class="kw">continue</span>;
+            }
+            PropertyConstant =&gt; {
+                <span class="comment">// parse optional const pragma (only allowed in builtins for now)
+                </span>constant = <span class="bool-val">true</span>;
+                lexer.advance();
+                <span class="kw">continue</span>;
             }
             KeywordVarGlobal =&gt; unit.global_vars.push(parse_variable_block(<span class="kw-2">&amp;mut </span>lexer, linkage)),
             KeywordVarConfig =&gt; unit.var_config.extend(parse_config_variables(<span class="kw-2">&amp;mut </span>lexer)),
@@ -1357,10 +1393,14 @@
                     <span class="kw">_ </span>=&gt; (PouType::FunctionBlock, KeywordEndFunctionBlock),
                 };
 
-                <span class="kw">let </span>(<span class="kw-2">mut </span>pou, <span class="kw-2">mut </span>implementation) = parse_pou(<span class="kw-2">&amp;mut </span>lexer, params.<span class="number">0</span>, linkage, params.<span class="number">1</span>);
+                <span class="kw">let </span>(<span class="kw-2">mut </span>pou, <span class="kw-2">mut </span>implementation) =
+                    parse_pou(<span class="kw-2">&amp;mut </span>lexer, params.<span class="number">0</span>, linkage, params.<span class="number">1</span>, constant);
 
                 unit.units.append(<span class="kw-2">&amp;mut </span>pou);
                 unit.implementations.append(<span class="kw-2">&amp;mut </span>implementation);
+
+                <span class="comment">// reset const pragma
+                </span>constant = <span class="bool-val">false</span>;
             }
             KeywordAction =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(implementation) = parse_action(<span class="kw-2">&amp;mut </span>lexer, linkage, <span class="prelude-val">None</span>) {
@@ -1439,7 +1479,14 @@
     pou_type: PouType,
     linkage: LinkageType,
     expected_end_token: lexer::Token,
+    constant: bool,
 ) -&gt; (Vec&lt;Pou&gt;, Vec&lt;Implementation&gt;) {
+    <span class="kw">if </span>constant &amp;&amp; !<span class="macro">matches!</span>(linkage, LinkageType::BuiltIn) {
+        lexer.accept_diagnostic(Diagnostic::const_pragma_is_not_allowed(
+            lexer.last_location().span(<span class="kw-2">&amp;</span>lexer.location()),
+        ));
+    }
+
     <span class="kw">let </span>start = lexer.range().start;
     lexer.advance(); <span class="comment">//Consume ProgramKeyword
     </span><span class="kw">let </span>closing_tokens = <span class="macro">vec!</span>[
@@ -1487,8 +1534,9 @@
             // implementations. Note that function blocks have to start with the method
             // declarations before their implementation.
             // all other Pous need to be checked in the validator if they can have methods.
-            </span><span class="kw">while </span>lexer.token == KeywordMethod {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((pou, implementation)) = parse_method(lexer, <span class="kw-2">&amp;</span>name, linkage) {
+            </span><span class="kw">while </span><span class="macro">matches!</span>(lexer.token, KeywordMethod | PropertyConstant) {
+                <span class="kw">let </span>const_method = lexer.try_consume(<span class="kw-2">&amp;</span>PropertyConstant);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((pou, implementation)) = parse_method(lexer, <span class="kw-2">&amp;</span>name, linkage, const_method) {
                     impl_pous.push(pou);
                     implementations.push(implementation);
                 }
@@ -1517,6 +1565,7 @@
                 generics,
                 linkage,
                 super_class,
+                is_const: constant,
             }];
             pous.append(<span class="kw-2">&amp;mut </span>impl_pous);
 
@@ -1679,6 +1728,7 @@
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     class_name: <span class="kw-2">&amp;</span>str,
     linkage: LinkageType,
+    constant: bool,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(Pou, Implementation)&gt; {
     parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordEndMethod], |lexer| {
         <span class="comment">// Method declarations look like this:
@@ -1686,7 +1736,14 @@
         //    ...
         // END_METHOD
 
-        </span><span class="kw">let </span>method_start = lexer.range().start;
+        // constant pragma is only allowed in builtins for now
+        </span><span class="kw">if </span>constant {
+            lexer.accept_diagnostic(Diagnostic::const_pragma_is_not_allowed(
+                lexer.last_location().span(<span class="kw-2">&amp;</span>lexer.location()),
+            ));
+        }
+
+        <span class="kw">let </span>method_start = lexer.range().start;
         lexer.advance(); <span class="comment">// eat METHOD keyword
 
         </span><span class="kw">let </span>access = <span class="prelude-val">Some</span>(parse_access_modifier(lexer));
@@ -1735,6 +1792,7 @@
                 generics,
                 linkage,
                 super_class: <span class="prelude-val">None</span>,
+                is_const: constant,
             },
             implementation,
         ))

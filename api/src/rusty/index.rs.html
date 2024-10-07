@@ -1679,6 +1679,15 @@
 <a href="#1679" id="1679">1679</a>
 <a href="#1680" id="1680">1680</a>
 <a href="#1681" id="1681">1681</a>
+<a href="#1682" id="1682">1682</a>
+<a href="#1683" id="1683">1683</a>
+<a href="#1684" id="1684">1684</a>
+<a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
+<a href="#1690" id="1690">1690</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
@@ -2158,7 +2167,8 @@
         is_variadic: bool,
         location: SourceLocation,
         is_generated: bool, <span class="comment">// true if this entry was added automatically (e.g. by generics)
-    </span>},
+        </span>is_const: bool,
+    },
     Class {
         name: String,
         instance_struct_name: String,
@@ -2230,6 +2240,7 @@
         linkage: LinkageType,
         is_variadic: bool,
         location: SourceLocation,
+        is_const: bool,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -2239,6 +2250,7 @@
             is_variadic,
             location,
             is_generated: <span class="bool-val">false</span>,
+            is_const,
         }
     }
 
@@ -2251,6 +2263,7 @@
         linkage: LinkageType,
         is_variadic: bool,
         location: SourceLocation,
+        is_const: bool,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -2260,6 +2273,7 @@
             is_variadic,
             location,
             is_generated: <span class="bool-val">true</span>,
+            is_const,
         }
     }
 
@@ -2451,6 +2465,10 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, PouIndexEntry::Method { .. })
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_constant(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, PouIndexEntry::Function { is_const: <span class="bool-val">true</span>, .. })
     }
 
     <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SourceLocation {

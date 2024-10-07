@@ -466,6 +466,7 @@
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
 <a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -617,6 +618,7 @@
                 LinkageType::External, <span class="comment">//it has to be external, we should have already found this in the global index if it was internal
                 </span>generic_function.is_variadic(),
                 generic_function.get_location().clone(),
+                generic_function.is_constant(),
             ));
 
             <span class="comment">// register the member-variables (interface) of the new function

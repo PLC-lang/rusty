@@ -358,6 +358,12 @@
 <a href="#358" id="358">358</a>
 <a href="#359" id="359">359</a>
 <a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Display;
 
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -624,6 +630,12 @@
             <span class="macro">format!</span>(<span class="string">"Cannot generate {type_name} from empty literal"</span>).as_str(),
             location,
         )
+    }
+
+    <span class="kw">pub fn </span>const_pragma_is_not_allowed(location: SourceLocation) -&gt; Diagnostic {
+        Diagnostic::new(<span class="string">"Pragma {constant} is not allowed in POU declarations"</span>)
+            .with_location(location)
+            .with_error_code(<span class="string">"E105"</span>)
     }
 }
 

@@ -354,6 +354,7 @@
 <a href="#354" id="354">354</a>
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
     lowering::{create_assignment_if_necessary, create_call_statement, create_member_reference},
@@ -677,6 +678,7 @@
         generics: <span class="macro">vec!</span>[],
         linkage: LinkageType::Internal,
         super_class: <span class="prelude-val">None</span>,
+        is_const: <span class="bool-val">false</span>,
     }
 }
 

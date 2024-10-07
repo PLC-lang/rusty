@@ -1773,6 +1773,7 @@
 <a href="#1773" id="1773">1773</a>
 <a href="#1774" id="1774">1774</a>
 <a href="#1775" id="1775">1775</a>
+<a href="#1776" id="1776">1776</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -1817,6 +1818,7 @@
     <span class="kw">pub </span>generics: Vec&lt;GenericBinding&gt;,
     <span class="kw">pub </span>linkage: LinkageType,
     <span class="kw">pub </span>super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>is_const: bool,
 }
 
 <span class="attr">#[derive(Debug, PartialEq, Eq)]
