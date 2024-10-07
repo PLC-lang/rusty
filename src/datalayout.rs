@@ -85,6 +85,7 @@ impl MemoryLocation {
         MemoryLocation(Bytes(value))
     }
 
+    // see https://en.wikipedia.org/wiki/Data_structure_alignment#Computing_padding
     pub fn align_to(self, align: Bytes) -> Self {
         let align = align.value() - 1;
         MemoryLocation::new((self.value() + align) & !align)
