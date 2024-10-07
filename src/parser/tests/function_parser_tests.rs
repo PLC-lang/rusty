@@ -543,40 +543,40 @@ fn constant_pragma_can_be_parsed_but_errs() {
     let (_, diagnostics) = parse_buffered(src);
 
     insta::assert_snapshot!(diagnostics, @r###"
-    error[E105]: Pragma {constant} is not allowed in POU declaration
+    error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:2:9
       │  
     2 │ ╭         {constant}
     3 │ │         FUNCTION_BLOCK foo END_FUNCTION_BLOCK
-      │ ╰──────────────────────^ Pragma {constant} is not allowed in POU declaration
+      │ ╰──────────────────────^ Pragma {constant} is not allowed in POU declarations
 
-    error[E105]: Pragma {constant} is not allowed in POU declaration
+    error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:4:9
       │  
     4 │ ╭         {constant}
     5 │ │         PROGRAM bar END_PROGRAM 
-      │ ╰───────────────^ Pragma {constant} is not allowed in POU declaration
+      │ ╰───────────────^ Pragma {constant} is not allowed in POU declarations
 
-    error[E105]: Pragma {constant} is not allowed in POU declaration
+    error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:6:9
       │  
     6 │ ╭         {constant}
     7 │ │         CLASS qux 
-      │ ╰─────────────^ Pragma {constant} is not allowed in POU declaration
+      │ ╰─────────────^ Pragma {constant} is not allowed in POU declarations
 
-    error[E105]: Pragma {constant} is not allowed in POU declaration
+    error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:8:13
       │  
     8 │ ╭             {constant}
     9 │ │             METHOD quux : DINT END_METHOD 
-      │ ╰──────────────────^ Pragma {constant} is not allowed in POU declaration
+      │ ╰──────────────────^ Pragma {constant} is not allowed in POU declarations
 
-    error[E105]: Pragma {constant} is not allowed in POU declaration
+    error[E105]: Pragma {constant} is not allowed in POU declarations
        ┌─ <internal>:11:9
        │  
     11 │ ╭         {constant}
     12 │ │         FUNCTION corge  : BOOL END_FUNCTION
-       │ ╰────────────────^ Pragma {constant} is not allowed in POU declaration
+       │ ╰────────────────^ Pragma {constant} is not allowed in POU declarations
 
     "###);
 }

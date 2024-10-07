@@ -663,12 +663,12 @@ fn only_constant_builtins_are_allowed_in_initializer() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E105]: Pragma {constant} is not allowed in POU declaration
+    error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:7:9
       │  
     7 │ ╭         {constant}
     8 │ │         FUNCTION AlwaysTrue : BOOL
-      │ ╰────────────────^ Pragma {constant} is not allowed in POU declaration
+      │ ╰────────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E033]: Unresolved constant `qux` variable: Call-statement 'AlwaysTrue' in initializer is not constant.
        ┌─ <internal>:22:31
