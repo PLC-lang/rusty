@@ -296,7 +296,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let section_name = self.get_section(implementation)?;
         curr_f.set_section(section_name.as_deref());
 
-        if self.index.is_project_init(implementation) {
+        if implementation.get_implementation_type().is_project_init() {
             self.add_global_constructor(module, curr_f)?;
         }
 

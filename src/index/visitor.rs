@@ -177,7 +177,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             ));
             index.register_pou_type(datatype);
         }
-        PouType::Function => {
+        PouType::Function | PouType::Init | PouType::ProjectInit => {
             index.register_pou(PouIndexEntry::create_function_entry(
                 &pou.name,
                 return_type_name,
@@ -194,17 +194,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 return_type_name,
                 owner_class,
                 pou.linkage,
-                pou.name_location.clone(),
-            ));
-            index.register_pou_type(datatype);
-        }
-        PouType::Init | PouType::ProjectInit => {
-            index.register_pou(PouIndexEntry::create_function_entry(
-                &pou.name,
-                return_type_name,
-                &pou.generics,
-                pou.linkage,
-                has_varargs,
                 pou.name_location.clone(),
             ));
             index.register_pou_type(datatype);

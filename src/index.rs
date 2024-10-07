@@ -447,6 +447,10 @@ impl ImplementationType {
             ImplementationType::Function | ImplementationType::Init | ImplementationType::ProjectInit,
         )
     }
+
+    pub(crate) fn is_project_init(&self) -> bool {
+        matches!(self, ImplementationType::ProjectInit)
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -1664,10 +1668,6 @@ impl Index {
 
     pub fn get_labels(&self, pou_name: &str) -> Option<&SymbolMap<String, Label>> {
         self.labels.get(pou_name)
-    }
-
-    pub(crate) fn is_project_init(&self, implementation: &ImplementationIndexEntry) -> bool {
-        matches!(implementation.get_implementation_type(), ImplementationType::ProjectInit)
     }
 }
 
