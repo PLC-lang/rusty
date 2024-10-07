@@ -1,4 +1,4 @@
-use crate::test_utils::tests::{parse, parse_and_validate_buffered};
+use crate::test_utils::tests::{parse, parse_and_validate_buffered, parse_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
     AccessModifier, ArgumentProperty, DataType, DataTypeDeclaration, LinkageType, Pou, PouType, Variable,
@@ -240,6 +240,7 @@ fn varargs_parameters_can_be_parsed() {
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        is_const: false,
     };
     assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
 }
@@ -310,6 +311,7 @@ fn sized_varargs_parameters_can_be_parsed() {
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        is_const: false,
     };
     assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
 }
@@ -519,4 +521,62 @@ fn var_input_by_ref_parsed() {
         ),
     }
     "###)
+}
+
+#[test]
+fn constant_pragma_can_be_parsed_but_errs() {
+    let src = r#"
+        {constant}
+        FUNCTION_BLOCK foo END_FUNCTION_BLOCK
+        {constant}
+        PROGRAM bar END_PROGRAM 
+        {constant}
+        CLASS qux 
+            {constant}
+            METHOD quux : DINT END_METHOD 
+        END_CLASS 
+        {constant}
+        FUNCTION corge  : BOOL END_FUNCTION
+        // {constant} pragma in comment does not cause validation
+        FUNCTION corge  : BOOL END_FUNCTION
+    "#;
+    let (_, diagnostics) = parse_buffered(src);
+
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E105]: Pragma {constant} is not allowed in POU declarations
+      ┌─ <internal>:2:9
+      │  
+    2 │ ╭         {constant}
+    3 │ │         FUNCTION_BLOCK foo END_FUNCTION_BLOCK
+      │ ╰──────────────────────^ Pragma {constant} is not allowed in POU declarations
+
+    error[E105]: Pragma {constant} is not allowed in POU declarations
+      ┌─ <internal>:4:9
+      │  
+    4 │ ╭         {constant}
+    5 │ │         PROGRAM bar END_PROGRAM 
+      │ ╰───────────────^ Pragma {constant} is not allowed in POU declarations
+
+    error[E105]: Pragma {constant} is not allowed in POU declarations
+      ┌─ <internal>:6:9
+      │  
+    6 │ ╭         {constant}
+    7 │ │         CLASS qux 
+      │ ╰─────────────^ Pragma {constant} is not allowed in POU declarations
+
+    error[E105]: Pragma {constant} is not allowed in POU declarations
+      ┌─ <internal>:8:13
+      │  
+    8 │ ╭             {constant}
+    9 │ │             METHOD quux : DINT END_METHOD 
+      │ ╰──────────────────^ Pragma {constant} is not allowed in POU declarations
+
+    error[E105]: Pragma {constant} is not allowed in POU declarations
+       ┌─ <internal>:11:9
+       │  
+    11 │ ╭         {constant}
+    12 │ │         FUNCTION corge  : BOOL END_FUNCTION
+       │ ╰────────────────^ Pragma {constant} is not allowed in POU declarations
+
+    "###);
 }

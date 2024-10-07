@@ -571,16 +571,20 @@ fn evaluate_with_target_hint(
         AstStatement::ParenExpression(expr) => {
             evaluate_with_target_hint(expr, scope, index, target_type, lhs)?
         }
-        AstStatement::CallStatement(plc_ast::ast::CallStatement { parameters, .. }) => {
-            let Some(arg) = parameters else {
+        AstStatement::CallStatement(plc_ast::ast::CallStatement { operator, .. }) => {
+            if let Some(pou) = operator.as_ref().get_flat_reference_name().and_then(|it| index.find_pou(it)) {
+                if !(pou.is_constant() && index.get_builtin_function(pou.get_name()).is_some()) {
+                    return Err(UnresolvableKind::Misc(format!(
+                        "Call-statement '{}' in initializer is not constant.",
+                        pou.get_name()
+                    )));
+                }
+            } else {
+                // POU not found
                 return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {:#?}", initial)));
             };
-            return match evaluate_with_target_hint(arg, scope, index, target_type, lhs) {
-                // arg to const fn call could not be found in the index => unresolvable (only ref/adr are supported for now, must have arg)
-                Ok(None) => Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {arg:#?}"))),
-                // we found a local or global parameter for REF/ADR, but it cannot be resolved as constant since the address is not yet known. Resolve during codegen
-                _ => Err(UnresolvableKind::Address(InitData::new(Some(initial), target_type, scope, lhs))),
-            };
+
+            return Err(UnresolvableKind::Address(InitData::new(Some(initial), target_type, scope, lhs)));
         }
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),
     };
