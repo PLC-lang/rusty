@@ -2,7 +2,7 @@
 use inkwell::{
     context::Context,
     types::{FloatType, IntType},
-    values::{ArrayValue, BasicValueEnum, FloatValue, IntValue, PointerValue},
+    values::{ArrayValue, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue},
 };
 
 use crate::{
@@ -375,11 +375,16 @@ impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
         cast_data: &CastInstructionData<'ctx, 'cast>,
     ) -> Result<BasicValueEnum<'ctx>, CodegenDiagnostic> {
         let llvm_int_type = get_llvm_int_type(cast_data.llvm.context, lsize, "Integer");
-        let value = if cast_data.value_type.is_signed_int() {
-            cast_data.llvm.builder.build_int_s_extend_or_bit_cast(self, llvm_int_type, "")?
-        } else {
-            cast_data.llvm.builder.build_int_z_extend_or_bit_cast(self, llvm_int_type, "")?
-        };
+        //FIXME: This breaks on new inkwell, we cannot cast in initizlizers
+         if cast_data.llvm.builder.get_insert_block().is_none() {
+             return Ok(self.as_basic_value_enum())
+         };
+        let value =
+            if cast_data.value_type.is_signed_int(){
+                cast_data.llvm.builder.build_int_s_extend_or_bit_cast(self, llvm_int_type, "")?
+            } else {
+                cast_data.llvm.builder.build_int_z_extend_or_bit_cast(self, llvm_int_type, "")?
+            };
         Ok(value.into())
     }
 }
