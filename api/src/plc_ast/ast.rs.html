@@ -1767,6 +1767,12 @@
 <a href="#1767" id="1767">1767</a>
 <a href="#1768" id="1768">1768</a>
 <a href="#1769" id="1769">1769</a>
+<a href="#1770" id="1770">1770</a>
+<a href="#1771" id="1771">1771</a>
+<a href="#1772" id="1772">1772</a>
+<a href="#1773" id="1773">1773</a>
+<a href="#1774" id="1774">1774</a>
+<a href="#1775" id="1775">1775</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -2027,6 +2033,7 @@
     Class,
     Method { owner_class: String },
     Init,
+    ProjectInit,
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>PouType {
@@ -2039,6 +2046,7 @@
             PouType::Class =&gt; <span class="macro">write!</span>(f, <span class="string">"Class"</span>),
             PouType::Method { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">"Method"</span>),
             PouType::Init =&gt; <span class="macro">write!</span>(f, <span class="string">"Init"</span>),
+            PouType::ProjectInit =&gt; <span class="macro">write!</span>(f, <span class="string">"ProjectInit"</span>),
         }
     }
 }
@@ -2051,6 +2059,10 @@
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
+    }
+
+    <span class="kw">pub fn </span>is_function_or_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, PouType::Function | PouType::Init | PouType::ProjectInit)
     }
 }
 

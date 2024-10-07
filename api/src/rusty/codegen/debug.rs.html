@@ -1484,7 +1484,7 @@
             }
         }
         <span class="kw">let </span>implementation = pou.find_implementation(index).expect(<span class="string">"A POU will have an impl at this stage"</span>);
-        <span class="kw">if </span>implementation.implementation_type != ImplementationType::Function {
+        <span class="kw">if </span>!implementation.get_implementation_type().is_function_or_init() {
             <span class="kw">if </span>implementation.get_implementation_type() == <span class="kw-2">&amp;</span>ImplementationType::Method {
                 <span class="comment">//Methods ignored for now
             </span>} <span class="kw">else </span>{

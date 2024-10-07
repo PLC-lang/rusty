@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.15/src/derive.rs`."><title>derive.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.19/src/derive.rs`."><title>derive.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -359,6 +359,18 @@
 <a href="#359" id="359">359</a>
 <a href="#360" id="360">360</a>
 <a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains traits that are usable with the `#[derive(...)]`
 //! macros in `clap_derive`.
 
@@ -434,6 +446,10 @@
     }
 
     <span class="doccomment">/// Update from iterator, [exit][Error::exit] on error.
+    ///
+    /// Unlike [`Parser::parse`], this works with an existing instance of `self`.
+    /// The assumption is that all required fields are already provided and any [`Args`] or
+    /// [`Subcommand`]s provided by the user will modify only what is specified.
     </span><span class="kw">fn </span>update_from&lt;I, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, itr: I)
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = T&gt;,
@@ -577,15 +593,19 @@
     </span><span class="kw">fn </span>group_id() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::Id&gt; {
         <span class="prelude-val">None
     </span>}
-    <span class="doccomment">/// Append to [`Command`] so it can instantiate `Self`.
-    ///
-    /// See also [`CommandFactory`].
-    </span><span class="kw">fn </span>augment_args(cmd: Command) -&gt; Command;
-    <span class="doccomment">/// Append to [`Command`] so it can update `self`.
+    <span class="doccomment">/// Append to [`Command`] so it can instantiate `Self` via
+    /// [`FromArgMatches::from_arg_matches_mut`]
     ///
     /// This is used to implement `#[command(flatten)]`
     ///
-    /// See also [`CommandFactory`].
+    /// See also [`CommandFactory::command`].
+    </span><span class="kw">fn </span>augment_args(cmd: Command) -&gt; Command;
+    <span class="doccomment">/// Append to [`Command`] so it can instantiate `self` via
+    /// [`FromArgMatches::update_from_arg_matches_mut`]
+    ///
+    /// This is used to implement `#[command(flatten)]`
+    ///
+    /// See also [`CommandFactory::command_for_update`].
     </span><span class="kw">fn </span>augment_args_for_update(cmd: Command) -&gt; Command;
 }
 
@@ -600,15 +620,19 @@
 ///
 /// **NOTE:** Deriving requires the `derive` feature flag
 </span><span class="kw">pub trait </span>Subcommand: FromArgMatches + Sized {
-    <span class="doccomment">/// Append to [`Command`] so it can instantiate `Self`.
-    ///
-    /// See also [`CommandFactory`].
-    </span><span class="kw">fn </span>augment_subcommands(cmd: Command) -&gt; Command;
-    <span class="doccomment">/// Append to [`Command`] so it can update `self`.
+    <span class="doccomment">/// Append to [`Command`] so it can instantiate `Self` via
+    /// [`FromArgMatches::from_arg_matches_mut`]
     ///
     /// This is used to implement `#[command(flatten)]`
     ///
-    /// See also [`CommandFactory`].
+    /// See also [`CommandFactory::command`].
+    </span><span class="kw">fn </span>augment_subcommands(cmd: Command) -&gt; Command;
+    <span class="doccomment">/// Append to [`Command`] so it can instantiate `self` via
+    /// [`FromArgMatches::update_from_arg_matches_mut`]
+    ///
+    /// This is used to implement `#[command(flatten)]`
+    ///
+    /// See also [`CommandFactory::command_for_update`].
     </span><span class="kw">fn </span>augment_subcommands_for_update(cmd: Command) -&gt; Command;
     <span class="doccomment">/// Test whether `Self` can parse a specific subcommand
     </span><span class="kw">fn </span>has_subcommand(name: <span class="kw-2">&amp;</span>str) -&gt; bool;

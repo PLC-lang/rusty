@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anyhow-1.0.86/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anyhow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anyhow-1.0.89/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anyhow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -728,6 +728,7 @@
 <a href="#728" id="728">728</a>
 <a href="#729" id="729">729</a>
 <a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! [![github]](https://github.com/dtolnay/anyhow)&amp;ensp;[![crates-io]](https://crates.io/crates/anyhow)&amp;ensp;[![docs-rs]](https://docs.rs/anyhow)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&amp;labelColor=555555&amp;logo=github
@@ -931,14 +932,13 @@
 //! anyhow = { version = "1.0", default-features = false }
 //! ```
 //!
-//! Since the `?`-based error conversions would normally rely on the
-//! `std::error::Error` trait which is only available through std, no_std mode
-//! will require an explicit `.map_err(Error::msg)` when working with a
-//! non-Anyhow error type inside a function that returns Anyhow's error type.
+//! With versions of Rust older than 1.81, no_std mode may require an additional
+//! `.map_err(Error::msg)` when working with a non-Anyhow error type inside a
+//! function that returns Anyhow's error type, as the trait that `?`-based error
+//! conversions are defined by is only available in std in those old versions.
 
-</span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/anyhow/1.0.85"</span>)]
+</span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/anyhow/1.0.89"</span>)]
 #![cfg_attr(error_generic_member_access, feature(error_generic_member_access))]
-#![cfg_attr(doc_cfg, feature(doc_cfg))]
 #![no_std]
 #![deny(dead_code, unused_imports, unused_mut)]
 #![cfg_attr(
@@ -996,13 +996,16 @@
 <span class="kw">use </span><span class="kw">crate</span>::ptr::Own;
 <span class="kw">use </span>core::fmt::Display;
 
-<span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
+<span class="attr">#[cfg(all(not(feature = <span class="string">"std"</span>), anyhow_no_core_error))]
 </span><span class="kw">use </span>core::fmt::Debug;
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
 
-<span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
+<span class="attr">#[cfg(not(any(feature = <span class="string">"std"</span>, anyhow_no_core_error)))]
+</span><span class="kw">use </span>core::error::Error <span class="kw">as </span>StdError;
+
+<span class="attr">#[cfg(all(not(feature = <span class="string">"std"</span>), anyhow_no_core_error))]
 </span><span class="kw">trait </span>StdError: Debug + Display {
     <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>StdError + <span class="lifetime">'static</span>)&gt; {
         <span class="prelude-val">None
@@ -1137,8 +1140,7 @@
 ///     None
 /// }
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-#[cfg_attr(doc_cfg, doc(cfg(feature = <span class="string">"std"</span>)))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, not(anyhow_no_core_error)))]
 #[derive(Clone)]
 </span><span class="kw">pub struct </span>Chain&lt;<span class="lifetime">'a</span>&gt; {
     state: <span class="kw">crate</span>::chain::ChainState&lt;<span class="lifetime">'a</span>&gt;,
@@ -1400,7 +1402,7 @@
         <span class="attr">#[doc(hidden)]
         </span><span class="kw">pub use </span><span class="kw">crate</span>::kind::{AdhocKind, TraitKind};
 
-        <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+        <span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, not(anyhow_no_core_error)))]
         #[doc(hidden)]
         </span><span class="kw">pub use </span><span class="kw">crate</span>::kind::BoxedKind;
     }

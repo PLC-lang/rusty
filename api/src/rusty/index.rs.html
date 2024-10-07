@@ -1670,6 +1670,15 @@
 <a href="#1670" id="1670">1670</a>
 <a href="#1671" id="1671">1671</a>
 <a href="#1672" id="1672">1672</a>
+<a href="#1673" id="1673">1673</a>
+<a href="#1674" id="1674">1674</a>
+<a href="#1675" id="1675">1675</a>
+<a href="#1676" id="1676">1676</a>
+<a href="#1677" id="1677">1677</a>
+<a href="#1678" id="1678">1678</a>
+<a href="#1679" id="1679">1679</a>
+<a href="#1680" id="1680">1680</a>
+<a href="#1681" id="1681">1681</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
@@ -2053,6 +2062,7 @@
     Class,
     Method,
     Init,
+    ProjectInit,
 }
 
 <span class="attr">#[derive(Clone, Debug, PartialEq, Eq)]
@@ -2090,18 +2100,37 @@
     <span class="kw">pub fn </span>is_in_unit(<span class="kw-2">&amp;</span><span class="self">self</span>, unit: <span class="kw">impl </span>AsRef&lt;str&gt;) -&gt; bool {
         <span class="self">self</span>.get_location().is_in_unit(unit)
     }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
+    }
 }
 
 <span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>PouType&gt; <span class="kw">for </span>ImplementationType {
     <span class="kw">fn </span>from(it: <span class="kw-2">&amp;</span>PouType) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>it {
             PouType::Program =&gt; ImplementationType::Program,
-            PouType::Function | PouType::Init =&gt; ImplementationType::Function,
+            PouType::Function =&gt; ImplementationType::Function,
             PouType::FunctionBlock =&gt; ImplementationType::FunctionBlock,
             PouType::Action =&gt; ImplementationType::Action,
             PouType::Class =&gt; ImplementationType::Class,
             PouType::Method { .. } =&gt; ImplementationType::Method,
+            PouType::Init =&gt; ImplementationType::Init,
+            PouType::ProjectInit =&gt; ImplementationType::ProjectInit,
         }
+    }
+}
+
+<span class="kw">impl </span>ImplementationType {
+    <span class="kw">pub fn </span>is_function_or_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>,
+            ImplementationType::Function | ImplementationType::Init | ImplementationType::ProjectInit,
+        )
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_project_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, ImplementationType::ProjectInit)
     }
 }
 
@@ -2519,10 +2548,6 @@
     <span class="comment">// all pous,
     </span>pous: SymbolMap&lt;String, PouIndexEntry&gt;,
 
-    <span class="comment">// initializer functions are registered here in addition to the `pous` field. this is because they are
-    // excempt from certain validations/codegen will redirect certain statements and thus a quick lookup is advantageous
-    </span>init_functions: FxIndexSet&lt;String&gt;,
-
     <span class="doccomment">/// all implementations
     </span><span class="comment">// we keep an IndexMap for implementations since duplication issues regarding implementations
     // is handled by the `pous` SymbolMap
@@ -2645,9 +2670,6 @@
                 }
             }
         }
-
-        <span class="comment">//init functions
-        </span><span class="self">self</span>.init_functions.extend(other.init_functions);
 
         <span class="comment">//labels
         </span><span class="self">self</span>.labels.extend(other.labels);
@@ -3104,7 +3126,7 @@
     }
 
     <span class="kw">pub fn </span>is_init_function(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; bool {
-        <span class="self">self</span>.init_functions.get(pou_name).is_some()
+        <span class="self">self</span>.find_implementation_by_name(pou_name).map(|it| it.is_init()).unwrap_or_default()
     }
 
     <span class="kw">pub fn </span>register_program(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, location: SourceLocation, linkage: LinkageType) {
@@ -3118,10 +3140,6 @@
 
     <span class="kw">pub fn </span>register_pou(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry: PouIndexEntry) {
         <span class="self">self</span>.pous.insert(entry.get_name().to_lowercase(), entry);
-    }
-
-    <span class="kw">pub fn </span>register_init_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) {
-        <span class="self">self</span>.init_functions.insert(name.to_string());
     }
 
     <span class="kw">pub fn </span>find_implementation_by_name(<span class="kw-2">&amp;</span><span class="self">self</span>, call_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ImplementationIndexEntry&gt; {

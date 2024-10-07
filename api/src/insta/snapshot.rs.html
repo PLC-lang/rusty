@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.39.0/src/snapshot.rs`."><title>snapshot.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.40.0/src/snapshot.rs`."><title>snapshot.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -956,6 +956,83 @@
 <a href="#956" id="956">956</a>
 <a href="#957" id="957">957</a>
 <a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::env;
 <span class="kw">use </span>std::error::Error;
@@ -1205,10 +1282,16 @@
         Content::Struct(<span class="string">"MetaData"</span>, fields)
     }
 
-    <span class="doccomment">/// Trims the metadata of fields that we don't save to `.snap` files; we
-    /// only use for display while reviewing
+    <span class="doccomment">/// Trims the metadata of fields that we don't save to `.snap` files (those
+    /// we only use for display while reviewing)
     </span><span class="kw">fn </span>trim_for_persistence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">'_</span>, MetaData&gt; {
-        <span class="kw">if </span><span class="self">self</span>.assertion_line.is_some() {
+        <span class="comment">// TODO: in order for `--require-full-match` to work on inline snapshots
+        // without cargo-insta, we need to trim all fields if there's an inline
+        // snapshot. But we don't know that from here (notably
+        // `self.input_file.is_none()` is not a correct approach). Given that
+        // `--require-full-match` is experimental and we're working on making
+        // inline &amp; file snapshots more coherent, I'm leaving this as is for now.
+        </span><span class="kw">if </span><span class="self">self</span>.assertion_line.is_some() {
             <span class="kw">let </span><span class="kw-2">mut </span>rv = <span class="self">self</span>.clone();
             rv.assertion_line = <span class="prelude-val">None</span>;
             Cow::Owned(rv)
@@ -1271,6 +1354,7 @@
                     }
                 }
             }
+            <span class="macro">eprintln!</span>(<span class="string">"A snapshot uses an old snapshot format; please update it to the new format with `cargo insta --force-update-snapshots.\n\nSnapshot is at: {}"</span>, p.to_string_lossy());
             rv
         };
 
@@ -1382,7 +1466,7 @@
 
     <span class="doccomment">/// Snapshot contents _and_ metadata match another snapshot's.
     </span><span class="kw">pub fn </span>matches_fully(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Snapshot) -&gt; bool {
-        <span class="self">self</span>.matches(other)
+        <span class="self">self</span>.snapshot.matches_fully(<span class="kw-2">&amp;</span>other.snapshot)
             &amp;&amp; <span class="self">self</span>.metadata.trim_for_persistence() == other.metadata.trim_for_persistence()
     }
 
@@ -1412,11 +1496,19 @@
         <span class="kw">let </span>serialized_snapshot = <span class="self">self</span>.serialize_snapshot(md);
 
         <span class="comment">// check the reference file for contents.  Note that we always want to
-        // compare snapshots that were trimmed to persistence here.
+        // compare snapshots that were trimmed to persistence here.  This is a
+        // stricter check than even `matches_fully`, since it's comparing the
+        // exact contents of the file.
         </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(old) = fs::read_to_string(ref_file.unwrap_or(path)) {
             <span class="kw">let </span>persisted = <span class="kw">match </span>md.trim_for_persistence() {
                 Cow::Owned(trimmed) =&gt; Cow::Owned(<span class="self">self</span>.serialize_snapshot(<span class="kw-2">&amp;</span>trimmed)),
-                Cow::Borrowed(<span class="kw">_</span>) =&gt; Cow::Borrowed(<span class="kw-2">&amp;</span>serialized_snapshot),
+                Cow::Borrowed(trimmed) =&gt; {
+                    <span class="comment">// This condition needs to hold, otherwise we need to
+                    // compare the old value to a newly trimmed serialized snapshot
+                    </span><span class="macro">debug_assert_eq!</span>(trimmed, md);
+
+                    Cow::Borrowed(<span class="kw-2">&amp;</span>serialized_snapshot)
+                }
             };
             <span class="kw">if </span>old == persisted.as_str() {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
@@ -1463,17 +1555,48 @@
 
     <span class="doccomment">/// Returns the snapshot contents as string with surrounding whitespace removed.
     </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="self">self</span>.<span class="number">0
-            </span>.trim_start_matches(|x| x == <span class="string">'\r' </span>|| x == <span class="string">'\n'</span>)
-            .trim_end()
+        <span class="kw">let </span>out = <span class="self">self</span>.<span class="number">0</span>.trim_start_matches([<span class="string">'\r'</span>, <span class="string">'\n'</span>]).trim_end();
+        <span class="comment">// Old inline snapshots have `---` at the start, so this strips that if
+        // it exists. Soon we can start printing a warning and then eventually
+        // remove it in the next version.
+        </span><span class="kw">match </span>out.strip_prefix(<span class="string">"---\n"</span>) {
+            <span class="prelude-val">Some</span>(s) =&gt; s,
+            <span class="prelude-val">None </span>=&gt; out,
+        }
+    }
+
+    <span class="doccomment">/// Returns the snapshot contents as string without any trimming.
+    </span><span class="kw">pub fn </span>as_str_exact(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.<span class="number">0</span>.as_str()
+    }
+
+    <span class="kw">pub fn </span>matches_fully(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>SnapshotContents) -&gt; bool {
+        <span class="self">self</span>.as_str_exact() == other.as_str_exact()
     }
 
     <span class="kw">pub fn </span>to_inline(<span class="kw-2">&amp;</span><span class="self">self</span>, indentation: usize) -&gt; String {
         <span class="kw">let </span>contents = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>out = String::new();
-        <span class="kw">let </span>is_escape = contents.contains(<span class="kw-2">&amp;</span>[<span class="string">'\n'</span>, <span class="string">'\\'</span>, <span class="string">'"'</span>][..]);
 
-        out.push_str(<span class="kw">if </span>is_escape { <span class="string">"r###\"" </span>} <span class="kw">else </span>{ <span class="string">"\"" </span>});
+        <span class="comment">// We don't technically need to escape on newlines, but it reduces diffs
+        </span><span class="kw">let </span>is_escape = contents.contains([<span class="string">'\\'</span>, <span class="string">'"'</span>, <span class="string">'\n'</span>]);
+        <span class="comment">// Escape the string if needed, with `r#`, using with 1 more `#` than
+        // the maximum number of existing contiguous `#`.
+        </span><span class="kw">let </span>delimiter = <span class="kw">if </span>is_escape {
+            <span class="kw">let </span>max_contiguous_hash = contents
+                .split(|c| c != <span class="string">'#'</span>)
+                .map(|group| group.len())
+                .max()
+                .unwrap_or(<span class="number">0</span>);
+            out.push(<span class="string">'r'</span>);
+            <span class="string">"#"</span>.repeat(max_contiguous_hash + <span class="number">1</span>)
+        } <span class="kw">else </span>{
+            <span class="string">""</span>.to_string()
+        };
+
+        out.push_str(<span class="kw-2">&amp;</span>delimiter);
+        out.push(<span class="string">'"'</span>);
+
         <span class="comment">// if we have more than one line we want to change into the block
         // representation mode
         </span><span class="kw">if </span>contents.contains(<span class="string">'\n'</span>) {
@@ -1497,7 +1620,8 @@
             out.push_str(contents);
         }
 
-        out.push_str(<span class="kw">if </span>is_escape { <span class="string">"\"###" </span>} <span class="kw">else </span>{ <span class="string">"\"" </span>});
+        out.push(<span class="string">'"'</span>);
+        out.push_str(<span class="kw-2">&amp;</span>delimiter);
 
         out
     }
@@ -1628,6 +1752,8 @@
     // (the only call site)
 
     </span><span class="kw">if </span>frozen_value.trim_start().starts_with(<span class="string">'⋮'</span>) {
+        <span class="macro">eprintln!</span>(<span class="string">"A snapshot uses an old snapshot format; please update it to the new format with `cargo insta --force-update-snapshots.\n\nValue: {}"</span>, frozen_value);
+
         <span class="comment">// legacy format - retain so old snapshots still work
         </span><span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
         <span class="kw">let </span><span class="kw-2">mut </span>line_iter = frozen_value.lines();
@@ -1680,45 +1806,47 @@ a
 b"</span>[<span class="number">1</span>..];
     <span class="macro">assert_eq!</span>(
         SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>),
-        <span class="string">"r###\"
+        <span class="string">r##"r#"
 a
 b
-\"###"
+"#"##
+    </span>);
+
+    <span class="macro">assert_eq!</span>(
+        SnapshotContents(
+            <span class="string">"a
+b"
+            </span>.to_string()
+        )
+        .to_inline(<span class="number">4</span>),
+        <span class="string">r##"r#"
+    a
+    b
+    "#"##
+    </span>);
+
+    <span class="kw">let </span>t = <span class="kw-2">&amp;</span><span class="string">"
+    a
+    b"</span>[<span class="number">1</span>..];
+    <span class="macro">assert_eq!</span>(
+        SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>),
+        <span class="string">r##"r#"
+    a
+    b
+"#"##
     </span>);
 
     <span class="kw">let </span>t = <span class="kw-2">&amp;</span><span class="string">"
 a
+
 b"</span>[<span class="number">1</span>..];
     <span class="macro">assert_eq!</span>(
         SnapshotContents(t.to_string()).to_inline(<span class="number">4</span>),
-        <span class="string">"r###\"
-    a
-    b
-    \"###"
-    </span>);
-
-    <span class="kw">let </span>t = <span class="kw-2">&amp;</span><span class="string">"
-    a
-    b"</span>[<span class="number">1</span>..];
-    <span class="macro">assert_eq!</span>(
-        SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>),
-        <span class="string">"r###\"
-    a
-    b
-\"###"
-    </span>);
-
-    <span class="kw">let </span>t = <span class="kw-2">&amp;</span><span class="string">"
-    a
-
-    b"</span>[<span class="number">1</span>..];
-    <span class="macro">assert_eq!</span>(
-        SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>),
-        <span class="string">"r###\"
+        <span class="string">r##"r#"
     a
 
     b
-\"###"
+    "#"##
     </span>);
 
     <span class="kw">let </span>t = <span class="kw-2">&amp;</span><span class="string">"
@@ -1726,9 +1854,9 @@ b"</span>[<span class="number">1</span>..];
 "</span>[<span class="number">1</span>..];
     <span class="macro">assert_eq!</span>(
         SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>),
-        <span class="string">"r###\"
+        <span class="string">r##"r#"
     ab
-\"###"
+"#"##
     </span>);
 
     <span class="kw">let </span>t = <span class="string">"ab"</span>;
@@ -1736,91 +1864,117 @@ b"</span>[<span class="number">1</span>..];
 }
 
 <span class="attr">#[test]
+</span><span class="kw">fn </span>test_snapshot_contents_hashes() {
+    <span class="kw">let </span>t = <span class="string">"a###b"</span>;
+    <span class="macro">assert_eq!</span>(SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>), <span class="string">r#""a###b""#</span>);
+
+    <span class="kw">let </span>t = <span class="string">"a\n\\###b"</span>;
+    <span class="macro">assert_eq!</span>(
+        SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>),
+        <span class="string">r#####"r####"
+a
+\###b
+"####"#####
+    </span>);
+}
+
+<span class="attr">#[test]
 </span><span class="kw">fn </span>test_normalize_inline_snapshot() {
     <span class="kw">use </span>similar_asserts::assert_eq;
     <span class="comment">// here we do exact matching (rather than `assert_snapshot`)
     // to ensure we're not incorporating the modifications this library makes
-    </span><span class="kw">let </span>t = <span class="string">r#"
+    </span><span class="macro">assert_eq!</span>(
+        normalize_inline_snapshot(
+            <span class="string">r#"
    1
    2
-    "#</span>;
-    <span class="macro">assert_eq!</span>(
-        normalize_inline_snapshot(t),
-        <span class="string">r###"
-1
-2"###</span>[<span class="number">1</span>..]
-    );
+    "#
+        </span>),
+        <span class="string">r###"1
+2"###
+    </span>);
 
-    <span class="kw">let </span>t = <span class="string">r#"
+    <span class="macro">assert_eq!</span>(
+        normalize_inline_snapshot(
+            <span class="string">r#"
             1
-    2"#</span>;
-    <span class="macro">assert_eq!</span>(
-        normalize_inline_snapshot(t),
-        <span class="string">r###"
-        1
-2"###</span>[<span class="number">1</span>..]
-    );
+    2"#
+        </span>),
+        <span class="string">r###"        1
+2"###
+    </span>);
 
-    <span class="kw">let </span>t = <span class="string">r#"
+    <span class="macro">assert_eq!</span>(
+        normalize_inline_snapshot(
+            <span class="string">r#"
             1
             2
-    "#</span>;
-    <span class="macro">assert_eq!</span>(
-        normalize_inline_snapshot(t),
-        <span class="string">r###"
-1
-2"###</span>[<span class="number">1</span>..]
-    );
+    "#
+        </span>),
+        <span class="string">r###"1
+2"###
+    </span>);
 
-    <span class="kw">let </span>t = <span class="string">r#"
+    <span class="macro">assert_eq!</span>(
+        normalize_inline_snapshot(
+            <span class="string">r#"
    1
    2
-"#</span>;
+"#
+        </span>),
+        <span class="string">r###"1
+2"###
+    </span>);
+
     <span class="macro">assert_eq!</span>(
-        normalize_inline_snapshot(t),
-        <span class="string">r###"
-1
-2"###</span>[<span class="number">1</span>..]
-    );
-
-    <span class="kw">let </span>t = <span class="string">r#"
+        normalize_inline_snapshot(
+            <span class="string">r#"
         a
-    "#</span>;
-    <span class="macro">assert_eq!</span>(normalize_inline_snapshot(t), <span class="string">"a"</span>);
+    "#
+        </span>),
+        <span class="string">"a"
+    </span>);
 
-    <span class="kw">let </span>t = <span class="string">""</span>;
-    <span class="macro">assert_eq!</span>(normalize_inline_snapshot(t), <span class="string">""</span>);
+    <span class="macro">assert_eq!</span>(normalize_inline_snapshot(<span class="string">""</span>), <span class="string">""</span>);
 
-    <span class="kw">let </span>t = <span class="string">r#"
+    <span class="macro">assert_eq!</span>(
+        normalize_inline_snapshot(
+            <span class="string">r#"
     a
     b
 c
-    "#</span>;
-    <span class="macro">assert_eq!</span>(
-        normalize_inline_snapshot(t),
-        <span class="string">r###"
-    a
+    "#
+        </span>),
+        <span class="string">r###"    a
     b
-c"###</span>[<span class="number">1</span>..]
-    );
+c"###
+    </span>);
 
-    <span class="kw">let </span>t = <span class="string">r#"
-a
-    "#</span>;
-    <span class="macro">assert_eq!</span>(normalize_inline_snapshot(t), <span class="string">"a"</span>);
-
-    <span class="kw">let </span>t = <span class="string">"
-    a"</span>;
-    <span class="macro">assert_eq!</span>(normalize_inline_snapshot(t), <span class="string">"a"</span>);
-
-    <span class="kw">let </span>t = <span class="string">r#"a
-  a"#</span>;
     <span class="macro">assert_eq!</span>(
-        normalize_inline_snapshot(t),
-        <span class="string">r###"
+        normalize_inline_snapshot(
+            <span class="string">r#"
 a
-  a"###</span>[<span class="number">1</span>..]
-    );
+    "#
+        </span>),
+        <span class="string">"a"
+    </span>);
+
+    <span class="macro">assert_eq!</span>(
+        normalize_inline_snapshot(
+            <span class="string">"
+    a"
+        </span>),
+        <span class="string">"a"
+    </span>);
+
+    <span class="macro">assert_eq!</span>(
+        normalize_inline_snapshot(
+            <span class="string">r#"a
+  a"#
+        </span>),
+        <span class="string">r###"a
+  a"###
+    </span>);
 }
 
 <span class="attr">#[test]
@@ -1902,7 +2056,7 @@ a
 
     <span class="kw">let </span>error = <span class="macro">format!</span>(<span class="string">"{}"</span>, Snapshot::from_file(temp.as_path()).unwrap_err());
     <span class="macro">assert!</span>(error.contains(<span class="string">"Failed parsing the YAML from"</span>));
-    <span class="macro">assert!</span>(error.contains(<span class="string">"/bad.yaml"</span>));
+    <span class="macro">assert!</span>(error.contains(<span class="string">"bad.yaml"</span>));
 }
 
 <span class="doccomment">/// Check that snapshots don't take ownership of the value

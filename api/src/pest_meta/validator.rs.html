@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pest_meta-2.7.11/src/validator.rs`."><title>validator.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pest_meta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pest_meta-2.7.13/src/validator.rs`."><title>validator.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pest_meta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/pest-parser/pest/master/pest-logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1797,6 +1797,123 @@
 <a href="#1797" id="1797">1797</a>
 <a href="#1798" id="1798">1798</a>
 <a href="#1799" id="1799">1799</a>
+<a href="#1800" id="1800">1800</a>
+<a href="#1801" id="1801">1801</a>
+<a href="#1802" id="1802">1802</a>
+<a href="#1803" id="1803">1803</a>
+<a href="#1804" id="1804">1804</a>
+<a href="#1805" id="1805">1805</a>
+<a href="#1806" id="1806">1806</a>
+<a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
+<a href="#1809" id="1809">1809</a>
+<a href="#1810" id="1810">1810</a>
+<a href="#1811" id="1811">1811</a>
+<a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
+<a href="#1817" id="1817">1817</a>
+<a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
+<a href="#1857" id="1857">1857</a>
+<a href="#1858" id="1858">1858</a>
+<a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
+<a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
+<a href="#1880" id="1880">1880</a>
+<a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
+<a href="#1884" id="1884">1884</a>
+<a href="#1885" id="1885">1885</a>
+<a href="#1886" id="1886">1886</a>
+<a href="#1887" id="1887">1887</a>
+<a href="#1888" id="1888">1888</a>
+<a href="#1889" id="1889">1889</a>
+<a href="#1890" id="1890">1890</a>
+<a href="#1891" id="1891">1891</a>
+<a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
+<a href="#1896" id="1896">1896</a>
+<a href="#1897" id="1897">1897</a>
+<a href="#1898" id="1898">1898</a>
+<a href="#1899" id="1899">1899</a>
+<a href="#1900" id="1900">1900</a>
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
 </pre></div><pre class="rust"><code><span class="comment">// pest. The Elegant Parser
 // Copyright (c) 2018 Dragoș Tiselice
 //
@@ -2025,6 +2142,8 @@
     errors.extend(validate_choices(rules));
     errors.extend(validate_whitespace_comment(rules));
     errors.extend(validate_left_recursion(rules));
+    <span class="attr">#[cfg(feature = <span class="string">"grammar-extras"</span>)]
+    </span>errors.extend(validate_tag_silent_rules(rules));
 
     errors.sort_by_key(|error| <span class="kw">match </span>error.location {
         InputLocation::Span(span) =&gt; span,
@@ -2032,6 +2151,78 @@
     });
 
     errors
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"grammar-extras"</span>)]
+</span><span class="kw">fn </span>validate_tag_silent_rules&lt;<span class="lifetime">'a</span>, <span class="lifetime">'i</span>: <span class="lifetime">'a</span>&gt;(rules: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[ParserRule&lt;<span class="lifetime">'i</span>&gt;]) -&gt; Vec&lt;Error&lt;Rule&gt;&gt; {
+    <span class="kw">use </span><span class="kw">crate</span>::ast::RuleType;
+
+    <span class="kw">fn </span>to_type_hash_map&lt;<span class="lifetime">'a</span>, <span class="lifetime">'i</span>: <span class="lifetime">'a</span>&gt;(
+        rules: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[ParserRule&lt;<span class="lifetime">'i</span>&gt;],
+    ) -&gt; HashMap&lt;String, (<span class="kw-2">&amp;</span><span class="lifetime">'a </span>ParserNode&lt;<span class="lifetime">'i</span>&gt;, RuleType)&gt; {
+        rules
+            .iter()
+            .map(|r| (r.name.clone(), (<span class="kw-2">&amp;</span>r.node, r.ty)))
+            .collect()
+    }
+    <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="macro">vec!</span>[];
+
+    <span class="kw">fn </span>check_silent_builtin&lt;<span class="lifetime">'a</span>, <span class="lifetime">'i</span>: <span class="lifetime">'a</span>&gt;(
+        expr: <span class="kw-2">&amp;</span>ParserExpr&lt;<span class="lifetime">'i</span>&gt;,
+        rules_ref: <span class="kw-2">&amp;</span>HashMap&lt;String, (<span class="kw-2">&amp;</span><span class="lifetime">'a </span>ParserNode&lt;<span class="lifetime">'i</span>&gt;, RuleType)&gt;,
+        span: Span&lt;<span class="lifetime">'a</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Error&lt;Rule&gt;&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span>expr {
+            ParserExpr::Ident(rule_name) =&gt; {
+                <span class="kw">let </span>rule = rules_ref.get(rule_name);
+                <span class="kw">if </span><span class="macro">matches!</span>(rule, <span class="prelude-val">Some</span>((<span class="kw">_</span>, RuleType::Silent))) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(Error::&lt;Rule&gt;::new_from_span(
+                        ErrorVariant::CustomError {
+                            message: <span class="string">"tags on silent rules will not appear in the output"
+                                </span>.to_owned(),
+                        },
+                        span,
+                    ));
+                } <span class="kw">else if </span>BUILTINS.contains(rule_name.as_str()) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(Error::new_from_span(
+                        ErrorVariant::CustomError {
+                            message: <span class="string">"tags on built-in rules will not appear in the output"
+                                </span>.to_owned(),
+                        },
+                        span,
+                    ));
+                }
+            }
+            ParserExpr::Rep(node)
+            | ParserExpr::RepMinMax(node, <span class="kw">_</span>, <span class="kw">_</span>)
+            | ParserExpr::RepMax(node, <span class="kw">_</span>)
+            | ParserExpr::RepMin(node, <span class="kw">_</span>)
+            | ParserExpr::RepOnce(node)
+            | ParserExpr::RepExact(node, <span class="kw">_</span>)
+            | ParserExpr::Opt(node)
+            | ParserExpr::Push(node)
+            | ParserExpr::PosPred(node)
+            | ParserExpr::NegPred(node) =&gt; {
+                <span class="kw">return </span>check_silent_builtin(<span class="kw-2">&amp;</span>node.expr, rules_ref, span);
+            }
+            <span class="kw">_ </span>=&gt; {}
+        };
+        <span class="prelude-val">None
+    </span>}
+
+    <span class="kw">let </span>rules_map = to_type_hash_map(rules);
+    <span class="kw">for </span>rule <span class="kw">in </span>rules {
+        <span class="kw">let </span>rules_ref = <span class="kw-2">&amp;</span>rules_map;
+        <span class="kw">let </span><span class="kw-2">mut </span>errors = rule.node.clone().filter_map_top_down(|node1| {
+            <span class="kw">if let </span>ParserExpr::NodeTag(node2, <span class="kw">_</span>) = node1.expr {
+                check_silent_builtin(<span class="kw-2">&amp;</span>node2.expr, rules_ref, node1.span)
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>}
+        });
+        result.append(<span class="kw-2">&amp;mut </span>errors);
+    }
+    result
 }
 
 <span class="doccomment">/// Checks if `expr` is non-progressing, that is the expression does not
@@ -3591,6 +3782,49 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>skip_can_be_defined() {
         <span class="kw">let </span>input = <span class="string">"skip = { \"\" }"</span>;
+        unwrap_or_report(consume_rules(
+            PestParser::parse(Rule::grammar_rules, input).unwrap(),
+        ));
+    }
+
+    <span class="attr">#[test]
+    #[should_panic(expected = <span class="string">"grammar error
+
+ --&gt; 1:7
+  |
+1 | a = { #b = b } b = _{ ASCII_DIGIT+ }
+  |       ^----^
+  |
+  = tags on silent rules will not appear in the output"</span>)]
+    #[cfg(feature = <span class="string">"grammar-extras"</span>)]
+    </span><span class="kw">fn </span>tag_on_silent_rule() {
+        <span class="kw">let </span>input = <span class="string">"a = { #b = b } b = _{ ASCII_DIGIT+ }"</span>;
+        unwrap_or_report(consume_rules(
+            PestParser::parse(Rule::grammar_rules, input).unwrap(),
+        ));
+    }
+
+    <span class="attr">#[test]
+    #[should_panic(expected = <span class="string">"grammar error
+
+ --&gt; 1:7
+  |
+1 | a = { #b = ASCII_DIGIT+ }
+  |       ^---------------^
+  |
+  = tags on built-in rules will not appear in the output"</span>)]
+    #[cfg(feature = <span class="string">"grammar-extras"</span>)]
+    </span><span class="kw">fn </span>tag_on_builtin_rule() {
+        <span class="kw">let </span>input = <span class="string">"a = { #b = ASCII_DIGIT+ }"</span>;
+        unwrap_or_report(consume_rules(
+            PestParser::parse(Rule::grammar_rules, input).unwrap(),
+        ));
+    }
+
+    <span class="attr">#[test]
+    #[cfg(feature = <span class="string">"grammar-extras"</span>)]
+    </span><span class="kw">fn </span>tag_on_normal_rule() {
+        <span class="kw">let </span>input = <span class="string">"a = { #b = b } b = { ASCII_DIGIT+ }"</span>;
         unwrap_or_report(consume_rules(
             PestParser::parse(Rule::grammar_rules, input).unwrap(),
         ));

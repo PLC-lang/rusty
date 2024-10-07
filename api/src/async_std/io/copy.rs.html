@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.12.0/src/io/copy.rs`."><title>copy.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-std-1.13.0/src/io/copy.rs`."><title>copy.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -180,6 +180,30 @@
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::pin::Pin;
 
@@ -189,7 +213,13 @@
 <span class="kw">use </span><span class="kw">crate</span>::task::{Context, Poll};
 <span class="kw">use </span><span class="kw">crate</span>::utils::Context <span class="kw">as _</span>;
 
-<span class="doccomment">/// Copies the entire contents of a reader into a writer.
+<span class="comment">// Note: There are two otherwise-identical implementations of this
+// function because unstable has removed the `?Sized` bound for the
+// reader and writer and accepts `R` and `W` instead of `&amp;mut R` and
+// `&amp;mut W`. If making a change to either of the implementations,
+// ensure that you copy it into the other.
+
+</span><span class="doccomment">/// Copies the entire contents of a reader into a writer.
 ///
 /// This function will continuously read data from `reader` and then
 /// write it into `writer` in a streaming fashion until `reader`
@@ -239,6 +269,7 @@
             <span class="attr">#[pin]
             </span>writer: W,
             amt: u64,
+            reader_eof: bool
         }
     }
 
@@ -251,11 +282,18 @@
 
         <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+
             <span class="kw">loop </span>{
-                <span class="kw">let </span>buffer = <span class="macro">futures_core::ready!</span>(this.reader.as_mut().poll_fill_buf(cx))<span class="question-mark">?</span>;
-                <span class="kw">if </span>buffer.is_empty() {
+                <span class="kw">if </span><span class="kw-2">*</span>this.reader_eof {
                     <span class="macro">futures_core::ready!</span>(this.writer.as_mut().poll_flush(cx))<span class="question-mark">?</span>;
                     <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">*</span>this.amt));
+                }
+
+                <span class="kw">let </span>buffer = <span class="macro">futures_core::ready!</span>(this.reader.as_mut().poll_fill_buf(cx))<span class="question-mark">?</span>;
+
+                <span class="kw">if </span>buffer.is_empty() {
+                    <span class="kw-2">*</span>this.reader_eof = <span class="bool-val">true</span>;
+                    <span class="kw">continue</span>;
                 }
 
                 <span class="kw">let </span>i = <span class="macro">futures_core::ready!</span>(this.writer.as_mut().poll_write(cx, buffer))<span class="question-mark">?</span>;
@@ -271,6 +309,7 @@
     <span class="kw">let </span>future = CopyFuture {
         reader: BufReader::new(reader),
         writer,
+        reader_eof: <span class="bool-val">false</span>,
         amt: <span class="number">0</span>,
     };
     future.<span class="kw">await</span>.context(|| String::from(<span class="string">"io::copy failed"</span>))
@@ -326,6 +365,7 @@
             <span class="attr">#[pin]
             </span>writer: W,
             amt: u64,
+            reader_eof: bool
         }
     }
 
@@ -338,11 +378,18 @@
 
         <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
+
             <span class="kw">loop </span>{
-                <span class="kw">let </span>buffer = <span class="macro">futures_core::ready!</span>(this.reader.as_mut().poll_fill_buf(cx))<span class="question-mark">?</span>;
-                <span class="kw">if </span>buffer.is_empty() {
+                <span class="kw">if </span><span class="kw-2">*</span>this.reader_eof {
                     <span class="macro">futures_core::ready!</span>(this.writer.as_mut().poll_flush(cx))<span class="question-mark">?</span>;
                     <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<span class="kw-2">*</span>this.amt));
+                }
+
+                <span class="kw">let </span>buffer = <span class="macro">futures_core::ready!</span>(this.reader.as_mut().poll_fill_buf(cx))<span class="question-mark">?</span>;
+
+                <span class="kw">if </span>buffer.is_empty() {
+                    <span class="kw-2">*</span>this.reader_eof = <span class="bool-val">true</span>;
+                    <span class="kw">continue</span>;
                 }
 
                 <span class="kw">let </span>i = <span class="macro">futures_core::ready!</span>(this.writer.as_mut().poll_write(cx, buffer))<span class="question-mark">?</span>;
@@ -358,6 +405,7 @@
     <span class="kw">let </span>future = CopyFuture {
         reader: BufReader::new(reader),
         writer,
+        reader_eof: <span class="bool-val">false</span>,
         amt: <span class="number">0</span>,
     };
     future.<span class="kw">await</span>.context(|| String::from(<span class="string">"io::copy failed"</span>))

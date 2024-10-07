@@ -343,6 +343,17 @@
 <a href="#343" id="343">343</a>
 <a href="#344" id="344">344</a>
 <a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
     lowering::{create_assignment_if_necessary, create_call_statement, create_member_reference},
@@ -465,8 +476,8 @@
 
 <span class="kw">fn </span>create_var_config_init(statements: Vec&lt;AstNode&gt;) -&gt; CompilationUnit {
     <span class="kw">let </span>loc = SourceLocation::internal_in_unit(<span class="prelude-val">Some</span>(INIT_COMPILATION_UNIT));
-    <span class="kw">let </span>pou = new_pou(VAR_CONFIG_INIT, <span class="macro">vec!</span>[], <span class="kw-2">&amp;</span>loc); <span class="comment">// this can probably just be internal
-    </span><span class="kw">let </span>implementation = new_implementation(VAR_CONFIG_INIT, statements, <span class="kw-2">&amp;</span>loc);
+    <span class="kw">let </span>pou = new_pou(VAR_CONFIG_INIT, <span class="macro">vec!</span>[], PouType::Init, <span class="kw-2">&amp;</span>loc); <span class="comment">// this can probably just be internal
+    </span><span class="kw">let </span>implementation = new_implementation(VAR_CONFIG_INIT, statements, PouType::Init, <span class="kw-2">&amp;</span>loc);
     new_unit(pou, implementation, INIT_COMPILATION_UNIT)
 }
 
@@ -522,7 +533,7 @@
         <span class="string">"self"</span>.to_string(),
     );
 
-    <span class="kw">let </span>init_pou = new_pou(<span class="kw-2">&amp;</span>init_fn_name, param, location);
+    <span class="kw">let </span>init_pou = new_pou(<span class="kw-2">&amp;</span>init_fn_name, param, PouType::Init, location);
 
     <span class="kw">let </span><span class="kw-2">mut </span>statements = assignments
         .iter()
@@ -559,7 +570,7 @@
         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
     statements.extend(member_init_calls);
-    <span class="kw">let </span>implementation = new_implementation(<span class="kw-2">&amp;</span>init_fn_name, statements, location);
+    <span class="kw">let </span>implementation = new_implementation(<span class="kw-2">&amp;</span>init_fn_name, statements, PouType::Init, location);
 
     <span class="prelude-val">Some</span>(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
 }
@@ -571,7 +582,7 @@
     };
 
     <span class="kw">let </span><span class="kw-2">mut </span>id_provider = lowerer.ctxt.id_provider.clone();
-    <span class="kw">let </span>init_pou = new_pou(init_symbol_name, <span class="macro">vec!</span>[], <span class="kw-2">&amp;</span>SourceLocation::internal());
+    <span class="kw">let </span>init_pou = new_pou(init_symbol_name, <span class="macro">vec!</span>[], PouType::ProjectInit, <span class="kw-2">&amp;</span>SourceLocation::internal());
 
     <span class="kw">let </span>global_instances = <span class="kw">if let </span><span class="prelude-val">Some</span>(global_instances) =
         lowerer.unresolved_initializers.get(GLOBAL_SCOPE).map(|it| {
@@ -636,7 +647,8 @@
         ));
     };
 
-    <span class="kw">let </span>implementation = new_implementation(init_symbol_name, assignments, <span class="kw-2">&amp;</span>SourceLocation::internal());
+    <span class="kw">let </span>implementation =
+        new_implementation(init_symbol_name, assignments, PouType::ProjectInit, <span class="kw-2">&amp;</span>SourceLocation::internal());
     <span class="kw">let </span><span class="kw-2">mut </span>global_init = new_unit(init_pou, implementation, init_symbol_name);
 
     <span class="kw">if </span>skip_var_config {
@@ -648,11 +660,16 @@
     <span class="prelude-val">Some</span>(global_init)
 }
 
-<span class="kw">fn </span>new_pou(name: <span class="kw-2">&amp;</span>str, variable_blocks: Vec&lt;VariableBlock&gt;, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; Pou {
+<span class="kw">fn </span>new_pou(
+    name: <span class="kw-2">&amp;</span>str,
+    variable_blocks: Vec&lt;VariableBlock&gt;,
+    pou_type: PouType,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
+) -&gt; Pou {
     Pou {
         name: name.into(),
         variable_blocks,
-        pou_type: PouType::Init,
+        pou_type,
         return_type: <span class="prelude-val">None</span>,
         location: location.clone(),
         name_location: location.to_owned(),
@@ -663,12 +680,17 @@
     }
 }
 
-<span class="kw">fn </span>new_implementation(name: <span class="kw-2">&amp;</span>str, statements: Vec&lt;AstNode&gt;, location: <span class="kw-2">&amp;</span>SourceLocation) -&gt; Implementation {
+<span class="kw">fn </span>new_implementation(
+    name: <span class="kw-2">&amp;</span>str,
+    statements: Vec&lt;AstNode&gt;,
+    pou_type: PouType,
+    location: <span class="kw-2">&amp;</span>SourceLocation,
+) -&gt; Implementation {
     Implementation {
         name: name.into(),
         type_name: name.into(),
         linkage: LinkageType::Internal,
-        pou_type: PouType::Init,
+        pou_type,
         statements,
         location: location.clone(),
         name_location: location.to_owned(),

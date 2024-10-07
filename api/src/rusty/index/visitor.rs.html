@@ -831,18 +831,6 @@
 <a href="#831" id="831">831</a>
 <a href="#832" id="832">832</a>
 <a href="#833" id="833">833</a>
-<a href="#834" id="834">834</a>
-<a href="#835" id="835">835</a>
-<a href="#836" id="836">836</a>
-<a href="#837" id="837">837</a>
-<a href="#838" id="838">838</a>
-<a href="#839" id="839">839</a>
-<a href="#840" id="840">840</a>
-<a href="#841" id="841">841</a>
-<a href="#842" id="842">842</a>
-<a href="#843" id="843">843</a>
-<a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, Index, MemberInfo};
@@ -1022,7 +1010,7 @@
             ));
             index.register_pou_type(datatype);
         }
-        PouType::Function =&gt; {
+        PouType::Function | PouType::Init | PouType::ProjectInit =&gt; {
             index.register_pou(PouIndexEntry::create_function_entry(
                 <span class="kw-2">&amp;</span>pou.name,
                 return_type_name,
@@ -1041,18 +1029,6 @@
                 pou.linkage,
                 pou.name_location.clone(),
             ));
-            index.register_pou_type(datatype);
-        }
-        PouType::Init =&gt; {
-            index.register_pou(PouIndexEntry::create_function_entry(
-                <span class="kw-2">&amp;</span>pou.name,
-                return_type_name,
-                <span class="kw-2">&amp;</span>pou.generics,
-                pou.linkage,
-                has_varargs,
-                pou.name_location.clone(),
-            ));
-            index.register_init_function(<span class="kw-2">&amp;</span>pou.name);
             index.register_pou_type(datatype);
         }
         <span class="kw">_ </span>=&gt; {}

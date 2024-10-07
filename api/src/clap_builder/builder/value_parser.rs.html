@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.15/src/builder/value_parser.rs`."><title>value_parser.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.19/src/builder/value_parser.rs`."><title>value_parser.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2666,6 +2666,21 @@
 <a href="#2666" id="2666">2666</a>
 <a href="#2667" id="2667">2667</a>
 <a href="#2668" id="2668">2668</a>
+<a href="#2669" id="2669">2669</a>
+<a href="#2670" id="2670">2670</a>
+<a href="#2671" id="2671">2671</a>
+<a href="#2672" id="2672">2672</a>
+<a href="#2673" id="2673">2673</a>
+<a href="#2674" id="2674">2674</a>
+<a href="#2675" id="2675">2675</a>
+<a href="#2676" id="2676">2676</a>
+<a href="#2677" id="2677">2677</a>
+<a href="#2678" id="2678">2678</a>
+<a href="#2679" id="2679">2679</a>
+<a href="#2680" id="2680">2680</a>
+<a href="#2681" id="2681">2681</a>
+<a href="#2682" id="2682">2682</a>
+<a href="#2683" id="2683">2683</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::convert::TryInto;
 <span class="kw">use </span>std::ops::RangeBounds;
 
@@ -5087,9 +5102,10 @@
 
 <span class="attr">#[doc(hidden)]
 #[derive(Debug)]
-</span><span class="kw">pub struct </span>_AutoValueParser&lt;T&gt;(std::marker::PhantomData&lt;T&gt;);
+#[allow(non_camel_case_types)]
+</span><span class="kw">pub struct </span>_infer_ValueParser_for&lt;T&gt;(std::marker::PhantomData&lt;T&gt;);
 
-<span class="kw">impl</span>&lt;T&gt; _AutoValueParser&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; _infer_ValueParser_for&lt;T&gt; {
     <span class="attr">#[doc(hidden)]
     #[allow(clippy::new_without_default)]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
@@ -5105,15 +5121,16 @@
 </span><span class="kw">pub struct </span>_AnonymousValueParser(ValueParser);
 
 <span class="attr">#[doc(hidden)]
-</span><span class="kw">pub mod </span>via_prelude {
+</span><span class="kw">pub mod </span>impl_prelude {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaFactory: private::_ValueParserViaFactorySealed {
+    #[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_ValueParserFactory: private::_impls_ValueParserFactorySealed {
         <span class="kw">type </span>Parser;
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Parser;
     }
-    <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _ValueParserViaFactory <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_AutoValueParser&lt;P&gt; {
+    <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _impls_ValueParserFactory <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;P&gt; {
         <span class="kw">type </span>Parser = P::Parser;
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Parser {
             P::value_parser()
@@ -5121,13 +5138,14 @@
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaValueEnum: private::_ValueParserViaValueEnumSealed {
+    #[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_ValueEnum: private::_impls_ValueEnumSealed {
         <span class="kw">type </span>Output;
 
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Output;
     }
-    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; _ValueParserViaValueEnum
-        <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;E&gt;
+    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; _impls_ValueEnum
+        <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;E&gt;
     {
         <span class="kw">type </span>Output = EnumValueParser&lt;E&gt;;
 
@@ -5137,10 +5155,11 @@
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaFromOsString: private::_ValueParserViaFromOsStringSealed {
+    #[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_From_OsString: private::_impls_From_OsStringSealed {
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
     }
-    <span class="kw">impl</span>&lt;FromOsString&gt; _ValueParserViaFromOsString <span class="kw">for </span>&amp;&amp;&amp;&amp;_AutoValueParser&lt;FromOsString&gt;
+    <span class="kw">impl</span>&lt;FromOsString&gt; _impls_From_OsString <span class="kw">for </span>&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;FromOsString&gt;
     <span class="kw">where
         </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
     {
@@ -5154,10 +5173,11 @@
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaFromOsStr: private::_ValueParserViaFromOsStrSealed {
+    #[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_From_OsStr: private::_impls_From_OsStrSealed {
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
     }
-    <span class="kw">impl</span>&lt;FromOsStr&gt; _ValueParserViaFromOsStr <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;FromOsStr&gt;
+    <span class="kw">impl</span>&lt;FromOsStr&gt; _impls_From_OsStr <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromOsStr&gt;
     <span class="kw">where
         </span>FromOsStr:
             <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>std::ffi::OsStr&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
@@ -5172,10 +5192,11 @@
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaFromString: private::_ValueParserViaFromStringSealed {
+    #[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_From_String: private::_impls_From_StringSealed {
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
     }
-    <span class="kw">impl</span>&lt;FromString&gt; _ValueParserViaFromString <span class="kw">for </span>&amp;&amp;_AutoValueParser&lt;FromString&gt;
+    <span class="kw">impl</span>&lt;FromString&gt; _impls_From_String <span class="kw">for </span>&amp;&amp;_infer_ValueParser_for&lt;FromString&gt;
     <span class="kw">where
         </span>FromString: From&lt;String&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
     {
@@ -5185,10 +5206,11 @@
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaFromStr: private::_ValueParserViaFromStrSealed {
+    #[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_From_str: private::_impls_From_strSealed {
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
     }
-    <span class="kw">impl</span>&lt;FromStr&gt; _ValueParserViaFromStr <span class="kw">for </span><span class="kw-2">&amp;</span>_AutoValueParser&lt;FromStr&gt;
+    <span class="kw">impl</span>&lt;FromStr&gt; _impls_From_str <span class="kw">for </span><span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromStr&gt;
     <span class="kw">where
         </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
     {
@@ -5198,10 +5220,11 @@
     }
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub trait </span>_ValueParserViaParse: private::_ValueParserViaParseSealed {
+    #[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_FromStr: private::_impls_FromStrSealed {
         <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
     }
-    <span class="kw">impl</span>&lt;Parse&gt; _ValueParserViaParse <span class="kw">for </span>_AutoValueParser&lt;Parse&gt;
+    <span class="kw">impl</span>&lt;Parse&gt; _impls_FromStr <span class="kw">for </span>_infer_ValueParser_for&lt;Parse&gt;
     <span class="kw">where
         </span>Parse: std::str::FromStr + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
         &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
@@ -5269,8 +5292,8 @@
 </span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules!</span> value_parser {
     (<span class="macro-nonterminal">$name</span>:ty) =&gt; {{
-        <span class="kw">use </span><span class="macro-nonterminal">$crate::builder::via_prelude</span>::<span class="kw-2">*</span>;
-        <span class="kw">let </span>auto = <span class="macro-nonterminal">$crate::builder::_AutoValueParser</span>::&lt;<span class="macro-nonterminal">$name</span>&gt;::new();
+        <span class="kw">use </span><span class="macro-nonterminal">$crate::builder::impl_prelude</span>::<span class="kw-2">*</span>;
+        <span class="kw">let </span>auto = <span class="macro-nonterminal">$crate::builder::_infer_ValueParser_for</span>::&lt;<span class="macro-nonterminal">$name</span>&gt;::new();
         (&amp;&amp;&amp;&amp;&amp;&amp;auto).value_parser()
     }};
 }
@@ -5278,38 +5301,45 @@
 <span class="kw">mod </span>private {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">pub trait </span>_ValueParserViaFactorySealed {}
-    <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _ValueParserViaFactorySealed <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_AutoValueParser&lt;P&gt; {}
+    <span class="attr">#[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_ValueParserFactorySealed {}
+    <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _impls_ValueParserFactorySealed <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;P&gt; {}
 
-    <span class="kw">pub trait </span>_ValueParserViaValueEnumSealed {}
-    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum&gt; _ValueParserViaValueEnumSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;E&gt; {}
+    <span class="attr">#[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_ValueEnumSealed {}
+    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum&gt; _impls_ValueEnumSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;E&gt; {}
 
-    <span class="kw">pub trait </span>_ValueParserViaFromOsStringSealed {}
-    <span class="kw">impl</span>&lt;FromOsString&gt; _ValueParserViaFromOsStringSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;_AutoValueParser&lt;FromOsString&gt; <span class="kw">where
+    <span class="attr">#[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_From_OsStringSealed {}
+    <span class="kw">impl</span>&lt;FromOsString&gt; _impls_From_OsStringSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;FromOsString&gt; <span class="kw">where
         </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
     </span>{
     }
 
-    <span class="kw">pub trait </span>_ValueParserViaFromOsStrSealed {}
-    <span class="kw">impl</span>&lt;FromOsStr&gt; _ValueParserViaFromOsStrSealed <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_AutoValueParser&lt;FromOsStr&gt; <span class="kw">where
+    <span class="attr">#[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_From_OsStrSealed {}
+    <span class="kw">impl</span>&lt;FromOsStr&gt; _impls_From_OsStrSealed <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromOsStr&gt; <span class="kw">where
         </span>FromOsStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>std::ffi::OsStr&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
     </span>{
     }
 
-    <span class="kw">pub trait </span>_ValueParserViaFromStringSealed {}
-    <span class="kw">impl</span>&lt;FromString&gt; _ValueParserViaFromStringSealed <span class="kw">for </span>&amp;&amp;_AutoValueParser&lt;FromString&gt; <span class="kw">where
+    <span class="attr">#[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_From_StringSealed {}
+    <span class="kw">impl</span>&lt;FromString&gt; _impls_From_StringSealed <span class="kw">for </span>&amp;&amp;_infer_ValueParser_for&lt;FromString&gt; <span class="kw">where
         </span>FromString: From&lt;String&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
     </span>{
     }
 
-    <span class="kw">pub trait </span>_ValueParserViaFromStrSealed {}
-    <span class="kw">impl</span>&lt;FromStr&gt; _ValueParserViaFromStrSealed <span class="kw">for </span><span class="kw-2">&amp;</span>_AutoValueParser&lt;FromStr&gt; <span class="kw">where
+    <span class="attr">#[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_From_strSealed {}
+    <span class="kw">impl</span>&lt;FromStr&gt; _impls_From_strSealed <span class="kw">for </span><span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromStr&gt; <span class="kw">where
         </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
     </span>{
     }
 
-    <span class="kw">pub trait </span>_ValueParserViaParseSealed {}
-    <span class="kw">impl</span>&lt;Parse&gt; _ValueParserViaParseSealed <span class="kw">for </span>_AutoValueParser&lt;Parse&gt;
+    <span class="attr">#[allow(non_camel_case_types)]
+    </span><span class="kw">pub trait </span>_impls_FromStrSealed {}
+    <span class="kw">impl</span>&lt;Parse&gt; _impls_FromStrSealed <span class="kw">for </span>_infer_ValueParser_for&lt;Parse&gt;
     <span class="kw">where
         </span>Parse: std::str::FromStr + std::any::Any + Send + Sync + <span class="lifetime">'static</span>,
         &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,

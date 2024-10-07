@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.39.0/src/runtime.rs`."><title>runtime.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.40.0/src/runtime.rs`."><title>runtime.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -705,21 +705,7 @@
 <a href="#705" id="705">705</a>
 <a href="#706" id="706">706</a>
 <a href="#707" id="707">707</a>
-<a href="#708" id="708">708</a>
-<a href="#709" id="709">709</a>
-<a href="#710" id="710">710</a>
-<a href="#711" id="711">711</a>
-<a href="#712" id="712">712</a>
-<a href="#713" id="713">713</a>
-<a href="#714" id="714">714</a>
-<a href="#715" id="715">715</a>
-<a href="#716" id="716">716</a>
-<a href="#717" id="717">717</a>
-<a href="#718" id="718">718</a>
-<a href="#719" id="719">719</a>
-<a href="#720" id="720">720</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
-<span class="kw">use </span>std::cell::RefCell;
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::collections::{BTreeMap, BTreeSet};
 <span class="kw">use </span>std::error::Error;
 <span class="kw">use </span>std::fs;
@@ -727,6 +713,7 @@
 <span class="kw">use </span>std::path::{Path, PathBuf};
 <span class="kw">use </span>std::str;
 <span class="kw">use </span>std::sync::{Arc, Mutex};
+<span class="kw">use </span>std::{borrow::Cow, env};
 
 <span class="kw">use </span><span class="kw">crate</span>::env::{
     get_cargo_workspace, get_tool_config, memoize_snapshot_file, snapshot_update_behavior,
@@ -797,27 +784,20 @@
     }
 }
 
-<span class="kw">pub enum </span>ReferenceValue&lt;<span class="lifetime">'a</span>&gt; {
-    Named(<span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;),
-    Inline(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str),
+<span class="doccomment">/// A reference to a snapshot
+</span><span class="kw">pub enum </span>ReferenceValue&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="doccomment">/// A named snapshot, where the inner value is the snapshot name.
+    </span>Named(<span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;),
+    <span class="doccomment">/// An inline snapshot, where the inner value is the snapshot contents.
+    </span>Inline(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str),
 }
 
 <span class="kw">fn </span>is_doctest(function_name: <span class="kw-2">&amp;</span>str) -&gt; bool {
     function_name.starts_with(<span class="string">"rust_out::main::_doctest"</span>)
 }
 
-<span class="kw">fn </span>detect_snapshot_name(
-    function_name: <span class="kw-2">&amp;</span>str,
-    module_path: <span class="kw-2">&amp;</span>str,
-    inline: bool,
-    is_doctest: bool,
-) -&gt; <span class="prelude-ty">Result</span>&lt;String, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
+<span class="kw">fn </span>detect_snapshot_name(function_name: <span class="kw-2">&amp;</span>str, module_path: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>name = function_name;
-
-    <span class="comment">// simplify doctest names
-    </span><span class="kw">if </span>is_doctest &amp;&amp; !inline {
-        <span class="macro">panic!</span>(<span class="string">"Cannot determine reliable names for snapshot in doctests.  Please use explicit names instead."</span>);
-    }
 
     <span class="comment">// clean test name first
     </span>name = name.rsplit(<span class="string">"::"</span>).next().unwrap();
@@ -961,9 +941,14 @@
             ReferenceValue::Named(name) =&gt; {
                 <span class="kw">let </span>name = <span class="kw">match </span>name {
                     <span class="prelude-val">Some</span>(name) =&gt; add_suffix_to_snapshot_name(name),
-                    <span class="prelude-val">None </span>=&gt; detect_snapshot_name(function_name, module_path, <span class="bool-val">false</span>, is_doctest)
-                        .unwrap()
-                        .into(),
+                    <span class="prelude-val">None </span>=&gt; {
+                        <span class="kw">if </span>is_doctest {
+                            <span class="macro">panic!</span>(<span class="string">"Cannot determine reliable names for snapshot in doctests.  Please use explicit names instead."</span>);
+                        }
+                        detect_snapshot_name(function_name, module_path)
+                            .unwrap()
+                            .into()
+                    }
                 };
                 <span class="kw">if </span>allow_duplicates() {
                     duplication_key = <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">"named:{}|{}"</span>, module_path, name));
@@ -991,7 +976,7 @@
                 } <span class="kw">else </span>{
                     prevent_inline_duplicate(function_name, assertion_file, assertion_line);
                 }
-                snapshot_name = detect_snapshot_name(function_name, module_path, <span class="bool-val">true</span>, is_doctest)
+                snapshot_name = detect_snapshot_name(function_name, module_path)
                     .ok()
                     .map(Cow::Owned);
                 <span class="kw">let </span><span class="kw-2">mut </span>pending_file = cargo_workspace.join(assertion_file);
@@ -1119,7 +1104,8 @@
             }
             SnapshotUpdateBehavior::NewFile =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>snapshot_file) = <span class="self">self</span>.snapshot_file {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(new_path) = new_snapshot.save_new(snapshot_file)<span class="question-mark">? </span>{
+                    <span class="comment">// File snapshot
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(new_path) = new_snapshot.save_new(snapshot_file)<span class="question-mark">? </span>{
                         <span class="kw">if </span>should_print {
                             <span class="macro">elog!</span>(
                                 <span class="string">"{} {}"</span>,
@@ -1137,19 +1123,7 @@
                                 .bold(),
                         );
                     }
-
-                <span class="comment">// special case for pending inline snapshots.  Here we really only want
-                // to write the contents if the snapshot contents changed as the metadata
-                // is not retained for inline snapshots.  This used to have different
-                // behavior in the past where we did indeed want to rewrite the snapshots
-                // entirely since we used to change the canonical snapshot format, but now
-                // this is significantly less likely to happen and seeing hundreds of unchanged
-                // inline snapshots in the review screen is not a lot of fun.
-                </span>} <span class="kw">else if </span><span class="self">self
-                    </span>.old_snapshot
-                    .as_ref()
-                    .map_or(<span class="bool-val">true</span>, |x| x.contents() != new_snapshot.contents())
-                {
+                } <span class="kw">else </span>{
                     PendingInlineSnapshot::new(
                         <span class="prelude-val">Some</span>(new_snapshot),
                         <span class="self">self</span>.old_snapshot.clone(),
@@ -1246,13 +1220,12 @@
 
     <span class="kw">if </span>update_result != SnapshotUpdateBehavior::InPlace &amp;&amp; !ctx.tool_config.force_pass() {
         <span class="kw">if </span>fail_fast &amp;&amp; ctx.tool_config.output_behavior() != OutputBehavior::Nothing {
-            <span class="macro">println!</span>(
-                <span class="string">"{hint}"</span>,
-                hint = style(
-                    <span class="string">"Stopped on the first failure. Run `cargo insta test` to run all snapshots."
-                </span>)
-                .dim(),
-            );
+            <span class="kw">let </span>msg = <span class="kw">if </span>env::var(<span class="string">"INSTA_CARGO_INSTA"</span>) == <span class="prelude-val">Ok</span>(<span class="string">"1"</span>.to_string()) {
+                <span class="string">"Stopped on the first failure."
+            </span>} <span class="kw">else </span>{
+                <span class="string">"Stopped on the first failure. Run `cargo insta test` to run all snapshots."
+            </span>};
+            <span class="macro">println!</span>(<span class="string">"{hint}"</span>, hint = style(msg).dim(),);
         }
 
         <span class="comment">// if we are in glob mode, count the failures and print the
@@ -1362,6 +1335,7 @@
         assertion_file,
         assertion_line,
     )<span class="question-mark">?</span>;
+
     <span class="kw">let </span>tool_config = get_tool_config(manifest_dir);
 
     <span class="comment">// apply filters if they are available
