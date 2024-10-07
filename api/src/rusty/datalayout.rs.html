@@ -189,6 +189,7 @@
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::{Add, AddAssign};
 
 <span class="attr">#[derive(Copy, Clone, Debug)]
@@ -276,7 +277,8 @@
         MemoryLocation(Bytes(value))
     }
 
-    <span class="kw">pub fn </span>align_to(<span class="self">self</span>, align: Bytes) -&gt; <span class="self">Self </span>{
+    <span class="comment">// see https://en.wikipedia.org/wiki/Data_structure_alignment#Computing_padding
+    </span><span class="kw">pub fn </span>align_to(<span class="self">self</span>, align: Bytes) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>align = align.value() - <span class="number">1</span>;
         MemoryLocation::new((<span class="self">self</span>.value() + align) &amp; !align)
     }
