@@ -1380,6 +1380,7 @@ fn a_program_pou_is_indexed() {
             is_variadic: false,
             location: source_location_factory.create_range(65..75),
             is_generated: false,
+            is_const: false,
         }),
         index.find_pou("myFunction"),
     );

@@ -1597,6 +1597,7 @@ fn sized_string_as_function_return() {
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        is_const: false,
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));
@@ -1639,6 +1640,7 @@ fn array_type_as_function_return() {
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        is_const: false,
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));

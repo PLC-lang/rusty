@@ -68,12 +68,19 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
     let mut unit = CompilationUnit::new(file_name);
 
     let mut linkage = lnk;
+    let mut constant = false;
     loop {
         match lexer.token {
             PropertyExternal => {
                 linkage = LinkageType::External;
                 lexer.advance();
                 //Don't reset linkage
+                continue;
+            }
+            PropertyConstant => {
+                // parse optional const pragma (only allowed in builtins for now)
+                constant = true;
+                lexer.advance();
                 continue;
             }
             KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
@@ -87,10 +94,14 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
                     _ => (PouType::FunctionBlock, KeywordEndFunctionBlock),
                 };
 
-                let (mut pou, mut implementation) = parse_pou(&mut lexer, params.0, linkage, params.1);
+                let (mut pou, mut implementation) =
+                    parse_pou(&mut lexer, params.0, linkage, params.1, constant);
 
                 unit.units.append(&mut pou);
                 unit.implementations.append(&mut implementation);
+
+                // reset const pragma
+                constant = false;
             }
             KeywordAction => {
                 if let Some(implementation) = parse_action(&mut lexer, linkage, None) {
@@ -169,7 +180,14 @@ fn parse_pou(
     pou_type: PouType,
     linkage: LinkageType,
     expected_end_token: lexer::Token,
+    constant: bool,
 ) -> (Vec<Pou>, Vec<Implementation>) {
+    if constant && !matches!(linkage, LinkageType::BuiltIn) {
+        lexer.accept_diagnostic(Diagnostic::const_pragma_is_not_allowed(
+            lexer.last_location().span(&lexer.location()),
+        ));
+    }
+
     let start = lexer.range().start;
     lexer.advance(); //Consume ProgramKeyword
     let closing_tokens = vec![
@@ -223,8 +241,9 @@ fn parse_pou(
             // implementations. Note that function blocks have to start with the method
             // declarations before their implementation.
             // all other Pous need to be checked in the validator if they can have methods.
-            while lexer.token == KeywordMethod {
-                if let Some((pou, implementation)) = parse_method(lexer, &name, linkage) {
+            while matches!(lexer.token, KeywordMethod | PropertyConstant) {
+                let const_method = lexer.try_consume(&PropertyConstant);
+                if let Some((pou, implementation)) = parse_method(lexer, &name, linkage, const_method) {
                     impl_pous.push(pou);
                     implementations.push(implementation);
                 }
@@ -253,6 +272,7 @@ fn parse_pou(
                 generics,
                 linkage,
                 super_class,
+                is_const: constant,
             }];
             pous.append(&mut impl_pous);
 
@@ -415,12 +435,20 @@ fn parse_method(
     lexer: &mut ParseSession,
     class_name: &str,
     linkage: LinkageType,
+    constant: bool,
 ) -> Option<(Pou, Implementation)> {
     parse_any_in_region(lexer, vec![KeywordEndMethod], |lexer| {
         // Method declarations look like this:
         // METHOD [AccessModifier] [ABSTRACT|FINAL] [OVERRIDE] [: return_type]
         //    ...
         // END_METHOD
+
+        // constant pragma is only allowed in builtins for now
+        if constant {
+            lexer.accept_diagnostic(Diagnostic::const_pragma_is_not_allowed(
+                lexer.last_location().span(&lexer.location()),
+            ));
+        }
 
         let method_start = lexer.range().start;
         lexer.advance(); // eat METHOD keyword
@@ -471,6 +499,7 @@ fn parse_method(
                 generics,
                 linkage,
                 super_class: None,
+                is_const: constant,
             },
             implementation,
         ))

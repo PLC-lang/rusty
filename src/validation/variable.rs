@@ -137,7 +137,7 @@ fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
     if matches!(block.variable_block_type, VariableBlockType::External) {
         validator.push_diagnostic(
             Diagnostic::new("VAR_EXTERNAL blocks have no effect")
-                .with_error_code("E105")
+                .with_error_code("E106")
                 .with_location(&block.location),
         );
     }

@@ -321,6 +321,7 @@ fn new_pou(
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        is_const: false,
     }
 }
 

@@ -19,6 +19,10 @@ pub enum Token {
     #[token("{ref}")]
     PropertyByRef,
 
+    #[token("@CONSTANT")]
+    #[token("{constant}")]
+    PropertyConstant,
+
     #[token("{sized}")]
     PropertySized,
 
