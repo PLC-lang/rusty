@@ -13,6 +13,5 @@ END_VAR
 END_FUNCTION_BLOCK
 
 FUNCTION main: DINT
-    __init___global_struct_instances_st();
     foo();
 END_FUNCTION

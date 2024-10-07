@@ -258,6 +258,7 @@ pub enum PouType {
     Class,
     Method { owner_class: String },
     Init,
+    ProjectInit,
 }
 
 impl Display for PouType {
@@ -270,6 +271,7 @@ impl Display for PouType {
             PouType::Class => write!(f, "Class"),
             PouType::Method { .. } => write!(f, "Method"),
             PouType::Init => write!(f, "Init"),
+            PouType::ProjectInit => write!(f, "ProjectInit"),
         }
     }
 }
@@ -282,6 +284,10 @@ impl PouType {
         } else {
             None
         }
+    }
+
+    pub fn is_function_or_init(&self) -> bool {
+        matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit)
     }
 }
 
