@@ -206,8 +206,9 @@ lazy_static! {
         E102,   Error,      include_str!("./error_codes/E102.md"),  // Template variable without hardware binding
         E103,   Error,      include_str!("./error_codes/E103.md"),  // Immutable Hardware Binding
         E104,   Error,      include_str!("./error_codes/E104.md"),  // Config Variable With Incomplete Address
-        E105,   Error,      include_str!("./error_codes/E105.md"),  // Missing configuration for template variable
-        E106,   Error,      include_str!("./error_codes/E106.md"),  // Template variable is configured multiple times
+        E105,   Error,      include_str!("./error_codes/E105.md"),  // CONSTANT keyword in POU
+        E107,   Error,      include_str!("./error_codes/E107.md"),  // Missing configuration for template variable
+        E108,   Error,      include_str!("./error_codes/E108.md"),  // Template variable is configured multiple times
     );
 }
 

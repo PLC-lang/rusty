@@ -265,6 +265,12 @@ impl Diagnostic {
             location,
         )
     }
+
+    pub fn const_pragma_is_not_allowed(location: SourceLocation) -> Diagnostic {
+        Diagnostic::new("Pragma {constant} is not allowed in POU declarations")
+            .with_location(location)
+            .with_error_code("E105")
+    }
 }
 
 // CFC related diagnostics

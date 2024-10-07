@@ -11,11 +11,11 @@ VAR_GLOBAL
     s2 : ARRAY[0..1] OF STRING := ['hello', 'world'];
 END_VAR
 
-PROGRAM prog 
-VAR 
+PROGRAM prog
+VAR
     str: myStruct;
 END_VAR
-VAR_TEMP 
+VAR_TEMP
     tmp: STRING;
 END_VAR
     // CHECK: Hello, world!
@@ -30,6 +30,5 @@ END_VAR
 END_PROGRAM
 
 FUNCTION main: DINT
-    __init___structs_st();
     prog();
 END_FUNCTION

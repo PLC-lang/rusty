@@ -322,7 +322,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
     POU {
         name: "__init___testproject",
         variable_blocks: [],
-        pou_type: Init,
+        pou_type: ProjectInit,
         return_type: None,
     }
     "###);
@@ -491,6 +491,8 @@ fn generating_init_functions() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
     define void @__init___testproject() {
     entry:
       ret void
@@ -632,6 +634,7 @@ fn generating_init_functions() {
     @__foo__init = external global %foo
     @__myStruct__init = external global %myStruct
     @s = external global %myStruct
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -751,6 +754,8 @@ fn intializing_temporary_variables() {
     declare void @foo(%foo*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:

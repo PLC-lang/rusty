@@ -220,7 +220,7 @@ impl<'a> Validator<'a> {
             if loc.len() > 1 {
                 self.diagnostics.push(
                     Diagnostic::new("Template variable configured multiple times")
-                        .with_error_code("E106")
+                        .with_error_code("E108")
                         .with_location(&loc[0])
                         .with_secondary_locations(loc.iter().skip(1).cloned().collect()),
                 )
@@ -251,7 +251,7 @@ impl<'a> Validator<'a> {
                 } else {
                     self.diagnostics.push(
                         Diagnostic::new("Template-variable must have a configuration")
-                            .with_error_code("E105")
+                            .with_error_code("E107")
                             .with_location(&val.source_location),
                     );
                 }
@@ -263,7 +263,7 @@ impl<'a> Validator<'a> {
             self.diagnostics.push(
                 Diagnostic::new("One or more template-elements in array have not been configured")
                     .with_location(*array_location)
-                    .with_error_code("E105"),
+                    .with_error_code("E107"),
             );
         });
     }

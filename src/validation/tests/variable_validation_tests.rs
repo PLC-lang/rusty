@@ -483,7 +483,7 @@ fn var_conf_template_variable_does_not_exist() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E105]: Template-variable must have a configuration
+    error[E107]: Template-variable must have a configuration
       ┌─ <internal>:4:17
       │
     4 │                 bar AT %I* : BOOL;
@@ -636,6 +636,90 @@ fn var_conf_template_variable_is_no_template() {
 }
 
 #[test]
+fn only_constant_builtins_are_allowed_in_initializer() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL 
+            gb: BOOL;
+            gb2: BOOL;
+        END_VAR
+
+        {constant}
+        FUNCTION AlwaysTrue : BOOL
+            AlwaysTrue := TRUE;
+        END_FUNCTION
+
+        FUNCTION Negate : BOOL
+        VAR_INPUT
+            in: BOOL;
+        END_VAR
+            Negate := NOT in;
+        END_FUNCTION
+
+        FUNCTION_BLOCK foo
+            VAR
+                bar : REF_TO BOOL := REF(gb); // OK
+                qux : BOOL := AlwaysTrue(); // is const but no builtin, should err
+                quux : BOOL := Negate(gb); // Should err
+                corge : LWORD := ADR(gb); // OK
+                grault : BOOL := SEL(TRUE, gb, gb2); // is builtin but no const, should err
+            END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E105]: Pragma {constant} is not allowed in POU declarations
+      ┌─ <internal>:7:9
+      │  
+    7 │ ╭         {constant}
+    8 │ │         FUNCTION AlwaysTrue : BOOL
+      │ ╰────────────────^ Pragma {constant} is not allowed in POU declarations
+
+    error[E033]: Unresolved constant `qux` variable: Call-statement 'AlwaysTrue' in initializer is not constant.
+       ┌─ <internal>:22:31
+       │
+    22 │                 qux : BOOL := AlwaysTrue(); // is const but no builtin, should err
+       │                               ^^^^^^^^^^^^^ Unresolved constant `qux` variable: Call-statement 'AlwaysTrue' in initializer is not constant.
+
+    error[E033]: Unresolved constant `quux` variable: Call-statement 'Negate' in initializer is not constant.
+       ┌─ <internal>:23:32
+       │
+    23 │                 quux : BOOL := Negate(gb); // Should err
+       │                                ^^^^^^^^^^ Unresolved constant `quux` variable: Call-statement 'Negate' in initializer is not constant.
+
+    error[E033]: Unresolved constant `grault` variable: Call-statement 'SEL' in initializer is not constant.
+       ┌─ <internal>:25:34
+       │
+    25 │                 grault : BOOL := SEL(TRUE, gb, gb2); // is builtin but no const, should err
+       │                                  ^^^^^^^^^^^^^^^^^^ Unresolved constant `grault` variable: Call-statement 'SEL' in initializer is not constant.
+
+    "###);
+}
+
+#[test]
+fn unresolved_references_to_const_builtins_in_initializer_are_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo
+            VAR
+                bar : REF_TO BOOL := REF(gb); // unresolved reference to gb
+            END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E048]: Could not resolve reference to gb
+      ┌─ <internal>:4:42
+      │
+    4 │                 bar : REF_TO BOOL := REF(gb); // unresolved reference to gb
+      │                                          ^^ Could not resolve reference to gb
+
+    "###);
+}
+
+#[test]
 fn unconfigured_template_variables_are_validated() {
     let diagnostics = parse_and_validate_buffered(
         r#"
@@ -659,7 +743,7 @@ fn unconfigured_template_variables_are_validated() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E105]: Template-variable must have a configuration
+    error[E107]: Template-variable must have a configuration
       ┌─ <internal>:5:17
       │
     5 │                 qux AT %I* : BOOL;
@@ -693,7 +777,7 @@ fn variable_configured_multiple_times() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E106]: Template variable configured multiple times
+    error[E108]: Template variable configured multiple times
        ┌─ <internal>:15:13
        │
     15 │             main.foo.bar AT %IX1.0 : BOOL;
@@ -760,7 +844,7 @@ fn missing_array_elements_are_reported() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E105]: One or more template-elements in array have not been configured
+    error[E107]: One or more template-elements in array have not been configured
       ┌─ <internal>:4:17
       │
     4 │                 bar AT %I* : BOOL;
@@ -793,7 +877,7 @@ fn missing_configurations_in_arrays_with_multiple_dimensions_are_validated() {
     );
 
     assert_snapshot!(diagnostics, @r###"
-    error[E105]: One or more template-elements in array have not been configured
+    error[E107]: One or more template-elements in array have not been configured
       ┌─ <internal>:4:17
       │
     4 │                 bar AT %I* : BOOL;
@@ -836,7 +920,7 @@ fn arrays_with_const_expr_access_cause_errors() {
     19 │             main.foo[START].bar AT %IX1.0 : BOOL;
        │                      ^^^^^ VAR_CONFIG array access must be a literal integer
 
-    error[E105]: One or more template-elements in array have not been configured
+    error[E107]: One or more template-elements in array have not been configured
       ┌─ <internal>:8:17
       │
     8 │                 bar AT %I* : BOOL;
@@ -893,7 +977,7 @@ fn multi_dim_arrays_with_const_expr_access_cause_errors() {
     21 │             main.foo[1, START * 2].bar AT %IX1.2 : BOOL;
        │                         ^^^^^^^^^ VAR_CONFIG array access must be a literal integer
 
-    error[E105]: One or more template-elements in array have not been configured
+    error[E107]: One or more template-elements in array have not been configured
       ┌─ <internal>:8:17
       │
     8 │                 bar AT %I* : BOOL;
@@ -938,7 +1022,7 @@ fn array_access_with_non_integer_literal_causes_error() {
     16 │             main.foo[1.4].bar AT %IX1.1 : BOOL;
        │                      ^^^ VAR_CONFIG array access must be a literal integer
 
-    error[E105]: One or more template-elements in array have not been configured
+    error[E107]: One or more template-elements in array have not been configured
       ┌─ <internal>:4:17
       │
     4 │                 bar AT %I* : BOOL;

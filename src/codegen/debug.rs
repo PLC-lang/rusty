@@ -531,7 +531,7 @@ impl<'ink> DebugBuilder<'ink> {
             }
         }
         let implementation = pou.find_implementation(index).expect("A POU will have an impl at this stage");
-        if implementation.implementation_type != ImplementationType::Function {
+        if !implementation.get_implementation_type().is_function_or_init() {
             if implementation.get_implementation_type() == &ImplementationType::Method {
                 //Methods ignored for now
             } else {

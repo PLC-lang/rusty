@@ -5,8 +5,6 @@ VAR_GLOBAL
 END_VAR
 
 FUNCTION main: DINT
-    __init___global_variables_st();
-
     // CHECK: a, b, c, d
     printf('%s, %s, %s, %s$N', REF(alias[0]), REF(alias[1]), REF(alias[2]), REF(alias[3]));
 END_FUNCTION

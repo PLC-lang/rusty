@@ -381,6 +381,7 @@ pub enum ImplementationType {
     Class,
     Method,
     Init,
+    ProjectInit,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -418,18 +419,37 @@ impl ImplementationIndexEntry {
     pub fn is_in_unit(&self, unit: impl AsRef<str>) -> bool {
         self.get_location().is_in_unit(unit)
     }
+
+    pub(crate) fn is_init(&self) -> bool {
+        matches!(self.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
+    }
 }
 
 impl From<&PouType> for ImplementationType {
     fn from(it: &PouType) -> Self {
         match it {
             PouType::Program => ImplementationType::Program,
-            PouType::Function | PouType::Init => ImplementationType::Function,
+            PouType::Function => ImplementationType::Function,
             PouType::FunctionBlock => ImplementationType::FunctionBlock,
             PouType::Action => ImplementationType::Action,
             PouType::Class => ImplementationType::Class,
             PouType::Method { .. } => ImplementationType::Method,
+            PouType::Init => ImplementationType::Init,
+            PouType::ProjectInit => ImplementationType::ProjectInit,
         }
+    }
+}
+
+impl ImplementationType {
+    pub fn is_function_or_init(&self) -> bool {
+        matches!(
+            self,
+            ImplementationType::Function | ImplementationType::Init | ImplementationType::ProjectInit,
+        )
+    }
+
+    pub(crate) fn is_project_init(&self) -> bool {
+        matches!(self, ImplementationType::ProjectInit)
     }
 }
 
@@ -457,6 +477,7 @@ pub enum PouIndexEntry {
         is_variadic: bool,
         location: SourceLocation,
         is_generated: bool, // true if this entry was added automatically (e.g. by generics)
+        is_const: bool,
     },
     Class {
         name: String,
@@ -529,6 +550,7 @@ impl PouIndexEntry {
         linkage: LinkageType,
         is_variadic: bool,
         location: SourceLocation,
+        is_const: bool,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -538,6 +560,7 @@ impl PouIndexEntry {
             is_variadic,
             location,
             is_generated: false,
+            is_const,
         }
     }
 
@@ -550,6 +573,7 @@ impl PouIndexEntry {
         linkage: LinkageType,
         is_variadic: bool,
         location: SourceLocation,
+        is_const: bool,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -559,6 +583,7 @@ impl PouIndexEntry {
             is_variadic,
             location,
             is_generated: true,
+            is_const,
         }
     }
 
@@ -752,6 +777,10 @@ impl PouIndexEntry {
         matches!(self, PouIndexEntry::Method { .. })
     }
 
+    pub(crate) fn is_constant(&self) -> bool {
+        matches!(self, PouIndexEntry::Function { is_const: true, .. })
+    }
+
     pub fn get_location(&self) -> &SourceLocation {
         match self {
             PouIndexEntry::Program { location, .. }
@@ -846,10 +875,6 @@ pub struct Index {
 
     // all pous,
     pous: SymbolMap<String, PouIndexEntry>,
-
-    // initializer functions are registered here in addition to the `pous` field. this is because they are
-    // excempt from certain validations/codegen will redirect certain statements and thus a quick lookup is advantageous
-    init_functions: FxIndexSet<String>,
 
     /// all implementations
     // we keep an IndexMap for implementations since duplication issues regarding implementations
@@ -975,9 +1000,6 @@ impl Index {
                 }
             }
         }
-
-        //init functions
-        self.init_functions.extend(other.init_functions);
 
         //labels
         self.labels.extend(other.labels);
@@ -1436,7 +1458,7 @@ impl Index {
     }
 
     pub fn is_init_function(&self, pou_name: &str) -> bool {
-        self.init_functions.get(pou_name).is_some()
+        self.find_implementation_by_name(pou_name).map(|it| it.is_init()).unwrap_or_default()
     }
 
     pub fn register_program(&mut self, name: &str, location: SourceLocation, linkage: LinkageType) {
@@ -1450,10 +1472,6 @@ impl Index {
 
     pub fn register_pou(&mut self, entry: PouIndexEntry) {
         self.pous.insert(entry.get_name().to_lowercase(), entry);
-    }
-
-    pub fn register_init_function(&mut self, name: &str) {
-        self.init_functions.insert(name.to_string());
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
