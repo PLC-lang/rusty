@@ -3627,6 +3627,7 @@ fn variables_in_var_external_block_are_not_generated() {
     %baz = type {}
 
     @baz_instance = external global %baz
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:

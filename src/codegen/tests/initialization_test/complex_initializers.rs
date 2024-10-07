@@ -1359,6 +1359,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
 
     @s = external global [81 x i8]
     @refString = external global [81 x i8]*
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
