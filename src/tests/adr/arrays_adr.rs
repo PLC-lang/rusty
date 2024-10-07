@@ -110,6 +110,7 @@ fn assigning_full_arrays() {
 
     @prg_instance = external global %prg
     @__Data__init = external global [10 x i32]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -192,6 +193,7 @@ fn accessing_array_elements() {
 
     @prg_instance = external global %prg
     @__Data__init = external global [10 x i32]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:

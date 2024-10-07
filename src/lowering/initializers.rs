@@ -120,8 +120,8 @@ impl AstLowerer {
 
 fn create_var_config_init(statements: Vec<AstNode>) -> CompilationUnit {
     let loc = SourceLocation::internal_in_unit(Some(INIT_COMPILATION_UNIT));
-    let pou = new_pou(VAR_CONFIG_INIT, vec![], &loc); // this can probably just be internal
-    let implementation = new_implementation(VAR_CONFIG_INIT, statements, &loc);
+    let pou = new_pou(VAR_CONFIG_INIT, vec![], PouType::Init, &loc); // this can probably just be internal
+    let implementation = new_implementation(VAR_CONFIG_INIT, statements, PouType::Init, &loc);
     new_unit(pou, implementation, INIT_COMPILATION_UNIT)
 }
 
@@ -177,7 +177,7 @@ fn create_init_unit(
         "self".to_string(),
     );
 
-    let init_pou = new_pou(&init_fn_name, param, location);
+    let init_pou = new_pou(&init_fn_name, param, PouType::Init, location);
 
     let mut statements = assignments
         .iter()
@@ -214,7 +214,7 @@ fn create_init_unit(
         .collect::<Vec<_>>();
 
     statements.extend(member_init_calls);
-    let implementation = new_implementation(&init_fn_name, statements, location);
+    let implementation = new_implementation(&init_fn_name, statements, PouType::Init, location);
 
     Some(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
 }
@@ -226,7 +226,7 @@ fn create_init_wrapper_function(lowerer: &mut AstLowerer, init_symbol_name: &str
     };
 
     let mut id_provider = lowerer.ctxt.id_provider.clone();
-    let init_pou = new_pou(init_symbol_name, vec![], &SourceLocation::internal());
+    let init_pou = new_pou(init_symbol_name, vec![], PouType::ProjectInit, &SourceLocation::internal());
 
     let global_instances = if let Some(global_instances) =
         lowerer.unresolved_initializers.get(GLOBAL_SCOPE).map(|it| {
@@ -291,7 +291,8 @@ fn create_init_wrapper_function(lowerer: &mut AstLowerer, init_symbol_name: &str
         ));
     };
 
-    let implementation = new_implementation(init_symbol_name, assignments, &SourceLocation::internal());
+    let implementation =
+        new_implementation(init_symbol_name, assignments, PouType::ProjectInit, &SourceLocation::internal());
     let mut global_init = new_unit(init_pou, implementation, init_symbol_name);
 
     if skip_var_config {
@@ -303,11 +304,16 @@ fn create_init_wrapper_function(lowerer: &mut AstLowerer, init_symbol_name: &str
     Some(global_init)
 }
 
-fn new_pou(name: &str, variable_blocks: Vec<VariableBlock>, location: &SourceLocation) -> Pou {
+fn new_pou(
+    name: &str,
+    variable_blocks: Vec<VariableBlock>,
+    pou_type: PouType,
+    location: &SourceLocation,
+) -> Pou {
     Pou {
         name: name.into(),
         variable_blocks,
-        pou_type: PouType::Init,
+        pou_type,
         return_type: None,
         location: location.clone(),
         name_location: location.to_owned(),
@@ -319,12 +325,17 @@ fn new_pou(name: &str, variable_blocks: Vec<VariableBlock>, location: &SourceLoc
     }
 }
 
-fn new_implementation(name: &str, statements: Vec<AstNode>, location: &SourceLocation) -> Implementation {
+fn new_implementation(
+    name: &str,
+    statements: Vec<AstNode>,
+    pou_type: PouType,
+    location: &SourceLocation,
+) -> Implementation {
     Implementation {
         name: name.into(),
         type_name: name.into(),
         linkage: LinkageType::Internal,
-        pou_type: PouType::Init,
+        pou_type,
         statements,
         location: location.clone(),
         name_location: location.to_owned(),

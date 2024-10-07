@@ -1,5 +1,5 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-VAR_GLOBAL 
+VAR_GLOBAL
     arr : ARRAY[1..3] OF DINT;
 END_VAR
 
@@ -38,6 +38,5 @@ END_VAR
 END_PROGRAM
 
 FUNCTION main: DINT
-    __init___nested_pous_st();
     baz();
 END_FUNCTION

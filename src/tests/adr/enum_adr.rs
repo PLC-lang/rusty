@@ -160,6 +160,7 @@ fn using_enums() {
     %prg = type { i32, i32, i32 }
 
     @prg_instance = external global %prg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:

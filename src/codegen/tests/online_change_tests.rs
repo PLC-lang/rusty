@@ -32,6 +32,7 @@ fn generate_function_with_online_change() {
     source_filename = "__init___testproject"
 
     @__custom_got = weak_odr global [4 x i8*] zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() section "$RUSTY$fn-__init___testproject:v[]" {
     entry:
@@ -88,6 +89,7 @@ fn generate_program_with_online_change() {
 
     @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i32"
     @__custom_got = weak_odr global [10 x i8*] zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() section "$RUSTY$fn-__init___testproject:v[]" {
     entry:
@@ -158,6 +160,7 @@ fn generate_program_and_var_with_online_change() {
 
     @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i32"
     @__custom_got = weak_odr global [12 x i8*] zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() section "$RUSTY$fn-__init___testproject:v[]" {
     entry:
@@ -210,6 +213,7 @@ fn generate_function_and_var_with_online_change() {
     source_filename = "__init___testproject"
 
     @__custom_got = weak_odr global [6 x i8*] zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() section "$RUSTY$fn-__init___testproject:v[]" {
     entry:

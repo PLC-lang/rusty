@@ -206,7 +206,7 @@ fn init_wrapper_function_created() {
     let init = &units[2];
     let implementation = &init.implementations[0];
     assert_eq!(implementation.name, "__init___testproject");
-    assert_eq!(implementation.pou_type, PouType::Init);
+    assert_eq!(implementation.pou_type, PouType::ProjectInit);
 
     // we expect this function to have no parameters
     assert!(init.units[0].variable_blocks.is_empty());

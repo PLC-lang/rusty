@@ -239,6 +239,8 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
     define void @__init___testproject() {
     entry:
       ret void
@@ -327,6 +329,8 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
     define void @__init___testproject() {
     entry:
       ret void
@@ -414,6 +418,8 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
     declare void @FOO(%FOO*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
@@ -554,6 +560,8 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     declare void @QUUX(%QUUX*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() {
     entry:
