@@ -1,4 +1,4 @@
-/* Script for -z combreloc */
+/* Script for -pie -z combreloc -z relro -z now */
 /* Copyright (C) 2014-2024 Free Software Foundation, Inc.
    Copying and distribution of this script, with or without modification,
    are permitted in any medium without royalty provided the copyright
@@ -11,7 +11,7 @@ SEARCH_DIR("=/usr/local/lib/aarch64-linux-gnu"); SEARCH_DIR("=/lib/aarch64-linux
 SECTIONS
 {
   /* Read-only sections, merged into text segment: */
-  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x400000)); . = SEGMENT_START("text-segment", 0x400000) + SIZEOF_HEADERS;
+  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0)); . = SEGMENT_START("text-segment", 0) + SIZEOF_HEADERS;
   .interp         : { *(.interp) }
   .note.gnu.build-id  : { *(.note.gnu.build-id) }
   .hash           : { *(.hash) }
@@ -39,9 +39,7 @@ SECTIONS
   .rela.plt       :
     {
       *(.rela.plt)
-      PROVIDE_HIDDEN (__rela_iplt_start = .);
       *(.rela.iplt)
-      PROVIDE_HIDDEN (__rela_iplt_end = .);
     }
   .init           :
   {
@@ -143,9 +141,8 @@ SECTIONS
   .jcr            : { KEEP (*(.jcr)) }
   .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*) }
   .dynamic        : { *(.dynamic) }
-  .got            : { *(.got) *(.igot) }
-  . = DATA_SEGMENT_RELRO_END (24, .);
-  .got.plt        : { *(.got.plt) *(.igot.plt) }
+  .got            : { *(.got.plt) *(.igot.plt) *(.got) *(.igot) }
+  . = DATA_SEGMENT_RELRO_END (0, .);
   .data           :
   {
     PROVIDE (__data_start = .);
@@ -154,9 +151,7 @@ SECTIONS
   }
   .data1          : { *(.data1) }
   _edata = .; PROVIDE (edata = .);
-  /* FIXME: Disabled because it was giving issues on lld
-   * . = ALIGN(ALIGNOF(NEXT_SECTION));
-   * /
+  /*. = ALIGN(ALIGNOF(NEXT_SECTION));*/
   __bss_start = .;
   __bss_start__ = .;
   .bss            :
@@ -228,4 +223,3 @@ SECTIONS
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }
   /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
 }
-
