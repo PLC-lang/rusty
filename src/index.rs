@@ -70,6 +70,8 @@ pub struct VariableIndexEntry {
     pub argument_type: ArgumentType,
     /// true if this variable is a compile-time-constant
     is_constant: bool,
+    // true if this variable is in a 'VAR_EXTERNAL' block
+    is_var_external: bool,
     /// the variable's datatype
     pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
@@ -130,6 +132,7 @@ pub struct MemberInfo<'b> {
     variable_type_name: &'b str,
     binding: Option<HardwareBinding>,
     is_constant: bool,
+    is_var_external: bool,
     varargs: Option<VarArgs>,
 }
 
@@ -148,6 +151,7 @@ impl VariableIndexEntry {
             initial_value: None,
             argument_type,
             is_constant: false,
+            is_var_external: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent,
             linkage: LinkageType::Internal,
@@ -169,6 +173,7 @@ impl VariableIndexEntry {
             initial_value: None,
             argument_type: ArgumentType::ByVal(VariableType::Global),
             is_constant: false,
+            is_var_external: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent: 0,
             linkage: LinkageType::Internal,
@@ -200,6 +205,11 @@ impl VariableIndexEntry {
 
     pub fn set_varargs(mut self, varargs: Option<VarArgs>) -> Self {
         self.varargs = varargs;
+        self
+    }
+
+    pub fn set_var_external(mut self, var_external: bool) -> Self {
+        self.is_var_external = var_external;
         self
     }
 
@@ -251,6 +261,10 @@ impl VariableIndexEntry {
 
     pub fn is_external(&self) -> bool {
         self.linkage == LinkageType::External
+    }
+
+    pub fn is_var_external(&self) -> bool {
+        self.is_var_external
     }
 
     pub fn get_declaration_type(&self) -> ArgumentType {
@@ -350,6 +364,7 @@ pub enum VariableType {
     InOut,
     Global,
     Return,
+    External,
 }
 
 impl VariableType {
@@ -368,6 +383,7 @@ impl std::fmt::Display for VariableType {
             VariableType::InOut => write!(f, "InOut"),
             VariableType::Global => write!(f, "Global"),
             VariableType::Return => write!(f, "Return"),
+            VariableType::External => write!(f, "External"),
         }
     }
 }
@@ -1138,13 +1154,18 @@ impl Index {
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
     pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         // Find pou in index
-        self.find_local_member(container_name, variable_name).or_else(|| {
-            if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                self.find_member(class, variable_name)
-            } else {
-                None
-            }
-        })
+        self.find_local_member(container_name, variable_name)
+            .or_else(|| {
+                if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
+                    self.find_member(class, variable_name)
+                } else {
+                    None
+                }
+            })
+            .filter(|it| {
+                // VAR_EXTERNAL variables are not local members
+                !it.is_var_external()
+            })
     }
 
     /// Searches for method names in the given container, if not found, attempts to search for it in super class
@@ -1518,6 +1539,7 @@ impl Index {
         .set_initial_value(initial_value)
         .set_hardware_binding(member_info.binding)
         .set_varargs(member_info.varargs)
+        .set_var_external(member_info.is_var_external)
     }
 
     pub fn register_enum_variant(

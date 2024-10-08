@@ -1030,3 +1030,108 @@ fn array_access_with_non_integer_literal_causes_error() {
 
     "###);
 }
+
+#[test]
+fn use_of_var_external_block_gives_a_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL
+            b: BOOL;
+        END_VAR
+        FUNCTION_BLOCK foo_fb
+            VAR_EXTERNAL
+                b : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    warning[E106]: VAR_EXTERNAL blocks have no effect
+      ┌─ <internal>:6:13
+      │
+    6 │             VAR_EXTERNAL
+      │             ^^^^^^^^^^^^ VAR_EXTERNAL blocks have no effect
+
+    "###);
+}
+
+#[test]
+fn unresolved_var_external_reference_does_not_lead_to_errors() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL
+            a: BOOL;
+        END_VAR
+        FUNCTION_BLOCK foo_fb
+            VAR_EXTERNAL
+                b : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    warning[E106]: VAR_EXTERNAL blocks have no effect
+      ┌─ <internal>:6:13
+      │
+    6 │             VAR_EXTERNAL
+      │             ^^^^^^^^^^^^ VAR_EXTERNAL blocks have no effect
+
+    "###);
+}
+
+#[test]
+fn var_external_with_initializer_does_not_err() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL
+            b: BOOL;
+        END_VAR
+        FUNCTION_BLOCK foo_fb
+            VAR_EXTERNAL
+                b : BOOL := TRUE;
+            END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    warning[E106]: VAR_EXTERNAL blocks have no effect
+      ┌─ <internal>:6:13
+      │
+    6 │             VAR_EXTERNAL
+      │             ^^^^^^^^^^^^ VAR_EXTERNAL blocks have no effect
+
+    "###);
+}
+
+#[test]
+fn using_var_external_variable_without_matching_global_will_not_resolve() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR_EXTERNAL
+                b : BOOL := TRUE;
+            END_VAR
+
+            b := FALSE;
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    warning[E106]: VAR_EXTERNAL blocks have no effect
+      ┌─ <internal>:3:13
+      │
+    3 │             VAR_EXTERNAL
+      │             ^^^^^^^^^^^^ VAR_EXTERNAL blocks have no effect
+
+    error[E048]: Could not resolve reference to b
+      ┌─ <internal>:7:13
+      │
+    7 │             b := FALSE;
+      │             ^ Could not resolve reference to b
+
+    "###);
+}

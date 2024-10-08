@@ -1296,3 +1296,75 @@ fn var_config_aliased_variables_initialized() {
     declare void @FB(%FB*)
     "###);
 }
+
+#[test]
+fn var_external_blocks_are_ignored_in_init_functions() {
+    let res = codegen(
+        r"
+    VAR_GLOBAL
+        s: STRING;
+        refString AT s : STRING;
+    END_VAR
+
+    FUNCTION_BLOCK foo
+    VAR_EXTERNAL
+        refString : STRING;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION bar
+    VAR_EXTERNAL
+        refString : STRING;
+    END_VAR
+    END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type {}
+
+    @s = global [81 x i8] zeroinitializer
+    @refString = global [81 x i8]* null
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+
+    define void @foo(%foo* %0) {
+    entry:
+      ret void
+    }
+
+    define void @bar() {
+    entry:
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type {}
+
+    @__foo__init = external global %foo
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    @s = external global [81 x i8]
+    @refString = external global [81 x i8]*
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      store [81 x i8]* @s, [81 x i8]** @refString, align 8
+      ret void
+    }
+    "###)
+}

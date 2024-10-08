@@ -1359,6 +1359,7 @@ fn a_program_pou_is_indexed() {
                 initial_value: None,
                 argument_type: ArgumentType::ByVal(VariableType::Global),
                 is_constant: false,
+                is_var_external: false,
                 data_type_name: "myProgram".into(),
                 location_in_parent: 0,
                 linkage: LinkageType::Internal,
@@ -1630,6 +1631,7 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     initial_value: None,
                     argument_type: ArgumentType::ByVal(VariableType::Input),
                     is_constant: false,
+                    is_var_external: false,
                     data_type_name: "__ptr_to___arr_vla_1_int".to_string(),
                     location_in_parent: 0,
                     linkage: LinkageType::Internal,
@@ -1643,6 +1645,7 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     initial_value: None,
                     argument_type: ArgumentType::ByVal(VariableType::Input),
                     is_constant: false,
+                    is_var_external: false,
                     data_type_name: "__bounds___arr_vla_1_int".to_string(),
                     location_in_parent: 1,
                     linkage: LinkageType::Internal,
@@ -1711,6 +1714,7 @@ fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
             Global,
         ),
         is_constant: false,
+        is_var_external: false,
         data_type_name: "__global_foo",
         location_in_parent: 0,
         linkage: Internal,
@@ -1791,6 +1795,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
             Global,
         ),
         is_constant: false,
+        is_var_external: false,
         data_type_name: "BOOL",
         location_in_parent: 0,
         linkage: Internal,
@@ -1942,6 +1947,7 @@ fn address_used_in_2_aliases_only_created_once() {
                 Global,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "BOOL",
             location_in_parent: 0,
             linkage: Internal,
@@ -1991,6 +1997,7 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
                 Global,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "BOOL",
             location_in_parent: 0,
             linkage: Internal,
@@ -2022,6 +2029,7 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
                 Global,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "WORD",
             location_in_parent: 0,
             linkage: Internal,
@@ -2069,6 +2077,7 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
                 Global,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "BOOL",
             location_in_parent: 0,
             linkage: Internal,
@@ -2113,6 +2122,7 @@ fn var_config_hardware_address_creates_global_variable() {
             Global,
         ),
         is_constant: false,
+        is_var_external: false,
         data_type_name: "BOOL",
         location_in_parent: 0,
         linkage: Internal,
@@ -2133,4 +2143,48 @@ fn var_config_hardware_address_creates_global_variable() {
         varargs: None,
     }
     "###);
+}
+
+#[test]
+fn var_externals_are_distinctly_indexed() {
+    let (_, index) = index(
+        "
+            VAR_GLOBAL 
+                arr: ARRAY [0..100] OF INT; 
+            END_VAR
+
+            FUNCTION foo
+            VAR_EXTERNAL
+                arr : ARRAY [0..100] OF INT;
+            END_VAR
+            END_FUNCTION
+        ",
+    );
+
+    let external = &index.get_pou_members("foo")[0];
+    let global = index.get_globals().get("arr").expect("global 'arr' must exist");
+    assert!(external.is_var_external());
+    assert_eq!(external.get_name(), global.get_name());
+    assert_eq!(external.get_variable_type(), VariableType::External);
+    assert_ne!(external, global);
+}
+
+#[test]
+fn var_externals_constants_are_both_flagged_as_external_and_constant() {
+    let (_, index) = index(
+        "
+            VAR_GLOBAL 
+                arr: ARRAY [0..100] OF INT; 
+            END_VAR
+
+            FUNCTION foo
+            VAR_EXTERNAL CONSTANT
+                arr : ARRAY [0..100] OF INT;
+            END_VAR
+            END_FUNCTION
+        ",
+    );
+
+    let external = &index.get_pou_members("foo")[0];
+    assert!(external.is_var_external() && external.is_constant());
 }

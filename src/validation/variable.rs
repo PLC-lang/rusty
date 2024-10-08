@@ -134,8 +134,19 @@ pub fn visit_variable_block<T: AnnotationMap>(
 }
 
 fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
+    if matches!(block.variable_block_type, VariableBlockType::External) {
+        validator.push_diagnostic(
+            Diagnostic::new("VAR_EXTERNAL blocks have no effect")
+                .with_error_code("E106")
+                .with_location(&block.location),
+        );
+    }
+
     if block.constant
-        && !matches!(block.variable_block_type, VariableBlockType::Global | VariableBlockType::Local)
+        && !matches!(
+            block.variable_block_type,
+            VariableBlockType::Global | VariableBlockType::Local | VariableBlockType::External
+        )
     {
         validator.push_diagnostic(
             Diagnostic::new("This variable block does not support the CONSTANT modifier")
@@ -278,7 +289,7 @@ fn validate_variable<T: AnnotationMap>(
                         .with_location(statement.get_location()),
                 );
             }
-            None if v_entry.is_constant() => {
+            None if v_entry.is_constant() && !v_entry.is_var_external() => {
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
                         .with_error_code("E033")
