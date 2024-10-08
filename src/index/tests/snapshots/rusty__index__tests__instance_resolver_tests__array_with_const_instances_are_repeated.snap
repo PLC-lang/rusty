@@ -134,7 +134,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Name(
                     "aFb",
                 ),
-                ArrayAccess(
+                ArrayDimensions(
                     [
                         Dimension {
                             start_offset: ConstExpression(
@@ -195,7 +195,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Name(
                     "aFb",
                 ),
-                ArrayAccess(
+                ArrayDimensions(
                     [
                         Dimension {
                             start_offset: ConstExpression(

@@ -483,6 +483,12 @@ fn var_conf_template_variable_does_not_exist() {
     );
 
     assert_snapshot!(diagnostics, @r###"
+    error[E107]: Template-variable must have a configuration
+      ┌─ <internal>:4:17
+      │
+    4 │                 bar AT %I* : BOOL;
+      │                 ^^^ Template-variable must have a configuration
+
     error[E101]: Template variable `qux` does not exist
        ┌─ <internal>:15:13
        │
@@ -709,6 +715,318 @@ fn unresolved_references_to_const_builtins_in_initializer_are_reported() {
       │
     4 │                 bar : REF_TO BOOL := REF(gb); // unresolved reference to gb
       │                                          ^^ Could not resolve reference to gb
+
+    "###);
+}
+
+#[test]
+fn unconfigured_template_variables_are_validated() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+                qux AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E107]: Template-variable must have a configuration
+      ┌─ <internal>:5:17
+      │
+    5 │                 qux AT %I* : BOOL;
+      │                 ^^^ Template-variable must have a configuration
+
+    "###);
+}
+
+#[test]
+fn variable_configured_multiple_times() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX1.0 : BOOL;
+            main.foo.bar AT %IX1.1 : BOOL;
+            main.foo.bar AT %IX1.2 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E108]: Template variable configured multiple times
+       ┌─ <internal>:15:13
+       │
+    15 │             main.foo.bar AT %IX1.0 : BOOL;
+       │             ^^^^^^^^^^^^ Template variable configured multiple times
+    16 │             main.foo.bar AT %IX1.1 : BOOL;
+       │             ------------ see also
+    17 │             main.foo.bar AT %IX1.2 : BOOL;
+       │             ------------ see also
+
+    "###);
+}
+
+#[test]
+fn all_array_elements_configured_causes_no_errors() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[0..1] OF foo_fb;
+                bar : ARRAY[0..1, 0..1] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo[0].bar AT %IX1.0 : BOOL;
+            main.foo[1].bar AT %IX1.1 : BOOL;
+            main.bar[0, 0].bar AT %IX1.2 : BOOL;
+            main.bar[0, 1].bar AT %IX1.3 : BOOL;
+            main.bar[1, 0].bar AT %IX1.4 : BOOL;
+            main.bar[1, 1].bar AT %IX1.5 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn missing_array_elements_are_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[0..1] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo[0].bar AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E107]: One or more template-elements in array have not been configured
+      ┌─ <internal>:4:17
+      │
+    4 │                 bar AT %I* : BOOL;
+      │                 ^^^ One or more template-elements in array have not been configured
+
+    "###);
+}
+
+#[test]
+fn missing_configurations_in_arrays_with_multiple_dimensions_are_validated() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[0..1, 2..3] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo[0, 2].bar AT %IX1.0 : BOOL;
+            main.foo[1, 2].bar AT %IX1.1 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E107]: One or more template-elements in array have not been configured
+      ┌─ <internal>:4:17
+      │
+    4 │                 bar AT %I* : BOOL;
+      │                 ^^^ One or more template-elements in array have not been configured
+
+    "###);
+}
+
+#[test]
+fn arrays_with_const_expr_access_cause_errors() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL CONSTANT
+            START: DINT := 0;
+        END_VAR
+
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[START..1] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo[START].bar AT %IX1.0 : BOOL;
+            main.foo[1].bar AT %IX1.1 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: VAR_CONFIG array access must be a literal integer
+       ┌─ <internal>:19:22
+       │
+    19 │             main.foo[START].bar AT %IX1.0 : BOOL;
+       │                      ^^^^^ VAR_CONFIG array access must be a literal integer
+
+    error[E107]: One or more template-elements in array have not been configured
+      ┌─ <internal>:8:17
+      │
+    8 │                 bar AT %I* : BOOL;
+      │                 ^^^ One or more template-elements in array have not been configured
+
+    "###);
+}
+
+#[test]
+fn multi_dim_arrays_with_const_expr_access_cause_errors() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL CONSTANT
+            START: DINT := 0;
+        END_VAR
+
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[START..1, 0..1] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo[START + 3, 0].bar AT %IX1.0 : BOOL;
+            main.foo[START - 23, 1].bar AT %IX1.1 : BOOL;
+            main.foo[1, START * 2].bar AT %IX1.2 : BOOL;
+            main.foo[1, 1].bar AT %IX1.3 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: VAR_CONFIG array access must be a literal integer
+       ┌─ <internal>:19:22
+       │
+    19 │             main.foo[START + 3, 0].bar AT %IX1.0 : BOOL;
+       │                      ^^^^^^^^^ VAR_CONFIG array access must be a literal integer
+
+    error[E001]: VAR_CONFIG array access must be a literal integer
+       ┌─ <internal>:20:22
+       │
+    20 │             main.foo[START - 23, 1].bar AT %IX1.1 : BOOL;
+       │                      ^^^^^^^^^^ VAR_CONFIG array access must be a literal integer
+
+    error[E001]: VAR_CONFIG array access must be a literal integer
+       ┌─ <internal>:21:25
+       │
+    21 │             main.foo[1, START * 2].bar AT %IX1.2 : BOOL;
+       │                         ^^^^^^^^^ VAR_CONFIG array access must be a literal integer
+
+    error[E107]: One or more template-elements in array have not been configured
+      ┌─ <internal>:8:17
+      │
+    8 │                 bar AT %I* : BOOL;
+      │                 ^^^ One or more template-elements in array have not been configured
+
+    "###);
+}
+
+#[test]
+fn array_access_with_non_integer_literal_causes_error() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : ARRAY[0..1] OF foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo['hello world'].bar AT %IX1.0 : BOOL;
+            main.foo[1.4].bar AT %IX1.1 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E001]: VAR_CONFIG array access must be a literal integer
+       ┌─ <internal>:15:22
+       │
+    15 │             main.foo['hello world'].bar AT %IX1.0 : BOOL;
+       │                      ^^^^^^^^^^^^^ VAR_CONFIG array access must be a literal integer
+
+    error[E001]: VAR_CONFIG array access must be a literal integer
+       ┌─ <internal>:16:22
+       │
+    16 │             main.foo[1.4].bar AT %IX1.1 : BOOL;
+       │                      ^^^ VAR_CONFIG array access must be a literal integer
+
+    error[E107]: One or more template-elements in array have not been configured
+      ┌─ <internal>:4:17
+      │
+    4 │                 bar AT %I* : BOOL;
+      │                 ^^^ One or more template-elements in array have not been configured
 
     "###);
 }

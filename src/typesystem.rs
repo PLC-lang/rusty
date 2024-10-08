@@ -621,7 +621,7 @@ impl DataTypeInformation {
             DataTypeInformation::String { size, encoding } => size
                 .as_int_value(index)
                 .map(|size| encoding.get_bytes_per_char() * size as u32)
-                .map(Bytes::from_bits)
+                .map(Bytes::new)
                 .unwrap(),
             DataTypeInformation::Struct { members, .. } => members
                 .iter()
@@ -669,15 +669,13 @@ impl DataTypeInformation {
         let type_layout = index.get_type_layout();
         match self {
             DataTypeInformation::Array { inner_type_name, .. } => {
-                let inner_type = index.get_type_information_or_void(inner_type_name);
-                if inner_type.get_alignment(index) > type_layout.i64 {
-                    type_layout.v128
-                } else {
-                    type_layout.v64
-                }
+                index.get_type_information_or_void(inner_type_name).get_alignment(index)
             }
             DataTypeInformation::Struct { .. } => type_layout.aggregate,
-            DataTypeInformation::String { .. } => type_layout.v64, //Strings are arrays
+            DataTypeInformation::String { encoding, .. } => match encoding {
+                StringEncoding::Utf8 => Bytes::new(1),
+                StringEncoding::Utf16 => Bytes::new(2),
+            },
             DataTypeInformation::Pointer { .. } => type_layout.p64,
             DataTypeInformation::Integer { size, semantic_size, .. } => {
                 if let Some(1) = semantic_size {

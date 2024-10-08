@@ -208,6 +208,8 @@ lazy_static! {
         E104,   Error,      include_str!("./error_codes/E104.md"),  // Config Variable With Incomplete Address
         E105,   Error,      include_str!("./error_codes/E105.md"),  // CONSTANT keyword in POU
         E106,   Warning,    include_str!("./error_codes/E106.md"),  // VAR_EXTERNAL have no effect
+        E107,   Error,      include_str!("./error_codes/E107.md"),  // Missing configuration for template variable
+        E108,   Error,      include_str!("./error_codes/E108.md"),  // Template variable is configured multiple times
     );
 }
 
