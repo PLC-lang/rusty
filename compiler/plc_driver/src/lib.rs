@@ -80,6 +80,15 @@ pub struct LinkOptions {
     pub format: FormatOption,
     pub linker: LinkerType,
     pub lib_location: Option<PathBuf>,
+    pub linker_script: LinkerScript,
+}
+
+#[derive(Clone, Default, Debug)]
+pub enum LinkerScript {
+    #[default]
+    Builtin,
+    Path(String),
+    None,
 }
 
 #[derive(Debug)]
@@ -199,12 +208,20 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
 
     library_paths.extend_from_slice(project.get_library_paths());
 
+    //Get the specified linker script or load the default linker script in a temp file
+    let linker_script = if compile_parameters.no_linker_script {
+        LinkerScript::None
+    } else {
+        compile_parameters.linker_script.clone().map(LinkerScript::Path).unwrap_or_default()
+    };
+
     let link_options = LinkOptions {
         libraries,
         library_paths,
         format: output_format,
         linker: compile_parameters.linker.as_deref().into(),
         lib_location,
+        linker_script,
     };
 
     Ok(CompilationContext { compile_parameters, project, diagnostician, compile_options, link_options })

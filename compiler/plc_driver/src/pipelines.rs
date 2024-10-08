@@ -7,7 +7,7 @@ use std::{
     sync::Mutex,
 };
 
-use crate::{CompileOptions, LinkOptions};
+use crate::{CompileOptions, LinkOptions, LinkerScript};
 use ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
@@ -39,6 +39,7 @@ use rayon::prelude::*;
 use source_code::{source_location::SourceLocation, SourceContainer};
 
 use serde_json;
+use tempfile::NamedTempFile;
 use toml;
 
 pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
@@ -625,6 +626,33 @@ impl GeneratedProject {
                 if let Some(loc) = lib_location {
                     linker.add_lib_path(&loc.to_string_lossy());
                 }
+
+                /*
+                                 *
+
+                fn get_default_linker_script() -> Result<String> {
+                    let mut file = NamedTempFile::new()?;
+                    writeln!(file, "{content}")?;
+
+                    let mut buf = String::new();
+                    file.read_to_string(&mut buf)?;
+                    dbg!(buf);
+                    Ok(dbg!(file.get_location_str().to_string()))
+                }
+                                 */
+                //Create a temp file that would contain the bultin linker script
+                //FIXME: This has to be done regardless if the file is used or not because it has
+                //to be in scope by the time we call the linker
+                let mut file = NamedTempFile::new()?;
+                match link_options.linker_script {
+                    LinkerScript::Builtin => {
+                        let content = include_str!("./linker_script");
+                        writeln!(file, "{content}")?;
+                        linker.set_linker_script(file.get_location_str().to_string());
+                    }
+                    LinkerScript::Path(script) => linker.set_linker_script(script),
+                    LinkerScript::None => {}
+                };
 
                 match link_options.format {
                     FormatOption::Static => linker.build_exectuable(output_location).map_err(Into::into),
