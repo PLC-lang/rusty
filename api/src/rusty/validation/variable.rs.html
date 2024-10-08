@@ -393,6 +393,17 @@
 <a href="#393" id="393">393</a>
 <a href="#394" id="394">394</a>
 <a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
     ArgumentProperty, ConfigVariable, Pou, PouType, Variable, VariableBlock, VariableBlockType,
 };
@@ -529,8 +540,19 @@
 }
 
 <span class="kw">fn </span>validate_variable_block(validator: <span class="kw-2">&amp;mut </span>Validator, block: <span class="kw-2">&amp;</span>VariableBlock) {
+    <span class="kw">if </span><span class="macro">matches!</span>(block.variable_block_type, VariableBlockType::External) {
+        validator.push_diagnostic(
+            Diagnostic::new(<span class="string">"VAR_EXTERNAL blocks have no effect"</span>)
+                .with_error_code(<span class="string">"E106"</span>)
+                .with_location(<span class="kw-2">&amp;</span>block.location),
+        );
+    }
+
     <span class="kw">if </span>block.constant
-        &amp;&amp; !<span class="macro">matches!</span>(block.variable_block_type, VariableBlockType::Global | VariableBlockType::Local)
+        &amp;&amp; !<span class="macro">matches!</span>(
+            block.variable_block_type,
+            VariableBlockType::Global | VariableBlockType::Local | VariableBlockType::External
+        )
     {
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"This variable block does not support the CONSTANT modifier"</span>)
@@ -673,7 +695,7 @@
                         .with_location(statement.get_location()),
                 );
             }
-            <span class="prelude-val">None </span><span class="kw">if </span>v_entry.is_constant() =&gt; {
+            <span class="prelude-val">None </span><span class="kw">if </span>v_entry.is_constant() &amp;&amp; !v_entry.is_var_external() =&gt; {
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Unresolved constant `{}` variable"</span>, variable.name.as_str(),))
                         .with_error_code(<span class="string">"E033"</span>)

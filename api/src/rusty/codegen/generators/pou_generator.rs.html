@@ -1521,7 +1521,7 @@
         }
 
         <span class="comment">// handle all parameters (without return!)
-        </span><span class="kw">for </span>m <span class="kw">in </span>members.iter().filter(|it| !it.is_return()) {
+        </span><span class="kw">for </span>m <span class="kw">in </span>members.iter().filter(|it| !(it.is_return() || it.is_var_external())) {
             <span class="kw">let </span>parameter_name = m.get_name();
 
             <span class="kw">let </span>(name, variable) = <span class="kw">if </span>m.is_parameter() {
@@ -1638,7 +1638,7 @@
         <span class="comment">//Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         </span><span class="kw">let </span><span class="kw-2">mut </span>var_count = <span class="number">0</span>;
-        <span class="kw">for </span>m <span class="kw">in </span>members.iter() {
+        <span class="kw">for </span>m <span class="kw">in </span>members.iter().filter(|it| !it.is_var_external()) {
             <span class="kw">let </span>parameter_name = m.get_name();
 
             <span class="kw">let </span>(name, variable) = <span class="kw">if </span>m.is_temp() || m.is_return() {

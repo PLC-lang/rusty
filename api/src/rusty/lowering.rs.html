@@ -548,6 +548,8 @@
 <a href="#548" id="548">548</a>
 <a href="#549" id="549">549</a>
 <a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     index::{get_init_fn_name, Index, VariableIndexEntry},
     resolver::{const_evaluator::UnresolvableConstant, AstAnnotations},
@@ -655,7 +657,9 @@
 
     <span class="kw">fn </span>add_init_statements(<span class="kw-2">&amp;mut </span><span class="self">self</span>, implementation: <span class="kw-2">&amp;mut </span>plc_ast::ast::Implementation) {
         <span class="kw">let </span>predicate = |var: <span class="kw-2">&amp;</span>VariableIndexEntry| {
-            var.is_temp() || (implementation.pou_type == PouType::Function &amp;&amp; var.is_local())
+            var.is_temp()
+                || var.is_var_external()
+                || (implementation.pou_type == PouType::Function &amp;&amp; var.is_local())
         };
         <span class="kw">let </span>strip_temporaries = |inits: <span class="kw-2">&amp;mut </span>InitAssignments| {
             <span class="kw">let </span><span class="kw-2">mut </span>temps = InitAssignments::default();

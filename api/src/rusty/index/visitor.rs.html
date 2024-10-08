@@ -837,6 +837,10 @@
 <a href="#837" id="837">837</a>
 <a href="#838" id="838">838</a>
 <a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, Index, MemberInfo};
@@ -933,6 +937,7 @@
                     variable_linkage: block_type,
                     variable_type_name: <span class="kw-2">&amp;</span>type_name,
                     is_constant: block.constant,
+                    is_var_external: <span class="macro">matches!</span>(block.variable_block_type, VariableBlockType::External),
                     binding,
                     varargs,
                 },
@@ -954,7 +959,8 @@
                 variable_name: pou.get_return_name(),
                 variable_linkage: ArgumentType::ByVal(VariableType::Return),
                 variable_type_name: return_type_name,
-                is_constant: <span class="bool-val">false</span>, <span class="comment">//return variables are not constants
+                is_constant: <span class="bool-val">false</span>,     <span class="comment">//return variables are not constants
+                </span>is_var_external: <span class="bool-val">false</span>, <span class="comment">// see above
                 </span>binding: <span class="prelude-val">None</span>,
                 varargs: <span class="prelude-val">None</span>,
             },
@@ -1164,6 +1170,7 @@
         VariableBlockType::Output =&gt; VariableType::Output,
         VariableBlockType::Global =&gt; VariableType::Global,
         VariableBlockType::InOut =&gt; VariableType::InOut,
+        VariableBlockType::External =&gt; VariableType::External,
     }
 }
 
@@ -1638,6 +1645,7 @@
                     variable_linkage: ArgumentType::ByVal(VariableType::Input), <span class="comment">// struct members act like VAR_INPUT in terms of visibility
                     </span>variable_type_name: member_type,
                     is_constant: <span class="bool-val">false</span>, <span class="comment">//struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+                    </span>is_var_external: <span class="bool-val">false</span>, <span class="comment">// structs cannot have VAR_EXTERNAL blocks
                     </span>binding,
                     varargs: <span class="prelude-val">None</span>,
                 },

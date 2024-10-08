@@ -1297,6 +1297,13 @@
 <a href="#1297" id="1297">1297</a>
 <a href="#1298" id="1298">1298</a>
 <a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -1519,8 +1526,14 @@
             <span class="comment">// parse variable declarations. note that var in/out/inout
             // blocks are not allowed inside of class declarations.
             </span><span class="kw">let </span><span class="kw-2">mut </span>variable_blocks = <span class="macro">vec!</span>[];
-            <span class="kw">let </span>allowed_var_types =
-                [KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp];
+            <span class="kw">let </span>allowed_var_types = [
+                KeywordVar,
+                KeywordVarInput,
+                KeywordVarOutput,
+                KeywordVarInOut,
+                KeywordVarTemp,
+                KeywordVarExternal,
+            ];
             <span class="kw">while </span>allowed_var_types.contains(<span class="kw-2">&amp;</span>lexer.token) {
                 variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
             }
@@ -2368,6 +2381,7 @@
         KeywordVarOutput =&gt; VariableBlockType::Output,
         KeywordVarGlobal =&gt; VariableBlockType::Global,
         KeywordVarInOut =&gt; VariableBlockType::InOut,
+        KeywordVarExternal =&gt; VariableBlockType::External,
         <span class="kw">_ </span>=&gt; VariableBlockType::Local,
     }
 }
@@ -2385,7 +2399,7 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>variables = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordEndVar], parse_variable_list);
 
-    <span class="kw">if </span>constant {
+    <span class="kw">if </span>constant &amp;&amp; !<span class="macro">matches!</span>(variable_block_type, VariableBlockType::External) {
         <span class="comment">// sneak in the DefaultValue-Statements if no initializers were defined
         </span>variables.iter_mut().filter(|it| it.initializer.is_none()).for_each(|it| {
             it.initializer = <span class="prelude-val">Some</span>(AstFactory::create_default_value(it.location.clone(), lexer.next_id()));

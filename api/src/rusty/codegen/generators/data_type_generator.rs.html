@@ -652,7 +652,7 @@
         <span class="kw">if let </span>DataTypeInformation::Struct { source, members, .. } = information {
             <span class="kw">let </span>members = members
                 .iter()
-                .filter(|it| !it.is_temp() &amp;&amp; !it.is_return())
+                .filter(|it| !(it.is_temp() || it.is_return() || it.is_var_external()))
                 .map(|m| <span class="self">self</span>.types_index.get_associated_type(m.get_type_name()))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;BasicTypeEnum&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
 
