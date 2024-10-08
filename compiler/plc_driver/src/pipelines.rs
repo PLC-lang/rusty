@@ -637,11 +637,11 @@ impl GeneratedProject {
                         let target = self.target.get_target_triple().to_string();
                         //Only do this on linux systems
                         if target.contains("linux") {
-                            if target.starts_with("x86_64") {
+                            if target.contains("x86_64") {
                                 let content = include_str!("../../../scripts/linker/x86_64.script");
                                 writeln!(file, "{content}")?;
                                 linker.set_linker_script(file.get_location_str().to_string());
-                            } else if target.starts_with("aarch64") {
+                            } else if target.contains("aarch64") {
                                 let content = include_str!("../../../scripts/linker/aarch64.script");
                                 writeln!(file, "{content}")?;
                                 linker.set_linker_script(file.get_location_str().to_string());
