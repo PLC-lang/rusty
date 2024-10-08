@@ -1688,6 +1688,14 @@
 <a href="#1688" id="1688">1688</a>
 <a href="#1689" id="1689">1689</a>
 <a href="#1690" id="1690">1690</a>
+<a href="#1691" id="1691">1691</a>
+<a href="#1692" id="1692">1692</a>
+<a href="#1693" id="1693">1693</a>
+<a href="#1694" id="1694">1694</a>
+<a href="#1695" id="1695">1695</a>
+<a href="#1696" id="1696">1696</a>
+<a href="#1697" id="1697">1697</a>
+<a href="#1698" id="1698">1698</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
@@ -1696,8 +1704,8 @@
 <span class="kw">use </span>rustc_hash::{FxHashSet, FxHasher};
 
 <span class="kw">use </span>plc_ast::ast::{
-    AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
-    TypeNature,
+    AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
+    LinkageType, PouType, TypeNature,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -2581,6 +2589,8 @@
 
     <span class="doccomment">/// The labels contained in each pou
     </span>labels: FxIndexMap&lt;String, SymbolMap&lt;String, Label&gt;&gt;,
+
+    config_variables: Vec&lt;ConfigVariable&gt;,
 }
 
 <span class="kw">impl </span>Index {
@@ -2691,6 +2701,8 @@
 
         <span class="comment">//labels
         </span><span class="self">self</span>.labels.extend(other.labels);
+
+        <span class="self">self</span>.config_variables.extend(other.config_variables);
 
         <span class="comment">//Constant expressions are intentionally not imported
         // self.constant_expressions.import(other.constant_expressions)
@@ -3367,6 +3379,10 @@
 
     <span class="kw">pub fn </span>get_labels(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SymbolMap&lt;String, Label&gt;&gt; {
         <span class="self">self</span>.labels.get(pou_name)
+    }
+
+    <span class="kw">pub fn </span>get_config_variables(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;ConfigVariable&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.config_variables
     }
 }
 

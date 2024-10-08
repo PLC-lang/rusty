@@ -832,6 +832,11 @@
 <a href="#832" id="832">832</a>
 <a href="#833" id="833">833</a>
 <a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::index::{ArgumentType, Index, MemberInfo};
@@ -866,6 +871,11 @@
     <span class="kw">for </span>implementation <span class="kw">in </span><span class="kw-2">&amp;</span>unit.implementations {
         visit_implementation(<span class="kw-2">&amp;mut </span>index, implementation);
     }
+
+    <span class="kw">for </span>config_variable <span class="kw">in </span><span class="kw-2">&amp;</span>unit.var_config {
+        index.config_variables.push(config_variable.clone());
+    }
+
     index
 }
 

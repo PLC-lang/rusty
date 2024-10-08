@@ -218,20 +218,108 @@
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
 <a href="#220" id="220">220</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Display;
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{fmt::Display, vec};
+
+<span class="kw">use </span>plc_ast::ast::{AstNode, AstStatement, ConfigVariable, ReferenceAccess, ReferenceExpr};
+<span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="kw">use crate</span>::{index::Index, typesystem::Dimension};
 
-<span class="attr">#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+<span class="attr">#[derive(Clone, Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>ExpressionPathElement&lt;<span class="lifetime">'idx</span>&gt; {
     Name(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>str),
-    ArrayAccess(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>[Dimension]),
+    ArrayDimensions(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>[Dimension]),
+    ArrayAccess(Vec&lt;i128&gt;),
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>ExpressionPathElement&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
             ExpressionPathElement::Name(name) =&gt; <span class="macro">write!</span>(f, <span class="string">"{name}"</span>),
+            ExpressionPathElement::ArrayDimensions(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
             ExpressionPathElement::ArrayAccess(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
         }
     }
@@ -245,7 +333,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'idx</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>[Dimension]&gt; <span class="kw">for </span>ExpressionPathElement&lt;<span class="lifetime">'idx</span>&gt; {
     <span class="kw">fn </span>from(dims: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>[Dimension]) -&gt; <span class="self">Self </span>{
-        ExpressionPathElement::ArrayAccess(dims)
+        ExpressionPathElement::ArrayDimensions(dims)
     }
 }
 
@@ -271,8 +359,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>levels: Vec&lt;Vec&lt;String&gt;&gt; = <span class="macro">vec!</span>[];
         <span class="kw">for </span>seg <span class="kw">in </span><span class="self">self</span>.names.iter() {
             <span class="kw">let </span>level = <span class="kw">match </span>seg {
-                <span class="kw">crate</span>::expression_path::ExpressionPathElement::Name(s) =&gt; <span class="macro">vec!</span>[s.to_string()],
-                <span class="kw">crate</span>::expression_path::ExpressionPathElement::ArrayAccess(dimensions) =&gt; {
+                ExpressionPathElement::Name(s) =&gt; <span class="macro">vec!</span>[s.to_string()],
+                ExpressionPathElement::ArrayDimensions(dimensions) =&gt; {
                     <span class="kw">let </span><span class="kw-2">mut </span>array = dimensions.iter().map(|it| it.get_range_inclusive(index).unwrap()).fold(
                         <span class="macro">vec!</span>[],
                         |curr, it| {
@@ -294,6 +382,14 @@
                     </span>array.iter_mut().for_each(|s| <span class="kw-2">*</span>s = <span class="macro">format!</span>(<span class="string">"[{s}]"</span>));
                     array
                 }
+                ExpressionPathElement::ArrayAccess(idx) =&gt; {
+                    <span class="kw">let </span><span class="prelude-val">Some</span>(first) = idx.first() <span class="kw">else </span>{ <span class="macro">unreachable!</span>(<span class="string">"Caught at the parsing stage"</span>) };
+
+                    <span class="kw">let </span>access =
+                        idx.iter().skip(<span class="number">1</span>).fold(<span class="macro">format!</span>(<span class="string">"{first}"</span>), |acc, idx| <span class="macro">format!</span>(<span class="string">"{acc},{idx}"</span>));
+
+                    <span class="macro">vec!</span>[<span class="macro">format!</span>(<span class="string">"[{access}]"</span>)]
+                }
             };
             levels.push(level);
         }
@@ -312,6 +408,76 @@
             res
         })
     }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>ConfigVariable&gt; <span class="kw">for </span>ExpressionPath&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">type </span>Error = Vec&lt;Diagnostic&gt;;
+
+    <span class="kw">fn </span>try_from(value: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>ConfigVariable) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>names = get_expression_path_segments(<span class="kw-2">&amp;</span>value.reference)<span class="question-mark">?</span>;
+        names.reverse();
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ names })
+    }
+}
+
+<span class="comment">// Transforms a `ConfigVariable`'s 'AstNode' into a collection of corresponding `ExpressionPathElement`s.
+// This function will traverse the AST top-to-bottom, collecting segments along the way, which means the order of the collection
+// needs to be reversed by the caller to match the written expression.
+</span><span class="kw">fn </span>get_expression_path_segments(node: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;ExpressionPathElement&gt;, Vec&lt;Diagnostic&gt;&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>paths = <span class="macro">vec!</span>[];
+    <span class="kw">let </span><span class="kw-2">mut </span>diagnostics = <span class="macro">vec!</span>[];
+    <span class="kw">let </span><span class="kw-2">mut </span>add_diagnostic = |location| {
+        diagnostics.push(
+            Diagnostic::new(<span class="string">"VAR_CONFIG array access must be a literal integer"</span>).with_location(location),
+        );
+    };
+    <span class="kw">match </span><span class="kw-2">&amp;</span>node.stmt {
+        AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) =&gt; {
+            paths.push(ExpressionPathElement::Name(reference.get_flat_reference_name().unwrap_or_default()));
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(base) = base {
+                <span class="kw">match </span>get_expression_path_segments(base) {
+                    <span class="prelude-val">Ok</span>(v) =&gt; paths.extend(v),
+                    <span class="prelude-val">Err</span>(e) =&gt; diagnostics.extend(e),
+                };
+            }
+        }
+        AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(idx), base }) =&gt; {
+            <span class="kw">match </span><span class="kw-2">&amp;</span>idx.as_ref().stmt {
+                AstStatement::Literal(<span class="kw">_</span>) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = idx.get_literal_integer_value().map(|it| <span class="macro">vec!</span>[it]) {
+                        paths.push(ExpressionPathElement::ArrayAccess(v))
+                    } <span class="kw">else </span>{
+                        add_diagnostic(<span class="kw-2">&amp;</span>idx.location);
+                    }
+                }
+                AstStatement::ExpressionList(vec) =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="macro">vec!</span>[];
+                    vec.iter().for_each(|idx: <span class="kw-2">&amp;</span>AstNode| {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = idx.get_literal_integer_value() {
+                            res.push(v);
+                        } <span class="kw">else </span>{
+                            add_diagnostic(<span class="kw-2">&amp;</span>idx.location);
+                        }
+                    });
+                    paths.push(ExpressionPathElement::ArrayAccess(res));
+                }
+                <span class="kw">_ </span>=&gt; add_diagnostic(<span class="kw-2">&amp;</span>idx.location),
+            }
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(base) = base {
+                <span class="kw">match </span>get_expression_path_segments(base) {
+                    <span class="prelude-val">Ok</span>(v) =&gt; paths.extend(v),
+                    <span class="prelude-val">Err</span>(e) =&gt; diagnostics.extend(e),
+                };
+            }
+        }
+        <span class="kw">_ </span>=&gt; add_diagnostic(<span class="kw-2">&amp;</span>node.location),
+    };
+
+    <span class="kw">if </span>!diagnostics.is_empty() {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(diagnostics);
+    }
+
+    <span class="prelude-val">Ok</span>(paths)
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;Vec&lt;ExpressionPathElement&lt;<span class="lifetime">'a</span>&gt;&gt;&gt; <span class="kw">for </span>ExpressionPath&lt;<span class="lifetime">'a</span>&gt; {
@@ -352,7 +518,7 @@
         }];
 
         <span class="kw">let </span>name = ExpressionPath {
-            names: <span class="macro">vec!</span>[ExpressionPathElement::Name(<span class="string">"a"</span>), ExpressionPathElement::ArrayAccess(<span class="kw-2">&amp;</span>dims)],
+            names: <span class="macro">vec!</span>[ExpressionPathElement::Name(<span class="string">"a"</span>), ExpressionPathElement::ArrayDimensions(<span class="kw-2">&amp;</span>dims)],
         };
         <span class="kw">let </span>index = Index::default();
         <span class="macro">assert_eq!</span>(name.expand(<span class="kw-2">&amp;</span>index), <span class="macro">vec!</span>[<span class="string">"a[-1]"</span>.to_string(), <span class="string">"a[0]"</span>.to_string(), <span class="string">"a[1]"</span>.to_string(),])
@@ -366,7 +532,7 @@
         }];
 
         <span class="kw">let </span>name = ExpressionPath {
-            names: <span class="macro">vec!</span>[ExpressionPathElement::Name(<span class="string">"a"</span>), ExpressionPathElement::ArrayAccess(<span class="kw-2">&amp;</span>dims)],
+            names: <span class="macro">vec!</span>[ExpressionPathElement::Name(<span class="string">"a"</span>), ExpressionPathElement::ArrayDimensions(<span class="kw-2">&amp;</span>dims)],
         };
         <span class="kw">let </span>index = Index::default();
         <span class="macro">assert_eq!</span>(name.expand(<span class="kw-2">&amp;</span>index), <span class="macro">vec!</span>[<span class="string">"a[1]"</span>.to_string(),])
@@ -381,7 +547,7 @@
         ];
 
         <span class="kw">let </span>name = ExpressionPath {
-            names: <span class="macro">vec!</span>[ExpressionPathElement::Name(<span class="string">"a"</span>), ExpressionPathElement::ArrayAccess(<span class="kw-2">&amp;</span>dims)],
+            names: <span class="macro">vec!</span>[ExpressionPathElement::Name(<span class="string">"a"</span>), ExpressionPathElement::ArrayDimensions(<span class="kw-2">&amp;</span>dims)],
         };
         <span class="kw">let </span>index = Index::default();
         <span class="kw">let </span><span class="kw-2">mut </span>res = name.expand(<span class="kw-2">&amp;</span>index);
@@ -417,9 +583,9 @@
         <span class="kw">let </span>name = ExpressionPath {
             names: <span class="macro">vec!</span>[
                 ExpressionPathElement::Name(<span class="string">"a"</span>),
-                ExpressionPathElement::ArrayAccess(<span class="kw-2">&amp;</span>dims1),
-                ExpressionPathElement::ArrayAccess(<span class="kw-2">&amp;</span>dims2),
-                ExpressionPathElement::ArrayAccess(<span class="kw-2">&amp;</span>dims3),
+                ExpressionPathElement::ArrayDimensions(<span class="kw-2">&amp;</span>dims1),
+                ExpressionPathElement::ArrayDimensions(<span class="kw-2">&amp;</span>dims2),
+                ExpressionPathElement::ArrayDimensions(<span class="kw-2">&amp;</span>dims3),
             ],
         };
         <span class="kw">let </span>index = Index::default();

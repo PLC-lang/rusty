@@ -213,7 +213,7 @@
                 <span class="self">self</span>.inner = InstanceIterator::inner(
                     <span class="self">self</span>.index,
                     variable.get_type_name(),
-                    <span class="kw-2">&amp;</span><span class="macro">vec!</span>[entry].into(),
+                    <span class="kw-2">&amp;</span><span class="macro">vec!</span>[entry.clone()].into(),
                     <span class="self">self</span>.filter,
                 )
                 .map(Box::new);
