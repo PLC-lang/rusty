@@ -122,7 +122,7 @@ impl Linker {
     }
 
     pub fn set_linker_script(&mut self, script: String) {
-        self.linker.add_arg("--script".to_string());
+        self.linker.add_arg("-T".to_string());
         self.linker.add_arg(script);
     }
 }

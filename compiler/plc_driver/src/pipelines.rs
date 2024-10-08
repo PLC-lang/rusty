@@ -13,6 +13,7 @@ use ast::{
     provider::IdProvider,
 };
 
+use log::debug;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{FxIndexSet, Index},
@@ -627,28 +628,29 @@ impl GeneratedProject {
                     linker.add_lib_path(&loc.to_string_lossy());
                 }
 
-                /*
-                                 *
-
-                fn get_default_linker_script() -> Result<String> {
-                    let mut file = NamedTempFile::new()?;
-                    writeln!(file, "{content}")?;
-
-                    let mut buf = String::new();
-                    file.read_to_string(&mut buf)?;
-                    dbg!(buf);
-                    Ok(dbg!(file.get_location_str().to_string()))
-                }
-                                 */
-                //Create a temp file that would contain the bultin linker script
+                //HACK: Create a temp file that would contain the bultin linker script
                 //FIXME: This has to be done regardless if the file is used or not because it has
                 //to be in scope by the time we call the linker
                 let mut file = NamedTempFile::new()?;
                 match link_options.linker_script {
                     LinkerScript::Builtin => {
-                        let content = include_str!("./linker_script");
-                        writeln!(file, "{content}")?;
-                        linker.set_linker_script(file.get_location_str().to_string());
+                        let target = self.target.get_target_triple().to_string();
+                        //Only do this on linux systems
+                        if target.contains("linux") {
+                            if target.starts_with("x86_64") {
+                                let content = include_str!("../../../scripts/linker/x86_64.script");
+                                writeln!(file, "{content}")?;
+                                linker.set_linker_script(file.get_location_str().to_string());
+                            } else if target.starts_with("aarch64") {
+                                let content = include_str!("../../../scripts/linker/aarch64.script");
+                                writeln!(file, "{content}")?;
+                                linker.set_linker_script(file.get_location_str().to_string());
+                            } else {
+                                debug!("No script for target : {target}");
+                            }
+                        } else {
+                            debug!("No script for target : {target}");
+                        }
                     }
                     LinkerScript::Path(script) => linker.set_linker_script(script),
                     LinkerScript::None => {}
