@@ -1,17 +1,22 @@
-use std::fmt::Display;
+use std::{fmt::Display, vec};
+
+use plc_ast::ast::{AstNode, AstStatement, ConfigVariable, ReferenceAccess, ReferenceExpr};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{index::Index, typesystem::Dimension};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ExpressionPathElement<'idx> {
     Name(&'idx str),
-    ArrayAccess(&'idx [Dimension]),
+    ArrayDimensions(&'idx [Dimension]),
+    ArrayAccess(Vec<i128>),
 }
 
 impl Display for ExpressionPathElement<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ExpressionPathElement::Name(name) => write!(f, "{name}"),
+            ExpressionPathElement::ArrayDimensions(_) => unimplemented!(),
             ExpressionPathElement::ArrayAccess(_) => unimplemented!(),
         }
     }
@@ -25,7 +30,7 @@ impl<'idx> From<&'idx str> for ExpressionPathElement<'idx> {
 
 impl<'idx> From<&'idx [Dimension]> for ExpressionPathElement<'idx> {
     fn from(dims: &'idx [Dimension]) -> Self {
-        ExpressionPathElement::ArrayAccess(dims)
+        ExpressionPathElement::ArrayDimensions(dims)
     }
 }
 
@@ -51,8 +56,8 @@ impl<'idx> ExpressionPath<'idx> {
         let mut levels: Vec<Vec<String>> = vec![];
         for seg in self.names.iter() {
             let level = match seg {
-                crate::expression_path::ExpressionPathElement::Name(s) => vec![s.to_string()],
-                crate::expression_path::ExpressionPathElement::ArrayAccess(dimensions) => {
+                ExpressionPathElement::Name(s) => vec![s.to_string()],
+                ExpressionPathElement::ArrayDimensions(dimensions) => {
                     let mut array = dimensions.iter().map(|it| it.get_range_inclusive(index).unwrap()).fold(
                         vec![],
                         |curr, it| {
@@ -74,6 +79,14 @@ impl<'idx> ExpressionPath<'idx> {
                     array.iter_mut().for_each(|s| *s = format!("[{s}]"));
                     array
                 }
+                ExpressionPathElement::ArrayAccess(idx) => {
+                    let Some(first) = idx.first() else { unreachable!("Caught at the parsing stage") };
+
+                    let access =
+                        idx.iter().skip(1).fold(format!("{first}"), |acc, idx| format!("{acc},{idx}"));
+
+                    vec![format!("[{access}]")]
+                }
             };
             levels.push(level);
         }
@@ -92,6 +105,76 @@ impl<'idx> ExpressionPath<'idx> {
             res
         })
     }
+}
+
+impl<'a> TryFrom<&'a ConfigVariable> for ExpressionPath<'a> {
+    type Error = Vec<Diagnostic>;
+
+    fn try_from(value: &'a ConfigVariable) -> Result<Self, Self::Error> {
+        let mut names = get_expression_path_segments(&value.reference)?;
+        names.reverse();
+        Ok(Self { names })
+    }
+}
+
+// Transforms a `ConfigVariable`'s 'AstNode' into a collection of corresponding `ExpressionPathElement`s.
+// This function will traverse the AST top-to-bottom, collecting segments along the way, which means the order of the collection
+// needs to be reversed by the caller to match the written expression.
+fn get_expression_path_segments(node: &AstNode) -> Result<Vec<ExpressionPathElement>, Vec<Diagnostic>> {
+    let mut paths = vec![];
+    let mut diagnostics = vec![];
+    let mut add_diagnostic = |location| {
+        diagnostics.push(
+            Diagnostic::new("VAR_CONFIG array access must be a literal integer").with_location(location),
+        );
+    };
+    match &node.stmt {
+        AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) => {
+            paths.push(ExpressionPathElement::Name(reference.get_flat_reference_name().unwrap_or_default()));
+            if let Some(base) = base {
+                match get_expression_path_segments(base) {
+                    Ok(v) => paths.extend(v),
+                    Err(e) => diagnostics.extend(e),
+                };
+            }
+        }
+        AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(idx), base }) => {
+            match &idx.as_ref().stmt {
+                AstStatement::Literal(_) => {
+                    if let Some(v) = idx.get_literal_integer_value().map(|it| vec![it]) {
+                        paths.push(ExpressionPathElement::ArrayAccess(v))
+                    } else {
+                        add_diagnostic(&idx.location);
+                    }
+                }
+                AstStatement::ExpressionList(vec) => {
+                    let mut res = vec![];
+                    vec.iter().for_each(|idx: &AstNode| {
+                        if let Some(v) = idx.get_literal_integer_value() {
+                            res.push(v);
+                        } else {
+                            add_diagnostic(&idx.location);
+                        }
+                    });
+                    paths.push(ExpressionPathElement::ArrayAccess(res));
+                }
+                _ => add_diagnostic(&idx.location),
+            }
+            if let Some(base) = base {
+                match get_expression_path_segments(base) {
+                    Ok(v) => paths.extend(v),
+                    Err(e) => diagnostics.extend(e),
+                };
+            }
+        }
+        _ => add_diagnostic(&node.location),
+    };
+
+    if !diagnostics.is_empty() {
+        return Err(diagnostics);
+    }
+
+    Ok(paths)
 }
 
 impl<'a> From<Vec<ExpressionPathElement<'a>>> for ExpressionPath<'a> {
@@ -132,7 +215,7 @@ mod tests {
         }];
 
         let name = ExpressionPath {
-            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayAccess(&dims)],
+            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayDimensions(&dims)],
         };
         let index = Index::default();
         assert_eq!(name.expand(&index), vec!["a[-1]".to_string(), "a[0]".to_string(), "a[1]".to_string(),])
@@ -146,7 +229,7 @@ mod tests {
         }];
 
         let name = ExpressionPath {
-            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayAccess(&dims)],
+            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayDimensions(&dims)],
         };
         let index = Index::default();
         assert_eq!(name.expand(&index), vec!["a[1]".to_string(),])
@@ -161,7 +244,7 @@ mod tests {
         ];
 
         let name = ExpressionPath {
-            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayAccess(&dims)],
+            names: vec![ExpressionPathElement::Name("a"), ExpressionPathElement::ArrayDimensions(&dims)],
         };
         let index = Index::default();
         let mut res = name.expand(&index);
@@ -197,9 +280,9 @@ mod tests {
         let name = ExpressionPath {
             names: vec![
                 ExpressionPathElement::Name("a"),
-                ExpressionPathElement::ArrayAccess(&dims1),
-                ExpressionPathElement::ArrayAccess(&dims2),
-                ExpressionPathElement::ArrayAccess(&dims3),
+                ExpressionPathElement::ArrayDimensions(&dims1),
+                ExpressionPathElement::ArrayDimensions(&dims2),
+                ExpressionPathElement::ArrayDimensions(&dims3),
             ],
         };
         let index = Index::default();

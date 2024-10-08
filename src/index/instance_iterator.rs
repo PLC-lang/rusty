@@ -91,7 +91,7 @@ impl<'idx> InstanceIterator<'idx> {
                 self.inner = InstanceIterator::inner(
                     self.index,
                     variable.get_type_name(),
-                    &vec![entry].into(),
+                    &vec![entry.clone()].into(),
                     self.filter,
                 )
                 .map(Box::new);

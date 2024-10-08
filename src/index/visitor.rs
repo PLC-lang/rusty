@@ -32,6 +32,11 @@ pub fn visit(unit: &CompilationUnit) -> Index {
     for implementation in &unit.implementations {
         visit_implementation(&mut index, implementation);
     }
+
+    for config_variable in &unit.var_config {
+        index.config_variables.push(config_variable.clone());
+    }
+
     index
 }
 

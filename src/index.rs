@@ -6,8 +6,8 @@ use itertools::Itertools;
 use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
-    AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
-    TypeNature,
+    AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
+    LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -891,6 +891,8 @@ pub struct Index {
 
     /// The labels contained in each pou
     labels: FxIndexMap<String, SymbolMap<String, Label>>,
+
+    config_variables: Vec<ConfigVariable>,
 }
 
 impl Index {
@@ -1001,6 +1003,8 @@ impl Index {
 
         //labels
         self.labels.extend(other.labels);
+
+        self.config_variables.extend(other.config_variables);
 
         //Constant expressions are intentionally not imported
         // self.constant_expressions.import(other.constant_expressions)
@@ -1677,6 +1681,10 @@ impl Index {
 
     pub fn get_labels(&self, pou_name: &str) -> Option<&SymbolMap<String, Label>> {
         self.labels.get(pou_name)
+    }
+
+    pub fn get_config_variables(&self) -> &Vec<ConfigVariable> {
+        &self.config_variables
     }
 }
 
