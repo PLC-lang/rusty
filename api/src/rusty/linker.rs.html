@@ -313,6 +313,11 @@
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
 <a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
 </pre></div><pre class="rust"><code><span class="comment">// This file is based on code from the Mun Programming Language
 // https://github.com/mun-lang/mun
 
@@ -434,6 +439,11 @@
             <span class="self">self</span>.errors.push(LinkerError::Path(path.into()));
         }
         filepath
+    }
+
+    <span class="kw">pub fn </span>set_linker_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>, script: String) {
+        <span class="self">self</span>.linker.add_arg(<span class="string">"-T"</span>.to_string());
+        <span class="self">self</span>.linker.add_arg(script);
     }
 }
 
