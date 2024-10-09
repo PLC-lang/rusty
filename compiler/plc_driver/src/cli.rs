@@ -100,24 +100,6 @@ pub struct CompileParameters {
     pub includes: Vec<String>,
 
     #[clap(
-        name = "script",
-        long,
-        global = true,
-        group = "linker_script",
-        help = "Specify a linker script to use"
-    )]
-    pub linker_script: Option<String>,
-
-    #[clap(
-        name = "no-linker-script",
-        long,
-        global = true,
-        group = "linker_script",
-        help = "Specify that no linker script should be used"
-    )]
-    pub no_linker_script: bool,
-
-    #[clap(
         name = "hardware-conf",
         long,
         global = true,
