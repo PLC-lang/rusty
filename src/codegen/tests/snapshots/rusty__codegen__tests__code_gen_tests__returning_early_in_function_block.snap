@@ -7,9 +7,9 @@ source_filename = "<internal>"
 
 %abcdef = type { i8 }
 
-@__abcdef__init = unnamed_addr constant %abcdef zeroinitializer, section "var-$RUSTY$__abcdef__init:r1i8"
+@__abcdef__init = unnamed_addr constant %abcdef zeroinitializer
 
-define void @abcdef(%abcdef* %0) section "fn-$RUSTY$abcdef:v[i8]" {
+define void @abcdef(%abcdef* %0) {
 entry:
   %n = getelementptr inbounds %abcdef, %abcdef* %0, i32 0, i32 0
   %load_n = load i8, i8* %n, align 1
@@ -33,20 +33,22 @@ source_filename = "__initializers"
 
 %abcdef = type { i8 }
 
-@__abcdef__init = external global %abcdef, section "var-$RUSTY$__abcdef__init:r1i8"
+@__abcdef__init = external global %abcdef
 
-define void @__init_abcdef(%abcdef* %0) section "fn-$RUSTY$__init_abcdef:v[pr1i8]" {
+define void @__init_abcdef(%abcdef* %0) {
 entry:
   %self = alloca %abcdef*, align 8
   store %abcdef* %0, %abcdef** %self, align 8
   ret void
 }
 
-declare void @abcdef(%abcdef*) section "fn-$RUSTY$abcdef:v[i8]"
+declare void @abcdef(%abcdef*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
 entry:
   ret void
 }

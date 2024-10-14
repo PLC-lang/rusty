@@ -42,6 +42,7 @@ pub struct Pou {
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
     pub super_class: Option<String>,
+    pub is_const: bool,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -258,6 +259,7 @@ pub enum PouType {
     Class,
     Method { owner_class: String },
     Init,
+    ProjectInit,
 }
 
 impl Display for PouType {
@@ -270,6 +272,7 @@ impl Display for PouType {
             PouType::Class => write!(f, "Class"),
             PouType::Method { .. } => write!(f, "Method"),
             PouType::Init => write!(f, "Init"),
+            PouType::ProjectInit => write!(f, "ProjectInit"),
         }
     }
 }
@@ -283,9 +286,13 @@ impl PouType {
             None
         }
     }
+
+    pub fn is_function_or_init(&self) -> bool {
+        matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit)
+    }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ConfigVariable {
     pub reference: AstNode,
     pub data_type: DataTypeDeclaration,
@@ -353,6 +360,7 @@ pub enum VariableBlockType {
     Output,
     Global,
     InOut,
+    External,
 }
 
 impl Display for VariableBlockType {
@@ -364,6 +372,7 @@ impl Display for VariableBlockType {
             VariableBlockType::Output => write!(f, "Output"),
             VariableBlockType::Global => write!(f, "Global"),
             VariableBlockType::InOut => write!(f, "InOut"),
+            VariableBlockType::External => write!(f, "External"),
         }
     }
 }

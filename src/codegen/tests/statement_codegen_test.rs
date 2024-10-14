@@ -205,7 +205,7 @@ fn ref_assignment() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    define void @main() section "fn-$RUSTY$main:v" {
+    define void @main() {
     entry:
       %a = alloca i32*, align 8
       %b = alloca i32, align 4
@@ -217,7 +217,9 @@ fn ref_assignment() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -255,7 +257,7 @@ fn reference_to_assignment() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    define void @main() section "fn-$RUSTY$main:v" {
+    define void @main() {
     entry:
       %a = alloca i32*, align 8
       store i32* null, i32** %a, align 8
@@ -266,7 +268,9 @@ fn reference_to_assignment() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -308,7 +312,7 @@ fn reference_to_string_assignment() {
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
-    define void @main() section "fn-$RUSTY$main:v" {
+    define void @main() {
     entry:
       %a = alloca [81 x i8]*, align 8
       store [81 x i8]* null, [81 x i8]** %a, align 8
@@ -325,7 +329,9 @@ fn reference_to_string_assignment() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -349,7 +355,7 @@ fn local_alias() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    define void @main() section "fn-$RUSTY$main:v" {
+    define void @main() {
     entry:
       %foo = alloca i32*, align 8
       %bar = alloca i32, align 4
@@ -362,7 +368,9 @@ fn local_alias() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -386,7 +394,7 @@ fn local_string_alias() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    define void @main() section "fn-$RUSTY$main:v" {
+    define void @main() {
     entry:
       %foo = alloca [81 x i8]*, align 8
       %bar = alloca [81 x i8], align 1
@@ -405,7 +413,9 @@ fn local_string_alias() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
     entry:
       ret void
     }

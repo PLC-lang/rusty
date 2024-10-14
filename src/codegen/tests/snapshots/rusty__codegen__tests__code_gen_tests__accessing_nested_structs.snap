@@ -9,11 +9,11 @@ source_filename = "<internal>"
 %OuterStruct = type { %InnerStruct, %InnerStruct }
 %InnerStruct = type { i16, i16 }
 
-@Main_instance = global %Main zeroinitializer, section "var-$RUSTY$Main_instance:r1r2r2i16i16r2i16i16"
-@__OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer, section "var-$RUSTY$__OuterStruct__init:r2r2i16i16r2i16i16"
-@__InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer, section "var-$RUSTY$__InnerStruct__init:r2i16i16"
+@Main_instance = global %Main zeroinitializer
+@__OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer
+@__InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer
 
-define void @Main(%Main* %0) section "fn-$RUSTY$Main:v" {
+define void @Main(%Main* %0) {
 entry:
   %m = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
   %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 0
@@ -31,18 +31,18 @@ source_filename = "__initializers"
 %OuterStruct = type { %InnerStruct, %InnerStruct }
 %Main = type { %OuterStruct }
 
-@__InnerStruct__init = external global %InnerStruct, section "var-$RUSTY$__InnerStruct__init:r2i16i16"
-@__OuterStruct__init = external global %OuterStruct, section "var-$RUSTY$__OuterStruct__init:r2r2i16i16r2i16i16"
-@Main_instance = external global %Main, section "var-$RUSTY$Main_instance:r1r2r2i16i16r2i16i16"
+@__InnerStruct__init = external global %InnerStruct
+@__OuterStruct__init = external global %OuterStruct
+@Main_instance = external global %Main
 
-define void @__init_innerstruct(%InnerStruct* %0) section "fn-$RUSTY$__init_innerstruct:v[pr2i16i16]" {
+define void @__init_innerstruct(%InnerStruct* %0) {
 entry:
   %self = alloca %InnerStruct*, align 8
   store %InnerStruct* %0, %InnerStruct** %self, align 8
   ret void
 }
 
-define void @__init_outerstruct(%OuterStruct* %0) section "fn-$RUSTY$__init_outerstruct:v[pr2r2i16i16r2i16i16]" {
+define void @__init_outerstruct(%OuterStruct* %0) {
 entry:
   %self = alloca %OuterStruct*, align 8
   store %OuterStruct* %0, %OuterStruct** %self, align 8
@@ -55,7 +55,7 @@ entry:
   ret void
 }
 
-define void @__init_main(%Main* %0) section "fn-$RUSTY$__init_main:v[pr1r2r2i16i16r2i16i16]" {
+define void @__init_main(%Main* %0) {
 entry:
   %self = alloca %Main*, align 8
   store %Main* %0, %Main** %self, align 8
@@ -65,7 +65,7 @@ entry:
   ret void
 }
 
-declare void @Main(%Main*) section "fn-$RUSTY$Main:v"
+declare void @Main(%Main*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
@@ -73,16 +73,17 @@ source_filename = "__init___testproject"
 %OuterStruct = type { %InnerStruct, %InnerStruct }
 %InnerStruct = type { i16, i16 }
 
-@Main_instance = external global %Main, section "var-$RUSTY$Main_instance:r1r2r2i16i16r2i16i16"
-@__OuterStruct__init = external global %OuterStruct, section "var-$RUSTY$__OuterStruct__init:r2r2i16i16r2i16i16"
-@__InnerStruct__init = external global %InnerStruct, section "var-$RUSTY$__InnerStruct__init:r2i16i16"
+@Main_instance = external global %Main
+@__OuterStruct__init = external global %OuterStruct
+@__InnerStruct__init = external global %InnerStruct
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_main(%Main* @Main_instance)
   ret void
 }
 
-declare void @__init_main(%Main*) section "fn-$RUSTY$__init_main:v[pr1r2r2i16i16r2i16i16]"
+declare void @__init_main(%Main*)
 
-declare void @Main(%Main*) section "fn-$RUSTY$Main:v"
+declare void @Main(%Main*)

@@ -7,9 +7,9 @@ source_filename = "<internal>"
 
 %myStruct = type { i8 }
 
-@__myStruct__init = unnamed_addr constant %myStruct { i8 1 }, section "var-$RUSTY$__myStruct__init:r1u8"
+@__myStruct__init = unnamed_addr constant %myStruct { i8 1 }
 
-define i16 @main() section "fn-$RUSTY$main:i16" {
+define i16 @main() {
 entry:
   %main = alloca i16, align 2
   %str = alloca %myStruct, align 8
@@ -31,7 +31,7 @@ entry:
   ret i16 %main_ret
 }
 
-declare void @__init_mystruct(%myStruct*) section "fn-$RUSTY$__init_mystruct:v[pr1u8]"
+declare void @__init_mystruct(%myStruct*)
 
 ; Function Attrs: argmemonly nofree nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -42,9 +42,9 @@ source_filename = "__initializers"
 
 %myStruct = type { i8 }
 
-@__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r1u8"
+@__myStruct__init = external global %myStruct
 
-define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr1u8]" {
+define void @__init_mystruct(%myStruct* %0) {
 entry:
   %self = alloca %myStruct*, align 8
   store %myStruct* %0, %myStruct** %self, align 8
@@ -53,7 +53,9 @@ entry:
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
 entry:
   ret void
 }

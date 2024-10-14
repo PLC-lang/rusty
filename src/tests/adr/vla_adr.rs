@@ -43,6 +43,7 @@ fn representation() {
                         Input,
                     ),
                     is_constant: false,
+                    is_var_external: false,
                     data_type_name: "__ptr_to___arr_vla_1_dint",
                     location_in_parent: 0,
                     linkage: Internal,
@@ -60,6 +61,7 @@ fn representation() {
                         Input,
                     ),
                     is_constant: false,
+                    is_var_external: false,
                     data_type_name: "__bounds___arr_vla_1_dint",
                     location_in_parent: 1,
                     linkage: Internal,
@@ -269,6 +271,7 @@ fn pass() {
                     Input,
                 ),
                 is_constant: false,
+                is_var_external: false,
                 data_type_name: "__ptr_to___arr_vla_1_dint",
                 location_in_parent: 0,
                 linkage: Internal,
@@ -286,6 +289,7 @@ fn pass() {
                     Input,
                 ),
                 is_constant: false,
+                is_var_external: false,
                 data_type_name: "__bounds___arr_vla_1_dint",
                 location_in_parent: 1,
                 linkage: Internal,
@@ -316,9 +320,9 @@ fn pass() {
 
     %__foo_arr = type { i32*, [2 x i32] }
 
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer, section "var-$RUSTY$____foo_arr__init:r2pai32ai32"
+    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %local = alloca [6 x i32], align 4
@@ -340,7 +344,7 @@ fn pass() {
       ret i32 %main_ret
     }
 
-    define i32 @foo(%__foo_arr* %0) section "fn-$RUSTY$foo:i32[pr2pai32ai32]" {
+    define i32 @foo(%__foo_arr* %0) {
     entry:
       %foo = alloca i32, align 4
       %arr = alloca %__foo_arr*, align 8
@@ -357,7 +361,9 @@ fn pass() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -389,9 +395,9 @@ fn access() {
 
     %__foo_arr = type { i32*, [2 x i32] }
 
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer, section "var-$RUSTY$____foo_arr__init:r2pai32ai32"
+    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
 
-    define i32 @foo(%__foo_arr* %0) section "fn-$RUSTY$foo:i32[pr2pai32ai32]" {
+    define i32 @foo(%__foo_arr* %0) {
     entry:
       %foo = alloca i32, align 4
       %arr = alloca %__foo_arr*, align 8
@@ -414,7 +420,9 @@ fn access() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -454,9 +462,9 @@ fn multi_dimensional() {
 
     %__foo_arr = type { i32*, [4 x i32] }
 
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer, section "var-$RUSTY$____foo_arr__init:r2pai32ai32"
+    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
 
-    define i32 @foo(%__foo_arr* %0) section "fn-$RUSTY$foo:i32[pr2pai32ai32]" {
+    define i32 @foo(%__foo_arr* %0) {
     entry:
       %foo = alloca i32, align 4
       %arr = alloca %__foo_arr*, align 8
@@ -505,7 +513,9 @@ fn multi_dimensional() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
     entry:
       ret void
     }

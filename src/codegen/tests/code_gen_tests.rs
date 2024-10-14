@@ -1164,9 +1164,9 @@ fn for_statement_with_binary_expressions() {
 
     %prg = type { i32, i32, i32, i32 }
 
-    @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r4i32i32i32i32"
+    @prg_instance = global %prg zeroinitializer
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %step = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -1214,32 +1214,33 @@ fn for_statement_with_binary_expressions() {
 
     %prg = type { i32, i32, i32, i32 }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r4i32i32i32i32"
+    @prg_instance = external global %prg
 
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr4i32i32i32i32]" {
+    define void @__init_prg(%prg* %0) {
     entry:
       %self = alloca %prg*, align 8
       store %prg* %0, %prg** %self, align 8
       ret void
     }
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %prg = type { i32, i32, i32, i32 }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r4i32i32i32i32"
+    @prg_instance = external global %prg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
       ret void
     }
 
-    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr4i32i32i32i32]"
+    declare void @__init_prg(%prg*)
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     "###);
 }
 
@@ -1260,7 +1261,7 @@ fn for_statement_type_casting() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    define void @main() section "fn-$RUSTY$main:v" {
+    define void @main() {
     entry:
       %a = alloca i8, align 1
       %b = alloca i16, align 2
@@ -1310,7 +1311,9 @@ fn for_statement_type_casting() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -3512,4 +3515,128 @@ fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initi
     );
 
     insta::assert_snapshot!(res);
+}
+
+#[test]
+// XXX: this behaviour might change in future, for now `VAR_EXTERNAL` variables are ignored
+fn variables_in_var_external_block_are_not_generated() {
+    let res = codegen(
+        "
+        VAR_GLOBAL 
+            arr: ARRAY [0..100] OF INT; 
+        END_VAR
+
+        FUNCTION foo
+        VAR_EXTERNAL
+            arr : ARRAY [0..100] OF INT;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION_BLOCK bar
+        VAR_EXTERNAL CONSTANT
+            arr : ARRAY [0..100] OF INT;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM baz
+        VAR_EXTERNAL CONSTANT
+            arr : ARRAY [0..100] OF INT;
+        END_VAR
+        END_PROGRAM
+
+        CLASS qux
+        VAR_EXTERNAL
+            arr : ARRAY [0..100] OF INT;
+        END_VAR
+        END_CLASS
+        ",
+    );
+
+    insta::assert_snapshot!(res, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %bar = type {}
+    %baz = type {}
+    %qux = type {}
+
+    @arr = global [101 x i16] zeroinitializer
+    @__bar__init = unnamed_addr constant %bar zeroinitializer
+    @baz_instance = global %baz zeroinitializer
+    @__qux__init = unnamed_addr constant %qux zeroinitializer
+
+    define void @foo() {
+    entry:
+      ret void
+    }
+
+    define void @bar(%bar* %0) {
+    entry:
+      ret void
+    }
+
+    define void @baz(%baz* %0) {
+    entry:
+      ret void
+    }
+
+    define void @qux(%qux* %0) {
+    entry:
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %baz = type {}
+    %bar = type {}
+    %qux = type {}
+
+    @baz_instance = external global %baz
+    @__bar__init = external global %bar
+    @__qux__init = external global %qux
+
+    define void @__init_baz(%baz* %0) {
+    entry:
+      %self = alloca %baz*, align 8
+      store %baz* %0, %baz** %self, align 8
+      ret void
+    }
+
+    declare void @baz(%baz*)
+
+    define void @__init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      ret void
+    }
+
+    declare void @bar(%bar*)
+
+    define void @__init_qux(%qux* %0) {
+    entry:
+      %self = alloca %qux*, align 8
+      store %qux* %0, %qux** %self, align 8
+      ret void
+    }
+
+    declare void @qux(%qux*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %baz = type {}
+
+    @baz_instance = external global %baz
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      call void @__init_baz(%baz* @baz_instance)
+      ret void
+    }
+
+    declare void @__init_baz(%baz*)
+
+    declare void @baz(%baz*)
+    "###);
 }

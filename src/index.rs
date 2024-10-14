@@ -6,8 +6,8 @@ use itertools::Itertools;
 use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
-    AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
-    TypeNature,
+    AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
+    LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -70,6 +70,8 @@ pub struct VariableIndexEntry {
     pub argument_type: ArgumentType,
     /// true if this variable is a compile-time-constant
     is_constant: bool,
+    // true if this variable is in a 'VAR_EXTERNAL' block
+    is_var_external: bool,
     /// the variable's datatype
     pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
@@ -130,6 +132,7 @@ pub struct MemberInfo<'b> {
     variable_type_name: &'b str,
     binding: Option<HardwareBinding>,
     is_constant: bool,
+    is_var_external: bool,
     varargs: Option<VarArgs>,
 }
 
@@ -148,6 +151,7 @@ impl VariableIndexEntry {
             initial_value: None,
             argument_type,
             is_constant: false,
+            is_var_external: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent,
             linkage: LinkageType::Internal,
@@ -169,6 +173,7 @@ impl VariableIndexEntry {
             initial_value: None,
             argument_type: ArgumentType::ByVal(VariableType::Global),
             is_constant: false,
+            is_var_external: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent: 0,
             linkage: LinkageType::Internal,
@@ -200,6 +205,11 @@ impl VariableIndexEntry {
 
     pub fn set_varargs(mut self, varargs: Option<VarArgs>) -> Self {
         self.varargs = varargs;
+        self
+    }
+
+    pub fn set_var_external(mut self, var_external: bool) -> Self {
+        self.is_var_external = var_external;
         self
     }
 
@@ -251,6 +261,10 @@ impl VariableIndexEntry {
 
     pub fn is_external(&self) -> bool {
         self.linkage == LinkageType::External
+    }
+
+    pub fn is_var_external(&self) -> bool {
+        self.is_var_external
     }
 
     pub fn get_declaration_type(&self) -> ArgumentType {
@@ -350,6 +364,7 @@ pub enum VariableType {
     InOut,
     Global,
     Return,
+    External,
 }
 
 impl VariableType {
@@ -368,6 +383,7 @@ impl std::fmt::Display for VariableType {
             VariableType::InOut => write!(f, "InOut"),
             VariableType::Global => write!(f, "Global"),
             VariableType::Return => write!(f, "Return"),
+            VariableType::External => write!(f, "External"),
         }
     }
 }
@@ -381,6 +397,7 @@ pub enum ImplementationType {
     Class,
     Method,
     Init,
+    ProjectInit,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -418,18 +435,37 @@ impl ImplementationIndexEntry {
     pub fn is_in_unit(&self, unit: impl AsRef<str>) -> bool {
         self.get_location().is_in_unit(unit)
     }
+
+    pub(crate) fn is_init(&self) -> bool {
+        matches!(self.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
+    }
 }
 
 impl From<&PouType> for ImplementationType {
     fn from(it: &PouType) -> Self {
         match it {
             PouType::Program => ImplementationType::Program,
-            PouType::Function | PouType::Init => ImplementationType::Function,
+            PouType::Function => ImplementationType::Function,
             PouType::FunctionBlock => ImplementationType::FunctionBlock,
             PouType::Action => ImplementationType::Action,
             PouType::Class => ImplementationType::Class,
             PouType::Method { .. } => ImplementationType::Method,
+            PouType::Init => ImplementationType::Init,
+            PouType::ProjectInit => ImplementationType::ProjectInit,
         }
+    }
+}
+
+impl ImplementationType {
+    pub fn is_function_or_init(&self) -> bool {
+        matches!(
+            self,
+            ImplementationType::Function | ImplementationType::Init | ImplementationType::ProjectInit,
+        )
+    }
+
+    pub(crate) fn is_project_init(&self) -> bool {
+        matches!(self, ImplementationType::ProjectInit)
     }
 }
 
@@ -457,6 +493,7 @@ pub enum PouIndexEntry {
         is_variadic: bool,
         location: SourceLocation,
         is_generated: bool, // true if this entry was added automatically (e.g. by generics)
+        is_const: bool,
     },
     Class {
         name: String,
@@ -529,6 +566,7 @@ impl PouIndexEntry {
         linkage: LinkageType,
         is_variadic: bool,
         location: SourceLocation,
+        is_const: bool,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -538,6 +576,7 @@ impl PouIndexEntry {
             is_variadic,
             location,
             is_generated: false,
+            is_const,
         }
     }
 
@@ -550,6 +589,7 @@ impl PouIndexEntry {
         linkage: LinkageType,
         is_variadic: bool,
         location: SourceLocation,
+        is_const: bool,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -559,6 +599,7 @@ impl PouIndexEntry {
             is_variadic,
             location,
             is_generated: true,
+            is_const,
         }
     }
 
@@ -752,6 +793,10 @@ impl PouIndexEntry {
         matches!(self, PouIndexEntry::Method { .. })
     }
 
+    pub(crate) fn is_constant(&self) -> bool {
+        matches!(self, PouIndexEntry::Function { is_const: true, .. })
+    }
+
     pub fn get_location(&self) -> &SourceLocation {
         match self {
             PouIndexEntry::Program { location, .. }
@@ -847,10 +892,6 @@ pub struct Index {
     // all pous,
     pous: SymbolMap<String, PouIndexEntry>,
 
-    // initializer functions are registered here in addition to the `pous` field. this is because they are
-    // excempt from certain validations/codegen will redirect certain statements and thus a quick lookup is advantageous
-    init_functions: FxIndexSet<String>,
-
     /// all implementations
     // we keep an IndexMap for implementations since duplication issues regarding implementations
     // is handled by the `pous` SymbolMap
@@ -866,6 +907,8 @@ pub struct Index {
 
     /// The labels contained in each pou
     labels: FxIndexMap<String, SymbolMap<String, Label>>,
+
+    config_variables: Vec<ConfigVariable>,
 }
 
 impl Index {
@@ -974,11 +1017,10 @@ impl Index {
             }
         }
 
-        //init functions
-        self.init_functions.extend(other.init_functions);
-
         //labels
         self.labels.extend(other.labels);
+
+        self.config_variables.extend(other.config_variables);
 
         //Constant expressions are intentionally not imported
         // self.constant_expressions.import(other.constant_expressions)
@@ -1112,13 +1154,18 @@ impl Index {
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
     pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         // Find pou in index
-        self.find_local_member(container_name, variable_name).or_else(|| {
-            if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                self.find_member(class, variable_name)
-            } else {
-                None
-            }
-        })
+        self.find_local_member(container_name, variable_name)
+            .or_else(|| {
+                if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
+                    self.find_member(class, variable_name)
+                } else {
+                    None
+                }
+            })
+            .filter(|it| {
+                // VAR_EXTERNAL variables are not local members
+                !it.is_var_external()
+            })
     }
 
     /// Searches for method names in the given container, if not found, attempts to search for it in super class
@@ -1432,7 +1479,7 @@ impl Index {
     }
 
     pub fn is_init_function(&self, pou_name: &str) -> bool {
-        self.init_functions.get(pou_name).is_some()
+        self.find_implementation_by_name(pou_name).map(|it| it.is_init()).unwrap_or_default()
     }
 
     pub fn register_program(&mut self, name: &str, location: SourceLocation, linkage: LinkageType) {
@@ -1446,10 +1493,6 @@ impl Index {
 
     pub fn register_pou(&mut self, entry: PouIndexEntry) {
         self.pous.insert(entry.get_name().to_lowercase(), entry);
-    }
-
-    pub fn register_init_function(&mut self, name: &str) {
-        self.init_functions.insert(name.to_string());
     }
 
     pub fn find_implementation_by_name(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
@@ -1496,6 +1539,7 @@ impl Index {
         .set_initial_value(initial_value)
         .set_hardware_binding(member_info.binding)
         .set_varargs(member_info.varargs)
+        .set_var_external(member_info.is_var_external)
     }
 
     pub fn register_enum_variant(
@@ -1659,6 +1703,10 @@ impl Index {
 
     pub fn get_labels(&self, pou_name: &str) -> Option<&SymbolMap<String, Label>> {
         self.labels.get(pou_name)
+    }
+
+    pub fn get_config_variables(&self) -> &Vec<ConfigVariable> {
+        &self.config_variables
     }
 }
 

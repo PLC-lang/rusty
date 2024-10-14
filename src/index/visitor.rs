@@ -32,6 +32,11 @@ pub fn visit(unit: &CompilationUnit) -> Index {
     for implementation in &unit.implementations {
         visit_implementation(&mut index, implementation);
     }
+
+    for config_variable in &unit.var_config {
+        index.config_variables.push(config_variable.clone());
+    }
+
     index
 }
 
@@ -89,6 +94,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                     variable_linkage: block_type,
                     variable_type_name: &type_name,
                     is_constant: block.constant,
+                    is_var_external: matches!(block.variable_block_type, VariableBlockType::External),
                     binding,
                     varargs,
                 },
@@ -110,7 +116,8 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 variable_name: pou.get_return_name(),
                 variable_linkage: ArgumentType::ByVal(VariableType::Return),
                 variable_type_name: return_type_name,
-                is_constant: false, //return variables are not constants
+                is_constant: false,     //return variables are not constants
+                is_var_external: false, // see above
                 binding: None,
                 varargs: None,
             },
@@ -177,7 +184,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             ));
             index.register_pou_type(datatype);
         }
-        PouType::Function => {
+        PouType::Function | PouType::Init | PouType::ProjectInit => {
             index.register_pou(PouIndexEntry::create_function_entry(
                 &pou.name,
                 return_type_name,
@@ -185,6 +192,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 pou.linkage,
                 has_varargs,
                 pou.name_location.clone(),
+                pou.is_const,
             ));
             index.register_pou_type(datatype);
         }
@@ -196,18 +204,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 pou.linkage,
                 pou.name_location.clone(),
             ));
-            index.register_pou_type(datatype);
-        }
-        PouType::Init => {
-            index.register_pou(PouIndexEntry::create_function_entry(
-                &pou.name,
-                return_type_name,
-                &pou.generics,
-                pou.linkage,
-                has_varargs,
-                pou.name_location.clone(),
-            ));
-            index.register_init_function(&pou.name);
             index.register_pou_type(datatype);
         }
         _ => {}
@@ -331,6 +327,7 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
         VariableBlockType::Output => VariableType::Output,
         VariableBlockType::Global => VariableType::Global,
         VariableBlockType::InOut => VariableType::InOut,
+        VariableBlockType::External => VariableType::External,
     }
 }
 
@@ -805,6 +802,7 @@ fn visit_struct(
                     variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
                     variable_type_name: member_type,
                     is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+                    is_var_external: false, // structs cannot have VAR_EXTERNAL blocks
                     binding,
                     varargs: None,
                 },

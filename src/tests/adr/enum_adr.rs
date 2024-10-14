@@ -22,10 +22,10 @@ fn enums_generate_a_global_constants_for_each_element() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @myColor = global i32 0, section "var-$RUSTY$myColor:e3i32"
-    @Color.red = unnamed_addr constant i32 0, section "var-$RUSTY$red:e3i32"
-    @Color.yellow = unnamed_addr constant i32 1, section "var-$RUSTY$yellow:e3i32"
-    @Color.green = unnamed_addr constant i32 2, section "var-$RUSTY$green:e3i32"
+    @myColor = global i32 0
+    @Color.red = unnamed_addr constant i32 0
+    @Color.yellow = unnamed_addr constant i32 1
+    @Color.green = unnamed_addr constant i32 2
     "###);
 }
 
@@ -52,16 +52,16 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @myColor = global i32 0, section "var-$RUSTY$myColor:e4i32"
-    @myState = global i8 0, section "var-$RUSTY$myState:e4u8"
-    @Color.red = unnamed_addr constant i32 1, section "var-$RUSTY$red:e4i32"
-    @Color.yellow = unnamed_addr constant i32 2, section "var-$RUSTY$yellow:e4i32"
-    @Color.green = unnamed_addr constant i32 4, section "var-$RUSTY$green:e4i32"
-    @Color.blue = unnamed_addr constant i32 8, section "var-$RUSTY$blue:e4i32"
-    @State.open = unnamed_addr constant i8 1, section "var-$RUSTY$open:e4u8"
-    @State.closed = unnamed_addr constant i8 4, section "var-$RUSTY$closed:e4u8"
-    @State.idle = unnamed_addr constant i8 5, section "var-$RUSTY$idle:e4u8"
-    @State.running = unnamed_addr constant i8 6, section "var-$RUSTY$running:e4u8"
+    @myColor = global i32 0
+    @myState = global i8 0
+    @Color.red = unnamed_addr constant i32 1
+    @Color.yellow = unnamed_addr constant i32 2
+    @Color.green = unnamed_addr constant i32 4
+    @Color.blue = unnamed_addr constant i32 8
+    @State.open = unnamed_addr constant i8 1
+    @State.closed = unnamed_addr constant i8 4
+    @State.idle = unnamed_addr constant i8 5
+    @State.running = unnamed_addr constant i8 6
     "###);
 }
 
@@ -80,14 +80,14 @@ fn inline_declaration_of_enum_types() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @frontColor = global i32 0, section "var-$RUSTY$frontColor:e3i32"
-    @backColor = global i32 0, section "var-$RUSTY$backColor:e3i32"
-    @__global_frontColor.red = unnamed_addr constant i32 0, section "var-$RUSTY$red:e3i32"
-    @__global_frontColor.green = unnamed_addr constant i32 1, section "var-$RUSTY$green:e3i32"
-    @__global_frontColor.yellow = unnamed_addr constant i32 2, section "var-$RUSTY$yellow:e3i32"
-    @__global_backColor.red = unnamed_addr constant i32 0, section "var-$RUSTY$red:e3i32"
-    @__global_backColor.green = unnamed_addr constant i32 1, section "var-$RUSTY$green:e3i32"
-    @__global_backColor.yellow = unnamed_addr constant i32 2, section "var-$RUSTY$yellow:e3i32"
+    @frontColor = global i32 0
+    @backColor = global i32 0
+    @__global_frontColor.red = unnamed_addr constant i32 0
+    @__global_frontColor.green = unnamed_addr constant i32 1
+    @__global_frontColor.yellow = unnamed_addr constant i32 2
+    @__global_backColor.red = unnamed_addr constant i32 0
+    @__global_backColor.green = unnamed_addr constant i32 1
+    @__global_backColor.yellow = unnamed_addr constant i32 2
     "###);
 }
 
@@ -121,15 +121,15 @@ fn using_enums() {
 
     %prg = type { i32, i32, i32 }
 
-    @prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r3i32i32i32"
-    @ProcessState.open = unnamed_addr constant i32 1, section "var-$RUSTY$open:e4i32"
-    @ProcessState.closed = unnamed_addr constant i32 4, section "var-$RUSTY$closed:e4i32"
-    @ProcessState.idle = unnamed_addr constant i32 5, section "var-$RUSTY$idle:e4i32"
-    @ProcessState.running = unnamed_addr constant i32 6, section "var-$RUSTY$running:e4i32"
-    @Door.open = unnamed_addr constant i32 8, section "var-$RUSTY$open:e2i32"
-    @Door.closed = unnamed_addr constant i32 16, section "var-$RUSTY$closed:e2i32"
+    @prg_instance = global %prg zeroinitializer
+    @ProcessState.open = unnamed_addr constant i32 1
+    @ProcessState.closed = unnamed_addr constant i32 4
+    @ProcessState.idle = unnamed_addr constant i32 5
+    @ProcessState.running = unnamed_addr constant i32 6
+    @Door.open = unnamed_addr constant i32 8
+    @Door.closed = unnamed_addr constant i32 16
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -144,31 +144,32 @@ fn using_enums() {
 
     %prg = type { i32, i32, i32 }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r3i32i32i32"
+    @prg_instance = external global %prg
 
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr3i32i32i32]" {
+    define void @__init_prg(%prg* %0) {
     entry:
       %self = alloca %prg*, align 8
       store %prg* %0, %prg** %self, align 8
       ret void
     }
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %prg = type { i32, i32, i32 }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r3i32i32i32"
+    @prg_instance = external global %prg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
       ret void
     }
 
-    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr3i32i32i32]"
+    declare void @__init_prg(%prg*)
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     "###);
 }

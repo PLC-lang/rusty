@@ -5,7 +5,7 @@ expression: codegen(src)
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-define i32 @main() section "fn-$RUSTY$main:i32" {
+define i32 @main() {
 entry:
   %main = alloca i32, align 4
   %x1 = alloca i32, align 4
@@ -20,7 +20,7 @@ entry:
   ret i32 %main_ret
 }
 
-define i32 @SMC_Read(i64 %0) section "fn-$RUSTY$SMC_Read:i32[u64]" {
+define i32 @SMC_Read(i64 %0) {
 entry:
   %SMC_Read = alloca i32, align 4
   %ValAddr = alloca i64, align 8
@@ -32,7 +32,9 @@ entry:
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
 entry:
   ret void
 }

@@ -422,3 +422,251 @@ fn var_config_location() {
 
     assert_eq!("main.instance.foo", &src[result.var_config[0].location.to_range().unwrap()]);
 }
+
+#[test]
+fn var_external() {
+    let src = r#"
+    VAR_GLOBAL 
+        arr: ARRAY [0..100] OF INT; 
+    END_VAR
+
+    FUNCTION foo
+    VAR_EXTERNAL 
+        arr : ARRAY [0..100] OF INT;
+    END_VAR
+    END_FUNCTION
+    "#;
+
+    let (result, _) = parse(src);
+
+    insta::assert_debug_snapshot!(result, @r###"
+    CompilationUnit {
+        global_vars: [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "arr",
+                        data_type: DataTypeDefinition {
+                            data_type: ArrayType {
+                                name: None,
+                                bounds: RangeStatement {
+                                    start: LiteralInteger {
+                                        value: 0,
+                                    },
+                                    end: LiteralInteger {
+                                        value: 100,
+                                    },
+                                },
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "INT",
+                                },
+                                is_variable_length: false,
+                            },
+                        },
+                    },
+                ],
+                variable_block_type: Global,
+            },
+        ],
+        var_config: [],
+        units: [
+            POU {
+                name: "foo",
+                variable_blocks: [
+                    VariableBlock {
+                        variables: [
+                            Variable {
+                                name: "arr",
+                                data_type: DataTypeDefinition {
+                                    data_type: ArrayType {
+                                        name: None,
+                                        bounds: RangeStatement {
+                                            start: LiteralInteger {
+                                                value: 0,
+                                            },
+                                            end: LiteralInteger {
+                                                value: 100,
+                                            },
+                                        },
+                                        referenced_type: DataTypeReference {
+                                            referenced_type: "INT",
+                                        },
+                                        is_variable_length: false,
+                                    },
+                                },
+                            },
+                        ],
+                        variable_block_type: External,
+                    },
+                ],
+                pou_type: Function,
+                return_type: None,
+            },
+        ],
+        implementations: [
+            Implementation {
+                name: "foo",
+                type_name: "foo",
+                linkage: Internal,
+                pou_type: Function,
+                statements: [],
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 9,
+                            column: 4,
+                            offset: 155,
+                        }..TextLocation {
+                            line: 9,
+                            column: 16,
+                            offset: 167,
+                        },
+                    ),
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 13,
+                            offset: 80,
+                        }..TextLocation {
+                            line: 5,
+                            column: 16,
+                            offset: 83,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: None,
+            },
+        ],
+        user_types: [],
+        file_name: "test.st",
+    }
+    "###);
+}
+
+#[test]
+fn var_external_constant() {
+    let src = r#"
+    VAR_GLOBAL 
+        arr: ARRAY [0..100] OF INT; 
+    END_VAR
+
+    FUNCTION foo
+    VAR_EXTERNAL CONSTANT
+        arr : ARRAY [0..100] OF INT;
+    END_VAR
+    END_FUNCTION
+    "#;
+
+    let (result, _) = parse(src);
+
+    insta::assert_debug_snapshot!(result, @r###"
+    CompilationUnit {
+        global_vars: [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "arr",
+                        data_type: DataTypeDefinition {
+                            data_type: ArrayType {
+                                name: None,
+                                bounds: RangeStatement {
+                                    start: LiteralInteger {
+                                        value: 0,
+                                    },
+                                    end: LiteralInteger {
+                                        value: 100,
+                                    },
+                                },
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "INT",
+                                },
+                                is_variable_length: false,
+                            },
+                        },
+                    },
+                ],
+                variable_block_type: Global,
+            },
+        ],
+        var_config: [],
+        units: [
+            POU {
+                name: "foo",
+                variable_blocks: [
+                    VariableBlock {
+                        variables: [
+                            Variable {
+                                name: "arr",
+                                data_type: DataTypeDefinition {
+                                    data_type: ArrayType {
+                                        name: None,
+                                        bounds: RangeStatement {
+                                            start: LiteralInteger {
+                                                value: 0,
+                                            },
+                                            end: LiteralInteger {
+                                                value: 100,
+                                            },
+                                        },
+                                        referenced_type: DataTypeReference {
+                                            referenced_type: "INT",
+                                        },
+                                        is_variable_length: false,
+                                    },
+                                },
+                            },
+                        ],
+                        variable_block_type: External,
+                    },
+                ],
+                pou_type: Function,
+                return_type: None,
+            },
+        ],
+        implementations: [
+            Implementation {
+                name: "foo",
+                type_name: "foo",
+                linkage: Internal,
+                pou_type: Function,
+                statements: [],
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 9,
+                            column: 4,
+                            offset: 163,
+                        }..TextLocation {
+                            line: 9,
+                            column: 16,
+                            offset: 175,
+                        },
+                    ),
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 13,
+                            offset: 80,
+                        }..TextLocation {
+                            line: 5,
+                            column: 16,
+                            offset: 83,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: None,
+            },
+        ],
+        user_types: [],
+        file_name: "test.st",
+    }
+    "###);
+}

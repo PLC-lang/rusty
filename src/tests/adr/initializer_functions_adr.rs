@@ -322,7 +322,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
     POU {
         name: "__init___testproject",
         variable_blocks: [],
-        pou_type: Init,
+        pou_type: ProjectInit,
         return_type: None,
     }
     "###);
@@ -464,25 +464,25 @@ fn generating_init_functions() {
     %myStruct = type { i8, i8 }
     %myRefStruct = type { %myStruct* }
 
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r2u8u8"
-    @__myRefStruct__init = unnamed_addr constant %myRefStruct zeroinitializer, section "var-$RUSTY$__myRefStruct__init:r1pr2u8u8"
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+    @__myRefStruct__init = unnamed_addr constant %myRefStruct zeroinitializer
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
 
     %myStruct = type { i8, i8 }
     %myRefStruct = type { %myStruct* }
 
-    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2u8u8"
-    @__myRefStruct__init = external global %myRefStruct, section "var-$RUSTY$__myRefStruct__init:r1pr2u8u8"
+    @__myStruct__init = external global %myStruct
+    @__myRefStruct__init = external global %myRefStruct
 
-    define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2u8u8]" {
+    define void @__init_mystruct(%myStruct* %0) {
     entry:
       %self = alloca %myStruct*, align 8
       store %myStruct* %0, %myStruct** %self, align 8
       ret void
     }
 
-    define void @__init_myrefstruct(%myRefStruct* %0) section "fn-$RUSTY$__init_myrefstruct:v[pr1pr2u8u8]" {
+    define void @__init_myrefstruct(%myRefStruct* %0) {
     entry:
       %self = alloca %myRefStruct*, align 8
       store %myRefStruct* %0, %myRefStruct** %self, align 8
@@ -491,7 +491,9 @@ fn generating_init_functions() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
     entry:
       ret void
     }
@@ -540,25 +542,25 @@ fn generating_init_functions() {
     %bar = type { %foo }
     %baz = type { %bar }
 
-    @s = global %myStruct zeroinitializer, section "var-$RUSTY$s:r2u8u8"
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r2u8u8"
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r1ps8u81"
-    @__bar__init = unnamed_addr constant %bar zeroinitializer, section "var-$RUSTY$__bar__init:r1r1ps8u81"
-    @baz_instance = global %baz zeroinitializer, section "var-$RUSTY$baz_instance:r1r1r1ps8u81"
+    @s = global %myStruct zeroinitializer
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__bar__init = unnamed_addr constant %bar zeroinitializer
+    @baz_instance = global %baz zeroinitializer
 
-    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+    define void @foo(%foo* %0) {
     entry:
       %ps = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
-    define void @bar(%bar* %0) section "fn-$RUSTY$bar:v" {
+    define void @bar(%bar* %0) {
     entry:
       %fb = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 
-    define void @baz(%baz* %0) section "fn-$RUSTY$baz:v" {
+    define void @baz(%baz* %0) {
     entry:
       %fb = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
       ret void
@@ -571,13 +573,13 @@ fn generating_init_functions() {
     %myStruct = type { i8, i8 }
     %baz = type { %bar }
 
-    @__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r1r1ps8u81"
-    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
-    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2u8u8"
-    @baz_instance = external global %baz, section "var-$RUSTY$baz_instance:r1r1r1ps8u81"
-    @s = external global %myStruct, section "var-$RUSTY$s:r2u8u8"
+    @__bar__init = external global %bar
+    @__foo__init = external global %foo
+    @__myStruct__init = external global %myStruct
+    @baz_instance = external global %baz
+    @s = external global %myStruct
 
-    define void @__init_bar(%bar* %0) section "fn-$RUSTY$__init_bar:v[pr1r1ps8u81]" {
+    define void @__init_bar(%bar* %0) {
     entry:
       %self = alloca %bar*, align 8
       store %bar* %0, %bar** %self, align 8
@@ -587,18 +589,18 @@ fn generating_init_functions() {
       ret void
     }
 
-    declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
+    declare void @bar(%bar*)
 
-    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+    declare void @foo(%foo*)
 
-    define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr2u8u8]" {
+    define void @__init_mystruct(%myStruct* %0) {
     entry:
       %self = alloca %myStruct*, align 8
       store %myStruct* %0, %myStruct** %self, align 8
       ret void
     }
 
-    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1ps8u81]" {
+    define void @__init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
@@ -608,7 +610,7 @@ fn generating_init_functions() {
       ret void
     }
 
-    define void @__init_baz(%baz* %0) section "fn-$RUSTY$__init_baz:v[pr1r1r1ps8u81]" {
+    define void @__init_baz(%baz* %0) {
     entry:
       %self = alloca %baz*, align 8
       store %baz* %0, %baz** %self, align 8
@@ -618,7 +620,7 @@ fn generating_init_functions() {
       ret void
     }
 
-    declare void @baz(%baz*) section "fn-$RUSTY$baz:v"
+    declare void @baz(%baz*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -627,28 +629,29 @@ fn generating_init_functions() {
     %foo = type { [81 x i8]* }
     %myStruct = type { i8, i8 }
 
-    @baz_instance = external global %baz, section "var-$RUSTY$baz_instance:r1r1r1ps8u81"
-    @__bar__init = external global %bar, section "var-$RUSTY$__bar__init:r1r1ps8u81"
-    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r1ps8u81"
-    @__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r2u8u8"
-    @s = external global %myStruct, section "var-$RUSTY$s:r2u8u8"
+    @baz_instance = external global %baz
+    @__bar__init = external global %bar
+    @__foo__init = external global %foo
+    @__myStruct__init = external global %myStruct
+    @s = external global %myStruct
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       call void @__init_baz(%baz* @baz_instance)
       call void @__init_mystruct(%myStruct* @s)
       ret void
     }
 
-    declare void @__init_baz(%baz*) section "fn-$RUSTY$__init_baz:v[pr1r1r1ps8u81]"
+    declare void @__init_baz(%baz*)
 
-    declare void @baz(%baz*) section "fn-$RUSTY$baz:v"
+    declare void @baz(%baz*)
 
-    declare void @bar(%bar*) section "fn-$RUSTY$bar:v"
+    declare void @bar(%bar*)
 
-    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+    declare void @foo(%foo*)
 
-    declare void @__init_mystruct(%myStruct*) section "fn-$RUSTY$__init_mystruct:v[pr2u8u8]"
+    declare void @__init_mystruct(%myStruct*)
     "###);
 }
 
@@ -691,11 +694,11 @@ fn intializing_temporary_variables() {
 
     %foo = type { [81 x i8]* }
 
-    @ps = global [81 x i8] zeroinitializer, section "var-$RUSTY$ps:s8u81"
-    @ps2 = global [81 x i8] zeroinitializer, section "var-$RUSTY$ps2:s8u81"
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, section "var-$RUSTY$__foo__init:r2ps8u81ps8u81"
+    @ps = global [81 x i8] zeroinitializer
+    @ps2 = global [81 x i8] zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
 
-    define void @foo(%foo* %0) section "fn-$RUSTY$foo:v" {
+    define void @foo(%foo* %0) {
     entry:
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %s2 = alloca [81 x i8]*, align 8
@@ -704,7 +707,7 @@ fn intializing_temporary_variables() {
       ret void
     }
 
-    define i32 @main() section "fn-$RUSTY$main:i32" {
+    define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %fb = alloca %foo, align 8
@@ -724,7 +727,7 @@ fn intializing_temporary_variables() {
       ret i32 %main_ret
     }
 
-    declare void @__init_foo(%foo*) section "fn-$RUSTY$__init_foo:v[pr2ps8u81ps8u81]"
+    declare void @__init_foo(%foo*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -735,10 +738,10 @@ fn intializing_temporary_variables() {
 
     %foo = type { [81 x i8]* }
 
-    @__foo__init = external global %foo, section "var-$RUSTY$__foo__init:r2ps8u81ps8u81"
-    @ps = external global [81 x i8], section "var-$RUSTY$ps:s8u81"
+    @__foo__init = external global %foo
+    @ps = external global [81 x i8]
 
-    define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr2ps8u81ps8u81]" {
+    define void @__init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
@@ -748,11 +751,13 @@ fn intializing_temporary_variables() {
       ret void
     }
 
-    declare void @foo(%foo*) section "fn-$RUSTY$foo:v"
+    declare void @foo(%foo*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
     entry:
       ret void
     }

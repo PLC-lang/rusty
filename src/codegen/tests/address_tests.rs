@@ -16,15 +16,16 @@ fn aliased_address_in_global_generated() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @foo = global i8* null, section "var-$RUSTY$foo:pu8"
-    @__PI_1_2_3_4 = global i8 0, section "var-$RUSTY$__PI_1_2_3_4:u8"
+    @foo = global i8* null
+    @__PI_1_2_3_4 = global i8 0
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    @__PI_1_2_3_4 = external global i8, section "var-$RUSTY$__PI_1_2_3_4:u8"
-    @foo = external global i8*, section "var-$RUSTY$foo:pu8"
+    @__PI_1_2_3_4 = external global i8
+    @foo = external global i8*
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       store i8* @__PI_1_2_3_4, i8** @foo, align 8
       ret void
@@ -47,17 +48,18 @@ fn duplicate_aliased_address_in_global_generated() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @foo = global i8* null, section "var-$RUSTY$foo:pu8"
-    @__PI_1_2_3_4 = global i8 0, section "var-$RUSTY$__PI_1_2_3_4:u8"
-    @baz = global i8* null, section "var-$RUSTY$baz:pu8"
+    @foo = global i8* null
+    @__PI_1_2_3_4 = global i8 0
+    @baz = global i8* null
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    @__PI_1_2_3_4 = external global i8, section "var-$RUSTY$__PI_1_2_3_4:u8"
-    @foo = external global i8*, section "var-$RUSTY$foo:pu8"
-    @baz = external global i8*, section "var-$RUSTY$baz:pu8"
+    @__PI_1_2_3_4 = external global i8
+    @foo = external global i8*
+    @baz = external global i8*
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       store i8* @__PI_1_2_3_4, i8** @foo, align 8
       store i8* @__PI_1_2_3_4, i8** @baz, align 8
@@ -88,12 +90,12 @@ fn address_variable_used_with_symbolic_name() {
 
     %mainProg = type {}
 
-    @foo = global i8* null, section "var-$RUSTY$foo:pu8"
-    @__PI_1_2_3_4 = global i8 0, section "var-$RUSTY$__PI_1_2_3_4:u8"
-    @baz = global i8* null, section "var-$RUSTY$baz:pu8"
-    @mainProg_instance = global %mainProg zeroinitializer, section "var-$RUSTY$mainProg_instance:r0"
+    @foo = global i8* null
+    @__PI_1_2_3_4 = global i8 0
+    @baz = global i8* null
+    @mainProg_instance = global %mainProg zeroinitializer
 
-    define void @mainProg(%mainProg* %0) section "fn-$RUSTY$mainProg:v" {
+    define void @mainProg(%mainProg* %0) {
     entry:
       %deref = load i8*, i8** @foo, align 8
       store i8 0, i8* %deref, align 1
@@ -106,27 +108,28 @@ fn address_variable_used_with_symbolic_name() {
 
     %mainProg = type {}
 
-    @mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r0"
+    @mainProg_instance = external global %mainProg
 
-    define void @__init_mainprog(%mainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr0]" {
+    define void @__init_mainprog(%mainProg* %0) {
     entry:
       %self = alloca %mainProg*, align 8
       store %mainProg* %0, %mainProg** %self, align 8
       ret void
     }
 
-    declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+    declare void @mainProg(%mainProg*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %mainProg = type {}
 
-    @__PI_1_2_3_4 = external global i8, section "var-$RUSTY$__PI_1_2_3_4:u8"
-    @foo = external global i8*, section "var-$RUSTY$foo:pu8"
-    @baz = external global i8*, section "var-$RUSTY$baz:pu8"
-    @mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r0"
+    @__PI_1_2_3_4 = external global i8
+    @foo = external global i8*
+    @baz = external global i8*
+    @mainProg_instance = external global %mainProg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       store i8* @__PI_1_2_3_4, i8** @foo, align 8
       store i8* @__PI_1_2_3_4, i8** @baz, align 8
@@ -134,9 +137,9 @@ fn address_variable_used_with_symbolic_name() {
       ret void
     }
 
-    declare void @__init_mainprog(%mainProg*) section "fn-$RUSTY$__init_mainprog:v[pr0]"
+    declare void @__init_mainprog(%mainProg*)
 
-    declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+    declare void @mainProg(%mainProg*)
     "###);
 }
 
@@ -163,14 +166,14 @@ fn address_used_in_body() {
 
     %mainProg = type {}
 
-    @foo = global i8* null, section "var-$RUSTY$foo:pu8"
-    @__PI_1_2_3_4 = global i8 0, section "var-$RUSTY$__PI_1_2_3_4:u8"
-    @baz = global i8* null, section "var-$RUSTY$baz:pu8"
-    @__PI_1_2_3_5 = global i8 0, section "var-$RUSTY$__PI_1_2_3_5:u8"
-    @x = global i8 1, section "var-$RUSTY$x:u8"
-    @mainProg_instance = global %mainProg zeroinitializer, section "var-$RUSTY$mainProg_instance:r0"
+    @foo = global i8* null
+    @__PI_1_2_3_4 = global i8 0
+    @baz = global i8* null
+    @__PI_1_2_3_5 = global i8 0
+    @x = global i8 1
+    @mainProg_instance = global %mainProg zeroinitializer
 
-    define void @mainProg(%mainProg* %0) section "fn-$RUSTY$mainProg:v" {
+    define void @mainProg(%mainProg* %0) {
     entry:
       store i8 1, i8* @__PI_1_2_3_4, align 1
       %1 = load i8, i8* @__PI_1_2_3_5, align 1
@@ -182,28 +185,29 @@ fn address_used_in_body() {
 
     %mainProg = type {}
 
-    @mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r0"
+    @mainProg_instance = external global %mainProg
 
-    define void @__init_mainprog(%mainProg* %0) section "fn-$RUSTY$__init_mainprog:v[pr0]" {
+    define void @__init_mainprog(%mainProg* %0) {
     entry:
       %self = alloca %mainProg*, align 8
       store %mainProg* %0, %mainProg** %self, align 8
       ret void
     }
 
-    declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+    declare void @mainProg(%mainProg*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %mainProg = type {}
 
-    @__PI_1_2_3_4 = external global i8, section "var-$RUSTY$__PI_1_2_3_4:u8"
-    @foo = external global i8*, section "var-$RUSTY$foo:pu8"
-    @__PI_1_2_3_5 = external global i8, section "var-$RUSTY$__PI_1_2_3_5:u8"
-    @baz = external global i8*, section "var-$RUSTY$baz:pu8"
-    @mainProg_instance = external global %mainProg, section "var-$RUSTY$mainProg_instance:r0"
+    @__PI_1_2_3_4 = external global i8
+    @foo = external global i8*
+    @__PI_1_2_3_5 = external global i8
+    @baz = external global i8*
+    @mainProg_instance = external global %mainProg
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       store i8* @__PI_1_2_3_4, i8** @foo, align 8
       store i8* @__PI_1_2_3_5, i8** @baz, align 8
@@ -211,8 +215,8 @@ fn address_used_in_body() {
       ret void
     }
 
-    declare void @__init_mainprog(%mainProg*) section "fn-$RUSTY$__init_mainprog:v[pr0]"
+    declare void @__init_mainprog(%mainProg*)
 
-    declare void @mainProg(%mainProg*) section "fn-$RUSTY$mainProg:v"
+    declare void @mainProg(%mainProg*)
     "###);
 }

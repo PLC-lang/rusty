@@ -19,6 +19,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Global,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "MainProg",
             location_in_parent: 0,
             linkage: Internal,
@@ -58,6 +59,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Local,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "__MainProg_aFb",
             location_in_parent: 0,
             linkage: Internal,
@@ -87,7 +89,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Name(
                     "aFb",
                 ),
-                ArrayAccess(
+                ArrayDimensions(
                     [
                         Dimension {
                             start_offset: ConstExpression(
@@ -118,6 +120,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Local,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "DINT",
             location_in_parent: 0,
             linkage: Internal,
@@ -147,7 +150,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Name(
                     "aFb",
                 ),
-                ArrayAccess(
+                ArrayDimensions(
                     [
                         Dimension {
                             start_offset: ConstExpression(
@@ -178,6 +181,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Local,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "DINT",
             location_in_parent: 1,
             linkage: Internal,
@@ -217,6 +221,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Local,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "__MainProg_aFb1",
             location_in_parent: 1,
             linkage: Internal,
@@ -246,7 +251,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Name(
                     "aFb1",
                 ),
-                ArrayAccess(
+                ArrayDimensions(
                     [
                         Dimension {
                             start_offset: ConstExpression(
@@ -291,6 +296,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Local,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "DINT",
             location_in_parent: 0,
             linkage: Internal,
@@ -320,7 +326,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Name(
                     "aFb1",
                 ),
-                ArrayAccess(
+                ArrayDimensions(
                     [
                         Dimension {
                             start_offset: ConstExpression(
@@ -365,6 +371,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Local,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "DINT",
             location_in_parent: 1,
             linkage: Internal,
@@ -404,6 +411,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                 Local,
             ),
             is_constant: false,
+            is_var_external: false,
             data_type_name: "__MainProg_aFb3",
             location_in_parent: 2,
             linkage: Internal,

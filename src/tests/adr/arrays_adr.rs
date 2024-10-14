@@ -18,7 +18,7 @@ fn declaring_an_array() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @d = global [10 x i32] zeroinitializer, section "var-$RUSTY$d:ai32"
+    @d = global [10 x i32] zeroinitializer
     "###);
 }
 
@@ -40,8 +40,8 @@ fn initializing_an_array() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-$RUSTY$d:ai32"
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-$RUSTY$__Data__init:ai32"
+    @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
+    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
     "###);
 }
 
@@ -70,10 +70,10 @@ fn assigning_full_arrays() {
 
     %prg = type { [10 x i32], [10 x i32] }
 
-    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }, section "var-$RUSTY$prg_instance:r2ai32ai32"
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-$RUSTY$__Data__init:ai32"
+    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }
+    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -92,34 +92,35 @@ fn assigning_full_arrays() {
 
     %prg = type { [10 x i32], [10 x i32] }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2ai32ai32"
-    @__Data__init = external global [10 x i32], section "var-$RUSTY$__Data__init:ai32"
+    @prg_instance = external global %prg
+    @__Data__init = external global [10 x i32]
 
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2ai32ai32]" {
+    define void @__init_prg(%prg* %0) {
     entry:
       %self = alloca %prg*, align 8
       store %prg* %0, %prg** %self, align 8
       ret void
     }
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %prg = type { [10 x i32], [10 x i32] }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2ai32ai32"
-    @__Data__init = external global [10 x i32], section "var-$RUSTY$__Data__init:ai32"
+    @prg_instance = external global %prg
+    @__Data__init = external global [10 x i32]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
       ret void
     }
 
-    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr2ai32ai32]"
+    declare void @__init_prg(%prg*)
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     "###);
 }
 
@@ -155,11 +156,11 @@ fn accessing_array_elements() {
 
     %prg = type { [10 x i32], [3 x i32] }
 
-    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [3 x i32] [i32 3, i32 4, i32 5] }, section "var-$RUSTY$prg_instance:r2ai32ai32"
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], section "var-$RUSTY$__Data__init:ai32"
+    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [3 x i32] [i32 3, i32 4, i32 5] }
+    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
     @__prg.b__init = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
 
-    define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+    define void @prg(%prg* %0) {
     entry:
       %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -174,33 +175,34 @@ fn accessing_array_elements() {
 
     %prg = type { [10 x i32], [3 x i32] }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2ai32ai32"
-    @__Data__init = external global [10 x i32], section "var-$RUSTY$__Data__init:ai32"
+    @prg_instance = external global %prg
+    @__Data__init = external global [10 x i32]
 
-    define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr2ai32ai32]" {
+    define void @__init_prg(%prg* %0) {
     entry:
       %self = alloca %prg*, align 8
       store %prg* %0, %prg** %self, align 8
       ret void
     }
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %prg = type { [10 x i32], [3 x i32] }
 
-    @prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r2ai32ai32"
-    @__Data__init = external global [10 x i32], section "var-$RUSTY$__Data__init:ai32"
+    @prg_instance = external global %prg
+    @__Data__init = external global [10 x i32]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+    define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
       ret void
     }
 
-    declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr2ai32ai32]"
+    declare void @__init_prg(%prg*)
 
-    declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+    declare void @prg(%prg*)
     "###);
 }

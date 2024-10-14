@@ -222,7 +222,7 @@ fn switch_case_debug_info() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    define i32 @main() section "fn-$RUSTY$main:i32" !dbg !4 {
+    define i32 @main() !dbg !4 {
     entry:
       %main = alloca i32, align 4, !dbg !9
       %x1 = alloca i16, align 2, !dbg !9
@@ -320,7 +320,9 @@ fn switch_case_debug_info() {
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
-    define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" !dbg !4 {
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() !dbg !4 {
     entry:
       ret void, !dbg !9
     }

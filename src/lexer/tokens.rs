@@ -19,6 +19,10 @@ pub enum Token {
     #[token("{ref}")]
     PropertyByRef,
 
+    #[token("@CONSTANT")]
+    #[token("{constant}")]
+    PropertyConstant,
+
     #[token("{sized}")]
     PropertySized,
 
@@ -98,6 +102,9 @@ pub enum Token {
     #[token("VAR_IN_OUT", ignore(case))]
     #[token("VARINOUT", ignore(case))]
     KeywordVarInOut,
+
+    #[token("VAR_EXTERNAL", ignore(case))]
+    KeywordVarExternal,
 
     #[token("END_VAR", ignore(case))]
     #[token("ENDVAR", ignore(case))]

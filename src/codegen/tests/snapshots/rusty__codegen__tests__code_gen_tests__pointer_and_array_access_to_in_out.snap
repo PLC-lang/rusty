@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-define i16 @main(i16** %0, i16* %1) section "fn-$RUSTY$main:i16[ppi16][pai16]" {
+define i16 @main(i16** %0, i16* %1) {
 entry:
   %main = alloca i16, align 2
   %a = alloca i16**, align 8
@@ -29,7 +29,9 @@ entry:
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
 entry:
   ret void
 }

@@ -9,18 +9,18 @@ source_filename = "<internal>"
 %foo = type { i32* }
 %prg = type { i32 }
 
-@foo2_instance = global %foo2 zeroinitializer, section "var-$RUSTY$foo2_instance:r2pi32i32"
-@foo_instance = global %foo zeroinitializer, section "var-$RUSTY$foo_instance:r1pi32"
-@prg_instance = global %prg zeroinitializer, section "var-$RUSTY$prg_instance:r1i32"
+@foo2_instance = global %foo2 zeroinitializer
+@foo_instance = global %foo zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @foo2(%foo2* %0) section "fn-$RUSTY$foo2:v[pi32][i32]" {
+define void @foo2(%foo2* %0) {
 entry:
   %inout = getelementptr inbounds %foo2, %foo2* %0, i32 0, i32 0
   %in = getelementptr inbounds %foo2, %foo2* %0, i32 0, i32 1
   ret void
 }
 
-define void @foo(%foo* %0) section "fn-$RUSTY$foo:v[pi32]" {
+define void @foo(%foo* %0) {
 entry:
   %inout = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %deref = load i32*, i32** %inout, align 8
@@ -32,7 +32,7 @@ entry:
   ret void
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %baz = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i32* %baz, i32** getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 8
@@ -46,36 +46,36 @@ source_filename = "__initializers"
 %foo2 = type { i32*, i32 }
 %prg = type { i32 }
 
-@foo_instance = external global %foo, section "var-$RUSTY$foo_instance:r1pi32"
-@foo2_instance = external global %foo2, section "var-$RUSTY$foo2_instance:r2pi32i32"
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1i32"
+@foo_instance = external global %foo
+@foo2_instance = external global %foo2
+@prg_instance = external global %prg
 
-define void @__init_foo(%foo* %0) section "fn-$RUSTY$__init_foo:v[pr1pi32]" {
+define void @__init_foo(%foo* %0) {
 entry:
   %self = alloca %foo*, align 8
   store %foo* %0, %foo** %self, align 8
   ret void
 }
 
-declare void @foo(%foo*) section "fn-$RUSTY$foo:v[pi32]"
+declare void @foo(%foo*)
 
-define void @__init_foo2(%foo2* %0) section "fn-$RUSTY$__init_foo2:v[pr2pi32i32]" {
+define void @__init_foo2(%foo2* %0) {
 entry:
   %self = alloca %foo2*, align 8
   store %foo2* %0, %foo2** %self, align 8
   ret void
 }
 
-declare void @foo2(%foo2*) section "fn-$RUSTY$foo2:v[pi32][i32]"
+declare void @foo2(%foo2*)
 
-define void @__init_prg(%prg* %0) section "fn-$RUSTY$__init_prg:v[pr1i32]" {
+define void @__init_prg(%prg* %0) {
 entry:
   %self = alloca %prg*, align 8
   store %prg* %0, %prg** %self, align 8
   ret void
 }
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
@@ -83,11 +83,12 @@ source_filename = "__init___testproject"
 %foo2 = type { i32*, i32 }
 %prg = type { i32 }
 
-@foo_instance = external global %foo, section "var-$RUSTY$foo_instance:r1pi32"
-@foo2_instance = external global %foo2, section "var-$RUSTY$foo2_instance:r2pi32i32"
-@prg_instance = external global %prg, section "var-$RUSTY$prg_instance:r1i32"
+@foo_instance = external global %foo
+@foo2_instance = external global %foo2
+@prg_instance = external global %prg
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+define void @__init___testproject() {
 entry:
   call void @__init_foo(%foo* @foo_instance)
   call void @__init_foo2(%foo2* @foo2_instance)
@@ -95,14 +96,14 @@ entry:
   ret void
 }
 
-declare void @__init_foo(%foo*) section "fn-$RUSTY$__init_foo:v[pr1pi32]"
+declare void @__init_foo(%foo*)
 
-declare void @foo(%foo*) section "fn-$RUSTY$foo:v[pi32]"
+declare void @foo(%foo*)
 
-declare void @__init_foo2(%foo2*) section "fn-$RUSTY$__init_foo2:v[pr2pi32i32]"
+declare void @__init_foo2(%foo2*)
 
-declare void @foo2(%foo2*) section "fn-$RUSTY$foo2:v[pi32][i32]"
+declare void @foo2(%foo2*)
 
-declare void @__init_prg(%prg*) section "fn-$RUSTY$__init_prg:v[pr1i32]"
+declare void @__init_prg(%prg*)
 
-declare void @prg(%prg*) section "fn-$RUSTY$prg:v"
+declare void @prg(%prg*)

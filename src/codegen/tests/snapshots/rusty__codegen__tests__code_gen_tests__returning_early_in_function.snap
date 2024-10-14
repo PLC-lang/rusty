@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-define i16 @smaller_than_ten(i8 %0) section "fn-$RUSTY$smaller_than_ten:i16[i8]" {
+define i16 @smaller_than_ten(i8 %0) {
 entry:
   %smaller_than_ten = alloca i16, align 2
   %n = alloca i8, align 1
@@ -32,7 +32,9 @@ continue:                                         ; preds = %buffer_block, %entr
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" {
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
 entry:
   ret void
 }

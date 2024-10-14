@@ -7,9 +7,9 @@ source_filename = "<internal>"
 
 %myStruct = type { i32, double, [11 x i32] }
 
-@gStruct = global %myStruct zeroinitializer, section "var-$RUSTY$gStruct:r3i32f64ai32", !dbg !0
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, section "var-$RUSTY$__myStruct__init:r3i32f64ai32", !dbg !13
-@b = global [11 x %myStruct] zeroinitializer, section "var-$RUSTY$b:ar3i32f64ai32", !dbg !15
+@gStruct = global %myStruct zeroinitializer, !dbg !0
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !13
+@b = global [11 x %myStruct] zeroinitializer, !dbg !15
 
 !llvm.module.flags = !{!18, !19}
 !llvm.dbg.cu = !{!20}
@@ -23,8 +23,8 @@ source_filename = "<internal>"
 !6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 4, baseType: !8, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
 !8 = !DIBasicType(name: "LREAL", size: 64, encoding: DW_ATE_float, flags: DIFlagPublic)
-!9 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !10, size: 352, align: 64, offset: 128, flags: DIFlagPublic)
-!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 352, align: 64, elements: !11)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !10, size: 352, align: 32, offset: 128, flags: DIFlagPublic)
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 352, align: 32, elements: !11)
 !11 = !{!12}
 !12 = !DISubrange(count: 11, lowerBound: 0)
 !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
@@ -42,9 +42,9 @@ source_filename = "__initializers"
 
 %myStruct = type { i32, double, [11 x i32] }
 
-@__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r3i32f64ai32", !dbg !0
+@__myStruct__init = external global %myStruct, !dbg !0
 
-define void @__init_mystruct(%myStruct* %0) section "fn-$RUSTY$__init_mystruct:v[pr3i32f64ai32]" !dbg !18 {
+define void @__init_mystruct(%myStruct* %0) !dbg !18 {
 entry:
   %self = alloca %myStruct*, align 8, !dbg !23
   call void @llvm.dbg.declare(metadata %myStruct** %self, metadata !24, metadata !DIExpression()), !dbg !23
@@ -69,8 +69,8 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 4, baseType: !8, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
 !8 = !DIBasicType(name: "LREAL", size: 64, encoding: DW_ATE_float, flags: DIFlagPublic)
-!9 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !10, size: 352, align: 64, offset: 128, flags: DIFlagPublic)
-!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 352, align: 64, elements: !11)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !10, size: 352, align: 32, offset: 128, flags: DIFlagPublic)
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 352, align: 32, elements: !11)
 !11 = !{!12}
 !12 = !DISubrange(count: 11, lowerBound: 0)
 !13 = !{i32 2, !"Dwarf Version", i32 5}
@@ -90,16 +90,17 @@ source_filename = "__init___testproject"
 
 %myStruct = type { i32, double, [11 x i32] }
 
-@__myStruct__init = external global %myStruct, section "var-$RUSTY$__myStruct__init:r3i32f64ai32", !dbg !0
-@gStruct = external global %myStruct, section "var-$RUSTY$gStruct:r3i32f64ai32", !dbg !13
+@__myStruct__init = external global %myStruct, !dbg !0
+@gStruct = external global %myStruct, !dbg !13
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" !dbg !20 {
+define void @__init___testproject() !dbg !20 {
 entry:
   call void @__init_mystruct(%myStruct* @gStruct), !dbg !24
   ret void, !dbg !24
 }
 
-declare !dbg !25 void @__init_mystruct(%myStruct*) section "fn-$RUSTY$__init_mystruct:v[pr3i32f64ai32]"
+declare !dbg !25 void @__init_mystruct(%myStruct*)
 
 !llvm.module.flags = !{!15, !16}
 !llvm.dbg.cu = !{!17}
@@ -113,8 +114,8 @@ declare !dbg !25 void @__init_mystruct(%myStruct*) section "fn-$RUSTY$__init_mys
 !6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 4, baseType: !8, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
 !8 = !DIBasicType(name: "LREAL", size: 64, encoding: DW_ATE_float, flags: DIFlagPublic)
-!9 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !10, size: 352, align: 64, offset: 128, flags: DIFlagPublic)
-!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 352, align: 64, elements: !11)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !10, size: 352, align: 32, offset: 128, flags: DIFlagPublic)
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 352, align: 32, elements: !11)
 !11 = !{!12}
 !12 = !DISubrange(count: 11, lowerBound: 0)
 !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())

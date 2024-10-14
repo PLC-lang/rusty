@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-define i32 @foo() section "fn-$RUSTY$foo:i32" !dbg !4 {
+define i32 @foo() !dbg !4 {
 entry:
   %foo = alloca i32, align 4, !dbg !9
   %a = alloca [64 x i32], align 4, !dbg !9
@@ -40,8 +40,8 @@ attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
 !7 = !{null}
 !8 = !{}
 !9 = !DILocation(line: 6, column: 8, scope: !4)
-!10 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !11, align: 64)
-!11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 2048, align: 64, elements: !13)
+!10 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !11, align: 32)
+!11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 2048, align: 32, elements: !13)
 !12 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !13 = !{!14}
 !14 = !DISubrange(count: 64, lowerBound: 1)
@@ -51,7 +51,9 @@ attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-define void @__init___testproject() section "fn-$RUSTY$__init___testproject:v" !dbg !4 {
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() !dbg !4 {
 entry:
   ret void, !dbg !9
 }
