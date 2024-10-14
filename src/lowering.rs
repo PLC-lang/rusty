@@ -1,10 +1,13 @@
 use crate::{
     index::{get_init_fn_name, Index, VariableIndexEntry},
-    resolver::{const_evaluator::UnresolvableConstant, AstAnnotations},
+    resolver::{const_evaluator::UnresolvableConstant, AnnotationMap, AstAnnotations, StatementAnnotation},
 };
 use initializers::{Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
-    ast::{AstFactory, AstNode, CompilationUnit, ConfigVariable, DataType, LinkageType, PouType},
+    ast::{
+        AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, ConfigVariable, DataType,
+        LinkageType, PouType,
+    },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     visit_all_nodes_mut,
@@ -99,6 +102,65 @@ impl AstLowerer {
                     Some(&variable.name),
                     &Some(initializer.clone()),
                 );
+            } else {
+                let hint = self.annotations.get_type_hint(initializer, &self.index);
+
+                if hint.is_none() || hint.is_some_and(|it| !it.is_pointer()) {
+                    return;
+                };
+
+                let &AstStatement::CallStatement(CallStatement { parameters, .. }) = &initializer.get_stmt()
+                else {
+                    return;
+                };
+
+                let Some(parameters) = parameters.as_ref().map(|it| it.as_ref()) else { return };
+
+                let Some(annotation) = self.annotations.get(parameters) else { return };
+
+                let Some(param_name) = parameters.get_flat_reference_name().or_else(|| {
+                    let StatementAnnotation::Variable { qualified_name, .. } = annotation else {
+                        return None;
+                    };
+                    Some(qualified_name)
+                }) else {
+                    return;
+                };
+
+                match self
+                    .index
+                    .find_global_variable(param_name)
+                    .or_else(|| self.index.find_fully_qualified_variable(param_name))
+                {
+                    Some(_) => (), // this is a global or fully qualified, we can resolve this. XXX: might shadow a local member -> priority?,
+                    None => {
+                        // check if we can find a qualified reference here
+                        self.ctxt
+                            .get_scope()
+                            .as_ref()
+                            .and_then(|it| {
+                                if self.index.find_local_member(&it, param_name).is_some() {
+                                    Some(it.as_str())
+                                } else {
+                                    None
+                                }
+                            })
+                            .map(|scope| {
+                                // update the initializer used in the init function with the qualified reference
+                                self.unresolved_initializers.insert_initializer(
+                                    scope,
+                                    Some(&variable.name),
+                                    &Some(create_call_statement(
+                                        "REF",
+                                        param_name,
+                                        Some(scope),
+                                        self.ctxt.id_provider.clone(),
+                                        &initializer.location,
+                                    )),
+                                );
+                            });
+                    }
+                }
             }
         }
     }
@@ -257,6 +319,25 @@ impl AstVisitorMut for AstLowerer {
     }
 
     fn visit_variable(&mut self, variable: &mut plc_ast::ast::Variable) {
+        let is_recursive = self
+            .ctxt
+            .get_scope()
+            .as_ref()
+            .map(|scope| {
+                self.index.find_pou_type(&scope).is_some_and(|it| {
+                    let Ok(pou_type) = self.index.get_effective_type_by_name(it.get_name()) else {
+                        unreachable!("We are in the context of this POU, it must have a type");
+                    };
+                    let var_type = self.index.get_effective_type_or_void_by_name(
+                        variable.data_type_declaration.get_name().unwrap_or_default(),
+                    );
+                    pou_type.get_name() == var_type.get_name()
+                })
+            })
+            .unwrap_or_default();
+        if is_recursive {
+            return;
+        };
         self.maybe_add_global_instance_initializer(variable);
         self.collect_alias_and_reference_to_inits(variable);
         variable.walk(self);
