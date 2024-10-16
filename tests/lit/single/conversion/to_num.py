@@ -1,4 +1,4 @@
-f = open("gen.txt", "w")
+f = open("to_num.st", "w")
 
 types = [
     "SINT",
@@ -9,14 +9,26 @@ types = [
     "UDINT",
     "LINT",
     "ULINT",
-    "REAL",
     "LREAL",
+    "REAL",
+
+    "BOOL",
+    "BYTE",
+    "WORD",
+    "DWORD",
+    "LWORD",
 ]
 
-src = "printf('%d$N', TO_{0}({1}#10));       // CHECK: 10\n"
+template = "    printf('%d$N', TO_{0}({1}#10));       // CHECK: 10\n"
 
+f.write("// RUN: (%COMPILE %s && %RUN) | %CHECK %s\n")
+f.write("FUNCTION main\n")
 for type_a in types:
-    # f.write(template.format(type_a))
+    # Skip something like "STRING_TO_<NUMBER>"
+    if type_a == "STRING" or type_a == "WSTRING":
+        continue
+
     for type_b in types:
-        f.write(src.format(type_a, type_b))
+        f.write(template.format(type_a, type_b))
     f.write("\n")
+f.write("END_FUNCTION")
