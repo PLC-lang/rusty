@@ -1628,6 +1628,9 @@ impl Index {
         if let DataTypeInformation::Pointer { inner_type_name, .. } = initial_type {
             if let Some(ty) = self.find_effective_type_info(inner_type_name) {
                 return self.find_elementary_pointer_type(self.find_intrinsic_type(ty));
+            } else {
+                // the inner type can't be found, return VOID as placeholder
+                return self.get_void_type().get_type_information();
             }
         }
 
