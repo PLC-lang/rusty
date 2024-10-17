@@ -289,17 +289,15 @@ fn validate_variable<T: AnnotationMap>(
                         };
 
                         let Some(rhs_ty) = context.annotations.get_type(node, context.index) else {
-                            let type_name = init
-                                .target_type_name
-                                .as_ref()
-                                .map(Clone::clone)
-                                .unwrap_or_default();
-                            validator.push_diagnostic(Diagnostic::unknown_type(&type_name, node.get_location()));
+                            let type_name = init.target_type_name.clone().unwrap_or_default();
+                            validator
+                                .push_diagnostic(Diagnostic::unknown_type(&type_name, node.get_location()));
                             return;
                         };
 
-                        if context.index.find_elementary_pointer_type(rhs_ty.get_type_information()).is_void() {
-                            // we could not find the type in the index, this will be caught elsewhere.
+                        if context.index.find_elementary_pointer_type(rhs_ty.get_type_information()).is_void()
+                        {
+                            // we could not find the type in the index, a validation for this exists elsewhere
                             return;
                         };
 
