@@ -176,9 +176,6 @@ fn resolve_function_members_via_qualifier() {
     let diagnostics = parse_and_validate_buffered(
         "
             PROGRAM prg
-                VAR
-                    s : MyStruct;
-                END_VAR
                 foo(a := 1, b := 2, c := 3);    (* ok *)
                 foo.a; (* not ok *)
                 foo.b; (* not ok *)

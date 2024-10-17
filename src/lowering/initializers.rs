@@ -58,7 +58,7 @@ impl<'lwr> Init<'lwr> for Initializers {
             .for_each(|(scope, data)| {
                 assignments.maybe_insert_initializer(
                     &scope,
-                    Some(data.lhs.as_ref().unwrap_or(&data.target_type_name)),
+                    data.lhs.as_ref().or(data.target_type_name.as_ref()).map(|it| it.as_str()),
                     &data.initializer,
                 );
             });

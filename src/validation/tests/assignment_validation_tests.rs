@@ -1355,6 +1355,24 @@ fn ref_assignment_with_global_local_variables_and_aliased_types() {
     18 │                 invalidB : REFERENCE TO fooGlobal;
        │                            ^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
 
+    error[E052]: Unknown type: AliasedDINT
+       ┌─ <internal>:11:64
+       │
+    11 │                 referenceToAlias                : REFERENCE TO AliasedDINT;
+       │                                                                ^^^^^^^^^^^ Unknown type: AliasedDINT
+
+    error[E052]: Unknown type: fooLocal
+       ┌─ <internal>:17:41
+       │
+    17 │                 invalidA : REFERENCE TO fooLocal;
+       │                                         ^^^^^^^^ Unknown type: fooLocal
+
+    error[E052]: Unknown type: fooGlobal
+       ┌─ <internal>:18:41
+       │
+    18 │                 invalidB : REFERENCE TO fooGlobal;
+       │                                         ^^^^^^^^^ Unknown type: fooGlobal
+
     error[E037]: Invalid assignment: cannot assign 'INT' to 'DINT'
        ┌─ <internal>:28:13
        │

@@ -3,21 +3,19 @@ source: src/validation/tests/reference_resolve_tests.rs
 expression: "&diagnostics"
 ---
 error[E048]: Could not resolve reference to a
-  ┌─ <internal>:7:21
+  ┌─ <internal>:4:21
   │
-7 │                 foo.a; (* not ok *)
+4 │                 foo.a; (* not ok *)
   │                     ^ Could not resolve reference to a
 
 error[E048]: Could not resolve reference to b
-  ┌─ <internal>:8:21
+  ┌─ <internal>:5:21
   │
-8 │                 foo.b; (* not ok *)
+5 │                 foo.b; (* not ok *)
   │                     ^ Could not resolve reference to b
 
 error[E048]: Could not resolve reference to c
-  ┌─ <internal>:9:21
+  ┌─ <internal>:6:21
   │
-9 │                 foo.c; (* not ok *)
+6 │                 foo.c; (* not ok *)
   │                     ^ Could not resolve reference to c
-
-
