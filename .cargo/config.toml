@@ -3,6 +3,7 @@
 xtask = "run --release --package xtask --"
 metrics = "run --release --package xtask -- metrics"
 metrics-sql = "run --release --package xtask --features=sql -- metrics"
+tw1 = "test --workspace -- --test-threads=1"
 
 [target.x86_64-unknown-linux-gnu]
 rustflags = ["-C", "link-arg=-fuse-ld=lld"]
