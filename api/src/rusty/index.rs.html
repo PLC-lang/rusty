@@ -1718,6 +1718,9 @@
 <a href="#1718" id="1718">1718</a>
 <a href="#1719" id="1719">1719</a>
 <a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
@@ -3348,6 +3351,9 @@
         <span class="kw">if let </span>DataTypeInformation::Pointer { inner_type_name, .. } = initial_type {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(ty) = <span class="self">self</span>.find_effective_type_info(inner_type_name) {
                 <span class="kw">return </span><span class="self">self</span>.find_elementary_pointer_type(<span class="self">self</span>.find_intrinsic_type(ty));
+            } <span class="kw">else </span>{
+                <span class="comment">// the inner type can't be found, return VOID as placeholder
+                </span><span class="kw">return </span><span class="self">self</span>.get_void_type().get_type_information();
             }
         }
 

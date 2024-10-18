@@ -1304,6 +1304,8 @@
 <a href="#1304" id="1304">1304</a>
 <a href="#1305" id="1305">1305</a>
 <a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -2052,7 +2054,8 @@
         (
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::PointerType { name, referenced_type: Box::new(decl), auto_deref },
-                location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
+                <span class="comment">// FIXME: this currently includes the initializer in the sourcelocation, resulting in 'REF_TO A := B' when creating a slice
+                </span>location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
             },
             initializer,
@@ -2078,14 +2081,15 @@
         <span class="prelude-val">None
     </span>};
 
-    <span class="kw">let </span>initial_value =
+    <span class="kw">let </span>end = lexer.last_range.end;
+
+    <span class="kw">let </span>initial_value: <span class="prelude-ty">Option</span>&lt;AstNode&gt; =
         <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAssignment) || lexer.try_consume(<span class="kw-2">&amp;</span>KeywordReferenceAssignment) {
             <span class="prelude-val">Some</span>(parse_expression(lexer))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
 
-    <span class="kw">let </span>end = lexer.last_range.end;
     <span class="kw">if </span>name.is_some() || bounds.is_some() {
         <span class="kw">let </span>data_type = <span class="kw">match </span>bounds {
             <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::ExpressionList(expressions), id, location }) =&gt; {

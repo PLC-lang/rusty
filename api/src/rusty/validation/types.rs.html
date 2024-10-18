@@ -111,6 +111,16 @@
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, AstStatement, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -128,8 +138,15 @@
     declaration: <span class="kw-2">&amp;</span>DataTypeDeclaration,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
-    <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } = declaration {
-        visit_data_type(validator, data_type, location, context);
+    <span class="kw">match </span>declaration {
+        DataTypeDeclaration::DataTypeReference { referenced_type, location } =&gt; {
+            <span class="kw">if </span>context.index.find_effective_type_by_name(referenced_type).is_none() {
+                validator.push_diagnostic(Diagnostic::unknown_type(referenced_type, location.into()));
+            };
+        }
+        DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } =&gt; {
+            visit_data_type(validator, data_type, location, context)
+        }
     }
 }
 
@@ -150,6 +167,9 @@
             visit_data_type_declaration(validator, referenced_type, context)
         }
         DataType::VarArgs { referenced_type: <span class="prelude-val">Some</span>(referenced_type), .. } =&gt; {
+            visit_data_type_declaration(validator, referenced_type.as_ref(), context);
+        }
+        DataType::PointerType { referenced_type, .. } =&gt; {
             visit_data_type_declaration(validator, referenced_type.as_ref(), context);
         }
         <span class="kw">_ </span>=&gt; {}

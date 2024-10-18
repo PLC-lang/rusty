@@ -397,7 +397,7 @@
 </span><span class="attr">#[derive(Debug, PartialEq, Clone)]
 </span><span class="kw">pub struct </span>InitData {
     <span class="kw">pub </span>initializer: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
-    <span class="kw">pub </span>target_type_name: String,
+    <span class="kw">pub </span>target_type_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="kw">pub </span>scope: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="kw">pub </span>lhs: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
@@ -411,7 +411,7 @@
     ) -&gt; <span class="self">Self </span>{
         InitData {
             initializer: initializer.cloned(),
-            target_type_name: target_type.unwrap_or_default().to_string(),
+            target_type_name: target_type.map(|it| it.into()),
             scope: scope.map(|it| it.into()),
             lhs: target.map(|it| it.into()),
         }

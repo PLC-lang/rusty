@@ -415,7 +415,7 @@
             .for_each(|(scope, data)| {
                 assignments.maybe_insert_initializer(
                     <span class="kw-2">&amp;</span>scope,
-                    <span class="prelude-val">Some</span>(data.lhs.as_ref().unwrap_or(<span class="kw-2">&amp;</span>data.target_type_name)),
+                    data.lhs.as_ref().or(data.target_type_name.as_ref()).map(|it| it.as_str()),
                     <span class="kw-2">&amp;</span>data.initializer,
                 );
             });
