@@ -15,8 +15,15 @@ pub fn visit_data_type_declaration<T: AnnotationMap>(
     declaration: &DataTypeDeclaration,
     context: &ValidationContext<T>,
 ) {
-    if let DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } = declaration {
-        visit_data_type(validator, data_type, location, context);
+    match declaration {
+        DataTypeDeclaration::DataTypeReference { referenced_type, location } => {
+            if context.index.find_effective_type_by_name(referenced_type).is_none() {
+                validator.push_diagnostic(Diagnostic::unknown_type(referenced_type, location.into()));
+            };
+        }
+        DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } => {
+            visit_data_type(validator, data_type, location, context)
+        }
     }
 }
 
@@ -37,6 +44,9 @@ pub fn visit_data_type<T: AnnotationMap>(
             visit_data_type_declaration(validator, referenced_type, context)
         }
         DataType::VarArgs { referenced_type: Some(referenced_type), .. } => {
+            visit_data_type_declaration(validator, referenced_type.as_ref(), context);
+        }
+        DataType::PointerType { referenced_type, .. } => {
             visit_data_type_declaration(validator, referenced_type.as_ref(), context);
         }
         _ => {}

@@ -989,7 +989,6 @@ fn program_implicit_downcast() {
         r#"
         PROGRAM main
         VAR
-            fb: fb_t;
             var1_lint, var2_lint : LINT;
             var_real             : REAL;
             var_lword            : LWORD;

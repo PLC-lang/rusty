@@ -88,7 +88,7 @@ impl ConstExpression {
 #[derive(Debug, PartialEq, Clone)]
 pub struct InitData {
     pub initializer: Option<AstNode>,
-    pub target_type_name: String,
+    pub target_type_name: Option<String>,
     pub scope: Option<String>,
     pub lhs: Option<String>,
 }
@@ -102,7 +102,7 @@ impl InitData {
     ) -> Self {
         InitData {
             initializer: initializer.cloned(),
-            target_type_name: target_type.unwrap_or_default().to_string(),
+            target_type_name: target_type.map(|it| it.into()),
             scope: scope.map(|it| it.into()),
             lhs: target.map(|it| it.into()),
         }

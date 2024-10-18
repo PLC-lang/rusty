@@ -720,6 +720,117 @@ fn unresolved_references_to_const_builtins_in_initializer_are_reported() {
 }
 
 #[test]
+fn unknown_types_are_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL
+            a: undefined;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E052]: Unknown type: undefined
+      ┌─ <internal>:3:16
+      │
+    3 │             a: undefined;
+      │                ^^^^^^^^^ Unknown type: undefined
+
+    "###);
+}
+
+#[test]
+fn aliases_are_not_reported_as_unknown_types() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        TYPE myDeclaredType : DINT; END_TYPE
+        VAR_GLOBAL
+            a: myDeclaredType;
+        END_VAR
+        "#,
+    );
+
+    assert!(diagnostics.is_empty())
+}
+
+#[test]
+fn aliasing_to_undeclared_type_is_an_error() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        TYPE myDeclaredType : undeclaredType; END_TYPE
+        VAR_GLOBAL
+            a: myDeclaredType;
+        END_VAR
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E052]: Unknown type: myDeclaredType
+      ┌─ <internal>:4:16
+      │
+    4 │             a: myDeclaredType;
+      │                ^^^^^^^^^^^^^^ Unknown type: myDeclaredType
+
+    "###);
+}
+
+#[test]
+fn trying_to_initialize_a_pointer_of_unknown_type_is_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL
+            a: undefined;
+        END_VAR
+        FUNCTION_BLOCK foo
+        VAR
+            bar : REF_TO undefined := REF(a);
+        END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E052]: Unknown type: undefined
+      ┌─ <internal>:7:26
+      │
+    7 │             bar : REF_TO undefined := REF(a);
+      │                          ^^^^^^^^^ Unknown type: undefined
+
+    error[E052]: Unknown type: undefined
+      ┌─ <internal>:3:16
+      │
+    3 │             a: undefined;
+      │                ^^^^^^^^^ Unknown type: undefined
+
+    "###);
+}
+
+#[test]
+fn trying_to_initialize_a_pointer_with_builtin_ref_with_type_mismatch_leads_to_error() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL
+            a: DINT;
+        END_VAR
+        FUNCTION_BLOCK foo
+        VAR
+            bar : REF_TO STRING := REF(a);
+        END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'REF_TO STRING := REF(a)'
+      ┌─ <internal>:7:36
+      │
+    7 │             bar : REF_TO STRING := REF(a);
+      │                                    ^^^^^^ Invalid assignment: cannot assign 'DINT' to 'REF_TO STRING := REF(a)'
+
+    "###);
+}
+
+#[test]
 fn unconfigured_template_variables_are_validated() {
     let diagnostics = parse_and_validate_buffered(
         r#"
