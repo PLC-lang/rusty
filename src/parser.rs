@@ -746,6 +746,7 @@ fn parse_pointer_definition(
         (
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::PointerType { name, referenced_type: Box::new(decl), auto_deref },
+                // FIXME: this currently includes the initializer in the sourcelocation, resulting in 'REF_TO A := B' when creating a slice
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
             },
@@ -772,14 +773,15 @@ fn parse_type_reference_type_definition(
         None
     };
 
-    let initial_value =
+    let end = lexer.last_range.end;
+
+    let initial_value: Option<AstNode> =
         if lexer.try_consume(&KeywordAssignment) || lexer.try_consume(&KeywordReferenceAssignment) {
             Some(parse_expression(lexer))
         } else {
             None
         };
 
-    let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {
         let data_type = match bounds {
             Some(AstNode { stmt: AstStatement::ExpressionList(expressions), id, location }) => {
