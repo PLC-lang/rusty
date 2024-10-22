@@ -1368,3 +1368,297 @@ fn var_external_blocks_are_ignored_in_init_functions() {
     }
     "###)
 }
+
+#[test]
+fn ref_to_local_member() {
+    let res = codegen(
+        r"
+    FUNCTION_BLOCK foo
+    VAR
+        s  : STRING;
+        ptr : REF_TO STRING := REF(s);
+        alias AT s : STRING;
+        reference_to : REFERENCE TO STRING REF= s;
+    END_VAR
+    END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
+
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+
+    define void @foo(%foo* %0) {
+    entry:
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %ptr = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %alias = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      %reference_to = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
+
+    @__foo__init = external global %foo
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %ptr = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
+      %deref1 = load %foo*, %foo** %self, align 8
+      %s = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
+      %deref2 = load %foo*, %foo** %self, align 8
+      %alias = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 2
+      %deref3 = load %foo*, %foo** %self, align 8
+      %s4 = getelementptr inbounds %foo, %foo* %deref3, i32 0, i32 0
+      store [81 x i8]* %s4, [81 x i8]** %alias, align 8
+      %deref5 = load %foo*, %foo** %self, align 8
+      %reference_to = getelementptr inbounds %foo, %foo* %deref5, i32 0, i32 3
+      %deref6 = load %foo*, %foo** %self, align 8
+      %s7 = getelementptr inbounds %foo, %foo* %deref6, i32 0, i32 0
+      store [81 x i8]* %s7, [81 x i8]** %reference_to, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
+    "#)
+}
+
+#[test]
+fn ref_to_local_member_shadows_global() {
+    let res = codegen(
+        r"
+    VAR_GLOBAL
+        s : STRING;
+    END_VAR
+
+    FUNCTION_BLOCK foo
+    VAR
+        s : STRING;
+        ptr : REF_TO STRING := REF(s);
+        alias AT s : STRING;
+        reference_to : REFERENCE TO STRING REF= s;
+    END_VAR
+    END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
+
+    @s = global [81 x i8] zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+
+    define void @foo(%foo* %0) {
+    entry:
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %ptr = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %alias = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      %reference_to = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
+
+    @__foo__init = external global %foo
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %ptr = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
+      %deref1 = load %foo*, %foo** %self, align 8
+      %s = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
+      %deref2 = load %foo*, %foo** %self, align 8
+      %alias = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 2
+      %deref3 = load %foo*, %foo** %self, align 8
+      %s4 = getelementptr inbounds %foo, %foo* %deref3, i32 0, i32 0
+      store [81 x i8]* %s4, [81 x i8]** %alias, align 8
+      %deref5 = load %foo*, %foo** %self, align 8
+      %reference_to = getelementptr inbounds %foo, %foo* %deref5, i32 0, i32 3
+      %deref6 = load %foo*, %foo** %self, align 8
+      %s7 = getelementptr inbounds %foo, %foo* %deref6, i32 0, i32 0
+      store [81 x i8]* %s7, [81 x i8]** %reference_to, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
+    "#)
+}
+
+#[test]
+fn temporary_variable_ref_to_local_member() {
+    let res = codegen(
+        r"
+    FUNCTION_BLOCK foo
+    VAR
+        s  : STRING;
+    END_VAR
+    VAR_TEMP
+        ptr : REF_TO STRING := REF(s);
+        alias AT s : STRING;
+        reference_to : REFERENCE TO STRING REF= s;
+    END_VAR
+    END_FUNCTION_BLOCK
+        ",
+    );
+
+    // FIXME: this IR is not correct and will lead to segfaults when
+    // compiling without optimizations
+    insta::assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { [81 x i8] }
+
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+
+    define void @foo(%foo* %0) {
+    entry:
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %ptr = alloca [81 x i8]*, align 8
+      %alias = alloca [81 x i8]*, align 8
+      %reference_to = alloca [81 x i8]*, align 8
+      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
+      store [81 x i8]* null, [81 x i8]** %alias, align 8
+      store [81 x i8]* null, [81 x i8]** %reference_to, align 8
+      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
+      store [81 x i8]* %s, [81 x i8]** %alias, align 8
+      store [81 x i8]* %s, [81 x i8]** %reference_to, align 8
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { [81 x i8] }
+
+    @__foo__init = external global %foo
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
+    "#)
+}
+
+#[test]
+fn temporary_variable_ref_to_temporary_variable() {
+    let res = codegen(
+        r"
+    FUNCTION_BLOCK foo
+    VAR
+    END_VAR
+    VAR_TEMP
+        s  : STRING;
+        ptr : REF_TO STRING := REF(s);
+        alias AT s : STRING;
+        reference_to : REFERENCE TO STRING REF= s;
+    END_VAR
+    END_FUNCTION_BLOCK
+        ",
+    );
+
+    // FIXME: this IR is not correct and will lead to segfaults when
+    // compiling without optimizations
+    insta::assert_snapshot!(res, @r##"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type {}
+
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+
+    define void @foo(%foo* %0) {
+    entry:
+      %s = alloca [81 x i8], align 1
+      %ptr = alloca [81 x i8]*, align 8
+      %alias = alloca [81 x i8]*, align 8
+      %reference_to = alloca [81 x i8]*, align 8
+      %1 = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
+      store [81 x i8]* null, [81 x i8]** %alias, align 8
+      store [81 x i8]* null, [81 x i8]** %reference_to, align 8
+      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
+      store [81 x i8]* %s, [81 x i8]** %alias, align 8
+      store [81 x i8]* %s, [81 x i8]** %reference_to, align 8
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type {}
+
+    @__foo__init = external global %foo
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
+    "##)
+}

@@ -684,7 +684,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             } else {
                 // TODO: using the global context we could get a slice here; currently not possible because the
                 //       global context isn't passed into codegen
-                Err(Diagnostic::new(&format!("{element:?} not a direct access"))
+                Err(Diagnostic::new(format!("{element:?} not a direct access"))
                     .with_error_code("E055")
                     .with_location(element.get_location()))
             }?;
