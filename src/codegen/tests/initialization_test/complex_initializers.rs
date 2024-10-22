@@ -1537,8 +1537,6 @@ fn temporary_variable_ref_to_local_member() {
         ",
     );
 
-    // FIXME: this IR is not correct and will lead to segfaults when
-    // compiling without optimizations
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
@@ -1605,8 +1603,6 @@ fn temporary_variable_ref_to_temporary_variable() {
         ",
     );
 
-    // FIXME: this IR is not correct and will lead to segfaults when
-    // compiling without optimizations
     insta::assert_snapshot!(res, @r##"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"

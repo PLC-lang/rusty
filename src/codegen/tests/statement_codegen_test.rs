@@ -291,6 +291,20 @@ fn reference_to_string_assignment() {
         "#,
     );
 
+    let manual_deref = codegen(
+        r#"
+        FUNCTION main
+            VAR
+                a : REF_TO STRING;
+            END_VAR
+            a^ := 'hello';
+        END_FUNCTION
+        "#,
+    );
+
+    // We want to assert that `a := 'hello'` and `a^ := 'hello'` yield identical IR
+    assert_eq!(auto_deref, manual_deref);
+
     insta::assert_snapshot!(auto_deref, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
