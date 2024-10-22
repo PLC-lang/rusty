@@ -9,10 +9,10 @@ use super::{
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
-use crate::typesystem::DataTypeInformation;
 use crate::validation::statement::validate_enum_variant_assignment;
 use crate::validation::statement::validate_pointer_assignment;
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
+use crate::{index::const_expressions::UnresolvableKind, typesystem::DataTypeInformation};
 use crate::{index::VariableIndexEntry, resolver::StatementAnnotation};
 
 pub fn visit_config_variable<T: AnnotationMap>(
@@ -271,16 +271,45 @@ fn validate_variable<T: AnnotationMap>(
             .initial_value
             .and_then(|initial_id| context.index.get_const_expressions().find_const_expression(&initial_id))
         {
-            Some(ConstExpression::Unresolvable { reason, statement }) if reason.is_misc() => {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Unresolved constant `{}` variable: {}",
-                        variable.name.as_str(),
-                        reason.get_reason()
-                    ))
-                    .with_error_code("E033")
-                    .with_location(statement.get_location()),
-                );
+            Some(ConstExpression::Unresolvable { reason, statement }) => {
+                match reason {
+                    UnresolvableKind::Misc(reason) => validator.push_diagnostic(
+                        Diagnostic::new(format!(
+                            "Unresolved constant `{}` variable: {}",
+                            variable.name.as_str(),
+                            reason
+                        ))
+                        .with_error_code("E033")
+                        .with_location(statement.get_location()),
+                    ),
+                    UnresolvableKind::Overflow(..) => (),
+                    UnresolvableKind::Address(init) => {
+                        let Some(node) = init.initializer.as_ref() else {
+                            return;
+                        };
+
+                        let Some(rhs_ty) = context.annotations.get_type(node, context.index) else {
+                            let type_name = init.target_type_name.clone().unwrap_or_default();
+                            validator
+                                .push_diagnostic(Diagnostic::unknown_type(&type_name, node.get_location()));
+                            return;
+                        };
+
+                        if context.index.find_elementary_pointer_type(rhs_ty.get_type_information()).is_void()
+                        {
+                            // we could not find the type in the index, a validation for this exists elsewhere
+                            return;
+                        };
+
+                        validate_pointer_assignment(
+                            context,
+                            validator,
+                            context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
+                            rhs_ty,
+                            &node.get_location(),
+                        );
+                    }
+                };
             }
             Some(ConstExpression::Unresolved { statement, .. }) => {
                 validator.push_diagnostic(
