@@ -1,5 +1,5 @@
 use crate::{
-    index::{get_init_fn_name, Index, VariableIndexEntry},
+    index::{get_init_fn_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{const_evaluator::UnresolvableConstant, AnnotationMap, AstAnnotations, StatementAnnotation},
 };
 use initializers::{Init, InitAssignments, Initializers, GLOBAL_SCOPE};
@@ -81,7 +81,7 @@ impl AstLowerer {
         self.ctxt.scope(old);
     }
 
-    fn collect_alias_and_reference_to_inits(&mut self, variable: &mut plc_ast::ast::Variable) {
+    fn update_initializer(&mut self, variable: &mut plc_ast::ast::Variable) {
         if let Some(initializer) = variable.initializer.as_ref() {
             let Some(variable_ty) = variable
                 .data_type_declaration
@@ -116,51 +116,55 @@ impl AstLowerer {
 
                 let Some(parameters) = parameters.as_ref().map(|it| it.as_ref()) else { return };
 
-                let Some(annotation) = self.annotations.get(parameters) else { return };
+                let Some( StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(parameters) else { return };
 
-                let Some(param_name) = parameters.get_flat_reference_name().or_else(|| {
-                    let StatementAnnotation::Variable { qualified_name, .. } = annotation else {
-                        return None;
-                    };
-                    Some(qualified_name)
-                }) else {
-                    return;
-                };
+                let Some(param_name) = parameters.get_flat_reference_name() else { return };
 
-                match self
-                    .index
-                    .find_global_variable(param_name)
-                    .or_else(|| self.index.find_fully_qualified_variable(param_name))
-                {
-                    Some(_) => (), // this is a global or fully qualified, we can resolve this. XXX: might shadow a local member -> priority?,
-                    None => {
-                        // check if we can find a qualified reference here
-                        self.ctxt
-                            .get_scope()
-                            .as_ref()
-                            .and_then(|it| {
-                                if self.index.find_local_member(&it, param_name).is_some() {
-                                    Some(it.as_str())
-                                } else {
-                                    None
-                                }
-                            })
-                            .map(|scope| {
-                                // update the initializer used in the init function with the qualified reference
-                                self.unresolved_initializers.insert_initializer(
-                                    scope,
-                                    Some(&variable.name),
-                                    &Some(create_call_statement(
-                                        "REF",
-                                        param_name,
-                                        Some(scope),
-                                        self.ctxt.id_provider.clone(),
-                                        &initializer.location,
-                                    )),
-                                );
-                            });
+                let scope = self.ctxt.get_scope().as_ref().map(|it| it.as_str());
+                let member = self.index.find_local_member(scope.unwrap_or_default(), param_name);
+                let is_stateful = self.index.find_pou(scope.unwrap_or_default()).map(|it| match it {
+                    PouIndexEntry::Program { .. } |
+                    PouIndexEntry::FunctionBlock { ..} |
+                    PouIndexEntry::Class { .. } if !member.is_some_and(|it| it.is_temp())=> true,
+                    _ => false,
+                }).unwrap_or_default();
+
+                // check if we can find a qualified reference here
+                self.ctxt
+                .get_scope()
+                .as_ref()
+                .and_then(|it| {
+                    if self.index.find_local_member(&it, param_name).is_some() {
+                        Some(it.as_str())
+                    } else {
+                        None
                     }
-                }
+                })
+                .map(|scope| {
+                    // update the initializer used in the init function with the qualified reference
+                    self.unresolved_initializers.insert_initializer(
+                        scope,
+                        Some(&variable.name),
+                        &Some(create_call_statement(
+                            "REF",
+                            param_name,
+                            is_stateful.then(|| "self"), // self if stateful, scope if not
+                            self.ctxt.id_provider.clone(),
+                            &initializer.location,
+                        )),
+                    );
+                });
+
+                // match self
+                //     .index
+                //     .find_fully_qualified_variable(qualified_name)                    
+                //     .or_else(|| self.index.find_global_variable(param_name))
+                // {
+                //     Some(_) => (), // this is a global or fully qualified, we can resolve this.
+                //     None => {
+                        
+                //     }
+                // }
             }
         }
     }
@@ -339,7 +343,7 @@ impl AstVisitorMut for AstLowerer {
             return;
         };
         self.maybe_add_global_instance_initializer(variable);
-        self.collect_alias_and_reference_to_inits(variable);
+        self.update_initializer(variable);
         variable.walk(self);
     }
 
@@ -564,6 +568,15 @@ impl LoweringContext {
     fn next_id(&mut self) -> usize {
         self.id_provider.next_id()
     }
+}
+
+fn get_init_qualifier(index: &Index, container: Option<&str>, var_name: &str) -> String {
+    container.and_then(|q| index.find_pou(q).map(|it| match it {
+        PouIndexEntry::Program { .. } |
+        PouIndexEntry::FunctionBlock { ..} |
+        PouIndexEntry::Class { .. } if !index.find_variable(container, &[var_name]).is_some_and(|it| it.is_temp()) => "self",
+        _ => q,
+    })).unwrap_or_default().into()
 }
 
 fn create_member_reference(ident: &str, mut id_provider: IdProvider, base: Option<AstNode>) -> AstNode {
