@@ -99,7 +99,7 @@ impl AstLowerer {
                     | PouIndexEntry::FunctionBlock { .. }
                     | PouIndexEntry::Class { .. }
                         // we only want to add qualifiers to local, non-temporary variables
-                        if rhs.is_some_and(|it| !it.is_temp()) =>
+                        if rhs.is_some_and(|it| !it.is_temp()) && lhs.is_some_and(|it| !it.is_temp())=>
                     {
                         true
                     }
