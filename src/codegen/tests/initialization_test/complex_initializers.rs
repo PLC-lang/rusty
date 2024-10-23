@@ -1590,16 +1590,16 @@ fn temporary_variable_ref_to_local_member() {
 fn temporary_variable_ref_to_temporary_variable() {
     let res = codegen(
         r"
-    FUNCTION_BLOCK foo
+    FUNCTION foo
     VAR
+        ptr : REF_TO STRING := REF(s);
+        alias AT s : STRING;
     END_VAR
     VAR_TEMP
         s  : STRING;
-        ptr : REF_TO STRING := REF(s);
-        alias AT s : STRING;
-        reference_to : REFERENCE TO STRING REF= s;
+        reference_to : REFERENCE TO STRING REF= alias;
     END_VAR
-    END_FUNCTION_BLOCK
+    FUNCTION
         ",
     );
 
@@ -1607,24 +1607,21 @@ fn temporary_variable_ref_to_temporary_variable() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %foo = type {}
-
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
-
-    define void @foo(%foo* %0) {
+    define void @foo() {
     entry:
-      %s = alloca [81 x i8], align 1
       %ptr = alloca [81 x i8]*, align 8
       %alias = alloca [81 x i8]*, align 8
+      %s = alloca [81 x i8], align 1
       %reference_to = alloca [81 x i8]*, align 8
-      %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
       store [81 x i8]* %s, [81 x i8]** %ptr, align 8
       store [81 x i8]* null, [81 x i8]** %alias, align 8
+      %0 = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
       store [81 x i8]* null, [81 x i8]** %reference_to, align 8
       store [81 x i8]* %s, [81 x i8]** %ptr, align 8
       store [81 x i8]* %s, [81 x i8]** %alias, align 8
-      store [81 x i8]* %s, [81 x i8]** %reference_to, align 8
+      %deref = load [81 x i8]*, [81 x i8]** %alias, align 8
+      store [81 x i8]* %deref, [81 x i8]** %reference_to, align 8
       ret void
     }
 
@@ -1632,21 +1629,6 @@ fn temporary_variable_ref_to_temporary_variable() {
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type {}
-
-    @__foo__init = external global %foo
-
-    define void @__init_foo(%foo* %0) {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      ret void
-    }
-
-    declare void @foo(%foo*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 

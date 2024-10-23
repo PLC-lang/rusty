@@ -85,37 +85,41 @@ impl AstLowerer {
         // flat references to stateful pou-local variables need to have a qualifier added, so they can be resolved in the init functions
         let scope = self.ctxt.get_scope().as_ref().map(|it| it.as_str()).unwrap_or(GLOBAL_SCOPE);
         let needs_qualifier = |flat_ref| {
-            let rhs = self.index.find_local_member(scope, flat_ref);
-            let lhs = self.index.find_local_member(scope, variable.get_name());
-            if lhs.is_some_and(|it| !it.is_temp()) && rhs.is_some_and(|it| it.is_temp()) {
-                // TODO: diagnostic
-                eprintln!("Assigning an address of a temporary variable to a stateful member variable can result in use-after-free");
-                return false;
+            let rhs = self.index.find_member(scope, flat_ref);
+            let lhs = self.index.find_member(scope, variable.get_name());
+            let Some(pou) = self.index.find_pou(scope) else { return Ok(false) };
+            if !pou.is_function() && lhs.is_some_and(|it| !it.is_temp()) && rhs.is_some_and(|it| it.is_temp())
+            {
+                // Unable to initialize a stateful member variable with an address of a temporary value since it doesn't exist at the time of initialization
+                // On top of that, even if we were to initialize it, it would lead to a dangling pointer/potential use-after-free
+                return Err(AstFactory::create_empty_statement(
+                    SourceLocation::internal(),
+                    self.ctxt.get_id_provider().next_id(),
+                ));
             }
-            self.index
-                .find_pou(scope)
-                .map(|it| match it {
-                    PouIndexEntry::Program { .. }
-                    | PouIndexEntry::FunctionBlock { .. }
-                    | PouIndexEntry::Class { .. }
-                        // we only want to add qualifiers to local, non-temporary variables
-                        if rhs.is_some_and(|it| !it.is_temp()) && lhs.is_some_and(|it| !it.is_temp())=>
-                    {
-                        true
-                    }
-                    PouIndexEntry::Method { .. } => {
-                        unimplemented!("We'll worry about this once we get around to OOP")
-                    }
-                    _ => false,
-                })
-                .unwrap_or_default()
+            Ok(match pou {
+                        PouIndexEntry::Program { .. }
+                        | PouIndexEntry::FunctionBlock { .. }
+                        | PouIndexEntry::Class { .. }
+                            // we only want to add qualifiers to local, non-temporary variables
+                            if rhs.is_some_and(|it| !it.is_temp()) && lhs.is_some_and(|it| !it.is_temp())=>
+                        {
+                            true
+                        }
+                        PouIndexEntry::Method { .. } => {
+                            unimplemented!("We'll worry about this once we get around to OOP")
+                        }
+                        _ => false,
+                    })
         };
 
         if let Some(initializer) = variable.initializer.as_ref() {
-            let hint = self.annotations.get_type_hint(initializer, &self.index);
-            if hint
+            if self
+                .annotations
+                .get_type_hint(initializer, &self.index)
                 .map(|it| it.get_type_information())
-                .is_some_and(|it| !(it.is_pointer() || it.is_reference_to() || it.is_alias()))
+                .filter(|dti| dti.is_pointer() || dti.is_reference_to() || dti.is_alias())
+                .is_none()
             {
                 return;
             };
@@ -123,29 +127,33 @@ impl AstLowerer {
                 // no call-statement in the initializer, so something like `a AT b` or `a : REFERENCE TO ... REF= b`
                 AstStatement::ReferenceExpr(_) => {
                     initializer.get_flat_reference_name().and_then(|flat_ref| {
-                        needs_qualifier(flat_ref)
-                            .then_some("self")
-                            .map(|it| create_member_reference(it, self.ctxt.get_id_provider(), None))
-                            .and_then(|base| {
-                                initializer.get_flat_reference_name().map(|it| {
-                                    create_member_reference(it, self.ctxt.get_id_provider(), Some(base))
+                        needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
+                            q.then_some("self")
+                                .map(|it| create_member_reference(it, self.ctxt.get_id_provider(), None))
+                                .and_then(|base| {
+                                    initializer.get_flat_reference_name().map(|it| {
+                                        create_member_reference(it, self.ctxt.get_id_provider(), Some(base))
+                                    })
                                 })
-                            })
+                        })
                     })
                 }
                 // we found a call-statement, must be `a : REF_TO ... := REF(b) | ADR(b)`
-                AstStatement::CallStatement(CallStatement { parameters, .. }) => parameters
+                AstStatement::CallStatement(CallStatement { operator, parameters }) => parameters
                     .as_ref()
                     .and_then(|it| it.as_ref().get_flat_reference_name())
                     .and_then(|flat_ref| {
-                        needs_qualifier(flat_ref).then(|| {
-                            create_call_statement(
-                                "REF",
-                                flat_ref,
-                                Some("self"),
-                                self.ctxt.id_provider.clone(),
-                                &initializer.location,
-                            )
+                        let op = operator.as_ref().get_flat_reference_name()?;
+                        needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
+                            q.then(|| {
+                                create_call_statement(
+                                    op,
+                                    flat_ref,
+                                    Some("self"),
+                                    self.ctxt.id_provider.clone(),
+                                    &initializer.location,
+                                )
+                            })
                         })
                     }),
                 _ => return,

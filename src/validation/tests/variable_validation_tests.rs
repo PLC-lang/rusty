@@ -1246,3 +1246,66 @@ fn using_var_external_variable_without_matching_global_will_not_resolve() {
 
     "###);
 }
+
+#[test]
+fn assigning_a_temp_reference_to_stateful_var_is_error() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo
+            VAR
+                s1: REF_TO DINT := REF(t1);     // error
+                s2 AT t1 : DINT;                // error
+                s3 : REFERENCE TO DINT REF= t1; // error
+                s4 AT s2 : DINT;                // OK
+                s5 : REF_TO DINT := REF(s4);    // OK
+                s6 : REFERENCE TO DINT REF= s5; // OK
+            END_VAR
+            VAR_TEMP
+                t1 : DINT;
+                t2 : REF_TO DINT := REF(t1);    // OK
+                t3 AT s1 : DINT;                // OK
+                t4 : REFERENCE TO DINT REF= t3; // OK
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        // all of these assignments are okay in a function, since they are all stack-variables
+        FUNCTION bar
+            VAR
+                s1: REF_TO DINT := REF(t1);    
+                s2 AT t1 : DINT;               
+                s3 : REFERENCE TO DINT REF= t1;
+                s4 AT s2 : DINT;               
+                s5 : REF_TO DINT := REF(s4);   
+                s6 : REFERENCE TO DINT REF= s5;
+            END_VAR
+            VAR_TEMP
+                t1 : DINT;
+                t2 : REF_TO DINT := REF(t1);   
+                t3 AT s1 : DINT;               
+                t4 : REFERENCE TO DINT REF= t3;
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r#"
+    error[E001]: Cannot assign address of temporary variable to a member-variable
+      ┌─ <internal>:4:40
+      │
+    4 │                 s1: REF_TO DINT := REF(t1);     // error
+      │                                        ^^ Cannot assign address of temporary variable to a member-variable
+
+    error[E001]: Cannot assign address of temporary variable to a member-variable
+      ┌─ <internal>:5:23
+      │
+    5 │                 s2 AT t1 : DINT;                // error
+      │                       ^^ Cannot assign address of temporary variable to a member-variable
+
+    error[E001]: Cannot assign address of temporary variable to a member-variable
+      ┌─ <internal>:6:45
+      │
+    6 │                 s3 : REFERENCE TO DINT REF= t1; // error
+      │                                             ^^ Cannot assign address of temporary variable to a member-variable
+
+    "#)
+}
