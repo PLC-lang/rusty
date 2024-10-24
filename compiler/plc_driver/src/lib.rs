@@ -277,23 +277,17 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
     // 1. Parse, 2. Index and 3. Resolve / Annotate
     let annotated_project = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
         .index(ctxt.provider())
-        .annotate(ctxt.provider());
-
-    // 4. Validate
-    annotated_project.validate(&ctxt, &mut diagnostician).map_err(|e| {
-        if compile_parameters.output_ast {
-            println!("{:#?}", annotated_project.units);
-        }
-        e
-    })?;
-
-    // 5. AST-lowering, re-index and re-resolve
-    let annotated_project = annotated_project.lower(ctxt.provider());
+        .annotate(ctxt.provider())
+        // 4. AST-lowering, re-index and re-resolve
+        .lower(ctxt.provider());
 
     if compile_parameters.output_ast {
         println!("{:#?}", annotated_project.units);
         return Ok(());
     }
+
+    // 5. Validate
+    annotated_project.validate(&ctxt, &mut diagnostician)?;
 
     if let Some((location, format)) =
         compile_parameters.hardware_config.as_ref().zip(compile_parameters.config_format())
