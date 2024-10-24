@@ -772,6 +772,20 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         variable.source_location.get_column(),
                     );
                 }
+
+                if self
+                    .index
+                    .find_effective_type_by_name(variable.get_type_name())
+                    .map(|it| it.get_type_information())
+                    .is_some_and(|it| it.is_reference_to() || it.is_alias())
+                {
+                    // aliases and reference to variables have special handling for initialization. initialize with a nullpointer
+                    self.llvm.builder.build_store(
+                        left,
+                        left.get_type().get_element_type().into_pointer_type().const_null(),
+                    );
+                    continue;
+                };
                 let right_stmt =
                     self.index.get_const_expressions().maybe_get_constant_statement(&variable.initial_value);
                 self.generate_variable_initializer(variable, left, right_stmt, &exp_gen)?;

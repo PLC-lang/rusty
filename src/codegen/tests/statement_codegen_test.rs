@@ -297,7 +297,6 @@ fn reference_to_string_assignment() {
             VAR
                 a : REF_TO STRING;
             END_VAR
-
             a^ := 'hello';
         END_FUNCTION
         "#,
@@ -351,7 +350,7 @@ fn local_alias() {
         "#,
     );
 
-    assert_snapshot!(content, @r###"
+    assert_snapshot!(content, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -359,8 +358,7 @@ fn local_alias() {
     entry:
       %foo = alloca i32*, align 8
       %bar = alloca i32, align 4
-      %load_bar = load i32, i32* %bar, align 4
-      store i32 %load_bar, i32** %foo, align 4
+      store i32* null, i32** %foo, align 8
       store i32 0, i32* %bar, align 4
       store i32* %bar, i32** %foo, align 8
       ret void
@@ -374,7 +372,7 @@ fn local_alias() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -390,7 +388,7 @@ fn local_string_alias() {
         "#,
     );
 
-    assert_snapshot!(content, @r###"
+    assert_snapshot!(content, @r##"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -398,8 +396,7 @@ fn local_string_alias() {
     entry:
       %foo = alloca [81 x i8]*, align 8
       %bar = alloca [81 x i8], align 1
-      %load_bar = load [81 x i8], [81 x i8]* %bar, align 1
-      store [81 x i8] %load_bar, [81 x i8]** %foo, align 1
+      store [81 x i8]* null, [81 x i8]** %foo, align 8
       %0 = bitcast [81 x i8]* %bar to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
       store [81 x i8]* %bar, [81 x i8]** %foo, align 8
@@ -419,7 +416,7 @@ fn local_string_alias() {
     entry:
       ret void
     }
-    "###);
+    "##);
 }
 
 #[test]

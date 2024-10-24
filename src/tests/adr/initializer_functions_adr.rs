@@ -116,7 +116,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     assert_eq!(&init_foo_impl.name, "__init_foo");
     let statements = &init_foo_impl.statements;
     assert_eq!(statements.len(), 1);
-    assert_debug_snapshot!(statements[0], @r###"
+    assert_debug_snapshot!(statements[0], @r#"
     Assignment {
         left: ReferenceExpr {
             kind: Member(
@@ -151,12 +151,21 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
                             name: "s",
                         },
                     ),
-                    base: None,
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "self",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
                 },
             ),
         },
     }
-    "###);
+    "#);
 
     // the init-function for `bar` will have a `CallStatement` to `__init_foo` as its only statement, passing the member-instance `self.fb`
     let init_bar_impl = &units[1].implementations[1];
@@ -202,7 +211,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     assert_eq!(&init_baz_impl.name, "__init_baz");
     let statements = &init_baz_impl.statements;
     assert_eq!(statements.len(), 2);
-    assert_debug_snapshot!(statements[0], @r###"
+    assert_debug_snapshot!(statements[0], @r#"
     Assignment {
         left: ReferenceExpr {
             kind: Member(
@@ -227,10 +236,19 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
                     name: "d",
                 },
             ),
-            base: None,
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "self",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
         },
     }
-    "###);
+    "#);
 
     assert_debug_snapshot!(statements[1], @r###"
     CallStatement {
@@ -688,7 +706,7 @@ fn intializing_temporary_variables() {
         ";
 
     let res = codegen(src);
-    assert_snapshot!(res, @r###"
+    assert_snapshot!(res, @r##"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -715,8 +733,7 @@ fn intializing_temporary_variables() {
       %s2 = alloca [81 x i8]*, align 8
       %0 = bitcast %foo* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
-      %load_ps = load [81 x i8], [81 x i8]* @ps, align 1
-      store [81 x i8] %load_ps, [81 x i8]** %s, align 1
+      store [81 x i8]* null, [81 x i8]** %s, align 8
       store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
       store i32 0, i32* %main, align 4
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
@@ -761,5 +778,5 @@ fn intializing_temporary_variables() {
     entry:
       ret void
     }
-    "###)
+    "##)
 }

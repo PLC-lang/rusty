@@ -43,7 +43,7 @@ fn function_block_init_fn_created() {
     // this init-function is expected to have a single assignment statement in its function body
     let statements = &implementation.statements;
     assert_eq!(statements.len(), 1);
-    assert_debug_snapshot!(statements[0], @r###"
+    assert_debug_snapshot!(statements[0], @r#"
     Assignment {
         left: ReferenceExpr {
             kind: Member(
@@ -78,12 +78,21 @@ fn function_block_init_fn_created() {
                             name: "s",
                         },
                     ),
-                    base: None,
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "self",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
                 },
             ),
         },
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -125,7 +134,7 @@ fn program_init_fn_created() {
     // this init-function is expected to have a single assignment statement in its function body
     let statements = &implementation.statements;
     assert_eq!(statements.len(), 1);
-    assert_debug_snapshot!(statements[0], @r###"
+    assert_debug_snapshot!(statements[0], @r#"
     Assignment {
         left: ReferenceExpr {
             kind: Member(
@@ -160,12 +169,21 @@ fn program_init_fn_created() {
                             name: "s",
                         },
                     ),
-                    base: None,
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "self",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
                 },
             ),
         },
     }
-    "###);
+    "#);
 }
 
 #[test]
