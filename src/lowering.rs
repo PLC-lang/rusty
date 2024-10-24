@@ -321,25 +321,6 @@ impl AstVisitorMut for AstLowerer {
     }
 
     fn visit_variable(&mut self, variable: &mut plc_ast::ast::Variable) {
-        let is_recursive = self
-            .ctxt
-            .get_scope()
-            .as_ref()
-            .map(|scope| {
-                self.index.find_pou_type(scope).is_some_and(|it| {
-                    let Ok(pou_type) = self.index.get_effective_type_by_name(it.get_name()) else {
-                        unreachable!("We are in the context of this POU, it must have a type");
-                    };
-                    let var_type = self.index.get_effective_type_or_void_by_name(
-                        variable.data_type_declaration.get_name().unwrap_or_default(),
-                    );
-                    pou_type.get_name() == var_type.get_name()
-                })
-            })
-            .unwrap_or_default();
-        if is_recursive {
-            return;
-        };
         self.maybe_add_global_instance_initializer(variable);
         self.update_initializer(variable);
         variable.walk(self);
