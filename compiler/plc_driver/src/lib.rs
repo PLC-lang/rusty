@@ -280,11 +280,10 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
         .annotate(ctxt.provider());
 
     // 4. Validate
-    annotated_project.validate(&ctxt, &mut diagnostician).map_err(|e| {
+    annotated_project.validate(&ctxt, &mut diagnostician).inspect_err(|_| {
         if compile_parameters.output_ast {
             println!("{:#?}", annotated_project.units);
         }
-        e
     })?;
 
     // 5. AST-lowering, re-index and re-resolve

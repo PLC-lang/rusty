@@ -87,17 +87,8 @@ impl AstLowerer {
         let needs_qualifier = |flat_ref| {
             let rhs = self.index.find_member(scope, flat_ref);
             let lhs = self.index.find_member(scope, variable.get_name());
-            let Some(pou) = self.index.find_pou(scope) else { return Ok(false) };
-            if !pou.is_function() && lhs.is_some_and(|it| !it.is_temp()) && rhs.is_some_and(|it| it.is_temp())
-            {
-                // Unable to initialize a stateful member variable with an address of a temporary value since it doesn't exist at the time of initialization
-                // On top of that, even if we were to initialize it, it would lead to a dangling pointer/potential use-after-free
-                return Err(AstFactory::create_empty_statement(
-                    SourceLocation::internal(),
-                    self.ctxt.get_id_provider().next_id(),
-                ));
-            }
-            Ok(match pou {
+            let Some(pou) = self.index.find_pou(scope) else { return false };
+            match pou {
                         PouIndexEntry::Program { .. }
                         | PouIndexEntry::FunctionBlock { .. }
                         | PouIndexEntry::Class { .. }
@@ -110,7 +101,7 @@ impl AstLowerer {
                             unimplemented!("We'll worry about this once we get around to OOP")
                         }
                         _ => false,
-                    })
+                    }
         };
 
         if let Some(initializer) = variable.initializer.as_ref() {
@@ -127,33 +118,31 @@ impl AstLowerer {
                 // no call-statement in the initializer, so something like `a AT b` or `a : REFERENCE TO ... REF= b`
                 AstStatement::ReferenceExpr(_) => {
                     initializer.get_flat_reference_name().and_then(|flat_ref| {
-                        needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
-                            q.then_some("self")
-                                .map(|it| create_member_reference(it, self.ctxt.get_id_provider(), None))
-                                .and_then(|base| {
-                                    initializer.get_flat_reference_name().map(|it| {
-                                        create_member_reference(it, self.ctxt.get_id_provider(), Some(base))
-                                    })
+                        needs_qualifier(flat_ref)
+                            .then_some("self")
+                            .map(|it| create_member_reference(it, self.ctxt.get_id_provider(), None))
+                            .and_then(|base| {
+                                initializer.get_flat_reference_name().map(|it| {
+                                    create_member_reference(it, self.ctxt.get_id_provider(), Some(base))
                                 })
-                        })
+                            })
                     })
                 }
+
                 // we found a call-statement, must be `a : REF_TO ... := REF(b) | ADR(b)`
                 AstStatement::CallStatement(CallStatement { operator, parameters }) => parameters
                     .as_ref()
                     .and_then(|it| it.as_ref().get_flat_reference_name())
                     .and_then(|flat_ref| {
                         let op = operator.as_ref().get_flat_reference_name()?;
-                        needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
-                            q.then(|| {
-                                create_call_statement(
-                                    op,
-                                    flat_ref,
-                                    Some("self"),
-                                    self.ctxt.id_provider.clone(),
-                                    &initializer.location,
-                                )
-                            })
+                        needs_qualifier(flat_ref).then(|| {
+                            create_call_statement(
+                                op,
+                                flat_ref,
+                                Some("self"),
+                                self.ctxt.id_provider.clone(),
+                                &initializer.location,
+                            )
                         })
                     }),
                 _ => return,
