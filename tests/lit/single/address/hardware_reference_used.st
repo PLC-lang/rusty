@@ -7,6 +7,8 @@ VAR_GLOBAL
 END_VAR
 
 FUNCTION main : DINT
+    __init___hardware_reference_used_st();
+
     a := TRUE;
     printf('%u$N', a); //CHECK: 1
     b := TRUE;

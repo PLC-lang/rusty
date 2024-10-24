@@ -7,6 +7,8 @@ VAR_GLOBAL
 END_VAR
 
 FUNCTION main : DINT
+    __init___reference_in_body_st();
+
     %IX1.2.1 := TRUE;
     printf('%u$N', a); //CHECK: 1
     b := TRUE;
