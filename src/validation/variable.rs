@@ -398,7 +398,8 @@ fn report_temporary_address_in_pointer_initializer<T: AnnotationMap>(
 
     validator.diagnostics.push(
         Diagnostic::new("Cannot assign address of temporary variable to a member-variable")
-            .with_location(location),
+            .with_location(location)
+            .with_error_code("E109"),
     );
 }
 

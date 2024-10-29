@@ -1288,24 +1288,23 @@ fn assigning_a_temp_reference_to_stateful_var_is_error() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r#"
-    error[E001]: Cannot assign address of temporary variable to a member-variable
+    assert_snapshot!(diagnostics, @r###"
+    error[E109]: Cannot assign address of temporary variable to a member-variable
       ┌─ <internal>:4:40
       │
     4 │                 s1: REF_TO DINT := REF(t1);     // error
       │                                        ^^ Cannot assign address of temporary variable to a member-variable
 
-    error[E001]: Cannot assign address of temporary variable to a member-variable
+    error[E109]: Cannot assign address of temporary variable to a member-variable
       ┌─ <internal>:5:23
       │
     5 │                 s2 AT t1 : DINT;                // error
       │                       ^^ Cannot assign address of temporary variable to a member-variable
 
-    error[E001]: Cannot assign address of temporary variable to a member-variable
+    error[E109]: Cannot assign address of temporary variable to a member-variable
       ┌─ <internal>:6:45
       │
     6 │                 s3 : REFERENCE TO DINT REF= t1; // error
       │                                             ^^ Cannot assign address of temporary variable to a member-variable
-
-    "#)
+    "###)
 }
