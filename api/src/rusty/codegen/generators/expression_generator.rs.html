@@ -3593,7 +3593,7 @@
             } <span class="kw">else </span>{
                 <span class="comment">// TODO: using the global context we could get a slice here; currently not possible because the
                 //       global context isn't passed into codegen
-                </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{element:?} not a direct access"</span>))
+                </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(<span class="string">"{element:?} not a direct access"</span>))
                     .with_error_code(<span class="string">"E055"</span>)
                     .with_location(element.get_location()))
             }<span class="question-mark">?</span>;

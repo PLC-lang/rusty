@@ -550,13 +550,80 @@
 <a href="#550" id="550">550</a>
 <a href="#551" id="551">551</a>
 <a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    index::{get_init_fn_name, Index, VariableIndexEntry},
-    resolver::{const_evaluator::UnresolvableConstant, AstAnnotations},
+    index::{get_init_fn_name, Index, PouIndexEntry, VariableIndexEntry},
+    resolver::{const_evaluator::UnresolvableConstant, AnnotationMap, AstAnnotations},
 };
 <span class="kw">use </span>initializers::{Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 <span class="kw">use </span>plc_ast::{
-    ast::{AstFactory, AstNode, CompilationUnit, ConfigVariable, DataType, LinkageType, PouType},
+    ast::{
+        AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, ConfigVariable, DataType,
+        LinkageType, PouType,
+    },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     visit_all_nodes_mut,
@@ -630,28 +697,89 @@
         <span class="self">self</span>.ctxt.scope(old);
     }
 
-    <span class="kw">fn </span>collect_alias_and_reference_to_inits(<span class="kw-2">&amp;mut </span><span class="self">self</span>, variable: <span class="kw-2">&amp;mut </span>plc_ast::ast::Variable) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(initializer) = variable.initializer.as_ref() {
-            <span class="kw">let </span><span class="prelude-val">Some</span>(variable_ty) = variable
-                .data_type_declaration
-                .get_referenced_type()
-                .and_then(|it| <span class="self">self</span>.index.find_effective_type_by_name(<span class="kw-2">&amp;</span>it))
-            <span class="kw">else </span>{
-                <span class="kw">return </span>variable.walk(<span class="self">self</span>);
-            };
-
-            <span class="kw">let </span>variable_is_auto_deref_pointer = {
-                variable_ty.get_type_information().is_alias()
-                    || variable_ty.get_type_information().is_reference_to()
-            };
-
-            <span class="kw">if </span>variable_is_auto_deref_pointer {
-                <span class="self">self</span>.unresolved_initializers.insert_initializer(
-                    <span class="self">self</span>.ctxt.get_scope().as_ref().map(|it| it.as_str()).unwrap_or(GLOBAL_SCOPE),
-                    <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>variable.name),
-                    <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(initializer.clone()),
-                );
+    <span class="kw">fn </span>update_initializer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, variable: <span class="kw-2">&amp;mut </span>plc_ast::ast::Variable) {
+        <span class="comment">// flat references to stateful pou-local variables need to have a qualifier added, so they can be resolved in the init functions
+        </span><span class="kw">let </span>scope = <span class="self">self</span>.ctxt.get_scope().as_ref().map(|it| it.as_str()).unwrap_or(GLOBAL_SCOPE);
+        <span class="kw">let </span>needs_qualifier = |flat_ref| {
+            <span class="kw">let </span>rhs = <span class="self">self</span>.index.find_member(scope, flat_ref);
+            <span class="kw">let </span>lhs = <span class="self">self</span>.index.find_member(scope, variable.get_name());
+            <span class="kw">let </span><span class="prelude-val">Some</span>(pou) = <span class="self">self</span>.index.find_pou(scope) <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) };
+            <span class="kw">if </span>!pou.is_function() &amp;&amp; lhs.is_some_and(|it| !it.is_temp()) &amp;&amp; rhs.is_some_and(|it| it.is_temp())
+            {
+                <span class="comment">// Unable to initialize a stateful member variable with an address of a temporary value since it doesn't exist at the time of initialization
+                // On top of that, even if we were to initialize it, it would lead to a dangling pointer/potential use-after-free
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(AstFactory::create_empty_statement(
+                    SourceLocation::internal(),
+                    <span class="self">self</span>.ctxt.get_id_provider().next_id(),
+                ));
             }
+            <span class="prelude-val">Ok</span>(<span class="kw">match </span>pou {
+                        PouIndexEntry::Program { .. }
+                        | PouIndexEntry::FunctionBlock { .. }
+                        | PouIndexEntry::Class { .. }
+                            <span class="comment">// we only want to add qualifiers to local, non-temporary variables
+                            </span><span class="kw">if </span>rhs.is_some_and(|it| !it.is_temp()) &amp;&amp; lhs.is_some_and(|it| !it.is_temp())=&gt;
+                        {
+                            <span class="bool-val">true
+                        </span>}
+                        PouIndexEntry::Method { .. } =&gt; {
+                            <span class="macro">unimplemented!</span>(<span class="string">"We'll worry about this once we get around to OOP"</span>)
+                        }
+                        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+                    })
+        };
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(initializer) = variable.initializer.as_ref() {
+            <span class="kw">if </span><span class="self">self
+                </span>.annotations
+                .get_type_hint(initializer, <span class="kw-2">&amp;</span><span class="self">self</span>.index)
+                .map(|it| it.get_type_information())
+                .filter(|dti| dti.is_pointer() || dti.is_reference_to() || dti.is_alias())
+                .is_none()
+            {
+                <span class="kw">return</span>;
+            };
+            <span class="kw">let </span>updated_initializer = <span class="kw">match </span><span class="kw-2">&amp;</span>initializer.get_stmt() {
+                <span class="comment">// no call-statement in the initializer, so something like `a AT b` or `a : REFERENCE TO ... REF= b`
+                </span>AstStatement::ReferenceExpr(<span class="kw">_</span>) =&gt; {
+                    initializer.get_flat_reference_name().and_then(|flat_ref| {
+                        needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
+                            q.then_some(<span class="string">"self"</span>)
+                                .map(|it| create_member_reference(it, <span class="self">self</span>.ctxt.get_id_provider(), <span class="prelude-val">None</span>))
+                                .and_then(|base| {
+                                    initializer.get_flat_reference_name().map(|it| {
+                                        create_member_reference(it, <span class="self">self</span>.ctxt.get_id_provider(), <span class="prelude-val">Some</span>(base))
+                                    })
+                                })
+                        })
+                    })
+                }
+                <span class="comment">// we found a call-statement, must be `a : REF_TO ... := REF(b) | ADR(b)`
+                </span>AstStatement::CallStatement(CallStatement { operator, parameters }) =&gt; parameters
+                    .as_ref()
+                    .and_then(|it| it.as_ref().get_flat_reference_name())
+                    .and_then(|flat_ref| {
+                        <span class="kw">let </span>op = operator.as_ref().get_flat_reference_name()<span class="question-mark">?</span>;
+                        needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
+                            q.then(|| {
+                                create_call_statement(
+                                    op,
+                                    flat_ref,
+                                    <span class="prelude-val">Some</span>(<span class="string">"self"</span>),
+                                    <span class="self">self</span>.ctxt.id_provider.clone(),
+                                    <span class="kw-2">&amp;</span>initializer.location,
+                                )
+                            })
+                        })
+                    }),
+                <span class="kw">_ </span>=&gt; <span class="kw">return</span>,
+            };
+
+            <span class="self">self</span>.unresolved_initializers.insert_initializer(
+                scope,
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>variable.name),
+                <span class="kw-2">&amp;</span>updated_initializer.or(<span class="prelude-val">Some</span>(initializer.clone())),
+            );
         }
     }
 
@@ -810,7 +938,7 @@
 
     <span class="kw">fn </span>visit_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, variable: <span class="kw-2">&amp;mut </span>plc_ast::ast::Variable) {
         <span class="self">self</span>.maybe_add_global_instance_initializer(variable);
-        <span class="self">self</span>.collect_alias_and_reference_to_inits(variable);
+        <span class="self">self</span>.update_initializer(variable);
         variable.walk(<span class="self">self</span>);
     }
 
