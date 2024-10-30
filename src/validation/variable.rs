@@ -1,18 +1,18 @@
 use plc_ast::ast::{
-    ArgumentProperty, ConfigVariable, Pou, PouType, Variable, VariableBlock, VariableBlockType,
+    ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Pou, PouType, Variable,
+    VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
     array::validate_array_assignment,
-    statement::visit_statement,
+    statement::{validate_pointer_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
-use crate::validation::statement::validate_enum_variant_assignment;
-use crate::validation::statement::validate_pointer_assignment;
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 use crate::{index::const_expressions::UnresolvableKind, typesystem::DataTypeInformation};
+use crate::{index::PouIndexEntry, validation::statement::validate_enum_variant_assignment};
 use crate::{index::VariableIndexEntry, resolver::StatementAnnotation};
 
 pub fn visit_config_variable<T: AnnotationMap>(
@@ -301,6 +301,8 @@ fn validate_variable<T: AnnotationMap>(
                             return;
                         };
 
+                        report_temporary_address_in_pointer_initializer(validator, context, v_entry, node);
+
                         validate_pointer_assignment(
                             context,
                             validator,
@@ -353,6 +355,54 @@ fn validate_variable<T: AnnotationMap>(
     }
 }
 
+fn report_temporary_address_in_pointer_initializer<T: AnnotationMap>(
+    validator: &mut Validator<'_>,
+    context: &ValidationContext<'_, T>,
+    v_entry: &VariableIndexEntry,
+    initializer: &AstNode,
+) {
+    if v_entry.is_temp() {
+        return;
+    }
+    if let Some(pou) = context.qualifier.and_then(|q| context.index.find_pou(q)) {
+        match pou {
+            PouIndexEntry::Program { .. }
+            | PouIndexEntry::FunctionBlock { .. }
+            | PouIndexEntry::Class { .. } => (),
+            PouIndexEntry::Method { .. } => {
+                unimplemented!("We'll worry about this once we get around to OOP")
+            }
+            _ => return,
+        }
+    }
+
+    let (Some(flat_ref), Some(location)) = (match &initializer.get_stmt() {
+        AstStatement::ReferenceExpr(_) => {
+            (initializer.get_flat_reference_name(), Some(initializer.get_location()))
+        }
+        AstStatement::CallStatement(CallStatement { parameters, .. }) => (
+            parameters.as_ref().and_then(|it| it.as_ref().get_flat_reference_name()),
+            parameters.as_ref().map(|it| it.get_location()),
+        ),
+        _ => (None, None),
+    }) else {
+        return;
+    };
+
+    let Some(rhs_entry) = context.index.find_member(context.qualifier.unwrap_or_default(), flat_ref) else {
+        return;
+    };
+    if !rhs_entry.is_temp() {
+        return;
+    }
+
+    validator.diagnostics.push(
+        Diagnostic::new("Cannot assign address of temporary variable to a member-variable")
+            .with_location(location)
+            .with_error_code("E109"),
+    );
+}
+
 /// Returns a diagnostic if a `REFERENCE TO` variable is incorrectly declared.
 fn validate_reference_to_declaration<T: AnnotationMap>(
     validator: &mut Validator,
@@ -364,7 +414,8 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
         return;
     };
 
-    if !variable_ty.get_type_information().is_reference_to() && !variable_ty.get_type_information().is_alias()
+    if !(variable_ty.get_type_information().is_reference_to()
+        || variable_ty.get_type_information().is_alias())
     {
         return;
     }
@@ -387,8 +438,10 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
     }
 
     if let Some(ref initializer) = variable.initializer {
-        let type_lhs = context.index.find_type(inner_ty_name).unwrap();
-        let type_rhs = context.annotations.get_type(initializer, context.index).unwrap();
+        report_temporary_address_in_pointer_initializer(validator, context, variable_entry, initializer);
+
+        let Some(type_lhs) = context.annotations.get_type_hint(initializer, context.index) else { return };
+        let Some(type_rhs) = context.annotations.get_type(initializer, context.index) else { return };
 
         validate_pointer_assignment(context, validator, type_lhs, type_rhs, &initializer.location);
     }

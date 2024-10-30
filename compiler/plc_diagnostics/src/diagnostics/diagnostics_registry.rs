@@ -210,6 +210,7 @@ lazy_static! {
         E106,   Warning,    include_str!("./error_codes/E106.md"),  // VAR_EXTERNAL have no effect
         E107,   Error,      include_str!("./error_codes/E107.md"),  // Missing configuration for template variable
         E108,   Error,      include_str!("./error_codes/E108.md"),  // Template variable is configured multiple times
+        E109,   Error,      include_str!("./error_codes/E109.md"),  // Stateful pointer variable initialized with temporary value
     );
 }
 

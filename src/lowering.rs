@@ -1,10 +1,13 @@
 use crate::{
-    index::{get_init_fn_name, Index, VariableIndexEntry},
-    resolver::{const_evaluator::UnresolvableConstant, AstAnnotations},
+    index::{get_init_fn_name, Index, PouIndexEntry, VariableIndexEntry},
+    resolver::{const_evaluator::UnresolvableConstant, AnnotationMap, AstAnnotations},
 };
 use initializers::{Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
-    ast::{AstFactory, AstNode, CompilationUnit, ConfigVariable, DataType, LinkageType, PouType},
+    ast::{
+        AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, ConfigVariable, DataType,
+        LinkageType, PouType,
+    },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     visit_all_nodes_mut,
@@ -78,28 +81,89 @@ impl AstLowerer {
         self.ctxt.scope(old);
     }
 
-    fn collect_alias_and_reference_to_inits(&mut self, variable: &mut plc_ast::ast::Variable) {
-        if let Some(initializer) = variable.initializer.as_ref() {
-            let Some(variable_ty) = variable
-                .data_type_declaration
-                .get_referenced_type()
-                .and_then(|it| self.index.find_effective_type_by_name(&it))
-            else {
-                return variable.walk(self);
-            };
-
-            let variable_is_auto_deref_pointer = {
-                variable_ty.get_type_information().is_alias()
-                    || variable_ty.get_type_information().is_reference_to()
-            };
-
-            if variable_is_auto_deref_pointer {
-                self.unresolved_initializers.insert_initializer(
-                    self.ctxt.get_scope().as_ref().map(|it| it.as_str()).unwrap_or(GLOBAL_SCOPE),
-                    Some(&variable.name),
-                    &Some(initializer.clone()),
-                );
+    fn update_initializer(&mut self, variable: &mut plc_ast::ast::Variable) {
+        // flat references to stateful pou-local variables need to have a qualifier added, so they can be resolved in the init functions
+        let scope = self.ctxt.get_scope().as_ref().map(|it| it.as_str()).unwrap_or(GLOBAL_SCOPE);
+        let needs_qualifier = |flat_ref| {
+            let rhs = self.index.find_member(scope, flat_ref);
+            let lhs = self.index.find_member(scope, variable.get_name());
+            let Some(pou) = self.index.find_pou(scope) else { return Ok(false) };
+            if !pou.is_function() && lhs.is_some_and(|it| !it.is_temp()) && rhs.is_some_and(|it| it.is_temp())
+            {
+                // Unable to initialize a stateful member variable with an address of a temporary value since it doesn't exist at the time of initialization
+                // On top of that, even if we were to initialize it, it would lead to a dangling pointer/potential use-after-free
+                return Err(AstFactory::create_empty_statement(
+                    SourceLocation::internal(),
+                    self.ctxt.get_id_provider().next_id(),
+                ));
             }
+            Ok(match pou {
+                        PouIndexEntry::Program { .. }
+                        | PouIndexEntry::FunctionBlock { .. }
+                        | PouIndexEntry::Class { .. }
+                            // we only want to add qualifiers to local, non-temporary variables
+                            if rhs.is_some_and(|it| !it.is_temp()) && lhs.is_some_and(|it| !it.is_temp())=>
+                        {
+                            true
+                        }
+                        PouIndexEntry::Method { .. } => {
+                            unimplemented!("We'll worry about this once we get around to OOP")
+                        }
+                        _ => false,
+                    })
+        };
+
+        if let Some(initializer) = variable.initializer.as_ref() {
+            if self
+                .annotations
+                .get_type_hint(initializer, &self.index)
+                .map(|it| it.get_type_information())
+                .filter(|dti| dti.is_pointer() || dti.is_reference_to() || dti.is_alias())
+                .is_none()
+            {
+                return;
+            };
+            let updated_initializer = match &initializer.get_stmt() {
+                // no call-statement in the initializer, so something like `a AT b` or `a : REFERENCE TO ... REF= b`
+                AstStatement::ReferenceExpr(_) => {
+                    initializer.get_flat_reference_name().and_then(|flat_ref| {
+                        needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
+                            q.then_some("self")
+                                .map(|it| create_member_reference(it, self.ctxt.get_id_provider(), None))
+                                .and_then(|base| {
+                                    initializer.get_flat_reference_name().map(|it| {
+                                        create_member_reference(it, self.ctxt.get_id_provider(), Some(base))
+                                    })
+                                })
+                        })
+                    })
+                }
+                // we found a call-statement, must be `a : REF_TO ... := REF(b) | ADR(b)`
+                AstStatement::CallStatement(CallStatement { operator, parameters }) => parameters
+                    .as_ref()
+                    .and_then(|it| it.as_ref().get_flat_reference_name())
+                    .and_then(|flat_ref| {
+                        let op = operator.as_ref().get_flat_reference_name()?;
+                        needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
+                            q.then(|| {
+                                create_call_statement(
+                                    op,
+                                    flat_ref,
+                                    Some("self"),
+                                    self.ctxt.id_provider.clone(),
+                                    &initializer.location,
+                                )
+                            })
+                        })
+                    }),
+                _ => return,
+            };
+
+            self.unresolved_initializers.insert_initializer(
+                scope,
+                Some(&variable.name),
+                &updated_initializer.or(Some(initializer.clone())),
+            );
         }
     }
 
@@ -258,7 +322,7 @@ impl AstVisitorMut for AstLowerer {
 
     fn visit_variable(&mut self, variable: &mut plc_ast::ast::Variable) {
         self.maybe_add_global_instance_initializer(variable);
-        self.collect_alias_and_reference_to_inits(variable);
+        self.update_initializer(variable);
         variable.walk(self);
     }
 
