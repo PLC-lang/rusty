@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `libs/stdlib/src/date_time_numeric_functions.rs`."><title>date_time_numeric_functions.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iec61131std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `libs/stdlib/src/date_time_numeric_functions.rs`."><title>date_time_numeric_functions.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iec61131std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -839,7 +839,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>ADD_TIME(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>ADD_TIME(in1: i64, in2: i64) -&gt; i64 {
     chrono::Duration::nanoseconds(in1)
         .checked_add(<span class="kw-2">&amp;</span>chrono::Duration::nanoseconds(in2))
         .unwrap()
@@ -853,7 +853,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>ADD_TOD_TIME(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>ADD_TOD_TIME(in1: i64, in2: i64) -&gt; i64 {
     add_datetime_time(in1, in2)
 }
 
@@ -863,7 +863,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>ADD_DT_TIME(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>ADD_DT_TIME(in1: i64, in2: i64) -&gt; i64 {
     add_datetime_time(in1, in2)
 }
 
@@ -882,7 +882,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>SUB_TIME(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>SUB_TIME(in1: i64, in2: i64) -&gt; i64 {
     chrono::Duration::nanoseconds(in1)
         .checked_sub(<span class="kw-2">&amp;</span>chrono::Duration::nanoseconds(in2))
         .unwrap()
@@ -896,7 +896,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>SUB_DATE_DATE(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>SUB_DATE_DATE(in1: i64, in2: i64) -&gt; i64 {
     sub_datetimes(in1, in2)
 }
 
@@ -906,7 +906,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>SUB_TOD_TIME(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>SUB_TOD_TIME(in1: i64, in2: i64) -&gt; i64 {
     sub_datetime_duration(in1, in2)
 }
 
@@ -916,7 +916,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>SUB_TOD_TOD(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>SUB_TOD_TOD(in1: i64, in2: i64) -&gt; i64 {
     sub_datetimes(in1, in2)
 }
 
@@ -934,7 +934,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>SUB_DT_TIME(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>SUB_DT_TIME(in1: i64, in2: i64) -&gt; i64 {
     sub_datetime_duration(in1, in2)
 }
 
@@ -953,7 +953,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>SUB_DT_DT(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>SUB_DT_DT(in1: i64, in2: i64) -&gt; i64 {
     sub_datetimes(in1, in2)
 }
 
@@ -963,7 +963,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL__TIME__SINT(in1: i64, in2: i8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL__TIME__SINT(in1: i64, in2: i8) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -973,7 +973,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL__TIME__INT(in1: i64, in2: i16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL__TIME__INT(in1: i64, in2: i16) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -983,7 +983,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL__TIME__DINT(in1: i64, in2: i32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL__TIME__DINT(in1: i64, in2: i32) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -993,7 +993,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL__TIME__LINT(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL__TIME__LINT(in1: i64, in2: i64) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2)
 }
 
@@ -1003,7 +1003,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_TIME__SINT(in1: i64, in2: i8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_TIME__SINT(in1: i64, in2: i8) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -1013,7 +1013,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_TIME__INT(in1: i64, in2: i16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_TIME__INT(in1: i64, in2: i16) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -1023,7 +1023,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_TIME__DINT(in1: i64, in2: i32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_TIME__DINT(in1: i64, in2: i32) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -1033,7 +1033,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_TIME__LINT(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_TIME__LINT(in1: i64, in2: i64) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2)
 }
 
@@ -1043,7 +1043,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_LTIME__SINT(in1: i64, in2: i8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_LTIME__SINT(in1: i64, in2: i8) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -1053,7 +1053,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_LTIME__INT(in1: i64, in2: i16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_LTIME__INT(in1: i64, in2: i16) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -1063,7 +1063,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_LTIME__DINT(in1: i64, in2: i32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_LTIME__DINT(in1: i64, in2: i32) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -1073,7 +1073,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_LTIME__LINT(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_LTIME__LINT(in1: i64, in2: i64) -&gt; i64 {
     checked_mul_time_with_signed_int(in1, in2)
 }
 
@@ -1091,7 +1091,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL__TIME__USINT(in1: i64, in2: u8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL__TIME__USINT(in1: i64, in2: u8) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -1101,7 +1101,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL__TIME__UINT(in1: i64, in2: u16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL__TIME__UINT(in1: i64, in2: u16) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -1111,7 +1111,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL__TIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL__TIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -1121,7 +1121,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL__TIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL__TIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2)
 }
 
@@ -1131,7 +1131,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_TIME__USINT(in1: i64, in2: u8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_TIME__USINT(in1: i64, in2: u8) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -1141,7 +1141,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_TIME__UINT(in1: i64, in2: u16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_TIME__UINT(in1: i64, in2: u16) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -1151,7 +1151,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_TIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_TIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -1161,7 +1161,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_TIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_TIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2)
 }
 
@@ -1171,7 +1171,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_LTIME__USINT(in1: i64, in2: u8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_LTIME__USINT(in1: i64, in2: u8) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -1181,7 +1181,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_LTIME__UINT(in1: i64, in2: u16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_LTIME__UINT(in1: i64, in2: u16) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -1191,7 +1191,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_LTIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_LTIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -1201,7 +1201,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_LTIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_LTIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
     checked_mul_time_with_unsigned_int(in1, in2)
 }
 
@@ -1221,7 +1221,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV__TIME__SINT(in1: i64, in2: i8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV__TIME__SINT(in1: i64, in2: i8) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -1231,7 +1231,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV__TIME__INT(in1: i64, in2: i16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV__TIME__INT(in1: i64, in2: i16) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -1241,7 +1241,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV__TIME__DINT(in1: i64, in2: i32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV__TIME__DINT(in1: i64, in2: i32) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -1251,7 +1251,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV__TIME__LINT(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV__TIME__LINT(in1: i64, in2: i64) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2)
 }
 
@@ -1261,7 +1261,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_TIME__SINT(in1: i64, in2: i8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_TIME__SINT(in1: i64, in2: i8) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -1271,7 +1271,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_TIME__INT(in1: i64, in2: i16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_TIME__INT(in1: i64, in2: i16) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -1281,7 +1281,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_TIME__DINT(in1: i64, in2: i32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_TIME__DINT(in1: i64, in2: i32) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -1291,7 +1291,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_TIME__LINT(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_TIME__LINT(in1: i64, in2: i64) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2)
 }
 
@@ -1301,7 +1301,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_LTIME__SINT(in1: i64, in2: i8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_LTIME__SINT(in1: i64, in2: i8) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -1311,7 +1311,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_LTIME__INT(in1: i64, in2: i16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_LTIME__INT(in1: i64, in2: i16) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -1321,7 +1321,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_LTIME__DINT(in1: i64, in2: i32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_LTIME__DINT(in1: i64, in2: i32) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -1331,7 +1331,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_LTIME__LINT(in1: i64, in2: i64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_LTIME__LINT(in1: i64, in2: i64) -&gt; i64 {
     checked_div_time_by_signed_int(in1, in2)
 }
 
@@ -1349,7 +1349,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV__TIME__USINT(in1: i64, in2: u8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV__TIME__USINT(in1: i64, in2: u8) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -1359,7 +1359,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV__TIME__UINT(in1: i64, in2: u16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV__TIME__UINT(in1: i64, in2: u16) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -1369,7 +1369,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV__TIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV__TIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -1379,7 +1379,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV__TIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV__TIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2)
 }
 
@@ -1389,7 +1389,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_TIME__USINT(in1: i64, in2: u8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_TIME__USINT(in1: i64, in2: u8) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -1399,7 +1399,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_TIME__UINT(in1: i64, in2: u16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_TIME__UINT(in1: i64, in2: u16) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -1409,7 +1409,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_TIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_TIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -1419,7 +1419,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_TIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_TIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2)
 }
 
@@ -1429,7 +1429,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_LTIME__USINT(in1: i64, in2: u8) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_LTIME__USINT(in1: i64, in2: u8) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -1439,7 +1439,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_LTIME__UINT(in1: i64, in2: u16) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_LTIME__UINT(in1: i64, in2: u16) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -1449,7 +1449,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_LTIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_LTIME__UDINT(in1: i64, in2: u32) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -1459,7 +1459,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_LTIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_LTIME__ULINT(in1: i64, in2: u64) -&gt; i64 {
     checked_div_time_by_unsigned_int(in1, in2)
 }
 
@@ -1479,7 +1479,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL__TIME__REAL(in1: i64, in2: f32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL__TIME__REAL(in1: i64, in2: f32) -&gt; i64 {
     checked_mul_time_with_f32(in1, in2)
 }
 
@@ -1489,7 +1489,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_TIME__REAL(in1: i64, in2: f32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_TIME__REAL(in1: i64, in2: f32) -&gt; i64 {
     checked_mul_time_with_f32(in1, in2)
 }
 
@@ -1499,7 +1499,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_LTIME__REAL(in1: i64, in2: f32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_LTIME__REAL(in1: i64, in2: f32) -&gt; i64 {
     checked_mul_time_with_f32(in1, in2)
 }
 
@@ -1527,7 +1527,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL__TIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL__TIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
     checked_mul_time_with_f64(in1, in2)
 }
 
@@ -1537,7 +1537,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_TIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_TIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
     checked_mul_time_with_f64(in1, in2)
 }
 
@@ -1547,7 +1547,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>MUL_LTIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MUL_LTIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
     checked_mul_time_with_f64(in1, in2)
 }
 
@@ -1575,7 +1575,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV__TIME__REAL(in1: i64, in2: f32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV__TIME__REAL(in1: i64, in2: f32) -&gt; i64 {
     checked_div_time_by_f32(in1, in2)
 }
 
@@ -1585,7 +1585,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_TIME__REAL(in1: i64, in2: f32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_TIME__REAL(in1: i64, in2: f32) -&gt; i64 {
     checked_div_time_by_f32(in1, in2)
 }
 
@@ -1595,7 +1595,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_LTIME__REAL(in1: i64, in2: f32) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_LTIME__REAL(in1: i64, in2: f32) -&gt; i64 {
     checked_div_time_by_f32(in1, in2)
 }
 
@@ -1623,7 +1623,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV__TIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV__TIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
     checked_div_time_by_f64(in1, in2)
 }
 
@@ -1633,7 +1633,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_TIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_TIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
     checked_div_time_by_f64(in1, in2)
 }
 
@@ -1643,7 +1643,7 @@
 ///
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>DIV_LTIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
+</span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DIV_LTIME__LREAL(in1: i64, in2: f64) -&gt; i64 {
     checked_div_time_by_f64(in1, in2)
 }
 

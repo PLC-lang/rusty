@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `libs/stdlib/src/string_functions.rs`."><title>string_functions.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iec61131std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `libs/stdlib/src/string_functions.rs`."><title>string_functions.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iec61131std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1754,6 +1754,10 @@
 <a href="#1754" id="1754">1754</a>
 <a href="#1755" id="1755">1755</a>
 <a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     char::{decode_utf16, DecodeUtf16Error},
     cmp::Ordering,
@@ -1975,7 +1979,7 @@
 /// longer than the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>LEFT_EXT__STRING(src: <span class="kw-2">*const </span>u8, substr_len: i32, dest: <span class="kw-2">*mut </span>u8) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>LEFT_EXT__STRING(src: <span class="kw-2">*const </span>u8, substr_len: i32, dest: <span class="kw-2">*mut </span>u8) -&gt; i32 {
     <span class="kw">if </span>substr_len &lt; <span class="number">0 </span>{
         <span class="macro">panic!</span>(<span class="string">"Length parameter cannot be negative."</span>);
     }
@@ -2002,7 +2006,7 @@
 /// longer than the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>LEFT_EXT__WSTRING(src: <span class="kw-2">*const </span>u16, substr_len: i32, dest: <span class="kw-2">*mut </span>u16) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>LEFT_EXT__WSTRING(src: <span class="kw-2">*const </span>u16, substr_len: i32, dest: <span class="kw-2">*mut </span>u16) -&gt; i32 {
     <span class="kw">if </span>substr_len &lt; <span class="number">0 </span>{
         <span class="macro">panic!</span>(<span class="string">"Length parameter cannot be negative."</span>);
     }
@@ -2029,7 +2033,7 @@
 /// longer than the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>RIGHT_EXT__STRING(src: <span class="kw-2">*const </span>u8, substr_len: i32, dest: <span class="kw-2">*mut </span>u8) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>RIGHT_EXT__STRING(src: <span class="kw-2">*const </span>u8, substr_len: i32, dest: <span class="kw-2">*mut </span>u8) -&gt; i32 {
     <span class="kw">if </span>substr_len &lt; <span class="number">0 </span>{
         <span class="macro">panic!</span>(<span class="string">"Length parameter cannot be negative."</span>);
     }
@@ -2056,7 +2060,7 @@
 /// longer than the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>RIGHT_EXT__WSTRING(src: <span class="kw-2">*const </span>u16, substr_len: i32, dest: <span class="kw-2">*mut </span>u16) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>RIGHT_EXT__WSTRING(src: <span class="kw-2">*const </span>u16, substr_len: i32, dest: <span class="kw-2">*mut </span>u16) -&gt; i32 {
     <span class="kw">if </span>substr_len &lt; <span class="number">0 </span>{
         <span class="macro">panic!</span>(<span class="string">"Length parameter cannot be negative."</span>);
     }
@@ -2083,7 +2087,7 @@
 /// starting position of the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>MID_EXT__STRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MID_EXT__STRING(
     src: <span class="kw-2">*const </span>u8,
     substr_len: i32,
     start_index: i32,
@@ -2122,7 +2126,7 @@
 /// starting position of the base string.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>MID_EXT__WSTRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>MID_EXT__WSTRING(
     src: <span class="kw-2">*const </span>u16,
     substr_len: i32,
     start_index: i32,
@@ -2161,7 +2165,7 @@
 /// source array bounds.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>INSERT_EXT__STRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>INSERT_EXT__STRING(
     src_base: <span class="kw-2">*const </span>u8,
     src_to_insert: <span class="kw-2">*const </span>u8,
     pos: i32,
@@ -2194,7 +2198,7 @@
 /// source array bounds.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>INSERT_EXT__WSTRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>INSERT_EXT__WSTRING(
     src_base: <span class="kw-2">*const </span>u16,
     src_to_insert: <span class="kw-2">*const </span>u16,
     pos: i32,
@@ -2227,7 +2231,7 @@
 /// array or if trying to delete too many characters.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>DELETE_EXT__STRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DELETE_EXT__STRING(
     src: <span class="kw-2">*const </span>u8,
     num_chars_to_delete: i32,
     pos: i32,
@@ -2270,7 +2274,7 @@
 /// array or if trying to delete too many characters.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>DELETE_EXT__WSTRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>DELETE_EXT__WSTRING(
     src: <span class="kw-2">*const </span>u16,
     num_chars_to_delete: i32,
     pos: i32,
@@ -2314,7 +2318,7 @@
 /// to replace more characters than remaining.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>REPLACE_EXT__STRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>REPLACE_EXT__STRING(
     src_base: <span class="kw-2">*const </span>u8,
     src_replacement: <span class="kw-2">*const </span>u8,
     num_chars_to_replace: i32,
@@ -2362,7 +2366,7 @@
 /// to replace more characters than remaining.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>REPLACE_EXT__WSTRING(
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>REPLACE_EXT__WSTRING(
     src_base: <span class="kw-2">*const </span>u16,
     src_replacement: <span class="kw-2">*const </span>u16,
     num_chars_to_replace: i32,
@@ -2427,7 +2431,7 @@
 /// to replace more characters than remaining.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>CONCAT_EXT__STRING(dest: <span class="kw-2">*mut </span>u8, argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>CONCAT_EXT__STRING(dest: <span class="kw-2">*mut </span>u8, argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; i32 {
     <span class="kw">if </span>argv.is_null() || dest.is_null() {
         <span class="macro">panic!</span>(<span class="string">"Received null-pointer."</span>)
     }
@@ -2471,7 +2475,11 @@
 /// to replace more characters than remaining.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>CONCAT_EXT__WSTRING(dest: <span class="kw-2">*mut </span>u16, argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; i32 {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>CONCAT_EXT__WSTRING(
+    dest: <span class="kw-2">*mut </span>u16,
+    argc: i32,
+    argv: <span class="kw-2">*const *const </span>u16,
+) -&gt; i32 {
     <span class="kw">if </span>argv.is_null() || dest.is_null() {
         <span class="macro">panic!</span>(<span class="string">"Received null-pointer."</span>)
     }
@@ -2516,7 +2524,7 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__STRING_GREATER(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>__STRING_GREATER(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
     compare(argc, argv, Ordering::is_gt)
 }
 
@@ -2528,7 +2536,7 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__WSTRING_GREATER(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>__WSTRING_GREATER(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
     compare(argc, argv, Ordering::is_gt)
 }
 
@@ -2540,7 +2548,7 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__STRING_EQUAL(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>__STRING_EQUAL(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
     compare(argc, argv, Ordering::is_eq)
 }
 
@@ -2552,7 +2560,7 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__WSTRING_EQUAL(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>__WSTRING_EQUAL(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
     compare(argc, argv, Ordering::is_eq)
 }
 
@@ -2564,7 +2572,7 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__STRING_LESS(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>__STRING_LESS(argc: i32, argv: <span class="kw-2">*const *const </span>u8) -&gt; bool {
     compare(argc, argv, Ordering::is_lt)
 }
 
@@ -2576,7 +2584,7 @@
 /// Works on raw pointers, inherently unsafe.
 </span><span class="attr">#[allow(non_snake_case)]
 #[no_mangle]
-</span><span class="kw">pub unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>__WSTRING_LESS(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
+</span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>__WSTRING_LESS(argc: i32, argv: <span class="kw-2">*const *const </span>u16) -&gt; bool {
     compare(argc, argv, Ordering::is_lt)
 }
 
