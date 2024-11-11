@@ -1,4 +1,4 @@
-FUNCTION TO_BOOL<T: ANY_BIT> : BOOL
+FUNCTION TO_BOOL<T: ANY> : BOOL
     VAR_INPUT
         in : T;
     END_VAR
@@ -38,7 +38,7 @@ END_FUNCTION
 
 // ======================================================================================================== //
 
-FUNCTION TO_BYTE<T: ANY_BIT> : BYTE
+FUNCTION TO_BYTE<T: ANY> : BYTE
     VAR_INPUT
         in : T;
     END_VAR
@@ -86,7 +86,7 @@ END_FUNCTION
 
 // ======================================================================================================== //
 
-FUNCTION TO_WORD<T: ANY_BIT> : WORD
+FUNCTION TO_WORD<T: ANY> : WORD
     VAR_INPUT
         in : T;
     END_VAR
@@ -134,7 +134,7 @@ END_FUNCTION
 
 // ======================================================================================================== //
 
-FUNCTION TO_DWORD<T: ANY_BIT> : DWORD
+FUNCTION TO_DWORD<T: ANY> : DWORD
     VAR_INPUT
         in : T;
     END_VAR
@@ -190,7 +190,7 @@ END_FUNCTION
 
 // ======================================================================================================== //
 
-FUNCTION TO_LWORD<T: ANY_BIT> : LWORD
+FUNCTION TO_LWORD<T: ANY> : LWORD
     VAR_INPUT
         in : T;
     END_VAR
