@@ -825,21 +825,21 @@ pub fn validate_pointer_assignment<T>(
         let inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
 
         if len_lhs != len_rhs || inner_ty_lhs != inner_ty_rhs {
-            validator.push_diagnostic(Diagnostic::invalid_assignment(
-                &validator.get_type_name_or_slice(type_rhs),
-                &validator.get_type_name_or_slice(type_lhs),
-                assignment_location,
-            ));
+            // validator.push_diagnostic(Diagnostic::invalid_assignment(
+            //     &validator.get_type_name_or_slice(type_rhs),
+            //     &validator.get_type_name_or_slice(type_lhs),
+            //     assignment_location,
+            // ));
         }
     } else if type_info_lhs != type_info_rhs {
         let type_name_lhs = validator.get_type_name_or_slice(type_lhs);
         let type_name_rhs = validator.get_type_name_or_slice(type_rhs);
 
-        validator.push_diagnostic(Diagnostic::invalid_assignment(
-            &type_name_rhs,
-            &type_name_lhs,
-            assignment_location,
-        ));
+        // validator.push_diagnostic(Diagnostic::invalid_assignment(
+        //     &type_name_rhs,
+        //     &type_name_lhs,
+        //     assignment_location,
+        // ));
     }
 }
 
