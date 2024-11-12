@@ -1,0 +1,6 @@
+---
+source: src/resolver/initial_type_annotator.rs
+expression: "AnnotationPrinter ::\nprint(r#\"PROGRAM PRG\n                // string literals\n                'string';\n                \"wstring\";\n            END_PROGRAM\"#,\n& annotations, & unit)"
+---
+'string' [<__STRING6>]
+"wstring" [<__WSTRING7>]

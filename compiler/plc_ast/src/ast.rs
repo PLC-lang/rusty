@@ -195,6 +195,8 @@ impl DirectAccessType {
             DirectAccessType::Template => unimplemented!("Should not test for template width"),
         }
     }
+
+
 }
 
 impl Debug for Pou {

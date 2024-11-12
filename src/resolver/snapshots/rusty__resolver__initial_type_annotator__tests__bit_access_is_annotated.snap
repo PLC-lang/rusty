@@ -1,0 +1,22 @@
+---
+source: src/resolver/initial_type_annotator.rs
+expression: "AnnotationPrinter ::\nprint(\"\n            PROGRAM PRG\n                VAR a, b, c : LWORD; END_VAR\n                a.%X0;\n                b.%W0.%X2;\n                c.%L0.%D0;\n            END_PROGRAM\n            \",\n& annotations, & unit)"
+---
+a.%X0 [<BOOL>]
+    a [<LWORD (Variable PRG.a)>]
+    %X0 [<->]
+        0 [<DINT>]
+b.%W0.%X2 [<BOOL>]
+    b.%W0 [<WORD>]
+        b [<LWORD (Variable PRG.b)>]
+        %W0 [<->]
+            0 [<DINT>]
+    %X2 [<->]
+        2 [<DINT>]
+c.%L0.%D0 [<DWORD>]
+    c.%L0 [<LWORD>]
+        c [<LWORD (Variable PRG.c)>]
+        %L0 [<->]
+            0 [<DINT>]
+    %D0 [<->]
+        0 [<DINT>]

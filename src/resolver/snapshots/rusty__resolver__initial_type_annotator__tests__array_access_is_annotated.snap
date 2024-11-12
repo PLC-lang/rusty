@@ -1,0 +1,21 @@
+---
+source: src/resolver/initial_type_annotator.rs
+expression: "AnnotationPrinter ::\nprint(\"\n            PROGRAM PRG\n                VAR\n                    x : ARRAY[0..10] OF INT;\n                    y : ARRAY[0..10] OF ARRAY[0..10] OF BOOL;\n                    c : INT;\n                END_VAR\n                x[c];\n                y[0][c];\n            END_PROGRAM\n            \",\n& annotations, & unit)"
+---
+0..10 [<->]
+    0 [<DINT>]
+    10 [<DINT>]
+0..10 [<->]
+    0 [<DINT>]
+    10 [<DINT>]
+0..10 [<->]
+    0 [<DINT>]
+    10 [<DINT>]
+x[c] [<INT>]
+    x [<__PRG_x (Variable PRG.x)>]
+    c [<INT (Variable PRG.c)>]
+y[0][c] [<BOOL>]
+    y[0] [<__PRG_y_>]
+        y [<__PRG_y (Variable PRG.y)>]
+        0 [<DINT>]
+    c [<INT (Variable PRG.c)>]

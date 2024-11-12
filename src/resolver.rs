@@ -35,6 +35,9 @@ use crate::{
 
 pub mod const_evaluator;
 pub mod generics;
+pub mod initial_type_annotator;
+mod call_statement_resolving;
+mod scope;
 
 #[cfg(test)]
 mod tests;
@@ -518,6 +521,13 @@ impl From<&PouIndexEntry> for StatementAnnotation {
     }
 }
 
+impl From<&DataTypeInformation> for StatementAnnotation {
+    fn from(value: &DataTypeInformation) -> Self {
+        StatementAnnotation::Type { type_name: value.get_name().to_string() }
+    }
+}
+
+
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 //TODO: Maybe refactor to struct
 pub enum Dependency {
@@ -719,6 +729,17 @@ impl AnnotationMapImpl {
     /// Annotates the ast statement with its original generic nature
     pub fn add_generic_nature(&mut self, s: &AstNode, nature: TypeNature) {
         self.generic_nature_map.insert(s.get_id(), nature);
+    }
+    
+    fn copy_annotation(&mut self, from: &AstNode, to: &AstNode)  {
+        let type_annotation = self.get(from).cloned();
+        let hint_annotation = self.get_hint(from).cloned();
+        if let Some(f) = type_annotation {
+            self.annotate(to, f);
+        }
+        if let Some(f) = hint_annotation {
+            self.annotate_type_hint(to, f);
+        }
     }
 }
 
@@ -1974,7 +1995,7 @@ fn to_pou_annotation(p: &PouIndexEntry, index: &Index) -> Option<StatementAnnota
     }
 }
 
-fn to_variable_annotation(
+pub fn to_variable_annotation(
     v: &VariableIndexEntry,
     index: &Index,
     constant_override: bool,

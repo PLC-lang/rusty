@@ -1,0 +1,9 @@
+---
+source: src/resolver/initial_type_annotator.rs
+expression: "AnnotationPrinter ::\nprint(\"\n            PROGRAM PRG\n                VAR\n                    x : POINTER TO INT;\n                    y : REF_TO REF_TO BOOL;\n                END_VAR\n                x^;\n                y^^;\n            END_PROGRAM\n            \",\n& annotations, & unit)"
+---
+x^ [<INT>]
+    x [<__PRG_x (Variable PRG.x)>]
+y^^ [<BOOL>]
+    y^ [<__PRG_y_>]
+        y [<__PRG_y (Variable PRG.y)>]

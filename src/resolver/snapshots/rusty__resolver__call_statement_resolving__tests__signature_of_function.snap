@@ -1,0 +1,34 @@
+---
+source: src/resolver/call_statement_resolving.rs
+expression: "vec![to_tuple(&get_signature_of_callable(\"foo\", &index).unwrap()),\nto_tuple(&get_signature_of_callable(\"prg\", &index).unwrap()),\nto_tuple(&get_signature_of_callable(\"fb\", &index).unwrap()),]"
+---
+[
+    (
+        "foo",
+        [
+            "foo_a: INT",
+            "foo_b: __auto_pointer_to_INT",
+        ],
+        Some(
+            "BOOL",
+        ),
+    ),
+    (
+        "prg",
+        [
+            "prg_b: BOOL",
+            "prg_c: REAL",
+            "prg_d: __auto_pointer_to_INT",
+        ],
+        None,
+    ),
+    (
+        "fb",
+        [
+            "fb_b: BOOL",
+            "fb_c: REAL",
+            "fb_d: __auto_pointer_to_INT",
+        ],
+        None,
+    ),
+]

@@ -10,6 +10,7 @@ use plc_ast::{
     literals::{AstLiteral, StringValue},
 };
 use plc_source::source_location::SourceLocation;
+use plc_util::convention::internal_type_name;
 
 use crate::{
     datalayout::{Bytes, MemoryLocation},
@@ -120,6 +121,21 @@ impl PartialEq for DataType {
 impl Eq for DataType {}
 
 impl DataType {
+    /// Creates a new string DataType with the given name, nature and information.
+    pub fn new_string_type(len: usize, encoding: StringEncoding) -> DataType {
+        let string_name = match encoding {
+            StringEncoding::Utf8 => STRING_TYPE,
+            StringEncoding::Utf16 => WSTRING_TYPE,
+        };
+        DataType {
+            name: internal_type_name(string_name, len.to_string().as_str()),
+            initial_value: None,
+            information: DataTypeInformation::String { size: TypeSize::from_literal(len as i64), encoding },
+            nature: TypeNature::String,
+            location: SourceLocation::internal(),
+        }
+    }
+
     pub fn get_name(&self) -> &str {
         self.name.as_str()
     }

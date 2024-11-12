@@ -1,0 +1,20 @@
+---
+source: src/resolver/call_statement_resolving.rs
+expression: "vec![to_tuple(&get_signature_of_callable(\"prg.act\", &index).unwrap()),\nto_tuple(&get_signature_of_callable(\"fb.act\", &index).unwrap()),]"
+---
+[
+    (
+        "prg.act",
+        [
+            "prg_b: BOOL",
+        ],
+        None,
+    ),
+    (
+        "fb.act",
+        [
+            "fb_b: BOOL",
+        ],
+        None,
+    ),
+]

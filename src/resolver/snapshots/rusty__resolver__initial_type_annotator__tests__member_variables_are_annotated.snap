@@ -1,0 +1,16 @@
+---
+source: src/resolver/initial_type_annotator.rs
+expression: "AnnotationPrinter ::\nprint(\"\n            TYPE Point : STRUCT\n                x,y : INT;\n            END_STRUCT END_TYPE\n\n            PROGRAM PRG1\n                VAR_INPUT\n                    a,b,c : INT;\n                    p: Point;\n                END_VAR\n            END_PROGRAM\n            \n            PROGRAM PRG2\n                PRG1.a;\n                PRG1.b;\n                PRG1.c;\n                PRG1.p.x;\n                PRG1.p.y;\n            END_PROGRAM\n            \",\n& annotations, & unit)"
+---
+PRG1.a [<INT (Variable PRG1.a)>]
+    PRG1 [<PRG1 (Program)>]
+PRG1.b [<INT (Variable PRG1.b)>]
+    PRG1 [<PRG1 (Program)>]
+PRG1.c [<INT (Variable PRG1.c)>]
+    PRG1 [<PRG1 (Program)>]
+PRG1.p.x [<INT (Variable Point.x)>]
+    PRG1.p [<Point (Variable PRG1.p)>]
+        PRG1 [<PRG1 (Program)>]
+PRG1.p.y [<INT (Variable Point.y)>]
+    PRG1.p [<Point (Variable PRG1.p)>]
+        PRG1 [<PRG1 (Program)>]

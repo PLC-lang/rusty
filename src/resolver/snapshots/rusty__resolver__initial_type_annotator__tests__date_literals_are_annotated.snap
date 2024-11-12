@@ -1,0 +1,18 @@
+---
+source: src/resolver/initial_type_annotator.rs
+expression: "AnnotationPrinter ::\nprint(\"PROGRAM PRG\n                T#12.4d;\n                TIME#-12m;\n                TOD#00:00:12;\n                TIME_OF_DAY#04:16:22;\n                TIME_OF_DAY#04:16;\n                DATE_AND_TIME#1984-10-01-16:40:22;\n                DT#2021-04-20-22:33:14;\n                DATE_AND_TIME#2000-01-01-20:15;\n                DATE#1984-10-01;\n                D#2021-04-20;\n                LTIME#12.4d;\n                LDATE#1984-10-01;\n                LDT#1984-10-01-16:40:22;\n                LTOD#00:00:12;\n            END_PROGRAM\",\n& annotations, & unit)"
+---
+T#12.4d [<TIME>]
+TIME#-12m [<TIME>]
+TOD#00:00:12 [<TIME_OF_DAY>]
+TIME_OF_DAY#04:16:22 [<TIME_OF_DAY>]
+TIME_OF_DAY#04:16 [<TIME_OF_DAY>]
+DATE_AND_TIME#1984-10-01-16:40:22 [<DATE_AND_TIME>]
+DT#2021-04-20-22:33:14 [<DATE_AND_TIME>]
+DATE_AND_TIME#2000-01-01-20:15 [<DATE_AND_TIME>]
+DATE#1984-10-01 [<DATE>]
+D#2021-04-20 [<DATE>]
+LTIME#12.4d [<TIME>]
+LDATE#1984-10-01 [<DATE>]
+LDT#1984-10-01-16:40:22 [<DATE_AND_TIME>]
+LTOD#00:00:12 [<TIME_OF_DAY>]

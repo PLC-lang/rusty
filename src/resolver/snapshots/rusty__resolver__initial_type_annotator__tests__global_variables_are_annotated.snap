@@ -1,0 +1,8 @@
+---
+source: src/resolver/initial_type_annotator.rs
+expression: "AnnotationPrinter ::\nprint(\"\n            VAR_GLOBAL\n                a: INT;\n                b: BOOL;\n                c: BYTE;\n                d: REAL;\n            END_VAR\n            \n            PROGRAM PRG\n                VAR\n                    a: INT;\n                    b: BOOL;\n                END_VAR\n                a;\n                b;\n                c;\n                d;\n            END_PROGRAM\",\n& annotations, & unit)"
+---
+a [<INT (Variable PRG.a)>]
+b [<BOOL (Variable PRG.b)>]
+c [<BYTE (Variable c)>]
+d [<REAL (Variable d)>]

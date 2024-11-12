@@ -88,6 +88,11 @@ pub mod tests {
         (unit, index, diagnostics)
     }
 
+    pub fn index_safe(src: &str) -> (CompilationUnit, Index, Vec<Diagnostic>) {
+        let (unit, index, diagnostics) = do_index(src, IdProvider::default());
+        (unit, index, diagnostics)
+    }
+
     pub fn index(src: &str) -> (CompilationUnit, Index) {
         let id_provider = IdProvider::default();
         let (unit, index, _) = do_index(src, id_provider);
