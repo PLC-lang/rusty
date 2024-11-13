@@ -18,6 +18,7 @@ FUNCTION main
     printf('%d$N', TO_BYTE(BOOL#FALSE));        // CHECK: 0
     printf('%d$N', TO_BYTE(BOOL#TRUE));         // CHECK: 1
     printf('%d$N', TO_BYTE(CHAR#'a'));          // CHECK: 97
+    printf('%d$N', TO_BYTE(WCHAR#"a"));         // CHECK: 97
     printf('%d$N', TO_BYTE(WORD#5));            // CHECK: 5
     printf('%d$N', TO_BYTE(DWORD#5));           // CHECK: 5
     printf('%d$N', TO_BYTE(LWORD#5));           // CHECK: 5
