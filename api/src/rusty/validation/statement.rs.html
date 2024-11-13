@@ -1719,6 +1719,21 @@
 <a href="#1719" id="1719">1719</a>
 <a href="#1720" id="1720">1720</a>
 <a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
+<a href="#1724" id="1724">1724</a>
+<a href="#1725" id="1725">1725</a>
+<a href="#1726" id="1726">1726</a>
+<a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
+<a href="#1735" id="1735">1735</a>
+<a href="#1736" id="1736">1736</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
@@ -2860,8 +2875,13 @@
         // because those would fail
         </span><span class="kw">return </span><span class="bool-val">true</span>;
     } <span class="kw">else if </span>is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
-    <span class="comment">// FIXME: See https://github.com/PLC-lang/rusty/issues/857
-        </span>| is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator)
+        | is_invalid_pointer_assignment(
+            left_type.get_type_information(),
+            right_type.get_type_information(),
+            index,
+            location,
+            validator,
+        )
         | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
         | is_aggregate_type_missmatch(left_type, right_type, index)
     {
@@ -2963,12 +2983,22 @@
 <span class="doccomment">/// if we try to assign an aggregate type to another
 /// check if we have the same type
 </span><span class="kw">fn </span>is_aggregate_type_missmatch(left_type: <span class="kw-2">&amp;</span>DataType, right_type: <span class="kw-2">&amp;</span>DataType, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
-    left_type.is_aggregate_type() &amp; right_type.is_aggregate_type()
-        &amp;&amp; !typesystem::is_same_type_class(
-            left_type.get_type_information(),
-            right_type.get_type_information(),
-            index,
-        )
+    <span class="kw">let </span>lhs = left_type.get_type_information();
+    <span class="kw">let </span>rhs = right_type.get_type_information();
+    <span class="kw">if </span>!(left_type.is_aggregate_type() &amp; right_type.is_aggregate_type()) {
+        <span class="kw">return </span><span class="bool-val">false</span>;
+    }
+    <span class="kw">if </span>lhs.is_array() {
+        <span class="kw">let </span>inner_l = index.find_intrinsic_type(
+            index.get_type_information_or_void(lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE)),
+        );
+        <span class="kw">let </span>inner_r = index.find_intrinsic_type(
+            index.get_type_information_or_void(rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE)),
+        );
+        !(inner_l == inner_r &amp;&amp; typesystem::is_same_type_class(lhs, rhs, index))
+    } <span class="kw">else </span>{
+        !typesystem::is_same_type_class(lhs, rhs, index)
+    }
 }
 
 <span class="kw">fn </span>validate_call&lt;T: AnnotationMap&gt;(
