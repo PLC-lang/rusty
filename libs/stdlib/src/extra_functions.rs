@@ -113,7 +113,7 @@ where
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn STRING_TO_LINT(src: *const u8) -> i64 {
+pub unsafe extern "C-unwind" fn STRING_TO_LINT(src: *const u8) -> i64 {
     string_to_int(src)
 }
 
@@ -146,7 +146,7 @@ where
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn STRING_TO_LREAL(src: *const u8) -> f64 {
+pub unsafe extern "C-unwind" fn STRING_TO_LREAL(src: *const u8) -> f64 {
     string_to_float(src)
 }
 
@@ -154,7 +154,7 @@ pub unsafe extern "C" fn STRING_TO_LREAL(src: *const u8) -> f64 {
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn STRING_TO_REAL(src: *const u8) -> f32 {
+pub unsafe extern "C-unwind" fn STRING_TO_REAL(src: *const u8) -> f32 {
     string_to_float(src)
 }
 
