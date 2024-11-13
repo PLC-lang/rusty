@@ -1139,8 +1139,13 @@ fn is_valid_assignment(
         // because those would fail
         return true;
     } else if is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
-    // FIXME: See https://github.com/PLC-lang/rusty/issues/857
-        | is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator)
+        | is_invalid_pointer_assignment(
+            left_type.get_type_information(),
+            right_type.get_type_information(),
+            index,
+            location,
+            validator,
+        )
         | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
         | is_aggregate_type_missmatch(left_type, right_type, index)
     {
@@ -1242,12 +1247,22 @@ fn is_aggregate_to_none_aggregate_assignment(left_type: &DataType, right_type: &
 /// if we try to assign an aggregate type to another
 /// check if we have the same type
 fn is_aggregate_type_missmatch(left_type: &DataType, right_type: &DataType, index: &Index) -> bool {
-    left_type.is_aggregate_type() & right_type.is_aggregate_type()
-        && !typesystem::is_same_type_class(
-            left_type.get_type_information(),
-            right_type.get_type_information(),
-            index,
-        )
+    let lhs = left_type.get_type_information();
+    let rhs = right_type.get_type_information();
+    if !(left_type.is_aggregate_type() & right_type.is_aggregate_type()) {
+        return false;
+    }
+    if lhs.is_array() {
+        let inner_l = index.find_intrinsic_type(
+            index.get_type_information_or_void(lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE)),
+        );
+        let inner_r = index.find_intrinsic_type(
+            index.get_type_information_or_void(rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE)),
+        );
+        !(inner_l == inner_r && typesystem::is_same_type_class(lhs, rhs, index))
+    } else {
+        !typesystem::is_same_type_class(lhs, rhs, index)
+    }
 }
 
 fn validate_call<T: AnnotationMap>(
