@@ -10,10 +10,10 @@ use plc_ast::{
 };
 
 use crate::{
-    index::{Index, PouIndexEntry},
+    index::Index,
     typesystem::{
         DataType, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, LINT_TYPE,
-        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, U1_TYPE,
+        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
     },
 };
 
@@ -23,12 +23,12 @@ use super::{
     to_variable_annotation, AnnotationMap, AnnotationMapImpl, StatementAnnotation,
 };
 
-/// Annotates the AST with the initial types of the literals
-/// This is a first step to infer the types of the AST elements
-///
-/// The initial types are the types derived from the elements
-/// declaration or the literals themselves
-pub struct InitialTypeAnnotator<'i> {
+/// Annotates the AST with the declared types of literals and references
+/// This is a first step to infer the types of the AST elements. It aims to annotate the types by directly looking at the declarations.
+/// It does not try to annotate clever types to avoid casts, or to infer real types from the context (e.g. the right side of an assignment).
+/// 
+/// This is the first step and builds the foundation for upcoming steps of type inference.
+pub struct DeclaredTypeAnnotator<'i> {
     /// The annotations map. Records annotations for nodes
     annotations: AnnotationMapImpl,
     /// the index to lookup names
@@ -38,9 +38,12 @@ pub struct InitialTypeAnnotator<'i> {
     scope_stack: ScopeStack,
 }
 
-impl<'i> InitialTypeAnnotator<'i> {
-    fn visit_unit(unit: &CompilationUnit, index: &'i Index) -> AnnotationMapImpl {
-        let mut annotator = InitialTypeAnnotator {
+impl<'i> DeclaredTypeAnnotator<'i> {
+
+    /// Annotates the given compilation unit with the initial types of the literals
+    /// This method acts as an entry point for the declared_type_annotator.`
+    pub fn visit_unit(unit: &CompilationUnit, index: &'i Index) -> AnnotationMapImpl {
+        let mut annotator = DeclaredTypeAnnotator {
             annotations: AnnotationMapImpl::default(),
             index,
             scope_stack: ScopeStack::new(),
@@ -97,9 +100,10 @@ impl<'i> InitialTypeAnnotator<'i> {
             Scope::Empty
         }
     }
+
 }
 
-impl<'i> AstVisitor for InitialTypeAnnotator<'i> {
+impl<'i> AstVisitor for DeclaredTypeAnnotator<'i> {
     fn visit_implementation(&mut self, implementation: &plc_ast::ast::Implementation) {
         self.walk_scoped(implementation, Scope::LocalVariable(implementation.type_name.clone()));
     }
@@ -255,7 +259,7 @@ mod tests {
     use insta::assert_snapshot;
     use plc_diagnostics::diagnostics::Diagnostic;
 
-    use crate::test_utils::tests::index_safe;
+    use crate::{resolver::annotation_printer::AnnotationPrinter, test_utils::tests::index_safe};
 
     use super::*;
 
@@ -269,7 +273,7 @@ mod tests {
 
         assert_eq!(diagnostics, vec![]); // make sure there are no
 
-        let a = InitialTypeAnnotator::visit_unit(&unit, &index);
+        let a = DeclaredTypeAnnotator::visit_unit(&unit, &index);
         (unit, a, index)
     }
 
@@ -520,71 +524,4 @@ mod tests {
     }
 }
 
-pub struct AnnotationPrinter<'i> {
-    src: &'i str,
-    annotations: &'i AnnotationMapImpl,
-    lvl: usize,
-    text: Vec<u8>,
-}
-const EMPTY: &str = "-";
 
-impl AnnotationPrinter<'_> {
-    pub fn print<W>(src: &str, annotations: &AnnotationMapImpl, w: &W) -> String
-    where
-        W: Walker,
-    {
-        let mut printer = AnnotationPrinter { src, annotations, lvl: 0, text: Vec::new() };
-        w.walk(&mut printer);
-
-        String::from_utf8(printer.text).unwrap()
-    }
-
-    fn get_type_name(&self, a: Option<&StatementAnnotation>) -> String {
-        if let Some(a) = a {
-            match a {
-                StatementAnnotation::Function { qualified_name, .. } => {
-                    format!("{qualified_name} (Function)")
-                }
-                StatementAnnotation::Program { qualified_name } => format!("{qualified_name} (Program)"),
-                StatementAnnotation::Variable { resulting_type, qualified_name, .. } => {
-                    format!("{resulting_type} (Variable {qualified_name})")
-                }
-                _ => self.annotations.get_type_name_for_annotation(a).unwrap_or(EMPTY).to_string(),
-            }
-        } else {
-            EMPTY.to_string()
-        }
-    }
-}
-
-fn should_skip(stmt: &AstStatement) -> bool {
-    match stmt {
-        AstStatement::Identifier(_) => true,
-        _ => false,
-    }
-}
-
-impl AstVisitor for AnnotationPrinter<'_> {
-    fn visit(&mut self, node: &plc_ast::ast::AstNode) {
-        if should_skip(node.get_stmt()) {
-            return;
-        }
-
-        let type_name = self.get_type_name(self.annotations.get(&node)).to_string();
-        let hint_name = self
-            .annotations
-            .get_hint(&node)
-            .map(|it| format!(", hint: {}", self.get_type_name(Some(it))))
-            .unwrap_or_default();
-
-        let stmt = &self.src[node.get_location().to_range().unwrap()];
-        let indent = self.lvl * 4;
-
-        writeln!(&mut self.text, "{:indent$}{} [<{}>{}]", "", stmt, type_name, hint_name, indent = indent)
-            .unwrap();
-
-        self.lvl += 1;
-        node.walk(self);
-        self.lvl -= 1;
-    }
-}

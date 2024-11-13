@@ -1,0 +1,23 @@
+---
+source: src/resolver/inferring_type_annotator.rs
+expression: "AnnotationPrinter ::\nprint(\"\n        PROGRAM PRG\n            VAR a : INT; b : BYTE; END_VAR\n            a + b;\n            a - b;\n            a * b;\n            a / b;\n            (a + b) - (b + b);\n        END_PROGRAM\",\n& annotations, & unit)"
+---
+a + b [<INT>]
+    a [<INT (Variable PRG.a)>, hint: INT]
+    b [<BYTE (Variable PRG.b)>, hint: INT]
+a - b [<INT>]
+    a [<INT (Variable PRG.a)>, hint: INT]
+    b [<BYTE (Variable PRG.b)>, hint: INT]
+a * b [<INT>]
+    a [<INT (Variable PRG.a)>, hint: INT]
+    b [<BYTE (Variable PRG.b)>, hint: INT]
+a / b [<INT>]
+    a [<INT (Variable PRG.a)>, hint: INT]
+    b [<BYTE (Variable PRG.b)>, hint: INT]
+(a + b) - (b + b) [<INT>]
+    (a + b) [<INT>, hint: INT]
+        a [<INT (Variable PRG.a)>, hint: INT]
+        b [<BYTE (Variable PRG.b)>, hint: INT]
+    (b + b) [<BYTE>, hint: INT]
+        b [<BYTE (Variable PRG.b)>, hint: BYTE]
+        b [<BYTE (Variable PRG.b)>, hint: BYTE]

@@ -1,5 +1,5 @@
 ---
-source: src/resolver/initial_type_annotator.rs
+source: src/resolver/declared_type_annotator.rs
 expression: "AnnotationPrinter ::\nprint(r#\"PROGRAM PRG\n                // bool literals\n                TRUE;\n                FALSE;\n                // int\n                0;\n                128;\n                32768;\n                2147483647;\n                2147483648;\n                // float literals\n                0.0;\n                3.1415;\n            END_PROGRAM\"#,\n& annotations, & unit)"
 ---
 TRUE [<BOOL>]

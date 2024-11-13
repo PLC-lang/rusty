@@ -1,7 +1,0 @@
----
-source: src/resolver/initial_type_annotator.rs
-expression: "AnnotationPrinter ::\nprint(\"PROGRAM PRG\n                VAR\n                    a: INT;\n                    b: BOOL;\n                    c: BYTE;\n                END_VAR\n\n                a;\n                b;\n                c;\n            END_PROGRAM\",\n& annotations, & unit)"
----
-a [<INT>]
-b [<BOOL>]
-c [<BYTE>]

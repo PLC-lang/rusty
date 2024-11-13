@@ -1,5 +1,5 @@
 ---
-source: src/resolver/initial_type_annotator.rs
+source: src/resolver/declared_type_annotator.rs
 expression: "AnnotationPrinter ::\nprint(\"\n            PROGRAM PRG\n                VAR_INPUT a: INT; b: BOOL; c: BYTE; END_VAR\n            END_PROGRAM\n            ACTIONS ACTION prgAction END_ACTION END_ACTIONS\n\n            FUNCTION_BLOCK FB\n                VAR_INPUT a: INT; b: BOOL; c: BYTE; END_VAR\n            END_FUNCTION_BLOCK\n            ACTIONS ACTION fbAction END_ACTION END_ACTIONS\n            \n            PROGRAM TEST\n                VAR fb : FB; END_VAR\n                prg.prgAction(a := 1, b := TRUE, c := 7);      \n                fb.fbAction(a := 1, b := TRUE, c := 7);      \n            END_PROGRAM\n            \",\n& annotations, & unit)"
 ---
 prg.prgAction(a := 1, b := TRUE, c := 7) [<->]

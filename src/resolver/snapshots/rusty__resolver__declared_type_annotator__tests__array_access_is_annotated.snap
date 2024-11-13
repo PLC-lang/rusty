@@ -1,5 +1,5 @@
 ---
-source: src/resolver/initial_type_annotator.rs
+source: src/resolver/declared_type_annotator.rs
 expression: "AnnotationPrinter ::\nprint(\"\n            PROGRAM PRG\n                VAR\n                    x : ARRAY[0..10] OF INT;\n                    y : ARRAY[0..10] OF ARRAY[0..10] OF BOOL;\n                    c : INT;\n                END_VAR\n                x[c];\n                y[0][c];\n            END_PROGRAM\n            \",\n& annotations, & unit)"
 ---
 0..10 [<->]

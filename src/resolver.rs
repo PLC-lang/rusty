@@ -35,12 +35,15 @@ use crate::{
 
 pub mod const_evaluator;
 pub mod generics;
-pub mod initial_type_annotator;
+pub mod declared_type_annotator;
+pub mod inferring_type_annotator;
 mod call_statement_resolving;
 mod scope;
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod annotation_printer;
 
 /// helper macro that calls visit_statement for all given statements
 /// use like `visit_all_statements!(self, ctx, stmt1, stmt2, stmt3, ...)`

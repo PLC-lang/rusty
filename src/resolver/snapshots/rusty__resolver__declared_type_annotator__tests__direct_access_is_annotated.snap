@@ -1,5 +1,5 @@
 ---
-source: src/resolver/initial_type_annotator.rs
+source: src/resolver/declared_type_annotator.rs
 expression: "AnnotationPrinter ::\nprint(\"\n            PROGRAM PRG\n                VAR a, b, c : LWORD; END_VAR\n                %MD1.4;   //hw access records wrong range!\n                a.%X0;\n                b.%W0.%X2;\n                c.%L0.%D0;\n            END_PROGRAM\n            \",\n& annotations, & unit)"
 ---
 END_VAR
