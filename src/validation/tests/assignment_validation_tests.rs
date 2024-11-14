@@ -1636,3 +1636,52 @@ fn reassignment_of_alias_variables_is_disallowed() {
 
     "###);
 }
+
+#[test]
+fn assigning_arrays_with_same_size_and_type_class_but_different_inner_type_is_an_error() {
+    // When assigning arrays of matching size and type-class,
+    // if they have a different intrinsic inner type,
+    // then we expect an assignment error.
+    let diagnostic = parse_and_validate_buffered(
+        r"
+        FUNCTION foo: DINT
+        VAR_INPUT
+            in1: ARRAY[0..1] OF LINT;
+            in3: STRING[100];
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main: DINT
+        VAR
+            var1: ARRAY[0..1] OF ULINT; // Err
+            var2: ARRAY[0..1] OF LTIME; // Err
+            var3: ARRAY[0..1] OF LWORD; // Err
+            var4: STRING;               // OK
+        END_VAR
+            foo(var1, var4);
+            foo(var2, var4);
+            foo(var3, var4);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostic, @r###"
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF ULINT' to 'ARRAY[0..1] OF LINT'
+       ┌─ <internal>:16:17
+       │
+    16 │             foo(var1, var4);
+       │                 ^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF ULINT' to 'ARRAY[0..1] OF LINT'
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF LTIME' to 'ARRAY[0..1] OF LINT'
+       ┌─ <internal>:17:17
+       │
+    17 │             foo(var2, var4);
+       │                 ^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LTIME' to 'ARRAY[0..1] OF LINT'
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF LWORD' to 'ARRAY[0..1] OF LINT'
+       ┌─ <internal>:18:17
+       │
+    18 │             foo(var3, var4);
+       │                 ^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LWORD' to 'ARRAY[0..1] OF LINT'
+    "###);
+}

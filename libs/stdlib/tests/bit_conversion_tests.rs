@@ -671,6 +671,35 @@ fn char_to_byte() {
 }
 
 #[test]
+fn wchar_to_byte() {
+    #[derive(Default)]
+    struct Main {
+        a: u8,
+        b: u8,
+        c: u8,
+    }
+
+    let src = r#"
+    PROGRAM main
+    VAR
+        a : BYTE;
+        b : BYTE;
+        c : BYTE;
+    END_VAR
+        a := WCHAR_TO_BYTE(WCHAR#"a");
+        b := WCHAR_TO_BYTE(WCHAR#"b");
+        c := WCHAR_TO_BYTE(WCHAR#"c");
+    END_PROGRAM
+    "#;
+    let sources = add_std!(src, "bit_conversion.st");
+    let mut maintype = Main::default();
+    let _res: u8 = compile_and_run(sources, &mut maintype);
+    assert_eq!(maintype.a, 97u8);
+    assert_eq!(maintype.b, 98u8);
+    assert_eq!(maintype.c, 99u8);
+}
+
+#[test]
 fn char_to_word() {
     #[derive(Default)]
     struct Main {
