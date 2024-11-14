@@ -1306,6 +1306,15 @@
 <a href="#1306" id="1306">1306</a>
 <a href="#1307" id="1307">1307</a>
 <a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
@@ -1550,6 +1559,15 @@
             // declarations before their implementation.
             // all other Pous need to be checked in the validator if they can have methods.
             </span><span class="kw">while </span><span class="macro">matches!</span>(lexer.token, KeywordMethod | PropertyConstant) {
+                <span class="kw">if </span>!<span class="macro">matches!</span>(pou_type, PouType::FunctionBlock | PouType::Class | PouType::Program) {
+                    <span class="kw">let </span>location = lexer.source_range_factory.create_range(lexer.last_range.clone());
+
+                    lexer.accept_diagnostic(
+                        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Methods cannot be declared in a POU of type '{pou_type}'."</span>))
+                            .with_location(location),
+                    );
+                    <span class="kw">break</span>;
+                }
                 <span class="kw">let </span>const_method = lexer.try_consume(<span class="kw-2">&amp;</span>PropertyConstant);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>((pou, implementation)) = parse_method(lexer, <span class="kw-2">&amp;</span>name, linkage, const_method) {
                     impl_pous.push(pou);
