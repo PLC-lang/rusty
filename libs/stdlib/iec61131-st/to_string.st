@@ -6,7 +6,7 @@ END_FUNCTION
 
 FUNCTION TO_CHAR__CHAR : CHAR
     VAR_INPUT
-        in : T;
+        in : CHAR;
     END_VAR
 
     TO_CHAR__CHAR := in;
