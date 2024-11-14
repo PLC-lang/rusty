@@ -242,6 +242,15 @@ fn parse_pou(
             // declarations before their implementation.
             // all other Pous need to be checked in the validator if they can have methods.
             while matches!(lexer.token, KeywordMethod | PropertyConstant) {
+                if !matches!(pou_type, PouType::FunctionBlock | PouType::Class | PouType::Program) {
+                    let location = lexer.source_range_factory.create_range(lexer.last_range.clone());
+
+                    lexer.accept_diagnostic(
+                        Diagnostic::new(format!("Methods cannot be declared in a POU of type '{pou_type}'."))
+                            .with_location(location),
+                    );
+                    break;
+                }
                 let const_method = lexer.try_consume(&PropertyConstant);
                 if let Some((pou, implementation)) = parse_method(lexer, &name, linkage, const_method) {
                     impl_pous.push(pou);
