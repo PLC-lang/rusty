@@ -1,0 +1,302 @@
+FUNCTION TO_BOOL<T: ANY> : BOOL
+    VAR_INPUT
+        in : T;
+    END_VAR
+END_FUNCTION
+
+FUNCTION TO_BOOL__BOOL : BOOL
+    VAR_INPUT
+        in : BOOL;
+    END_VAR
+
+    TO_BOOL__BOOL := in;
+END_FUNCTION
+
+FUNCTION TO_BOOL__BYTE : BOOL
+    VAR_INPUT
+        in : BYTE;
+    END_VAR
+
+    TO_BOOL__BYTE := BYTE_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__WORD : BOOL
+    VAR_INPUT
+        in : WORD;
+    END_VAR
+
+    TO_BOOL__WORD := WORD_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__DWORD : BOOL
+    VAR_INPUT
+        in : DWORD;
+    END_VAR
+
+    TO_BOOL__DWORD := DWORD_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__LWORD : BOOL
+    VAR_INPUT
+        in : LWORD;
+    END_VAR
+
+    TO_BOOL__LWORD := LWORD_TO_BOOL(in);
+END_FUNCTION
+
+// ======================================================================================================== //
+
+FUNCTION TO_BYTE<T: ANY> : BYTE
+    VAR_INPUT
+        in : T;
+    END_VAR
+END_FUNCTION
+
+FUNCTION TO_BYTE__BYTE : BYTE
+    VAR_INPUT
+        in : BYTE;
+    END_VAR
+
+    TO_BYTE__BYTE := in;
+END_FUNCTION
+
+FUNCTION TO_BYTE__BOOL : BYTE
+    VAR_INPUT
+        in : BOOL;
+    END_VAR
+
+    TO_BYTE__BOOL := BOOL_TO_BYTE(in);
+END_FUNCTION
+
+FUNCTION TO_BYTE__CHAR : BYTE
+    VAR_INPUT
+        in : CHAR;
+    END_VAR
+
+    TO_BYTE__CHAR := CHAR_TO_BYTE(in);
+END_FUNCTION
+
+FUNCTION TO_BYTE__WCHAR : BYTE
+    VAR_INPUT
+        in : WCHAR;
+    END_VAR
+
+    TO_BYTE__WCHAR := WCHAR_TO_BYTE(in);
+END_FUNCTION
+
+FUNCTION TO_BYTE__WORD : BYTE
+    VAR_INPUT
+        in : WORD;
+    END_VAR
+
+    TO_BYTE__WORD := WORD_TO_BYTE(in);
+END_FUNCTION
+
+FUNCTION TO_BYTE__DWORD : BYTE
+    VAR_INPUT
+        in : DWORD;
+    END_VAR
+
+    TO_BYTE__DWORD := DWORD_TO_BYTE(in);
+END_FUNCTION
+
+FUNCTION TO_BYTE__LWORD : BYTE
+    VAR_INPUT
+        in : LWORD;
+    END_VAR
+
+    TO_BYTE__LWORD := LWORD_TO_BYTE(in);
+END_FUNCTION
+
+// ======================================================================================================== //
+
+FUNCTION TO_WORD<T: ANY> : WORD
+    VAR_INPUT
+        in : T;
+    END_VAR
+END_FUNCTION
+
+FUNCTION TO_WORD__WORD : WORD
+    VAR_INPUT
+        in : WORD;
+    END_VAR
+
+    TO_WORD__WORD := in;
+END_FUNCTION
+
+FUNCTION TO_WORD__BOOL : WORD
+    VAR_INPUT
+        in : BOOL;
+    END_VAR
+
+    TO_WORD__BOOL := BOOL_TO_WORD(in);
+END_FUNCTION
+
+FUNCTION TO_WORD__CHAR : WORD
+    VAR_INPUT
+        in : CHAR;
+    END_VAR
+
+    TO_WORD__CHAR := CHAR_TO_WORD(in);
+END_FUNCTION
+
+FUNCTION TO_WORD__WCHAR : WORD
+    VAR_INPUT
+        in : WCHAR;
+    END_VAR
+
+    TO_WORD__WCHAR := WCHAR_TO_WORD(in);
+END_FUNCTION
+
+FUNCTION TO_WORD__BYTE : WORD
+    VAR_INPUT
+        in : BYTE;
+    END_VAR
+
+    TO_WORD__BYTE := BYTE_TO_WORD(in);
+END_FUNCTION
+
+FUNCTION TO_WORD__DWORD : WORD
+    VAR_INPUT
+        in : DWORD;
+    END_VAR
+
+    TO_WORD__DWORD := DWORD_TO_WORD(in);
+END_FUNCTION
+
+FUNCTION TO_WORD__LWORD : WORD
+    VAR_INPUT
+        in : LWORD;
+    END_VAR
+
+    TO_WORD__LWORD := LWORD_TO_WORD(in);
+END_FUNCTION
+
+// ======================================================================================================== //
+
+FUNCTION TO_DWORD<T: ANY> : DWORD
+    VAR_INPUT
+        in : T;
+    END_VAR
+END_FUNCTION
+
+FUNCTION TO_DWORD__DWORD : DWORD
+    VAR_INPUT
+        in : DWORD;
+    END_VAR
+
+    TO_DWORD__DWORD := in;
+END_FUNCTION
+
+FUNCTION TO_DWORD__BOOL : DWORD
+    VAR_INPUT
+        in : BOOL;
+    END_VAR
+
+    TO_DWORD__BOOL := BOOL_TO_DWORD(in);
+END_FUNCTION
+
+FUNCTION TO_DWORD__CHAR : DWORD
+    VAR_INPUT
+        in : CHAR;
+    END_VAR
+
+    TO_DWORD__CHAR := CHAR_TO_DWORD(in);
+END_FUNCTION
+
+FUNCTION TO_DWORD__WCHAR : DWORD
+    VAR_INPUT
+        in : WCHAR;
+    END_VAR
+
+    TO_DWORD__WCHAR := WCHAR_TO_DWORD(in);
+END_FUNCTION
+
+FUNCTION TO_DWORD__BYTE : DWORD
+    VAR_INPUT
+        in : BYTE;
+    END_VAR
+
+    TO_DWORD__BYTE := BYTE_TO_DWORD(in);
+END_FUNCTION
+
+FUNCTION TO_DWORD__WORD : DWORD
+    VAR_INPUT
+        in : WORD;
+    END_VAR
+
+    TO_DWORD__WORD := WORD_TO_DWORD(in);
+END_FUNCTION
+
+FUNCTION TO_DWORD__LWORD : DWORD
+    VAR_INPUT
+        in : LWORD;
+    END_VAR
+
+    TO_DWORD__LWORD := LWORD_TO_DWORD(in);
+END_FUNCTION
+
+// ======================================================================================================== //
+
+FUNCTION TO_LWORD<T: ANY> : LWORD
+    VAR_INPUT
+        in : T;
+    END_VAR
+END_FUNCTION
+
+FUNCTION TO_LWORD__LWORD : LWORD
+    VAR_INPUT
+        in : LWORD;
+    END_VAR
+
+    TO_LWORD__LWORD := in;
+END_FUNCTION
+
+FUNCTION TO_LWORD__BOOL : LWORD
+    VAR_INPUT
+        in : BOOL;
+    END_VAR
+
+    TO_LWORD__BOOL := BOOL_TO_LWORD(in);
+END_FUNCTION
+
+FUNCTION TO_LWORD__CHAR : LWORD
+    VAR_INPUT
+        in : CHAR;
+    END_VAR
+
+    TO_LWORD__CHAR := CHAR_TO_LWORD(in);
+END_FUNCTION
+
+FUNCTION TO_LWORD__WCHAR : LWORD
+    VAR_INPUT
+        in : WCHAR;
+    END_VAR
+
+    TO_LWORD__WCHAR := WCHAR_TO_LWORD(in);
+END_FUNCTION
+
+FUNCTION TO_LWORD__BYTE : LWORD
+    VAR_INPUT
+        in : BYTE;
+    END_VAR
+
+    TO_LWORD__BYTE := BYTE_TO_LWORD(in);
+END_FUNCTION
+
+FUNCTION TO_LWORD__WORD : LWORD
+    VAR_INPUT
+        in : WORD;
+    END_VAR
+
+    TO_LWORD__WORD := WORD_TO_LWORD(in);
+END_FUNCTION
+
+FUNCTION TO_LWORD__DWORD : LWORD
+    VAR_INPUT
+        in : DWORD;
+    END_VAR
+
+    TO_LWORD__DWORD := DWORD_TO_LWORD(in);
+END_FUNCTION
+
