@@ -288,6 +288,22 @@ END_FUNCTION
 
 (********************
 *
+* Converts WCHAR to BYTE
+*
+*********************)
+FUNCTION WCHAR_TO_BYTE : BYTE
+VAR_INPUT
+    in : WCHAR;
+END_VAR
+VAR
+    ptr : REF_TO BYTE;
+END_VAR
+    ptr := REF(in);
+    WCHAR_TO_BYTE := ptr^;
+END_FUNCTION
+
+(********************
+*
 * Converts CHAR to WORD
 *
 *********************)
