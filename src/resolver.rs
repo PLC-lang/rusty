@@ -349,7 +349,8 @@ impl TypeAnnotator<'_> {
                                     )
                                     .get_name(),
                                     DataTypeInformation::Integer { .. }
-                                        if !&data_type.information.is_bool() =>
+                                        if !data_type.information.is_bool()
+                                            && !data_type.information.is_character() =>
                                     {
                                         get_bigger_type(
                                             data_type,
