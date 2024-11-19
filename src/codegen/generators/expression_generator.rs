@@ -2715,33 +2715,35 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 /// as well as the parameter value (right side) ´param := value´ => ´value´
 /// and `true` for implicit / `false` for explicit parameters
 pub fn get_implicit_call_parameter<'a>(
-    param_statement: &'a AstNode,
-    declared_parameters: &[&VariableIndexEntry],
+    argument: &'a AstNode,
+    parameters: &[&VariableIndexEntry],
     idx: usize,
 ) -> Result<(usize, &'a AstNode, bool), Diagnostic> {
-    let (location, param_statement, is_implicit) = match param_statement.get_stmt() {
+    let (location, rhs_assignment_value, is_implicit) = match argument.get_stmt() {
+        // Explicit
         AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
-            //explicit
             let Some(left_name) = data.left.as_ref().get_flat_reference_name() else {
                 return Err(
                     //TODO: use global context to get an expression slice
                     Diagnostic::new("Expression is not assignable")
                         .with_error_code("E050")
-                        .with_location(param_statement.get_location()),
+                        .with_location(argument.get_location()),
                 );
             };
-            let loc = declared_parameters
+
+            let loc = parameters
                 .iter()
                 .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
                 .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.get_location()))?;
+
             (loc, data.right.as_ref(), false)
         }
-        _ => {
-            //implicit
-            (idx, param_statement, true)
-        }
+
+        // Implicit
+        _ => (idx, argument, true),
     };
-    Ok((location, param_statement, is_implicit))
+
+    Ok((location, rhs_assignment_value, is_implicit))
 }
 
 /// turns the given IntValue into an i1 by comparing it to 0 (of the same size)

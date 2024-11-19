@@ -1267,37 +1267,40 @@ fn is_aggregate_type_missmatch(left_type: &DataType, right_type: &DataType, inde
 
 fn validate_call<T: AnnotationMap>(
     validator: &mut Validator,
-    operator: &AstNode,
-    operator_arguments: Option<&AstNode>,
+    fn_ident: &AstNode,
+    fn_args: Option<&AstNode>,
     context: &ValidationContext<T>,
 ) {
-    visit_statement(validator, operator, context);
+    visit_statement(validator, fn_ident, context);
 
     // Check if we're dealing with a builtin function and if so call its validation function
-    if let Some(validation) = builtins::get_builtin(operator.get_flat_reference_name().unwrap_or_default())
+    if let Some(validation) = builtins::get_builtin(fn_ident.get_flat_reference_name().unwrap_or_default())
         .and_then(BuiltIn::get_validation)
     {
-        validation(validator, operator, operator_arguments, context.annotations, context.index);
+        validation(validator, fn_ident, fn_args, context.annotations, context.index);
     }
 
-    if let Some(pou) = context.find_pou(operator) {
-        let arguments = operator_arguments.map(flatten_expression_list).unwrap_or_default();
+    if let Some(pou) = context.find_pou(fn_ident) {
+        let arguments = fn_args.map(flatten_expression_list).unwrap_or_default();
         let parameters = context.index.get_declared_parameters(pou.get_name());
 
         if builtins::get_builtin(pou.get_name()).is_none() {
-            validate_argument_count(context, validator, pou, &arguments, &operator.location);
+            validate_argument_count(context, validator, pou, &arguments, &fn_ident.location);
         }
 
         let mut arguments_are_implicit = true;
         let mut variable_location_in_parent = vec![];
 
         // validate parameters
-        for (i, param) in arguments.iter().enumerate() {
-            match get_implicit_call_parameter(param, &parameters, i) {
-                Ok((parameter_location_in_parent, right, is_implicit)) => {
-                    let left = parameters.get(parameter_location_in_parent);
-                    if let Some(left) = left {
-                        validate_call_by_ref(validator, left, param);
+        for (i, argument) in arguments.iter().enumerate() {
+            match get_implicit_call_parameter(argument, &parameters, i) {
+                Ok((parameter_idx, right, is_implicit)) => {
+                    if i == 0 {
+                        arguments_are_implicit = is_implicit;
+                    }
+
+                    if let Some(left) = parameters.get(parameter_idx) {
+                        validate_call_by_ref(validator, left, argument);
                         // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
                         // save actual location in parent for InOut validation
                         variable_location_in_parent.push(left.get_location_in_parent());
@@ -1306,55 +1309,62 @@ fn validate_call<T: AnnotationMap>(
                     // explicit call parameter assignments will be handled by
                     // `visit_statement()` via `Assignment` and `OutputAssignment`
                     if is_implicit {
-                        validate_assignment(validator, right, None, &param.get_location(), context);
+                        validate_assignment(validator, right, None, &argument.get_location(), context);
                     }
 
                     // mixing implicit and explicit arguments is not allowed
                     // allways compare to the first argument
-                    if i == 0 {
-                        arguments_are_implicit = is_implicit;
-                    } else if arguments_are_implicit != is_implicit {
+                    if arguments_are_implicit != is_implicit {
                         validator.push_diagnostic(
                             Diagnostic::new("Cannot mix implicit and explicit call parameters!")
                                 .with_error_code("E031")
-                                .with_location(param.get_location()),
+                                .with_location(argument.get_location()),
                         );
                     }
                 }
+
                 Err(err) => {
                     validator.push_diagnostic(
                         Diagnostic::new("Invalid call parameters")
                             .with_error_code("E089")
-                            .with_location(param.get_location())
+                            .with_location(argument.get_location())
                             .with_sub_diagnostic(err),
                     );
                     break;
                 }
             }
 
-            visit_statement(validator, param, context);
+            visit_statement(validator, argument, context);
         }
 
         // for PROGRAM/FB we need special inout validation
-        if let PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. } = pou {
+        if pou.is_stateful() {
             // pou might actually be an action call: in that case,
             // we need to check if it is called within the context of the parent POU
             // (either the body of the parent or another associated action) => we don't need to validate the params
-            if is_action_call_in_qualified_context(context, operator) {
+            if is_action_call_in_qualified_context(context, fn_ident) {
                 return;
             }
-            let declared_in_out_params: Vec<&&VariableIndexEntry> =
-                parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
 
-            // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
+            let declared_in_out_params: Vec<&VariableIndexEntry> = match pou {
+                PouIndexEntry::Method { .. } => {
+                    // Methods require both INPUT and IN_OUT arguments to be passed
+                    parameters.into_iter().filter(|p| p.is_input() || p.is_inout()).collect()
+                }
+
+                // ...other stateful POUs only require IN_OUT arguments (for now?) and fall-back to default
+                // values for INPUT variables if not present
+                _ => parameters.into_iter().filter(|param| param.is_inout()).collect(),
+            };
+
             if !declared_in_out_params.is_empty() {
-                // check if all inouts were passed to the pou call
+                // Check if all (INPUT and) IN_OUT arguments were passed by cross-checking with the parameters
                 declared_in_out_params.into_iter().for_each(|p| {
                     if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
                         validator.push_diagnostic(
-                            Diagnostic::new(format!("Missing inout parameter: {}", p.get_name()))
+                            Diagnostic::new(format!("Argument `{}` is missing", p.get_name()))
                                 .with_error_code("E030")
-                                .with_location(operator.get_location()),
+                                .with_location(fn_ident.get_location()),
                         );
                     }
                 });
@@ -1362,7 +1372,7 @@ fn validate_call<T: AnnotationMap>(
         }
     } else {
         // POU could not be found, we can still partially validate the passed parameters
-        if let Some(s) = operator_arguments.as_ref() {
+        if let Some(s) = fn_args.as_ref() {
             visit_statement(validator, s, context);
         }
     }
