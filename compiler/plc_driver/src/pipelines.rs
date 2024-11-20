@@ -262,6 +262,69 @@ pub struct AnnotatedProject<T: SourceContainer + Sync> {
     pub unresolvables: Vec<UnresolvableConstant>,
 }
 
+
+trait Once{}
+
+/// A Build particitpant for different steps in the pipeline
+/// Implementors can decide parse the Ast and project information
+/// to do actions like validation or logging
+pub trait PipelineParticipant<T: SourceContainer> {
+    /// Implement this to access the project before it gets indexed
+    /// This happens directly after parsing
+    fn pre_index(&self, _project : &Project<T>) {}
+    /// Implement this to access the project after it got indexed
+    /// This happens directly after the index returns
+    fn post_index(&self, _indexed_project: &IndexedProject<T>) {}
+    /// Implement this to access the project before it gets annotated
+    /// This happens after indexing
+    fn pre_annotate(&self, _indexed_project: &IndexedProject<T>) {}
+    /// Implement this to access the project after it got annotated
+    /// This happens directly after annotations
+    fn post_annotate(&self, _annotated_project: &AnnotatedProject<T>) {}
+    /// Implement this to access the project before it gets generated
+    /// This happens after annotation
+    fn pre_codegen(&self, _annotated_project: &AnnotatedProject<T>) {}
+    /// Implement this to access the project after it got generated
+    /// This happens after codegen
+    fn post_codegen(&self, _generated_project: &GeneratedProject) {}
+    /// Implement this to access the project before it gets linked
+    /// This happens after codegen
+    fn pre_link(&self, _generated_project: &GeneratedProject) {}
+    /// Implement this to access the genarated / linked object
+    /// This happens after linking
+    fn post_link(&self, _linked_object: &Object) {}
+
+}
+
+/// A Mutating Build particitpant for different steps in the pipeline
+/// Implementors can decide to modify the AST, project and generated code,
+/// for example for de-sugaring/lowering/pre-processing the AST
+pub trait PipelineParticipantMut<T: SourceContainer> {
+    /// Implement this to access the project before it gets indexed
+    /// This happens directly after parsing
+    fn pre_index(&self, _project : &mut Project<T>) -> bool { false }
+    /// Implement this to access the project after it got indexed
+    /// This happens directly after the index returns
+    fn post_index(&self, _indexed_project: &mut IndexedProject<T>) -> bool { false }
+    /// Implement this to access the project before it gets annotated
+    /// This happens after indexing
+    fn pre_annotate(&self, _indexed_project: &mut IndexedProject<T>) -> bool { false }
+    /// Implement this to access the project after it got annotated
+    /// This happens directly after annotations
+    fn post_annotate(&self, _annotated_project: &mut AnnotatedProject<T>) -> bool { false }
+    /// Implement this to access the project before it gets generated
+    /// This happens after annotation
+    fn pre_codegen(&self, _annotated_project: &mut AnnotatedProject<T>)  {}
+    /// Implement this to access the project after it got generated
+    /// This happens after codegen
+    fn post_codegen(&self, _generated_project: &mut GeneratedProject) {}
+    /// Implement this to access the project before it gets linked
+    /// This happens after codegen
+    fn pre_link(&self, _generated_project: &mut GeneratedProject) {}
+
+}
+
+
 impl<T: SourceContainer + Sync> AnnotatedProject<T> {
     pub fn get_project(&self) -> &Project<T> {
         &self.project
