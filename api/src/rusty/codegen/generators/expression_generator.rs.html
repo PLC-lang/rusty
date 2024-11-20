@@ -2907,6 +2907,13 @@
 <a href="#2907" id="2907">2907</a>
 <a href="#2908" id="2908">2908</a>
 <a href="#2909" id="2909">2909</a>
+<a href="#2910" id="2910">2910</a>
+<a href="#2911" id="2911">2911</a>
+<a href="#2912" id="2912">2912</a>
+<a href="#2913" id="2913">2913</a>
+<a href="#2914" id="2914">2914</a>
+<a href="#2915" id="2915">2915</a>
+<a href="#2916" id="2916">2916</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
@@ -3771,7 +3778,14 @@
             <span class="comment">// no function
             </span><span class="kw">let </span>(class_ptr, call_ptr) = <span class="kw">match </span>pou {
                 PouIndexEntry::Method { .. } =&gt; {
-                    <span class="kw">let </span>class_ptr = <span class="self">self</span>.generate_lvalue(operator)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>class_ptr = <span class="self">self</span>.generate_lvalue(operator).or_else(|<span class="kw">_</span>| {
+                        <span class="comment">// this might be a local method
+                        </span>function_context
+                            .function
+                            .get_first_param()
+                            .map(|class_ptr| class_ptr.into_pointer_value())
+                            .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))
+                    })<span class="question-mark">?</span>;
                     <span class="kw">let </span>call_ptr =
                         <span class="self">self</span>.allocate_function_struct_instance(implementation.get_call_name(), operator)<span class="question-mark">?</span>;
                     (<span class="prelude-val">Some</span>(class_ptr), call_ptr)
