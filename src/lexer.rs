@@ -101,7 +101,6 @@ impl<'a> ParseSession<'a> {
     }
 
     pub fn advance(&mut self) {
-        log::trace!("{}", self.slice());
         self.last_range = self.range();
         self.last_token = std::mem::replace(&mut self.token, self.lexer.next().unwrap_or(Token::End));
         self.parse_progress += 1;
