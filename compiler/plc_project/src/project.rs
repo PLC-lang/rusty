@@ -195,27 +195,6 @@ impl Project<PathBuf> {
         proj
     }
 
-    pub fn with_library_paths(self, paths: Vec<PathBuf>) -> Self {
-        let mut proj = self;
-        proj.library_paths.extend(resolve_file_paths(proj.get_location(), paths).unwrap());
-        proj
-    }
-
-    pub fn with_format(self, format: FormatOption) -> Self {
-        let mut proj = self;
-        proj.format = format;
-        proj
-    }
-
-    pub fn with_output_name(self, output: Option<String>) -> Self {
-        let mut proj = self;
-        proj.output = output.or(proj.output);
-        proj
-    }
-
-    pub fn get_library_paths(&self) -> &[PathBuf] {
-        &self.library_paths
-    }
 }
 
 impl<S: SourceContainer> Project<S> {
@@ -254,6 +233,28 @@ impl<S: SourceContainer> Project<S> {
             });
         }
         proj
+    }
+
+    pub fn with_library_paths(self, paths: Vec<PathBuf>) -> Self {
+        let mut proj = self;
+        proj.library_paths.extend(resolve_file_paths(proj.get_location(), paths).unwrap());
+        proj
+    }
+
+    pub fn with_format(self, format: FormatOption) -> Self {
+        let mut proj = self;
+        proj.format = format;
+        proj
+    }
+
+    pub fn with_output_name(self, output: Option<String>) -> Self {
+        let mut proj = self;
+        proj.output = output.or(proj.output);
+        proj
+    }
+
+    pub fn get_library_paths(&self) -> &[PathBuf] {
+        &self.library_paths
     }
 
     pub fn get_location(&self) -> Option<&Path> {

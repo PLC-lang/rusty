@@ -1,13 +1,17 @@
 use std::{
     collections::HashMap,
     env,
+    ffi::OsStr,
     fs::{self, File},
     io::Write,
     path::{Path, PathBuf},
     sync::Mutex,
 };
 
-use crate::{CompileOptions, LinkOptions, LinkerScript};
+use crate::{
+    cli::{self, CompileParameters, ConfigOption, SubCommands},
+    get_project, CompileOptions, LinkOptions, LinkerScript,
+};
 use ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
@@ -25,7 +29,7 @@ use plc::{
         TypeAnnotator,
     },
     validation::Validator,
-    ConfigFormat, OnlineChange, Target,
+    ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,
@@ -42,7 +46,301 @@ use source_code::{source_location::SourceLocation, SourceContainer};
 use serde_json;
 use tempfile::NamedTempFile;
 use toml;
+pub mod participant;
 
+pub struct BuildPipeline<T: SourceContainer> {
+    pub context: GlobalContext,
+    pub project: Project<T>,
+    pub diagnostician: Diagnostician,
+    pub compile_parameters: Option<CompileParameters>,
+}
+
+pub trait Pipeline {
+    fn run(&mut self) -> Result<(), Diagnostic>;
+    fn parse(&mut self) -> Result<ParsedProject, Diagnostic>;
+    fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic>;
+    fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic>;
+    fn codegen(&mut self, project: &AnnotatedProject) -> Result<Vec<GeneratedProject>, Diagnostic>;
+    fn link(&mut self, project: Vec<GeneratedProject>) -> Result<Vec<Object>, Diagnostic>;
+}
+
+impl BuildPipeline<PathBuf> {
+    pub fn new<T>(args: &[T]) -> anyhow::Result<Self>
+    where
+        T: AsRef<str> + AsRef<OsStr> + std::fmt::Debug,
+    {
+        let compile_parameters = CompileParameters::parse(args)?;
+        //Create the project that will be compiled
+        let project = get_project(&compile_parameters)?;
+        let location = project.get_location().map(|it| it.to_path_buf());
+        if let Some(location) = &location {
+            log::debug!("PROJECT_ROOT={}", location.to_string_lossy());
+            env::set_var("PROJECT_ROOT", location);
+        }
+        let build_location = compile_parameters.get_build_location();
+        if let Some(location) = &build_location {
+            log::debug!("BUILD_LOCATION={}", location.to_string_lossy());
+            env::set_var("BUILD_LOCATION", location);
+        }
+        let lib_location = compile_parameters.get_lib_location();
+        if let Some(location) = &lib_location {
+            log::debug!("LIB_LOCATION={}", location.to_string_lossy());
+            env::set_var("LIB_LOCATION", location);
+        }
+        //Create diagnostics registry
+        //Create a diagnostican with the specified registry
+        //Use diagnostican
+        let diagnostician = match compile_parameters.error_format {
+            ErrorFormat::Rich => Diagnostician::default(),
+            ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
+            ErrorFormat::None => Diagnostician::null_diagnostician(),
+        };
+        let diagnostician = if let Some(configuration) = compile_parameters.get_error_configuration()? {
+            diagnostician.with_configuration(configuration)
+        } else {
+            diagnostician
+        };
+
+        // TODO: This can be improved quite a bit, e.g. `GlobalContext::new(project);`, to do that see the
+        //       commented `project` method in the GlobalContext implementation block
+        let context = GlobalContext::new()
+            .with_source(project.get_sources(), compile_parameters.encoding)?
+            .with_source(project.get_includes(), compile_parameters.encoding)?
+            .with_source(
+                project
+                    .get_libraries()
+                    .iter()
+                    .flat_map(LibraryInformation::get_includes)
+                    .collect::<Vec<_>>()
+                    .as_slice(),
+                None,
+            )?;
+
+        Ok(BuildPipeline {
+            context,
+            project,
+            diagnostician,
+            compile_parameters: Some(compile_parameters),
+        })
+    }
+
+}
+
+impl<T: SourceContainer> BuildPipeline<T> {
+    fn get_compile_options(&self) -> Option<CompileOptions> {
+        self.compile_parameters.as_ref().map(|params| {
+            let location = &self.project.get_location().map(|it| it.to_path_buf());
+            let output_format = params.output_format().unwrap_or_else(|| self.project.get_output_format());
+            CompileOptions {
+                root: location.to_owned(),
+                build_location: params.get_build_location(),
+                output: self.project.get_output_name(),
+                output_format,
+                optimization: params.optimization,
+                error_format: params.error_format,
+                debug_level: params.debug_level(),
+                single_module: params.single_module,
+                online_change: if params.online_change {
+                    OnlineChange::Enabled {
+                        file_name: params.got_layout_file.clone(),
+                        format: params.got_layout_format(),
+                    }
+                } else {
+                    OnlineChange::Disabled
+                }
+            }
+        })
+    }
+
+    fn get_link_options(&self) -> Option<LinkOptions> {
+        self.compile_parameters.as_ref().map(|params| {
+            let output_format = params.output_format().unwrap_or_else(|| self.project.get_output_format());
+            let libraries = self.project
+                .get_libraries()
+                .iter()
+                .map(LibraryInformation::get_link_name)
+                .map(str::to_string)
+                .collect();
+            let mut library_paths: Vec<PathBuf> = self.project
+                .get_libraries()
+                .iter()
+                .filter_map(LibraryInformation::get_path)
+                .map(Path::to_path_buf)
+                .collect();
+
+            library_paths.extend_from_slice(self.project.get_library_paths());
+            //Get the specified linker script or load the default linker script in a temp file
+            let linker_script = if params.no_linker_script {
+                LinkerScript::None
+            } else {
+                params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default()
+            };
+
+
+            LinkOptions {
+                libraries,
+                library_paths,
+                format: output_format,
+                linker: params.linker.as_deref().into(),
+                lib_location: params.get_lib_location(),
+                build_location: params.get_build_location(),
+                linker_script,
+            }
+        })
+
+    }
+
+    fn print_config_options(&self, option: ConfigOption) -> Result<(), Diagnostic> {
+        match option {
+            cli::ConfigOption::Schema => {
+                println!("{}", self.project.get_validation_schema().as_ref())
+            }
+            cli::ConfigOption::Diagnostics => {
+                println!("{}", self.diagnostician.get_diagnostic_configuration())
+            }
+        };
+
+        Ok(())
+    }
+
+    fn initialize_thread_pool(&self) {
+        //Set the global thread count
+        let thread_pool = rayon::ThreadPoolBuilder::new();
+        let global_pool = if let Some(CompileParameters { threads: Some(Threads::Fix(threads)), .. }) = self.compile_parameters {
+            log::info!("Using {threads} parallel threads");
+            thread_pool.num_threads(threads)
+        } else {
+            thread_pool
+        }
+        .build_global();
+
+        if let Err(err) = global_pool {
+            // Ignore the error here as the global threadpool might have been initialized
+            log::info!("{err}")
+        }
+    }
+}
+
+impl<T: SourceContainer + Clone> Pipeline for BuildPipeline<T> {
+    fn run(&mut self) -> anyhow::Result<(), Diagnostic> {
+        if let Some((options, _format)) = self.compile_parameters.as_ref().and_then(CompileParameters::get_config_options) {
+            return self.print_config_options(options);
+        }
+        if let Some(CompileParameters{build_info: true, .. }) = self.compile_parameters{
+            println!("{}", option_env!("RUSTY_BUILD_INFO").unwrap_or("version information unavailable"));
+            return Ok(());
+        }
+
+        if let Some(CompileParameters{commands: Some(SubCommands::Explain { error }), .. }) = &self.compile_parameters {
+            //Explain the given error
+            println!("{}", self.diagnostician.explain(error));
+            return Ok(());
+        }
+
+        self.initialize_thread_pool();
+
+        let parsed_project = self.parse()?;
+        // 1. Parse, 2. Index and 3. Resolve / Annotate
+        let indexed_project = self.index(parsed_project)?;
+        let annotated_project = self.annotate(indexed_project)?;
+        // // 4. AST-lowering, re-index and re-resolve
+        let annotated_project =
+            annotated_project.lower(&self.project.get_init_symbol_name(), self.context.provider());
+        //TODO : this is post lowering, we might want to control this
+        if let Some(CompileParameters{output_ast: _, .. }) = self.compile_parameters{
+            println!("{:#?}", annotated_project.units);
+            return Ok(());
+        }
+
+        // 5. Validate
+        //TODO: this goes into a participant
+        annotated_project.validate(&self.context, &mut self.diagnostician)?;
+
+        //TODO: probably not needed, should be a participant anyway
+        if let Some((location, format)) =
+            self.compile_parameters.as_ref().and_then(|it| it.hardware_config.as_ref()).zip(self.compile_parameters.as_ref().and_then(CompileParameters::config_format))
+        {
+            annotated_project.generate_hardware_information(format, location)?;
+        }
+
+        // 5 : Codegen
+        if !self.compile_parameters.as_ref().map(CompileParameters::is_check).unwrap_or_default() {
+            let generated_projects = self.codegen(&annotated_project)?;
+            self.link(generated_projects)?;
+        }
+
+        Ok(())
+    }
+
+    fn parse(&mut self) -> Result<ParsedProject, Diagnostic> {
+        ParsedProject::parse(&self.context, &self.project, &mut self.diagnostician)
+    }
+
+    fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
+        Ok(project.index(self.context.provider()))
+    }
+
+    fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic> {
+        Ok(project.annotate(self.context.provider()))
+    }
+
+    fn codegen(&mut self, project: &AnnotatedProject) -> Result<Vec<GeneratedProject>, Diagnostic> {
+        let Some(compile_options) = self.get_compile_options() else {
+            log::debug!("No compile options provided");
+            return Ok(vec![])
+        };
+        if compile_options.single_module
+            || matches!(compile_options.output_format, FormatOption::Object)
+        {
+            log::info!("Using single module mode");
+            project.codegen_single_module(&compile_options, &self.compile_parameters.expect("Compile parameters must exist at this stage").target)
+_        } else {
+            project.codegen(&compile_options, &self.compile_parameters.expect("Compile parameters must exist at this stage").target)
+        }.map_err(|err| {
+            let diagnostic = Diagnostic::codegen_error(err.get_message(), err.get_location());
+            self.diagnostician.handle(&[diagnostic]);
+            Diagnostic::new("Compilation aborted due to previous errors").with_error_code("E071").into()
+        })
+    }
+
+    fn link(&mut self, projects: Vec<GeneratedProject>) -> Result<Vec<Object>, Diagnostic> {
+        let Some(link_options) = self.get_link_options() else {
+            log::debug!("No link options provided");
+            return Ok(vec![])
+        };
+        let output_name = self.project.get_output_name();
+        let objects = projects
+            .into_par_iter()
+            .map(|res| {
+                res.link(
+                    self.project.get_objects(),
+                    link_options.build_location.as_deref(),
+                    link_options.lib_location.as_deref(),
+                    &output_name,
+                    link_options.clone(),
+                )
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        //TODO: this should be a participant
+        if let Some(lib_location) = &link_options.lib_location {
+            for library in self
+                .project
+                .get_libraries()
+                .iter()
+                .filter(|it| it.should_copy())
+                .map(|it| it.get_compiled_lib())
+            {
+                for obj in library.get_objects() {
+                    let path = obj.get_path();
+                    if let Some(name) = path.file_name() {
+                        std::fs::copy(path, lib_location.join(name))?;
+                    }
+                }
+            }
+        }
+        Ok(objects)
+    }
+}
 pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
     if !Path::new(location).is_file() {
         // Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
@@ -79,17 +377,16 @@ fn write_got_layout(
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
 ///been generated
-pub struct ParsedProject<T: SourceContainer + Sync> {
-    project: Project<T>,
+pub struct ParsedProject {
     units: Vec<CompilationUnit>,
 }
 
-impl<T: SourceContainer + Sync> ParsedProject<T> {
+impl ParsedProject {
     /// Parses a giving project, transforming it to a `ParsedProject`
     /// Reports parsing diagnostics such as Syntax error on the fly
-    pub fn parse(
+    pub fn parse<T: SourceContainer + Sync>(
         ctxt: &GlobalContext,
-        project: Project<T>,
+        project: &Project<T>,
         diagnostician: &mut Diagnostician,
     ) -> Result<Self, Diagnostic> {
         //TODO in parallel
@@ -138,11 +435,11 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
 
         let units = units.into_iter().collect::<Result<Vec<_>, Diagnostic>>()?;
 
-        Ok(ParsedProject { project, units })
+        Ok(ParsedProject { units })
     }
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
-    pub fn index(self, id_provider: IdProvider) -> IndexedProject<T> {
+    pub fn index(self, id_provider: IdProvider) -> IndexedProject {
         let indexed_units = self
             .units
             .into_par_iter()
@@ -172,24 +469,20 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
         let builtins = plc::builtins::parse_built_ins(id_provider.clone());
         global_index.import(plc::index::visitor::visit(&builtins));
 
-        IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
-    }
-
-    pub fn get_project(&self) -> &Project<T> {
-        &self.project
+        IndexedProject { project: ParsedProject { units }, index: global_index }
     }
 }
 
 ///A project that has also been indexed
 /// Units inside an index project are ready be resolved and annotated
-pub struct IndexedProject<T: SourceContainer + Sync> {
-    project: ParsedProject<T>,
+pub struct IndexedProject {
+    project: ParsedProject,
     index: Index,
 }
 
-impl<T: SourceContainer + Sync> IndexedProject<T> {
+impl IndexedProject {
     /// Creates annotations on the project in order to facilitate codegen and validation
-    pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
+    pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject {
         let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
         //Create and call the annotator
         let mut annotated_units = Vec::new();
@@ -214,21 +507,11 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
-        AnnotatedProject {
-            project: self.project.project,
-            units: annotated_units,
-            index: full_index,
-            annotations,
-            unresolvables,
-        }
+        AnnotatedProject { units: annotated_units, index: full_index, annotations, unresolvables }
     }
 
-    fn get_parsed_project(&self) -> &ParsedProject<T> {
+    fn get_parsed_project(&self) -> &ParsedProject {
         &self.project
-    }
-
-    pub fn get_project(&self) -> &Project<T> {
-        self.get_parsed_project().get_project()
     }
 }
 
@@ -254,85 +537,15 @@ impl AnnotatedUnit {
 }
 
 /// A project that has been annotated with information about different types and used units
-pub struct AnnotatedProject<T: SourceContainer + Sync> {
-    pub project: Project<T>,
+pub struct AnnotatedProject {
     pub units: Vec<AnnotatedUnit>,
     pub index: Index,
     pub annotations: AstAnnotations,
     pub unresolvables: Vec<UnresolvableConstant>,
 }
 
-
-trait Once{}
-
-/// A Build particitpant for different steps in the pipeline
-/// Implementors can decide parse the Ast and project information
-/// to do actions like validation or logging
-pub trait PipelineParticipant<T: SourceContainer> {
-    /// Implement this to access the project before it gets indexed
-    /// This happens directly after parsing
-    fn pre_index(&self, _project : &Project<T>) {}
-    /// Implement this to access the project after it got indexed
-    /// This happens directly after the index returns
-    fn post_index(&self, _indexed_project: &IndexedProject<T>) {}
-    /// Implement this to access the project before it gets annotated
-    /// This happens after indexing
-    fn pre_annotate(&self, _indexed_project: &IndexedProject<T>) {}
-    /// Implement this to access the project after it got annotated
-    /// This happens directly after annotations
-    fn post_annotate(&self, _annotated_project: &AnnotatedProject<T>) {}
-    /// Implement this to access the project before it gets generated
-    /// This happens after annotation
-    fn pre_codegen(&self, _annotated_project: &AnnotatedProject<T>) {}
-    /// Implement this to access the project after it got generated
-    /// This happens after codegen
-    fn post_codegen(&self, _generated_project: &GeneratedProject) {}
-    /// Implement this to access the project before it gets linked
-    /// This happens after codegen
-    fn pre_link(&self, _generated_project: &GeneratedProject) {}
-    /// Implement this to access the genarated / linked object
-    /// This happens after linking
-    fn post_link(&self, _linked_object: &Object) {}
-
-}
-
-/// A Mutating Build particitpant for different steps in the pipeline
-/// Implementors can decide to modify the AST, project and generated code,
-/// for example for de-sugaring/lowering/pre-processing the AST
-pub trait PipelineParticipantMut<T: SourceContainer> {
-    /// Implement this to access the project before it gets indexed
-    /// This happens directly after parsing
-    fn pre_index(&self, _project : &mut Project<T>) -> bool { false }
-    /// Implement this to access the project after it got indexed
-    /// This happens directly after the index returns
-    fn post_index(&self, _indexed_project: &mut IndexedProject<T>) -> bool { false }
-    /// Implement this to access the project before it gets annotated
-    /// This happens after indexing
-    fn pre_annotate(&self, _indexed_project: &mut IndexedProject<T>) -> bool { false }
-    /// Implement this to access the project after it got annotated
-    /// This happens directly after annotations
-    fn post_annotate(&self, _annotated_project: &mut AnnotatedProject<T>) -> bool { false }
-    /// Implement this to access the project before it gets generated
-    /// This happens after annotation
-    fn pre_codegen(&self, _annotated_project: &mut AnnotatedProject<T>)  {}
-    /// Implement this to access the project after it got generated
-    /// This happens after codegen
-    fn post_codegen(&self, _generated_project: &mut GeneratedProject) {}
-    /// Implement this to access the project before it gets linked
-    /// This happens after codegen
-    fn pre_link(&self, _generated_project: &mut GeneratedProject) {}
-
-}
-
-
-impl<T: SourceContainer + Sync> AnnotatedProject<T> {
-    pub fn get_project(&self) -> &Project<T> {
-        &self.project
-    }
-
-    pub fn lower(self, id_provider: IdProvider) -> AnnotatedProject<T> {
-        let init_symbol_name = &self.get_project().get_init_symbol_name();
-        let project = self.project;
+impl AnnotatedProject {
+    pub fn lower(self, symbol_name: &str, id_provider: IdProvider) -> AnnotatedProject {
         let units = self.units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect::<Vec<_>>();
         let lowered = AstLowerer::lower(
             units,
@@ -340,10 +553,10 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             self.annotations,
             self.unresolvables,
             id_provider.clone(),
-            init_symbol_name,
+            symbol_name,
         );
         // XXX: this step can be looped until there were no further lowering-changes, however at this time lowering once should suffice
-        ParsedProject { project, units: lowered }.index(id_provider.clone()).annotate(id_provider)
+        ParsedProject { units: lowered }.index(id_provider.clone()).annotate(id_provider)
     }
 
     /// Validates the project, reports any new diagnostics on the fly
