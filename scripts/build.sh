@@ -480,62 +480,62 @@ fi
 if [[ $build -ne 0 ]]; then
 	run_build
 	# Test a program
-	echo "-----------------------------------"
-	echo "Running on example program:"
-	# ./target/debug/plc --ir ./examples/simple_program.st
-	# ./target/debug/plc --ir hello_world.st
-
-	# export ASAN_OPTIONS=detect_odr_violation=0
-	./target/debug/plc --ir ./examples/hello_world.st
 	# echo "-----------------------------------"
-	# cat ./hello_world.st.ll
-	echo "-----------------------------------"
+	# echo "Running on example program:"
+	# # ./target/debug/plc --ir ./examples/simple_program.st
+	# # ./target/debug/plc --ir hello_world.st
 
-	# Cleanup prof
-	PROFRAW=./default.profraw
-	PROFEXPORT=./default.profexport
-	rm -f $PROFRAW $PROFEXPORT
-	rm -f hello_world.st.out
+	# # export ASAN_OPTIONS=detect_odr_violation=0
+	# #./target/debug/plc --ir ./examples/hello_world.st
+	# # echo "-----------------------------------"
+	# # cat ./hello_world.st.ll
+	# echo "-----------------------------------"
 
-	# # Compile
-	echo "Compiling hello_world.st.ll to hello_world.st.out"
-	clang++-14 -fprofile-instr-generate -fcoverage-mapping -fsanitize=address -Wl,-u,__llvm_profile_runtime -O0 hello_world.st.ll wrapper.cpp -o hello_world.st.out
-	echo "Done!"
-	echo "-----------------------------------"
+	# # Cleanup prof
+	# PROFRAW=./default.profraw
+	# PROFEXPORT=./default.profexport
+	# rm -f $PROFRAW $PROFEXPORT
+	# rm -f hello_world.st.out
 
-	# # Run
-	echo "Running program"
-	./hello_world.st.out
-	echo "Done!"
-	echo "-----------------------------------"
+	# # # Compile
+	# echo "Compiling hello_world.st.ll to hello_world.st.out"
+	# clang++-14 -fprofile-instr-generate -fcoverage-mapping -fsanitize=address -Wl,-u,__llvm_profile_runtime -O0 hello_world.st.ll wrapper.cpp -o hello_world.st.out
+	# echo "Done!"
+	# echo "-----------------------------------"
 
-	# Show profdata
-	echo "Showing profdata"
-	llvm-profdata-14 show -all-functions $PROFRAW
-	echo "-----------------------------------"
+	# # # Run
+	# echo "Running program"
+	# ./hello_world.st.out
+	# echo "Done!"
+	# echo "-----------------------------------"
 
-	# Generate profdata
-	echo "Generating profdata"
-	llvm-profdata-14 merge $PROFRAW -o $PROFEXPORT
-	echo "-----------------------------------"
+	# # Show profdata
+	# echo "Showing profdata"
+	# llvm-profdata-14 show -all-functions $PROFRAW
+	# echo "-----------------------------------"
 
-	# Generate report
-	echo "Generating profdata"
-	llvm-cov-14 report -instr-profile=$PROFEXPORT hello_world.st.out
-	echo "-----------------------------------"
+	# # Generate profdata
+	# echo "Generating profdata"
+	# llvm-profdata-14 merge $PROFRAW -o $PROFEXPORT
+	# echo "-----------------------------------"
 
-	# Show coverage
-	echo "Coverage"
-	llvm-cov-14 show ./hello_world.st.out -instr-profile=$PROFEXPORT
-	llvm-cov-14 show ./hello_world.st.out -instr-profile=$PROFEXPORT -show-regions -show-branches=count --show-expansions
-	echo "-----------------------------------"
+	# # Generate report
+	# echo "Generating profdata"
+	# llvm-cov-14 report -instr-profile=$PROFEXPORT hello_world.st.out
+	# echo "-----------------------------------"
 
-	echo "Export"
-	# llvm-cov-14 export -instr-profile=$PROFEXPORT hello_world.st.out
-	echo "-----------------------------------"
+	# # Show coverage
+	# echo "Coverage"
+	# llvm-cov-14 show ./hello_world.st.out -instr-profile=$PROFEXPORT
+	# llvm-cov-14 show ./hello_world.st.out -instr-profile=$PROFEXPORT -show-regions -show-branches=count --show-expansions
+	# echo "-----------------------------------"
+
+	# echo "Export"
+	# # llvm-cov-14 export -instr-profile=$PROFEXPORT hello_world.st.out
+	# echo "-----------------------------------"
 
 	#Build the standard functions
-	# run_std_build
+	run_std_build
 fi
 
 if [[ $package -ne 0 ]]; then
