@@ -349,7 +349,8 @@ impl TypeAnnotator<'_> {
                                     )
                                     .get_name(),
                                     DataTypeInformation::Integer { .. }
-                                        if !&data_type.information.is_bool() =>
+                                        if !data_type.information.is_bool()
+                                            && !data_type.information.is_character() =>
                                     {
                                         get_bigger_type(
                                             data_type,
@@ -701,12 +702,10 @@ impl AnnotationMapImpl {
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name
     pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
-        log::trace!("Annotation: {annotation:?} @ {s:?}");
         self.type_map.insert(s.get_id(), annotation);
     }
 
     pub fn annotate_type_hint(&mut self, s: &AstNode, annotation: StatementAnnotation) {
-        log::trace!("Annotation (type-hint): {annotation:?} @ {s:?}");
         self.type_hint_map.insert(s.get_id(), annotation);
     }
 
