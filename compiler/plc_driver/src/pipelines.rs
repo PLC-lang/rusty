@@ -21,6 +21,7 @@ use log::debug;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{FxIndexSet, Index},
+    linker::LinkerType,
     lowering::AstLowerer,
     output::FormatOption,
     parser::parse_file,
@@ -53,6 +54,8 @@ pub struct BuildPipeline<T: SourceContainer> {
     pub project: Project<T>,
     pub diagnostician: Diagnostician,
     pub compile_parameters: Option<CompileParameters>,
+    //TODO: delete this once linking is a participant
+    pub linker: LinkerType,
 }
 
 pub trait Pipeline {
@@ -60,7 +63,14 @@ pub trait Pipeline {
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic>;
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic>;
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic>;
-    fn codegen(&mut self, project: &AnnotatedProject) -> Result<Vec<GeneratedProject>, Diagnostic>;
+    fn generate_modules<'ctx>(
+        &mut self,
+        context: &'ctx CodegenContext,
+        project: &AnnotatedProject,
+    ) -> Result<Vec<GeneratedModule<'ctx>>, Diagnostic>;
+    //todo: participants
+    fn codegen(&mut self, modules: Vec<GeneratedModule>) -> Result<Vec<GeneratedProject>, Diagnostic>;
+    //todo: participants
     fn link(&mut self, project: Vec<GeneratedProject>) -> Result<Vec<Object>, Diagnostic>;
 }
 
@@ -116,18 +126,19 @@ impl BuildPipeline<PathBuf> {
                 None,
             )?;
 
+        let linker = compile_parameters.linker.as_deref().into();
         Ok(BuildPipeline {
             context,
             project,
             diagnostician,
             compile_parameters: Some(compile_parameters),
+            linker,
         })
     }
-
 }
 
 impl<T: SourceContainer> BuildPipeline<T> {
-    fn get_compile_options(&self) -> Option<CompileOptions> {
+    pub fn get_compile_options(&self) -> Option<CompileOptions> {
         self.compile_parameters.as_ref().map(|params| {
             let location = &self.project.get_location().map(|it| it.to_path_buf());
             let output_format = params.output_format().unwrap_or_else(|| self.project.get_output_format());
@@ -147,7 +158,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                     }
                 } else {
                     OnlineChange::Disabled
-                }
+                },
             }
         })
     }
@@ -155,13 +166,15 @@ impl<T: SourceContainer> BuildPipeline<T> {
     fn get_link_options(&self) -> Option<LinkOptions> {
         self.compile_parameters.as_ref().map(|params| {
             let output_format = params.output_format().unwrap_or_else(|| self.project.get_output_format());
-            let libraries = self.project
+            let libraries = self
+                .project
                 .get_libraries()
                 .iter()
                 .map(LibraryInformation::get_link_name)
                 .map(str::to_string)
                 .collect();
-            let mut library_paths: Vec<PathBuf> = self.project
+            let mut library_paths: Vec<PathBuf> = self
+                .project
                 .get_libraries()
                 .iter()
                 .filter_map(LibraryInformation::get_path)
@@ -176,18 +189,16 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default()
             };
 
-
             LinkOptions {
                 libraries,
                 library_paths,
                 format: output_format,
-                linker: params.linker.as_deref().into(),
+                linker: self.linker.clone(),
                 lib_location: params.get_lib_location(),
                 build_location: params.get_build_location(),
                 linker_script,
             }
         })
-
     }
 
     fn print_config_options(&self, option: ConfigOption) -> Result<(), Diagnostic> {
@@ -206,7 +217,9 @@ impl<T: SourceContainer> BuildPipeline<T> {
     fn initialize_thread_pool(&self) {
         //Set the global thread count
         let thread_pool = rayon::ThreadPoolBuilder::new();
-        let global_pool = if let Some(CompileParameters { threads: Some(Threads::Fix(threads)), .. }) = self.compile_parameters {
+        let global_pool = if let Some(CompileParameters { threads: Some(Threads::Fix(threads)), .. }) =
+            self.compile_parameters
+        {
             log::info!("Using {threads} parallel threads");
             thread_pool.num_threads(threads)
         } else {
@@ -221,17 +234,21 @@ impl<T: SourceContainer> BuildPipeline<T> {
     }
 }
 
-impl<T: SourceContainer + Clone> Pipeline for BuildPipeline<T> {
+impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     fn run(&mut self) -> anyhow::Result<(), Diagnostic> {
-        if let Some((options, _format)) = self.compile_parameters.as_ref().and_then(CompileParameters::get_config_options) {
+        if let Some((options, _format)) =
+            self.compile_parameters.as_ref().and_then(CompileParameters::get_config_options)
+        {
             return self.print_config_options(options);
         }
-        if let Some(CompileParameters{build_info: true, .. }) = self.compile_parameters{
+        if let Some(CompileParameters { build_info: true, .. }) = self.compile_parameters {
             println!("{}", option_env!("RUSTY_BUILD_INFO").unwrap_or("version information unavailable"));
             return Ok(());
         }
 
-        if let Some(CompileParameters{commands: Some(SubCommands::Explain { error }), .. }) = &self.compile_parameters {
+        if let Some(CompileParameters { commands: Some(SubCommands::Explain { error }), .. }) =
+            &self.compile_parameters
+        {
             //Explain the given error
             println!("{}", self.diagnostician.explain(error));
             return Ok(());
@@ -247,7 +264,7 @@ impl<T: SourceContainer + Clone> Pipeline for BuildPipeline<T> {
         let annotated_project =
             annotated_project.lower(&self.project.get_init_symbol_name(), self.context.provider());
         //TODO : this is post lowering, we might want to control this
-        if let Some(CompileParameters{output_ast: _, .. }) = self.compile_parameters{
+        if let Some(CompileParameters { output_ast: true, .. }) = self.compile_parameters {
             println!("{:#?}", annotated_project.units);
             return Ok(());
         }
@@ -257,15 +274,20 @@ impl<T: SourceContainer + Clone> Pipeline for BuildPipeline<T> {
         annotated_project.validate(&self.context, &mut self.diagnostician)?;
 
         //TODO: probably not needed, should be a participant anyway
-        if let Some((location, format)) =
-            self.compile_parameters.as_ref().and_then(|it| it.hardware_config.as_ref()).zip(self.compile_parameters.as_ref().and_then(CompileParameters::config_format))
+        if let Some((location, format)) = self
+            .compile_parameters
+            .as_ref()
+            .and_then(|it| it.hardware_config.as_ref())
+            .zip(self.compile_parameters.as_ref().and_then(CompileParameters::config_format))
         {
             annotated_project.generate_hardware_information(format, location)?;
         }
 
         // 5 : Codegen
         if !self.compile_parameters.as_ref().map(CompileParameters::is_check).unwrap_or_default() {
-            let generated_projects = self.codegen(&annotated_project)?;
+            let context = CodegenContext::create();
+            let modules = self.generate_modules(&context, &annotated_project)?;
+            let generated_projects = self.codegen(modules)?;
             self.link(generated_projects)?;
         }
 
@@ -284,29 +306,123 @@ impl<T: SourceContainer + Clone> Pipeline for BuildPipeline<T> {
         Ok(project.annotate(self.context.provider()))
     }
 
-    fn codegen(&mut self, project: &AnnotatedProject) -> Result<Vec<GeneratedProject>, Diagnostic> {
+    fn generate_modules<'ctx>(
+        &mut self,
+        context: &'ctx CodegenContext,
+        project: &AnnotatedProject,
+    ) -> Result<Vec<GeneratedModule<'ctx>>, Diagnostic> {
         let Some(compile_options) = self.get_compile_options() else {
             log::debug!("No compile options provided");
-            return Ok(vec![])
+            return Ok(vec![]);
         };
-        if compile_options.single_module
+        let module = if compile_options.single_module
             || matches!(compile_options.output_format, FormatOption::Object)
         {
             log::info!("Using single module mode");
-            project.codegen_single_module(&compile_options, &self.compile_parameters.expect("Compile parameters must exist at this stage").target)
-_        } else {
-            project.codegen(&compile_options, &self.compile_parameters.expect("Compile parameters must exist at this stage").target)
-        }.map_err(|err| {
-            let diagnostic = Diagnostic::codegen_error(err.get_message(), err.get_location());
-            self.diagnostician.handle(&[diagnostic]);
-            Diagnostic::new("Compilation aborted due to previous errors").with_error_code("E071").into()
-        })
+            Ok(project
+                .generate_single_module(context, &compile_options)?
+                .map(|it| vec![it])
+                .unwrap_or_default())
+        } else {
+            project.generate_modules(context, &compile_options)
+        };
+        module
+    }
+
+    fn codegen(&mut self, modules: Vec<GeneratedModule>) -> Result<Vec<GeneratedProject>, Diagnostic> {
+        let Some(compile_options) = self.get_compile_options() else {
+            log::debug!("No compile options provided, skipping codegen");
+            return Ok(vec![]);
+        };
+
+        let compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
+            let tempdir = tempfile::tempdir().unwrap();
+            tempdir.into_path()
+        });
+        let targets =
+            self.compile_parameters.as_ref().map_or(&[] as &[Target], |params| params.target.as_slice());
+        ensure_compile_dirs(targets, &compile_directory)?;
+        let targets = if targets.is_empty() { &[Target::System] } else { targets };
+
+        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            read_got_layout(file_name, *format)?
+        } else {
+            HashMap::default()
+        };
+        let got_layout = Mutex::new(got_layout);
+
+        let context = CodegenContext::create();
+        let res = modules
+            .par_iter()
+            .map(|module| {
+                let objects = targets
+                    .par_iter()
+                    .map(|target| {
+                        let current_dir = env::current_dir()?;
+                        let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
+                        let unit_location = module.get_unit_location();
+                        let unit_location = if unit_location.exists() {
+                            fs::canonicalize(unit_location)?
+                        } else {
+                            unit_location.into()
+                        };
+                        let output_name = if unit_location.starts_with(current_dir) {
+                            unit_location.strip_prefix(current_dir).map_err(|it| {
+                                Diagnostic::new(format!(
+                                    "Could not strip prefix for {}",
+                                    current_dir.to_string_lossy()
+                                ))
+                                .with_internal_error(it.into())
+                            })?
+                        } else if unit_location.has_root() {
+                            let root = unit_location.ancestors().last().expect("Should exist?");
+                            unit_location.strip_prefix(root).expect("The root directory should exist")
+                        } else {
+                            unit_location.as_path()
+                        };
+
+                        let output_name = match compile_options.output_format {
+                            FormatOption::IR => format!("{}.ll", output_name.to_string_lossy()),
+                            FormatOption::Bitcode => format!("{}.bc", output_name.to_string_lossy()),
+                            _ => format!("{}.o", output_name.to_string_lossy()),
+                        };
+
+                        let module =
+                            GeneratedModule::from_memory(&context, &buf.read().unwrap(), module.get_unit_location())?;
+                        module
+                            .persist(
+                                Some(&compile_directory),
+                                &output_name,
+                                compile_options.output_format,
+                                target,
+                                compile_options.optimization,
+                            )
+                            .map(Into::into)
+                            // Not needed here but might be a good idea for consistency
+                            .map(|it: Object| it.with_target(target))
+
+                    })
+                    .collect::<Result<Vec<_>, Diagnostic>>()?;
+                let target = objects.iter().map(|it| it.get_target().clone()).next().unwrap_or_else(|| Target::System);
+                Ok(GeneratedProject { target, objects })
+            })
+            .collect::<Result<Vec<_>, Diagnostic>>()
+            .map_err(|err| {
+                let diagnostic = Diagnostic::codegen_error(err.get_message(), err.get_location());
+                self.diagnostician.handle(&[diagnostic]);
+                Diagnostic::new("Compilation aborted due to previous errors").with_error_code("E071")
+            })?;
+        if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            write_got_layout(got_layout.into_inner().unwrap(), file_name, *format)?;
+        }
+
+        Ok(res)
     }
 
     fn link(&mut self, projects: Vec<GeneratedProject>) -> Result<Vec<Object>, Diagnostic> {
         let Some(link_options) = self.get_link_options() else {
             log::debug!("No link options provided");
-            return Ok(vec![])
+            return Ok(vec![]);
         };
         let output_name = self.project.get_output_name();
         let objects = projects
@@ -509,10 +625,6 @@ impl IndexedProject {
 
         AnnotatedProject { units: annotated_units, index: full_index, annotations, unresolvables }
     }
-
-    fn get_parsed_project(&self) -> &ParsedProject {
-        &self.project
-    }
 }
 
 #[derive(Debug)]
@@ -693,6 +805,25 @@ impl AnnotatedProject {
         }
 
         Ok(result)
+    }
+
+    pub fn generate_modules<'ctx>(
+        &self,
+        context: &'ctx CodegenContext,
+        compile_options: &CompileOptions,
+    ) -> Result<Vec<GeneratedModule<'ctx>>, Diagnostic> {
+        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            read_got_layout(file_name, *format)?
+        } else {
+            HashMap::default()
+        };
+        let got_layout = Mutex::new(got_layout);
+        self.units
+            .par_iter()
+            .map(|AnnotatedUnit { unit, dependencies, literals }| {
+                self.generate_module(&context, compile_options, unit, dependencies, literals, &got_layout)
+            })
+            .collect()
     }
 
     pub fn codegen<'ctx>(

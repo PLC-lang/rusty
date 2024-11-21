@@ -105,12 +105,10 @@ impl<T: SourceContainer> LibraryInformation<T> {
     pub fn should_copy(&self) -> bool {
         matches!(self.linkage, Linkage::Shared(Package::Local))
     }
-}
 
-impl<T: SourceContainer + Clone> LibraryInformation<T> {
-    pub fn get_compiled_lib(&self) -> CompiledLibrary<T> {
+    pub fn get_compiled_lib(&self) -> &CompiledLibrary<T> {
         match &self.library {
-            Library::Compiled(lib) => lib.clone(),
+            Library::Compiled(lib) => lib,
             _ => todo!("Convert source lib to compiled lib"),
         }
     }

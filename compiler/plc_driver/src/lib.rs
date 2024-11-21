@@ -11,22 +11,20 @@
 use anyhow::{anyhow, Result};
 use pipelines::{AnnotatedProject, BuildPipeline, Pipeline};
 use std::{
-    env,
     ffi::OsStr,
     fmt::{Debug, Display},
     path::{Path, PathBuf},
 };
 
-use cli::{CompileParameters, ParameterError, SubCommands};
+use cli::{CompileParameters, ParameterError};
 use plc::{
     codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
-    OptimizationLevel, Target, Threads,
+    OptimizationLevel,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use plc_index::GlobalContext;
-use project::project::{LibraryInformation, Project};
-use rayon::prelude::{IntoParallelIterator, ParallelIterator};
+use project::project::Project;
 use source_code::SourceContainer;
 
 pub mod cli;
@@ -161,25 +159,24 @@ Hint: You can use `plc explain <ErrorCode>` for more information"
 }
 
 /// Parses and annotates a given project. Can be used in tests or api calls
-pub fn parse_and_annotate<T: SourceContainer>(
+pub fn parse_and_annotate<T: SourceContainer + Clone>(
     name: &str,
     src: Vec<T>,
 ) -> Result<(GlobalContext, AnnotatedProject), Diagnostic> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
     let context = GlobalContext::new().with_source(project.get_sources(), None)?;
-    let mut diagnostician = Diagnostician::default();
-    let pipeline = BuildPipeline {
+    let mut pipeline = BuildPipeline {
         context,
         project,
-        diagnostician,
+        diagnostician: Diagnostician::default(),
         compile_parameters: None,
+        linker: LinkerType::Internal,
     };
-    let parsed = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?;
-
-    // Create an index, add builtins then resolve
-    let provider = ctxt.provider();
-    Ok((ctxt, parsed.index(provider.clone()).annotate(provider.clone())))
+    let project = pipeline.parse()?;
+    let project = pipeline.index(project)?;
+    let project = pipeline.annotate(project)?;
+    Ok((pipeline.context, project))
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls
@@ -200,20 +197,29 @@ fn generate_to_string_internal<T: SourceContainer>(
     src: Vec<T>,
     debug: bool,
 ) -> Result<String, Diagnostic> {
-    let mut diagnostician = Diagnostician::default();
-    let (ctxt, project) = parse_and_annotate(name, src)?;
-
+    // plc src --ir --single-module
+    let project = Project::new(name.to_string()).with_sources(src);
+    let context = GlobalContext::new().with_source(project.get_sources(), None)?;
+    let diagnostician = Diagnostician::default();
+    let mut params = cli::CompileParameters::parse(&["--ir", "--single-module"]).map_err(|e| Diagnostic::new(e.to_string()))?;
+    params.generate_debug = debug;
+    let mut pipeline = BuildPipeline {
+        context,
+        project,
+        diagnostician,
+        compile_parameters: Some(params),
+        linker: LinkerType::Internal,
+    };
+    let project = pipeline.parse()?;
+    let project = pipeline.index(project)?;
+    let project = pipeline.annotate(project)?;
     // Validate
-    project.validate(&ctxt, &mut diagnostician)?;
+    // TODO: move validation to participants, maybe refactor codegen to stop at generated modules and persist in dedicated step?
+    project.validate(&pipeline.context, &mut pipeline.diagnostician)?;
+    let context = CodegenContext::create();
+    let module = project.generate_single_module(&context, pipeline.get_compile_options().as_ref().unwrap())?;
 
     // Generate
-    let context = CodegenContext::create();
-    let mut options = CompileOptions::default();
-    if debug {
-        options.debug_level = DebugLevel::Full(plc::DEFAULT_DWARF_VERSION);
-    }
-    let module = project.generate_single_module(&context, &options)?;
-
     module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new("Cannot generate module"))
 }
 

@@ -1,11 +1,9 @@
 use std::{
-    env::{self, current_dir},
-    fs,
-    sync::{Arc, Mutex},
+    borrow::BorrowMut, env::{self, current_dir}, fs, sync::{Arc, Mutex}
 };
 
 use crate::get_test_file;
-use driver::{compile, compile_with_options, get_compilation_context};
+use driver::{compile, pipelines::{BuildPipeline, Pipeline}, CompilationContext};
 use rusty::linker::{LinkerType, MockLinker};
 
 static TARGET: Option<&str> = Some("x86_64-linux-gnu");
@@ -247,15 +245,13 @@ fn link_files_with_same_name_but_different_extension() {
 fn link_with_library_path() {
     let file1 = get_test_file("linking/lib.o");
     let dir = current_dir().unwrap();
-
-    let mut compile_context =
-        get_compilation_context(&["plc", file1.as_str(), "-ltest", "-L", &dir.to_string_lossy()]).unwrap();
+    let mut pipeline = BuildPipeline::new(&["plc", file1.as_str(), "-ltest", "-L", &dir.to_string_lossy()]).expect("Something is wrong :/");
     //Change the linker
     let vec: Vec<String> = vec![];
     let vec = Arc::new(Mutex::new(vec));
     let test_linker = MockLinker { args: vec.clone() };
-    compile_context.link_options.linker = LinkerType::Test(test_linker);
-    compile_with_options(compile_context).unwrap();
+    pipeline.linker = LinkerType::Test(test_linker);
+    pipeline.run().unwrap();
     assert!(vec.lock().unwrap().as_slice().contains(&"-L.".to_string()));
     assert!(vec.lock().unwrap().contains(&"-ltest".to_string()));
     assert!(vec.lock().unwrap().contains(&format!("-L{}", dir.to_string_lossy())));
