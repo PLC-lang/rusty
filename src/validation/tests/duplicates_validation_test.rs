@@ -689,6 +689,78 @@ fn inline_enum_variants_are_considered_when_checking_for_duplicate_variable_symb
     "###);
 }
 
+#[test]
+fn duplicate_method_names_should_return_an_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM prg
+            // This shouldn't be fine
+            METHOD foo 
+            END_METHOD
+
+            METHOD foo
+            END_METHOD
+
+            // This should
+            METHOD bar
+            END_METHOD
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb
+            // This should be fine
+            METHOD foo
+            END_METHOD
+
+            // This shouldnt
+            METHOD bar 
+            END_METHOD
+
+            METHOD bar
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E004]: prg.foo: Ambiguous callable symbol.
+      ┌─ <internal>:4:20
+      │
+    4 │             METHOD foo 
+      │                    ^^^ prg.foo: Ambiguous callable symbol.
+      ·
+    7 │             METHOD foo
+      │                    --- see also
+
+    error[E004]: prg.foo: Ambiguous callable symbol.
+      ┌─ <internal>:7:20
+      │
+    4 │             METHOD foo 
+      │                    --- see also
+      ·
+    7 │             METHOD foo
+      │                    ^^^ prg.foo: Ambiguous callable symbol.
+
+    error[E004]: fb.bar: Ambiguous callable symbol.
+       ┌─ <internal>:21:20
+       │
+    21 │             METHOD bar 
+       │                    ^^^ fb.bar: Ambiguous callable symbol.
+       ·
+    24 │             METHOD bar
+       │                    --- see also
+
+    error[E004]: fb.bar: Ambiguous callable symbol.
+       ┌─ <internal>:24:20
+       │
+    21 │             METHOD bar 
+       │                    --- see also
+       ·
+    24 │             METHOD bar
+       │                    ^^^ fb.bar: Ambiguous callable symbol.
+
+    "###);
+}
+
 // #[test]
 // fn duplicate_with_generic_ir() {
 //     // GIVEN several files with calls to a generic function
