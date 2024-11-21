@@ -862,7 +862,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // no function
             let (class_ptr, call_ptr) = match pou {
                 PouIndexEntry::Method { .. } => {
-                    let class_ptr = self.generate_lvalue(operator)?;
+                    let class_ptr = self.generate_lvalue(operator).or_else(|_| {
+                        // this might be a local method
+                        function_context
+                            .function
+                            .get_first_param()
+                            .map(|class_ptr| class_ptr.into_pointer_value())
+                            .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))
+                    })?;
                     let call_ptr =
                         self.allocate_function_struct_instance(implementation.get_call_name(), operator)?;
                     (Some(class_ptr), call_ptr)
