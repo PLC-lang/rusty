@@ -32,7 +32,7 @@ impl<'i> ImplementationIndexer<'i> {
             implementation.generic,
             start_location,
         );
-        //if we are registing an action, also register a datatype for it
+        //if we are registering an action, also register a datatype for it
         if pou_type == &PouType::Action {
             let datatype = typesystem::DataType {
                 name: implementation.name.to_string(),
