@@ -78,6 +78,22 @@ END_FUNCTION
 
 // -----------------------------------------------------------------------------------------------------------
 
+FUNCTION TO_LDATE<T: ANY> : DATE
+    VAR_INPUT
+        in : T;
+    END_VAR
+END_FUNCTION
+
+FUNCTION TO_LDATE__DATE_AND_TIME : DATE
+    VAR_INPUT
+        in : LDT;
+    END_VAR
+
+    TO_LDATE__DATE_AND_TIME := LDT_TO_DATE(in);
+END_FUNCTION
+
+// -----------------------------------------------------------------------------------------------------------
+
 FUNCTION TO_TOD<T: ANY> : TOD
     VAR_INPUT
         in : T;
