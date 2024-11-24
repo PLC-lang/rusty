@@ -952,6 +952,502 @@ fn fb_method_in_pou() {
 }
 
 #[test]
+fn fb_method_called_locally() {
+    let result = codegen(
+        "
+        FUNCTION_BLOCK foo
+        VAR
+            bar: DINT := 42;
+        END_VAR
+            METHOD addToBar: DINT
+            VAR_INPUT
+                in: INT;
+            END_VAR
+                bar := in + bar;
+                addToBar := bar;
+            END_METHOD
+            
+            addToBar(42);
+        END_FUNCTION_BLOCK
+            
+        FUNCTION main
+        VAR
+            fb: foo;
+            x: DINT;
+        END_VAR
+            x := fb.addToBar(3);
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { i32 }
+    %foo.addToBar = type { i16 }
+
+    @__foo__init = unnamed_addr constant %foo { i32 42 }
+
+    define void @foo(%foo* %0) {
+    entry:
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %foo.addToBar_instance = alloca %foo.addToBar, align 8
+      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
+      store i16 42, i16* %1, align 2
+      %call = call i32 @foo.addToBar(%foo* %0, %foo.addToBar* %foo.addToBar_instance)
+      ret void
+    }
+
+    define i32 @foo.addToBar(%foo* %0, %foo.addToBar* %1) {
+    entry:
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %in = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 0
+      %addToBar = alloca i32, align 4
+      store i32 0, i32* %addToBar, align 4
+      %load_in = load i16, i16* %in, align 2
+      %2 = sext i16 %load_in to i32
+      %load_bar = load i32, i32* %bar, align 4
+      %tmpVar = add i32 %2, %load_bar
+      store i32 %tmpVar, i32* %bar, align 4
+      %load_bar1 = load i32, i32* %bar, align 4
+      store i32 %load_bar1, i32* %addToBar, align 4
+      %foo.addToBar_ret = load i32, i32* %addToBar, align 4
+      ret i32 %foo.addToBar_ret
+    }
+
+    define void @main() {
+    entry:
+      %fb = alloca %foo, align 8
+      %x = alloca i32, align 4
+      %0 = bitcast %foo* %fb to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %x, align 4
+      call void @__init_foo(%foo* %fb)
+      %foo.addToBar_instance = alloca %foo.addToBar, align 8
+      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
+      store i16 3, i16* %1, align 2
+      %call = call i32 @foo.addToBar(%foo* %fb, %foo.addToBar* %foo.addToBar_instance)
+      store i32 %call, i32* %x, align 4
+      ret void
+    }
+
+    declare void @__init_foo(%foo*)
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { i32 }
+    %foo.addToBar = type { i16 }
+
+    @__foo__init = external global %foo
+
+    define void @__init_foo.addtobar(%foo.addToBar* %0) {
+    entry:
+      %self = alloca %foo.addToBar*, align 8
+      store %foo.addToBar* %0, %foo.addToBar** %self, align 8
+      ret void
+    }
+
+    declare i32 @foo.addToBar(%foo*, %foo.addToBar*)
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
+    "###)
+}
+
+#[test]
+fn fb_local_method_var_shadows_parent_var() {
+    let result = codegen(
+        "
+        FUNCTION_BLOCK foo
+        VAR
+              bar: DINT := 42;
+        END_VAR
+        METHOD addToBar: DINT
+            VAR_INPUT
+                in: INT;
+            END_VAR
+            VAR
+                bar: DINT := 69; // shadowing foo.bar
+            END_VAR
+                bar := in + bar;
+                addToBar := bar;
+        END_METHOD
+            addToBar(42);
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+        VAR
+            fb: foo;
+            x: DINT;
+        END_VAR
+            x := fb.addToBar(3);
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { i32 }
+    %foo.addToBar = type { i16, i32 }
+
+    @__foo__init = unnamed_addr constant %foo { i32 42 }
+
+    define void @foo(%foo* %0) {
+    entry:
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %foo.addToBar_instance = alloca %foo.addToBar, align 8
+      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
+      store i16 42, i16* %1, align 2
+      %call = call i32 @foo.addToBar(%foo* %0, %foo.addToBar* %foo.addToBar_instance)
+      ret void
+    }
+
+    define i32 @foo.addToBar(%foo* %0, %foo.addToBar* %1) {
+    entry:
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %in = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 0
+      %bar1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 1
+      %addToBar = alloca i32, align 4
+      store i32 69, i32* %bar1, align 4
+      store i32 0, i32* %addToBar, align 4
+      %load_in = load i16, i16* %in, align 2
+      %2 = sext i16 %load_in to i32
+      %load_bar = load i32, i32* %bar1, align 4
+      %tmpVar = add i32 %2, %load_bar
+      store i32 %tmpVar, i32* %bar1, align 4
+      %load_bar2 = load i32, i32* %bar1, align 4
+      store i32 %load_bar2, i32* %addToBar, align 4
+      %foo.addToBar_ret = load i32, i32* %addToBar, align 4
+      ret i32 %foo.addToBar_ret
+    }
+
+    define void @main() {
+    entry:
+      %fb = alloca %foo, align 8
+      %x = alloca i32, align 4
+      %0 = bitcast %foo* %fb to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %x, align 4
+      call void @__init_foo(%foo* %fb)
+      %foo.addToBar_instance = alloca %foo.addToBar, align 8
+      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
+      store i16 3, i16* %1, align 2
+      %call = call i32 @foo.addToBar(%foo* %fb, %foo.addToBar* %foo.addToBar_instance)
+      store i32 %call, i32* %x, align 4
+      ret void
+    }
+
+    declare void @__init_foo(%foo*)
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { i32 }
+    %foo.addToBar = type { i16, i32 }
+
+    @__foo__init = external global %foo
+
+    define void @__init_foo.addtobar(%foo.addToBar* %0) {
+    entry:
+      %self = alloca %foo.addToBar*, align 8
+      store %foo.addToBar* %0, %foo.addToBar** %self, align 8
+      ret void
+    }
+
+    declare i32 @foo.addToBar(%foo*, %foo.addToBar*)
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
+    "###)
+}
+
+#[test]
+fn prog_method_called_locally() {
+    let result = codegen(
+        "
+        PROGRAM foo
+        VAR
+            bar: DINT := 42;
+        END_VAR
+            METHOD addToBar: DINT
+            VAR_INPUT
+                in: INT;
+            END_VAR
+                bar := in + bar;
+                addToBar := bar;
+            END_METHOD
+            
+            addToBar(42);
+        END_PROGRAM
+            
+        FUNCTION main
+        VAR
+            x: DINT;
+        END_VAR
+            x := foo.addToBar(3);
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { i32 }
+    %foo.addToBar = type { i16 }
+
+    @foo_instance = global %foo { i32 42 }
+
+    define void @foo(%foo* %0) {
+    entry:
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %foo.addToBar_instance = alloca %foo.addToBar, align 8
+      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
+      store i16 42, i16* %1, align 2
+      %call = call i32 @foo.addToBar(%foo* %0, %foo.addToBar* %foo.addToBar_instance)
+      ret void
+    }
+
+    define i32 @foo.addToBar(%foo* %0, %foo.addToBar* %1) {
+    entry:
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %in = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 0
+      %addToBar = alloca i32, align 4
+      store i32 0, i32* %addToBar, align 4
+      %load_in = load i16, i16* %in, align 2
+      %2 = sext i16 %load_in to i32
+      %load_bar = load i32, i32* %bar, align 4
+      %tmpVar = add i32 %2, %load_bar
+      store i32 %tmpVar, i32* %bar, align 4
+      %load_bar1 = load i32, i32* %bar, align 4
+      store i32 %load_bar1, i32* %addToBar, align 4
+      %foo.addToBar_ret = load i32, i32* %addToBar, align 4
+      ret i32 %foo.addToBar_ret
+    }
+
+    define void @main() {
+    entry:
+      %x = alloca i32, align 4
+      store i32 0, i32* %x, align 4
+      %foo.addToBar_instance = alloca %foo.addToBar, align 8
+      %0 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
+      store i16 3, i16* %0, align 2
+      %call = call i32 @foo.addToBar(%foo* @foo_instance, %foo.addToBar* %foo.addToBar_instance)
+      store i32 %call, i32* %x, align 4
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { i32 }
+    %foo.addToBar = type { i16 }
+
+    @foo_instance = external global %foo
+
+    define void @__init_foo.addtobar(%foo.addToBar* %0) {
+    entry:
+      %self = alloca %foo.addToBar*, align 8
+      store %foo.addToBar* %0, %foo.addToBar** %self, align 8
+      ret void
+    }
+
+    declare i32 @foo.addToBar(%foo*, %foo.addToBar*)
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %foo = type { i32 }
+
+    @foo_instance = external global %foo
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      call void @__init_foo(%foo* @foo_instance)
+      ret void
+    }
+
+    declare void @__init_foo(%foo*)
+
+    declare void @foo(%foo*)
+    "###)
+}
+
+#[test]
+fn prog_local_method_var_shadows_parent_var() {
+    let result = codegen(
+        "
+        PROGRAM foo
+        VAR
+              bar: DINT := 42;
+        END_VAR
+        METHOD addToBar: DINT
+            VAR_INPUT
+                in: INT;
+            END_VAR
+            VAR
+                bar: DINT := 69; // shadowing foo.bar
+            END_VAR
+                bar := in + bar;
+                addToBar := bar;
+        END_METHOD
+            addToBar(42);
+        END_PROGRAM
+
+        FUNCTION main
+        VAR
+            x: DINT;
+        END_VAR
+            x := foo.addToBar(3);
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { i32 }
+    %foo.addToBar = type { i16, i32 }
+
+    @foo_instance = global %foo { i32 42 }
+
+    define void @foo(%foo* %0) {
+    entry:
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %foo.addToBar_instance = alloca %foo.addToBar, align 8
+      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
+      store i16 42, i16* %1, align 2
+      %call = call i32 @foo.addToBar(%foo* %0, %foo.addToBar* %foo.addToBar_instance)
+      ret void
+    }
+
+    define i32 @foo.addToBar(%foo* %0, %foo.addToBar* %1) {
+    entry:
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %in = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 0
+      %bar1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 1
+      %addToBar = alloca i32, align 4
+      store i32 69, i32* %bar1, align 4
+      store i32 0, i32* %addToBar, align 4
+      %load_in = load i16, i16* %in, align 2
+      %2 = sext i16 %load_in to i32
+      %load_bar = load i32, i32* %bar1, align 4
+      %tmpVar = add i32 %2, %load_bar
+      store i32 %tmpVar, i32* %bar1, align 4
+      %load_bar2 = load i32, i32* %bar1, align 4
+      store i32 %load_bar2, i32* %addToBar, align 4
+      %foo.addToBar_ret = load i32, i32* %addToBar, align 4
+      ret i32 %foo.addToBar_ret
+    }
+
+    define void @main() {
+    entry:
+      %x = alloca i32, align 4
+      store i32 0, i32* %x, align 4
+      %foo.addToBar_instance = alloca %foo.addToBar, align 8
+      %0 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
+      store i16 3, i16* %0, align 2
+      %call = call i32 @foo.addToBar(%foo* @foo_instance, %foo.addToBar* %foo.addToBar_instance)
+      store i32 %call, i32* %x, align 4
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { i32 }
+    %foo.addToBar = type { i16, i32 }
+
+    @foo_instance = external global %foo
+
+    define void @__init_foo.addtobar(%foo.addToBar* %0) {
+    entry:
+      %self = alloca %foo.addToBar*, align 8
+      store %foo.addToBar* %0, %foo.addToBar** %self, align 8
+      ret void
+    }
+
+    declare i32 @foo.addToBar(%foo*, %foo.addToBar*)
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %foo = type { i32 }
+
+    @foo_instance = external global %foo
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      call void @__init_foo(%foo* @foo_instance)
+      ret void
+    }
+
+    declare void @__init_foo(%foo*)
+
+    declare void @foo(%foo*)
+    "###)
+}
+
+#[test]
 fn method_codegen_return() {
     let result = codegen(
         "
