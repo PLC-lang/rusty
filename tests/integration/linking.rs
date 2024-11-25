@@ -137,7 +137,7 @@ fn link_missing_file() {
 
     match res {
         Err(err) => {
-            assert!(err.to_string().contains("Compilation aborted due to previous errors"));
+            assert!(err.to_string().contains("An error occurred during linking: lld: error: undefined symbol: func"));
         }
         _ => panic!("Expected link failure"),
     }

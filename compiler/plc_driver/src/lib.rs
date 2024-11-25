@@ -201,7 +201,7 @@ fn generate_to_string_internal<T: SourceContainer>(
     let project = Project::new(name.to_string()).with_sources(src);
     let context = GlobalContext::new().with_source(project.get_sources(), None)?;
     let diagnostician = Diagnostician::default();
-    let mut params = cli::CompileParameters::parse(&["--ir", "--single-module"]).map_err(|e| Diagnostic::new(e.to_string()))?;
+    let mut params = cli::CompileParameters::parse(&["--ir", "--single-module", "-O", "none"]).map_err(|e| Diagnostic::new(e.to_string()))?;
     params.generate_debug = debug;
     let mut pipeline = BuildPipeline {
         context,

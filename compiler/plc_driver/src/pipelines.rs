@@ -5,7 +5,7 @@ use std::{
     fs::{self, File},
     io::Write,
     path::{Path, PathBuf},
-    sync::Mutex,
+    sync::{Arc, Mutex},
 };
 
 use crate::{
@@ -17,6 +17,7 @@ use ast::{
     provider::IdProvider,
 };
 
+use itertools::Itertools;
 use log::debug;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
@@ -351,60 +352,50 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         };
         let got_layout = Mutex::new(got_layout);
 
-        let context = CodegenContext::create();
-        let res = modules
+        let objects = modules
             .par_iter()
-            .map(|module| {
-                let objects = targets
-                    .par_iter()
-                    .map(|target| {
-                        let current_dir = env::current_dir()?;
-                        let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
-                        let unit_location = module.get_unit_location();
-                        let unit_location = if unit_location.exists() {
-                            fs::canonicalize(unit_location)?
-                        } else {
-                            unit_location.into()
-                        };
-                        let output_name = if unit_location.starts_with(current_dir) {
-                            unit_location.strip_prefix(current_dir).map_err(|it| {
-                                Diagnostic::new(format!(
-                                    "Could not strip prefix for {}",
-                                    current_dir.to_string_lossy()
-                                ))
-                                .with_internal_error(it.into())
-                            })?
-                        } else if unit_location.has_root() {
-                            let root = unit_location.ancestors().last().expect("Should exist?");
-                            unit_location.strip_prefix(root).expect("The root directory should exist")
-                        } else {
-                            unit_location.as_path()
-                        };
+            .flat_map(|module| {
+                targets.par_iter().map(|target| {
+                    let current_dir = env::current_dir()?;
+                    let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
+                    let unit_location = module.get_unit_location();
+                    let unit_location = if unit_location.exists() {
+                        fs::canonicalize(unit_location)?
+                    } else {
+                        unit_location.into()
+                    };
+                    let output_name = if unit_location.starts_with(current_dir) {
+                        unit_location.strip_prefix(current_dir).map_err(|it| {
+                            Diagnostic::new(format!(
+                                "Could not strip prefix for {}",
+                                current_dir.to_string_lossy()
+                            ))
+                            .with_internal_error(it.into())
+                        })?
+                    } else if unit_location.has_root() {
+                        let root = unit_location.ancestors().last().expect("Should exist?");
+                        unit_location.strip_prefix(root).expect("The root directory should exist")
+                    } else {
+                        unit_location.as_path()
+                    };
 
-                        let output_name = match compile_options.output_format {
-                            FormatOption::IR => format!("{}.ll", output_name.to_string_lossy()),
-                            FormatOption::Bitcode => format!("{}.bc", output_name.to_string_lossy()),
-                            _ => format!("{}.o", output_name.to_string_lossy()),
-                        };
+                    let output_name = match compile_options.output_format {
+                        FormatOption::IR => format!("{}.ll", output_name.to_string_lossy()),
+                        FormatOption::Bitcode => format!("{}.bc", output_name.to_string_lossy()),
+                        _ => format!("{}.o", output_name.to_string_lossy()),
+                    };
 
-                        let module =
-                            GeneratedModule::from_memory(&context, &buf.read().unwrap(), module.get_unit_location())?;
-                        module
-                            .persist(
-                                Some(&compile_directory),
-                                &output_name,
-                                compile_options.output_format,
-                                target,
-                                compile_options.optimization,
-                            )
-                            .map(Into::into)
-                            // Not needed here but might be a good idea for consistency
-                            .map(|it: Object| it.with_target(target))
-
-                    })
-                    .collect::<Result<Vec<_>, Diagnostic>>()?;
-                let target = objects.iter().map(|it| it.get_target().clone()).next().unwrap_or_else(|| Target::System);
-                Ok(GeneratedProject { target, objects })
+                    module
+                        .persist(
+                            Some(&compile_directory),
+                            &output_name,
+                            compile_options.output_format,
+                            target,
+                            compile_options.optimization,
+                        )
+                        .map(Into::into)
+                        .map(|it: Object| it.with_target(target))
+                })
             })
             .collect::<Result<Vec<_>, Diagnostic>>()
             .map_err(|err| {
@@ -412,11 +403,27 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                 self.diagnostician.handle(&[diagnostic]);
                 Diagnostic::new("Compilation aborted due to previous errors").with_error_code("E071")
             })?;
+
+        let res = objects
+            .into_iter()
+            .group_by(|it| it.get_target().to_owned())
+            .into_iter()
+            .map(|(target, objects)| GeneratedProject { target, objects: objects.into_iter().collect() })
+            .collect::<Vec<_>>();
+
         if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
             write_got_layout(got_layout.into_inner().unwrap(), file_name, *format)?;
         }
 
-        Ok(res)
+        //If no projects are available, create an empty project per target
+        Ok(if !res.is_empty() {
+            res
+        } else {
+            targets
+                .iter()
+                .map(|t| GeneratedProject { target: t.clone(), objects: vec![] })
+                .collect::<Vec<_>>()
+        })
     }
 
     fn link(&mut self, projects: Vec<GeneratedProject>) -> Result<Vec<Object>, Diagnostic> {
@@ -819,9 +826,9 @@ impl AnnotatedProject {
         };
         let got_layout = Mutex::new(got_layout);
         self.units
-            .par_iter()
+            .iter()
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
-                self.generate_module(&context, compile_options, unit, dependencies, literals, &got_layout)
+                self.generate_module(context, compile_options, unit, dependencies, literals, &got_layout)
             })
             .collect()
     }
