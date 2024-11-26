@@ -1,11 +1,5 @@
 use std::{
-    collections::HashMap,
-    env,
-    ffi::OsStr,
-    fs::{self, File},
-    io::Write,
-    path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    borrow::Borrow, collections::HashMap, env, ffi::OsStr, fs::{self, File}, io::Write, path::{Path, PathBuf}, sync::Mutex
 };
 
 use crate::{
@@ -19,6 +13,7 @@ use ast::{
 
 use itertools::Itertools;
 use log::debug;
+use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{FxIndexSet, Index},
@@ -57,6 +52,8 @@ pub struct BuildPipeline<T: SourceContainer> {
     pub compile_parameters: Option<CompileParameters>,
     //TODO: delete this once linking is a participant
     pub linker: LinkerType,
+    pub mutable_participants: Vec<Box<dyn PipelineParticipantMut>>,
+    pub participants: Vec<Box<dyn PipelineParticipant>>
 }
 
 pub trait Pipeline {
@@ -134,7 +131,17 @@ impl BuildPipeline<PathBuf> {
             diagnostician,
             compile_parameters: Some(compile_parameters),
             linker,
+            mutable_participants: vec![],
+            participants: vec![]
         })
+    }
+
+    pub fn register_mut_participant(&mut self, participant: Box<dyn PipelineParticipantMut>) {
+        self.mutable_participants.push(participant)
+    }
+
+    pub fn register_participant(&mut self, participant: Box<dyn PipelineParticipant>) {
+        self.participants.push(participant)
     }
 }
 
@@ -296,15 +303,25 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic> {
-        ParsedProject::parse(&self.context, &self.project, &mut self.diagnostician)
+        let project = ParsedProject::parse(&self.context, &self.project, &mut self.diagnostician)?;
+        Ok(project)
     }
 
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
-        Ok(project.index(self.context.provider()))
+        for p in &self.participants {
+            p.pre_index(&project);
+        }
+        //TODO: pre indexing
+        let indexed_project = project.index(self.context.provider());
+        //TODO Post indexing
+        Ok(indexed_project)
     }
 
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic> {
-        Ok(project.annotate(self.context.provider()))
+        //TODO: Pre-Annotated
+        let annotated_project = project.annotate(self.context.provider());
+        //TODO: Post-Annotated
+        Ok(annotated_project)
     }
 
     fn generate_modules<'ctx>(

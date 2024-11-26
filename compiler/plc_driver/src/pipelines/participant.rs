@@ -42,6 +42,8 @@ pub trait PipelineParticipant {
 /// A Mutating Build particitpant for different steps in the pipeline
 /// Implementors can decide to modify the AST, project and generated code,
 /// for example for de-sugaring/lowering/pre-processing the AST
+/// If a previous step is being modified, such as the AST or index,
+/// the caller is responsible for calling the previous steps
 pub trait PipelineParticipantMut {
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
