@@ -1597,6 +1597,7 @@ fn sized_string_as_function_return() {
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        interfaces: vec![],
         is_const: false,
     };
 
@@ -1640,6 +1641,7 @@ fn array_type_as_function_return() {
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        interfaces: vec![],
         is_const: false,
     };
 

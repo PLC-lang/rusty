@@ -7,7 +7,7 @@ use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
-    LinkageType, PouType, TypeNature,
+    Interface, LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -321,7 +321,7 @@ impl VariableIndexEntry {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgumentType {
     ByVal(VariableType),
     ByRef(VariableType),
@@ -335,23 +335,16 @@ impl ArgumentType {
         }
     }
 
-    pub fn get_inner_ref(&self) -> &VariableType {
-        match self {
-            ArgumentType::ByRef(val) => val,
-            ArgumentType::ByVal(val) => val,
-        }
-    }
-
     pub fn is_by_ref(&self) -> bool {
         matches!(self, ArgumentType::ByRef(..))
     }
 
     pub fn is_private(&self) -> bool {
-        matches!(self.get_inner_ref(), VariableType::Temp | VariableType::Local)
+        matches!(self.get_inner(), VariableType::Temp | VariableType::Local)
     }
 
     pub fn is_input(&self) -> bool {
-        matches!(self.get_inner_ref(), VariableType::Input)
+        matches!(self.get_inner(), VariableType::Input)
     }
 }
 
@@ -469,7 +462,53 @@ impl ImplementationType {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
+pub struct InterfaceIndexEntry {
+    /// The interface name
+    pub name: String,
+
+    /// The location of the interface as a whole
+    pub location: SourceLocation,
+
+    /// The location of the interface name
+    pub location_name: SourceLocation,
+
+    /// A list of qualified names of the methods in this interface; the actual methods are located in
+    /// [`Index::pous`]
+    pub methods: Vec<String>,
+}
+
+impl InterfaceIndexEntry {
+    /// Returns a list of methods defined in this interface
+    pub fn get_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
+        self.methods
+            .iter()
+            .map(|name| index.find_pou(name).expect("must exist because of present InterfaceIndexEntry"))
+            .collect()
+    }
+}
+
+impl std::fmt::Debug for InterfaceIndexEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("InterfaceIndexEntry")
+            .field("name", &self.name)
+            .field("methods", &self.methods)
+            .finish()
+    }
+}
+
+impl From<&Interface> for InterfaceIndexEntry {
+    fn from(interface: &Interface) -> Self {
+        InterfaceIndexEntry {
+            name: interface.name.clone(),
+            location: interface.location.clone(),
+            location_name: interface.location_name.clone(),
+            methods: interface.methods.iter().map(|method| method.name.clone()).collect(),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub enum PouIndexEntry {
     Program {
         name: String,
@@ -880,24 +919,27 @@ impl TypeIndex {
 /// The index contains information about all referencable elements.
 #[derive(Debug, Default)]
 pub struct Index {
-    /// all global variables
+    /// All global variables
     global_variables: SymbolMap<String, VariableIndexEntry>,
 
-    /// all struct initializers
+    /// All struct initializers
     global_initializers: SymbolMap<String, VariableIndexEntry>,
 
-    /// all enum-members with their names
+    /// All enum-members with their names
     enum_global_variables: SymbolMap<String, VariableIndexEntry>,
 
-    // all pous,
+    /// All pous,
     pous: SymbolMap<String, PouIndexEntry>,
 
-    /// all implementations
-    // we keep an IndexMap for implementations since duplication issues regarding implementations
-    // is handled by the `pous` SymbolMap
+    /// All interface definitions
+    interfaces: SymbolMap<String, InterfaceIndexEntry>,
+
+    /// All implementations
+    /// We keep an IndexMap for implementations since duplication issues regarding implementations
+    /// is handled by the `pous` SymbolMap
     implementations: FxIndexMap<String, ImplementationIndexEntry>,
 
-    /// an index with all type-information
+    /// An index with all type-information
     type_index: TypeIndex,
 
     constant_expressions: ConstExpressions,
@@ -1006,6 +1048,9 @@ impl Index {
 
         //implementations
         self.implementations.extend(other.implementations);
+
+        // interfaces
+        self.interfaces.extend(other.interfaces);
 
         //pous
         for (name, elements) in other.pous.drain(..) {
@@ -1177,6 +1222,11 @@ impl Index {
         } else {
             None
         }
+    }
+
+    /// Returns an interface with the given name or None if it does not exist
+    pub fn find_interface(&self, name: &str) -> Option<&InterfaceIndexEntry> {
+        self.interfaces.get(name)
     }
 
     /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
@@ -1404,6 +1454,12 @@ impl Index {
         variable.and_then(|it| self.get_type(it.get_type_name()).ok())
     }
 
+    pub fn get_return_type_or_void(&self, pou_name: &str) -> &DataType {
+        self.find_return_variable(pou_name)
+            .and_then(|variable| self.find_type(variable.get_type_name()))
+            .unwrap_or(self.get_void_type())
+    }
+
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
         self.find_effective_type_by_name(type_name)
             .map(|it| it.get_type_information())
@@ -1438,6 +1494,11 @@ impl Index {
     /// Returns the map of pous, should not be used to search for pous -->  see find_pou
     pub fn get_pous(&self) -> &SymbolMap<String, PouIndexEntry> {
         &self.pous
+    }
+
+    /// Returns a reference of the [`Index::interfaces`] field
+    pub fn get_interfaces(&self) -> &SymbolMap<String, InterfaceIndexEntry> {
+        &self.interfaces
     }
 
     pub fn get_global_initializers(&self) -> &SymbolMap<String, VariableIndexEntry> {
@@ -1527,6 +1588,7 @@ impl Index {
 
         let qualified_name = qualified_name(container_name, variable_name);
 
+        // TODO: This doesn't register anything? It just creates a new VariableIndexEntry thus rename fn name?
         VariableIndexEntry::new(
             variable_name,
             &qualified_name,

@@ -240,6 +240,7 @@ fn varargs_parameters_can_be_parsed() {
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        interfaces: vec![],
         is_const: false,
     };
     assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
@@ -311,6 +312,7 @@ fn sized_varargs_parameters_can_be_parsed() {
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        interfaces: vec![],
         is_const: false,
     };
     assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());

@@ -22,7 +22,7 @@ use plc_source::source_location::*;
 
 pub type AstId = usize;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct GenericBinding {
     pub name: String,
     pub nature: TypeNature,
@@ -31,18 +31,37 @@ pub struct GenericBinding {
 #[derive(PartialEq)]
 pub struct Pou {
     pub name: String,
+    pub pou_type: PouType, // TODO(volsa): Rename to kind
     pub variable_blocks: Vec<VariableBlock>,
-    pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
-    /// the SourceLocation of the whole POU
+    /// The SourceLocation of the whole POU
     pub location: SourceLocation,
-    /// the SourceLocation of the POU's name
+    /// The SourceLocation of the POUs name
     pub name_location: SourceLocation,
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
     pub super_class: Option<String>,
+    /// A list of interfaces this POU implements
+    pub interfaces: Vec<InterfaceDeclaration>,
     pub is_const: bool,
+}
+
+// XXX: Nice to have, at some point in the future: generics and default implementations
+#[derive(Debug, PartialEq)]
+pub struct Interface {
+    pub name: String,
+    pub methods: Vec<Pou>,
+    pub location: SourceLocation,
+    pub location_name: SourceLocation,
+}
+
+/// Helper struct for [`Pou`] to get the location of the interface without relying on [`Interface`] which
+/// only exists if the interface is actually defined. Mostly needed for user-friendly validation messages.
+#[derive(Debug, PartialEq)]
+pub struct InterfaceDeclaration {
+    pub name: String,
+    pub location: SourceLocation,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -203,7 +222,8 @@ impl Debug for Pou {
         str.field("name", &self.name)
             .field("variable_blocks", &self.variable_blocks)
             .field("pou_type", &self.pou_type)
-            .field("return_type", &self.return_type);
+            .field("return_type", &self.return_type)
+            .field("interfaces", &self.interfaces);
         if !self.generics.is_empty() {
             str.field("generics", &self.generics);
         }
@@ -257,7 +277,10 @@ pub enum PouType {
     FunctionBlock,
     Action,
     Class,
-    Method { owner_class: String },
+    Method {
+        /// The parent of this method, i.e. either a function block / class or an interface
+        parent: String,
+    },
     Init,
     ProjectInit,
 }
@@ -280,8 +303,8 @@ impl Display for PouType {
 impl PouType {
     /// returns Some(owner_class) if this is a `Method` or otherwhise `None`
     pub fn get_optional_owner_class(&self) -> Option<String> {
-        if let PouType::Method { owner_class } = self {
-            Some(owner_class.clone())
+        if let PouType::Method { parent } = self {
+            Some(parent.clone())
         } else {
             None
         }
@@ -315,8 +338,11 @@ impl ConfigVariable {
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub var_config: Vec<ConfigVariable>,
+    /// List of POU definitions (signature and some additional metadata)
     pub units: Vec<Pou>,
+    /// List of statements within a POU body
     pub implementations: Vec<Implementation>,
+    pub interfaces: Vec<Interface>,
     pub user_types: Vec<UserTypeDeclaration>,
     pub file_name: String,
 }
@@ -328,6 +354,7 @@ impl CompilationUnit {
             var_config: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
+            interfaces: Vec::new(),
             user_types: Vec::new(),
             file_name: file_name.to_string(),
         }
@@ -1207,7 +1234,7 @@ mod tests {
         assert_eq!(PouType::FunctionBlock.to_string(), "FunctionBlock");
         assert_eq!(PouType::Action.to_string(), "Action");
         assert_eq!(PouType::Class.to_string(), "Class");
-        assert_eq!(PouType::Method { owner_class: "...".to_string() }.to_string(), "Method");
+        assert_eq!(PouType::Method { parent: "...".to_string() }.to_string(), "Method");
     }
 
     #[test]

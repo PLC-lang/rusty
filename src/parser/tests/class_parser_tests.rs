@@ -73,7 +73,7 @@ fn method_with_defaults_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "MyClass".into() });
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyClass.testMethod");
@@ -95,7 +95,7 @@ fn method_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "MyClass".into() });
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyClass.testMethod2");
@@ -134,7 +134,7 @@ fn method_with_return_type_can_be_parsed() {
     assert_eq!(class.pou_type, PouType::Class);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "MyClass".into() });
     let method = &unit.implementations[0];
 
     // classes have implementation because they are treated as other POUs
@@ -280,7 +280,7 @@ fn fb_method_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyFb".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "MyFb".into() });
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyFb.testMethod2");
@@ -328,7 +328,7 @@ fn fb_method_with_return_type_can_be_parsed() {
     assert_eq!(class.pou_type, PouType::FunctionBlock);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyShinyFb".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "MyShinyFb".into() });
     let method = &unit.implementations[0];
 
     // classes have implementation because they are treated as other POUs
@@ -357,7 +357,7 @@ fn program_methods_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "prog".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "prog".into() });
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "prog.testMethod2");
@@ -405,7 +405,7 @@ fn program_method_with_return_type_can_be_parsed() {
     assert_eq!(class.pou_type, PouType::Program);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "prog".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "prog".into() });
     let method = &unit.implementations[0];
 
     // classes have implementation because they are treated as other POUs
@@ -475,11 +475,11 @@ fn method_variable_blocks_can_be_parsed() {
     let (unit, _) = parse(src);
     let fb_mthd = &unit.units[1];
     assert_eq!(fb_mthd.name, "fb.mthd".to_string());
-    assert_eq!(fb_mthd.pou_type, PouType::Method { owner_class: "fb".into() });
+    assert_eq!(fb_mthd.pou_type, PouType::Method { parent: "fb".into() });
 
     let prg_mthd = &unit.units[3];
     assert_eq!(prg_mthd.name, "prg.mthd".to_string());
-    assert_eq!(prg_mthd.pou_type, PouType::Method { owner_class: "prg".into() });
+    assert_eq!(prg_mthd.pou_type, PouType::Method { parent: "prg".into() });
 
     // we expect one of each of these `VariableBlockType` to be parsed
     let expected_var_blocks = vec![

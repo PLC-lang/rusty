@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
-use crate::index::{ArgumentType, Index, MemberInfo};
+use crate::index::{ArgumentType, Index, InterfaceIndexEntry, MemberInfo};
 use crate::typesystem::{self, *};
 use plc_ast::ast::{
     self, ArgumentProperty, Assignment, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
@@ -12,6 +12,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
+// TODO: Can this not take ownership of the CompilationUnit? Clones would then be unnecessary.
 pub fn visit(unit: &CompilationUnit) -> Index {
     let mut index = Index::default();
     //Create user defined datatypes
@@ -35,6 +36,14 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 
     for config_variable in &unit.var_config {
         index.config_variables.push(config_variable.clone());
+    }
+
+    for interface in &unit.interfaces {
+        for method in &interface.methods {
+            visit_pou(&mut index, method);
+        }
+
+        index.interfaces.insert(interface.name.clone(), InterfaceIndexEntry::from(interface));
     }
 
     index
@@ -196,11 +205,11 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             ));
             index.register_pou_type(datatype);
         }
-        PouType::Method { owner_class } => {
+        PouType::Method { parent } => {
             index.register_pou(PouIndexEntry::create_method_entry(
                 &pou.name,
                 return_type_name,
-                owner_class,
+                parent,
                 pou.linkage,
                 pou.name_location.clone(),
             ));
