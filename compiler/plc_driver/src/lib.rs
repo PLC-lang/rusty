@@ -172,6 +172,8 @@ pub fn parse_and_annotate<T: SourceContainer + Clone>(
         diagnostician: Diagnostician::default(),
         compile_parameters: None,
         linker: LinkerType::Internal,
+        mutable_participants: Vec::default(),
+        participants: Vec::default(),
     };
     let project = pipeline.parse()?;
     let project = pipeline.index(project)?;
@@ -209,6 +211,8 @@ fn generate_to_string_internal<T: SourceContainer>(
         diagnostician,
         compile_parameters: Some(params),
         linker: LinkerType::Internal,
+        mutable_participants: Vec::default(),
+        participants: Vec::default(),
     };
     let project = pipeline.parse()?;
     let project = pipeline.index(project)?;

@@ -1,5 +1,5 @@
 use std::{
-    borrow::Borrow, collections::HashMap, env, ffi::OsStr, fs::{self, File}, io::Write, path::{Path, PathBuf}, sync::Mutex
+    collections::HashMap, env, ffi::OsStr, fs::{self, File}, io::Write, path::{Path, PathBuf}, sync::Mutex
 };
 
 use crate::{
@@ -16,7 +16,7 @@ use log::debug;
 use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::{FxIndexSet, Index},
+    index::{self, FxIndexSet, Index},
     linker::LinkerType,
     lowering::AstLowerer,
     output::FormatOption,
@@ -308,19 +308,38 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
-        for p in &self.participants {
+        self.participants.iter().for_each(|p| {
             p.pre_index(&project);
-        }
-        //TODO: pre indexing
-        let indexed_project = project.index(self.context.provider());
-        //TODO Post indexing
+        });
+        let mut project = project;
+        self.mutable_participants.iter().for_each(|p| {
+            p.pre_index(&mut project);
+        });
+        let mut indexed_project = project.index(self.context.provider());
+        self.participants.iter().for_each(|p| {
+            p.post_index(&indexed_project);
+        });
+        self.mutable_participants.iter().for_each(|p| {
+            p.post_index(&mut indexed_project);
+        });
         Ok(indexed_project)
     }
 
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic> {
-        //TODO: Pre-Annotated
-        let annotated_project = project.annotate(self.context.provider());
-        //TODO: Post-Annotated
+        self.participants.iter().for_each(|p| {
+            p.pre_annotate(&project);
+        });
+        let mut project = project;
+        self.mutable_participants.iter().for_each(|p| {
+            p.pre_annotate(&mut project);
+        });
+        let mut annotated_project = project.annotate(self.context.provider());
+        self.participants.iter().for_each(|p| {
+            p.post_annotate(&annotated_project);
+        });
+        self.mutable_participants.iter().for_each(|p| {
+            p.post_annotate(&mut annotated_project);
+        });
         Ok(annotated_project)
     }
 
@@ -339,11 +358,29 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             log::info!("Using single module mode");
             Ok(project
                 .generate_single_module(context, &compile_options)?
+                .map(|module| {
+                    self.participants.iter().for_each(|participant| participant.codegen(&module).unwrap());
+                    module
+                })
                 .map(|it| vec![it])
                 .unwrap_or_default())
         } else {
-            project.generate_modules(context, &compile_options)
+            let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+                read_got_layout(file_name, *format)?
+            } else {
+                HashMap::default()
+            };
+            let got_layout = Mutex::new(got_layout);
+            project.units
+                .par_iter()
+                .map(|AnnotatedUnit { unit, dependencies, literals }| {
+                    let module = project.generate_module(context, &compile_options, unit, dependencies, literals, &got_layout)?;
+                    self.participants.iter().for_each(|participant| participant.codegen(&module).unwrap());
+                    Ok(module)
+                })
+                .collect()
         };
+        self.participants.iter().for_each(|participant| participant.post_codegen());
         module
     }
 
@@ -755,6 +792,7 @@ impl AnnotatedProject {
         let Some(module) = self
             .units
             .iter()
+            // TODO: this can be parallelized
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 self.generate_module(context, compile_options, unit, dependencies, literals, &got_layout)
             })

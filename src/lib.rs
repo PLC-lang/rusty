@@ -50,7 +50,7 @@ extern crate shell_words;
 pub const DEFAULT_DWARF_VERSION: usize = 5;
 pub const DEFAULT_GOT_LAYOUT_FILE: &str = "online_change_got.json";
 
-#[derive(Serialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Target {
     System,
     Param { triple: String, sysroot: Option<String> },
