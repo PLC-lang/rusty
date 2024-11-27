@@ -2,10 +2,39 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %MyStruct = type { i8, i8, i8, i16, i16, i16, i32, i32, i32, i64, i64, i64, float, double }
 
-@x = global %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }, section "var-$RUSTY$x:r14u8i8u8u16i16u16u32i32u32u64i64u64f32f64"
-@__MyStruct__init = unnamed_addr constant %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }, section "var-$RUSTY$__MyStruct__init:r14u8i8u8u16i16u16u32i32u32u64i64u64f32f64"
+@x = global %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }
+@__MyStruct__init = unnamed_addr constant %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%MyStruct = type { i8, i8, i8, i16, i16, i16, i32, i32, i32, i64, i64, i64, float, double }
+
+@__MyStruct__init = external global %MyStruct
+
+define void @__init_mystruct(%MyStruct* %0) {
+entry:
+  %self = alloca %MyStruct*, align 8
+  store %MyStruct* %0, %MyStruct** %self, align 8
+  ret void
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%MyStruct = type { i8, i8, i8, i16, i16, i16, i32, i32, i32, i64, i64, i64, float, double }
+
+@__MyStruct__init = external global %MyStruct
+@x = external global %MyStruct
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  call void @__init_mystruct(%MyStruct* @x)
+  ret void
+}
+
+declare void @__init_mystruct(%MyStruct*)

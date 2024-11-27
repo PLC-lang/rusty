@@ -8,10 +8,12 @@ check_style=0
 build=0
 doc=0
 test=0
+lit=0
 coverage=0
 release=0
 debug=0
 container=0
+container_engine=0
 assume_linux=0
 junit=0
 package=0
@@ -140,6 +142,19 @@ function run_check_style() {
     cargo fmt -- --check
 }
 
+function run_lit_test() {
+    # We need a binary as well as the stdlib and its *.so file before running lit tests
+    run_build
+    run_std_build
+    run_package_std
+
+    if [[ $release -eq 0 ]]; then
+        lit -v -DLIB=$project_location/output -DCOMPILER=$project_location/target/debug/plc tests/lit/
+    else
+        lit -v -DLIB=$project_location/output -DCOMPILER=$project_location/target/release/plc tests/lit/
+    fi
+}
+
 function run_test() {
     CARGO_OPTIONS=$(set_cargo_options)
     log "Running cargo test"
@@ -191,6 +206,8 @@ function set_offline() {
 
 function run_package_std() {
     cc=$(get_compiler)
+    OUTPUT_DIR=$project_location/output
+    make_dir "$OUTPUT_DIR"
     log "Packaging Standard functions"
     log "Removing previous output folder"
     rm -rf $OUTPUT_DIR
@@ -263,7 +280,9 @@ function run_package_std() {
 }
 
 function run_in_container() {
-    container_engine=$(get_container_engine)
+    if [ "$container_engine" == "0" ]; then
+        container_engine=$(get_container_engine)
+    fi
     params=""
     options=""
 
@@ -290,6 +309,9 @@ function run_in_container() {
     fi
     if [[ $test -ne 0 ]]; then
         params="$params --test"
+    fi
+    if [[ $lit -ne 0 ]]; then
+        params="$params --lit"
     fi
     if [[ $junit -ne 0 ]]; then
         params="$params --junit"
@@ -330,7 +352,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,test,junit,verbose,container,linux,container-name:,coverage,package,target:
+LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-engine:,container-name:,coverage,package,target:
 
 check_env
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -360,6 +382,10 @@ while true; do
         -c|--container)
             container=1
             ;;
+        --container-engine)
+            shift;
+            container_engine=$1
+            ;;
         --container-name)
             shift;
             CONTAINER_NAME=$1
@@ -381,6 +407,9 @@ while true; do
             ;;
         --test)
             test=1
+            ;;
+        --lit)
+            lit=1
             ;;
         --junit)
             junit=1
@@ -417,11 +446,6 @@ if [[ $container -ne 0 ]]; then
     exit 0
 fi
 
-if [[ $package -ne 0 ]]; then
-    OUTPUT_DIR=$project_location/output
-    make_dir "$OUTPUT_DIR"
-fi
-
 if [[ $vendor -ne 0 ]]; then
     generate_sources
     exit 0
@@ -455,6 +479,10 @@ fi
 
 if [[ $test -ne 0 ]]; then
     run_test
+fi
+
+if [[ $lit -ne 0 ]]; then
+    run_lit_test
 fi
 
 if [[ $doc -ne 0 ]]; then

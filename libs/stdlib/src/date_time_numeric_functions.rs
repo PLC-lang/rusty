@@ -6,7 +6,7 @@ use chrono::TimeZone;
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn ADD_TIME(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn ADD_TIME(in1: i64, in2: i64) -> i64 {
     chrono::Duration::nanoseconds(in1)
         .checked_add(&chrono::Duration::nanoseconds(in2))
         .unwrap()
@@ -20,7 +20,7 @@ pub extern "C" fn ADD_TIME(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn ADD_TOD_TIME(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn ADD_TOD_TIME(in1: i64, in2: i64) -> i64 {
     add_datetime_time(in1, in2)
 }
 
@@ -30,7 +30,7 @@ pub extern "C" fn ADD_TOD_TIME(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn ADD_DT_TIME(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn ADD_DT_TIME(in1: i64, in2: i64) -> i64 {
     add_datetime_time(in1, in2)
 }
 
@@ -49,7 +49,7 @@ fn add_datetime_time(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn SUB_TIME(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn SUB_TIME(in1: i64, in2: i64) -> i64 {
     chrono::Duration::nanoseconds(in1)
         .checked_sub(&chrono::Duration::nanoseconds(in2))
         .unwrap()
@@ -63,7 +63,7 @@ pub extern "C" fn SUB_TIME(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn SUB_DATE_DATE(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn SUB_DATE_DATE(in1: i64, in2: i64) -> i64 {
     sub_datetimes(in1, in2)
 }
 
@@ -73,7 +73,7 @@ pub extern "C" fn SUB_DATE_DATE(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn SUB_TOD_TIME(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn SUB_TOD_TIME(in1: i64, in2: i64) -> i64 {
     sub_datetime_duration(in1, in2)
 }
 
@@ -83,7 +83,7 @@ pub extern "C" fn SUB_TOD_TIME(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn SUB_TOD_TOD(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn SUB_TOD_TOD(in1: i64, in2: i64) -> i64 {
     sub_datetimes(in1, in2)
 }
 
@@ -101,7 +101,7 @@ fn sub_datetimes(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn SUB_DT_TIME(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn SUB_DT_TIME(in1: i64, in2: i64) -> i64 {
     sub_datetime_duration(in1, in2)
 }
 
@@ -120,7 +120,7 @@ fn sub_datetime_duration(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn SUB_DT_DT(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn SUB_DT_DT(in1: i64, in2: i64) -> i64 {
     sub_datetimes(in1, in2)
 }
 
@@ -130,7 +130,7 @@ pub extern "C" fn SUB_DT_DT(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL__TIME__SINT(in1: i64, in2: i8) -> i64 {
+pub extern "C-unwind" fn MUL__TIME__SINT(in1: i64, in2: i8) -> i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -140,7 +140,7 @@ pub extern "C" fn MUL__TIME__SINT(in1: i64, in2: i8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL__TIME__INT(in1: i64, in2: i16) -> i64 {
+pub extern "C-unwind" fn MUL__TIME__INT(in1: i64, in2: i16) -> i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -150,7 +150,7 @@ pub extern "C" fn MUL__TIME__INT(in1: i64, in2: i16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL__TIME__DINT(in1: i64, in2: i32) -> i64 {
+pub extern "C-unwind" fn MUL__TIME__DINT(in1: i64, in2: i32) -> i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -160,7 +160,7 @@ pub extern "C" fn MUL__TIME__DINT(in1: i64, in2: i32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL__TIME__LINT(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn MUL__TIME__LINT(in1: i64, in2: i64) -> i64 {
     checked_mul_time_with_signed_int(in1, in2)
 }
 
@@ -170,7 +170,7 @@ pub extern "C" fn MUL__TIME__LINT(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_TIME__SINT(in1: i64, in2: i8) -> i64 {
+pub extern "C-unwind" fn MUL_TIME__SINT(in1: i64, in2: i8) -> i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -180,7 +180,7 @@ pub extern "C" fn MUL_TIME__SINT(in1: i64, in2: i8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_TIME__INT(in1: i64, in2: i16) -> i64 {
+pub extern "C-unwind" fn MUL_TIME__INT(in1: i64, in2: i16) -> i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -190,7 +190,7 @@ pub extern "C" fn MUL_TIME__INT(in1: i64, in2: i16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_TIME__DINT(in1: i64, in2: i32) -> i64 {
+pub extern "C-unwind" fn MUL_TIME__DINT(in1: i64, in2: i32) -> i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -200,7 +200,7 @@ pub extern "C" fn MUL_TIME__DINT(in1: i64, in2: i32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_TIME__LINT(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn MUL_TIME__LINT(in1: i64, in2: i64) -> i64 {
     checked_mul_time_with_signed_int(in1, in2)
 }
 
@@ -210,7 +210,7 @@ pub extern "C" fn MUL_TIME__LINT(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_LTIME__SINT(in1: i64, in2: i8) -> i64 {
+pub extern "C-unwind" fn MUL_LTIME__SINT(in1: i64, in2: i8) -> i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -220,7 +220,7 @@ pub extern "C" fn MUL_LTIME__SINT(in1: i64, in2: i8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_LTIME__INT(in1: i64, in2: i16) -> i64 {
+pub extern "C-unwind" fn MUL_LTIME__INT(in1: i64, in2: i16) -> i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -230,7 +230,7 @@ pub extern "C" fn MUL_LTIME__INT(in1: i64, in2: i16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_LTIME__DINT(in1: i64, in2: i32) -> i64 {
+pub extern "C-unwind" fn MUL_LTIME__DINT(in1: i64, in2: i32) -> i64 {
     checked_mul_time_with_signed_int(in1, in2.into())
 }
 
@@ -240,7 +240,7 @@ pub extern "C" fn MUL_LTIME__DINT(in1: i64, in2: i32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_LTIME__LINT(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn MUL_LTIME__LINT(in1: i64, in2: i64) -> i64 {
     checked_mul_time_with_signed_int(in1, in2)
 }
 
@@ -258,7 +258,7 @@ fn checked_mul_time_with_signed_int(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL__TIME__USINT(in1: i64, in2: u8) -> i64 {
+pub extern "C-unwind" fn MUL__TIME__USINT(in1: i64, in2: u8) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -268,7 +268,7 @@ pub extern "C" fn MUL__TIME__USINT(in1: i64, in2: u8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL__TIME__UINT(in1: i64, in2: u16) -> i64 {
+pub extern "C-unwind" fn MUL__TIME__UINT(in1: i64, in2: u16) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -278,7 +278,7 @@ pub extern "C" fn MUL__TIME__UINT(in1: i64, in2: u16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL__TIME__UDINT(in1: i64, in2: u32) -> i64 {
+pub extern "C-unwind" fn MUL__TIME__UDINT(in1: i64, in2: u32) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -288,7 +288,7 @@ pub extern "C" fn MUL__TIME__UDINT(in1: i64, in2: u32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL__TIME__ULINT(in1: i64, in2: u64) -> i64 {
+pub extern "C-unwind" fn MUL__TIME__ULINT(in1: i64, in2: u64) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2)
 }
 
@@ -298,7 +298,7 @@ pub extern "C" fn MUL__TIME__ULINT(in1: i64, in2: u64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_TIME__USINT(in1: i64, in2: u8) -> i64 {
+pub extern "C-unwind" fn MUL_TIME__USINT(in1: i64, in2: u8) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -308,7 +308,7 @@ pub extern "C" fn MUL_TIME__USINT(in1: i64, in2: u8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_TIME__UINT(in1: i64, in2: u16) -> i64 {
+pub extern "C-unwind" fn MUL_TIME__UINT(in1: i64, in2: u16) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -318,7 +318,7 @@ pub extern "C" fn MUL_TIME__UINT(in1: i64, in2: u16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_TIME__UDINT(in1: i64, in2: u32) -> i64 {
+pub extern "C-unwind" fn MUL_TIME__UDINT(in1: i64, in2: u32) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -328,7 +328,7 @@ pub extern "C" fn MUL_TIME__UDINT(in1: i64, in2: u32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_TIME__ULINT(in1: i64, in2: u64) -> i64 {
+pub extern "C-unwind" fn MUL_TIME__ULINT(in1: i64, in2: u64) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2)
 }
 
@@ -338,7 +338,7 @@ pub extern "C" fn MUL_TIME__ULINT(in1: i64, in2: u64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_LTIME__USINT(in1: i64, in2: u8) -> i64 {
+pub extern "C-unwind" fn MUL_LTIME__USINT(in1: i64, in2: u8) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -348,7 +348,7 @@ pub extern "C" fn MUL_LTIME__USINT(in1: i64, in2: u8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_LTIME__UINT(in1: i64, in2: u16) -> i64 {
+pub extern "C-unwind" fn MUL_LTIME__UINT(in1: i64, in2: u16) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -358,7 +358,7 @@ pub extern "C" fn MUL_LTIME__UINT(in1: i64, in2: u16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_LTIME__UDINT(in1: i64, in2: u32) -> i64 {
+pub extern "C-unwind" fn MUL_LTIME__UDINT(in1: i64, in2: u32) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2.into())
 }
 
@@ -368,7 +368,7 @@ pub extern "C" fn MUL_LTIME__UDINT(in1: i64, in2: u32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_LTIME__ULINT(in1: i64, in2: u64) -> i64 {
+pub extern "C-unwind" fn MUL_LTIME__ULINT(in1: i64, in2: u64) -> i64 {
     checked_mul_time_with_unsigned_int(in1, in2)
 }
 
@@ -388,7 +388,7 @@ fn checked_mul_time_with_unsigned_int(in1: i64, in2: u64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV__TIME__SINT(in1: i64, in2: i8) -> i64 {
+pub extern "C-unwind" fn DIV__TIME__SINT(in1: i64, in2: i8) -> i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -398,7 +398,7 @@ pub extern "C" fn DIV__TIME__SINT(in1: i64, in2: i8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV__TIME__INT(in1: i64, in2: i16) -> i64 {
+pub extern "C-unwind" fn DIV__TIME__INT(in1: i64, in2: i16) -> i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -408,7 +408,7 @@ pub extern "C" fn DIV__TIME__INT(in1: i64, in2: i16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV__TIME__DINT(in1: i64, in2: i32) -> i64 {
+pub extern "C-unwind" fn DIV__TIME__DINT(in1: i64, in2: i32) -> i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -418,7 +418,7 @@ pub extern "C" fn DIV__TIME__DINT(in1: i64, in2: i32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV__TIME__LINT(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn DIV__TIME__LINT(in1: i64, in2: i64) -> i64 {
     checked_div_time_by_signed_int(in1, in2)
 }
 
@@ -428,7 +428,7 @@ pub extern "C" fn DIV__TIME__LINT(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_TIME__SINT(in1: i64, in2: i8) -> i64 {
+pub extern "C-unwind" fn DIV_TIME__SINT(in1: i64, in2: i8) -> i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -438,7 +438,7 @@ pub extern "C" fn DIV_TIME__SINT(in1: i64, in2: i8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_TIME__INT(in1: i64, in2: i16) -> i64 {
+pub extern "C-unwind" fn DIV_TIME__INT(in1: i64, in2: i16) -> i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -448,7 +448,7 @@ pub extern "C" fn DIV_TIME__INT(in1: i64, in2: i16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_TIME__DINT(in1: i64, in2: i32) -> i64 {
+pub extern "C-unwind" fn DIV_TIME__DINT(in1: i64, in2: i32) -> i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -458,7 +458,7 @@ pub extern "C" fn DIV_TIME__DINT(in1: i64, in2: i32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_TIME__LINT(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn DIV_TIME__LINT(in1: i64, in2: i64) -> i64 {
     checked_div_time_by_signed_int(in1, in2)
 }
 
@@ -468,7 +468,7 @@ pub extern "C" fn DIV_TIME__LINT(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_LTIME__SINT(in1: i64, in2: i8) -> i64 {
+pub extern "C-unwind" fn DIV_LTIME__SINT(in1: i64, in2: i8) -> i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -478,7 +478,7 @@ pub extern "C" fn DIV_LTIME__SINT(in1: i64, in2: i8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_LTIME__INT(in1: i64, in2: i16) -> i64 {
+pub extern "C-unwind" fn DIV_LTIME__INT(in1: i64, in2: i16) -> i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -488,7 +488,7 @@ pub extern "C" fn DIV_LTIME__INT(in1: i64, in2: i16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_LTIME__DINT(in1: i64, in2: i32) -> i64 {
+pub extern "C-unwind" fn DIV_LTIME__DINT(in1: i64, in2: i32) -> i64 {
     checked_div_time_by_signed_int(in1, in2.into())
 }
 
@@ -498,7 +498,7 @@ pub extern "C" fn DIV_LTIME__DINT(in1: i64, in2: i32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_LTIME__LINT(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn DIV_LTIME__LINT(in1: i64, in2: i64) -> i64 {
     checked_div_time_by_signed_int(in1, in2)
 }
 
@@ -516,7 +516,7 @@ fn checked_div_time_by_signed_int(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV__TIME__USINT(in1: i64, in2: u8) -> i64 {
+pub extern "C-unwind" fn DIV__TIME__USINT(in1: i64, in2: u8) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -526,7 +526,7 @@ pub extern "C" fn DIV__TIME__USINT(in1: i64, in2: u8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV__TIME__UINT(in1: i64, in2: u16) -> i64 {
+pub extern "C-unwind" fn DIV__TIME__UINT(in1: i64, in2: u16) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -536,7 +536,7 @@ pub extern "C" fn DIV__TIME__UINT(in1: i64, in2: u16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV__TIME__UDINT(in1: i64, in2: u32) -> i64 {
+pub extern "C-unwind" fn DIV__TIME__UDINT(in1: i64, in2: u32) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -546,7 +546,7 @@ pub extern "C" fn DIV__TIME__UDINT(in1: i64, in2: u32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV__TIME__ULINT(in1: i64, in2: u64) -> i64 {
+pub extern "C-unwind" fn DIV__TIME__ULINT(in1: i64, in2: u64) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2)
 }
 
@@ -556,7 +556,7 @@ pub extern "C" fn DIV__TIME__ULINT(in1: i64, in2: u64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_TIME__USINT(in1: i64, in2: u8) -> i64 {
+pub extern "C-unwind" fn DIV_TIME__USINT(in1: i64, in2: u8) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -566,7 +566,7 @@ pub extern "C" fn DIV_TIME__USINT(in1: i64, in2: u8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_TIME__UINT(in1: i64, in2: u16) -> i64 {
+pub extern "C-unwind" fn DIV_TIME__UINT(in1: i64, in2: u16) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -576,7 +576,7 @@ pub extern "C" fn DIV_TIME__UINT(in1: i64, in2: u16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_TIME__UDINT(in1: i64, in2: u32) -> i64 {
+pub extern "C-unwind" fn DIV_TIME__UDINT(in1: i64, in2: u32) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -586,7 +586,7 @@ pub extern "C" fn DIV_TIME__UDINT(in1: i64, in2: u32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_TIME__ULINT(in1: i64, in2: u64) -> i64 {
+pub extern "C-unwind" fn DIV_TIME__ULINT(in1: i64, in2: u64) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2)
 }
 
@@ -596,7 +596,7 @@ pub extern "C" fn DIV_TIME__ULINT(in1: i64, in2: u64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_LTIME__USINT(in1: i64, in2: u8) -> i64 {
+pub extern "C-unwind" fn DIV_LTIME__USINT(in1: i64, in2: u8) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -606,7 +606,7 @@ pub extern "C" fn DIV_LTIME__USINT(in1: i64, in2: u8) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_LTIME__UINT(in1: i64, in2: u16) -> i64 {
+pub extern "C-unwind" fn DIV_LTIME__UINT(in1: i64, in2: u16) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -616,7 +616,7 @@ pub extern "C" fn DIV_LTIME__UINT(in1: i64, in2: u16) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_LTIME__UDINT(in1: i64, in2: u32) -> i64 {
+pub extern "C-unwind" fn DIV_LTIME__UDINT(in1: i64, in2: u32) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2.into())
 }
 
@@ -626,7 +626,7 @@ pub extern "C" fn DIV_LTIME__UDINT(in1: i64, in2: u32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_LTIME__ULINT(in1: i64, in2: u64) -> i64 {
+pub extern "C-unwind" fn DIV_LTIME__ULINT(in1: i64, in2: u64) -> i64 {
     checked_div_time_by_unsigned_int(in1, in2)
 }
 
@@ -646,7 +646,7 @@ fn checked_div_time_by_unsigned_int(in1: i64, in2: u64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL__TIME__REAL(in1: i64, in2: f32) -> i64 {
+pub extern "C-unwind" fn MUL__TIME__REAL(in1: i64, in2: f32) -> i64 {
     checked_mul_time_with_f32(in1, in2)
 }
 
@@ -656,7 +656,7 @@ pub extern "C" fn MUL__TIME__REAL(in1: i64, in2: f32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_TIME__REAL(in1: i64, in2: f32) -> i64 {
+pub extern "C-unwind" fn MUL_TIME__REAL(in1: i64, in2: f32) -> i64 {
     checked_mul_time_with_f32(in1, in2)
 }
 
@@ -666,7 +666,7 @@ pub extern "C" fn MUL_TIME__REAL(in1: i64, in2: f32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_LTIME__REAL(in1: i64, in2: f32) -> i64 {
+pub extern "C-unwind" fn MUL_LTIME__REAL(in1: i64, in2: f32) -> i64 {
     checked_mul_time_with_f32(in1, in2)
 }
 
@@ -694,7 +694,7 @@ fn checked_mul_time_with_f32(in1: i64, in2: f32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL__TIME__LREAL(in1: i64, in2: f64) -> i64 {
+pub extern "C-unwind" fn MUL__TIME__LREAL(in1: i64, in2: f64) -> i64 {
     checked_mul_time_with_f64(in1, in2)
 }
 
@@ -704,7 +704,7 @@ pub extern "C" fn MUL__TIME__LREAL(in1: i64, in2: f64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_TIME__LREAL(in1: i64, in2: f64) -> i64 {
+pub extern "C-unwind" fn MUL_TIME__LREAL(in1: i64, in2: f64) -> i64 {
     checked_mul_time_with_f64(in1, in2)
 }
 
@@ -714,7 +714,7 @@ pub extern "C" fn MUL_TIME__LREAL(in1: i64, in2: f64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn MUL_LTIME__LREAL(in1: i64, in2: f64) -> i64 {
+pub extern "C-unwind" fn MUL_LTIME__LREAL(in1: i64, in2: f64) -> i64 {
     checked_mul_time_with_f64(in1, in2)
 }
 
@@ -742,7 +742,7 @@ fn checked_mul_time_with_f64(in1: i64, in2: f64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV__TIME__REAL(in1: i64, in2: f32) -> i64 {
+pub extern "C-unwind" fn DIV__TIME__REAL(in1: i64, in2: f32) -> i64 {
     checked_div_time_by_f32(in1, in2)
 }
 
@@ -752,7 +752,7 @@ pub extern "C" fn DIV__TIME__REAL(in1: i64, in2: f32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_TIME__REAL(in1: i64, in2: f32) -> i64 {
+pub extern "C-unwind" fn DIV_TIME__REAL(in1: i64, in2: f32) -> i64 {
     checked_div_time_by_f32(in1, in2)
 }
 
@@ -762,7 +762,7 @@ pub extern "C" fn DIV_TIME__REAL(in1: i64, in2: f32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_LTIME__REAL(in1: i64, in2: f32) -> i64 {
+pub extern "C-unwind" fn DIV_LTIME__REAL(in1: i64, in2: f32) -> i64 {
     checked_div_time_by_f32(in1, in2)
 }
 
@@ -790,7 +790,7 @@ fn checked_div_time_by_f32(in1: i64, in2: f32) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV__TIME__LREAL(in1: i64, in2: f64) -> i64 {
+pub extern "C-unwind" fn DIV__TIME__LREAL(in1: i64, in2: f64) -> i64 {
     checked_div_time_by_f64(in1, in2)
 }
 
@@ -800,7 +800,7 @@ pub extern "C" fn DIV__TIME__LREAL(in1: i64, in2: f64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_TIME__LREAL(in1: i64, in2: f64) -> i64 {
+pub extern "C-unwind" fn DIV_TIME__LREAL(in1: i64, in2: f64) -> i64 {
     checked_div_time_by_f64(in1, in2)
 }
 
@@ -810,7 +810,7 @@ pub extern "C" fn DIV_TIME__LREAL(in1: i64, in2: f64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn DIV_LTIME__LREAL(in1: i64, in2: f64) -> i64 {
+pub extern "C-unwind" fn DIV_LTIME__LREAL(in1: i64, in2: f64) -> i64 {
     checked_div_time_by_f64(in1, in2)
 }
 

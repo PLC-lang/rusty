@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod tests {
 
-    use std::{path::PathBuf, str::FromStr};
+    use std::{collections::HashMap, path::PathBuf, str::FromStr, sync::Mutex};
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
@@ -16,11 +16,16 @@ pub mod tests {
     use crate::{
         builtins,
         codegen::{CodegenContext, GeneratedModule},
-        index::{self, Index},
-        lexer, parser,
-        resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},
+        index::{self, FxIndexSet, Index},
+        lexer,
+        lowering::AstLowerer,
+        parser,
+        resolver::{
+            const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
+            StringLiterals, TypeAnnotator,
+        },
         typesystem::get_builtin_types,
-        DebugLevel, Validator,
+        DebugLevel, OnlineChange, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -104,6 +109,57 @@ pub mod tests {
         annotations
     }
 
+    type Lowered = (AnnotationMapImpl, Index, Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>);
+
+    pub fn annotate_and_lower_with_ids(
+        parse_result: CompilationUnit,
+        index: Index,
+        mut id_provider: IdProvider,
+    ) -> Lowered {
+        let (mut index, unresolvables) = evaluate_constants(index);
+        let annotation_map = annotate_with_ids(&parse_result, &mut index, id_provider.clone());
+        let lowered = AstLowerer::lower(
+            vec![parse_result],
+            index,
+            AstAnnotations::new(annotation_map, id_provider.next_id()),
+            unresolvables,
+            id_provider.clone(),
+            &get_project_init_symbol(),
+        );
+
+        let mut index = Index::default();
+        let builtins = builtins::parse_built_ins(id_provider.clone());
+        index.import(index::visitor::visit(&builtins));
+
+        for data_type in get_builtin_types() {
+            index.register_type(data_type);
+        }
+
+        let indexed_units = lowered
+            .into_iter()
+            .map(|mut unit| {
+                pre_process(&mut unit, id_provider.clone());
+                index.import(index::visitor::visit(&unit));
+                unit
+            })
+            .collect::<Vec<_>>();
+        let (mut full_index, _) = evaluate_constants(index);
+
+        let mut all_annotations = AnnotationMapImpl::default();
+        let annotated_units = indexed_units
+            .into_iter()
+            .map(|unit| {
+                let (mut annotations, dependencies, literals) =
+                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
+                full_index.import(std::mem::take(&mut annotations.new_index));
+                all_annotations.import(annotations);
+                (unit, dependencies, literals)
+            })
+            .collect::<Vec<_>>();
+
+        (all_annotations, full_index, annotated_units)
+    }
+
     pub fn parse_and_validate_buffered(src: &str) -> String {
         let diagnostics = parse_and_validate(src);
         let mut reporter = Diagnostician::buffered();
@@ -139,46 +195,84 @@ pub mod tests {
         codegen_debug_without_unwrap(src, DebugLevel::None)
     }
 
+    pub fn codegen_with_online_change(src: &str) -> String {
+        codegen_debug_without_unwrap_oc(
+            src,
+            DebugLevel::None,
+            OnlineChange::Enabled { file_name: "test".into(), format: crate::ConfigFormat::JSON },
+        )
+        .unwrap()
+    }
+
+    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, String> {
+        codegen_debug_without_unwrap_oc(src, debug_level, OnlineChange::Disabled)
+    }
+
     /// Returns either a string or an error, in addition it always returns
     /// reported diagnostics. Therefor the return value of this method is always a tuple.
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
-    pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, String> {
+    pub fn codegen_debug_without_unwrap_oc(
+        src: &str,
+        debug_level: DebugLevel,
+        online_change: OnlineChange,
+    ) -> Result<String, String> {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
         let mut id_provider = IdProvider::default();
         let (unit, index, diagnostics) = do_index(src, id_provider.clone());
         reporter.handle(&diagnostics);
 
-        let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, dependencies, literals) =
-            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
-        index.import(std::mem::take(&mut annotations.new_index));
+        let (annotations, index, annotated_units) =
+            annotate_and_lower_with_ids(unit, index, id_provider.clone());
 
-        let context = CodegenContext::create();
-        let path = PathBuf::from_str("src").ok();
-        let mut code_generator = crate::codegen::CodeGen::new(
-            &context,
-            path.as_deref(),
-            "main",
-            crate::OptimizationLevel::None,
-            debug_level,
-        );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
-        let llvm_index = code_generator
-            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index)
-            .map_err(|err| {
-                reporter.handle(&[err]);
-                reporter.buffer().unwrap()
-            })?;
 
-        code_generator
-            .generate(&context, &unit, &annotations, &index, &llvm_index)
-            .map(|module| module.persist_to_string())
-            .map_err(|err| {
-                reporter.handle(&[err]);
-                reporter.buffer().unwrap()
+        let got_layout = Mutex::new(HashMap::default());
+
+        annotated_units
+            .into_iter()
+            .map(|(unit, dependencies, literals)| {
+                let context = CodegenContext::create();
+                let path = PathBuf::from_str("src").ok();
+                let mut code_generator = crate::codegen::CodeGen::new(
+                    &context,
+                    path.as_deref(),
+                    &unit.file_name,
+                    crate::OptimizationLevel::None,
+                    debug_level,
+                    online_change.clone(),
+                );
+                let llvm_index = code_generator
+                    .generate_llvm_index(
+                        &context,
+                        &annotations,
+                        &literals,
+                        &dependencies,
+                        &index,
+                        &got_layout,
+                    )
+                    .map_err(|err| {
+                        reporter.handle(&[err]);
+                        reporter.buffer().unwrap()
+                    })?;
+
+                code_generator
+                    .generate(&context, &unit, &annotations, &index, llvm_index)
+                    .map(|module| module.persist_to_string())
+                    .map_err(|err| {
+                        reporter.handle(&[err]);
+                        reporter.buffer().unwrap()
+                    })
             })
+            .reduce(|acc, ir| {
+                Ok(format!(
+                    "{}\
+                        {}",
+                    acc?, ir?
+                ))
+            })
+            .unwrap()
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
@@ -190,7 +284,7 @@ pub mod tests {
     }
 
     pub fn codegen(src: &str) -> String {
-        codegen_without_unwrap(src).unwrap()
+        codegen_without_unwrap(src).map_err(|it| panic!("{it}")).unwrap()
     }
 
     fn codegen_into_modules<T: Compilable>(
@@ -234,16 +328,20 @@ pub mod tests {
                     &unit.file_name,
                     crate::OptimizationLevel::None,
                     debug_level,
+                    crate::OnlineChange::Disabled,
                 );
+                let got_layout = Mutex::new(HashMap::default());
+
                 let llvm_index = code_generator.generate_llvm_index(
                     context,
                     &annotations,
                     &literals,
                     &dependencies,
                     &index,
+                    &got_layout,
                 )?;
 
-                code_generator.generate(context, &unit, &annotations, &index, &llvm_index)
+                code_generator.generate(context, &unit, &annotations, &index, llvm_index)
             })
             .collect::<Result<Vec<_>, Diagnostic>>()
     }
@@ -263,5 +361,9 @@ pub mod tests {
     pub fn generate_with_empty_program(src: &str) -> String {
         let source = format!("{} {}", "PROGRAM main END_PROGRAM", src);
         codegen(source.as_str())
+    }
+
+    fn get_project_init_symbol() -> String {
+        "__init___testproject".to_string()
     }
 }

@@ -2,20 +2,20 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-warning[E090]: Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
+warning[E090]: Pointers REF_TO STRUCT_params and INT have different types
+   ┌─ <internal>:46:13
+   │
+46 │             input1 := REF(global4),
+   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and INT have different types
+
+warning[E090]: Pointers REF_TO STRUCT_params and REAL have different types
    ┌─ <internal>:47:13
    │
-47 │             input1 := REF(global4),
-   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_INT have different types
+47 │             input2 := REF(global5),
+   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and REAL have different types
 
-warning[E090]: Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
+warning[E090]: Pointers REF_TO STRUCT_params and STRING have different types
    ┌─ <internal>:48:13
    │
-48 │             input2 := REF(global5),
-   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_REAL have different types
-
-warning[E090]: Pointers REF_TO STRUCT_params and __POINTER_TO_STRING have different types
-   ┌─ <internal>:49:13
-   │
-49 │             input3 := REF(global6),
-   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and __POINTER_TO_STRING have different types
+48 │             input3 := REF(global6),
+   │             ^^^^^^^^^^^^^^^^^^^^^^ Pointers REF_TO STRUCT_params and STRING have different types

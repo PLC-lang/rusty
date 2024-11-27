@@ -1,6 +1,7 @@
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::mem::discriminant;
 
+use plc_ast::ast::Assignment;
 use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
@@ -13,8 +14,10 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
+use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::index::ImplementationType;
-use crate::validation::statement::helper::{get_datatype_name_or_slice, get_literal_int_or_const_expr_value};
+use crate::typesystem::VOID_TYPE;
+use crate::validation::statement::helper::get_literal_int_or_const_expr_value;
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -25,8 +28,6 @@ use crate::{
         DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
     },
 };
-
-use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 
 macro_rules! visit_all_statements {
     ($validator:expr, $context:expr, $last:expr ) => {
@@ -85,14 +86,22 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
+            validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
             validate_array_assignment(validator, context, statement);
         }
         AstStatement::OutputAssignment(data) => {
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, &data.right, Some(&data.left), &statement.get_location(), context);
+            validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
+        }
+        AstStatement::RefAssignment(data) => {
+            visit_statement(validator, &data.left, context);
+            visit_statement(validator, &data.right, context);
+
+            validate_ref_assignment(context, validator, data, &statement.location);
+            validate_alias_assignment(validator, context, statement);
+            validate_array_assignment(validator, context, statement);
         }
         AstStatement::CallStatement(data) => {
             validate_call(validator, &data.operator, data.parameters.as_deref(), &context.set_is_call());
@@ -266,7 +275,7 @@ where
     let kind = context.annotations.get_type_or_void(condition, context.index);
 
     if !kind.get_type_information().is_bool() {
-        let slice = get_datatype_name_or_slice(validator.context, kind);
+        let slice = validator.get_type_name_or_slice(kind);
         let message = format!("Expected a boolean, got `{slice}`");
         let location = condition.get_location();
 
@@ -483,7 +492,9 @@ fn validate_reference<T: AnnotationMap>(
                     .and_then(|qualifier| context.index.find_pou(qualifier))
                     .map(|pou| (pou.get_name(), pou.get_container())) // get the container pou (for actions this is the program/fb)
                     .map_or(false, |(pou, container)| {
-                        !qualified_name.starts_with(pou) && !qualified_name.starts_with(container)
+                        !qualified_name.starts_with(pou)
+                            && !qualified_name.starts_with(container)
+                            && !context.index.is_init_function(pou)
                     })
             {
                 validator.push_diagnostic(
@@ -607,6 +618,30 @@ fn validate_array_access<T: AnnotationMap>(
     }
 }
 
+pub fn validate_type_compatibility(
+    validator: &mut Validator,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+    left: &AstNode,
+    right: &AstNode,
+) {
+    let ty_left = annotations.get_type_or_void(left, index);
+    let ty_right = annotations.get_type_or_void(right, index);
+
+    if !(ty_left.is_compatible_with_type(ty_right) && ty_right.is_compatible_with_type(ty_left)) {
+        let ty_left_name = validator.get_type_name_or_slice(ty_left);
+        let ty_right_name = validator.get_type_name_or_slice(ty_right);
+
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Invalid expression, types {ty_left_name} and {ty_right_name} are incompatible in the given context"
+            ))
+            .with_error_code("E031")
+            .with_location(left.location.span(&right.location)),
+        );
+    }
+}
+
 fn visit_binary_expression<T: AnnotationMap>(
     validator: &mut Validator,
     statement: &AstNode,
@@ -649,6 +684,8 @@ fn visit_binary_expression<T: AnnotationMap>(
         }
         _ => validate_binary_expression(validator, statement, operator, left, right, context),
     }
+
+    validate_type_compatibility(validator, context.annotations, context.index, left, right);
 }
 
 fn validate_binary_expression<T: AnnotationMap>(
@@ -762,6 +799,107 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
     }
 }
 
+pub fn validate_pointer_assignment<T>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    type_lhs: &DataType,
+    type_rhs: &DataType,
+    assignment_location: &SourceLocation,
+) where
+    T: AnnotationMap,
+{
+    let type_info_lhs = context
+        .index
+        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_lhs.get_type_information()));
+    let type_info_rhs = context
+        .index
+        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_rhs.get_type_information()));
+
+    if type_info_lhs.is_array() && type_info_rhs.is_array() {
+        let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
+        let len_rhs = type_info_rhs.get_array_length(context.index).unwrap_or_default();
+
+        let inner_ty_name_lhs = type_info_lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
+        let inner_ty_name_rhs = type_info_rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE);
+        let inner_ty_lhs = context.index.find_effective_type_by_name(inner_ty_name_lhs);
+        let inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
+
+        if len_lhs != len_rhs || inner_ty_lhs != inner_ty_rhs {
+            validator.push_diagnostic(Diagnostic::invalid_assignment(
+                &validator.get_type_name_or_slice(type_rhs),
+                &validator.get_type_name_or_slice(type_lhs),
+                assignment_location,
+            ));
+        }
+    } else if type_info_lhs != type_info_rhs {
+        let type_name_lhs = validator.get_type_name_or_slice(type_lhs);
+        let type_name_rhs = validator.get_type_name_or_slice(type_rhs);
+
+        validator.push_diagnostic(Diagnostic::invalid_assignment(
+            &type_name_rhs,
+            &type_name_lhs,
+            assignment_location,
+        ));
+    }
+}
+
+/// Checks if `REF=` assignments are correct, specifically if the left-hand side is a reference declared
+/// as `REFERENCE TO` and the right hand side is a lvalue of the same type that is being referenced.
+fn validate_ref_assignment<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    assignment: &Assignment,
+    assignment_location: &SourceLocation,
+) {
+    let annotation_lhs = context.annotations.get(&assignment.left);
+    let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
+    let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
+
+    // Assert that the right-hand side is a reference
+    if !assignment.right.is_reference() && !assignment_location.is_internal() {
+        validator.push_diagnostic(
+            Diagnostic::new("Invalid assignment, expected a reference")
+                .with_location(&assignment.right.location)
+                .with_error_code("E098"),
+        );
+    }
+
+    // Assert that the left-hand side is a valid pointer-reference
+    if !type_lhs.is_pointer() && !annotation_lhs.is_some_and(|opt| opt.is_auto_deref()) {
+        validator.push_diagnostic(
+            Diagnostic::new("Invalid assignment, expected a pointer reference")
+                .with_location(&assignment.left.location)
+                .with_error_code("E098"),
+        )
+    }
+
+    validate_pointer_assignment(context, validator, type_lhs, type_rhs, assignment_location);
+}
+
+/// Returns a diagnostic if an alias declared variables address is re-assigned in the POU body.
+fn validate_alias_assignment<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    ref_assignment: &AstNode,
+) {
+    if let AstStatement::RefAssignment(Assignment { left, .. }) = ref_assignment.get_stmt() {
+        if context
+            .annotations
+            .get(left)
+            .is_some_and(|opt| opt.is_alias() && !ref_assignment.location.is_internal())
+        {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "{} is an immutable alias variable, can not change the address",
+                    validator.context.slice(&left.location)
+                ))
+                .with_location(&ref_assignment.location)
+                .with_error_code("E100"),
+            )
+        }
+    }
+}
+
 fn validate_assignment<T: AnnotationMap>(
     validator: &mut Validator,
     right: &AstNode,
@@ -827,7 +965,7 @@ fn validate_assignment<T: AnnotationMap>(
     if let (Some(right_type), Some(left_type)) = (right_type, left_type) {
         // implicit call parameter assignments are annotated to auto_deref pointers for ´ByRef` parameters
         // we need the inner type
-        let left_type = if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } =
+        let left_type = if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
             left_type.get_type_information()
         {
             context.index.get_effective_type_or_void_by_name(inner_type_name)
@@ -849,18 +987,14 @@ fn validate_assignment<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "Pointers {} and {} have different types",
-                        get_datatype_name_or_slice(validator.context, left_type),
-                        get_datatype_name_or_slice(validator.context, right_type)
+                        validator.get_type_name_or_slice(left_type),
+                        validator.get_type_name_or_slice(right_type)
                     ))
                     .with_error_code("E090")
                     .with_location(location),
                 );
             } else {
-                validator.push_diagnostic(Diagnostic::invalid_assignment(
-                    &get_datatype_name_or_slice(validator.context, right_type),
-                    &get_datatype_name_or_slice(validator.context, left_type),
-                    location.clone(),
-                ));
+                validate_pointer_assignment(context, validator, left_type, right_type, location);
             }
         } else {
             validate_assignment_type_sizes(validator, left_type, right, context)
@@ -913,7 +1047,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
             validator.push_diagnostic(
                 Diagnostic::new(format!(
                     "Value evaluated at run-time, use an enum variant from `{}`",
-                    get_datatype_name_or_slice(validator.context, left_dt)
+                    validator.get_type_name_or_slice(left_dt)
                 ))
                 .with_location(right.get_location())
                 .with_secondary_location(&left_dt.location)
@@ -947,7 +1081,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
                 Diagnostic::new(format!(
                     "Invalid enum value `{}` for `{}`",
                     validator.context.slice(&right.location),
-                    get_datatype_name_or_slice(validator.context, left_dt)
+                    validator.get_type_name_or_slice(left_dt)
                 ))
                 .with_location(right.get_location())
                 .with_secondary_location(&left_dt.location)
@@ -975,8 +1109,8 @@ fn validate_variable_length_array_assignment<T: AnnotationMap>(
 
     if left_dt != right_dt || left_dims != right_dims {
         validator.push_diagnostic(Diagnostic::invalid_assignment(
-            &get_datatype_name_or_slice(validator.context, right_type),
-            &get_datatype_name_or_slice(validator.context, left_type),
+            &validator.get_type_name_or_slice(right_type),
+            &validator.get_type_name_or_slice(left_type),
             location.clone(),
         ));
     }
@@ -1005,8 +1139,13 @@ fn is_valid_assignment(
         // because those would fail
         return true;
     } else if is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
-    // FIXME: See https://github.com/PLC-lang/rusty/issues/857
-        | is_invalid_pointer_assignment(left_type.get_type_information(), right_type.get_type_information(), index, location, validator)
+        | is_invalid_pointer_assignment(
+            left_type.get_type_information(),
+            right_type.get_type_information(),
+            index,
+            location,
+            validator,
+        )
         | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
         | is_aggregate_type_missmatch(left_type, right_type, index)
     {
@@ -1055,7 +1194,7 @@ fn is_invalid_pointer_assignment(
         return !typesystem::is_same_type_class(left_type, right_type, index);
     }
     //check if Datatype can hold a Pointer (u64)
-    else if right_type.is_pointer()
+    else if (right_type.is_pointer() && !right_type.is_auto_deref())
         && !left_type.is_pointer()
         && left_type.get_size_in_bits(index) < POINTER_SIZE
     {
@@ -1108,40 +1247,55 @@ fn is_aggregate_to_none_aggregate_assignment(left_type: &DataType, right_type: &
 /// if we try to assign an aggregate type to another
 /// check if we have the same type
 fn is_aggregate_type_missmatch(left_type: &DataType, right_type: &DataType, index: &Index) -> bool {
-    left_type.is_aggregate_type() & right_type.is_aggregate_type()
-        && !typesystem::is_same_type_class(
-            left_type.get_type_information(),
-            right_type.get_type_information(),
-            index,
-        )
+    let lhs = left_type.get_type_information();
+    let rhs = right_type.get_type_information();
+    if !(left_type.is_aggregate_type() & right_type.is_aggregate_type()) {
+        return false;
+    }
+    if lhs.is_array() {
+        let inner_l = index.find_intrinsic_type(
+            index.get_type_information_or_void(lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE)),
+        );
+        let inner_r = index.find_intrinsic_type(
+            index.get_type_information_or_void(rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE)),
+        );
+        !(inner_l == inner_r && typesystem::is_same_type_class(lhs, rhs, index))
+    } else {
+        !typesystem::is_same_type_class(lhs, rhs, index)
+    }
 }
 
 fn validate_call<T: AnnotationMap>(
     validator: &mut Validator,
     operator: &AstNode,
-    parameters: Option<&AstNode>,
+    operator_arguments: Option<&AstNode>,
     context: &ValidationContext<T>,
 ) {
-    // visit called pou
     visit_statement(validator, operator, context);
 
+    // Check if we're dealing with a builtin function and if so call its validation function
+    if let Some(validation) = builtins::get_builtin(operator.get_flat_reference_name().unwrap_or_default())
+        .and_then(BuiltIn::get_validation)
+    {
+        validation(validator, operator, operator_arguments, context.annotations, context.index);
+    }
+
     if let Some(pou) = context.find_pou(operator) {
-        // additional validation for builtin calls if necessary
-        if let Some(validation) = builtins::get_builtin(pou.get_name()).and_then(BuiltIn::get_validation) {
-            validation(validator, operator, parameters, context.annotations, context.index)
+        let arguments = operator_arguments.map(flatten_expression_list).unwrap_or_default();
+        let parameters = context.index.get_declared_parameters(pou.get_name());
+
+        if builtins::get_builtin(pou.get_name()).is_none() {
+            validate_argument_count(context, validator, pou, &arguments, &operator.location);
         }
 
-        let declared_parameters = context.index.get_declared_parameters(pou.get_name());
-        let passed_parameters = parameters.map(flatten_expression_list).unwrap_or_default();
-
-        let mut are_implicit_parameters = true;
+        let mut arguments_are_implicit = true;
         let mut variable_location_in_parent = vec![];
 
         // validate parameters
-        for (i, param) in passed_parameters.iter().enumerate() {
-            match get_implicit_call_parameter(param, &declared_parameters, i) {
+        for (i, param) in arguments.iter().enumerate() {
+            match get_implicit_call_parameter(param, &parameters, i) {
                 Ok((parameter_location_in_parent, right, is_implicit)) => {
-                    let left = declared_parameters.get(parameter_location_in_parent);
+                    let left = parameters.get(parameter_location_in_parent);
                     if let Some(left) = left {
                         validate_call_by_ref(validator, left, param);
                         // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
@@ -1155,11 +1309,11 @@ fn validate_call<T: AnnotationMap>(
                         validate_assignment(validator, right, None, &param.get_location(), context);
                     }
 
-                    // mixing implicit and explicit parameters is not allowed
-                    // allways compare to the first passed parameter
+                    // mixing implicit and explicit arguments is not allowed
+                    // allways compare to the first argument
                     if i == 0 {
-                        are_implicit_parameters = is_implicit;
-                    } else if are_implicit_parameters != is_implicit {
+                        arguments_are_implicit = is_implicit;
+                    } else if arguments_are_implicit != is_implicit {
                         validator.push_diagnostic(
                             Diagnostic::new("Cannot mix implicit and explicit call parameters!")
                                 .with_error_code("E031")
@@ -1190,7 +1344,7 @@ fn validate_call<T: AnnotationMap>(
                 return;
             }
             let declared_in_out_params: Vec<&&VariableIndexEntry> =
-                declared_parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
+                parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
 
             // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
             if !declared_in_out_params.is_empty() {
@@ -1208,7 +1362,7 @@ fn validate_call<T: AnnotationMap>(
         }
     } else {
         // POU could not be found, we can still partially validate the passed parameters
-        if let Some(s) = parameters.as_ref() {
+        if let Some(s) = operator_arguments.as_ref() {
             visit_statement(validator, s, context);
         }
     }
@@ -1307,7 +1461,7 @@ fn validate_for_loop<T: AnnotationMap>(
         let kind = context.annotations.get_type_or_void(node, context.index);
 
         if kind.is_real() || !kind.is_numerical() {
-            let slice = get_datatype_name_or_slice(validator.context, kind);
+            let slice = validator.get_type_name_or_slice(kind);
             let message = format!("Expected an integer value, got `{slice}`");
             validator.push_diagnostic(
                 Diagnostic::new(message).with_location(node.get_location()).with_error_code("E094"),
@@ -1462,8 +1616,8 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "Implicit downcast from '{}' to '{}'.",
-                        get_datatype_name_or_slice(validator.context, dt),
-                        get_datatype_name_or_slice(validator.context, left)
+                        validator.get_type_name_or_slice(dt),
+                        validator.get_type_name_or_slice(left)
                     ))
                     .with_error_code("E067")
                     .with_location(loc),
@@ -1472,15 +1626,50 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
         });
 }
 
-mod helper {
+/// Validates if a POU call has the correct number of arguments. Specifically, for functions,
+/// the argument count must be equal to the required count unless the interface is variadic,
+/// in which case the argument count may be greater than or equal to the required count. For stateful
+/// POUs, the argument count can be less than or equal to the required count since VAR_INPUT and
+/// VAR_OUTPUT arguments are optional.
+fn validate_argument_count<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    pou: &PouIndexEntry,
+    arguments: &[&AstNode],
+    operator_location: &SourceLocation,
+) {
+    let parameters = context.index.get_declared_parameters(pou.get_name());
+    let has_variadic_parameter = context.index.has_variadic_parameter(pou.get_name());
+
+    let argument_count_is_incorrect = match pou {
+        PouIndexEntry::Function { .. } => {
+            !((has_variadic_parameter && arguments.len() >= parameters.len())
+                || (arguments.len() == parameters.len()))
+        }
+
+        PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } => {
+            arguments.len() > parameters.len() && !has_variadic_parameter
+        }
+
+        _ => false,
+    };
+
+    if argument_count_is_incorrect {
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(
+            parameters.len(),
+            arguments.len(),
+            operator_location,
+        ));
+    }
+}
+
+pub(crate) mod helper {
     use std::ops::Range;
 
     use plc_ast::ast::{AstNode, DirectAccessType};
-    use plc_index::GlobalContext;
 
     use crate::index::VariableIndexEntry;
     use crate::resolver::AnnotationMap;
-    use crate::typesystem::DataType;
     use crate::validation::ValidationContext;
     use crate::{index::Index, typesystem::DataTypeInformation};
 
@@ -1506,14 +1695,6 @@ mod helper {
     /// Returns true if the direct access can be used for the given type
     pub fn is_compatible(access: &DirectAccessType, data_type: &DataTypeInformation, index: &Index) -> bool {
         data_type.get_semantic_size(index) as u64 > access.get_bit_width()
-    }
-
-    pub fn get_datatype_name_or_slice(context: &GlobalContext, dt: &DataType) -> String {
-        if dt.is_internal() {
-            return dt.get_type_information().get_name().to_string();
-        }
-
-        context.slice(&dt.location)
     }
 
     pub fn get_literal_int_or_const_expr_value<T>(

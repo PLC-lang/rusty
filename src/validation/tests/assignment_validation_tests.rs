@@ -596,7 +596,7 @@ fn array_assignment_validation() {
 fn struct_assignment_validation() {
     let diagnostics = parse_and_validate_buffered(
         r#"
-        TYPE STRUCT1 :
+    TYPE STRUCT1 :
         STRUCT
             param1 : BOOL;
         END_STRUCT
@@ -1216,4 +1216,472 @@ fn void_assignment_validation() {
        │             ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
 
     "###)
+}
+
+#[test]
+fn ref_assignments() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                localINT    : INT;
+                localDINT   : DINT;
+                localSTRING : STRING;
+
+                localRefTo          : REF_TO        DINT;
+                localReferenceTo    : REFERENCE TO  DINT;
+            END_VAR
+
+            localRefTo          REF= localDINT;
+            localReferenceTo    REF= localDINT;
+
+            // The following are invalid
+            1                   REF= localDINT;
+            localINT            REF= localDINT;
+            localRefTo          REF= 1;
+            localReferenceTo    REF= 1;
+
+            localReferenceTo    REF= localINT;
+            localReferenceTo    REF= localSTRING;
+            localReferenceTo    REF= 'howdy';
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E098]: Invalid assignment, expected a pointer reference
+       ┌─ <internal>:16:13
+       │
+    16 │             1                   REF= localDINT;
+       │             ^ Invalid assignment, expected a pointer reference
+
+    error[E098]: Invalid assignment, expected a pointer reference
+       ┌─ <internal>:17:13
+       │
+    17 │             localINT            REF= localDINT;
+       │             ^^^^^^^^ Invalid assignment, expected a pointer reference
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'INT'
+       ┌─ <internal>:17:13
+       │
+    17 │             localINT            REF= localDINT;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'INT'
+
+    error[E098]: Invalid assignment, expected a reference
+       ┌─ <internal>:18:38
+       │
+    18 │             localRefTo          REF= 1;
+       │                                      ^ Invalid assignment, expected a reference
+
+    error[E098]: Invalid assignment, expected a reference
+       ┌─ <internal>:19:38
+       │
+    19 │             localReferenceTo    REF= 1;
+       │                                      ^ Invalid assignment, expected a reference
+
+    error[E037]: Invalid assignment: cannot assign 'INT' to 'DINT'
+       ┌─ <internal>:21:13
+       │
+    21 │             localReferenceTo    REF= localINT;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
+       ┌─ <internal>:22:13
+       │
+    22 │             localReferenceTo    REF= localSTRING;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
+
+    error[E098]: Invalid assignment, expected a reference
+       ┌─ <internal>:23:38
+       │
+    23 │             localReferenceTo    REF= 'howdy';
+       │                                      ^^^^^^^ Invalid assignment, expected a reference
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
+       ┌─ <internal>:23:13
+       │
+    23 │             localReferenceTo    REF= 'howdy';
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
+
+    "###);
+}
+
+#[test]
+fn ref_assignment_with_global_local_variables_and_aliased_types() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        VAR_GLOBAL
+            fooGlobal : DINT;
+        END_VAR
+
+        FUNCTION main
+            VAR
+                fooLocal                        : DINT;
+                referenceToFooFirstOfHisName    : REFERENCE TO DINT;
+                referenceToFooSecondOfHisName   : REFERENCE TO DINT;
+                referenceToAlias                : REFERENCE TO AliasedDINT;
+
+                intLocal            : INT;
+                stringLocal         : STRING;
+
+                // Invalid, types should be referenced rather than literals or variables
+                invalidA : REFERENCE TO fooLocal;
+                invalidB : REFERENCE TO fooGlobal;
+                invalidC : REFERENCE TO DINT := 5;
+            END_VAR
+
+            referenceToFooFirstOfHisName  REF= fooLocal;
+            referenceToFooFirstOfHisName  REF= fooGlobal;
+            referenceToFooFirstOfHisName  REF= referenceToFooFirstOfHisName; // Valid, albeit questionable
+            referenceToFooFirstOfHisName  REF= referenceToFooSecondOfHisName;
+
+            // Invalid, type mismatch
+            referenceToFooFirstOfHisName  REF= intLocal;
+            referenceToFooFirstOfHisName  REF= stringLocal;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E099]: REFERENCE TO variables can not reference other variables
+       ┌─ <internal>:17:28
+       │
+    17 │                 invalidA : REFERENCE TO fooLocal;
+       │                            ^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
+
+    error[E099]: REFERENCE TO variables can not reference other variables
+       ┌─ <internal>:18:28
+       │
+    18 │                 invalidB : REFERENCE TO fooGlobal;
+       │                            ^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
+
+    error[E052]: Unknown type: AliasedDINT
+       ┌─ <internal>:11:64
+       │
+    11 │                 referenceToAlias                : REFERENCE TO AliasedDINT;
+       │                                                                ^^^^^^^^^^^ Unknown type: AliasedDINT
+
+    error[E052]: Unknown type: fooLocal
+       ┌─ <internal>:17:41
+       │
+    17 │                 invalidA : REFERENCE TO fooLocal;
+       │                                         ^^^^^^^^ Unknown type: fooLocal
+
+    error[E052]: Unknown type: fooGlobal
+       ┌─ <internal>:18:41
+       │
+    18 │                 invalidB : REFERENCE TO fooGlobal;
+       │                                         ^^^^^^^^^ Unknown type: fooGlobal
+
+    error[E037]: Invalid assignment: cannot assign 'INT' to 'DINT'
+       ┌─ <internal>:28:13
+       │
+    28 │             referenceToFooFirstOfHisName  REF= intLocal;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
+       ┌─ <internal>:29:13
+       │
+    29 │             referenceToFooFirstOfHisName  REF= stringLocal;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
+
+    "###);
+}
+
+#[test]
+fn ref_assignment_with_reference_to_array_variable() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                arrSTRING           :               ARRAY[1..6] OF STRING;
+                arrDINT             :               ARRAY[1..5] OF DINT;
+                arrReferenceDINT    : REFERENCE TO  ARRAY[1..5] OF DINT;
+            END_VAR
+
+            arrReferenceDINT REF= arrDINT;
+            arrReferenceDINT REF= arrSTRING;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'REFERENCE TO ARRAY[1..5] OF DINT'
+       ┌─ <internal>:10:13
+       │
+    10 │             arrReferenceDINT REF= arrSTRING;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'REFERENCE TO ARRAY[1..5] OF DINT'
+
+    "###);
+}
+
+#[test]
+fn ref_assignment_with_reference_to_string_variable() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                localCHAR           : CHAR;
+                localSTRING         : STRING;
+                localWSTRING        : WSTRING;
+                referenceToString   : REFERENCE TO STRING;
+            END_VAR
+
+            referenceToString REF= localCHAR;
+            referenceToString REF= localSTRING;
+            referenceToString REF= localWSTRING;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid assignment: cannot assign 'CHAR' to 'STRING'
+       ┌─ <internal>:10:13
+       │
+    10 │             referenceToString REF= localCHAR;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+       ┌─ <internal>:12:13
+       │
+    12 │             referenceToString REF= localWSTRING;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+
+    "###);
+}
+
+// TODO(volsa): Improve the error messages here; these are the default messages returned by the parser
+//              without any modifications.
+#[test]
+fn invalid_reference_to_declaration() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION foo
+            VAR
+                bar : ARRAY[1..5] OF REFERENCE TO DINT;
+                baz : REFERENCE TO REFERENCE TO DINT;
+                qux : REF_TO REFERENCE TO DINT;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+      ┌─ <internal>:4:38
+      │
+    4 │                 bar : ARRAY[1..5] OF REFERENCE TO DINT;
+      │                                      ^^^^^^^^^^^^ Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'REFERENCE TO DINT'
+      ┌─ <internal>:4:38
+      │
+    4 │                 bar : ARRAY[1..5] OF REFERENCE TO DINT;
+      │                                      ^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'REFERENCE TO DINT'
+
+    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+      ┌─ <internal>:5:36
+      │
+    5 │                 baz : REFERENCE TO REFERENCE TO DINT;
+      │                                    ^^^^^^^^^^^^ Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+
+    error[E007]: Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
+                    qux : REF_TO REFERENCE TO DINT;'
+      ┌─ <internal>:5:36
+      │  
+    5 │                   baz : REFERENCE TO REFERENCE TO DINT;
+      │ ╭────────────────────────────────────^
+    6 │ │                 qux : REF_TO REFERENCE TO DINT;
+      │ ╰───────────────────────────────────────────────^ Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
+                    qux : REF_TO REFERENCE TO DINT;'
+
+    "###);
+}
+
+#[test]
+fn alias_variable_type_check() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION foo
+            VAR
+                dintVar                         : DINT;
+                sintVar                         : SINT;
+                stringVar                       : STRING;
+                arrayDintVar                    : ARRAY[1..5] OF DINT;
+
+                dintVarRefA AT dintVar          : DINT; // Valid
+                dintVarRefB AT sintVar          : DINT; // Invalid
+                dintVarRefC AT stringVar        : DINT; // Invalid
+                dintVarRefD AT arrayDintVar     : DINT; // Invalid
+
+                sintVarRefA AT dintVar          : SINT; // Invalid
+                sintVarRefB AT sintVar          : SINT; // Valid
+                sintVarRefC AT stringVar        : SINT; // Invalid
+                sintVarRefD AT arrayDintVar     : SINT; // Invalid
+
+                stringVarRefA AT dintVar        : STRING; // Invalid
+                stringVarRefB AT sintVar        : STRING; // Invalid
+                stringVarRefC AT stringVar      : STRING; // Valid
+                stringVarRefD AT arrayDintVar   : STRING; // Invalid
+
+                arrayDintVarRefA AT dintVar        : ARRAY[1..5] OF DINT; // Invalid
+                arrayDintVarRefB AT sintVar        : ARRAY[1..5] OF DINT; // Invalid
+                arrayDintVarRefC AT stringVar      : ARRAY[1..5] OF DINT; // Invalid
+                arrayDintVarRefD AT arrayDintVar   : ARRAY[1..5] OF DINT; // Valid
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E037]: Invalid assignment: cannot assign 'SINT' to 'DINT'
+       ┌─ <internal>:10:32
+       │
+    10 │                 dintVarRefB AT sintVar          : DINT; // Invalid
+       │                                ^^^^^^^ Invalid assignment: cannot assign 'SINT' to 'DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
+       ┌─ <internal>:11:32
+       │
+    11 │                 dintVarRefC AT stringVar        : DINT; // Invalid
+       │                                ^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'DINT'
+       ┌─ <internal>:12:32
+       │
+    12 │                 dintVarRefD AT arrayDintVar     : DINT; // Invalid
+       │                                ^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'SINT'
+       ┌─ <internal>:14:32
+       │
+    14 │                 sintVarRefA AT dintVar          : SINT; // Invalid
+       │                                ^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'SINT'
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'SINT'
+       ┌─ <internal>:16:32
+       │
+    16 │                 sintVarRefC AT stringVar        : SINT; // Invalid
+       │                                ^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'SINT'
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'SINT'
+       ┌─ <internal>:17:32
+       │
+    17 │                 sintVarRefD AT arrayDintVar     : SINT; // Invalid
+       │                                ^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'SINT'
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
+       ┌─ <internal>:19:34
+       │
+    19 │                 stringVarRefA AT dintVar        : STRING; // Invalid
+       │                                  ^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'SINT' to 'STRING'
+       ┌─ <internal>:20:34
+       │
+    20 │                 stringVarRefB AT sintVar        : STRING; // Invalid
+       │                                  ^^^^^^^ Invalid assignment: cannot assign 'SINT' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'STRING'
+       ┌─ <internal>:22:34
+       │
+    22 │                 stringVarRefD AT arrayDintVar   : STRING; // Invalid
+       │                                  ^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..5] OF DINT' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'ARRAY[1..5] OF DINT'
+       ┌─ <internal>:24:37
+       │
+    24 │                 arrayDintVarRefA AT dintVar        : ARRAY[1..5] OF DINT; // Invalid
+       │                                     ^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'ARRAY[1..5] OF DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'SINT' to 'ARRAY[1..5] OF DINT'
+       ┌─ <internal>:25:37
+       │
+    25 │                 arrayDintVarRefB AT sintVar        : ARRAY[1..5] OF DINT; // Invalid
+       │                                     ^^^^^^^ Invalid assignment: cannot assign 'SINT' to 'ARRAY[1..5] OF DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'ARRAY[1..5] OF DINT'
+       ┌─ <internal>:26:37
+       │
+    26 │                 arrayDintVarRefC AT stringVar      : ARRAY[1..5] OF DINT; // Invalid
+       │                                     ^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'ARRAY[1..5] OF DINT'
+
+    "###);
+}
+
+#[test]
+fn reassignment_of_alias_variables_is_disallowed() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION main
+            VAR
+                foo AT bar : DINT;
+                bar : DINT;
+                baz : DINT;
+            END_VAR
+
+            foo := bar;         // Valid, the dereferenced value of `foo` is being changed
+            foo := baz;         // Valid, same reason as above
+            foo REF= bar;       // Invalid, the address of `foo` is being changed
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E100]: foo is an immutable alias variable, can not change the address
+       ┌─ <internal>:11:13
+       │
+    11 │             foo REF= bar;       // Invalid, the address of `foo` is being changed
+       │             ^^^^^^^^^^^^ foo is an immutable alias variable, can not change the address
+
+    "###);
+}
+
+#[test]
+fn assigning_arrays_with_same_size_and_type_class_but_different_inner_type_is_an_error() {
+    // When assigning arrays of matching size and type-class,
+    // if they have a different intrinsic inner type,
+    // then we expect an assignment error.
+    let diagnostic = parse_and_validate_buffered(
+        r"
+        FUNCTION foo: DINT
+        VAR_INPUT
+            in1: ARRAY[0..1] OF LINT;
+            in3: STRING[100];
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main: DINT
+        VAR
+            var1: ARRAY[0..1] OF ULINT; // Err
+            var2: ARRAY[0..1] OF LTIME; // Err
+            var3: ARRAY[0..1] OF LWORD; // Err
+            var4: STRING;               // OK
+        END_VAR
+            foo(var1, var4);
+            foo(var2, var4);
+            foo(var3, var4);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostic, @r###"
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF ULINT' to 'ARRAY[0..1] OF LINT'
+       ┌─ <internal>:16:17
+       │
+    16 │             foo(var1, var4);
+       │                 ^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF ULINT' to 'ARRAY[0..1] OF LINT'
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF LTIME' to 'ARRAY[0..1] OF LINT'
+       ┌─ <internal>:17:17
+       │
+    17 │             foo(var2, var4);
+       │                 ^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LTIME' to 'ARRAY[0..1] OF LINT'
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF LWORD' to 'ARRAY[0..1] OF LINT'
+       ┌─ <internal>:18:17
+       │
+    18 │             foo(var3, var4);
+       │                 ^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LWORD' to 'ARRAY[0..1] OF LINT'
+    "###);
 }

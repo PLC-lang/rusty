@@ -2,12 +2,12 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %mainPROG = type { i8, i16 }
 
-@mainPROG_instance = global %mainPROG zeroinitializer, section "var-$RUSTY$mainPROG_instance:r2u8u16"
+@mainPROG_instance = global %mainPROG zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c" \00"
 @utf08_literal_1 = private unnamed_addr constant [2 x i8] c"a\00"
 @utf16_literal_0 = private unnamed_addr constant [2 x i16] [i16 32, i16 0]
@@ -15,7 +15,7 @@ source_filename = "main"
 @utf16_literal_2 = private unnamed_addr constant [2 x i16] [i16 39, i16 0]
 @utf16_literal_3 = private unnamed_addr constant [2 x i16] [i16 65, i16 0]
 
-define void @mainPROG(%mainPROG* %0) section "fn-$RUSTY$mainPROG:v" {
+define void @mainPROG(%mainPROG* %0) {
 entry:
   %x = getelementptr inbounds %mainPROG, %mainPROG* %0, i32 0, i32 0
   %y = getelementptr inbounds %mainPROG, %mainPROG* %0, i32 0, i32 1
@@ -27,3 +27,35 @@ entry:
   store i16 34, i16* %y, align 2
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%mainPROG = type { i8, i16 }
+
+@mainPROG_instance = external global %mainPROG
+
+define void @__init_mainprog(%mainPROG* %0) {
+entry:
+  %self = alloca %mainPROG*, align 8
+  store %mainPROG* %0, %mainPROG** %self, align 8
+  ret void
+}
+
+declare void @mainPROG(%mainPROG*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%mainPROG = type { i8, i16 }
+
+@mainPROG_instance = external global %mainPROG
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  call void @__init_mainprog(%mainPROG* @mainPROG_instance)
+  ret void
+}
+
+declare void @__init_mainprog(%mainPROG*)
+
+declare void @mainPROG(%mainPROG*)

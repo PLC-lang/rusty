@@ -9,6 +9,7 @@
 //!  - Executables
 
 use anyhow::{anyhow, Result};
+use pipelines::AnnotatedProject;
 use std::{
     env,
     ffi::OsStr,
@@ -17,9 +18,8 @@ use std::{
 };
 
 use cli::{CompileParameters, ParameterError, SubCommands};
-use pipelines::AnnotatedProject;
 use plc::{
-    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat,
+    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
     OptimizationLevel, Target, Threads,
 };
 
@@ -54,6 +54,7 @@ pub struct CompileOptions {
     pub error_format: ErrorFormat,
     pub debug_level: DebugLevel,
     pub single_module: bool,
+    pub online_change: OnlineChange,
 }
 
 impl Default for CompileOptions {
@@ -67,6 +68,7 @@ impl Default for CompileOptions {
             error_format: ErrorFormat::None,
             debug_level: DebugLevel::None,
             single_module: false,
+            online_change: OnlineChange::Disabled,
         }
     }
 }
@@ -78,6 +80,15 @@ pub struct LinkOptions {
     pub format: FormatOption,
     pub linker: LinkerType,
     pub lib_location: Option<PathBuf>,
+    pub linker_script: LinkerScript,
+}
+
+#[derive(Clone, Default, Debug)]
+pub enum LinkerScript {
+    #[default]
+    Builtin,
+    Path(String),
+    None,
 }
 
 #[derive(Debug)]
@@ -176,6 +187,14 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
         error_format: compile_parameters.error_format,
         debug_level: compile_parameters.debug_level(),
         single_module: compile_parameters.single_module,
+        online_change: if compile_parameters.online_change {
+            OnlineChange::Enabled {
+                file_name: compile_parameters.got_layout_file.clone(),
+                format: compile_parameters.got_layout_format(),
+            }
+        } else {
+            OnlineChange::Disabled
+        },
     };
 
     let libraries =
@@ -189,12 +208,20 @@ pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
 
     library_paths.extend_from_slice(project.get_library_paths());
 
+    //Get the specified linker script or load the default linker script in a temp file
+    let linker_script = if compile_parameters.no_linker_script {
+        LinkerScript::None
+    } else {
+        compile_parameters.linker_script.clone().map(LinkerScript::Path).unwrap_or_default()
+    };
+
     let link_options = LinkOptions {
         libraries,
         library_paths,
         format: output_format,
         linker: compile_parameters.linker.as_deref().into(),
         lib_location,
+        linker_script,
     };
 
     Ok(CompilationContext { compile_parameters, project, diagnostician, compile_options, link_options })
@@ -205,6 +232,11 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
         compile_options;
     if let Some((options, _format)) = compile_parameters.get_config_options() {
         return print_config_options(&project, &diagnostician, options);
+    }
+
+    if compile_parameters.build_info {
+        println!("{}", option_env!("RUSTY_BUILD_INFO").unwrap_or("version information unavailable"));
+        std::process::exit(0);
     }
 
     if let Some(SubCommands::Explain { error }) = &compile_parameters.commands {
@@ -242,12 +274,19 @@ pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
             None,
         )?;
 
-    // 1 : Parse, 2. Index and 3. Resolve / Annotate
+    // 1. Parse, 2. Index and 3. Resolve / Annotate
     let annotated_project = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
         .index(ctxt.provider())
-        .annotate(ctxt.provider());
+        .annotate(ctxt.provider())
+        // 4. AST-lowering, re-index and re-resolve
+        .lower(ctxt.provider());
 
-    // 4 : Validate
+    if compile_parameters.output_ast {
+        println!("{:#?}", annotated_project.units);
+        return Ok(());
+    }
+
+    // 5. Validate
     annotated_project.validate(&ctxt, &mut diagnostician)?;
 
     if let Some((location, format)) =
@@ -317,7 +356,7 @@ pub fn parse_and_annotate<T: SourceContainer>(
 
     // Create an index, add builtins then resolve
     let provider = ctxt.provider();
-    Ok((ctxt, parsed.index(provider.clone()).annotate(provider)))
+    Ok((ctxt, parsed.index(provider.clone()).annotate(provider.clone())))
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls
@@ -356,15 +395,15 @@ fn generate(
     compile_options: &CompileOptions,
     linker_options: &LinkOptions,
     targets: Vec<Target>,
-    annotated_project: AnnotatedProject<PathBuf>,
+    resolved_project: AnnotatedProject<PathBuf>,
 ) -> Result<(), Diagnostic> {
-    let res = if compile_options.single_module {
+    let res = if compile_options.single_module || matches!(linker_options.format, FormatOption::Object) {
         log::info!("Using single module mode");
-        annotated_project.codegen_single_module(compile_options, &targets)?
+        resolved_project.codegen_single_module(compile_options, &targets)?
     } else {
-        annotated_project.codegen(compile_options, &targets)?
+        resolved_project.codegen(compile_options, &targets)?
     };
-    let project = annotated_project.get_project();
+    let project = resolved_project.get_project();
     let output_name = project.get_output_name();
     res.into_par_iter()
         .map(|res| {

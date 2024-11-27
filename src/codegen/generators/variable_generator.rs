@@ -2,14 +2,20 @@
 
 /// offers operations to generate global variables
 use crate::{
-    codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
+    codegen::{
+        const_expressions::{ConstExpression, UnresolvableKind},
+        debug::Debug,
+        llvm_index::LlvmTypedIndex,
+        llvm_typesystem::cast_if_needed,
+    },
     index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
+    OnlineChange,
 };
-
 use inkwell::{module::Module, values::GlobalValue};
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
+use section_mangler::SectionMangler;
 
 use super::{
     data_type_generator::get_default_for,
@@ -27,6 +33,7 @@ pub struct VariableGenerator<'ctx, 'b> {
     annotations: &'b AstAnnotations,
     types_index: &'b LlvmTypedIndex<'ctx>,
     debug: &'b mut DebugBuilderEnum<'ctx>,
+    online_change: &'b OnlineChange,
 }
 
 impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
@@ -37,8 +44,9 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         annotations: &'b AstAnnotations,
         types_index: &'b LlvmTypedIndex<'ctx>,
         debug: &'b mut DebugBuilderEnum<'ctx>,
+        online_change: &'b OnlineChange,
     ) -> Self {
-        VariableGenerator { module, llvm, global_index, annotations, types_index, debug }
+        VariableGenerator { module, llvm, global_index, annotations, types_index, debug, online_change }
     }
 
     pub fn generate_global_variables(
@@ -76,7 +84,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             }
         });
 
-        for (name, variable) in globals {
+        for (name, variable) in &globals {
             let linkage =
                 if !variable.is_in_unit(location) { LinkageType::External } else { variable.get_linkage() };
             let global_variable = self.generate_global_variable(variable, linkage).map_err(|err| {
@@ -127,7 +135,15 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         if linkage == LinkageType::External {
             global_ir_variable = global_ir_variable.make_external();
         } else {
-            let initial_value = if let Some(initializer) = self
+            let initial_value = if let Some(ConstExpression::Unresolvable {
+                reason: UnresolvableKind::Address { .. },
+                ..
+            }) = global_variable
+                .initial_value
+                .and_then(|it| self.global_index.get_const_expressions().find_const_expression(&it))
+            {
+                None
+            } else if let Some(initializer) = self
                 .global_index
                 .get_const_expressions()
                 .maybe_get_constant_statement(&global_variable.initial_value)
@@ -153,7 +169,6 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             } else {
                 None
             };
-
             let initial_value = initial_value
                 // 2nd try: find an associated default value for the declared type
                 .or_else(|| self.types_index.find_associated_initial_value(type_name))
@@ -171,16 +186,24 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             }
         }
 
-        let section = section_mangler::SectionMangler::variable(
-            global_variable.get_name(),
-            section_names::mangle_type(
-                self.global_index,
-                self.global_index.get_effective_type_by_name(global_variable.get_type_name())?,
-            )?,
-        )
-        .mangle();
+        let global_name = if global_variable.get_name().ends_with("instance") {
+            global_variable.get_name()
+        } else {
+            global_variable.get_qualified_name()
+        };
+        let global_name = global_name.to_lowercase();
 
-        global_ir_variable.set_section(Some(&section));
+        if self.online_change.is_enabled() {
+            let section = SectionMangler::variable(
+                global_name,
+                section_names::mangle_type(
+                    self.global_index,
+                    self.global_index.get_effective_type_by_name(global_variable.get_type_name())?,
+                )?,
+            )
+            .mangle();
+            global_ir_variable.set_section(Some(&section));
+        }
 
         Ok(global_ir_variable)
     }

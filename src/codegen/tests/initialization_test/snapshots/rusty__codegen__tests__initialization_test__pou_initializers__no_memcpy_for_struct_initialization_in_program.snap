@@ -2,17 +2,63 @@
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %prog = type { %__prog_a }
 %__prog_a = type { i16 }
 
-@prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r1r1i16"
-@____prog_a__init = unnamed_addr constant %__prog_a zeroinitializer, section "var-$RUSTY$____prog_a__init:r1i16"
+@prog_instance = global %prog zeroinitializer
+@____prog_a__init = unnamed_addr constant %__prog_a zeroinitializer
 
-define void @prog(%prog* %0) section "fn-$RUSTY$prog:v" {
+define void @prog(%prog* %0) {
 entry:
   %a = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%__prog_a = type { i16 }
+%prog = type { %__prog_a }
+
+@____prog_a__init = external global %__prog_a
+@prog_instance = external global %prog
+
+define void @__init___prog_a(%__prog_a* %0) {
+entry:
+  %self = alloca %__prog_a*, align 8
+  store %__prog_a* %0, %__prog_a** %self, align 8
+  ret void
+}
+
+define void @__init_prog(%prog* %0) {
+entry:
+  %self = alloca %prog*, align 8
+  store %prog* %0, %prog** %self, align 8
+  %deref = load %prog*, %prog** %self, align 8
+  %a = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+  call void @__init___prog_a(%__prog_a* %a)
+  ret void
+}
+
+declare void @prog(%prog*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%prog = type { %__prog_a }
+%__prog_a = type { i16 }
+
+@prog_instance = external global %prog
+@____prog_a__init = external global %__prog_a
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  call void @__init_prog(%prog* @prog_instance)
+  ret void
+}
+
+declare void @__init_prog(%prog*)
+
+declare void @prog(%prog*)

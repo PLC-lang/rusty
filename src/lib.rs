@@ -27,8 +27,6 @@ use std::path::{Path, PathBuf};
 use inkwell::targets::{self, TargetMachine, TargetTriple};
 
 #[cfg(test)]
-use resolver::TypeAnnotator;
-#[cfg(test)]
 use validation::Validator;
 
 pub mod builtins;
@@ -39,6 +37,7 @@ pub mod hardware_binding;
 pub mod index;
 pub mod lexer;
 pub mod linker;
+pub mod lowering;
 pub mod output;
 pub mod parser;
 pub mod resolver;
@@ -49,6 +48,7 @@ pub mod validation;
 extern crate shell_words;
 
 pub const DEFAULT_DWARF_VERSION: usize = 5;
+pub const DEFAULT_GOT_LAYOUT_FILE: &str = "online_change_got.json";
 
 #[derive(Serialize, Debug, Clone, PartialEq, Eq)]
 pub enum Target {
@@ -174,6 +174,18 @@ pub enum DebugLevel {
     None,
     VariablesOnly(usize),
     Full(usize),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum OnlineChange {
+    Enabled { file_name: String, format: ConfigFormat },
+    Disabled,
+}
+
+impl OnlineChange {
+    pub fn is_enabled(&self) -> bool {
+        matches!(self, OnlineChange::Enabled { .. })
+    }
 }
 
 impl From<OptimizationLevel> for inkwell::OptimizationLevel {

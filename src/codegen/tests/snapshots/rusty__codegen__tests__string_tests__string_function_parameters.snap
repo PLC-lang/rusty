@@ -2,16 +2,16 @@
 source: src/codegen/tests/string_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %prg = type { [11 x i8], [81 x i8] }
 
-@prg_instance = global %prg { [11 x i8] c"hello\00\00\00\00\00\00", [81 x i8] zeroinitializer }, section "var-$RUSTY$prg_instance:r2s8u11s8u81"
+@prg_instance = global %prg { [11 x i8] c"hello\00\00\00\00\00\00", [81 x i8] zeroinitializer }
 @__prg.s__init = unnamed_addr constant [11 x i8] c"hello\00\00\00\00\00\00"
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
-define i16 @foo(i8* %0) section "fn-$RUSTY$foo:i16[s8u81]" {
+define i16 @foo(i8* %0) {
 entry:
   %foo = alloca i16, align 2
   %s = alloca [81 x i8], align 1
@@ -27,7 +27,7 @@ buffer_block:                                     ; No predecessors!
   ret i16 %foo_ret1
 }
 
-define void @prg(%prg* %0) section "fn-$RUSTY$prg:v" {
+define void @prg(%prg* %0) {
 entry:
   %s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
@@ -53,3 +53,35 @@ declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noa
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
 attributes #1 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%prg = type { [11 x i8], [81 x i8] }
+
+@prg_instance = external global %prg
+
+define void @__init_prg(%prg* %0) {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  ret void
+}
+
+declare void @prg(%prg*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%prg = type { [11 x i8], [81 x i8] }
+
+@prg_instance = external global %prg
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  call void @__init_prg(%prg* @prg_instance)
+  ret void
+}
+
+declare void @__init_prg(%prg*)
+
+declare void @prg(%prg*)

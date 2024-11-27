@@ -2,26 +2,26 @@
 source: src/codegen/tests/debug_tests.rs
 expression: codegen
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
-@en3 = global i64 0, section "var-$RUSTY$en3:e3i64", !dbg !0
-@en1.a = unnamed_addr constant i32 0, section "var-$RUSTY$a:e3i32", !dbg !5
-@en1.b = unnamed_addr constant i32 1, section "var-$RUSTY$b:e3i32", !dbg !9
-@en1.c = unnamed_addr constant i32 2, section "var-$RUSTY$c:e3i32", !dbg !11
-@en2.d = unnamed_addr constant i8 0, section "var-$RUSTY$d:e3u8", !dbg !13
-@en2.e = unnamed_addr constant i8 1, section "var-$RUSTY$e:e3u8", !dbg !17
-@en2.f = unnamed_addr constant i8 2, section "var-$RUSTY$f:e3u8", !dbg !19
-@__global_en3.a = unnamed_addr constant i64 0, section "var-$RUSTY$a:e3i64", !dbg !21
-@__global_en3.b = unnamed_addr constant i64 1, section "var-$RUSTY$b:e3i64", !dbg !23
-@__global_en3.c = unnamed_addr constant i64 2, section "var-$RUSTY$c:e3i64", !dbg !25
+@en3 = global i64 0, !dbg !0
+@en1.a = unnamed_addr constant i32 0, !dbg !5
+@en1.b = unnamed_addr constant i32 1, !dbg !9
+@en1.c = unnamed_addr constant i32 2, !dbg !11
+@en2.d = unnamed_addr constant i8 0, !dbg !13
+@en2.e = unnamed_addr constant i8 1, !dbg !17
+@en2.f = unnamed_addr constant i8 2, !dbg !19
+@__global_en3.a = unnamed_addr constant i64 0, !dbg !21
+@__global_en3.b = unnamed_addr constant i64 1, !dbg !23
+@__global_en3.c = unnamed_addr constant i64 2, !dbg !25
 
 !llvm.module.flags = !{!27, !28}
 !llvm.dbg.cu = !{!29}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "en3", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "main", directory: "src")
+!2 = !DIFile(filename: "<internal>", directory: "")
 !3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__global_en3", scope: !2, file: !2, line: 5, baseType: !4, align: 64)
 !4 = !DIBasicType(name: "LINT", size: 64, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !5 = !DIGlobalVariableExpression(var: !6, expr: !DIExpression())
@@ -48,5 +48,6 @@ source_filename = "main"
 !26 = distinct !DIGlobalVariable(name: "__global_en3.c", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
 !27 = !{i32 2, !"Dwarf Version", i32 5}
 !28 = !{i32 2, !"Debug Info Version", i32 3}
-!29 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !30, splitDebugInlining: false)
-!30 = !{!0, !5, !9, !11, !13, !17, !19, !21, !23, !25}
+!29 = distinct !DICompileUnit(language: DW_LANG_C, file: !30, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !31, splitDebugInlining: false)
+!30 = !DIFile(filename: "<internal>", directory: "src")
+!31 = !{!0, !5, !9, !11, !13, !17, !19, !21, !23, !25}

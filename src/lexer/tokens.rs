@@ -19,6 +19,10 @@ pub enum Token {
     #[token("{ref}")]
     PropertyByRef,
 
+    #[token("@CONSTANT")]
+    #[token("{constant}")]
+    PropertyConstant,
+
     #[token("{sized}")]
     PropertySized,
 
@@ -45,6 +49,9 @@ pub enum Token {
 
     #[token("VAR", ignore(case))]
     KeywordVar,
+
+    #[token("VAR_CONFIG", ignore(case))]
+    KeywordVarConfig,
 
     #[token("ABSTRACT", ignore(case))]
     KeywordAbstract,
@@ -95,6 +102,9 @@ pub enum Token {
     #[token("VAR_IN_OUT", ignore(case))]
     #[token("VARINOUT", ignore(case))]
     KeywordVarInOut,
+
+    #[token("VAR_EXTERNAL", ignore(case))]
+    KeywordVarExternal,
 
     #[token("END_VAR", ignore(case))]
     #[token("ENDVAR", ignore(case))]
@@ -158,6 +168,9 @@ pub enum Token {
 
     #[token("=>")]
     KeywordOutputAssignment,
+
+    #[token("REF=", ignore(case))]
+    KeywordReferenceAssignment,
 
     #[token("(")]
     KeywordParensOpen,
@@ -251,6 +264,9 @@ pub enum Token {
     #[token("REF_TO", ignore(case))]
     #[token("REFTO", ignore(case))]
     KeywordRef,
+
+    #[token("REFERENCE TO", ignore(case))]
+    KeywordReferenceTo,
 
     #[token("ARRAY", ignore(case))]
     KeywordArray,

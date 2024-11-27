@@ -2,7 +2,7 @@
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
-@a = global [2 x [2 x i8]] [[2 x i8] c"\01\02", [2 x i8] c"\03\04"], section "var-$RUSTY$a:aau8"
+@a = global [2 x [2 x i8]] [[2 x i8] c"\01\02", [2 x i8] c"\03\04"]

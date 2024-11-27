@@ -11,7 +11,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{
-        const_expressions::{ConstExpression, ConstId, UnresolvableKind},
+        const_expressions::{ConstExpression, ConstId, InitData, UnresolvableKind},
         Index,
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
@@ -19,17 +19,21 @@ use crate::{
 
 /// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Debug)]
 pub struct UnresolvableConstant {
     pub id: ConstId,
-    pub reason: String,
+    pub kind: Option<UnresolvableKind>,
     //location
     //source-file
 }
 
 impl UnresolvableConstant {
     pub fn new(id: ConstId, reason: &str) -> Self {
-        UnresolvableConstant { id, reason: reason.to_string() }
+        UnresolvableConstant { id, kind: Some(UnresolvableKind::Misc(reason.into())) }
+    }
+
+    pub fn with_kind(self, kind: UnresolvableKind) -> Self {
+        UnresolvableConstant { id: self.id, kind: Some(kind) }
     }
 
     pub fn incomplete_initialzation(id: &ConstId) -> Self {
@@ -38,6 +42,10 @@ impl UnresolvableConstant {
 
     pub fn no_initial_value(id: &ConstId) -> Self {
         UnresolvableConstant::new(*id, "No initial value")
+    }
+
+    pub fn get_reason(&self) -> Option<&str> {
+        self.kind.as_ref().map(|it| it.get_reason())
     }
 }
 
@@ -82,6 +90,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     const_expr.get_qualifier(),
                     &index,
                     target_type,
+                    const_expr.get_lhs(),
                 );
 
                 match (initial_value_literal, &candidates_type) {
@@ -130,7 +139,9 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     // there was an error during evaluation
                     (Err(kind), _) => {
                         //error during resolving
-                        unresolvable.push(UnresolvableConstant::new(candidate, kind.get_reason()));
+                        unresolvable.push(
+                            UnresolvableConstant::new(candidate, kind.get_reason()).with_kind(kind.clone()),
+                        );
                         index
                             .get_mut_const_expressions()
                             .mark_unresolvable(&candidate, kind)
@@ -311,7 +322,7 @@ pub fn evaluate(
     scope: Option<&str>,
     index: &Index,
 ) -> Result<Option<AstNode>, UnresolvableKind> {
-    evaluate_with_target_hint(initial, scope, index, None)
+    evaluate_with_target_hint(initial, scope, index, None, None)
 }
 
 /// evaluates the given Syntax-Tree `initial` to a `LiteralValue` if possible
@@ -327,11 +338,11 @@ fn evaluate_with_target_hint(
     scope: Option<&str>,
     index: &Index,
     target_type: Option<&str>,
+    lhs: Option<&str>,
 ) -> Result<Option<AstNode>, UnresolvableKind> {
     if !needs_evaluation(initial) {
         return Ok(Some(initial.clone())); // TODO hmm ...
     }
-
     let (id, location) = (initial.get_id(), initial.get_location());
     let literal = match initial.get_stmt() {
         AstStatement::Literal(kind) => match kind {
@@ -343,7 +354,7 @@ fn evaluate_with_target_hint(
 
                 let inner_elements = AstNode::get_as_list(elements)
                     .iter()
-                    .map(|e| evaluate_with_target_hint(e, scope, index, tt))
+                    .map(|e| evaluate_with_target_hint(e, scope, index, tt, lhs))
                     .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()?
                     .into_iter()
                     .collect::<Option<Vec<AstNode>>>();
@@ -401,14 +412,16 @@ fn evaluate_with_target_hint(
                                     "Cannot resolve constant enum {enum_name}#{ref_name}."
                                 ))
                             })
-                            .and_then(|v| resolve_const_reference(v, ref_name, index));
+                            .and_then(|v| {
+                                resolve_const_reference(v, ref_name, index, target_type, scope, lhs)
+                            });
                     } else {
                         return Err(UnresolvableKind::Misc("Cannot resolve unknown constant.".to_string()));
                     }
                 }
                 Some(dti) => {
-                    evaluate_with_target_hint(target, scope, index, Some(dti.get_name()))?;
-                    Some(get_cast_statement_literal(target, dti.get_name(), scope, index)?)
+                    evaluate_with_target_hint(target, scope, index, Some(dti.get_name()), lhs)?;
+                    Some(get_cast_statement_literal(target, dti.get_name(), scope, index, lhs)?)
                 }
                 None => return Err(UnresolvableKind::Misc("Cannot resolve unknown Type-Cast.".to_string())),
             }
@@ -420,7 +433,7 @@ fn evaluate_with_target_hint(
                         base.as_ref().and_then(|it| it.get_flat_reference_name()).or(scope),
                         std::slice::from_ref(&name),
                     )
-                    .map(|variable| resolve_const_reference(variable, name, index))
+                    .map(|variable| resolve_const_reference(variable, name, index, target_type, scope, lhs))
                     .transpose()?
                     .flatten()
             } else {
@@ -462,7 +475,7 @@ fn evaluate_with_target_hint(
                 };
 
                 // We have to re-evaluate to detect overflows
-                evaluate_with_target_hint(&evalualted, scope, index, target_type)?
+                evaluate_with_target_hint(&evalualted, scope, index, target_type, lhs)?
             } else {
                 None //not all operators can be resolved
             }
@@ -476,7 +489,7 @@ fn evaluate_with_target_hint(
                     Some(AstFactory::create_literal(AstLiteral::Bool(!v), location.clone(), *id))
                 }
                 Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location }) => {
-                    evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type)?;
+                    evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type, lhs)?;
                     Some(AstFactory::create_literal(AstLiteral::Integer(!v), location.clone(), *id))
                 }
                 None => {
@@ -501,7 +514,7 @@ fn evaluate_with_target_hint(
                         id,
                         location,
                     );
-                    evaluate_with_target_hint(&lit, scope, index, target_type)?
+                    evaluate_with_target_hint(&lit, scope, index, target_type, lhs)?
                 }
                 None => {
                     None //not yet resolvable
@@ -555,7 +568,24 @@ fn evaluate_with_target_hint(
             let end = evaluate(&data.end, scope, index)?.unwrap_or_else(|| *data.end.to_owned());
             Some(AstFactory::create_range_statement(start, end, id))
         }
-        AstStatement::ParenExpression(expr) => evaluate_with_target_hint(expr, scope, index, target_type)?,
+        AstStatement::ParenExpression(expr) => {
+            evaluate_with_target_hint(expr, scope, index, target_type, lhs)?
+        }
+        AstStatement::CallStatement(plc_ast::ast::CallStatement { operator, .. }) => {
+            if let Some(pou) = operator.as_ref().get_flat_reference_name().and_then(|it| index.find_pou(it)) {
+                if !(pou.is_constant() && index.get_builtin_function(pou.get_name()).is_some()) {
+                    return Err(UnresolvableKind::Misc(format!(
+                        "Call-statement '{}' in initializer is not constant.",
+                        pou.get_name()
+                    )));
+                }
+            } else {
+                // POU not found
+                return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {:#?}", initial)));
+            };
+
+            return Err(UnresolvableKind::Address(InitData::new(Some(initial), target_type, scope, lhs)));
+        }
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),
     };
     Ok(literal)
@@ -568,9 +598,18 @@ fn resolve_const_reference(
     variable: &crate::index::VariableIndexEntry,
     name: &str,
     index: &Index,
+    target_type: Option<&str>,
+    scope: Option<&str>,
+    lhs: Option<&str>,
 ) -> Result<Option<AstNode>, UnresolvableKind> {
     if !variable.is_constant() {
-        return Err(UnresolvableKind::Misc(format!("`{name}` is no const reference")));
+        if !target_type
+            .is_some_and(|it| index.find_effective_type_by_name(it).is_some_and(|it| it.is_pointer()))
+        {
+            return Err(UnresolvableKind::Misc(format!("`{name}` is no const reference")));
+        } else {
+            return Err(UnresolvableKind::Address(InitData::new(None, target_type, scope, lhs)));
+        }
     }
 
     if let Some(ConstExpression::Resolved(statement)) =
@@ -590,20 +629,22 @@ fn get_cast_statement_literal(
     type_name: &str,
     scope: Option<&str>,
     index: &Index,
+    lhs: Option<&str>,
 ) -> Result<AstNode, UnresolvableKind> {
     let dti = index.find_effective_type_info(type_name);
     match dti {
         Some(&DataTypeInformation::Integer { .. }) => {
-            let evaluated_initial = evaluate_with_target_hint(cast_statement, scope, index, Some(type_name))?
-                .as_ref()
-                .map(|v| {
-                    if let AstStatement::Literal(AstLiteral::Integer(value)) = v.get_stmt() {
-                        Ok(*value)
-                    } else {
-                        Err(UnresolvableKind::Misc(format!("Expected integer value, found {v:?}")))
-                    }
-                })
-                .transpose()?;
+            let evaluated_initial =
+                evaluate_with_target_hint(cast_statement, scope, index, Some(type_name), lhs)?
+                    .as_ref()
+                    .map(|v| {
+                        if let AstStatement::Literal(AstLiteral::Integer(value)) = v.get_stmt() {
+                            Ok(*value)
+                        } else {
+                            Err(UnresolvableKind::Misc(format!("Expected integer value, found {v:?}")))
+                        }
+                    })
+                    .transpose()?;
 
             if let Some(value) = evaluated_initial {
                 return Ok(AstNode::new(

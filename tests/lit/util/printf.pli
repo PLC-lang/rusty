@@ -1,0 +1,9 @@
+{external}
+FUNCTION printf: DINT
+VAR_INPUT {ref}
+	str : STRING;
+END_VAR
+VAR_INPUT
+	args: ...;
+END_VAR
+END_FUNCTION

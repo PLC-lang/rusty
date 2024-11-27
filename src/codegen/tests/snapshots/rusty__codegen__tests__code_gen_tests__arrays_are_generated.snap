@@ -2,8 +2,8 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
-@x = global [10 x i16] zeroinitializer, section "var-$RUSTY$x:ai16"
-@y = global [6 x float] zeroinitializer, section "var-$RUSTY$y:af32"
+@x = global [10 x i16] zeroinitializer
+@y = global [6 x float] zeroinitializer
