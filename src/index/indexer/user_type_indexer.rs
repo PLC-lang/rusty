@@ -79,9 +79,9 @@ impl AstVisitor for UserTypeIndexer<'_, '_> {
             DataType::StringType { name: Some(name), is_wide, size } => {
                 self.index_string_type(name.as_ref(), *is_wide, size.as_ref())
             }
-            // DataType::VarArgs { referenced_type, sized } => {
-            //     inner_indexer.index_var_args(referenced_type, sized)
-            // }
+            DataType::VarArgs { .. } => {
+                // do nothing
+            }
             DataType::GenericType { name, generic_symbol, nature } => {
                 self.index_generic_type(name, generic_symbol, nature)
             }

@@ -17,7 +17,6 @@ mod user_type_indexer;
 /// Indexes all symbols found in the given Compiliation Unit
 /// and returns the resulting Index
 pub fn index(unit: &CompilationUnit) -> Index {
-    // let mut index = Index::default();
     let mut indexer = SymbolIndexer::default();
     unit.walk(&mut indexer);
     indexer.index
