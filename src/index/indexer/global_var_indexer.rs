@@ -19,6 +19,7 @@ impl VarGlobalIndexer<'_> {
             var.initializer.clone(),
             target_type,
             None,
+            Some(var.get_name().into()),
         );
         let variable = VariableIndexEntry::create_global(
             &var.name,

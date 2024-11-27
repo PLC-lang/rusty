@@ -58,4 +58,8 @@ impl AstVisitor for SymbolIndexer {
     fn visit_implementation(&mut self, implementation: &Implementation) {
         ImplementationIndexer::new(&mut self.index).index_implementation(implementation);
     }
+
+    fn visit_config_variable(&mut self, config_variable: &plc_ast::ast::ConfigVariable) {
+        self.index.config_variables.push(config_variable.clone());
+    }
 }

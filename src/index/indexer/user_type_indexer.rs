@@ -1,7 +1,8 @@
 use plc_ast::{
     ast::{
         flatten_expression_list, get_enum_element_name, Assignment, AstFactory, AstNode, AstStatement,
-        DataType, DataTypeDeclaration, RangeStatement, TypeNature, UserTypeDeclaration, Variable,
+        AutoDerefType, DataType, DataTypeDeclaration, RangeStatement, TypeNature, UserTypeDeclaration,
+        Variable,
     },
     literals::AstLiteral,
     visitor::{AstVisitor, Walker},
@@ -34,7 +35,8 @@ impl<'i, 't> UserTypeIndexer<'i, 't> {
 
     fn collect_initializer(&mut self, i: AstNode, target_type_name: String) -> ConstId {
         let scope = self.current_scope();
-        let init = self.index.get_mut_const_expressions().add_constant_expression(i, target_type_name, scope);
+        let init =
+            self.index.get_mut_const_expressions().add_constant_expression(i, target_type_name, scope, None);
         init
     }
 }
@@ -45,6 +47,7 @@ impl AstVisitor for UserTypeIndexer<'_, '_> {
         user_type.data_type.walk(self);
         if let Some(init_index) = user_type.initializer.clone().map(|i| {
             self.collect_initializer(i, user_type.data_type.get_name().map(|s| s.to_string()).unwrap())
+            // XXX(mihr): is unwrapping fine here?
         }) {
             //TODO: without field?
             self.pending_initializer = Some(init_index);
@@ -70,7 +73,9 @@ impl AstVisitor for UserTypeIndexer<'_, '_> {
             DataType::ArrayType { name: Some(name), bounds, referenced_type, is_variable_length: true } => {
                 self.index_vla_array(name, bounds, referenced_type)
             }
-            DataType::PointerType { name, referenced_type } => self.index_pointer_type(name, referenced_type),
+            DataType::PointerType { name, referenced_type, auto_deref } => {
+                self.index_pointer_type(name, referenced_type, *auto_deref)
+            }
             DataType::StringType { name: Some(name), is_wide, size } => {
                 self.index_string_type(name.as_ref(), *is_wide, size.as_ref())
             }
@@ -112,11 +117,11 @@ impl UserTypeIndexer<'_, '_> {
                 (
                     DataTypeDeclaration::DataTypeReference {
                         referenced_type: member_array_name,
-                        location: SourceLocation::undefined(),
+                        location: SourceLocation::internal(),
                     },
                     DataTypeDeclaration::DataTypeReference {
                         referenced_type: member_dimensions_name,
-                        location: SourceLocation::undefined(),
+                        location: SourceLocation::internal(),
                     },
                 )
             } else {
@@ -146,10 +151,11 @@ impl UserTypeIndexer<'_, '_> {
                             name: Some(member_array_name),
                             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                                 referenced_type: dummy_array_name,
-                                location: SourceLocation::undefined(),
+                                location: SourceLocation::internal(),
                             }),
+                            auto_deref: None,
                         },
-                        location: SourceLocation::undefined(),
+                        location: SourceLocation::internal(),
                         scope: None,
                     },
                     DataTypeDeclaration::DataTypeDefinition {
@@ -163,12 +169,12 @@ impl UserTypeIndexer<'_, '_> {
                                                 AstNode::new_literal(
                                                     AstLiteral::new_integer(0),
                                                     0,
-                                                    SourceLocation::undefined(),
+                                                    SourceLocation::internal(),
                                                 ),
                                                 AstNode::new_literal(
                                                     AstLiteral::new_integer(1),
                                                     0,
-                                                    SourceLocation::undefined(),
+                                                    SourceLocation::internal(),
                                                 ),
                                                 0,
                                             )
@@ -176,15 +182,15 @@ impl UserTypeIndexer<'_, '_> {
                                         .collect::<_>(),
                                 ),
                                 0,
-                                SourceLocation::undefined(),
+                                SourceLocation::internal(),
                             ),
                             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                                 referenced_type: DINT_TYPE.to_string(),
-                                location: SourceLocation::undefined(),
+                                location: SourceLocation::internal(),
                             }),
                             is_variable_length: false,
                         },
-                        location: SourceLocation::undefined(),
+                        location: SourceLocation::internal(),
                         scope: None,
                     },
                 )
@@ -198,7 +204,7 @@ impl UserTypeIndexer<'_, '_> {
                 data_type_declaration: vla_arr_type_declaration,
                 initializer: None,
                 address: None,
-                location: SourceLocation::undefined(),
+                location: SourceLocation::internal(),
             },
             // Dimensions Array
             Variable {
@@ -206,7 +212,7 @@ impl UserTypeIndexer<'_, '_> {
                 data_type_declaration: dim_arr_type_declaration,
                 initializer: None,
                 address: None,
-                location: SourceLocation::undefined(),
+                location: SourceLocation::internal(),
             },
         ];
 
@@ -233,11 +239,13 @@ impl UserTypeIndexer<'_, '_> {
                             *start.clone(),
                             typesystem::DINT_TYPE.to_string(),
                             scope.clone(),
+                            None,
                         )),
                         end_offset: TypeSize::from_expression(constants.add_constant_expression(
                             *end.clone(),
                             typesystem::DINT_TYPE.to_string(),
                             scope.clone(),
+                            None,
                         )),
                     })
                 }
@@ -265,12 +273,12 @@ impl UserTypeIndexer<'_, '_> {
 
         // TODO unfortunately we cannot share const-expressions between multiple
         // index-entries
-        let init2 = self
+        let init = self
             .user_type
             .initializer
             .as_ref()
             .map(|i| self.collect_initializer(i.clone(), name.to_string()));
-        if init2.is_some() {
+        if init.is_some() {
             let variable = VariableIndexEntry::create_global(
                 global_init_name.as_str(),
                 global_init_name.as_str(),
@@ -278,7 +286,7 @@ impl UserTypeIndexer<'_, '_> {
                 self.user_type.location.clone(),
             )
             .set_constant(true)
-            .set_initial_value(init2);
+            .set_initial_value(init);
             self.index.register_global_initializer(&global_init_name, variable);
         }
     }
@@ -294,6 +302,7 @@ impl UserTypeIndexer<'_, '_> {
                     right.as_ref().clone(),
                     numeric_type.to_string(),
                     scope,
+                    None,
                 );
 
                 variants.push(self.index.register_enum_variant(
@@ -374,6 +383,7 @@ impl UserTypeIndexer<'_, '_> {
                     len_plus_1,
                     DINT_TYPE.to_string(),
                     scope,
+                    None,
                 ))
             }
             None => TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
@@ -401,13 +411,18 @@ impl UserTypeIndexer<'_, '_> {
         }
     }
 
-    fn index_pointer_type(&mut self, name: &Option<String>, referenced_type: &DataTypeDeclaration) {
+    fn index_pointer_type(
+        &mut self,
+        name: &Option<String>,
+        referenced_type: &DataTypeDeclaration,
+        auto_deref: Option<AutoDerefType>,
+    ) {
         let inner_type_name = referenced_type.get_name().expect("named datatype");
         let name = name.as_deref().unwrap();
         let information = DataTypeInformation::Pointer {
             name: name.to_string(),
             inner_type_name: inner_type_name.into(),
-            auto_deref: false,
+            auto_deref,
         };
 
         self.index.register_type(typesystem::DataType {
@@ -433,6 +448,7 @@ impl UserTypeIndexer<'_, '_> {
                     var.initializer.clone(),
                     member_type,
                     scope.clone(),
+                    None,
                 );
 
                 let binding = var
@@ -447,6 +463,7 @@ impl UserTypeIndexer<'_, '_> {
                         variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
                         variable_type_name: member_type,
                         is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+                        is_var_external: false, // see above
                         binding,
                         varargs: None,
                     },

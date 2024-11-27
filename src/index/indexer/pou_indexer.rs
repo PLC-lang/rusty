@@ -36,7 +36,8 @@ impl<'i> PouIndexer<'i> {
                     variable_name: pou.get_return_name(),
                     variable_linkage: ArgumentType::ByVal(VariableType::Return),
                     variable_type_name: return_type_name,
-                    is_constant: false, //return variables are not constants
+                    is_constant: false,     //return variables are not constants
+                    is_var_external: false, // see above
                     binding: None,
                     varargs: None,
                 },
@@ -70,7 +71,7 @@ impl<'i> PouIndexer<'i> {
             PouType::Class => {
                 self.index_class(pou, pou_struct_type);
             }
-            PouType::Function => {
+            PouType::Function | PouType::Init | PouType::ProjectInit => {
                 self.index_function(pou, return_type_name, member_varargs, pou_struct_type);
             }
             PouType::Method { owner_class } => {
@@ -119,6 +120,7 @@ impl<'i> PouIndexer<'i> {
             pou.linkage,
             member_varargs.is_some(),
             pou.name_location.clone(),
+            pou.is_const,
         ));
         self.index.register_pou_type(pou_struct_type);
     }
@@ -132,7 +134,8 @@ impl<'i> PouIndexer<'i> {
             &pou.name,
             pou.name_location.clone(),
         )
-        .set_constant(true);
+        .set_constant(true)
+        .set_linkage(pou.linkage);
         self.index.register_global_initializer(&global_struct_name, variable);
         self.index.register_pou(PouIndexEntry::create_class_entry(
             &pou.name,
@@ -152,7 +155,8 @@ impl<'i> PouIndexer<'i> {
             &pou.name,
             pou.name_location.clone(),
         )
-        .set_constant(true);
+        .set_constant(true)
+        .set_linkage(pou.linkage);
         self.index.register_global_initializer(&global_struct_name, variable);
         self.index.register_pou(PouIndexEntry::create_function_block_entry(
             &pou.name,
@@ -190,7 +194,7 @@ impl<'i> PouIndexer<'i> {
                 };
 
                 if varargs.is_some() {
-                    member_varargs = varargs.clone();
+                    member_varargs.clone_from(&varargs);
                 }
 
                 let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
@@ -205,6 +209,7 @@ impl<'i> PouIndexer<'i> {
                     var.initializer.clone(),
                     type_name.as_str(),
                     Some(pou.name.clone()),
+                    Some(var.get_name().to_string()),
                 );
 
                 let binding = var
@@ -219,6 +224,7 @@ impl<'i> PouIndexer<'i> {
                         variable_linkage: block_type,
                         variable_type_name: &type_name,
                         is_constant: block.constant,
+                        is_var_external: matches!(block.variable_block_type, VariableBlockType::External),
                         binding,
                         varargs,
                     },
@@ -260,6 +266,7 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
         VariableBlockType::Output => VariableType::Output,
         VariableBlockType::Global => VariableType::Global,
         VariableBlockType::InOut => VariableType::InOut,
+        VariableBlockType::External => VariableType::External,
     }
 }
 
@@ -277,7 +284,7 @@ fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
             information: DataTypeInformation::Pointer {
                 name: type_name.clone(),
                 inner_type_name: inner_type_name.to_string(),
-                auto_deref: true,
+                auto_deref: Some(plc_ast::ast::AutoDerefType::Default),
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),
