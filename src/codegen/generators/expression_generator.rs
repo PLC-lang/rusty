@@ -553,9 +553,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_qualified_name(operator)
             .expect("Shouldn't have got this far without a name for the function");
         let function_type = function.get_type();
-        let call = self
-            .generate_got_call(qualified_name, &function_type, &arguments_list)?
-            .unwrap_or_else(|| self.llvm.builder.build_call(function, &arguments_list, "call"));
+        println!("Generating call for {implementation_name}");
+        let call =
+            self.generate_got_call(implementation_name, &function_type, &arguments_list)?.unwrap_or_else(|| {
+                println!("Using default implementation for {implementation_name}");
+                self.llvm.builder.build_call(function, &arguments_list, "call")
+            });
 
         // if the target is a function, declare the struct locally
         // assign all parameters into the struct values
