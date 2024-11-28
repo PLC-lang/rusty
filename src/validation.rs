@@ -125,7 +125,7 @@ impl<'a> Validators for Validator<'a> {
 }
 
 impl<'a> Validator<'a> {
-    pub fn new(context: &'a GlobalContext) -> Validator {
+    pub fn new(context: &'a GlobalContext) -> Validator<'a> {
         Validator {
             context,
             diagnostics: Vec::new(),

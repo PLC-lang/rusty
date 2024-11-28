@@ -47,7 +47,6 @@ pub struct Pou {
     pub is_const: bool,
 }
 
-// XXX: Nice to have, at some point in the future: generics and default implementations
 #[derive(Debug, PartialEq)]
 pub struct Interface {
     pub name: String,
@@ -278,7 +277,7 @@ pub enum PouType {
     Action,
     Class,
     Method {
-        /// The parent of this method, i.e. either a function block / class or an interface
+        /// The parent of this method, i.e. a function block, class or an interface
         parent: String,
     },
     Init,

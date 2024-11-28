@@ -5,6 +5,7 @@ use super::{
     statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
 };
 use crate::{index::PouIndexEntry, resolver::AnnotationMap};
+use std::collections::HashMap;
 
 pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
     if pou.linkage != LinkageType::External {
@@ -17,14 +18,11 @@ pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context
     }
 }
 
-// TODO: a method or property can be defined by multiple implemented interfaces, as long as the signature is the same
-//       -> an error is shown when a method or property is declared in multiple interfaces of a function block, when the signature does not match
-// TODO: Check that the interface is only implemented once
-// TODO: Go over all new diagnostics and make sure they have correct (new?) error codes with a nice to read markdown file
 fn validate_interface_impl<T>(validator: &mut Validator, ctxt: &ValidationContext<'_, T>, pou: &Pou)
 where
     T: AnnotationMap,
 {
+    // No interfaces declared to implement
     if pou.interfaces.is_empty() {
         return;
     }
@@ -39,47 +37,91 @@ where
         };
 
         validator.push_diagnostic(
-            Diagnostic::new("Interfaces can only be implemented by either classes or function blocks")
-                .with_error_code("E001")
+            Diagnostic::new("Interfaces can only be implemented by classes or function blocks")
+                .with_error_code("E110")
                 .with_location(location),
         );
     }
 
-    // Check if the declared interfaces exist, i.e. the comma seperated interfaces after `[...] IMPLEMENTS`
+    // Check if the declared interfaces exist, i.e. the comma seperated identifiers after `[...] IMPLEMENTS`
     let mut interfaces = Vec::new();
     for declaration in &pou.interfaces {
         match ctxt.index.find_interface(&declaration.name) {
-            Some(interface) => interfaces.push(interface),
+            Some(interface) => {
+                interfaces.push(interface);
+            }
 
             None => {
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Interface `{}` does not exist", declaration.name))
-                        .with_error_code("E001")
+                        .with_error_code("E048")
                         .with_location(&declaration.location),
                 );
             }
         }
     }
 
-    // Check if the POUs are implementing interfaces methods
-    let methods_interface = interfaces.iter().flat_map(|it| it.get_methods(ctxt.index)).collect::<Vec<_>>();
+    // We want to check if two or more interface methods with the same name also have the same signature
+    let interface_methods = interfaces.iter().flat_map(|it| it.get_methods(ctxt.index)).collect::<Vec<_>>();
+    let mut occurrences: HashMap<&str, Vec<&PouIndexEntry>> = HashMap::new();
+    for method in &interface_methods {
+        // XXX(volsa): Not entirely happy with this `split` call, is there a better approach?
+        let name = method.get_name().rsplit_once('.').map(|(_, last)| last).unwrap_or(method.get_name());
+        occurrences.entry(name).and_modify(|entries| entries.push(method)).or_insert(vec![method]);
+    }
 
-    for method_interface in &methods_interface {
-        // TODO(volsa): Find a better approach for this. Maybe refactor Pou and PouIndexEntry to have both
-        //              a name and qualified_name field?
+    let mut abort = false;
+    for (name, methods) in occurrences.iter().filter(|(_, methods)| methods.len() > 1) {
+        for method in methods.windows(2) {
+            let (method_ref, method_impl) = (method[0], method[1]);
+            let diagnostics = validate_method_signature(ctxt, method_ref, method_impl);
+
+            if !diagnostics.is_empty() {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Method `{}` is defined with different signatures in interfaces `{}` and `{}`",
+                        name,
+                        method_ref.get_parent_pou_name_or_self(),
+                        method_impl.get_parent_pou_name_or_self()
+                    ))
+                    .with_error_code("E111")
+                    .with_location(method_ref.get_location())
+                    .with_secondary_location(method_impl.get_location())
+                    .with_sub_diagnostics(diagnostics),
+                );
+
+                abort = true;
+            }
+        }
+    }
+
+    // We want to early return here otherwise we could spam the user with lots of (valid) but identical
+    // diagnostics reported earlier.
+    if abort {
+        return;
+    }
+
+    // Check if the POUs are implementing the interface methods
+    for method_interface in &interface_methods {
+        // XXX(volsa): Not entirely happy with this `split` call, is there a better approach?
         let (_, method_name) = method_interface.get_name().split_once('.').unwrap();
 
         match ctxt.index.find_method(&pou.name, method_name) {
             Some(method_pou) => {
-                validate_method_signature(validator, ctxt, method_pou, method_interface);
+                let diagnostics = validate_method_signature(ctxt, method_interface, method_pou);
+
+                for diagnostic in diagnostics {
+                    validator.push_diagnostic(diagnostic);
+                }
             }
+
             None => {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "Method implementation of `{}` missing in POU `{}`",
                         method_name, pou.name
                     ))
-                    .with_error_code("E002")
+                    .with_error_code("E112")
                     .with_location(&pou.name_location)
                     .with_secondary_location(method_interface.get_location()),
                 );
@@ -89,95 +131,98 @@ where
 }
 
 pub fn validate_method_signature<T>(
-    validator: &mut Validator,
     ctxt: &ValidationContext<'_, T>,
-    method_pou: &PouIndexEntry,
-    method_interface: &PouIndexEntry,
-) where
+    method_ref: &PouIndexEntry,
+    method_impl: &PouIndexEntry,
+) -> Vec<Diagnostic>
+where
     T: AnnotationMap,
 {
-    // Check if the return type matches
-    let return_type_pou = ctxt.index.get_return_type_or_void(method_pou.get_name());
-    let return_type_interface = ctxt.index.get_return_type_or_void(method_interface.get_name());
+    let mut diagnostics = Vec::new();
 
-    if return_type_pou != return_type_interface {
-        validator.push_diagnostic(
+    // Check if the return type matches
+    let return_type_ref = ctxt.index.get_return_type_or_void(method_ref.get_name());
+    let return_type_impl = ctxt.index.get_return_type_or_void(method_impl.get_name());
+
+    if return_type_impl != return_type_ref {
+        diagnostics.push(
             Diagnostic::new(format!(
-                "Return type of method `{}` does not match the return type of the interface method, expected `{}` but got `{}` instead",
-                method_pou.get_name(), return_type_interface.get_name(), return_type_pou.get_name()
+                "Return type of `{}` does not match the return type of the method defined in `{}`, expected `{}` but got `{}` instead",
+                method_impl.get_name(),
+                method_ref.get_parent_pou_name_or_self(),
+                return_type_ref.get_name(),
+                return_type_impl.get_name(),
             ))
-            .with_error_code("E001")
-            .with_location(method_pou.get_location())
-            .with_secondary_location(method_interface.get_location()),
+            .with_error_code("E112")
+            .with_location(method_impl.get_location())
+            .with_secondary_location(method_ref.get_location()),
         );
     }
 
     // Check if the parameters match; note that the order of the parameters is important due to implicit calls
-    let parameters_pou = ctxt.index.get_declared_parameters(method_pou.get_name());
-    let parameters_interface = ctxt.index.get_declared_parameters(method_interface.get_name());
+    let parameters_ref = ctxt.index.get_declared_parameters(method_ref.get_name());
+    let parameters_impl = ctxt.index.get_declared_parameters(method_impl.get_name());
 
-    dbg!(&parameters_pou, &parameters_interface);
-
-    for (idx, parameter_interface) in parameters_interface.iter().enumerate() {
-        match parameters_pou.get(idx) {
-            Some(parameter_pou) => {
+    for (idx, parameter_ref) in parameters_ref.iter().enumerate() {
+        match parameters_impl.get(idx) {
+            Some(parameter_impl) => {
                 // Name
-                if parameter_pou.get_name() != parameter_interface.get_name() {
-                    validator.push_diagnostic(
-                        // TODO: be more explicit in error message as to why the order is important (implicit calls)
+                if parameter_impl.get_name() != parameter_ref.get_name() {
+                    diagnostics.push(
                         Diagnostic::new(format!(
                             "Expected parameter `{}` but got `{}`",
-                            parameter_interface.get_name(),
-                            parameter_pou.get_name()
+                            parameter_ref.get_name(),
+                            parameter_impl.get_name()
                         ))
-                        .with_error_code("E001")
-                        .with_location(&parameter_interface.source_location)
-                        .with_secondary_location(&parameter_pou.source_location),
+                        .with_error_code("E112")
+                        .with_location(&parameter_ref.source_location)
+                        .with_secondary_location(&parameter_impl.source_location),
                     );
                 }
 
                 // Type
-                if parameter_pou.get_type_name() != parameter_interface.get_type_name() {
-                    validator.push_diagnostic(
+                if parameter_impl.get_type_name() != parameter_ref.get_type_name() {
+                    diagnostics.push(
                         Diagnostic::new(format!(
-                            "Expected parameter `{}` to have type `{}` but got `{}` instead",
-                            parameter_pou.get_name(),
-                            parameter_pou.get_type_name(),
-                            parameter_interface.get_type_name(),
+                            "Expected parameter `{}` to have `{}` as its type but got `{}`",
+                            parameter_ref.get_name(),
+                            parameter_ref.get_type_name(),
+                            parameter_impl.get_type_name(),
                         ))
-                        .with_error_code("E001")
-                        .with_location(method_pou.get_location())
-                        .with_secondary_location(&parameter_interface.source_location),
+                        .with_error_code("E112")
+                        .with_location(method_impl.get_location())
+                        .with_secondary_location(&parameter_ref.source_location),
                     );
                 }
 
                 // Declaration Type (VAR_INPUT, VAR_OUTPUT, VAR_IN_OUT)
-                if parameter_pou.get_declaration_type() != parameter_interface.get_declaration_type() {
-                    validator.push_diagnostic(
+                if parameter_impl.get_declaration_type() != parameter_ref.get_declaration_type() {
+                    diagnostics.push(
                         Diagnostic::new(format!(
-                            "Expected parameter `{}` to have declaration type `{}` but got `{}` instead",
-                            parameter_pou.get_name(),
-                            parameter_interface.get_declaration_type().get_inner(),
-                            parameter_pou.get_declaration_type().get_inner(),
+                            "Expected parameter `{}` to have `{}` as its declaration type but got `{}`",
+                            parameter_impl.get_name(),
+                            parameter_ref.get_declaration_type().get_inner(),
+                            parameter_impl.get_declaration_type().get_inner(),
                         ))
-                        .with_error_code("E001")
-                        .with_location(method_pou.get_location())
-                        .with_secondary_location(&parameter_interface.source_location),
+                        .with_error_code("E112")
+                        .with_location(method_impl.get_location())
+                        .with_secondary_location(&parameter_ref.source_location),
                     );
                 }
             }
 
             // Method did not implement the parameter
             None => {
-                validator.push_diagnostic(
+                diagnostics.push(
                     Diagnostic::new(format!(
-                        "Parameter `{}` missing in method `{}`",
-                        parameter_interface.get_name(),
-                        method_pou.get_name()
+                        "Parameter `{} : {}` missing in method `{}`",
+                        parameter_ref.get_name(),
+                        parameter_ref.get_type_name(),
+                        method_impl.get_name()
                     ))
-                    .with_error_code("E001")
-                    .with_location(method_pou.get_location())
-                    .with_secondary_location(&parameter_interface.source_location),
+                    .with_error_code("E112")
+                    .with_location(method_impl.get_location())
+                    .with_secondary_location(&parameter_ref.source_location),
                 );
             }
         }
@@ -186,19 +231,23 @@ pub fn validate_method_signature<T>(
     // Exceeding parameters in the POU, which we did not catch in the for loop above because we were only
     // iterating over the interface parameters; anyhow any exceeding parameter is considered an error because
     // the function signature no longer holds
-    if parameters_pou.len() > parameters_interface.len() {
-        for parameter in parameters_pou.into_iter().skip(parameters_interface.len()) {
-            validator.push_diagnostic(
+    if parameters_impl.len() > parameters_ref.len() {
+        for parameter in parameters_impl.into_iter().skip(parameters_ref.len()) {
+            diagnostics.push(
                 Diagnostic::new(format!(
-                    "Parameter `{}` is not defined in the interface method",
-                    parameter.get_name()
+                    "Parameter `{}` defined in `{}` but not in `{}`",
+                    parameter.get_name(),
+                    method_impl.get_parent_pou_name_or_self(),
+                    method_ref.get_parent_pou_name_or_self(),
                 ))
-                .with_error_code("E001")
+                .with_error_code("E112")
                 .with_location(&parameter.source_location)
-                .with_secondary_location(method_interface.get_location()),
+                .with_secondary_location(method_ref.get_location()),
             );
         }
     }
+
+    diagnostics
 }
 
 pub fn visit_implementation<T: AnnotationMap>(

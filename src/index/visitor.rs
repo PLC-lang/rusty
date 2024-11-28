@@ -12,20 +12,20 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-// TODO: Can this not take ownership of the CompilationUnit? Clones would then be unnecessary.
 pub fn visit(unit: &CompilationUnit) -> Index {
     let mut index = Index::default();
-    //Create user defined datatypes
+
+    // Create user defined datatypes
     for user_type in &unit.user_types {
         visit_data_type(&mut index, user_type);
     }
 
-    //Create defined global variables
+    // Create defined global variables
     for global_vars in &unit.global_vars {
         visit_global_var_block(&mut index, global_vars);
     }
 
-    //Create types and variables for POUs
+    // Create types and variables for POUs
     for pou in &unit.units {
         visit_pou(&mut index, pou);
     }
@@ -96,7 +96,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 .as_ref()
                 .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
 
-            let entry = index.register_member_variable(
+            let entry = index.create_member_variable(
                 MemberInfo {
                     container_name: &pou.name,
                     variable_name: &var.name,
@@ -119,7 +119,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
     //register a function's return type as a member variable
     let return_type_name = pou.return_type.as_ref().and_then(|it| it.get_name()).unwrap_or(VOID_TYPE);
     if pou.return_type.is_some() {
-        let entry = index.register_member_variable(
+        let entry = index.create_member_variable(
             MemberInfo {
                 container_name: &pou.name,
                 variable_name: pou.get_return_name(),
@@ -804,7 +804,7 @@ fn visit_struct(
             let binding =
                 var.address.as_ref().and_then(|it| HardwareBinding::from_statement(index, it, scope.clone()));
 
-            index.register_member_variable(
+            index.create_member_variable(
                 MemberInfo {
                     container_name: name,
                     variable_name: &var.name,

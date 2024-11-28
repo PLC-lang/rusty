@@ -3,7 +3,7 @@ use insta::assert_snapshot;
 use crate::test_utils::tests::codegen_with_online_change as codegen;
 
 #[test]
-#[cfg_attr(target_os = "macos", ignore = "FIXME: leading comma in sections name")]
+#[cfg_attr(target_os = "macos", ignore)]
 fn generate_function_with_online_change() {
     let src = codegen(
         "
@@ -43,7 +43,7 @@ fn generate_function_with_online_change() {
 }
 
 #[test]
-#[cfg_attr(target_os = "macos", ignore = "FIXME: leading comma in sections name")]
+#[cfg_attr(target_os = "macos", ignore)]
 fn generate_program_with_online_change() {
     let src = codegen(
         "
@@ -107,7 +107,7 @@ fn generate_program_with_online_change() {
 }
 
 #[test]
-#[cfg_attr(target_os = "macos", ignore = "FIXME: leading comma in sections name")]
+#[cfg_attr(target_os = "macos", ignore)]
 fn generate_program_and_var_with_online_change() {
     let src = codegen(
         "
@@ -179,7 +179,7 @@ fn generate_program_and_var_with_online_change() {
 }
 
 #[test]
-#[cfg_attr(target_os = "macos", ignore = "FIXME: leading comma in sections name")]
+#[cfg_attr(target_os = "macos", ignore)]
 fn generate_function_and_var_with_online_change() {
     let src = codegen(
         "

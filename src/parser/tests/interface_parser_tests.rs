@@ -371,3 +371,92 @@ fn pou_implementing_multiple_interfaces() {
     }
     "###);
 }
+
+mod error_handling {
+    use crate::test_utils::tests::{parse, parse_and_validate_buffered};
+
+    #[test]
+    fn default_method_impl() {
+        let source = r"
+        INTERFACE interfaceA
+            METHOD methodA : INT
+                1 > 2;
+                methodA := 5;
+            END_METHOD
+        END_INTERFACE
+        ";
+
+        let diagnostics = parse_and_validate_buffered(source);
+        // TODO(volsa): The range of the error message is not correct
+        insta::assert_snapshot!(diagnostics, @r###"
+        warning[E113]: Interfaces can not have a default implementations
+          ┌─ <internal>:4:17
+          │  
+        4 │ ╭                 1 > 2;
+        5 │ │                 methodA := 5;
+        6 │ │             END_METHOD
+          │ ╰──────────────────────^ Interfaces can not have a default implementations
+
+        "###);
+    }
+
+    #[test]
+    fn error_recovery_empty_interface_name() {
+        let source = r"
+        INTERFACE
+            METHOD foo
+                VAR_INPUT
+                    a : DINT;
+                END_VAR
+            END_METHOD
+        END_INTERFACE
+        ";
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r###"
+        error[E006]: Expected a name for the interface definition but got nothing
+          ┌─ <internal>:2:9
+          │
+        2 │         INTERFACE
+          │         ^^^^^^^^^ Expected a name for the interface definition but got nothing
+
+        "###);
+    }
+
+    #[test]
+    fn error_implements_without_declarations() {
+        let source = r"
+        FUNCTION_BLOCK foo IMPLEMENTS
+            METHOD bar
+                VAR_INPUT
+                    a : DINT;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ";
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r###"
+        error[E006]: Expected a comma separated list of identifiers after `IMPLEMENTS` but got nothing
+          ┌─ <internal>:2:28
+          │
+        2 │         FUNCTION_BLOCK foo IMPLEMENTS
+          │                            ^^^^^^^^^^ Expected a comma separated list of identifiers after `IMPLEMENTS` but got nothing
+
+        "###);
+    }
+
+    #[test]
+    fn trailing_comma_in_implements_are_ignored() {
+        let source = r"
+        INTERFACE a /* ... */ END_INTERFACE
+        INTERFACE b /* ... */ END_INTERFACE
+
+        FUNCTION_BLOCK foo IMPLEMENTS a,    /* ... */ END_FUNCTION_BLOCK
+        FUNCTION_BLOCK bar IMPLEMENTS a, b, /* ... */ END_FUNCTION_BLOCK
+        ";
+
+        let (_, diagnostics) = parse(source);
+        assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
+    }
+}

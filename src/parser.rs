@@ -84,7 +84,11 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
                 lexer.advance();
                 continue;
             }
-            KeywordInterface => unit.interfaces.push(parse_interface(&mut lexer)),
+            KeywordInterface => {
+                // We ignore any method implementations in interfaces as we do not support default impls yet
+                let (interfaces, _) = parse_interface(&mut lexer);
+                unit.interfaces.push(interfaces);
+            }
             KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
             KeywordVarConfig => unit.var_config.extend(parse_config_variables(&mut lexer)),
 
@@ -168,41 +172,65 @@ fn parse_actions(
     })
 }
 
-fn parse_interface(lexer: &mut ParseSession) -> Interface {
+/// Parses an interface and its methods / properties
+fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>) {
     let location_start = lexer.range().start;
     lexer.consume_or_report(KeywordInterface);
 
-    // TODO: Error handle empty interface name
-    let (name, location_name) = parse_identifier(lexer).unwrap();
+    let (name, location_name) = match lexer.token {
+        Token::Identifier => parse_identifier(lexer).expect("unreachable, already matched here"),
+
+        _ => {
+            lexer.accept_diagnostic(
+                Diagnostic::new("Expected a name for the interface definition but got nothing")
+                    .with_error_code("E006")
+                    .with_location(lexer.last_location()),
+            );
+
+            // We want to keep parsing, hence we return some undefined values; the parser will yield an
+            // unrecoverable error though
+            (String::new(), SourceLocation::undefined())
+        }
+    };
 
     let mut methods = Vec::new();
+    let mut implementations = Vec::new();
     loop {
         match lexer.token {
             KeywordMethod => {
-                let (method, implem) = parse_method(lexer, &name, LinkageType::Internal, false).unwrap();
-                debug_assert!(
-                    implem.statements.is_empty(),
-                    "the method body should be empty, do we need an error here?"
-                );
+                if let Some((method, imp)) = parse_method(lexer, &name, LinkageType::Internal, false) {
+                    // This is temporary? At some point we'll support them but for now it's a diagnostic
+                    if !imp.statements.is_empty() {
+                        lexer.accept_diagnostic(
+                            Diagnostic::new("Interfaces can not have a default implementations")
+                                .with_error_code("E113")
+                                .with_location(&imp.location),
+                        );
+                    }
 
-                methods.push(method);
+                    methods.push(method);
+                    implementations.push(imp);
+                }
             }
 
-            KeywordProperty => unimplemented!(),
+            KeywordProperty => unimplemented!("not yet supported"),
 
             _ => break,
         }
     }
 
-    lexer.try_consume(&KeywordEndInterface);
+    lexer.consume_or_report(KeywordEndInterface);
     let location_end = lexer.range().start;
 
-    Interface {
-        name,
-        methods,
-        location: lexer.source_range_factory.create_range(location_start..location_end),
-        location_name,
-    }
+    (
+        Interface {
+            name,
+            methods,
+            location: lexer.source_range_factory.create_range(location_start..location_end),
+            location_name,
+        },
+        implementations,
+    )
 }
 
 ///
@@ -246,7 +274,7 @@ fn parse_pou(
             parse_identifier(lexer).unwrap_or_else(|| ("".to_string(), SourceLocation::undefined())); // parse POU name
 
         let generics = parse_generics(lexer);
-        let interfaces = parse_implements(lexer);
+        let interfaces = parse_interface_declarations(lexer);
 
         with_scope(lexer, name.clone(), |lexer| {
             // TODO: Parse USING directives
@@ -368,21 +396,40 @@ fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
     }
 }
 
-fn parse_implements(lexer: &mut ParseSession) -> Vec<InterfaceDeclaration> {
-    let mut implements = vec![];
-    if lexer.try_consume(&KeywordImplements) {
-        loop {
-            let (name, location) = parse_identifier(lexer).unwrap();
-            implements.push(InterfaceDeclaration { name, location });
+/// Parses the comma seperated identifiers after an `IMPLEMENTS` keyword, e.g. `bar` and `baz` in
+/// `INTERFACE foo IMPLEMENTS bar`
+fn parse_interface_declarations(lexer: &mut ParseSession) -> Vec<InterfaceDeclaration> {
+    let mut declarations = Vec::new();
 
-            // TODO: This will panic if the there's a trailing comma with no following identifier
-            if !lexer.try_consume(&Token::KeywordComma) {
-                break;
+    if !lexer.try_consume(&KeywordImplements) {
+        return declarations;
+    }
+
+    if lexer.token != Token::Identifier {
+        lexer.accept_diagnostic(
+            Diagnostic::new(
+                "Expected a comma separated list of identifiers after `IMPLEMENTS` but got nothing",
+            )
+            .with_error_code("E006")
+            .with_location(lexer.last_location()),
+        );
+
+        return declarations;
+    }
+
+    loop {
+        match lexer.token {
+            Token::Identifier => {
+                let (name, location) = parse_identifier(lexer).expect("Identifier already matched");
+                declarations.push(InterfaceDeclaration { name, location });
             }
+            Token::KeywordComma => lexer.advance(),
+
+            _ => break,
         }
     }
 
-    implements
+    declarations
 }
 
 fn parse_type_nature(lexer: &mut ParseSession, nature: &str) -> TypeNature {

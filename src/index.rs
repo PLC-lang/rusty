@@ -723,6 +723,16 @@ impl PouIndexEntry {
         }
     }
 
+    pub fn get_parent_pou_name_or_self(&self) -> &str {
+        match self {
+            PouIndexEntry::Method { parent_pou_name, .. } | PouIndexEntry::Action { parent_pou_name, .. } => {
+                parent_pou_name.as_str()
+            }
+
+            _ => self.get_name(),
+        }
+    }
+
     /// returns the name of the struct-type used to store the POUs state
     /// (interface-variables)
     pub fn get_instance_struct_type_name(&self) -> Option<&str> {
@@ -1564,17 +1574,17 @@ impl Index {
         self.find_pou(pou_name).and_then(|it| it.find_implementation(self))
     }
 
-    /// creates a member-variable of a container to be accessed in a qualified name.
-    /// e.g. "POU.member", "StructName.member", etc.
+    /// Creates a member-variable of a container to be accessed in a qualified name, e.g. "POU.member",
+    /// "StructName.member", etc.
     ///
-    /// #Arguments
+    /// # Arguments
     /// * `container_name`- the name of hosting container (pou or struct)
     /// * `variable_name` - the name of the member variable
     /// * `variable_linkage` - the linkage-type of that variable (one of local, global, etc. )
     /// * `variable_type_name` - the variable's data type as a string
     /// * `initial_value` - the initial value as defined in the AST
     /// * `location` - the location (index) inside the container
-    pub fn register_member_variable(
+    pub fn create_member_variable(
         &mut self,
         member_info: MemberInfo,
         initial_value: Option<ConstId>,
@@ -1588,7 +1598,6 @@ impl Index {
 
         let qualified_name = qualified_name(container_name, variable_name);
 
-        // TODO: This doesn't register anything? It just creates a new VariableIndexEntry thus rename fn name?
         VariableIndexEntry::new(
             variable_name,
             &qualified_name,
