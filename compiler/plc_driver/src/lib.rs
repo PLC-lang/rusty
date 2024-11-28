@@ -9,17 +9,16 @@
 //!  - Executables
 
 use anyhow::{anyhow, Result};
-use pipelines::{AnnotatedProject, BuildPipeline, Pipeline};
+use itertools::Itertools;
+use pipelines::{participant::CodegenParticipant, AnnotatedProject, BuildPipeline, Pipeline};
 use std::{
-    ffi::OsStr,
-    fmt::{Debug, Display},
-    path::{Path, PathBuf},
+    collections::HashMap, ffi::OsStr, fmt::{Debug, Display}, path::{Path, PathBuf}
 };
 
 use cli::{CompileParameters, ParameterError};
 use plc::{
-    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
-    OptimizationLevel,
+    codegen::{self, CodegenContext}, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
+    OptimizationLevel, Target,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
@@ -144,6 +143,17 @@ pub struct CompilationContext {
 pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     //Parse the arguments
     let mut pipeline = BuildPipeline::new(args)?;
+    //register participants
+    let targets = pipeline.compile_parameters.as_ref().map_or(vec![], |params| params.target.clone());
+    let codegen_participant = CodegenParticipant {
+        compile_options: pipeline.get_compile_options().unwrap(),
+        link_options: pipeline.get_link_options().unwrap(),
+        targets,
+        objects: Default::default(),
+        got_layout: Default::default(),
+        compile_dirs: Default::default(),
+    } ;
+    pipeline.register_participant(Box::new(codegen_participant));
     let format = pipeline.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default();
     pipeline.run().map_err(|err| {
         //Only report the hint if we are using rich error reporting

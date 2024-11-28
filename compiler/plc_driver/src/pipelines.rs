@@ -16,7 +16,7 @@ use log::debug;
 use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::{self, FxIndexSet, Index},
+    index::{FxIndexSet, Index},
     linker::LinkerType,
     lowering::AstLowerer,
     output::FormatOption,
@@ -53,7 +53,7 @@ pub struct BuildPipeline<T: SourceContainer> {
     //TODO: delete this once linking is a participant
     pub linker: LinkerType,
     pub mutable_participants: Vec<Box<dyn PipelineParticipantMut>>,
-    pub participants: Vec<Box<dyn PipelineParticipant>>
+    pub participants: Vec<Box<dyn PipelineParticipant>> 
 }
 
 pub trait Pipeline {
@@ -72,12 +72,10 @@ pub trait Pipeline {
     fn link(&mut self, project: Vec<GeneratedProject>) -> Result<Vec<Object>, Diagnostic>;
 }
 
-impl BuildPipeline<PathBuf> {
-    pub fn new<T>(args: &[T]) -> anyhow::Result<Self>
-    where
-        T: AsRef<str> + AsRef<OsStr> + std::fmt::Debug,
-    {
-        let compile_parameters = CompileParameters::parse(args)?;
+impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
+    type Error = anyhow::Error;
+    
+    fn try_from(compile_parameters: CompileParameters) -> Result<Self, Self::Error> {
         //Create the project that will be compiled
         let project = get_project(&compile_parameters)?;
         let location = project.get_location().map(|it| it.to_path_buf());
@@ -135,6 +133,16 @@ impl BuildPipeline<PathBuf> {
             participants: vec![]
         })
     }
+}
+
+impl BuildPipeline<PathBuf> {
+    pub fn new<T>(args: &[T]) -> anyhow::Result<Self>
+    where
+        T: AsRef<str> + AsRef<OsStr> + std::fmt::Debug,
+    {
+        let compile_parameters = CompileParameters::parse(args)?;
+        compile_parameters.try_into()
+    }
 
     pub fn register_mut_participant(&mut self, participant: Box<dyn PipelineParticipantMut>) {
         self.mutable_participants.push(participant)
@@ -171,7 +179,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
         })
     }
 
-    fn get_link_options(&self) -> Option<LinkOptions> {
+    pub fn get_link_options(&self) -> Option<LinkOptions> {
         self.compile_parameters.as_ref().map(|params| {
             let output_format = params.output_format().unwrap_or_else(|| self.project.get_output_format());
             let libraries = self
@@ -294,9 +302,9 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         // 5 : Codegen
         if !self.compile_parameters.as_ref().map(CompileParameters::is_check).unwrap_or_default() {
             let context = CodegenContext::create();
-            let modules = self.generate_modules(&context, &annotated_project)?;
-            let generated_projects = self.codegen(modules)?;
-            self.link(generated_projects)?;
+            self.generate_modules(&context, &annotated_project)?;
+            // let generated_projects = self.codegen(modules)?;
+            // self.link(generated_projects)?;
         }
 
         Ok(())
@@ -380,7 +388,8 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                 })
                 .collect()
         };
-        self.participants.iter().for_each(|participant| participant.post_codegen());
+        self.participants.iter().map(|participant| participant.post_codegen())
+        .reduce(|prev, curr| prev.and(curr)).unwrap_or(Ok(()))?;
         module
     }
 
