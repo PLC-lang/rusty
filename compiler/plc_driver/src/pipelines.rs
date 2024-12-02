@@ -360,6 +360,9 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             log::debug!("No compile options provided");
             return Ok(vec![]);
         };
+        for participant in self.participants.iter_mut() {
+            participant.pre_codegen(project)?;
+        }
         let module = if compile_options.single_module
             || matches!(compile_options.output_format, FormatOption::Object)
         {
@@ -808,7 +811,7 @@ impl AnnotatedProject {
             .reduce(|a, b| {
                 let a = a?;
                 let b = b?;
-                a.merge(b)
+                a.merge(context, b)
             })
         else {
             return Ok(None);

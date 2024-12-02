@@ -13,7 +13,7 @@ use std::{
 };
 
 use plc::{
-    codegen::{self, GeneratedModule},
+    codegen::{self, CodegenContext, GeneratedModule},
     output::FormatOption,
     ConfigFormat, OnlineChange, Target,
 };
@@ -171,8 +171,14 @@ impl PipelineParticipant for CodegenParticipant {
             _ => format!("{}.o", output_name.to_string_lossy()),
         };
 
-        for target in &self.targets {
-            let compile_directory = self.compile_dirs.get(target).expect("Required dir");
+        let path = module.get_unit_location().to_path_buf();
+        let buffer = module.to_in_memory_bitcode()?;
+
+        let targets = if self.targets.is_empty() { &[Target::System] } else { self.targets.as_slice() };
+        for target in targets {
+            let compile_directory = dbg!(&self.compile_dirs).get(target).expect("Required dir");
+            let context = CodegenContext::create();
+            let module = GeneratedModule::from_memory(&context, &buffer, &path)?;
             let object = module
                 .persist(
                     Some(&compile_directory),
