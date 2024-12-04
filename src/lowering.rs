@@ -101,14 +101,15 @@ impl AstLowerer {
                         PouIndexEntry::Program { .. }
                         | PouIndexEntry::FunctionBlock { .. }
                         | PouIndexEntry::Class { .. }
+                        | PouIndexEntry::Method { .. }
                             // we only want to add qualifiers to local, non-temporary variables
                             if rhs.is_some_and(|it| !it.is_temp()) && lhs.is_some_and(|it| !it.is_temp())=>
                         {
                             true
                         }
-                        PouIndexEntry::Method { .. } => {
-                            unimplemented!("We'll worry about this once we get around to OOP")
-                        }
+                        // PouIndexEntry::Method { .. } => {
+                        //     unimplemented!("We'll worry about this once we get around to OOP")
+                        // }
                         _ => false,
                     })
         };
