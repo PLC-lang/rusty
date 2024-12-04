@@ -798,17 +798,14 @@ impl PouIndexEntry {
         matches!(self, PouIndexEntry::Class { .. })
     }
 
-    pub(crate) fn is_method(&self) -> bool {
+    pub fn is_method(&self) -> bool {
         matches!(self, PouIndexEntry::Method { .. })
     }
 
     pub fn is_stateful(&self) -> bool {
         matches!(
             self,
-            PouIndexEntry::Program { .. }
-                | PouIndexEntry::FunctionBlock { .. }
-                | PouIndexEntry::Class { .. }
-                | PouIndexEntry::Method { .. }
+            PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Class { .. }
         )
     }
 

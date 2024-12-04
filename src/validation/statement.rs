@@ -1338,7 +1338,7 @@ fn validate_call<T: AnnotationMap>(
         }
 
         // for PROGRAM/FB we need special inout validation
-        if pou.is_stateful() {
+        if pou.is_stateful() || pou.is_method() {
             // pou might actually be an action call: in that case,
             // we need to check if it is called within the context of the parent POU
             // (either the body of the parent or another associated action) => we don't need to validate the params
