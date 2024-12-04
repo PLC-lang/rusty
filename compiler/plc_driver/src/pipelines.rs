@@ -16,7 +16,7 @@ use ast::{
 use log::debug;
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::{FxIndexSet, Index},
+    index::{indexer, FxIndexSet, Index},
     lowering::AstLowerer,
     output::FormatOption,
     parser::parse_file,
@@ -151,7 +151,7 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                 //Preprocess
                 pre_process(&mut unit, id_provider.clone());
                 //import to index
-                let index = plc::index::visitor::visit(&unit);
+                let index = indexer::index(&unit);
 
                 (index, unit)
             })
@@ -170,8 +170,8 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
         }
 
         // import builtin functions
-        let builtins = plc::builtins::parse_built_ins(id_provider.clone());
-        global_index.import(plc::index::visitor::visit(&builtins));
+        let builtins = plc::builtins::parse_built_ins(id_provider);
+        global_index.import(indexer::index(&builtins));
 
         IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
     }
