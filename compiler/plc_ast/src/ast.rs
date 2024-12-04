@@ -1670,6 +1670,11 @@ impl AstFactory {
     pub fn create_label_statement(name: String, location: SourceLocation, id: AstId) -> AstNode {
         AstNode { stmt: AstStatement::LabelStatement(LabelStatement { name }), location, id }
     }
+
+    pub fn create_plus_one_expression(value: AstNode, location: SourceLocation, id: AstId) -> AstNode {
+        let one = AstFactory::create_literal(AstLiteral::Integer(1), location.clone(), id);
+        AstFactory::create_binary_expression(value, Operator::Plus, one, id)
+    }
 }
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmptyStatement {}

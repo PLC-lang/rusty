@@ -3,9 +3,10 @@
 
 use crate::ast::{
     flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
-    CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement,
-    HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement,
-    ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
+    CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess,
+    EmptyStatement, HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou,
+    RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable,
+    VariableBlock,
 };
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;
@@ -147,6 +148,14 @@ pub trait AstVisitor: Sized {
     /// * `variable` - The unwraped, typed `Variable` node to visit.
     fn visit_variable(&mut self, variable: &Variable) {
         variable.walk(self);
+    }
+
+    /// Visits a `ConfigVariable` node.
+    /// Make sure to call `walk` on the `ConfigVariable` node to visit its children.
+    /// # Arguments
+    /// * `variable` - The unwraped, typed `Variable` node to visit.
+    fn visit_config_variable(&mut self, config_variable: &ConfigVariable) {
+        config_variable.walk(self);
     }
 
     /// Visits an enum element `AstNode` node.
@@ -607,6 +616,10 @@ impl Walker for CompilationUnit {
         for i in &self.implementations {
             visitor.visit_implementation(i);
         }
+
+        for config_variable in &self.var_config {
+            visitor.visit_config_variable(config_variable);
+        }
     }
 }
 
@@ -639,6 +652,15 @@ impl Walker for Variable {
         visit_all_nodes!(visitor, &self.address);
         visitor.visit_data_type_declaration(&self.data_type_declaration);
         visit_all_nodes!(visitor, &self.initializer);
+    }
+}
+
+impl Walker for ConfigVariable {
+    fn walk<V>(&self, _visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        // do nothing
     }
 }
 
