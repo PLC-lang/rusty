@@ -321,7 +321,7 @@ fn new_pou(
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
-        interfaces: vec![], // TODO: Should this be empty?
+        interfaces: vec![],
         is_const: false,
     }
 }
@@ -352,7 +352,7 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &str) -> Compil
         var_config: Default::default(),
         units: vec![pou],
         implementations: vec![implementation],
-        interfaces: vec![], // TODO: probably shouldn't be empty
+        interfaces: vec![],
         user_types: vec![],
         file_name: file_name.into(),
     }

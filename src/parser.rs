@@ -6,7 +6,7 @@ use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
-        Implementation, Interface, InterfaceDeclaration, LinkageType, PolymorphismMode, Pou, PouType,
+        Implementation, Interface, InterfaceIdentifier, LinkageType, PolymorphismMode, Pou, PouType,
         ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock,
         VariableBlockType,
     },
@@ -398,7 +398,7 @@ fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
 
 /// Parses the comma seperated identifiers after an `IMPLEMENTS` keyword, e.g. `bar` and `baz` in
 /// `INTERFACE foo IMPLEMENTS bar`
-fn parse_interface_declarations(lexer: &mut ParseSession) -> Vec<InterfaceDeclaration> {
+fn parse_interface_declarations(lexer: &mut ParseSession) -> Vec<InterfaceIdentifier> {
     let mut declarations = Vec::new();
 
     if !lexer.try_consume(&KeywordImplements) {
@@ -421,7 +421,7 @@ fn parse_interface_declarations(lexer: &mut ParseSession) -> Vec<InterfaceDeclar
         match lexer.token {
             Token::Identifier => {
                 let (name, location) = parse_identifier(lexer).expect("Identifier already matched");
-                declarations.push(InterfaceDeclaration { name, location });
+                declarations.push(InterfaceIdentifier { name, location });
             }
             Token::KeywordComma => lexer.advance(),
 

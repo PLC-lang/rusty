@@ -113,14 +113,14 @@ fn pou_does_not_implement_interface_methods() {
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Method implementation of `methodA` missing in POU `fb`
+    error[E112]: Method `methodA` defined in interface `interfaceA` is missing in POU `fb`
       ┌─ <internal>:6:20
       │
     3 │         METHOD methodA /* ... */ END_METHOD
       │                ------- see also
       ·
     6 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA
-      │                    ^^ Method implementation of `methodA` missing in POU `fb`
+      │                    ^^ Method `methodA` defined in interface `interfaceA` is missing in POU `fb`
 
     "###);
 }
@@ -188,20 +188,20 @@ fn pou_with_unordered_parameters_in_interface_implementation() {
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Expected parameter `b` but got `a`
+    error[E112]: Interface implementation mismatch: expected parameter `b` but got `a`
        ┌─ <internal>:5:17
        │
      5 │                 b : DINT;
-       │                 ^ Expected parameter `b` but got `a`
+       │                 ^ Interface implementation mismatch: expected parameter `b` but got `a`
        ·
     15 │                 a : DINT;
        │                 - see also
 
-    error[E112]: Expected parameter `a` but got `b`
+    error[E112]: Interface implementation mismatch: expected parameter `a` but got `b`
        ┌─ <internal>:6:17
        │
      6 │                 a : DINT;
-       │                 ^ Expected parameter `a` but got `b`
+       │                 ^ Interface implementation mismatch: expected parameter `a` but got `b`
        ·
     16 │                 b : DINT;
        │                 - see also
@@ -231,14 +231,14 @@ fn pou_with_incorrect_parameter_type_in_interface_implementation() {
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Expected parameter `a` to have `DINT` as its type but got `BOOL`
+    error[E112]: Interface implementation mismatch: Expected parameter `a` to have `DINT` as its type but got `BOOL`
        ┌─ <internal>:11:16
        │
      5 │                 a : DINT;
        │                 - see also
        ·
     11 │         METHOD methodA
-       │                ^^^^^^^ Expected parameter `a` to have `DINT` as its type but got `BOOL`
+       │                ^^^^^^^ Interface implementation mismatch: Expected parameter `a` to have `DINT` as its type but got `BOOL`
 
     "###);
 }
@@ -265,14 +265,14 @@ fn pou_with_incorrect_parameter_declaration_type_in_interface_implementation() {
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Expected parameter `a` to have `Input` as its declaration type but got `InOut`
+    error[E112]: Interface implementation mismatch: Expected parameter `a` to have `Input` as its declaration type but got `InOut`
        ┌─ <internal>:11:16
        │
      5 │                 a : DINT;
        │                 - see also
        ·
     11 │         METHOD methodA
-       │                ^^^^^^^ Expected parameter `a` to have `Input` as its declaration type but got `InOut`
+       │                ^^^^^^^ Interface implementation mismatch: Expected parameter `a` to have `Input` as its declaration type but got `InOut`
 
     "###);
 }
@@ -293,14 +293,15 @@ fn pou_with_more_parameters_than_defined_in_interface() {
     FUNCTION_BLOCK fb IMPLEMENTS interfaceA
         METHOD methodA
             VAR_INPUT
-                a : DINT;
-                b : DINT;
-                c : DINT;
-
                 // Invalid parameters
                 d : DINT;
                 e : DINT;
                 f : DINT;
+
+                a : DINT;
+                b : DINT;
+                c : DINT;
+
             END_VAR
         END_METHOD
     END_FUNCTION_BLOCK
@@ -308,32 +309,59 @@ fn pou_with_more_parameters_than_defined_in_interface() {
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Parameter `d` defined in `fb` but not in `interfaceA`
+    error[E112]: Interface implementation mismatch: expected parameter `a` but got `d`
+       ┌─ <internal>:5:17
+       │
+     5 │                 a : DINT;
+       │                 ^ Interface implementation mismatch: expected parameter `a` but got `d`
+       ·
+    16 │                 d : DINT;
+       │                 - see also
+
+    error[E112]: Interface implementation mismatch: expected parameter `b` but got `e`
+       ┌─ <internal>:6:17
+       │
+     6 │                 b : DINT;
+       │                 ^ Interface implementation mismatch: expected parameter `b` but got `e`
+       ·
+    17 │                 e : DINT;
+       │                 - see also
+
+    error[E112]: Interface implementation mismatch: expected parameter `c` but got `f`
+       ┌─ <internal>:7:17
+       │
+     7 │                 c : DINT;
+       │                 ^ Interface implementation mismatch: expected parameter `c` but got `f`
+       ·
+    18 │                 f : DINT;
+       │                 - see also
+
+    error[E112]: Parameter count mismatch: `fb.methodA` has more parameters than the method defined in `interfaceA`
        ┌─ <internal>:20:17
        │
      3 │         METHOD methodA
        │                ------- see also
        ·
-    20 │                 d : DINT;
-       │                 ^ Parameter `d` defined in `fb` but not in `interfaceA`
+    20 │                 a : DINT;
+       │                 ^ Parameter count mismatch: `fb.methodA` has more parameters than the method defined in `interfaceA`
 
-    error[E112]: Parameter `e` defined in `fb` but not in `interfaceA`
+    error[E112]: Parameter count mismatch: `fb.methodA` has more parameters than the method defined in `interfaceA`
        ┌─ <internal>:21:17
        │
      3 │         METHOD methodA
        │                ------- see also
        ·
-    21 │                 e : DINT;
-       │                 ^ Parameter `e` defined in `fb` but not in `interfaceA`
+    21 │                 b : DINT;
+       │                 ^ Parameter count mismatch: `fb.methodA` has more parameters than the method defined in `interfaceA`
 
-    error[E112]: Parameter `f` defined in `fb` but not in `interfaceA`
+    error[E112]: Parameter count mismatch: `fb.methodA` has more parameters than the method defined in `interfaceA`
        ┌─ <internal>:22:17
        │
      3 │         METHOD methodA
        │                ------- see also
        ·
-    22 │                 f : DINT;
-       │                 ^ Parameter `f` defined in `fb` but not in `interfaceA`
+    22 │                 c : DINT;
+       │                 ^ Parameter count mismatch: `fb.methodA` has more parameters than the method defined in `interfaceA`
 
     "###);
 }
@@ -372,13 +400,16 @@ fn interfaces_with_same_method_name_but_different_signatures_return_type() {
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
     error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
-       ┌─ <internal>:3:16
+       ┌─ <internal>:20:20
        │
      3 │         METHOD foo : INT
-       │                ^^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+       │                --- see also
        ·
     12 │         METHOD foo : DINT
        │                --- see also
+       ·
+    20 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
+       │                    ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
 
     error[E112]: Return type of `interfaceB.foo` does not match the return type of the method defined in `interfaceA`, expected `INT` but got `DINT` instead
        ┌─ <internal>:12:16
@@ -426,22 +457,25 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
     error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
-       ┌─ <internal>:3:16
+       ┌─ <internal>:20:20
        │
      3 │         METHOD foo : INT
-       │                ^^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+       │                --- see also
        ·
     12 │         METHOD foo : INT
        │                --- see also
+       ·
+    20 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
+       │                    ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
 
-    error[E112]: Expected parameter `b` to have `INT` as its type but got `DINT`
+    error[E112]: Interface implementation mismatch: Expected parameter `b` to have `INT` as its type but got `DINT`
        ┌─ <internal>:12:16
        │
      6 │                 b : INT;
        │                 - see also
        ·
     12 │         METHOD foo : INT
-       │                ^^^ Expected parameter `b` to have `INT` as its type but got `DINT`
+       │                ^^^ Interface implementation mismatch: Expected parameter `b` to have `INT` as its type but got `DINT`
 
     "###);
 }
@@ -478,22 +512,25 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
     error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
-       ┌─ <internal>:3:16
+       ┌─ <internal>:19:20
        │
      3 │         METHOD foo : INT
-       │                ^^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+       │                --- see also
        ·
     12 │         METHOD foo : INT
        │                --- see also
+       ·
+    19 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
+       │                    ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
 
-    error[E112]: Expected parameter `a` to have `Input` as its declaration type but got `Output`
+    error[E112]: Interface implementation mismatch: Expected parameter `a` to have `Input` as its declaration type but got `Output`
        ┌─ <internal>:12:16
        │
      5 │                 a : INT;
        │                 - see also
        ·
     12 │         METHOD foo : INT
-       │                ^^^ Expected parameter `a` to have `Input` as its declaration type but got `Output`
+       │                ^^^ Interface implementation mismatch: Expected parameter `a` to have `Input` as its declaration type but got `Output`
 
     error[E112]: Parameter `b : INT` missing in method `interfaceB.foo`
        ┌─ <internal>:12:16

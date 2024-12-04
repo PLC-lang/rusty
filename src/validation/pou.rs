@@ -81,11 +81,12 @@ where
                     Diagnostic::new(format!(
                         "Method `{}` is defined with different signatures in interfaces `{}` and `{}`",
                         name,
-                        method_ref.get_parent_pou_name_or_self(),
-                        method_impl.get_parent_pou_name_or_self()
+                        method_ref.get_parent_pou_name(),
+                        method_impl.get_parent_pou_name()
                     ))
                     .with_error_code("E111")
-                    .with_location(method_ref.get_location())
+                    .with_location(&pou.name_location)
+                    .with_secondary_location(method_ref.get_location())
                     .with_secondary_location(method_impl.get_location())
                     .with_sub_diagnostics(diagnostics),
                 );
@@ -104,7 +105,7 @@ where
     // Check if the POUs are implementing the interface methods
     for method_interface in &interface_methods {
         // XXX(volsa): Not entirely happy with this `split` call, is there a better approach?
-        let (_, method_name) = method_interface.get_name().split_once('.').unwrap();
+        let (interface_name, method_name) = method_interface.get_name().split_once('.').unwrap();
 
         match ctxt.index.find_method(&pou.name, method_name) {
             Some(method_pou) => {
@@ -118,8 +119,8 @@ where
             None => {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
-                        "Method implementation of `{}` missing in POU `{}`",
-                        method_name, pou.name
+                        "Method `{}` defined in interface `{}` is missing in POU `{}`",
+                        method_name, interface_name, pou.name
                     ))
                     .with_error_code("E112")
                     .with_location(&pou.name_location)
@@ -149,7 +150,7 @@ where
             Diagnostic::new(format!(
                 "Return type of `{}` does not match the return type of the method defined in `{}`, expected `{}` but got `{}` instead",
                 method_impl.get_name(),
-                method_ref.get_parent_pou_name_or_self(),
+                method_ref.get_parent_pou_name(),
                 return_type_ref.get_name(),
                 return_type_impl.get_name(),
             ))
@@ -170,7 +171,7 @@ where
                 if parameter_impl.get_name() != parameter_ref.get_name() {
                     diagnostics.push(
                         Diagnostic::new(format!(
-                            "Expected parameter `{}` but got `{}`",
+                            "Interface implementation mismatch: expected parameter `{}` but got `{}`",
                             parameter_ref.get_name(),
                             parameter_impl.get_name()
                         ))
@@ -184,7 +185,7 @@ where
                 if parameter_impl.get_type_name() != parameter_ref.get_type_name() {
                     diagnostics.push(
                         Diagnostic::new(format!(
-                            "Expected parameter `{}` to have `{}` as its type but got `{}`",
+                            "Interface implementation mismatch: Expected parameter `{}` to have `{}` as its type but got `{}`",
                             parameter_ref.get_name(),
                             parameter_ref.get_type_name(),
                             parameter_impl.get_type_name(),
@@ -199,7 +200,7 @@ where
                 if parameter_impl.get_declaration_type() != parameter_ref.get_declaration_type() {
                     diagnostics.push(
                         Diagnostic::new(format!(
-                            "Expected parameter `{}` to have `{}` as its declaration type but got `{}`",
+                            "Interface implementation mismatch: Expected parameter `{}` to have `{}` as its declaration type but got `{}`",
                             parameter_impl.get_name(),
                             parameter_ref.get_declaration_type().get_inner(),
                             parameter_impl.get_declaration_type().get_inner(),
@@ -235,10 +236,9 @@ where
         for parameter in parameters_impl.into_iter().skip(parameters_ref.len()) {
             diagnostics.push(
                 Diagnostic::new(format!(
-                    "Parameter `{}` defined in `{}` but not in `{}`",
-                    parameter.get_name(),
-                    method_impl.get_parent_pou_name_or_self(),
-                    method_ref.get_parent_pou_name_or_self(),
+                    "Parameter count mismatch: `{}` has more parameters than the method defined in `{}`",
+                    method_impl.get_name(),
+                    method_ref.get_parent_pou_name(),
                 ))
                 .with_error_code("E112")
                 .with_location(&parameter.source_location)

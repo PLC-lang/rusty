@@ -282,7 +282,7 @@ fn pou_implementing_single_interface() {
         pou_type: FunctionBlock,
         return_type: None,
         interfaces: [
-            InterfaceDeclaration {
+            InterfaceIdentifier {
                 name: "myInterface",
                 location: SourceLocation {
                     span: Range(
@@ -319,7 +319,7 @@ fn pou_implementing_multiple_interfaces() {
         pou_type: FunctionBlock,
         return_type: None,
         interfaces: [
-            InterfaceDeclaration {
+            InterfaceIdentifier {
                 name: "InterfaceA",
                 location: SourceLocation {
                     span: Range(
@@ -335,7 +335,7 @@ fn pou_implementing_multiple_interfaces() {
                     ),
                 },
             },
-            InterfaceDeclaration {
+            InterfaceIdentifier {
                 name: "InterfaceB",
                 location: SourceLocation {
                     span: Range(
@@ -351,7 +351,7 @@ fn pou_implementing_multiple_interfaces() {
                     ),
                 },
             },
-            InterfaceDeclaration {
+            InterfaceIdentifier {
                 name: "InterfaceC",
                 location: SourceLocation {
                     span: Range(

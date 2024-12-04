@@ -723,13 +723,13 @@ impl PouIndexEntry {
         }
     }
 
-    pub fn get_parent_pou_name_or_self(&self) -> &str {
+    pub fn get_parent_pou_name(&self) -> &str {
         match self {
             PouIndexEntry::Method { parent_pou_name, .. } | PouIndexEntry::Action { parent_pou_name, .. } => {
                 parent_pou_name.as_str()
             }
 
-            _ => self.get_name(),
+            _ => unreachable!("invalid function call, only methods and actions have a parent POU"),
         }
     }
 
