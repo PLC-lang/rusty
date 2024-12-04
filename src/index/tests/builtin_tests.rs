@@ -6,7 +6,8 @@ use crate::{builtins, test_utils::tests::index};
 fn builtin_functions_added_to_index() {
     let provider = IdProvider::default();
     let builtins = builtins::parse_built_ins(provider);
-    let index = crate::index::visitor::visit(&builtins);
+    let index = crate::index::indexer::index(&builtins);
+
     assert!(index.find_member("ADR", "in").is_some());
     assert!(index.find_member("REF", "in").is_some());
     assert!(index.find_member("MUX", "K").is_some());
