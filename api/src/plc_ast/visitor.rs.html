@@ -731,14 +731,37 @@
 <a href="#731" id="731">731</a>
 <a href="#732" id="732">732</a>
 <a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitor` trait and its associated macros.
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
 </span><span class="kw">use </span><span class="kw">crate</span>::ast::{
     flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
-    CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement,
-    HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement,
-    ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
+    CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess,
+    EmptyStatement, HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou,
+    RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable,
+    VariableBlock,
 };
 <span class="kw">use </span><span class="kw">crate</span>::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 <span class="kw">use </span><span class="kw">crate</span>::literals::AstLiteral;
@@ -880,6 +903,14 @@
     /// * `variable` - The unwraped, typed `Variable` node to visit.
     </span><span class="kw">fn </span>visit_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, variable: <span class="kw-2">&amp;</span>Variable) {
         variable.walk(<span class="self">self</span>);
+    }
+
+    <span class="doccomment">/// Visits a `ConfigVariable` node.
+    /// Make sure to call `walk` on the `ConfigVariable` node to visit its children.
+    /// # Arguments
+    /// * `variable` - The unwraped, typed `Variable` node to visit.
+    </span><span class="kw">fn </span>visit_config_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config_variable: <span class="kw-2">&amp;</span>ConfigVariable) {
+        config_variable.walk(<span class="self">self</span>);
     }
 
     <span class="doccomment">/// Visits an enum element `AstNode` node.
@@ -1340,6 +1371,10 @@
         <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.implementations {
             visitor.visit_implementation(i);
         }
+
+        <span class="kw">for </span>config_variable <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.var_config {
+            visitor.visit_config_variable(config_variable);
+        }
     }
 }
 
@@ -1373,6 +1408,15 @@
         visitor.visit_data_type_declaration(<span class="kw-2">&amp;</span><span class="self">self</span>.data_type_declaration);
         <span class="macro">visit_all_nodes!</span>(visitor, <span class="kw-2">&amp;</span><span class="self">self</span>.initializer);
     }
+}
+
+<span class="kw">impl </span>Walker <span class="kw">for </span>ConfigVariable {
+    <span class="kw">fn </span>walk&lt;V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _visitor: <span class="kw-2">&amp;mut </span>V)
+    <span class="kw">where
+        </span>V: AstVisitor,
+    {
+        <span class="comment">// do nothing
+    </span>}
 }
 
 <span class="kw">impl </span>Walker <span class="kw">for </span>DataType {

@@ -691,7 +691,7 @@
 <span class="kw">use </span>log::debug;
 <span class="kw">use </span>plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::{FxIndexSet, Index},
+    index::{indexer, FxIndexSet, Index},
     lowering::AstLowerer,
     output::FormatOption,
     parser::parse_file,
@@ -825,7 +825,7 @@
                 <span class="comment">//Preprocess
                 </span>pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider.clone());
                 <span class="comment">//import to index
-                </span><span class="kw">let </span>index = plc::index::visitor::visit(<span class="kw-2">&amp;</span>unit);
+                </span><span class="kw">let </span>index = indexer::index(<span class="kw-2">&amp;</span>unit);
 
                 (index, unit)
             })
@@ -844,8 +844,8 @@
         }
 
         <span class="comment">// import builtin functions
-        </span><span class="kw">let </span>builtins = plc::builtins::parse_built_ins(id_provider.clone());
-        global_index.import(plc::index::visitor::visit(<span class="kw-2">&amp;</span>builtins));
+        </span><span class="kw">let </span>builtins = plc::builtins::parse_built_ins(id_provider);
+        global_index.import(indexer::index(<span class="kw-2">&amp;</span>builtins));
 
         IndexedProject { project: ParsedProject { project: <span class="self">self</span>.project, units }, index: global_index }
     }

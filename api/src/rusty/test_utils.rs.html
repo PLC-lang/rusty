@@ -439,7 +439,7 @@
         <span class="comment">//Import builtins
         </span><span class="kw">let </span>builtins = builtins::parse_built_ins(id_provider.clone());
 
-        index.import(index::visitor::visit(<span class="kw-2">&amp;</span>builtins));
+        index.import(index::indexer::index(<span class="kw-2">&amp;</span>builtins));
         <span class="comment">// import built-in types like INT, BOOL, etc.
         </span><span class="kw">for </span>data_type <span class="kw">in </span>get_builtin_types() {
             index.register_type(data_type);
@@ -453,7 +453,7 @@
         );
 
         pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider);
-        index.import(index::visitor::visit(<span class="kw-2">&amp;</span>unit));
+        index.import(index::indexer::index(<span class="kw-2">&amp;</span>unit));
         (unit, index, diagnostics)
     }
 
@@ -498,7 +498,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>index = Index::default();
         <span class="kw">let </span>builtins = builtins::parse_built_ins(id_provider.clone());
-        index.import(index::visitor::visit(<span class="kw-2">&amp;</span>builtins));
+        index.import(index::indexer::index(<span class="kw-2">&amp;</span>builtins));
 
         <span class="kw">for </span>data_type <span class="kw">in </span>get_builtin_types() {
             index.register_type(data_type);
@@ -508,7 +508,7 @@
             .into_iter()
             .map(|<span class="kw-2">mut </span>unit| {
                 pre_process(<span class="kw-2">&amp;mut </span>unit, id_provider.clone());
-                index.import(index::visitor::visit(<span class="kw-2">&amp;</span>unit));
+                index.import(index::indexer::index(<span class="kw-2">&amp;</span>unit));
                 unit
             })
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
