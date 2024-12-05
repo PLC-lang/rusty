@@ -46,12 +46,14 @@ pub enum Token {
     KeywordInterface,
 
     #[token("END_INTERFACE", ignore(case))]
+    #[token("ENDINTERFACE", ignore(case))]
     KeywordEndInterface,
 
     #[token("PROPERTY", ignore(case))]
     KeywordProperty,
 
     #[token("END_PROPERTY", ignore(case))]
+    #[token("ENDPROPERTY", ignore(case))]
     KeywordEndProperty,
 
     #[token("VAR_INPUT", ignore(case))]
