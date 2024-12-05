@@ -325,7 +325,7 @@
         <span class="comment">//register a function's return type as a member variable
         </span><span class="kw">let </span>return_type_name = pou.return_type.as_ref().and_then(|it| it.get_name()).unwrap_or(VOID_TYPE);
         <span class="kw">if </span>pou.return_type.is_some() {
-            <span class="kw">let </span>entry = <span class="self">self</span>.index.register_member_variable(
+            <span class="kw">let </span>entry = <span class="self">self</span>.index.create_member_variable(
                 MemberInfo {
                     container_name: <span class="kw-2">&amp;</span>pou.name,
                     variable_name: pou.get_return_name(),
@@ -369,8 +369,8 @@
             PouType::Function | PouType::Init | PouType::ProjectInit =&gt; {
                 <span class="self">self</span>.index_function(pou, return_type_name, member_varargs, pou_struct_type);
             }
-            PouType::Method { owner_class } =&gt; {
-                <span class="self">self</span>.index_method(pou, return_type_name, owner_class, pou_struct_type);
+            PouType::Method { parent } =&gt; {
+                <span class="self">self</span>.index_method(pou, return_type_name, parent, pou_struct_type);
             }
             <span class="kw">_ </span>=&gt; {}
         };
@@ -512,7 +512,7 @@
                     .as_ref()
                     .and_then(|it| HardwareBinding::from_statement(<span class="self">self</span>.index, it, <span class="prelude-val">Some</span>(pou.name.clone())));
 
-                <span class="kw">let </span>entry = <span class="self">self</span>.index.register_member_variable(
+                <span class="kw">let </span>entry = <span class="self">self</span>.index.create_member_variable(
                     MemberInfo {
                         container_name: <span class="kw-2">&amp;</span>pou.name,
                         variable_name: <span class="kw-2">&amp;</span>var.name,

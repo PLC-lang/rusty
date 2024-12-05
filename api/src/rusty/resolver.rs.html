@@ -2207,6 +2207,11 @@
 <a href="#2207" id="2207">2207</a>
 <a href="#2208" id="2208">2208</a>
 <a href="#2209" id="2209">2209</a>
+<a href="#2210" id="2210">2210</a>
+<a href="#2211" id="2211">2211</a>
+<a href="#2212" id="2212">2212</a>
+<a href="#2213" id="2213">2213</a>
+<a href="#2214" id="2214">2214</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -3012,6 +3017,11 @@
         <span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>unit.units {
             visitor.visit_pou(ctx, pou);
         }
+
+        <span class="kw">for _ in </span><span class="kw-2">&amp;</span>unit.interfaces {
+            <span class="comment">// Do nothing, mostly because POUs defined in interfaces are empty therefore there shouldn't be
+            // anything to annotate
+        </span>}
 
         <span class="kw">for </span>t <span class="kw">in </span><span class="kw-2">&amp;</span>unit.user_types {
             visitor.visit_user_type_declaration(t, ctx);

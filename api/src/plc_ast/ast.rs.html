@@ -1781,6 +1781,32 @@
 <a href="#1781" id="1781">1781</a>
 <a href="#1782" id="1782">1782</a>
 <a href="#1783" id="1783">1783</a>
+<a href="#1784" id="1784">1784</a>
+<a href="#1785" id="1785">1785</a>
+<a href="#1786" id="1786">1786</a>
+<a href="#1787" id="1787">1787</a>
+<a href="#1788" id="1788">1788</a>
+<a href="#1789" id="1789">1789</a>
+<a href="#1790" id="1790">1790</a>
+<a href="#1791" id="1791">1791</a>
+<a href="#1792" id="1792">1792</a>
+<a href="#1793" id="1793">1793</a>
+<a href="#1794" id="1794">1794</a>
+<a href="#1795" id="1795">1795</a>
+<a href="#1796" id="1796">1796</a>
+<a href="#1797" id="1797">1797</a>
+<a href="#1798" id="1798">1798</a>
+<a href="#1799" id="1799">1799</a>
+<a href="#1800" id="1800">1800</a>
+<a href="#1801" id="1801">1801</a>
+<a href="#1802" id="1802">1802</a>
+<a href="#1803" id="1803">1803</a>
+<a href="#1804" id="1804">1804</a>
+<a href="#1805" id="1805">1805</a>
+<a href="#1806" id="1806">1806</a>
+<a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
+<a href="#1809" id="1809">1809</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
@@ -1805,7 +1831,7 @@
 
 <span class="kw">pub type </span>AstId = usize;
 
-<span class="attr">#[derive(Clone, Debug, PartialEq, Eq)]
+<span class="attr">#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>GenericBinding {
     <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>nature: TypeNature,
@@ -1814,18 +1840,36 @@
 <span class="attr">#[derive(PartialEq)]
 </span><span class="kw">pub struct </span>Pou {
     <span class="kw">pub </span>name: String,
-    <span class="kw">pub </span>variable_blocks: Vec&lt;VariableBlock&gt;,
-    <span class="kw">pub </span>pou_type: PouType,
+    <span class="kw">pub </span>pou_type: PouType, <span class="comment">// TODO(volsa): Rename to kind
+    </span><span class="kw">pub </span>variable_blocks: Vec&lt;VariableBlock&gt;,
     <span class="kw">pub </span>return_type: <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt;,
-    <span class="doccomment">/// the SourceLocation of the whole POU
+    <span class="doccomment">/// The SourceLocation of the whole POU
     </span><span class="kw">pub </span>location: SourceLocation,
-    <span class="doccomment">/// the SourceLocation of the POU's name
+    <span class="doccomment">/// The SourceLocation of the POUs name
     </span><span class="kw">pub </span>name_location: SourceLocation,
     <span class="kw">pub </span>poly_mode: <span class="prelude-ty">Option</span>&lt;PolymorphismMode&gt;,
     <span class="kw">pub </span>generics: Vec&lt;GenericBinding&gt;,
     <span class="kw">pub </span>linkage: LinkageType,
     <span class="kw">pub </span>super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="doccomment">/// A list of interfaces this POU implements
+    </span><span class="kw">pub </span>interfaces: Vec&lt;InterfaceIdentifier&gt;,
     <span class="kw">pub </span>is_const: bool,
+}
+
+<span class="attr">#[derive(Debug, PartialEq)]
+</span><span class="kw">pub struct </span>Interface {
+    <span class="kw">pub </span>name: String,
+    <span class="kw">pub </span>methods: Vec&lt;Pou&gt;,
+    <span class="kw">pub </span>location: SourceLocation,
+    <span class="kw">pub </span>location_name: SourceLocation,
+}
+
+<span class="doccomment">/// Helper struct for [`Pou`] to get the location of the interface without relying on [`Interface`] which
+/// only exists if the interface is actually defined. Mostly needed for user-friendly validation messages.
+</span><span class="attr">#[derive(Debug, PartialEq)]
+</span><span class="kw">pub struct </span>InterfaceIdentifier {
+    <span class="kw">pub </span>name: String,
+    <span class="kw">pub </span>location: SourceLocation,
 }
 
 <span class="attr">#[derive(Debug, PartialEq, Eq)]
@@ -1986,7 +2030,8 @@
         str.field(<span class="string">"name"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name)
             .field(<span class="string">"variable_blocks"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.variable_blocks)
             .field(<span class="string">"pou_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.pou_type)
-            .field(<span class="string">"return_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.return_type);
+            .field(<span class="string">"return_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.return_type)
+            .field(<span class="string">"interfaces"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.interfaces);
         <span class="kw">if </span>!<span class="self">self</span>.generics.is_empty() {
             str.field(<span class="string">"generics"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.generics);
         }
@@ -2040,7 +2085,10 @@
     FunctionBlock,
     Action,
     Class,
-    Method { owner_class: String },
+    Method {
+        <span class="doccomment">/// The parent of this method, i.e. a function block, class or an interface
+        </span>parent: String,
+    },
     Init,
     ProjectInit,
 }
@@ -2063,8 +2111,8 @@
 <span class="kw">impl </span>PouType {
     <span class="doccomment">/// returns Some(owner_class) if this is a `Method` or otherwhise `None`
     </span><span class="kw">pub fn </span>get_optional_owner_class(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-        <span class="kw">if let </span>PouType::Method { owner_class } = <span class="self">self </span>{
-            <span class="prelude-val">Some</span>(owner_class.clone())
+        <span class="kw">if let </span>PouType::Method { parent } = <span class="self">self </span>{
+            <span class="prelude-val">Some</span>(parent.clone())
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -2098,8 +2146,11 @@
 </span><span class="kw">pub struct </span>CompilationUnit {
     <span class="kw">pub </span>global_vars: Vec&lt;VariableBlock&gt;,
     <span class="kw">pub </span>var_config: Vec&lt;ConfigVariable&gt;,
-    <span class="kw">pub </span>units: Vec&lt;Pou&gt;,
-    <span class="kw">pub </span>implementations: Vec&lt;Implementation&gt;,
+    <span class="doccomment">/// List of POU definitions (signature and some additional metadata)
+    </span><span class="kw">pub </span>units: Vec&lt;Pou&gt;,
+    <span class="doccomment">/// List of statements within a POU body
+    </span><span class="kw">pub </span>implementations: Vec&lt;Implementation&gt;,
+    <span class="kw">pub </span>interfaces: Vec&lt;Interface&gt;,
     <span class="kw">pub </span>user_types: Vec&lt;UserTypeDeclaration&gt;,
     <span class="kw">pub </span>file_name: String,
 }
@@ -2111,6 +2162,7 @@
             var_config: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
+            interfaces: Vec::new(),
             user_types: Vec::new(),
             file_name: file_name.to_string(),
         }
@@ -2990,7 +3042,7 @@
         <span class="macro">assert_eq!</span>(PouType::FunctionBlock.to_string(), <span class="string">"FunctionBlock"</span>);
         <span class="macro">assert_eq!</span>(PouType::Action.to_string(), <span class="string">"Action"</span>);
         <span class="macro">assert_eq!</span>(PouType::Class.to_string(), <span class="string">"Class"</span>);
-        <span class="macro">assert_eq!</span>(PouType::Method { owner_class: <span class="string">"..."</span>.to_string() }.to_string(), <span class="string">"Method"</span>);
+        <span class="macro">assert_eq!</span>(PouType::Method { parent: <span class="string">"..."</span>.to_string() }.to_string(), <span class="string">"Method"</span>);
     }
 
     <span class="attr">#[test]

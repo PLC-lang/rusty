@@ -343,6 +343,8 @@
 <a href="#343" id="343">343</a>
 <a href="#344" id="344">344</a>
 <a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>core::ops::Range;
 <span class="kw">use </span>logos::{Filter, Lexer, Logos};
@@ -415,7 +417,8 @@
         <span class="self">self</span>.id_provider.next_id()
     }
 
-    <span class="doccomment">/// Tries to consume the given token, returning false if it failed.
+    <span class="comment">// TODO(volsa): Remove reference from `token` parameter, since `Token` is `Copy`
+    </span><span class="doccomment">/// Tries to consume the given token, returning false if it failed.
     </span><span class="kw">pub fn </span>try_consume(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: <span class="kw-2">&amp;</span>Token) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.token == <span class="kw-2">*</span>token {
             <span class="self">self</span>.advance();
@@ -425,7 +428,8 @@
         <span class="bool-val">false
     </span>}
 
-    <span class="kw">pub fn </span>consume_or_report(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: Token) {
+    <span class="comment">// TODO(volsa): Rename to `try_consume_or_report`
+    </span><span class="kw">pub fn </span>consume_or_report(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: Token) {
         <span class="kw">if </span>!<span class="self">self</span>.try_consume(<span class="kw-2">&amp;</span>token) {
             <span class="self">self</span>.accept_diagnostic(Diagnostic::missing_token(<span class="macro">format!</span>(<span class="string">"{token:?}"</span>).as_str(), <span class="self">self</span>.location()));
         }

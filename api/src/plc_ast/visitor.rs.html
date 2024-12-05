@@ -753,15 +753,36 @@
 <a href="#753" id="753">753</a>
 <a href="#754" id="754">754</a>
 <a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitor` trait and its associated macros.
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
 </span><span class="kw">use </span><span class="kw">crate</span>::ast::{
     flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
     CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess,
-    EmptyStatement, HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou,
-    RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable,
-    VariableBlock,
+    EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement,
+    MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
+    UserTypeDeclaration, Variable, VariableBlock,
 };
 <span class="kw">use </span><span class="kw">crate</span>::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 <span class="kw">use </span><span class="kw">crate</span>::literals::AstLiteral;
@@ -911,6 +932,14 @@
     /// * `variable` - The unwraped, typed `Variable` node to visit.
     </span><span class="kw">fn </span>visit_config_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config_variable: <span class="kw-2">&amp;</span>ConfigVariable) {
         config_variable.walk(<span class="self">self</span>);
+    }
+
+    <span class="doccomment">/// Visits a `Interface`.
+    /// Make sure to call `walk` on the `Interface` to visit its children.
+    /// # Arguments
+    /// * `interface` - The unwraped, typed `Interface` node to visit.
+    </span><span class="kw">fn </span>visit_interface(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interface: <span class="kw-2">&amp;</span>Interface) {
+        interface.walk(<span class="self">self</span>);
     }
 
     <span class="doccomment">/// Visits an enum element `AstNode` node.
@@ -1375,6 +1404,10 @@
         <span class="kw">for </span>config_variable <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.var_config {
             visitor.visit_config_variable(config_variable);
         }
+
+        <span class="kw">for </span>interface <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.interfaces {
+            visitor.visit_interface(interface);
+        }
     }
 }
 
@@ -1411,6 +1444,15 @@
 }
 
 <span class="kw">impl </span>Walker <span class="kw">for </span>ConfigVariable {
+    <span class="kw">fn </span>walk&lt;V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _visitor: <span class="kw-2">&amp;mut </span>V)
+    <span class="kw">where
+        </span>V: AstVisitor,
+    {
+        <span class="comment">// do nothing
+    </span>}
+}
+
+<span class="kw">impl </span>Walker <span class="kw">for </span>Interface {
     <span class="kw">fn </span>walk&lt;V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _visitor: <span class="kw-2">&amp;mut </span>V)
     <span class="kw">where
         </span>V: AstVisitor,

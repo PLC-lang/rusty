@@ -62,16 +62,24 @@
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>global_var_indexer::VarGlobalIndexer;
 <span class="kw">use </span>implementation_indexer::ImplementationIndexer;
 <span class="kw">use </span>plc_ast::{
-    ast::{CompilationUnit, Implementation, VariableBlockType},
+    ast::{CompilationUnit, Implementation, Interface, VariableBlockType},
     visitor::{AstVisitor, Walker},
 };
 <span class="kw">use </span>pou_indexer::PouIndexer;
 <span class="kw">use </span>user_type_indexer::UserTypeIndexer;
 
-<span class="kw">use </span><span class="kw">super</span>::Index;
+<span class="kw">use super</span>::{Index, InterfaceIndexEntry};
 
 <span class="kw">mod </span>global_var_indexer;
 <span class="kw">mod </span>implementation_indexer;
@@ -124,6 +132,14 @@
 
     <span class="kw">fn </span>visit_config_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, config_variable: <span class="kw-2">&amp;</span>plc_ast::ast::ConfigVariable) {
         <span class="self">self</span>.index.config_variables.push(config_variable.clone());
+    }
+
+    <span class="kw">fn </span>visit_interface(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interface: <span class="kw-2">&amp;</span>Interface) {
+        <span class="kw">for </span>method <span class="kw">in </span><span class="kw-2">&amp;</span>interface.methods {
+            <span class="self">self</span>.visit_pou(method);
+        }
+
+        <span class="self">self</span>.index.interfaces.insert(interface.name.clone(), InterfaceIndexEntry::from(interface));
     }
 }
 </code></pre></div></section></main></body></html>

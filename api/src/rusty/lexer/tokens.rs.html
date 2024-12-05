@@ -401,11 +401,28 @@
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
 <a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>logos::Logos;
 
 <span class="kw">use </span>plc_ast::ast::{DirectAccessType, HardwareAccessType};
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Logos, Clone)]
+<span class="attr">#[derive(Debug, PartialEq, Eq, Logos, Clone, Copy)]
 </span><span class="kw">pub enum </span>Token {
     <span class="attr">#[error]
     #[regex(<span class="string">r"\(\*"</span>, |lex| <span class="kw">super</span>::parse_comments(lex))]
@@ -441,6 +458,23 @@
 
     <span class="attr">#[token(<span class="string">"EXTENDS"</span>, ignore(case))]
     </span>KeywordExtends,
+
+    <span class="attr">#[token(<span class="string">"IMPLEMENTS"</span>, ignore(case))]
+    </span>KeywordImplements,
+
+    <span class="attr">#[token(<span class="string">"INTERFACE"</span>, ignore(case))]
+    </span>KeywordInterface,
+
+    <span class="attr">#[token(<span class="string">"END_INTERFACE"</span>, ignore(case))]
+    #[token(<span class="string">"ENDINTERFACE"</span>, ignore(case))]
+    </span>KeywordEndInterface,
+
+    <span class="attr">#[token(<span class="string">"PROPERTY"</span>, ignore(case))]
+    </span>KeywordProperty,
+
+    <span class="attr">#[token(<span class="string">"END_PROPERTY"</span>, ignore(case))]
+    #[token(<span class="string">"ENDPROPERTY"</span>, ignore(case))]
+    </span>KeywordEndProperty,
 
     <span class="attr">#[token(<span class="string">"VAR_INPUT"</span>, ignore(case))]
     #[token(<span class="string">"VARINPUT"</span>, ignore(case))]

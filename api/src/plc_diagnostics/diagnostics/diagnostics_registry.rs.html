@@ -271,6 +271,10 @@
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Returns a diagnostics map with the error code, default severity and a description
 </span><span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -484,6 +488,10 @@
         </span>E107,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E107.md"</span>),  <span class="comment">// Missing configuration for template variable
         </span>E108,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E108.md"</span>),  <span class="comment">// Template variable is configured multiple times
         </span>E109,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E109.md"</span>),  <span class="comment">// Stateful pointer variable initialized with temporary value
+        </span>E110,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E110.md"</span>),  <span class="comment">// Invalid POU Type for Interface Implementation
+        </span>E111,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E111.md"</span>),  <span class="comment">// Duplicate interface methods with different signatures
+        </span>E112,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E112.md"</span>),  <span class="comment">// Incomplete interface implementation
+        </span>E113,   Warning,    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E113.md"</span>),  <span class="comment">// Interface default method implementation
     </span>);
 }
 

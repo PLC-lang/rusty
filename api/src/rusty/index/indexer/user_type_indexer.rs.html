@@ -951,7 +951,7 @@
                     .as_ref()
                     .and_then(|it| HardwareBinding::from_statement(<span class="self">self</span>.index, it, scope.clone()));
 
-                <span class="self">self</span>.index.register_member_variable(
+                <span class="self">self</span>.index.create_member_variable(
                     MemberInfo {
                         container_name: name,
                         variable_name: <span class="kw-2">&amp;</span>var.name,
