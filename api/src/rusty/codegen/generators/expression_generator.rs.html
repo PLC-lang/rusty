@@ -2914,6 +2914,8 @@
 <a href="#2914" id="2914">2914</a>
 <a href="#2915" id="2915">2915</a>
 <a href="#2916" id="2916">2916</a>
+<a href="#2917" id="2917">2917</a>
+<a href="#2918" id="2918">2918</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
@@ -5638,33 +5640,35 @@
 /// as well as the parameter value (right side) ´param := value´ =&gt; ´value´
 /// and `true` for implicit / `false` for explicit parameters
 </span><span class="kw">pub fn </span>get_implicit_call_parameter&lt;<span class="lifetime">'a</span>&gt;(
-    param_statement: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AstNode,
-    declared_parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>VariableIndexEntry],
+    argument: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AstNode,
+    parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>VariableIndexEntry],
     idx: usize,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AstNode, bool), Diagnostic&gt; {
-    <span class="kw">let </span>(location, param_statement, is_implicit) = <span class="kw">match </span>param_statement.get_stmt() {
-        AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) =&gt; {
-            <span class="comment">//explicit
-            </span><span class="kw">let </span><span class="prelude-val">Some</span>(left_name) = data.left.as_ref().get_flat_reference_name() <span class="kw">else </span>{
+    <span class="kw">let </span>(location, rhs_assignment_value, is_implicit) = <span class="kw">match </span>argument.get_stmt() {
+        <span class="comment">// Explicit
+        </span>AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) =&gt; {
+            <span class="kw">let </span><span class="prelude-val">Some</span>(left_name) = data.left.as_ref().get_flat_reference_name() <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(
                     <span class="comment">//TODO: use global context to get an expression slice
                     </span>Diagnostic::new(<span class="string">"Expression is not assignable"</span>)
                         .with_error_code(<span class="string">"E050"</span>)
-                        .with_location(param_statement.get_location()),
+                        .with_location(argument.get_location()),
                 );
             };
-            <span class="kw">let </span>loc = declared_parameters
+
+            <span class="kw">let </span>loc = parameters
                 .iter()
                 .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
                 .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.get_location()))<span class="question-mark">?</span>;
+
             (loc, data.right.as_ref(), <span class="bool-val">false</span>)
         }
-        <span class="kw">_ </span>=&gt; {
-            <span class="comment">//implicit
-            </span>(idx, param_statement, <span class="bool-val">true</span>)
-        }
+
+        <span class="comment">// Implicit
+        </span><span class="kw">_ </span>=&gt; (idx, argument, <span class="bool-val">true</span>),
     };
-    <span class="prelude-val">Ok</span>((location, param_statement, is_implicit))
+
+    <span class="prelude-val">Ok</span>((location, rhs_assignment_value, is_implicit))
 }
 
 <span class="doccomment">/// turns the given IntValue into an i1 by comparing it to 0 (of the same size)
