@@ -820,6 +820,7 @@ fn initializing_method_variables() {
       %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 1
       store i32 10, i32* %x, align 4
       store i32* %x, i32** %px, align 8
+      store i32* %x, i32** %px, align 8
       ret void
     }
     ; ModuleID = '__initializers'
@@ -834,11 +835,6 @@ fn initializing_method_variables() {
     entry:
       %self = alloca %foo.bar*, align 8
       store %foo.bar* %0, %foo.bar** %self, align 8
-      %deref = load %foo.bar*, %foo.bar** %self, align 8
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %deref, i32 0, i32 1
-      %deref1 = load %foo.bar*, %foo.bar** %self, align 8
-      %x = getelementptr inbounds %foo.bar, %foo.bar* %deref1, i32 0, i32 0
-      store i32* %x, i32** %px, align 8
       ret void
     }
 
@@ -911,6 +907,7 @@ fn initializing_method_variables() {
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
       store i32* %x, i32** %px, align 8
+      store i32* %x, i32** %px, align 8
       ret void
     }
 
@@ -918,6 +915,7 @@ fn initializing_method_variables() {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = getelementptr inbounds %foo.baz, %foo.baz* %1, i32 0, i32 0
+      store i32* @y, i32** %px, align 8
       store i32* @y, i32** %px, align 8
       ret void
     }
@@ -929,15 +927,11 @@ fn initializing_method_variables() {
     %foo.bar = type { i32* }
 
     @__foo__init = external global %foo
-    @y = external global i32
 
     define void @__init_foo.baz(%foo.baz* %0) {
     entry:
       %self = alloca %foo.baz*, align 8
       store %foo.baz* %0, %foo.baz** %self, align 8
-      %deref = load %foo.baz*, %foo.baz** %self, align 8
-      %px = getelementptr inbounds %foo.baz, %foo.baz* %deref, i32 0, i32 0
-      store i32* @y, i32** %px, align 8
       ret void
     }
 
@@ -947,12 +941,6 @@ fn initializing_method_variables() {
     entry:
       %self = alloca %foo.bar*, align 8
       store %foo.bar* %0, %foo.bar** %self, align 8
-      %deref = load %foo.bar*, %foo.bar** %self, align 8
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %deref, i32 0, i32 0
-      %deref1 = load %foo.bar*, %foo.bar** %self, align 8
-      %x = getelementptr inbounds %foo.bar, %foo.bar* %deref1, i32 0, i32 0
-      %1 = bitcast i32** %x to i32*
-      store i32* %1, i32** %px, align 8
       ret void
     }
 
@@ -1015,6 +1003,7 @@ fn initializing_method_variables() {
       %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 1
       store i32 10, i32* %x1, align 4
       store i32* %x1, i32** %px, align 8
+      store i32* %x1, i32** %px, align 8
       ret void
     }
     ; ModuleID = '__initializers'
@@ -1029,11 +1018,6 @@ fn initializing_method_variables() {
     entry:
       %self = alloca %foo.bar*, align 8
       store %foo.bar* %0, %foo.bar** %self, align 8
-      %deref = load %foo.bar*, %foo.bar** %self, align 8
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %deref, i32 0, i32 1
-      %deref1 = load %foo.bar*, %foo.bar** %self, align 8
-      %x = getelementptr inbounds %foo.bar, %foo.bar* %deref1, i32 0, i32 0
-      store i32* %x, i32** %px, align 8
       ret void
     }
 

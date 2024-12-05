@@ -88,7 +88,9 @@ impl AstLowerer {
             let rhs = self.index.find_member(scope, flat_ref);
             let lhs = self.index.find_member(scope, variable.get_name());
             let Some(pou) = self.index.find_pou(scope) else { return Ok(false) };
-            if !pou.is_function() && lhs.is_some_and(|it| !it.is_temp()) && rhs.is_some_and(|it| it.is_temp())
+            if !(pou.is_function() || pou.is_method())
+                && lhs.is_some_and(|it| !it.is_temp())
+                && rhs.is_some_and(|it| it.is_temp())
             {
                 // Unable to initialize a stateful member variable with an address of a temporary value since it doesn't exist at the time of initialization
                 // On top of that, even if we were to initialize it, it would lead to a dangling pointer/potential use-after-free
@@ -101,7 +103,6 @@ impl AstLowerer {
                         PouIndexEntry::Program { .. }
                         | PouIndexEntry::FunctionBlock { .. }
                         | PouIndexEntry::Class { .. }
-                        | PouIndexEntry::Method { .. }
                             // we only want to add qualifiers to local, non-temporary variables
                             if rhs.is_some_and(|it| !it.is_temp()) && lhs.is_some_and(|it| !it.is_temp())=>
                         {
@@ -119,11 +120,12 @@ impl AstLowerer {
                 .annotations
                 .get_type_hint(initializer, &self.index)
                 .map(|it| it.get_type_information())
-                .filter(|dti| dti.is_pointer() || dti.is_reference_to() || dti.is_alias())
+                .filter(|dti| dti.is_pointer())
                 .is_none()
             {
                 return;
             };
+
             let updated_initializer = match &initializer.get_stmt() {
                 // no call-statement in the initializer, so something like `a AT b` or `a : REFERENCE TO ... REF= b`
                 AstStatement::ReferenceExpr(_) => {
@@ -172,7 +174,8 @@ impl AstLowerer {
         let predicate = |var: &VariableIndexEntry| {
             var.is_temp()
                 || var.is_var_external()
-                || (implementation.pou_type == PouType::Function && var.is_local())
+                || (matches!(implementation.pou_type, PouType::Function | PouType::Method { .. })
+                    && var.is_local())
         };
         let strip_temporaries = |inits: &mut InitAssignments| {
             let mut temps = InitAssignments::default();
@@ -204,12 +207,23 @@ impl AstLowerer {
         self.unresolved_initializers.insert(implementation.name.to_owned(), inits);
 
         // collect simple assignments
-        let assignments = temps.into_iter().filter_map(|(lhs, init)| {
-            init.as_ref().map(|it| {
-                let func = if it.is_call() { create_assignment } else { create_ref_assignment };
-                func(&lhs, None, it, self.ctxt.get_id_provider())
+        let assignments = temps
+            .into_iter()
+            .map(|(lhs, init)| {
+                init.as_ref().and_then(|it| {
+                    let flat_ref = if let AstStatement::CallStatement(CallStatement { parameters, .. }) =
+                        it.get_stmt()
+                    {
+                        let name = parameters.as_ref()?.get_flat_reference_name()?;
+                        create_member_reference(name, self.ctxt.get_id_provider(), None)
+                    } else {
+                        it.clone()
+                    };
+
+                    Some(create_ref_assignment(&lhs, None, &flat_ref, self.ctxt.get_id_provider()))
+                })
             })
-        });
+            .flatten();
 
         // collect necessary call statements to init-functions
         let delegated_calls = self
