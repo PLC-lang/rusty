@@ -251,8 +251,17 @@ impl VariableIndexEntry {
     pub fn is_local(&self) -> bool {
         self.get_variable_type() == VariableType::Local
     }
+
     pub fn is_temp(&self) -> bool {
         self.get_variable_type() == VariableType::Temp
+    }
+
+    pub fn is_input(&self) -> bool {
+        self.get_variable_type() == VariableType::Input
+    }
+
+    pub fn is_inout(&self) -> bool {
+        self.get_variable_type() == VariableType::InOut
     }
 
     pub fn is_constant(&self) -> bool {
@@ -838,8 +847,15 @@ impl PouIndexEntry {
         matches!(self, PouIndexEntry::Class { .. })
     }
 
-    pub(crate) fn is_method(&self) -> bool {
+    pub fn is_method(&self) -> bool {
         matches!(self, PouIndexEntry::Method { .. })
+    }
+
+    pub fn is_stateful(&self) -> bool {
+        matches!(
+            self,
+            PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Class { .. }
+        )
     }
 
     pub(crate) fn is_constant(&self) -> bool {
