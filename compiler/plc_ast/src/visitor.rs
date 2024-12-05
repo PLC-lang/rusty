@@ -4,9 +4,9 @@
 use crate::ast::{
     flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
     CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess,
-    EmptyStatement, HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou,
-    RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable,
-    VariableBlock,
+    EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement,
+    MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
+    UserTypeDeclaration, Variable, VariableBlock,
 };
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;
@@ -156,6 +156,14 @@ pub trait AstVisitor: Sized {
     /// * `variable` - The unwraped, typed `Variable` node to visit.
     fn visit_config_variable(&mut self, config_variable: &ConfigVariable) {
         config_variable.walk(self);
+    }
+
+    /// Visits a `Interface`.
+    /// Make sure to call `walk` on the `Interface` to visit its children.
+    /// # Arguments
+    /// * `interface` - The unwraped, typed `Interface` node to visit.
+    fn visit_interface(&mut self, interface: &Interface) {
+        interface.walk(self);
     }
 
     /// Visits an enum element `AstNode` node.
@@ -620,6 +628,10 @@ impl Walker for CompilationUnit {
         for config_variable in &self.var_config {
             visitor.visit_config_variable(config_variable);
         }
+
+        for interface in &self.interfaces {
+            visitor.visit_interface(interface);
+        }
     }
 }
 
@@ -656,6 +668,15 @@ impl Walker for Variable {
 }
 
 impl Walker for ConfigVariable {
+    fn walk<V>(&self, _visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        // do nothing
+    }
+}
+
+impl Walker for Interface {
     fn walk<V>(&self, _visitor: &mut V)
     where
         V: AstVisitor,

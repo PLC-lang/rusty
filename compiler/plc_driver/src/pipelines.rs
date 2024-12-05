@@ -107,6 +107,7 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                     source_code::SourceType::Xml => cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
                 };
+
                 parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician)
             })
             .collect::<Vec<_>>();

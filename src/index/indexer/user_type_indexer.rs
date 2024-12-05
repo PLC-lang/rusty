@@ -456,7 +456,7 @@ impl UserTypeIndexer<'_, '_> {
                     .as_ref()
                     .and_then(|it| HardwareBinding::from_statement(self.index, it, scope.clone()));
 
-                self.index.register_member_variable(
+                self.index.create_member_variable(
                     MemberInfo {
                         container_name: name,
                         variable_name: &var.name,

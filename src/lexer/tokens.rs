@@ -2,7 +2,7 @@ use logos::Logos;
 
 use plc_ast::ast::{DirectAccessType, HardwareAccessType};
 
-#[derive(Debug, PartialEq, Eq, Logos, Clone)]
+#[derive(Debug, PartialEq, Eq, Logos, Clone, Copy)]
 pub enum Token {
     #[error]
     #[regex(r"\(\*", |lex| super::parse_comments(lex))]
@@ -38,6 +38,23 @@ pub enum Token {
 
     #[token("EXTENDS", ignore(case))]
     KeywordExtends,
+
+    #[token("IMPLEMENTS", ignore(case))]
+    KeywordImplements,
+
+    #[token("INTERFACE", ignore(case))]
+    KeywordInterface,
+
+    #[token("END_INTERFACE", ignore(case))]
+    #[token("ENDINTERFACE", ignore(case))]
+    KeywordEndInterface,
+
+    #[token("PROPERTY", ignore(case))]
+    KeywordProperty,
+
+    #[token("END_PROPERTY", ignore(case))]
+    #[token("ENDPROPERTY", ignore(case))]
+    KeywordEndProperty,
 
     #[token("VAR_INPUT", ignore(case))]
     #[token("VARINPUT", ignore(case))]

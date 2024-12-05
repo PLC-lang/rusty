@@ -211,6 +211,10 @@ lazy_static! {
         E107,   Error,      include_str!("./error_codes/E107.md"),  // Missing configuration for template variable
         E108,   Error,      include_str!("./error_codes/E108.md"),  // Template variable is configured multiple times
         E109,   Error,      include_str!("./error_codes/E109.md"),  // Stateful pointer variable initialized with temporary value
+        E110,   Error,      include_str!("./error_codes/E110.md"),  // Invalid POU Type for Interface Implementation
+        E111,   Error,      include_str!("./error_codes/E111.md"),  // Duplicate interface methods with different signatures
+        E112,   Error,      include_str!("./error_codes/E112.md"),  // Incomplete interface implementation
+        E113,   Warning,    include_str!("./error_codes/E113.md"),  // Interface default method implementation
     );
 }
 

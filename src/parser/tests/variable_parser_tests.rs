@@ -404,6 +404,7 @@ fn var_config_test() {
         ],
         units: [],
         implementations: [],
+        interfaces: [],
         user_types: [],
         file_name: "test.st",
     }
@@ -501,6 +502,7 @@ fn var_external() {
                 ],
                 pou_type: Function,
                 return_type: None,
+                interfaces: [],
             },
         ],
         implementations: [
@@ -541,6 +543,7 @@ fn var_external() {
                 access: None,
             },
         ],
+        interfaces: [],
         user_types: [],
         file_name: "test.st",
     }
@@ -625,6 +628,7 @@ fn var_external_constant() {
                 ],
                 pou_type: Function,
                 return_type: None,
+                interfaces: [],
             },
         ],
         implementations: [
@@ -665,6 +669,7 @@ fn var_external_constant() {
                 access: None,
             },
         ],
+        interfaces: [],
         user_types: [],
         file_name: "test.st",
     }
