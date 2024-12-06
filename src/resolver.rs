@@ -804,6 +804,11 @@ impl<'i> TypeAnnotator<'i> {
             visitor.visit_pou(ctx, pou);
         }
 
+        for _ in &unit.interfaces {
+            // Do nothing, mostly because POUs defined in interfaces are empty therefore there shouldn't be
+            // anything to annotate
+        }
+
         for t in &unit.user_types {
             visitor.visit_user_type_declaration(t, ctx);
         }

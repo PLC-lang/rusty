@@ -30,7 +30,7 @@ impl<'i> PouIndexer<'i> {
         //register a function's return type as a member variable
         let return_type_name = pou.return_type.as_ref().and_then(|it| it.get_name()).unwrap_or(VOID_TYPE);
         if pou.return_type.is_some() {
-            let entry = self.index.register_member_variable(
+            let entry = self.index.create_member_variable(
                 MemberInfo {
                     container_name: &pou.name,
                     variable_name: pou.get_return_name(),
@@ -74,8 +74,8 @@ impl<'i> PouIndexer<'i> {
             PouType::Function | PouType::Init | PouType::ProjectInit => {
                 self.index_function(pou, return_type_name, member_varargs, pou_struct_type);
             }
-            PouType::Method { owner_class } => {
-                self.index_method(pou, return_type_name, owner_class, pou_struct_type);
+            PouType::Method { parent } => {
+                self.index_method(pou, return_type_name, parent, pou_struct_type);
             }
             _ => {}
         };
@@ -217,7 +217,7 @@ impl<'i> PouIndexer<'i> {
                     .as_ref()
                     .and_then(|it| HardwareBinding::from_statement(self.index, it, Some(pou.name.clone())));
 
-                let entry = self.index.register_member_variable(
+                let entry = self.index.create_member_variable(
                     MemberInfo {
                         container_name: &pou.name,
                         variable_name: &var.name,

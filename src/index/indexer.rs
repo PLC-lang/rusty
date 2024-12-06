@@ -1,13 +1,13 @@
 use global_var_indexer::VarGlobalIndexer;
 use implementation_indexer::ImplementationIndexer;
 use plc_ast::{
-    ast::{CompilationUnit, Implementation, VariableBlockType},
+    ast::{CompilationUnit, Implementation, Interface, VariableBlockType},
     visitor::{AstVisitor, Walker},
 };
 use pou_indexer::PouIndexer;
 use user_type_indexer::UserTypeIndexer;
 
-use super::Index;
+use super::{Index, InterfaceIndexEntry};
 
 mod global_var_indexer;
 mod implementation_indexer;
@@ -60,5 +60,13 @@ impl AstVisitor for SymbolIndexer {
 
     fn visit_config_variable(&mut self, config_variable: &plc_ast::ast::ConfigVariable) {
         self.index.config_variables.push(config_variable.clone());
+    }
+
+    fn visit_interface(&mut self, interface: &Interface) {
+        for method in &interface.methods {
+            self.visit_pou(method);
+        }
+
+        self.index.interfaces.insert(interface.name.clone(), InterfaceIndexEntry::from(interface));
     }
 }
