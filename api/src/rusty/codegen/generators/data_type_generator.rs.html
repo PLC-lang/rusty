@@ -645,7 +645,7 @@
     <span class="prelude-val">Ok</span>(generator.types_index)
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; DataTypeGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>&gt; DataTypeGenerator&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// generates the members of an opaque struct and associates its initial values
     </span><span class="kw">fn </span>expand_opaque_types(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data_type: <span class="kw-2">&amp;</span>DataType) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>information = data_type.get_type_information();

@@ -92,7 +92,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; Parseable <span class="kw">for </span>Body&lt;<span class="lifetime">'xml</span>&gt; {
+<span class="kw">impl </span>Parseable <span class="kw">for </span>Body&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, _tag: <span class="prelude-ty">Option</span>&lt;BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>body = Body::default();
         <span class="kw">loop </span>{

@@ -59,13 +59,13 @@
     <span class="kw">fn </span>get_or_err(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, Error&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; TryToString <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8] {
+<span class="kw">impl </span>TryToString <span class="kw">for </span><span class="kw-2">&amp;</span>[u8] {
     <span class="kw">fn </span>try_to_string(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String, Error&gt; {
         String::from_utf8(<span class="self">self</span>.as_ref().to_vec()).map_err(|err| Error::Encoding(err.utf8_error()))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; TryToString <span class="kw">for </span>QName&lt;<span class="lifetime">'a</span>&gt; {
+<span class="kw">impl </span>TryToString <span class="kw">for </span>QName&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>try_to_string(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String, Error&gt; {
         String::from_utf8(<span class="self">self</span>.into_inner().to_vec()).map_err(|err| Error::Encoding(err.utf8_error()))
     }

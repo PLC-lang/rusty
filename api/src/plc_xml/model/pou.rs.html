@@ -200,7 +200,7 @@
     <span class="kw">pub </span>interface: <span class="prelude-ty">Option</span>&lt;Interface&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; Pou&lt;<span class="lifetime">'xml</span>&gt; {
+<span class="kw">impl </span>Pou&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>with_attributes(<span class="self">self</span>, attributes: FxHashMap&lt;String, String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="prelude-val">Ok</span>(Pou {
             name: Cow::from(attributes.get_or_err(<span class="string">"name"</span>)<span class="question-mark">?</span>),
@@ -219,7 +219,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; Parseable <span class="kw">for </span>Pou&lt;<span class="lifetime">'xml</span>&gt; {
+<span class="kw">impl </span>Parseable <span class="kw">for </span>Pou&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, tag: <span class="prelude-ty">Option</span>&lt;BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">let </span><span class="prelude-val">Some</span>(tag) = tag <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
         <span class="kw">let </span>attributes = get_attributes(tag.attributes())<span class="question-mark">?</span>;

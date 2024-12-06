@@ -41,7 +41,7 @@
 
 <span class="kw">use </span><span class="kw">super</span>::ParseSession;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; Pou&lt;<span class="lifetime">'xml</span>&gt; {
+<span class="kw">impl </span>Pou&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
         <span class="kw">let </span>fbd = <span class="kw-2">&amp;</span><span class="self">self</span>.body.function_block_diagram;
 

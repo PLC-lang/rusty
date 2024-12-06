@@ -40,7 +40,7 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; DerefMut <span class="kw">for </span>Reader&lt;<span class="lifetime">'xml</span>&gt; {
+<span class="kw">impl </span>DerefMut <span class="kw">for </span>Reader&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0
     </span>}

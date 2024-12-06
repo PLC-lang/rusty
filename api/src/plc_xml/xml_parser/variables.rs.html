@@ -70,7 +70,7 @@
 }
 
 <span class="comment">// variables, parameters -&gt; more readable names?
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; FunctionBlockVariable&lt;<span class="lifetime">'xml</span>&gt; {
+</span><span class="kw">impl </span>FunctionBlockVariable&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;</span>ParseSession) -&gt; AstNode {
         <span class="kw">if </span><span class="self">self</span>.negated {
             <span class="kw">let </span>ident = session.parse_expression(<span class="kw-2">&amp;</span><span class="self">self</span>.expression, <span class="self">self</span>.local_id, <span class="self">self</span>.execution_order_id);

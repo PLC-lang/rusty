@@ -5077,9 +5077,9 @@
                 <span class="kw">let </span>ordered_values: Vec&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt; =
                     member_values.iter().map(|(<span class="kw">_</span>, v)| <span class="kw-2">*</span>v).collect();
 
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(ExpressionValue::RValue(
+                <span class="prelude-val">Ok</span>(ExpressionValue::RValue(
                     struct_type.const_named_struct(ordered_values.as_slice()).as_basic_value_enum(),
-                ));
+                ))
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                     <span class="macro">format!</span>(
@@ -5106,7 +5106,7 @@
             <span class="self">self</span>.get_type_hint_info_for(initializer)<span class="question-mark">?</span>,
             <span class="kw-2">&amp;</span>initializer.get_location(),
         )<span class="question-mark">?</span>;
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(array_value.as_basic_value_enum());
+        <span class="prelude-val">Ok</span>(array_value.as_basic_value_enum())
     }
 
     <span class="doccomment">/// constructs an ArrayValue (returned as a BasicValueEnum) of the given element-literals constructing an array-value of the

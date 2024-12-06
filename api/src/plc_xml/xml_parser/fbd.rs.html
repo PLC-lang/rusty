@@ -85,7 +85,7 @@
 
 <span class="kw">use </span><span class="kw">super</span>::ParseSession;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; FunctionBlockDiagram&lt;<span class="lifetime">'xml</span>&gt; {
+<span class="kw">impl </span>FunctionBlockDiagram&lt;<span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// Transforms the body of a function block diagram to their AST-equivalent, in order of execution.
     /// Only statements that are necessary for execution logic will be selected.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transform(<span class="kw-2">&amp;</span><span class="self">self</span>, session: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;AstNode&gt; {

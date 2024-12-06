@@ -360,7 +360,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>, T: AnnotationMap&gt; Clone <span class="kw">for </span>ValidationContext&lt;<span class="lifetime">'s</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: AnnotationMap&gt; Clone <span class="kw">for </span>ValidationContext&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         ValidationContext {
             annotations: <span class="self">self</span>.annotations,
@@ -385,7 +385,7 @@
     recursive_validator: RecursiveValidator,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Validators <span class="kw">for </span>Validator&lt;<span class="lifetime">'a</span>&gt; {
+<span class="kw">impl </span>Validators <span class="kw">for </span>Validator&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>push_diagnostic(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostic: Diagnostic) {
         <span class="self">self</span>.diagnostics.push(diagnostic);
     }

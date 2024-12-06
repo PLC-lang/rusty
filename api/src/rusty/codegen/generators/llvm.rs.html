@@ -331,7 +331,7 @@
     <span class="kw">fn </span>set_initial_value(<span class="self">self</span>, initial_value: <span class="prelude-ty">Option</span>&lt;BasicValueEnum&gt;, data_type: BasicTypeEnum) -&gt; <span class="self">Self</span>;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>&gt; GlobalValueExt <span class="kw">for </span>GlobalValue&lt;<span class="lifetime">'ink</span>&gt; {
+<span class="kw">impl </span>GlobalValueExt <span class="kw">for </span>GlobalValue&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>make_constant(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.set_constant(<span class="bool-val">true</span>);
         <span class="self">self</span>.set_unnamed_addr(<span class="bool-val">true</span>);

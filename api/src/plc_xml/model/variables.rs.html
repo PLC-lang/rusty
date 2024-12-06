@@ -358,7 +358,7 @@
     <span class="kw">pub </span>ref_local_id: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; FunctionBlockVariable&lt;<span class="lifetime">'xml</span>&gt; {
+<span class="kw">impl </span>FunctionBlockVariable&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">pub fn </span>new(hm: FxHashMap&lt;String, String&gt;, kind: VariableKind) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             kind,
@@ -415,7 +415,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'xml</span>&gt; Parseable <span class="kw">for </span>FunctionBlockVariable&lt;<span class="lifetime">'xml</span>&gt; {
+<span class="kw">impl </span>Parseable <span class="kw">for </span>FunctionBlockVariable&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>visit(reader: <span class="kw-2">&amp;mut </span>Reader, tag: <span class="prelude-ty">Option</span>&lt;quick_xml::events::BytesStart&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">let </span><span class="prelude-val">Some</span>(tag) = tag <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
         <span class="kw">let </span>kind = tag.name().as_ref().try_into()<span class="question-mark">?</span>;

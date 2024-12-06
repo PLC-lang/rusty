@@ -492,7 +492,7 @@
 }
 
 <span class="comment">// Utility methods handling generic resolution
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'i</span>&gt; TypeAnnotator&lt;<span class="lifetime">'i</span>&gt; {
+</span><span class="kw">impl </span>TypeAnnotator&lt;<span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// determines a possible generic for the current statement
     /// returns a pair with the possible generics symbol and the real datatype
     /// e.g. `( "T", "INT" )`
