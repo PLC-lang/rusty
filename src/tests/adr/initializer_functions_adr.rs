@@ -782,3 +782,225 @@ fn intializing_temporary_variables() {
     }
     "##)
 }
+
+/// Initializing method variables behaves very similar to stack local variables from the previous example.
+/// The main difference is that local variables can shadow the parents variables in which case the local
+/// variable takes precedence.
+#[test]
+fn initializing_method_variables() {
+    // For this first case, we focus purely on local variables where some variable is referencing another
+    // variable. This example behaves exactly like the previous example with local variables in functions or
+    // `VAR_TEMP` blocks.
+    let src = r"
+    FUNCTION_BLOCK foo
+        METHOD bar
+            VAR
+                x   : DINT := 10;
+                px : REF_TO DINT := REF(x);
+            END_VAR
+        END_METHOD
+    END_FUNCTION_BLOCK
+    ";
+
+    insta::assert_snapshot!(codegen(src), @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type {}
+    %foo.bar = type { i32, i32* }
+
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+
+    define void @foo(%foo* %0) {
+    entry:
+      ret void
+    }
+
+    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    entry:
+      %x = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
+      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 1
+      store i32 10, i32* %x, align 4
+      store i32* %x, i32** %px, align 8
+      store i32* %x, i32** %px, align 8
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type {}
+
+    @__foo__init = external global %foo
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
+    "#);
+
+    // When no local reference is found, the parent variable is used if present. Otherwise we look for a
+    // global variable.
+    let src = r"
+    VAR_GLOBAL
+        y : DINT;
+    END_VAR
+
+    FUNCTION_BLOCK foo
+        VAR
+            x : DINT := 5;
+        END_VAR
+
+        METHOD bar
+            VAR
+                px : REF_TO DINT := REF(x);
+            END_VAR
+        END_METHOD
+
+        METHOD baz
+            VAR
+                px : REF_TO DINT := REF(y);
+            END_VAR
+        END_METHOD
+    END_FUNCTION_BLOCK
+    ";
+
+    insta::assert_snapshot!(codegen(src), @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { i32 }
+    %foo.bar = type { i32* }
+    %foo.baz = type { i32* }
+
+    @y = global i32 0
+    @__foo__init = unnamed_addr constant %foo { i32 5 }
+
+    define void @foo(%foo* %0) {
+    entry:
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    entry:
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
+      store i32* %x, i32** %px, align 8
+      store i32* %x, i32** %px, align 8
+      ret void
+    }
+
+    define void @foo.baz(%foo* %0, %foo.baz* %1) {
+    entry:
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %px = getelementptr inbounds %foo.baz, %foo.baz* %1, i32 0, i32 0
+      store i32* @y, i32** %px, align 8
+      store i32* @y, i32** %px, align 8
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { i32 }
+
+    @__foo__init = external global %foo
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
+    "#);
+
+    // When both a local and a parent variable are present, the local variable takes precedence.
+    let src = r"
+    FUNCTION_BLOCK foo
+        VAR
+            x : DINT := 5;
+        END_VAR
+
+        METHOD bar
+            VAR
+                x   : DINT := 10;
+                px : REF_TO DINT := REF(x);
+            END_VAR
+        END_METHOD
+    END_FUNCTION_BLOCK
+    ";
+
+    insta::assert_snapshot!(codegen(src), @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { i32 }
+    %foo.bar = type { i32, i32* }
+
+    @__foo__init = unnamed_addr constant %foo { i32 5 }
+
+    define void @foo(%foo* %0) {
+    entry:
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    entry:
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x1 = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
+      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 1
+      store i32 10, i32* %x1, align 4
+      store i32* %x1, i32** %px, align 8
+      store i32* %x1, i32** %px, align 8
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %foo = type { i32 }
+
+    @__foo__init = external global %foo
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      ret void
+    }
+    "#);
+}

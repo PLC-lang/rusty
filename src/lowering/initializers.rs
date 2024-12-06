@@ -149,13 +149,13 @@ fn create_init_unit(
 ) -> Option<CompilationUnit> {
     let id_provider = &lowerer.ctxt.id_provider;
     let init_fn_name = get_init_fn_name(container_name);
-    let (is_function, location) = lowerer
+    let (is_stateless, location) = lowerer
         .index
         .find_pou(container_name)
-        .map(|it| (it.is_function(), it.get_location()))
+        .map(|it| (it.is_function() || it.is_method(), it.get_location()))
         .unwrap_or_else(|| (false, &lowerer.index.get_type_or_panic(container_name).location));
 
-    if is_function {
+    if is_stateless {
         // functions do not get their own init-functions -
         // initialization-statements will be added to the function body instead
         return None;
