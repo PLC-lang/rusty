@@ -980,7 +980,7 @@ fn fb_method_called_locally() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1042,18 +1042,8 @@ fn fb_method_called_locally() {
     source_filename = "__initializers"
 
     %foo = type { i32 }
-    %foo.addToBar = type { i16 }
 
     @__foo__init = external global %foo
-
-    define void @__init_foo.addtobar(%foo.addToBar* %0) {
-    entry:
-      %self = alloca %foo.addToBar*, align 8
-      store %foo.addToBar* %0, %foo.addToBar** %self, align 8
-      ret void
-    }
-
-    declare i32 @foo.addToBar(%foo*, %foo.addToBar*)
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1072,7 +1062,7 @@ fn fb_method_called_locally() {
     entry:
       ret void
     }
-    "###)
+    "#)
 }
 
 #[test]
@@ -1106,7 +1096,7 @@ fn fb_local_method_var_shadows_parent_var() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1170,18 +1160,8 @@ fn fb_local_method_var_shadows_parent_var() {
     source_filename = "__initializers"
 
     %foo = type { i32 }
-    %foo.addToBar = type { i16, i32 }
 
     @__foo__init = external global %foo
-
-    define void @__init_foo.addtobar(%foo.addToBar* %0) {
-    entry:
-      %self = alloca %foo.addToBar*, align 8
-      store %foo.addToBar* %0, %foo.addToBar** %self, align 8
-      ret void
-    }
-
-    declare i32 @foo.addToBar(%foo*, %foo.addToBar*)
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1200,7 +1180,7 @@ fn fb_local_method_var_shadows_parent_var() {
     entry:
       ret void
     }
-    "###)
+    "#)
 }
 
 #[test]
@@ -1231,7 +1211,7 @@ fn prog_method_called_locally() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1282,18 +1262,8 @@ fn prog_method_called_locally() {
     source_filename = "__initializers"
 
     %foo = type { i32 }
-    %foo.addToBar = type { i16 }
 
     @foo_instance = external global %foo
-
-    define void @__init_foo.addtobar(%foo.addToBar* %0) {
-    entry:
-      %self = alloca %foo.addToBar*, align 8
-      store %foo.addToBar* %0, %foo.addToBar** %self, align 8
-      ret void
-    }
-
-    declare i32 @foo.addToBar(%foo*, %foo.addToBar*)
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1320,7 +1290,7 @@ fn prog_method_called_locally() {
     declare void @__init_foo(%foo*)
 
     declare void @foo(%foo*)
-    "###)
+    "#)
 }
 
 #[test]
@@ -1353,7 +1323,7 @@ fn prog_local_method_var_shadows_parent_var() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1406,18 +1376,8 @@ fn prog_local_method_var_shadows_parent_var() {
     source_filename = "__initializers"
 
     %foo = type { i32 }
-    %foo.addToBar = type { i16, i32 }
 
     @foo_instance = external global %foo
-
-    define void @__init_foo.addtobar(%foo.addToBar* %0) {
-    entry:
-      %self = alloca %foo.addToBar*, align 8
-      store %foo.addToBar* %0, %foo.addToBar** %self, align 8
-      ret void
-    }
-
-    declare i32 @foo.addToBar(%foo*, %foo.addToBar*)
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1444,7 +1404,7 @@ fn prog_local_method_var_shadows_parent_var() {
     declare void @__init_foo(%foo*)
 
     declare void @foo(%foo*)
-    "###)
+    "#)
 }
 
 #[test]

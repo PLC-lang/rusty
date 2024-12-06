@@ -108,9 +108,6 @@ impl AstLowerer {
                         {
                             true
                         }
-                        // PouIndexEntry::Method { .. } => {
-                        //     unimplemented!("We'll worry about this once we get around to OOP")
-                        // }
                         _ => false,
                     })
         };
@@ -207,23 +204,35 @@ impl AstLowerer {
         self.unresolved_initializers.insert(implementation.name.to_owned(), inits);
 
         // collect simple assignments
-        let assignments = temps
-            .into_iter()
-            .map(|(lhs, init)| {
-                init.as_ref().and_then(|it| {
-                    let flat_ref = if let AstStatement::CallStatement(CallStatement { parameters, .. }) =
-                        it.get_stmt()
+        let assignments = temps.into_iter().filter_map(|(lhs, init)| {
+            init.as_ref().map(|it| {
+                let lhs_ty = self
+                    .index
+                    .find_member(&implementation.name, &lhs)
+                    .map(|it| {
+                        self.index
+                            .get_effective_type_or_void_by_name(it.get_type_name())
+                            .get_type_information()
+                    })
+                    .unwrap();
+                if lhs_ty.is_reference_to() || lhs_ty.is_alias() {
+                    // XXX: ignore REF_TO for temp variables since they can be generated regularly
+                    let rhs = if let AstStatement::CallStatement(CallStatement {
+                        parameters: Some(parameter),
+                        ..
+                    }) = it.get_stmt()
                     {
-                        let name = parameters.as_ref()?.get_flat_reference_name()?;
-                        create_member_reference(name, self.ctxt.get_id_provider(), None)
+                        parameter
                     } else {
-                        it.clone()
+                        it
                     };
-
-                    Some(create_ref_assignment(&lhs, None, &flat_ref, self.ctxt.get_id_provider()))
-                })
+                    // `REFERENCE TO` assignments in a POU body are automatically dereferenced and require the `REF=` operator to assign a pointer instead.
+                    create_ref_assignment(&lhs, None, &rhs, self.ctxt.get_id_provider())
+                } else {
+                    create_assignment(&lhs, None, it, self.ctxt.get_id_provider())
+                }
             })
-            .flatten();
+        });
 
         // collect necessary call statements to init-functions
         let delegated_calls = self

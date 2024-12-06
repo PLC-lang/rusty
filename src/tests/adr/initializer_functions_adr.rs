@@ -802,7 +802,7 @@ fn initializing_method_variables() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -829,18 +829,8 @@ fn initializing_method_variables() {
     source_filename = "__initializers"
 
     %foo = type {}
-    %foo.bar = type { i32, i32* }
 
     @__foo__init = external global %foo
-
-    define void @__init_foo.bar(%foo.bar* %0) {
-    entry:
-      %self = alloca %foo.bar*, align 8
-      store %foo.bar* %0, %foo.bar** %self, align 8
-      ret void
-    }
-
-    declare void @foo.bar(%foo*, %foo.bar*)
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -859,7 +849,7 @@ fn initializing_method_variables() {
     entry:
       ret void
     }
-    "###);
+    "#);
 
     // When no local reference is found, the parent variable is used if present. Otherwise we look for a
     // global variable.

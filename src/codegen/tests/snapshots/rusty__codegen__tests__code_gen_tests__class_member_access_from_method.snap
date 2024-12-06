@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -39,18 +40,8 @@ entry:
 source_filename = "__initializers"
 
 %MyClass = type { i16, i16 }
-%MyClass.testMethod = type { i16, i16 }
 
 @__MyClass__init = external global %MyClass
-
-define void @__init_myclass.testmethod(%MyClass.testMethod* %0) {
-entry:
-  %self = alloca %MyClass.testMethod*, align 8
-  store %MyClass.testMethod* %0, %MyClass.testMethod** %self, align 8
-  ret void
-}
-
-declare void @MyClass.testMethod(%MyClass*, %MyClass.testMethod*)
 
 define void @__init_myclass(%MyClass* %0) {
 entry:
