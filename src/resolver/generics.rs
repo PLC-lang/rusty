@@ -23,7 +23,7 @@ pub struct GenericType {
 }
 
 // Utility methods handling generic resolution
-impl<'i> TypeAnnotator<'i> {
+impl TypeAnnotator<'_> {
     /// determines a possible generic for the current statement
     /// returns a pair with the possible generics symbol and the real datatype
     /// e.g. `( "T", "INT" )`

@@ -7,7 +7,7 @@ use crate::model::fbd::{FunctionBlockDiagram, Node, NodeId};
 
 use super::ParseSession;
 
-impl<'xml> FunctionBlockDiagram<'xml> {
+impl FunctionBlockDiagram<'_> {
     /// Transforms the body of a function block diagram to their AST-equivalent, in order of execution.
     /// Only statements that are necessary for execution logic will be selected.
     pub(crate) fn transform(&self, session: &mut ParseSession) -> Vec<AstNode> {

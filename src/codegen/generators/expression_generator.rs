@@ -2159,9 +2159,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let ordered_values: Vec<BasicValueEnum<'ink>> =
                     member_values.iter().map(|(_, v)| *v).collect();
 
-                return Ok(ExpressionValue::RValue(
+                Ok(ExpressionValue::RValue(
                     struct_type.const_named_struct(ordered_values.as_slice()).as_basic_value_enum(),
-                ));
+                ))
             } else {
                 Err(Diagnostic::codegen_error(
                     format!(
@@ -2188,7 +2188,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.get_type_hint_info_for(initializer)?,
             &initializer.get_location(),
         )?;
-        return Ok(array_value.as_basic_value_enum());
+        Ok(array_value.as_basic_value_enum())
     }
 
     /// constructs an ArrayValue (returned as a BasicValueEnum) of the given element-literals constructing an array-value of the
