@@ -877,7 +877,7 @@ fn initializing_method_variables() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -915,28 +915,8 @@ fn initializing_method_variables() {
     source_filename = "__initializers"
 
     %foo = type { i32 }
-    %foo.baz = type { i32* }
-    %foo.bar = type { i32* }
 
     @__foo__init = external global %foo
-
-    define void @__init_foo.baz(%foo.baz* %0) {
-    entry:
-      %self = alloca %foo.baz*, align 8
-      store %foo.baz* %0, %foo.baz** %self, align 8
-      ret void
-    }
-
-    declare void @foo.baz(%foo*, %foo.baz*)
-
-    define void @__init_foo.bar(%foo.bar* %0) {
-    entry:
-      %self = alloca %foo.bar*, align 8
-      store %foo.bar* %0, %foo.bar** %self, align 8
-      ret void
-    }
-
-    declare void @foo.bar(%foo*, %foo.bar*)
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -955,7 +935,7 @@ fn initializing_method_variables() {
     entry:
       ret void
     }
-    "###);
+    "#);
 
     // When both a local and a parent variable are present, the local variable takes precedence.
     let src = r"
@@ -973,7 +953,7 @@ fn initializing_method_variables() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1002,18 +982,8 @@ fn initializing_method_variables() {
     source_filename = "__initializers"
 
     %foo = type { i32 }
-    %foo.bar = type { i32, i32* }
 
     @__foo__init = external global %foo
-
-    define void @__init_foo.bar(%foo.bar* %0) {
-    entry:
-      %self = alloca %foo.bar*, align 8
-      store %foo.bar* %0, %foo.bar** %self, align 8
-      ret void
-    }
-
-    declare void @foo.bar(%foo*, %foo.bar*)
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1032,5 +1002,5 @@ fn initializing_method_variables() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }

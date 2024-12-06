@@ -4,7 +4,7 @@ use crate::model::pou::Pou;
 
 use super::ParseSession;
 
-impl<'xml> Pou<'xml> {
+impl Pou<'_> {
     fn transform(&self, session: &mut ParseSession) -> Vec<AstNode> {
         let fbd = &self.body.function_block_diagram;
 

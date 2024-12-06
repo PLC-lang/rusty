@@ -23,7 +23,7 @@ pub(crate) struct FunctionBlockDiagram<'xml> {
     pub nodes: NodeIndex<'xml>,
 }
 
-impl<'xml> FunctionBlockDiagram<'xml> {
+impl FunctionBlockDiagram<'_> {
     pub(crate) fn desugar(
         &mut self,
         source_location_factory: &SourceLocationFactory,
@@ -41,7 +41,7 @@ pub(crate) enum Node<'xml> {
     Connector(Connector<'xml>),
 }
 
-impl<'xml> PartialOrd for Node<'xml> {
+impl PartialOrd for Node<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         let left = self.get_exec_id();
         let right = other.get_exec_id();
@@ -55,7 +55,7 @@ impl<'xml> PartialOrd for Node<'xml> {
     }
 }
 
-impl<'xml> Node<'xml> {
+impl Node<'_> {
     pub(crate) fn get_exec_id(&self) -> Option<NodeId> {
         match self {
             Node::Block(val) => val.execution_order_id,
@@ -112,7 +112,7 @@ impl<'xml> Node<'xml> {
     }
 }
 
-impl<'xml> Parseable for FunctionBlockDiagram<'xml> {
+impl Parseable for FunctionBlockDiagram<'_> {
     fn visit(reader: &mut Reader, _tag: Option<BytesStart>) -> Result<Self, Error> {
         let mut nodes = FxIndexMap::default();
 

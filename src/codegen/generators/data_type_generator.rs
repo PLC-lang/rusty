@@ -170,7 +170,7 @@ pub fn generate_data_types<'ink>(
     Ok(generator.types_index)
 }
 
-impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
+impl<'ink> DataTypeGenerator<'ink, '_> {
     /// generates the members of an opaque struct and associates its initial values
     fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), Diagnostic> {
         let information = data_type.get_type_information();

@@ -21,7 +21,7 @@ pub(crate) struct Block<'xml> {
     pub variables: Vec<BlockVariable>,
 }
 
-impl<'xml> Block<'xml> {
+impl Block<'_> {
     pub fn new(mut hm: FxHashMap<String, String>, variables: Vec<BlockVariable>) -> Result<Self, Error> {
         Ok(Self {
             local_id: hm.get_or_err("localId").map(|it| it.parse())??,
@@ -33,7 +33,7 @@ impl<'xml> Block<'xml> {
     }
 }
 
-impl<'xml> Parseable for Block<'xml> {
+impl Parseable for Block<'_> {
     fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else { unreachable!() };
         let attributes = get_attributes(tag.attributes())?;

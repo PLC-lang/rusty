@@ -18,7 +18,7 @@ impl<'xml> Body<'xml> {
     }
 }
 
-impl<'xml> Parseable for Body<'xml> {
+impl Parseable for Body<'_> {
     fn visit(reader: &mut Reader, _tag: Option<BytesStart>) -> Result<Self, Error> {
         let mut body = Body::default();
         loop {

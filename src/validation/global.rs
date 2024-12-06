@@ -198,7 +198,6 @@ impl GlobalValidator {
     }
 
     ///validate the uniqueness of POUs (programs, functions, function_blocks, classes)
-
     fn validate_unique_pous(&mut self, index: &Index) {
         //inner filter
         fn only_toplevel_pous(pou: &&PouIndexEntry) -> bool {

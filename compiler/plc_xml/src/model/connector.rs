@@ -19,7 +19,7 @@ pub(crate) struct Connector<'xml> {
     pub formal_parameter: Option<Cow<'xml, str>>,
 }
 
-impl<'xml> Connector<'xml> {
+impl Connector<'_> {
     pub fn new(mut hm: FxHashMap<String, String>, kind: ConnectorKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
@@ -37,7 +37,7 @@ pub(crate) enum ConnectorKind {
     Sink,
 }
 
-impl<'xml> Parseable for Connector<'xml> {
+impl Parseable for Connector<'_> {
     fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else { unreachable!() };
 

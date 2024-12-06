@@ -4,7 +4,7 @@ use crate::model::action::Action;
 
 use super::ParseSession;
 
-impl<'xml> Action<'xml> {
+impl Action<'_> {
     pub(crate) fn transform(&self, session: &mut ParseSession) -> Vec<AstNode> {
         let fbd = &self.body.function_block_diagram;
 

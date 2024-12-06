@@ -26,7 +26,7 @@ impl BlockVariable {
 }
 
 // variables, parameters -> more readable names?
-impl<'xml> FunctionBlockVariable<'xml> {
+impl FunctionBlockVariable<'_> {
     pub(crate) fn transform(&self, session: &ParseSession) -> AstNode {
         if self.negated {
             let ident = session.parse_expression(&self.expression, self.local_id, self.execution_order_id);

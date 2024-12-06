@@ -4,7 +4,7 @@ use crate::model::{block::Block, fbd::NodeIndex};
 
 use super::ParseSession;
 
-impl<'xml> Block<'xml> {
+impl Block<'_> {
     pub(crate) fn transform(&self, session: &ParseSession, index: &NodeIndex) -> AstNode {
         let parameters = self
             .variables
