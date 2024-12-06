@@ -22,7 +22,7 @@ pub(crate) struct Pou<'xml> {
     pub interface: Option<Interface>,
 }
 
-impl<'xml> Pou<'xml> {
+impl Pou<'_> {
     fn with_attributes(self, attributes: FxHashMap<String, String>) -> Result<Self, Error> {
         Ok(Pou {
             name: Cow::from(attributes.get_or_err("name")?),
@@ -41,7 +41,7 @@ impl<'xml> Pou<'xml> {
     }
 }
 
-impl<'xml> Parseable for Pou<'xml> {
+impl Parseable for Pou<'_> {
     fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else { unreachable!() };
         let attributes = get_attributes(tag.attributes())?;

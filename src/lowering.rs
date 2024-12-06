@@ -227,7 +227,7 @@ impl AstLowerer {
                         it
                     };
                     // `REFERENCE TO` assignments in a POU body are automatically dereferenced and require the `REF=` operator to assign a pointer instead.
-                    create_ref_assignment(&lhs, None, &rhs, self.ctxt.get_id_provider())
+                    create_ref_assignment(&lhs, None, rhs, self.ctxt.get_id_provider())
                 } else {
                     create_assignment(&lhs, None, it, self.ctxt.get_id_provider())
                 }

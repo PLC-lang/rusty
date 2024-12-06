@@ -28,7 +28,7 @@ impl Parseable for Project<'_> {
     }
 }
 
-impl<'xml> Project<'xml> {
+impl Project<'_> {
     pub(crate) fn desugar(
         &mut self,
         source_location_factory: &plc_source::source_location::SourceLocationFactory,
