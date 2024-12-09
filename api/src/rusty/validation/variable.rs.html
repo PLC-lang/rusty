@@ -486,6 +486,8 @@
 <a href="#486" id="486">486</a>
 <a href="#487" id="487">487</a>
 <a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
     ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Pou, PouType, Variable,
     VariableBlock, VariableBlockType,
@@ -852,15 +854,16 @@
     <span class="kw">if </span>v_entry.is_temp() {
         <span class="kw">return</span>;
     }
+
     <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = context.qualifier.and_then(|q| context.index.find_pou(q)) {
         <span class="kw">match </span>pou {
             PouIndexEntry::Program { .. }
             | PouIndexEntry::FunctionBlock { .. }
             | PouIndexEntry::Class { .. } =&gt; (),
-            PouIndexEntry::Method { .. } =&gt; {
-                <span class="macro">unimplemented!</span>(<span class="string">"We'll worry about this once we get around to OOP"</span>)
-            }
-            <span class="kw">_ </span>=&gt; <span class="kw">return</span>,
+            <span class="comment">// PouIndexEntry::Method { .. } =&gt; {
+            //     unimplemented!("We'll worry about this once we get around to OOP")
+            // }
+            </span><span class="kw">_ </span>=&gt; <span class="kw">return</span>,
         }
     }
 
@@ -880,6 +883,7 @@
     <span class="kw">let </span><span class="prelude-val">Some</span>(rhs_entry) = context.index.find_member(context.qualifier.unwrap_or_default(), flat_ref) <span class="kw">else </span>{
         <span class="kw">return</span>;
     };
+
     <span class="kw">if </span>!rhs_entry.is_temp() {
         <span class="kw">return</span>;
     }

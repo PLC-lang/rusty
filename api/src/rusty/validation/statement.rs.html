@@ -2602,7 +2602,7 @@
     <span class="kw">let </span>type_rhs = context.annotations.get_type_or_void(<span class="kw-2">&amp;</span>assignment.right, context.index);
 
     <span class="comment">// Assert that the right-hand side is a reference
-    </span><span class="kw">if </span>!assignment.right.is_reference() &amp;&amp; !assignment_location.is_internal() {
+    </span><span class="kw">if </span>!(assignment.right.is_reference() || assignment_location.is_internal()) {
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"Invalid assignment, expected a reference"</span>)
                 .with_location(<span class="kw-2">&amp;</span>assignment.right.location)
