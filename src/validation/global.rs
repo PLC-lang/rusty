@@ -76,6 +76,9 @@ impl GlobalValidator {
 
         // all POUs
         self.validate_unique_pous(index);
+
+        // all interfaces
+        self.validate_unique_interfaces(index);
     }
 
     /// validates following uniqueness-clusters:
@@ -195,7 +198,6 @@ impl GlobalValidator {
     }
 
     ///validate the uniqueness of POUs (programs, functions, function_blocks, classes)
-
     fn validate_unique_pous(&mut self, index: &Index) {
         //inner filter
         fn only_toplevel_pous(pou: &&PouIndexEntry) -> bool {
@@ -218,6 +220,15 @@ impl GlobalValidator {
         for (name, cluster) in pou_clusters {
             self.report_name_conflict(name, &cluster.collect::<Vec<_>>(), None);
         }
+    }
+
+    fn validate_unique_interfaces(&mut self, index: &Index) {
+        let interfaces = index
+            .get_interfaces()
+            .values()
+            .map(|interface| (interface.name.as_str(), &interface.location_name));
+
+        self.check_uniqueness_of_cluster(interfaces, Some("Ambiguous interface"));
     }
 
     fn check_uniqueness_of_cluster<'a, T>(&mut self, cluster: T, additional_text: Option<&str>)

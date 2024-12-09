@@ -17,13 +17,13 @@ pub(crate) trait GetOrErr {
     fn get_or_err(&self, key: &str) -> Result<String, Error>;
 }
 
-impl<'a> TryToString for &'a [u8] {
+impl TryToString for &[u8] {
     fn try_to_string(self) -> Result<String, Error> {
         String::from_utf8(self.as_ref().to_vec()).map_err(|err| Error::Encoding(err.utf8_error()))
     }
 }
 
-impl<'a> TryToString for QName<'a> {
+impl TryToString for QName<'_> {
     fn try_to_string(self) -> Result<String, Error> {
         String::from_utf8(self.into_inner().to_vec()).map_err(|err| Error::Encoding(err.utf8_error()))
     }

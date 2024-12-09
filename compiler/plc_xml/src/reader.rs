@@ -8,7 +8,7 @@ impl<'xml> Deref for Reader<'xml> {
     }
 }
 
-impl<'xml> DerefMut for Reader<'xml> {
+impl DerefMut for Reader<'_> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }

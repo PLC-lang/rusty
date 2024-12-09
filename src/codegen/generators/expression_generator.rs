@@ -2159,9 +2159,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let ordered_values: Vec<BasicValueEnum<'ink>> =
                     member_values.iter().map(|(_, v)| *v).collect();
 
-                return Ok(ExpressionValue::RValue(
+                Ok(ExpressionValue::RValue(
                     struct_type.const_named_struct(ordered_values.as_slice()).as_basic_value_enum(),
-                ));
+                ))
             } else {
                 Err(Diagnostic::codegen_error(
                     format!(
@@ -2188,7 +2188,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.get_type_hint_info_for(initializer)?,
             &initializer.get_location(),
         )?;
-        return Ok(array_value.as_basic_value_enum());
+        Ok(array_value.as_basic_value_enum())
     }
 
     /// constructs an ArrayValue (returned as a BasicValueEnum) of the given element-literals constructing an array-value of the
@@ -2722,33 +2722,35 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 /// as well as the parameter value (right side) ´param := value´ => ´value´
 /// and `true` for implicit / `false` for explicit parameters
 pub fn get_implicit_call_parameter<'a>(
-    param_statement: &'a AstNode,
-    declared_parameters: &[&VariableIndexEntry],
+    argument: &'a AstNode,
+    parameters: &[&VariableIndexEntry],
     idx: usize,
 ) -> Result<(usize, &'a AstNode, bool), Diagnostic> {
-    let (location, param_statement, is_implicit) = match param_statement.get_stmt() {
+    let (location, rhs_assignment_value, is_implicit) = match argument.get_stmt() {
+        // Explicit
         AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
-            //explicit
             let Some(left_name) = data.left.as_ref().get_flat_reference_name() else {
                 return Err(
                     //TODO: use global context to get an expression slice
                     Diagnostic::new("Expression is not assignable")
                         .with_error_code("E050")
-                        .with_location(param_statement.get_location()),
+                        .with_location(argument.get_location()),
                 );
             };
-            let loc = declared_parameters
+
+            let loc = parameters
                 .iter()
                 .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
                 .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.get_location()))?;
+
             (loc, data.right.as_ref(), false)
         }
-        _ => {
-            //implicit
-            (idx, param_statement, true)
-        }
+
+        // Implicit
+        _ => (idx, argument, true),
     };
-    Ok((location, param_statement, is_implicit))
+
+    Ok((location, rhs_assignment_value, is_implicit))
 }
 
 /// turns the given IntValue into an i1 by comparing it to 0 (of the same size)

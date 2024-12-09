@@ -11,6 +11,7 @@ CompilationUnit {
             variable_blocks: [],
             pou_type: Program,
             return_type: None,
+            interfaces: [],
         },
     ],
     implementations: [
@@ -47,6 +48,7 @@ CompilationUnit {
             access: None,
         },
     ],
+    interfaces: [],
     user_types: [],
     file_name: "<internal>",
 }

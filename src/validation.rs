@@ -90,7 +90,7 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
     }
 }
 
-impl<'s, T: AnnotationMap> Clone for ValidationContext<'s, T> {
+impl<T: AnnotationMap> Clone for ValidationContext<'_, T> {
     fn clone(&self) -> Self {
         ValidationContext {
             annotations: self.annotations,
@@ -115,7 +115,7 @@ pub struct Validator<'a> {
     recursive_validator: RecursiveValidator,
 }
 
-impl<'a> Validators for Validator<'a> {
+impl Validators for Validator<'_> {
     fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
         self.diagnostics.push(diagnostic);
     }
@@ -125,7 +125,7 @@ impl<'a> Validators for Validator<'a> {
 }
 
 impl<'a> Validator<'a> {
-    pub fn new(context: &'a GlobalContext) -> Validator {
+    pub fn new(context: &'a GlobalContext) -> Validator<'a> {
         Validator {
             context,
             diagnostics: Vec::new(),

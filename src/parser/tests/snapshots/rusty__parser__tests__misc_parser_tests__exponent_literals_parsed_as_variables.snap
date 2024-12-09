@@ -25,4 +25,5 @@ POU {
             referenced_type: "E2",
         },
     ),
+    interfaces: [],
 }

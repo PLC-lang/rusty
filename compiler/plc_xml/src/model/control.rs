@@ -20,7 +20,7 @@ pub(crate) struct Control<'xml> {
     pub negated: bool,
 }
 
-impl<'xml> Control<'xml> {
+impl Control<'_> {
     pub fn new(mut hm: FxHashMap<String, String>, kind: ControlKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
@@ -53,7 +53,7 @@ impl FromStr for ControlKind {
     }
 }
 
-impl<'xml> Parseable for Control<'xml> {
+impl Parseable for Control<'_> {
     fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else { unreachable!() };
 
