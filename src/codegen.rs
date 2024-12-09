@@ -343,8 +343,12 @@ impl<'ink> GeneratedModule<'ink> {
         Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
 
-    pub fn from_memory(context: &'ink CodegenContext, buffer: &MemoryBuffer, path: &Path) -> Result<Self, Diagnostic> {
-        let module = Module::parse_bitcode_from_buffer (buffer, context.deref())
+    pub fn from_memory(
+        context: &'ink CodegenContext,
+        buffer: &MemoryBuffer,
+        path: &Path,
+    ) -> Result<Self, Diagnostic> {
+        let module = Module::parse_bitcode_from_buffer(buffer, context.deref())
             .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
         Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }

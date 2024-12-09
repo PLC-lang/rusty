@@ -9,16 +9,20 @@
 //!  - Executables
 
 use anyhow::{anyhow, Result};
-use itertools::Itertools;
-use pipelines::{participant::CodegenParticipant, AnnotatedProject, BuildPipeline, Pipeline};
+use pipelines::{
+    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
+};
 use std::{
-    collections::HashMap, ffi::OsStr, fmt::{Debug, Display}, path::{Path, PathBuf}
+    ffi::OsStr,
+    fmt::{Debug, Display},
+    path::{Path, PathBuf},
+    sync::{Arc, RwLock},
 };
 
 use cli::{CompileParameters, ParameterError};
 use plc::{
-    codegen::{self, CodegenContext}, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
-    OptimizationLevel, Target,
+    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
+    OptimizationLevel,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
@@ -144,15 +148,19 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     //Parse the arguments
     let mut pipeline = BuildPipeline::new(args)?;
     //register participants
-    let targets = pipeline.compile_parameters.as_ref().map_or(vec![], |params| params.target.clone());
+    let target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
     let codegen_participant = CodegenParticipant {
         compile_options: pipeline.get_compile_options().unwrap(),
         link_options: pipeline.get_link_options().unwrap(),
-        targets,
-        objects: Default::default(),
+        target: target.clone(),
+        objects: Arc::new(RwLock::new(GeneratedProject {
+            target,
+            objects: pipeline.project.get_objects().to_vec(),
+        })),
         got_layout: Default::default(),
         compile_dirs: Default::default(),
-    } ;
+        libraries: pipeline.project.get_libraries().to_vec(),
+    };
     pipeline.register_participant(Box::new(codegen_participant));
     let format = pipeline.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default();
     pipeline.run().map_err(|err| {
@@ -213,7 +221,8 @@ fn generate_to_string_internal<T: SourceContainer>(
     let project = Project::new(name.to_string()).with_sources(src);
     let context = GlobalContext::new().with_source(project.get_sources(), None)?;
     let diagnostician = Diagnostician::default();
-    let mut params = cli::CompileParameters::parse(&["--ir", "--single-module", "-O", "none"]).map_err(|e| Diagnostic::new(e.to_string()))?;
+    let mut params = cli::CompileParameters::parse(&["--ir", "--single-module", "-O", "none"])
+        .map_err(|e| Diagnostic::new(e.to_string()))?;
     params.generate_debug = debug;
     let mut pipeline = BuildPipeline {
         context,
@@ -231,7 +240,8 @@ fn generate_to_string_internal<T: SourceContainer>(
     // TODO: move validation to participants, maybe refactor codegen to stop at generated modules and persist in dedicated step?
     project.validate(&pipeline.context, &mut pipeline.diagnostician)?;
     let context = CodegenContext::create();
-    let module = project.generate_single_module(&context, pipeline.get_compile_options().as_ref().unwrap())?;
+    let module =
+        project.generate_single_module(&context, pipeline.get_compile_options().as_ref().unwrap())?;
 
     // Generate
     module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new("Cannot generate module"))

@@ -1,13 +1,13 @@
 use std::{
     env::{self, current_dir},
     fs,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, RwLock},
 };
 
 use crate::get_test_file;
 use driver::{
     compile,
-    pipelines::{BuildPipeline, Pipeline},
+    pipelines::{participant::CodegenParticipant, BuildPipeline, GeneratedProject, Pipeline},
 };
 use rusty::linker::{LinkerType, MockLinker};
 
@@ -259,6 +259,22 @@ fn link_with_library_path() {
     let vec = Arc::new(Mutex::new(vec));
     let test_linker = MockLinker { args: vec.clone() };
     pipeline.linker = LinkerType::Test(test_linker);
+
+    //register participants
+    let target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
+    let codegen_participant = CodegenParticipant {
+        compile_options: pipeline.get_compile_options().unwrap(),
+        link_options: pipeline.get_link_options().unwrap(),
+        target: target.clone(),
+        objects: Arc::new(RwLock::new(GeneratedProject {
+            target,
+            objects: pipeline.project.get_objects().to_vec(),
+        })),
+        got_layout: Default::default(),
+        compile_dirs: Default::default(),
+        libraries: pipeline.project.get_libraries().to_vec(),
+    };
+    pipeline.register_participant(Box::new(codegen_participant));
     pipeline.run().unwrap();
     assert!(vec.lock().unwrap().as_slice().contains(&"-L.".to_string()));
     assert!(vec.lock().unwrap().contains(&"-ltest".to_string()));

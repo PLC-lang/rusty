@@ -5,22 +5,16 @@
 //!
 
 use std::{
-    any::Any,
     collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
     sync::{Arc, Mutex, RwLock},
 };
 
-use plc::{
-    codegen::{self, GeneratedModule},
-    output::FormatOption,
-    ConfigFormat, OnlineChange, Target,
-};
+use plc::{codegen::GeneratedModule, output::FormatOption, ConfigFormat, OnlineChange, Target};
 use plc_diagnostics::diagnostics::Diagnostic;
-use project::object::Object;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use source_code::source_location::SourceLocation;
+use project::{object::Object, project::LibraryInformation};
+use source_code::SourceContainer;
 
 use super::{AnnotatedProject, GeneratedProject, IndexedProject, ParsedProject};
 
@@ -88,29 +82,29 @@ pub trait PipelineParticipantMut {
     fn pre_codegen(&self, _annotated_project: &mut AnnotatedProject) {}
 }
 
-pub struct CodegenParticipant {
+pub struct CodegenParticipant<T: SourceContainer> {
     pub compile_options: crate::CompileOptions,
     pub link_options: crate::LinkOptions,
-    pub targets: Vec<Target>,
+    pub target: Target,
     pub got_layout: Mutex<HashMap<String, u64>>,
     pub compile_dirs: HashMap<Target, PathBuf>,
-    pub objects: Arc<RwLock<HashMap<Target, GeneratedProject>>>,
+    pub objects: Arc<RwLock<GeneratedProject>>,
+    pub libraries: Vec<LibraryInformation<T>>,
 }
 
-impl CodegenParticipant {
+impl<T: SourceContainer> CodegenParticipant<T> {
     /// Ensures the directores for the various targets have been created
     fn ensure_compile_dirs(&mut self) -> Result<(), Diagnostic> {
-        let targets = if self.targets.is_empty() { &[Target::System] } else { self.targets.as_slice() };
         let compile_directory = self.compile_options.build_location.clone().unwrap_or_else(|| {
-            let tempdir = tempfile::tempdir().unwrap();
+            let tempdir = tempfile::tempdir().expect("Could not create tempdir");
             tempdir.into_path()
         });
-        for target in targets {
-            if let Some(name) = target.try_get_name() {
-                let dir = compile_directory.join(name);
-                fs::create_dir_all(&dir)?;
-                self.compile_dirs.insert(target.clone(), dir);
-            }
+        if let Some(name) = self.target.try_get_name() {
+            let dir = compile_directory.join(name);
+            fs::create_dir_all(&dir)?;
+            self.compile_dirs.insert(self.target.clone(), dir);
+        } else {
+            self.compile_dirs.insert(self.target.clone(), compile_directory);
         }
         Ok(())
     }
@@ -133,7 +127,7 @@ impl CodegenParticipant {
     }
 }
 
-impl PipelineParticipant for CodegenParticipant {
+impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
     fn pre_codegen(&mut self, _annotated_project: &AnnotatedProject) -> Result<(), Diagnostic> {
         self.ensure_compile_dirs()?;
 
@@ -171,50 +165,35 @@ impl PipelineParticipant for CodegenParticipant {
             _ => format!("{}.o", output_name.to_string_lossy()),
         };
 
-        for target in &self.targets {
-            let compile_directory = self.compile_dirs.get(target).expect("Required dir");
-            let object = module
-                .persist(
-                    Some(&compile_directory),
-                    &output_name,
-                    self.compile_options.output_format,
-                    target,
-                    self.compile_options.optimization,
-                )
-                .map(Into::into)
-                .map(|it: Object| it.with_target(target))?;
-            self.objects.write().expect("Failed to aquire read write lock").entry(target.clone()).or_insert_with(|| GeneratedProject {
-                target: target.clone(),
-                objects: vec![]
-            }).objects.push(object);
-        }
+        let target = &self.target;
+        let compile_directory = self.compile_dirs.get(target).expect("Required dir");
+        let object = module
+            .persist(
+                Some(compile_directory),
+                &output_name,
+                self.compile_options.output_format,
+                target,
+                self.compile_options.optimization,
+            )
+            .map(Into::into)
+            .map(|it: Object| it.with_target(target))?;
+        self.objects.write().expect("Failed to aquire read write lock").objects.push(object);
         Ok(())
     }
 
-    fn post_codegen(&self) -> Result<(), Diagnostic>{
+    fn post_codegen(&self) -> Result<(), Diagnostic> {
         let output_name = &self.compile_options.output;
-        let output_name = match self.compile_options.output_format {
-            FormatOption::IR => format!("{}.ll", output_name),
-            FormatOption::Bitcode => format!("{}.bc", output_name),
-            _ => format!("{}.o", output_name),
-        };
 
-        let _objects = self.objects.read().expect("Failed to aquire read lock for objects").par_iter().map(|(_target, project)| project.link(
+        let _objects = self.objects.read().expect("Failed to aquire read lock for objects").link(
             &[], //Original project objects embedded in participant
             self.link_options.build_location.as_deref(),
             self.link_options.lib_location.as_deref(),
-            &output_name,
-            self.link_options.clone()
-        )).collect::<Result<Vec<_>, _>>()?;
+            output_name,
+            self.link_options.clone(),
+        )?;
         //TODO: this should be a participant
-        /*
         if let Some(lib_location) = &self.link_options.lib_location {
-            for library in self
-                .project
-                .get_libraries()
-                .iter()
-                .filter(|it| it.should_copy())
-                .map(|it| it.get_compiled_lib())
+            for library in self.libraries.iter().filter(|it| it.should_copy()).map(|it| it.get_compiled_lib())
             {
                 for obj in library.get_objects() {
                     let path = obj.get_path();
@@ -223,7 +202,7 @@ impl PipelineParticipant for CodegenParticipant {
                     }
                 }
             }
-        } */
+        }
         Ok(())
     }
 }

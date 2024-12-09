@@ -1,5 +1,11 @@
 use std::{
-    collections::HashMap, env, ffi::OsStr, fs::{self, File}, io::Write, path::{Path, PathBuf}, sync::Mutex
+    collections::HashMap,
+    env,
+    ffi::OsStr,
+    fs::{self, File},
+    io::Write,
+    path::{Path, PathBuf},
+    sync::Mutex,
 };
 
 use crate::{
@@ -53,7 +59,7 @@ pub struct BuildPipeline<T: SourceContainer> {
     //TODO: delete this once linking is a participant
     pub linker: LinkerType,
     pub mutable_participants: Vec<Box<dyn PipelineParticipantMut>>,
-    pub participants: Vec<Box<dyn PipelineParticipant>> 
+    pub participants: Vec<Box<dyn PipelineParticipant>>,
 }
 
 pub trait Pipeline {
@@ -61,11 +67,11 @@ pub trait Pipeline {
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic>;
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic>;
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic>;
-    fn generate_modules<'ctx>(
+    fn generate_modules(
         &mut self,
-        context: &'ctx CodegenContext,
+        context: &CodegenContext,
         project: &AnnotatedProject,
-    ) -> Result<Vec<GeneratedModule<'ctx>>, Diagnostic>;
+    ) -> Result<(), Diagnostic>;
     //todo: participants
     fn codegen(&mut self, modules: Vec<GeneratedModule>) -> Result<Vec<GeneratedProject>, Diagnostic>;
     //todo: participants
@@ -74,7 +80,7 @@ pub trait Pipeline {
 
 impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
     type Error = anyhow::Error;
-    
+
     fn try_from(compile_parameters: CompileParameters) -> Result<Self, Self::Error> {
         //Create the project that will be compiled
         let project = get_project(&compile_parameters)?;
@@ -130,7 +136,7 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
             compile_parameters: Some(compile_parameters),
             linker,
             mutable_participants: vec![],
-            participants: vec![]
+            participants: vec![],
         })
     }
 }
@@ -303,8 +309,6 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         if !self.compile_parameters.as_ref().map(CompileParameters::is_check).unwrap_or_default() {
             let context = CodegenContext::create();
             self.generate_modules(&context, &annotated_project)?;
-            // let generated_projects = self.codegen(modules)?;
-            // self.link(generated_projects)?;
         }
 
         Ok(())
@@ -351,46 +355,58 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         Ok(annotated_project)
     }
 
-    fn generate_modules<'ctx>(
+    fn generate_modules(
         &mut self,
-        context: &'ctx CodegenContext,
+        _context: &CodegenContext,
         project: &AnnotatedProject,
-    ) -> Result<Vec<GeneratedModule<'ctx>>, Diagnostic> {
+    ) -> Result<(), Diagnostic> {
+        for ele in self.participants.iter_mut() {
+            ele.pre_codegen(project)?;
+        }
         let Some(compile_options) = self.get_compile_options() else {
             log::debug!("No compile options provided");
-            return Ok(vec![]);
+            return Ok(());
         };
-        let module = if compile_options.single_module
-            || matches!(compile_options.output_format, FormatOption::Object)
-        {
+        if compile_options.single_module || matches!(compile_options.output_format, FormatOption::Object) {
             log::info!("Using single module mode");
-            Ok(project
-                .generate_single_module(context, &compile_options)?
+            let context = CodegenContext::create();
+            project
+                .generate_single_module(&context, &compile_options)?
                 .map(|module| {
-                    self.participants.iter().for_each(|participant| participant.codegen(&module).unwrap());
-                    module
+                    self.participants.iter().try_fold((), |_, participant| participant.codegen(&module))
                 })
-                .map(|it| vec![it])
-                .unwrap_or_default())
+                .unwrap_or(Ok(()))?;
         } else {
-            let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-                read_got_layout(file_name, *format)?
-            } else {
-                HashMap::default()
-            };
+            let got_layout =
+                if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+                    read_got_layout(file_name, *format)?
+                } else {
+                    HashMap::default()
+                };
             let got_layout = Mutex::new(got_layout);
-            project.units
+            let _ = project
+                .units
                 .par_iter()
                 .map(|AnnotatedUnit { unit, dependencies, literals }| {
-                    let module = project.generate_module(context, &compile_options, unit, dependencies, literals, &got_layout)?;
-                    self.participants.iter().for_each(|participant| participant.codegen(&module).unwrap());
-                    Ok(module)
+                    let context = CodegenContext::create();
+                    let module = project.generate_module(
+                        &context,
+                        &compile_options,
+                        unit,
+                        dependencies,
+                        literals,
+                        &got_layout,
+                    )?;
+                    self.participants.iter().try_fold((), |_, participant| participant.codegen(&module))
                 })
-                .collect()
-        };
-        self.participants.iter().map(|participant| participant.post_codegen())
-        .reduce(|prev, curr| prev.and(curr)).unwrap_or(Ok(()))?;
-        module
+                .collect::<Result<Vec<_>, Diagnostic>>()?;
+        }
+        self.participants
+            .iter()
+            .map(|participant| participant.post_codegen())
+            .reduce(|prev, curr| prev.and(curr))
+            .unwrap_or(Ok(()))?;
+        Ok(())
     }
 
     fn codegen(&mut self, modules: Vec<GeneratedModule>) -> Result<Vec<GeneratedProject>, Diagnostic> {
@@ -400,7 +416,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         };
 
         let compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
-            let tempdir = tempfile::tempdir().unwrap();
+            let tempdir = tempfile::tempdir().expect("Could not create tempdir");
             tempdir.into_path()
         });
         let targets =
@@ -1016,8 +1032,8 @@ fn ensure_compile_dirs(targets: &[Target], compile_directory: &Path) -> Result<(
 /// Can be linked to generate a usable application
 #[derive(Debug)]
 pub struct GeneratedProject {
-    target: Target,
-    objects: Vec<Object>,
+    pub target: Target,
+    pub objects: Vec<Object>,
 }
 
 impl GeneratedProject {
@@ -1040,6 +1056,7 @@ impl GeneratedProject {
                 let codegen = self
                     .objects
                     .iter()
+                    .sorted()
                     .map(|obj| GeneratedModule::try_from_bitcode(&context, obj.get_path()))
                     .reduce(|a, b| {
                         let a = a?;
@@ -1056,6 +1073,7 @@ impl GeneratedProject {
                 let codegen = self
                     .objects
                     .iter()
+                    .sorted()
                     .map(|obj| GeneratedModule::try_from_ir(&context, obj.get_path()))
                     .reduce(|a, b| {
                         let a = a?;

@@ -2,11 +2,23 @@ use std::path::{Path, PathBuf};
 
 use plc::Target;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Object {
     path: PathBuf,
     target: Target,
     // TODO: format: ObjectFormat,
+}
+
+impl PartialOrd for Object {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Object {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.path.cmp(&other.path)
+    }
 }
 
 /// Representation of a binary file

@@ -14,14 +14,14 @@ use crate::{
 use plc::output::FormatOption;
 use source_code::{SourceContainer, SourceType};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Linkage {
     Static,
     Shared(Package),
 }
 
 /// How a library is intended to be packaged for the project
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Package {
     /// The library is available locally, it needs to be shipped with the project
     Local,
@@ -30,7 +30,7 @@ pub enum Package {
 }
 
 /// Representation of a PLC Library
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Library<T: SourceContainer> {
     Compiled(CompiledLibrary<T>),
     Source(Project<T>),
@@ -49,7 +49,7 @@ pub struct CompiledLibrary<T: SourceContainer> {
 }
 
 /// The information required by a project to successfully include a library
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LibraryInformation<T: SourceContainer> {
     /// Location of the library if available
     location: Option<PathBuf>,
@@ -62,7 +62,7 @@ pub struct LibraryInformation<T: SourceContainer> {
 }
 
 /// A PLC project to build
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Project<T: SourceContainer> {
     /// Name of the project
     name: String,
@@ -192,7 +192,6 @@ impl Project<PathBuf> {
         proj.includes = resolve_file_paths(proj.get_location(), files).unwrap();
         proj
     }
-
 }
 
 impl<S: SourceContainer> Project<S> {
