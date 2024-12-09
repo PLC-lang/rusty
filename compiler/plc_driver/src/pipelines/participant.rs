@@ -36,17 +36,17 @@ pub trait PipelineParticipant: Sync + Send {
     fn post_annotate(&self, _annotated_project: &AnnotatedProject) {}
     /// Implement this to access the project before it gets generated
     /// This happens after annotation
-    fn pre_codegen(&mut self, _annotated_project: &AnnotatedProject) -> Result<(), Diagnostic> {
+    fn pre_generate(&mut self, _annotated_project: &AnnotatedProject) -> Result<(), Diagnostic> {
         Ok(())
     }
     /// Implement this to get access to the module generation section of the codegen
     /// This is useful if generating multiple modules to hook into single module generation
-    fn codegen(&self, _generated_module: &GeneratedModule) -> Result<(), Diagnostic> {
+    fn generate(&self, _generated_module: &GeneratedModule) -> Result<(), Diagnostic> {
         Ok(())
     }
     /// Implement this to access the project after it got generated
     /// This happens after codegen
-    fn post_codegen(&self) -> Result<(), Diagnostic> {
+    fn post_generate(&self) -> Result<(), Diagnostic> {
         Ok(())
     }
 }
@@ -59,27 +59,19 @@ pub trait PipelineParticipant: Sync + Send {
 pub trait PipelineParticipantMut {
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
-    fn pre_index(&self, _parsed_project: &mut ParsedProject) -> bool {
-        false
+    fn pre_index(&self, parsed_project: ParsedProject) -> ParsedProject {
+        parsed_project
     }
     /// Implement this to access the project after it got indexed
     /// This happens directly after the index returns
-    fn post_index(&self, _indexed_project: &mut IndexedProject) -> bool {
-        false
-    }
-    /// Implement this to access the project before it gets annotated
-    /// This happens after indexing
-    fn pre_annotate(&self, _indexed_project: &mut IndexedProject) -> bool {
-        false
+    fn post_index(&self, indexed_project: IndexedProject) -> IndexedProject {
+        indexed_project
     }
     /// Implement this to access the project after it got annotated
     /// This happens directly after annotations
-    fn post_annotate(&self, _annotated_project: &mut AnnotatedProject) -> bool {
-        false
+    fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        annotated_project
     }
-    /// Implement this to access the project before it gets generated
-    /// This happens after annotation
-    fn pre_codegen(&self, _annotated_project: &mut AnnotatedProject) {}
 }
 
 pub struct CodegenParticipant<T: SourceContainer> {
@@ -128,7 +120,7 @@ impl<T: SourceContainer> CodegenParticipant<T> {
 }
 
 impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
-    fn pre_codegen(&mut self, _annotated_project: &AnnotatedProject) -> Result<(), Diagnostic> {
+    fn pre_generate(&mut self, _annotated_project: &AnnotatedProject) -> Result<(), Diagnostic> {
         self.ensure_compile_dirs()?;
 
         let got_layout =
@@ -141,7 +133,7 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
         Ok(())
     }
 
-    fn codegen(&self, module: &GeneratedModule) -> Result<(), Diagnostic> {
+    fn generate(&self, module: &GeneratedModule) -> Result<(), Diagnostic> {
         let current_dir = env::current_dir()?;
         let current_dir = self.compile_options.root.as_deref().unwrap_or(&current_dir);
         let unit_location = module.get_unit_location();
@@ -181,7 +173,7 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
         Ok(())
     }
 
-    fn post_codegen(&self) -> Result<(), Diagnostic> {
+    fn post_generate(&self) -> Result<(), Diagnostic> {
         let output_name = &self.compile_options.output;
 
         let _objects = self.objects.read().expect("Failed to aquire read lock for objects").link(
@@ -204,5 +196,21 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
             }
         }
         Ok(())
+    }
+}
+
+pub struct LoweringParticipant;
+
+impl PipelineParticipantMut for LoweringParticipant {
+    fn pre_index(&self, parsed_project: ParsedProject) -> ParsedProject {
+        parsed_project
+    }
+
+    fn post_index(&self, indexed_project: IndexedProject) -> IndexedProject {
+        indexed_project
+    }
+
+    fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        annotated_project
     }
 }

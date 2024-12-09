@@ -67,15 +67,7 @@ pub trait Pipeline {
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic>;
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic>;
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic>;
-    fn generate_modules(
-        &mut self,
-        context: &CodegenContext,
-        project: &AnnotatedProject,
-    ) -> Result<(), Diagnostic>;
-    //todo: participants
-    fn codegen(&mut self, modules: Vec<GeneratedModule>) -> Result<Vec<GeneratedProject>, Diagnostic>;
-    //todo: participants
-    fn link(&mut self, project: Vec<GeneratedProject>) -> Result<Vec<Object>, Diagnostic>;
+    fn generate(&mut self, context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic>;
 }
 
 impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
@@ -287,7 +279,6 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             annotated_project.lower(&self.project.get_init_symbol_name(), self.context.provider());
         //TODO : this is post lowering, we might want to control this
         if let Some(CompileParameters { output_ast: true, .. }) = self.compile_parameters {
-            println!("{:#?}", annotated_project.units);
             return Ok(());
         }
 
@@ -308,7 +299,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         // 5 : Codegen
         if !self.compile_parameters.as_ref().map(CompileParameters::is_check).unwrap_or_default() {
             let context = CodegenContext::create();
-            self.generate_modules(&context, &annotated_project)?;
+            self.generate(&context, annotated_project)?;
         }
 
         Ok(())
@@ -323,17 +314,13 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.participants.iter().for_each(|p| {
             p.pre_index(&project);
         });
-        let mut project = project;
-        self.mutable_participants.iter().for_each(|p| {
-            p.pre_index(&mut project);
-        });
-        let mut indexed_project = project.index(self.context.provider());
+        let project = self.mutable_participants.iter().fold(project, |project, p| p.pre_index(project));
+        let indexed_project = project.index(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_index(&indexed_project);
         });
-        self.mutable_participants.iter().for_each(|p| {
-            p.post_index(&mut indexed_project);
-        });
+        let indexed_project =
+            self.mutable_participants.iter().fold(indexed_project, |project, p| p.post_index(project));
         Ok(indexed_project)
     }
 
@@ -341,28 +328,17 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.participants.iter().for_each(|p| {
             p.pre_annotate(&project);
         });
-        let mut project = project;
-        self.mutable_participants.iter().for_each(|p| {
-            p.pre_annotate(&mut project);
-        });
-        let mut annotated_project = project.annotate(self.context.provider());
+        let annotated_project = project.annotate(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_annotate(&annotated_project);
         });
-        self.mutable_participants.iter().for_each(|p| {
-            p.post_annotate(&mut annotated_project);
-        });
+        let annotated_project =
+            self.mutable_participants.iter().fold(annotated_project, |project, p| p.post_annotate(project));
         Ok(annotated_project)
     }
 
-    fn generate_modules(
-        &mut self,
-        _context: &CodegenContext,
-        project: &AnnotatedProject,
-    ) -> Result<(), Diagnostic> {
-        for ele in self.participants.iter_mut() {
-            ele.pre_codegen(project)?;
-        }
+    fn generate(&mut self, _context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic> {
+        self.participants.iter_mut().try_fold((), |_, participant| participant.pre_generate(&project))?;
         let Some(compile_options) = self.get_compile_options() else {
             log::debug!("No compile options provided");
             return Ok(());
@@ -373,7 +349,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             project
                 .generate_single_module(&context, &compile_options)?
                 .map(|module| {
-                    self.participants.iter().try_fold((), |_, participant| participant.codegen(&module))
+                    self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
                 })
                 .unwrap_or(Ok(()))?;
         } else {
@@ -397,150 +373,16 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                         literals,
                         &got_layout,
                     )?;
-                    self.participants.iter().try_fold((), |_, participant| participant.codegen(&module))
+                    self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
                 })
                 .collect::<Result<Vec<_>, Diagnostic>>()?;
         }
         self.participants
             .iter()
-            .map(|participant| participant.post_codegen())
+            .map(|participant| participant.post_generate())
             .reduce(|prev, curr| prev.and(curr))
             .unwrap_or(Ok(()))?;
         Ok(())
-    }
-
-    fn codegen(&mut self, modules: Vec<GeneratedModule>) -> Result<Vec<GeneratedProject>, Diagnostic> {
-        let Some(compile_options) = self.get_compile_options() else {
-            log::debug!("No compile options provided, skipping codegen");
-            return Ok(vec![]);
-        };
-
-        let compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
-            let tempdir = tempfile::tempdir().expect("Could not create tempdir");
-            tempdir.into_path()
-        });
-        let targets =
-            self.compile_parameters.as_ref().map_or(&[] as &[Target], |params| params.target.as_slice());
-        ensure_compile_dirs(targets, &compile_directory)?;
-        let targets = if targets.is_empty() { &[Target::System] } else { targets };
-
-        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-            read_got_layout(file_name, *format)?
-        } else {
-            HashMap::default()
-        };
-        let got_layout = Mutex::new(got_layout);
-
-        let objects = modules
-            .par_iter()
-            .flat_map(|module| {
-                targets.par_iter().map(|target| {
-                    let current_dir = env::current_dir()?;
-                    let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
-                    let unit_location = module.get_unit_location();
-                    let unit_location = if unit_location.exists() {
-                        fs::canonicalize(unit_location)?
-                    } else {
-                        unit_location.into()
-                    };
-                    let output_name = if unit_location.starts_with(current_dir) {
-                        unit_location.strip_prefix(current_dir).map_err(|it| {
-                            Diagnostic::new(format!(
-                                "Could not strip prefix for {}",
-                                current_dir.to_string_lossy()
-                            ))
-                            .with_internal_error(it.into())
-                        })?
-                    } else if unit_location.has_root() {
-                        let root = unit_location.ancestors().last().expect("Should exist?");
-                        unit_location.strip_prefix(root).expect("The root directory should exist")
-                    } else {
-                        unit_location.as_path()
-                    };
-
-                    let output_name = match compile_options.output_format {
-                        FormatOption::IR => format!("{}.ll", output_name.to_string_lossy()),
-                        FormatOption::Bitcode => format!("{}.bc", output_name.to_string_lossy()),
-                        _ => format!("{}.o", output_name.to_string_lossy()),
-                    };
-
-                    module
-                        .persist(
-                            Some(&compile_directory),
-                            &output_name,
-                            compile_options.output_format,
-                            target,
-                            compile_options.optimization,
-                        )
-                        .map(Into::into)
-                        .map(|it: Object| it.with_target(target))
-                })
-            })
-            .collect::<Result<Vec<_>, Diagnostic>>()
-            .map_err(|err| {
-                let diagnostic = Diagnostic::codegen_error(err.get_message(), err.get_location());
-                self.diagnostician.handle(&[diagnostic]);
-                Diagnostic::new("Compilation aborted due to previous errors").with_error_code("E071")
-            })?;
-
-        let res = objects
-            .into_iter()
-            .group_by(|it| it.get_target().to_owned())
-            .into_iter()
-            .map(|(target, objects)| GeneratedProject { target, objects: objects.into_iter().collect() })
-            .collect::<Vec<_>>();
-
-        if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-            write_got_layout(got_layout.into_inner().unwrap(), file_name, *format)?;
-        }
-
-        //If no projects are available, create an empty project per target
-        Ok(if !res.is_empty() {
-            res
-        } else {
-            targets
-                .iter()
-                .map(|t| GeneratedProject { target: t.clone(), objects: vec![] })
-                .collect::<Vec<_>>()
-        })
-    }
-
-    fn link(&mut self, projects: Vec<GeneratedProject>) -> Result<Vec<Object>, Diagnostic> {
-        let Some(link_options) = self.get_link_options() else {
-            log::debug!("No link options provided");
-            return Ok(vec![]);
-        };
-        let output_name = self.project.get_output_name();
-        let objects = projects
-            .into_par_iter()
-            .map(|res| {
-                res.link(
-                    self.project.get_objects(),
-                    link_options.build_location.as_deref(),
-                    link_options.lib_location.as_deref(),
-                    &output_name,
-                    link_options.clone(),
-                )
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-        //TODO: this should be a participant
-        if let Some(lib_location) = &link_options.lib_location {
-            for library in self
-                .project
-                .get_libraries()
-                .iter()
-                .filter(|it| it.should_copy())
-                .map(|it| it.get_compiled_lib())
-            {
-                for obj in library.get_objects() {
-                    let path = obj.get_path();
-                    if let Some(name) = path.file_name() {
-                        std::fs::copy(path, lib_location.join(name))?;
-                    }
-                }
-            }
-        }
-        Ok(objects)
     }
 }
 pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
