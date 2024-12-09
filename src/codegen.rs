@@ -2,7 +2,6 @@
 use std::{
     cell::RefCell,
     collections::HashMap,
-    io::Write,
     ops::Deref,
     path::{Path, PathBuf},
     sync::Mutex,
@@ -31,7 +30,6 @@ use inkwell::{
     context::Context,
     execution_engine::{ExecutionEngine, JitFunction},
     memory_buffer::MemoryBuffer,
-    support::LLVMString,
     types::BasicType,
     values::BasicValue,
     AddressSpace,
@@ -86,69 +84,8 @@ pub struct CodeGen<'ink> {
     pub module_location: String,
 }
 
-pub enum ModuleContainer<'ink> {
-    Generated(Module<'ink>),
-    Persisted(MemoryBuffer),
-}
-
-impl<'ink> ModuleContainer<'ink> {
-    fn persist(self) -> Self {
-        match self {
-            Self::Persisted(s) => Self::Persisted(s),
-            Self::Generated(module) => module.write_bitcode_to_memory().into(),
-        }
-    }
-
-    fn load<'a>(self, context: &'a CodegenContext) -> Result<ModuleContainer<'a>, Diagnostic> {
-        match self {
-            //Transfer context
-            ModuleContainer::Generated(_) => self.persist().load(context),
-            ModuleContainer::Persisted(buffer) => {
-                let module = Module::parse_bitcode_from_buffer(&buffer, &context.0).map_err(|err| {
-                    Diagnostic::codegen_error(err.to_string_lossy(), SourceLocation::undefined())
-                })?;
-                Ok(module.into())
-            }
-        }
-    }
-
-    fn link_in_module(&self, other: Self) -> Result<(), Diagnostic> {
-        match (self, other) {
-            (ModuleContainer::Generated(module), ModuleContainer::Generated(other)) => module
-                .link_in_module(other)
-                .map_err(|err| Diagnostic::codegen_error(err.to_string_lossy(), SourceLocation::undefined())),
-            _ => Err(Diagnostic::codegen_error("Module not generated", SourceLocation::undefined())),
-        }
-    }
-
-    fn persist_to_file(self, path: &Path) -> Result<(), Diagnostic> {
-        match self {
-            ModuleContainer::Generated(module) => {
-                //TODO: error if false
-                module.write_bitcode_to_path(path);
-            }
-            ModuleContainer::Persisted(memory_buffer) => {
-                std::fs::File::create(path)?.write(memory_buffer.as_slice())?;
-            }
-        };
-        Ok(())
-    }
-}
-
-impl<'ink> From<Module<'ink>> for ModuleContainer<'ink> {
-    fn from(value: Module<'ink>) -> Self {
-        Self::Generated(value)
-    }
-}
-
-impl<'ink> From<MemoryBuffer> for ModuleContainer<'ink> {
-    fn from(value: MemoryBuffer) -> Self {
-        Self::Persisted(value)
-    }
-}
-
 pub struct GeneratedModule<'ink> {
-    module: ModuleContainer<'ink>,
+    module: Module<'ink>,
     location: PathBuf,
     engine: RefCell<Option<ExecutionEngine<'ink>>>,
 }
@@ -395,7 +332,7 @@ impl<'ink> CodeGen<'ink> {
         }
 
         #[cfg(not(feature = "verify"))]
-        Ok(GeneratedModule { module: self.module.into(), location, engine: RefCell::new(None) })
+        Ok(GeneratedModule { module: self.module, location, engine: RefCell::new(None) })
     }
 }
 
@@ -403,17 +340,13 @@ impl<'ink> GeneratedModule<'ink> {
     pub fn try_from_bitcode(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
         let module = Module::parse_bitcode_from_path(path, context.deref())
             .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
-        Ok(GeneratedModule { module: module.into(), location: path.into(), engine: RefCell::new(None) })
+        Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
 
-    pub fn from_memory(
-        context: &'ink CodegenContext,
-        buffer: &MemoryBuffer,
-        path: &Path,
-    ) -> Result<Self, Diagnostic> {
-        let module = Module::parse_bitcode_from_buffer(buffer, context.deref())
+    pub fn from_memory(context: &'ink CodegenContext, buffer: &MemoryBuffer, path: &Path) -> Result<Self, Diagnostic> {
+        let module = Module::parse_bitcode_from_buffer (buffer, context.deref())
             .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
-        Ok(GeneratedModule { module: module.into(), location: path.into(), engine: RefCell::new(None) })
+        Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
 
     pub fn try_from_ir(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
@@ -425,18 +358,14 @@ impl<'ink> GeneratedModule<'ink> {
 
         log::debug!("{}", module.to_string());
 
-        Ok(GeneratedModule { module: module.into(), location: path.into(), engine: RefCell::new(None) })
+        Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
 
-    pub fn merge(
-        mut self,
-        context: &'ink CodegenContext,
-        mut other: GeneratedModule<'ink>,
-    ) -> Result<Self, Diagnostic> {
-        self.module = self.module.load(context)?;
-        other.module = other.module.load(context)?;
-        self.module.link_in_module(other.module)?;
-        // log::debug!("Merged: {}", self.module.to_string());
+    pub fn merge(self, other: GeneratedModule<'ink>) -> Result<Self, Diagnostic> {
+        self.module
+            .link_in_module(other.module)
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
+        log::debug!("Merged: {}", self.module.to_string());
 
         Ok(self)
     }
@@ -444,7 +373,7 @@ impl<'ink> GeneratedModule<'ink> {
     /// Persists the module into the disk based on output and target requirments
     /// If an object file should be generated, all optimizations will be executed on the object
     pub fn persist(
-        self,
+        &self,
         output_dir: Option<&Path>,
         output_name: &str,
         format: FormatOption,
@@ -487,7 +416,7 @@ impl<'ink> GeneratedModule<'ink> {
     /// Compiles the given source into an object file and saves it in output
     ///
     fn persist_to_obj(
-        self,
+        &self,
         output: PathBuf,
         reloc: RelocMode,
         target: &Target,
@@ -522,20 +451,16 @@ impl<'ink> GeneratedModule<'ink> {
         if let Some(parent) = output.parent() {
             std::fs::create_dir_all(parent)?;
         }
-
         ////Run the passes
         machine
             .and_then(|it| {
-                //Load module
-                let context = CodegenContext::create();
-                let ModuleContainer::Generated(module) = &self.module.load(&context)? else { todo!() };
-                module
+                self.module
                     .run_passes(optimization_level.opt_params(), &it, PassBuilderOptions::create())
                     .map_err(|it| {
                         Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string_lossy())
                     })
                     .and_then(|_| {
-                        it.write_to_file(&module, FileType::Object, output.as_path()).map_err(|it| {
+                        it.write_to_file(&self.module, FileType::Object, output.as_path()).map_err(|it| {
                             Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string_lossy())
                         })
                     })
@@ -552,7 +477,7 @@ impl<'ink> GeneratedModule<'ink> {
     /// * `target` - an optional llvm target triple
     ///     If not provided, the machine's triple will be used.
     pub fn persist_as_static_obj(
-        self,
+        &self,
         output: PathBuf,
         target: &Target,
         optimization_level: OptimizationLevel,
@@ -569,7 +494,7 @@ impl<'ink> GeneratedModule<'ink> {
     /// * `target` - an optional llvm target triple
     ///     If not provided, the machine's triple will be used.
     pub fn persist_to_shared_pic_object(
-        self,
+        &self,
         output: PathBuf,
         target: &Target,
         optimization_level: OptimizationLevel,
@@ -585,7 +510,7 @@ impl<'ink> GeneratedModule<'ink> {
     /// * `output` - the location on disk to save the output
     /// * `target` - llvm target triple
     pub fn persist_to_shared_object(
-        self,
+        &self,
         output: PathBuf,
         target: &Target,
         optimization_level: OptimizationLevel,
@@ -600,15 +525,16 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     /// * `codegen` - the genated LLVM module to persist
     /// * `output` - the location on disk to save the output
-    pub fn persist_to_bitcode(self, output: PathBuf) -> Result<PathBuf, Diagnostic> {
-        self.module.persist_to_file(&output)?;
-        Ok(output.to_path_buf())
+    pub fn persist_to_bitcode(&self, output: PathBuf) -> Result<PathBuf, Diagnostic> {
+        if self.module.write_bitcode_to_path(&output) {
+            Ok(output)
+        } else {
+            Err(Diagnostic::codegen_error("Could not write bitcode to file", SourceLocation::undefined()))
+        }
+    }
 
-        // if self.module.persist_to_file(&output) {
-        //     Ok(output)
-        // } else {
-        //     Err(Diagnostic::codegen_error("Could not write bitcode to file", SourceLocation::undefined()))
-        // }
+    pub fn to_in_memory_bitcode(&self) -> Result<MemoryBuffer, Diagnostic> {
+        Ok(self.module.write_bitcode_to_memory())
     }
 
     ///
@@ -640,6 +566,13 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     pub fn persist_to_string(&self) -> String {
         self.module.to_string()
+    }
+
+    ///
+    /// Prints the content of the module to the stderr
+    ///
+    pub fn print_to_stderr(&self) {
+        self.module.print_to_stderr();
     }
 
     ///
