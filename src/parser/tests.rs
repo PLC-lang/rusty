@@ -12,6 +12,7 @@ mod control_parser_tests;
 mod expressions_parser_tests;
 mod function_parser_tests;
 mod initializer_parser_tests;
+mod interface_parser_tests;
 mod misc_parser_tests;
 mod parse_errors;
 mod parse_generics;

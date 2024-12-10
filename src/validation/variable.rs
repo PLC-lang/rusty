@@ -364,14 +364,15 @@ fn report_temporary_address_in_pointer_initializer<T: AnnotationMap>(
     if v_entry.is_temp() {
         return;
     }
+
     if let Some(pou) = context.qualifier.and_then(|q| context.index.find_pou(q)) {
         match pou {
             PouIndexEntry::Program { .. }
             | PouIndexEntry::FunctionBlock { .. }
             | PouIndexEntry::Class { .. } => (),
-            PouIndexEntry::Method { .. } => {
-                unimplemented!("We'll worry about this once we get around to OOP")
-            }
+            // PouIndexEntry::Method { .. } => {
+            //     unimplemented!("We'll worry about this once we get around to OOP")
+            // }
             _ => return,
         }
     }
@@ -392,6 +393,7 @@ fn report_temporary_address_in_pointer_initializer<T: AnnotationMap>(
     let Some(rhs_entry) = context.index.find_member(context.qualifier.unwrap_or_default(), flat_ref) else {
         return;
     };
+
     if !rhs_entry.is_temp() {
         return;
     }

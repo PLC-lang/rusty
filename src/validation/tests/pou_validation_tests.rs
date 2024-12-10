@@ -234,3 +234,121 @@ fn assigning_return_value_to_void_functions_returns_error() {
 
     "###);
 }
+
+#[test]
+fn method_input_arguments_are_not_optional() {
+    let diagnostic = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD foo
+                VAR_INPUT
+                    in1 : BOOL;
+                    in2 : BOOL;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                fbInstance : fb;
+            END_VAR
+
+            // All of these are invalid because they are missing arguments
+            fbInstance.foo();
+            fbInstance.foo(in1 := TRUE);
+            fbInstance.foo(in2 := TRUE);
+
+            // These are valid
+            fbInstance.foo(in1 := TRUE, in2 := TRUE);
+            fbInstance.foo(in2 := TRUE, in1 := TRUE);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostic, @r###"
+    error[E030]: Argument `in1` is missing
+       ┌─ <internal>:17:13
+       │
+    17 │             fbInstance.foo();
+       │             ^^^^^^^^^^^^^^ Argument `in1` is missing
+
+    error[E030]: Argument `in2` is missing
+       ┌─ <internal>:17:13
+       │
+    17 │             fbInstance.foo();
+       │             ^^^^^^^^^^^^^^ Argument `in2` is missing
+
+    error[E030]: Argument `in2` is missing
+       ┌─ <internal>:18:13
+       │
+    18 │             fbInstance.foo(in1 := TRUE);
+       │             ^^^^^^^^^^^^^^ Argument `in2` is missing
+
+    error[E030]: Argument `in1` is missing
+       ┌─ <internal>:19:13
+       │
+    19 │             fbInstance.foo(in2 := TRUE);
+       │             ^^^^^^^^^^^^^^ Argument `in1` is missing
+
+    "###);
+}
+
+#[test]
+fn method_inout_arguments_are_not_optional() {
+    let diagnostic = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD foo
+                VAR_IN_OUT
+                    in1 : BOOL;
+                    in2 : BOOL;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                fbInstance : fb;
+                localIn1 : BOOL;
+                localIn2 : BOOL;
+            END_VAR
+
+            // All of these are invalid because they are missing arguments
+            fbInstance.foo();
+            fbInstance.foo(in1 := localIn1);
+            fbInstance.foo(in2 := localIn2);
+
+            // These are valid
+            fbInstance.foo(in1 := localIn1, in2 := localIn2);
+            fbInstance.foo(in2 := localIn2, in1 := localIn1);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostic, @r###"
+    error[E030]: Argument `in1` is missing
+       ┌─ <internal>:19:13
+       │
+    19 │             fbInstance.foo();
+       │             ^^^^^^^^^^^^^^ Argument `in1` is missing
+
+    error[E030]: Argument `in2` is missing
+       ┌─ <internal>:19:13
+       │
+    19 │             fbInstance.foo();
+       │             ^^^^^^^^^^^^^^ Argument `in2` is missing
+
+    error[E030]: Argument `in2` is missing
+       ┌─ <internal>:20:13
+       │
+    20 │             fbInstance.foo(in1 := localIn1);
+       │             ^^^^^^^^^^^^^^ Argument `in2` is missing
+
+    error[E030]: Argument `in1` is missing
+       ┌─ <internal>:21:13
+       │
+    21 │             fbInstance.foo(in2 := localIn2);
+       │             ^^^^^^^^^^^^^^ Argument `in1` is missing
+
+    "###);
+}

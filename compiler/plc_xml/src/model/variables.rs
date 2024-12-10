@@ -75,7 +75,7 @@ pub(crate) struct FunctionBlockVariable<'xml> {
     pub ref_local_id: Option<usize>,
 }
 
-impl<'xml> FunctionBlockVariable<'xml> {
+impl FunctionBlockVariable<'_> {
     pub fn new(hm: FxHashMap<String, String>, kind: VariableKind) -> Result<Self, Error> {
         Ok(Self {
             kind,
@@ -132,7 +132,7 @@ impl FromStr for Storage {
     }
 }
 
-impl<'xml> Parseable for FunctionBlockVariable<'xml> {
+impl Parseable for FunctionBlockVariable<'_> {
     fn visit(reader: &mut Reader, tag: Option<quick_xml::events::BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else { unreachable!() };
         let kind = tag.name().as_ref().try_into()?;
