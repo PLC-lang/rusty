@@ -183,7 +183,6 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
             output_name,
             self.link_options.clone(),
         )?;
-        //TODO: this should be a participant
         if let Some(lib_location) = &self.link_options.lib_location {
             for library in self.libraries.iter().filter(|it| it.should_copy()).map(|it| it.get_compiled_lib())
             {

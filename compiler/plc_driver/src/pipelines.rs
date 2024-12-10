@@ -56,7 +56,6 @@ pub struct BuildPipeline<T: SourceContainer> {
     pub project: Project<T>,
     pub diagnostician: Diagnostician,
     pub compile_parameters: Option<CompileParameters>,
-    //TODO: delete this once linking is a participant
     pub linker: LinkerType,
     pub mutable_participants: Vec<Box<dyn PipelineParticipantMut>>,
     pub participants: Vec<Box<dyn PipelineParticipant>>,
