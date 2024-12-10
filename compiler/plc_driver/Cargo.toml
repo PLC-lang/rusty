@@ -27,6 +27,7 @@ log.workspace = true
 encoding_rs.workspace = true
 encoding_rs_io.workspace = true
 anyhow.workspace = true
+itertools.workspace = true
 
 [dev-dependencies]
 pretty_assertions = "1.3.0"
