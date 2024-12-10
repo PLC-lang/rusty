@@ -24,7 +24,7 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::AstLowerer,
+    lowering::InitVisitor,
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -274,9 +274,6 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         // 1. Parse, 2. Index and 3. Resolve / Annotate
         let indexed_project = self.index(parsed_project)?;
         let annotated_project = self.annotate(indexed_project)?;
-        // // 4. AST-lowering, re-index and re-resolve
-        let annotated_project =
-            annotated_project.lower(&self.project.get_init_symbol_name(), self.context.provider());
         //TODO : this is post lowering, we might want to control this
         if let Some(CompileParameters { output_ast: true, .. }) = self.compile_parameters {
             return Ok(());
@@ -328,6 +325,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.participants.iter().for_each(|p| {
             p.pre_annotate(&project);
         });
+        let project = self.mutable_participants.iter().fold(project, |project, p| p.pre_annotate(project));
         let annotated_project = project.annotate(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_annotate(&annotated_project);
@@ -514,7 +512,8 @@ impl ParsedProject {
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(indexer::index(&builtins));
 
-        IndexedProject { project: ParsedProject { units }, index: global_index }
+        let (full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
+        IndexedProject { project: ParsedProject { units }, index: full_index, unresolvables }
     }
 }
 
@@ -523,12 +522,12 @@ impl ParsedProject {
 pub struct IndexedProject {
     project: ParsedProject,
     index: Index,
+    unresolvables: Vec<UnresolvableConstant>,
 }
 
 impl IndexedProject {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject {
-        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
@@ -538,7 +537,7 @@ impl IndexedProject {
             .into_par_iter()
             .map(|unit| {
                 let (annotation, dependencies, literals) =
-                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
+                    TypeAnnotator::visit_unit(&self.index, &unit, id_provider.clone());
                 (unit, annotation, dependencies, literals)
             })
             .collect::<Vec<_>>();
@@ -548,11 +547,23 @@ impl IndexedProject {
             all_annotations.import(annotation);
         }
 
-        full_index.import(std::mem::take(&mut all_annotations.new_index));
+        let mut index = self.index;
+        index.import(std::mem::take(&mut all_annotations.new_index));
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
-        AnnotatedProject { units: annotated_units, index: full_index, annotations, unresolvables }
+        AnnotatedProject { units: annotated_units, index, annotations }
+    }
+
+    /// Adds additional, internally generated units to provide functions to be called by a runtime
+    /// in order to initialize pointers before first cycle.
+    ///
+    /// This method will consume the provided indexed project, modify the AST and re-index each unit
+    pub fn extend_with_init_units(self, symbol_name: &str, id_provider: IdProvider) -> IndexedProject {
+        let units = self.project.units;
+        let lowered =
+            InitVisitor::visit(units, self.index, self.unresolvables, id_provider.clone(), symbol_name);
+        ParsedProject { units: lowered }.index(id_provider.clone())
     }
 }
 
@@ -582,24 +593,9 @@ pub struct AnnotatedProject {
     pub units: Vec<AnnotatedUnit>,
     pub index: Index,
     pub annotations: AstAnnotations,
-    pub unresolvables: Vec<UnresolvableConstant>,
 }
 
 impl AnnotatedProject {
-    pub fn lower(self, symbol_name: &str, id_provider: IdProvider) -> AnnotatedProject {
-        let units = self.units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect::<Vec<_>>();
-        let lowered = AstLowerer::lower(
-            units,
-            self.index,
-            self.annotations,
-            self.unresolvables,
-            id_provider.clone(),
-            symbol_name,
-        );
-        // XXX: this step can be looped until there were no further lowering-changes, however at this time lowering once should suffice
-        ParsedProject { units: lowered }.index(id_provider.clone()).annotate(id_provider)
-    }
-
     /// Validates the project, reports any new diagnostics on the fly
     pub fn validate(
         &self,

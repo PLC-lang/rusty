@@ -11,6 +11,7 @@ use std::{
     sync::{Arc, Mutex, RwLock},
 };
 
+use ast::provider::IdProvider;
 use plc::{codegen::GeneratedModule, output::FormatOption, ConfigFormat, OnlineChange, Target};
 use plc_diagnostics::diagnostics::Diagnostic;
 use project::{object::Object, project::LibraryInformation};
@@ -65,6 +66,11 @@ pub trait PipelineParticipantMut {
     /// Implement this to access the project after it got indexed
     /// This happens directly after the index returns
     fn post_index(&self, indexed_project: IndexedProject) -> IndexedProject {
+        indexed_project
+    }
+    /// Implement this to access the project before it gets annotated
+    /// This happens directly after the constants are evaluated
+    fn pre_annotate(&self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project
     }
     /// Implement this to access the project after it got annotated
@@ -212,5 +218,22 @@ impl PipelineParticipantMut for LoweringParticipant {
 
     fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         annotated_project
+    }
+}
+
+pub struct InitParticipant {
+    symbol_name: String,
+    id_provider: IdProvider,
+}
+
+impl InitParticipant {
+    pub fn new(symbol_name: &str, id_provider: IdProvider) -> Self {
+        Self { symbol_name: symbol_name.into(), id_provider }
+    }
+}
+
+impl PipelineParticipantMut for InitParticipant {
+    fn pre_annotate(&self, indexed_project: IndexedProject) -> IndexedProject {
+        indexed_project.extend_with_init_units(&self.symbol_name, self.id_provider.clone())
     }
 }
