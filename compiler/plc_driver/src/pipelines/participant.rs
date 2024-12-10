@@ -201,15 +201,23 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
 pub struct LoweringParticipant;
 
 impl PipelineParticipantMut for LoweringParticipant {
-    fn pre_index(&self, parsed_project: ParsedProject) -> ParsedProject {
-        parsed_project
-    }
-
     fn post_index(&self, indexed_project: IndexedProject) -> IndexedProject {
+        //Collect all functions and methods that have aggregate types
+        //Adjust the signature to become a VAR_IN_OUT
+        //Reparse and Re-Index the pous
+        //  -> Remove the old struct and pou from index and units vector
         indexed_project
     }
 
     fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        //For each implementation
+        //If a function/method call has an aggregate return
+        //Allocate a value for the return -> declare a VAR_TEMP (until we have localized vars)
+        //Rewrite it to have a pointer as the first (second) argument
+        // -> For assignment, we first call the method with a temp, and then assign temp
+        // -> Nested calls are interesting....
+        //Re-index the unit and re-annotate it
+        // -> remove the annotations for this unit from the current annotations
         annotated_project
     }
 }

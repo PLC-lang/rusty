@@ -2,7 +2,7 @@
 
 use crate::index::FxIndexMap;
 use indexmap::Equivalent;
-use std::hash::Hash;
+use std::{hash::Hash, ops::Index};
 
 /// A multi-map implementation with a stable order of elements. When iterating
 /// the keys or the values, the iterator reflects the order of insertion.
@@ -17,6 +17,18 @@ impl<K, V> Default for SymbolMap<K, V> {
     fn default() -> Self {
         Self { inner_map: Default::default() }
     }
+}
+
+impl<K,V> SymbolMap<K,V> where K: Hash + Eq, V: PartialEq + Eq {
+    /// Removes a key, value pair from the multimap if it exists
+    pub fn remove(&mut self, key: &K, value: &V) {
+        if let Some(entries) = self.inner_map.get_mut(key) {
+            if let Some(index) = entries.iter().position(|x| x == value) {
+                entries.remove(index);
+            }
+        }
+    }
+
 }
 
 impl<K, V> SymbolMap<K, V>
@@ -56,6 +68,7 @@ where
     pub fn insert_many<T: IntoIterator<Item = V>>(&mut self, key: K, values: T) {
         self.inner_map.entry(key).or_default().extend(values);
     }
+
 
     /// returns an iterator over all elements key-value tuples in their order. Note that
     /// keys with `n` associated elements will emit `n` key-value tuples in the returned

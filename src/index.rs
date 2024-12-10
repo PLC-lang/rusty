@@ -1798,6 +1798,66 @@ impl Index {
     pub fn get_config_variables(&self) -> &Vec<ConfigVariable> {
         &self.config_variables
     }
+
+    /// Removes an index from a parent index, undoing an import
+    pub fn remove(&mut self, other: Index) {
+        //global variables
+        for (name, e) in other.global_variables.entries() {
+            for value in e {
+                self.global_variables.remove(name, value)
+            }
+        }
+
+        //initializers
+        for (name, elements) in other.global_initializers.entries() {
+            for value in elements {
+                self.global_initializers.remove(name, value)
+            }
+        }
+
+        //types
+        for (name, elements) in other.type_index.types.entries() {
+            for e in elements {
+                self.type_index.types.remove(name, e);
+            }
+        }
+
+        //pou_types
+        for (name, elements) in other.type_index.pou_types.entries() {
+            for e in elements {
+                self.type_index.pou_types.remove(name, e);
+            }
+        }
+
+        //implementations
+        for (name, _) in &other.implementations {
+            self.implementations.swap_remove(name);
+        }
+        // interfaces
+        for (name, elements) in other.interfaces.entries() {
+            for e in elements {
+                self.interfaces.remove(name, e);
+            }
+        }
+
+        //pous
+        for (name, elements) in other.pous.entries() {
+            for ele in elements {
+                self.pous.remove(name, ele);
+            }
+        }
+
+        //labels
+        for (name, _) in &other.labels {
+            self.labels.swap_remove(name);
+        }
+
+        for var in &other.config_variables {
+            if let Some(index) = self.config_variables.iter().position(|x| x == var) {
+                self.config_variables.remove(index);
+            }
+        }
+    }
 }
 
 /// Returns a default initialization name for a variable or type

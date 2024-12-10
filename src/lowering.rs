@@ -16,6 +16,8 @@ use plc_source::source_location::SourceLocation;
 
 mod initializers;
 
+mod calls;
+
 pub struct AstLowerer {
     index: Index,
     annotations: AstAnnotations,
