@@ -18,7 +18,7 @@ pub mod tests {
         codegen::{CodegenContext, GeneratedModule},
         index::{self, FxIndexSet, Index},
         lexer,
-        lowering::AstLowerer,
+        lowering::InitVisitor,
         parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
@@ -114,14 +114,12 @@ pub mod tests {
     pub fn annotate_and_lower_with_ids(
         parse_result: CompilationUnit,
         index: Index,
-        mut id_provider: IdProvider,
+        id_provider: IdProvider,
     ) -> Lowered {
-        let (mut index, unresolvables) = evaluate_constants(index);
-        let annotation_map = annotate_with_ids(&parse_result, &mut index, id_provider.clone());
-        let lowered = AstLowerer::lower(
+        let (index, unresolvables) = evaluate_constants(index);
+        let lowered = InitVisitor::visit(
             vec![parse_result],
             index,
-            AstAnnotations::new(annotation_map, id_provider.next_id()),
             unresolvables,
             id_provider.clone(),
             &get_project_init_symbol(),
