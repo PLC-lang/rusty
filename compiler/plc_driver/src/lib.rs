@@ -205,18 +205,15 @@ pub fn parse_and_annotate<T: SourceContainer + Clone>(
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls
-//todo: test code
 pub fn generate_to_string<T: SourceContainer>(name: &'static str, src: Vec<T>) -> Result<String, Diagnostic> {
     generate_to_string_internal(name, src, false)
 }
 
 /// Generates an IR string from a list of sources with debug information enabled. Useful for tests or api calls
-//todo: test code
 pub fn generate_to_string_debug<T: SourceContainer>(name: &str, src: Vec<T>) -> Result<String, Diagnostic> {
     generate_to_string_internal(name, src, true)
 }
 
-//todo: test code
 fn generate_to_string_internal<T: SourceContainer>(
     name: &str,
     src: Vec<T>,
