@@ -1,95 +1,86 @@
 ---
 source: src/lowering/calls.rs
-expression: unit
+expression: "lowerer.index.unwrap().find_pou_type(\"simpleFunc\").unwrap()"
 ---
-CompilationUnit {
-    global_vars: [
-        VariableBlock {
-            variables: [],
-            variable_block_type: Global,
-        },
-    ],
-    var_config: [],
-    units: [
-        POU {
-            name: "simpleFunc",
-            variable_blocks: [
-                VariableBlock {
-                    variables: [
-                        Variable {
-                            name: "x",
-                            data_type: DataTypeReference {
-                                referenced_type: "DINT",
-                            },
+DataType {
+    name: "simpleFunc",
+    initial_value: None,
+    information: Struct {
+        name: "simpleFunc",
+        members: [
+            VariableIndexEntry {
+                name: "x",
+                qualified_name: "simpleFunc.x",
+                initial_value: None,
+                argument_type: ByVal(
+                    Input,
+                ),
+                is_constant: false,
+                is_var_external: false,
+                data_type_name: "DINT",
+                location_in_parent: 0,
+                linkage: Internal,
+                binding: None,
+                source_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 3,
+                            column: 12,
+                            offset: 66,
+                        }..TextLocation {
+                            line: 3,
+                            column: 13,
+                            offset: 67,
                         },
-                    ],
-                    variable_block_type: Input(
-                        ByVal,
                     ),
                 },
-            ],
-            pou_type: Function,
-            return_type: Some(
-                DataTypeReference {
-                    referenced_type: "DINT",
-                },
-            ),
-            interfaces: [],
-        },
-    ],
-    implementations: [
-        Implementation {
-            name: "simpleFunc",
-            type_name: "simpleFunc",
-            linkage: Internal,
-            pou_type: Function,
-            statements: [
-                Assignment {
-                    left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "simpleFunc",
-                            },
-                        ),
-                        base: None,
-                    },
-                    right: LiteralInteger {
-                        value: 5,
-                    },
-                },
-            ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 5,
-                        column: 8,
-                        offset: 100,
-                    }..TextLocation {
-                        line: 6,
-                        column: 20,
-                        offset: 137,
-                    },
-                ),
+                varargs: None,
             },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 17,
-                        offset: 18,
-                    }..TextLocation {
-                        line: 1,
-                        column: 27,
-                        offset: 28,
-                    },
+            VariableIndexEntry {
+                name: "simpleFunc",
+                qualified_name: "simpleFunc.simpleFunc",
+                initial_value: None,
+                argument_type: ByVal(
+                    Return,
                 ),
+                is_constant: false,
+                is_var_external: false,
+                data_type_name: "DINT",
+                location_in_parent: 1,
+                linkage: Internal,
+                binding: None,
+                source_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 1,
+                            column: 17,
+                            offset: 18,
+                        }..TextLocation {
+                            line: 1,
+                            column: 27,
+                            offset: 28,
+                        },
+                    ),
+                },
+                varargs: None,
             },
-            overriding: false,
-            generic: false,
-            access: None,
-        },
-    ],
-    interfaces: [],
-    user_types: [],
-    file_name: "<internal>",
+        ],
+        source: Pou(
+            Function,
+        ),
+    },
+    nature: Any,
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 1,
+                column: 17,
+                offset: 18,
+            }..TextLocation {
+                line: 1,
+                column: 27,
+                offset: 28,
+            },
+        ),
+    },
 }

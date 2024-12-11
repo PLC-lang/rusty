@@ -502,6 +502,7 @@ impl Variable {
 pub enum DataTypeDeclaration {
     DataTypeReference { referenced_type: String, location: SourceLocation },
     DataTypeDefinition { data_type: DataType, location: SourceLocation, scope: Option<String> },
+    Aggregate
 }
 
 impl Debug for DataTypeDeclaration {
@@ -513,6 +514,9 @@ impl Debug for DataTypeDeclaration {
             DataTypeDeclaration::DataTypeDefinition { data_type, .. } => {
                 f.debug_struct("DataTypeDefinition").field("data_type", data_type).finish()
             }
+            Self::Aggregate => {
+                writeln!(f, "Aggregate")
+            }
         }
     }
 }
@@ -522,6 +526,7 @@ impl DataTypeDeclaration {
         match self {
             DataTypeDeclaration::DataTypeReference { referenced_type, .. } => Some(referenced_type.as_str()),
             DataTypeDeclaration::DataTypeDefinition { data_type, .. } => data_type.get_name(),
+            Self::Aggregate => None,
         }
     }
 
@@ -529,6 +534,7 @@ impl DataTypeDeclaration {
         match self {
             DataTypeDeclaration::DataTypeReference { location, .. } => location.clone(),
             DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
+            Self::Aggregate => SourceLocation::internal(),
         }
     }
 
@@ -548,6 +554,7 @@ impl DataTypeDeclaration {
 
                 None
             }
+            Self::Aggregate => None,
         }
     }
 }

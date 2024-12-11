@@ -1,0 +1,63 @@
+---
+source: src/lowering/calls.rs
+assertion_line: 303
+expression: "unit.implementations[1]"
+---
+Implementation {
+    name: "main",
+    type_name: "main",
+    linkage: Internal,
+    pou_type: Function,
+    statements: [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "a",
+                    },
+                ),
+                base: None,
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "complexFunc",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: None,
+            },
+        },
+    ],
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 14,
+                column: 12,
+                offset: 368,
+            }..TextLocation {
+                line: 15,
+                column: 20,
+                offset: 408,
+            },
+        ),
+    },
+    name_location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 8,
+                column: 17,
+                offset: 160,
+            }..TextLocation {
+                line: 8,
+                column: 21,
+                offset: 164,
+            },
+        ),
+    },
+    overriding: false,
+    generic: false,
+    access: None,
+}

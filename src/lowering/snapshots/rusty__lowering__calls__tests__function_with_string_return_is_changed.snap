@@ -1,103 +1,36 @@
 ---
 source: src/lowering/calls.rs
-expression: unit
+expression: "unit.units[0]"
 ---
-CompilationUnit {
-    global_vars: [
+POU {
+    name: "complexType",
+    variable_blocks: [
         VariableBlock {
-            variables: [],
-            variable_block_type: Global,
-        },
-    ],
-    var_config: [],
-    units: [
-        POU {
-            name: "complexType",
-            variable_blocks: [
-                VariableBlock {
-                    variables: [
-                        Variable {
-                            name: "complexType",
-                            data_type: DataTypeReference {
-                                referenced_type: "STRING",
-                            },
-                        },
-                    ],
-                    variable_block_type: InOut,
-                },
-                VariableBlock {
-                    variables: [
-                        Variable {
-                            name: "x",
-                            data_type: DataTypeReference {
-                                referenced_type: "DINT",
-                            },
-                        },
-                    ],
-                    variable_block_type: Input(
-                        ByVal,
-                    ),
-                },
-            ],
-            pou_type: Function,
-            return_type: None,
-            interfaces: [],
-        },
-    ],
-    implementations: [
-        Implementation {
-            name: "complexType",
-            type_name: "complexType",
-            linkage: Internal,
-            pou_type: Function,
-            statements: [
-                Assignment {
-                    left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "complexType",
-                            },
-                        ),
-                        base: None,
-                    },
-                    right: LiteralString {
-                        value: "hello",
-                        is_wide: false,
+            variables: [
+                Variable {
+                    name: "complexType",
+                    data_type: DataTypeReference {
+                        referenced_type: "STRING",
                     },
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 5,
-                        column: 8,
-                        offset: 103,
-                    }..TextLocation {
-                        line: 6,
-                        column: 20,
-                        offset: 147,
+            variable_block_type: InOut,
+        },
+        VariableBlock {
+            variables: [
+                Variable {
+                    name: "x",
+                    data_type: DataTypeReference {
+                        referenced_type: "DINT",
                     },
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 17,
-                        offset: 18,
-                    }..TextLocation {
-                        line: 1,
-                        column: 28,
-                        offset: 29,
-                    },
-                ),
-            },
-            overriding: false,
-            generic: false,
-            access: None,
+                },
+            ],
+            variable_block_type: Input(
+                ByVal,
+            ),
         },
     ],
+    pou_type: Function,
+    return_type: None,
     interfaces: [],
-    user_types: [],
-    file_name: "<internal>",
 }

@@ -1,0 +1,90 @@
+---
+source: src/lowering/calls.rs
+assertion_line: 337
+expression: "unit.implementations[1]"
+---
+Implementation {
+    name: "main",
+    type_name: "main",
+    linkage: Internal,
+    pou_type: Function,
+    statements: [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "a",
+                    },
+                ),
+                base: None,
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "complexFunc",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "x",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "complexFunc",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: Some(
+                                LiteralString {
+                                    value: "hello",
+                                    is_wide: false,
+                                },
+                            ),
+                        },
+                    },
+                ),
+            },
+        },
+    ],
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 16,
+                column: 12,
+                offset: 481,
+            }..TextLocation {
+                line: 17,
+                column: 20,
+                offset: 546,
+            },
+        ),
+    },
+    name_location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 8,
+                column: 17,
+                offset: 168,
+            }..TextLocation {
+                line: 8,
+                column: 21,
+                offset: 172,
+            },
+        ),
+    },
+    overriding: false,
+    generic: false,
+    access: None,
+}
