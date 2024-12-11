@@ -229,10 +229,26 @@ impl InitParticipant {
     pub fn new(symbol_name: &str, id_provider: IdProvider) -> Self {
         Self { symbol_name: symbol_name.into(), id_provider }
     }
+
+    /// Adds additional, internally generated units to provide functions to be called by a runtime
+    /// in order to initialize pointers before first cycle.
+    ///
+    /// This method will consume the provided indexed project, modify the AST and re-index each unit
+    pub fn extend_with_init_units(&self, indexed_project: IndexedProject) -> IndexedProject {
+        let units = indexed_project.project.units;
+        let lowered = plc::lowering::InitVisitor::visit(
+            units,
+            indexed_project.index,
+            indexed_project.unresolvables,
+            self.id_provider.clone(),
+            &self.symbol_name,
+        );
+        ParsedProject { units: lowered }.index(self.id_provider.clone())
+    }
 }
 
 impl PipelineParticipantMut for InitParticipant {
     fn pre_annotate(&self, indexed_project: IndexedProject) -> IndexedProject {
-        indexed_project.extend_with_init_units(&self.symbol_name, self.id_provider.clone())
+        self.extend_with_init_units(indexed_project)
     }
 }

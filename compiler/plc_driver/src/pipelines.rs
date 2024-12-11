@@ -150,6 +150,24 @@ impl BuildPipeline<PathBuf> {
     }
 }
 
+impl BuildPipeline<source_code::SourceCode> {
+    pub fn new<T>(args: &[T]) -> anyhow::Result<Self>
+    where
+        T: AsRef<str> + AsRef<OsStr> + std::fmt::Debug,
+    {
+        let compile_parameters = CompileParameters::parse(args)?;
+        compile_parameters.try_into()
+    }
+
+    pub fn register_mut_participant(&mut self, participant: Box<dyn PipelineParticipantMut>) {
+        self.mutable_participants.push(participant)
+    }
+
+    pub fn register_participant(&mut self, participant: Box<dyn PipelineParticipant>) {
+        self.participants.push(participant)
+    }
+}
+
 impl<T: SourceContainer> BuildPipeline<T> {
     pub fn get_compile_options(&self) -> Option<CompileOptions> {
         self.compile_parameters.as_ref().map(|params| {
@@ -552,17 +570,6 @@ impl IndexedProject {
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
         AnnotatedProject { units: annotated_units, index, annotations }
-    }
-
-    /// Adds additional, internally generated units to provide functions to be called by a runtime
-    /// in order to initialize pointers before first cycle.
-    ///
-    /// This method will consume the provided indexed project, modify the AST and re-index each unit
-    pub fn extend_with_init_units(self, symbol_name: &str, id_provider: IdProvider) -> IndexedProject {
-        let units = self.project.units;
-        let lowered =
-            InitVisitor::visit(units, self.index, self.unresolvables, id_provider.clone(), symbol_name);
-        ParsedProject { units: lowered }.index(id_provider.clone())
     }
 }
 

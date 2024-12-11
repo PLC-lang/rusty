@@ -1,4 +1,9 @@
-use crate::{pipelines::ParsedProject, CompileOptions};
+use std::sync::{Arc, RwLock};
+
+use crate::{
+    pipelines::{participant::{CodegenParticipant, InitParticipant}, BuildPipeline, GeneratedProject, ParsedProject},
+    CompileOptions,
+};
 
 use plc::codegen::{CodegenContext, GeneratedModule};
 use plc_diagnostics::diagnostician::Diagnostician;
@@ -24,22 +29,42 @@ impl Default for MainType {
 /// An implementation is also provided for `Vec<SourceContainer>`
 ///
 pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedModule<'_> {
-    let source = source.containers();
-    let project = Project::new("TestProject".to_string()).with_sources(source);
+    let project = Project::new("TestProject".to_string()).with_sources(source.containers());
     let ctxt = GlobalContext::new().with_source(project.get_sources(), None).unwrap();
-    let mut diagnostician = Diagnostician::null_diagnostician();
-    let parsed_project = ParsedProject::parse(&ctxt, &project, &mut diagnostician).unwrap();
-    let indexed_project = parsed_project
-        .index(ctxt.provider())
-        .extend_with_init_units(&project.get_init_symbol_name(), ctxt.provider());
-    let annotated_project = indexed_project.annotate(ctxt.provider());
-    let compile_options = CompileOptions {
-        optimization: plc::OptimizationLevel::None,
-        debug_level: plc::DebugLevel::None,
-        ..Default::default()
+    let diagnostician = Diagnostician::default();
+    let params = crate::cli::CompileParameters::parse(&["--single-module", "-O", "none"]).unwrap();
+    let mut pipeline = BuildPipeline {
+        context: ctxt,
+        project,
+        diagnostician,
+        compile_parameters: Some(params),
+        linker: plc::linker::LinkerType::Internal,
+        mutable_participants: Vec::default(),
+        participants: Vec::default(),
     };
+    let target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
+    let codegen_participant = CodegenParticipant {
+        compile_options: pipeline.get_compile_options().unwrap(),
+        link_options: pipeline.get_link_options().unwrap(),
+        target: target.clone(),
+        objects: Arc::new(RwLock::new(GeneratedProject {
+            target,
+            objects: pipeline.project.get_objects().to_vec(),
+        })),
+        got_layout: Default::default(),
+        compile_dirs: Default::default(),
+        libraries: vec![],
+    };
+    let init_participant = Box::new(InitParticipant::new(&project.get_init_symbol_name(), ctxt.provider()));
+    pipeline.register_participant(Box::new(codegen_participant));
+    pipeline.register_par
+    let project = crate::pipelines::Pipeline::parse(&mut pipeline).unwrap();
+    let project = crate::pipelines::Pipeline::index(&mut pipeline, project).unwrap();
+    let project = crate::pipelines::Pipeline::annotate(&mut pipeline, project).unwrap();
 
-    match annotated_project.generate_single_module(context, &compile_options) {
+    let module = project.generate_single_module(&context, pipeline.get_compile_options().as_ref().unwrap());
+
+    match module {
         Ok(res) => res.unwrap(),
         Err(e) => panic!("{e}"),
     }
