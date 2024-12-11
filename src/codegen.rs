@@ -54,9 +54,6 @@ mod tests;
 /// A wrapper around the LLVM context to allow passing it without exposing the inkwell dependencies
 pub struct CodegenContext(Context);
 
-unsafe impl Send for CodegenContext {}
-unsafe impl Sync for CodegenContext {}
-
 impl CodegenContext {
     pub fn create() -> Self {
         CodegenContext(Context::create())
@@ -89,11 +86,6 @@ pub struct GeneratedModule<'ink> {
     location: PathBuf,
     engine: RefCell<Option<ExecutionEngine<'ink>>>,
 }
-
-/// We need to be able to process the modules within threads
-/// TODO: is this really correct, is an LLVM module thread safe?
-unsafe impl<'ink> Send for GeneratedModule<'ink> {}
-unsafe impl<'ink> Sync for GeneratedModule<'ink> {}
 
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
 type MainEmptyFunction<U> = unsafe extern "C" fn() -> U;
