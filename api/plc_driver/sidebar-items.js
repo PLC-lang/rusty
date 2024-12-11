@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["CompileError","LinkerScript"],"fn":["compile","compile_with_options","generate_to_string","generate_to_string_debug","get_compilation_context","parse_and_annotate"],"mod":["cli","pipelines","runner"],"struct":["CompilationContext","CompileOptions","LinkOptions"]};
+window.SIDEBAR_ITEMS = {"enum":["CompileError","LinkerScript"],"fn":["compile","generate_to_string","generate_to_string_debug","parse_and_annotate"],"mod":["cli","pipelines","runner"],"struct":["CompilationContext","CompileOptions","LinkOptions"]};
