@@ -70,10 +70,9 @@ impl<'a> ParseSession<'a> {
         self.id_provider.next_id()
     }
 
-    // TODO(volsa): Remove reference from `token` parameter, since `Token` is `Copy`
     /// Tries to consume the given token, returning false if it failed.
-    pub fn try_consume(&mut self, token: &Token) -> bool {
-        if self.token == *token {
+    pub fn try_consume(&mut self, token: Token) -> bool {
+        if self.token == token {
             self.advance();
             return true;
         }
@@ -81,9 +80,8 @@ impl<'a> ParseSession<'a> {
         false
     }
 
-    // TODO(volsa): Rename to `try_consume_or_report`
-    pub fn consume_or_report(&mut self, token: Token) {
-        if !self.try_consume(&token) {
+    pub fn try_consume_or_report(&mut self, token: Token) {
+        if !self.try_consume(token) {
             self.accept_diagnostic(Diagnostic::missing_token(format!("{token:?}").as_str(), self.location()));
         }
     }

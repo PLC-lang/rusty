@@ -361,10 +361,10 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Option<AstNode> {
     let reference = parse_qualified_reference(lexer)?;
 
     // is this a callstatement?
-    if lexer.try_consume(&KeywordParensOpen) {
+    if lexer.try_consume(KeywordParensOpen) {
         let start = reference.get_location();
         // Call Statement
-        let call_statement = if lexer.try_consume(&KeywordParensClose) {
+        let call_statement = if lexer.try_consume(KeywordParensClose) {
             AstFactory::create_call_statement(reference, None, lexer.next_id(), start.span(&lexer.location()))
         } else {
             parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
@@ -533,9 +533,9 @@ fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Option<A
             lexer.next_id(),
             lexer.source_range_factory.create_range(location),
         ));
-    } else if lexer.try_consume(&KeywordDot) {
+    } else if lexer.try_consume(KeywordDot) {
         return parse_literal_real(lexer, result, location, is_negative);
-    } else if lexer.try_consume(&KeywordParensOpen) {
+    } else if lexer.try_consume(KeywordParensOpen) {
         let start = location.start;
         let multiplier = match result.parse::<u32>() {
             Ok(v) => Some(v),

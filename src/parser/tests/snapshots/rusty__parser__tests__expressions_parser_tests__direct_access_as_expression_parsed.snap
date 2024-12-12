@@ -140,9 +140,9 @@ CompilationUnit {
                         column: 8,
                         offset: 25,
                     }..TextLocation {
-                        line: 5,
-                        column: 15,
-                        offset: 101,
+                        line: 4,
+                        column: 22,
+                        offset: 85,
                     },
                 ),
             },

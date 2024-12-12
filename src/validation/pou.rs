@@ -28,7 +28,7 @@ where
     }
 
     // Check if the interfaces are implemented on the correct POU types
-    if !matches!(pou.pou_type, PouType::FunctionBlock | PouType::Class) {
+    if !matches!(pou.kind, PouType::FunctionBlock | PouType::Class) {
         let location = {
             let location_first = pou.interfaces.first().unwrap();
             let location_last = pou.interfaces.last().unwrap();
@@ -292,13 +292,13 @@ pub fn visit_implementation<T: AnnotationMap>(
 }
 
 fn validate_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
-    if pou.pou_type == PouType::Function {
+    if pou.kind == PouType::Function {
         validate_function(validator, pou);
     };
-    if pou.pou_type == PouType::Class {
+    if pou.kind == PouType::Class {
         validate_class(validator, pou, context);
     };
-    if pou.pou_type == PouType::Program {
+    if pou.kind == PouType::Program {
         validate_program(validator, pou);
     }
 }
