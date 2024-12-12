@@ -1,16 +1,26 @@
 //! This module defines the `AstVisitor` trait and its associated macros.
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
-use crate::ast::AstNode;
-use crate::ast::*;
+use crate::ast::{
+    flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
+    CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess,
+    EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement,
+    MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
+    UserTypeDeclaration, Variable, VariableBlock,
+};
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;
 
 /// Macro that calls the visitor's `visit` method for every AstNode in the passed iterator `iter`.
 macro_rules! visit_all_nodes {
     ($visitor:expr, $iter:expr) => {
-        for node in $iter {
-            $visitor.visit(node);
+        // Note: The `allow` is needed to suppress warnings about `while let Some(...)` warnings
+        // because `visit_all_nodes!` is used for both Option and Non-Option types
+        #[allow(warnings)]
+        {
+            for node in $iter {
+                $visitor.visit(node);
+            }
         }
     };
 }
@@ -138,6 +148,22 @@ pub trait AstVisitor: Sized {
     /// * `variable` - The unwraped, typed `Variable` node to visit.
     fn visit_variable(&mut self, variable: &Variable) {
         variable.walk(self);
+    }
+
+    /// Visits a `ConfigVariable` node.
+    /// Make sure to call `walk` on the `ConfigVariable` node to visit its children.
+    /// # Arguments
+    /// * `variable` - The unwraped, typed `Variable` node to visit.
+    fn visit_config_variable(&mut self, config_variable: &ConfigVariable) {
+        config_variable.walk(self);
+    }
+
+    /// Visits a `Interface`.
+    /// Make sure to call `walk` on the `Interface` to visit its children.
+    /// # Arguments
+    /// * `interface` - The unwraped, typed `Interface` node to visit.
+    fn visit_interface(&mut self, interface: &Interface) {
+        interface.walk(self);
     }
 
     /// Visits an enum element `AstNode` node.
@@ -309,6 +335,15 @@ pub trait AstVisitor: Sized {
     /// * `stmt` - The unwraped, typed `Assignment` node to visit.
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
     fn visit_output_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
+        stmt.walk(self)
+    }
+
+    /// Visits an `RefAssignment` node.
+    /// Make sure to call `walk` on the `Assignment` node to visit its children.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `Assignment` node to visit.
+    /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
+    fn visit_ref_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
         stmt.walk(self)
     }
 
@@ -556,6 +591,7 @@ impl Walker for AstNode {
             AstStatement::VlaRangeStatement => visitor.visit_vla_range_statement(node),
             AstStatement::Assignment(stmt) => visitor.visit_assignment(stmt, node),
             AstStatement::OutputAssignment(stmt) => visitor.visit_output_assignment(stmt, node),
+            AstStatement::RefAssignment(stmt) => visitor.visit_ref_assignment(stmt, node),
             AstStatement::CallStatement(stmt) => visitor.visit_call_statement(stmt, node),
             AstStatement::ControlStatement(stmt) => visitor.visit_control_statement(stmt, node),
             AstStatement::CaseCondition(stmt) => visitor.visit_case_condition(stmt, node),
@@ -587,6 +623,14 @@ impl Walker for CompilationUnit {
 
         for i in &self.implementations {
             visitor.visit_implementation(i);
+        }
+
+        for config_variable in &self.var_config {
+            visitor.visit_config_variable(config_variable);
+        }
+
+        for interface in &self.interfaces {
+            visitor.visit_interface(interface);
         }
     }
 }
@@ -620,6 +664,24 @@ impl Walker for Variable {
         visit_all_nodes!(visitor, &self.address);
         visitor.visit_data_type_declaration(&self.data_type_declaration);
         visit_all_nodes!(visitor, &self.initializer);
+    }
+}
+
+impl Walker for ConfigVariable {
+    fn walk<V>(&self, _visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        // do nothing
+    }
+}
+
+impl Walker for Interface {
+    fn walk<V>(&self, _visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        // do nothing
     }
 }
 

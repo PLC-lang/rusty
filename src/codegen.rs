@@ -1,8 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{
     cell::RefCell,
+    collections::HashMap,
     ops::Deref,
     path::{Path, PathBuf},
+    sync::Mutex,
 };
 
 /// module to generate llvm intermediate representation for a CompilationUnit
@@ -19,7 +21,7 @@ use self::{
 use crate::{
     output::FormatOption,
     resolver::{AstAnnotations, Dependency, StringLiterals},
-    DebugLevel, OptimizationLevel, Target,
+    DebugLevel, OnlineChange, OptimizationLevel, Target,
 };
 
 use super::index::*;
@@ -29,11 +31,14 @@ use inkwell::{
     execution_engine::{ExecutionEngine, JitFunction},
     memory_buffer::MemoryBuffer,
     types::BasicType,
+    values::BasicValue,
+    AddressSpace,
 };
 use inkwell::{
     module::Module,
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
+    types::BasicTypeEnum,
 };
 use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -70,12 +75,15 @@ pub struct CodeGen<'ink> {
     pub module: Module<'ink>,
     /// the debugging module creates debug information at appropriate locations
     pub debug: DebugBuilderEnum<'ink>,
+    /// Whether we are generating a hot-reloadable binary or not
+    pub online_change: OnlineChange,
 
     pub module_location: String,
 }
 
 pub struct GeneratedModule<'ink> {
     module: Module<'ink>,
+    location: PathBuf,
     engine: RefCell<Option<ExecutionEngine<'ink>>>,
 }
 
@@ -90,11 +98,12 @@ impl<'ink> CodeGen<'ink> {
         module_location: &str,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
+        online_change: OnlineChange,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
         let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
-        CodeGen { module, debug, module_location: module_location.to_string() }
+        CodeGen { module, debug, module_location: module_location.to_string(), online_change }
     }
 
     pub fn generate_llvm_index(
@@ -104,6 +113,7 @@ impl<'ink> CodeGen<'ink> {
         literals: &StringLiterals,
         dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
+        got_layout: &Mutex<HashMap<String, u64>>,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
@@ -117,13 +127,102 @@ impl<'ink> CodeGen<'ink> {
         )?;
         index.merge(llvm_type_index);
 
-        let mut variable_generator =
-            VariableGenerator::new(&self.module, &llvm, global_index, annotations, &index, &mut self.debug);
+        let mut variable_generator = VariableGenerator::new(
+            &self.module,
+            &llvm,
+            global_index,
+            annotations,
+            &index,
+            &mut self.debug,
+            &self.online_change,
+        );
 
         //Generate global variables
         let llvm_gv_index =
             variable_generator.generate_global_variables(dependencies, &self.module_location)?;
         index.merge(llvm_gv_index);
+
+        // Build our GOT layout here. We need to find all the names for globals, programs, and
+        // functions and assign them indices in the GOT, taking into account prior indices.
+        let program_globals =
+            global_index.get_program_instances().into_iter().fold(Vec::new(), |mut acc, p| {
+                acc.push(p.get_name().to_owned());
+                acc.push(p.get_qualified_name().to_owned());
+                acc.push(format!("{}_instance", p.get_name()));
+                acc
+            });
+
+        let functions = global_index.get_pous().values().filter_map(|p| match p {
+            PouIndexEntry::Function { name, linkage: LinkageType::Internal, is_generated: false, .. }
+            | PouIndexEntry::FunctionBlock { name, linkage: LinkageType::Internal, .. } => {
+                Some(String::from(name))
+            }
+            _ => None,
+        });
+        let all_names = global_index
+            .get_globals()
+            .values()
+            .map(VariableIndexEntry::get_qualified_name)
+            .map(String::from)
+            .chain(program_globals)
+            .chain(functions)
+            .map(|s| s.to_lowercase())
+            .map(|s| (crate::index::get_initializer_name(&s), s))
+            .fold(Vec::new(), |mut acc, (s, s1)| {
+                acc.push(s);
+                acc.push(s1);
+                acc
+            });
+
+        if self.online_change.is_enabled() {
+            let got_entries = &mut *got_layout.lock().unwrap();
+
+            let mut new_symbols = Vec::new();
+            let mut new_got_entries = HashMap::new();
+            let mut new_got = HashMap::new();
+
+            for name in all_names {
+                if let Some(idx) = got_entries.get(&name.to_string()) {
+                    new_got_entries.insert(name.to_string(), *idx);
+                    index.associate_got_index(&name, *idx)?;
+                    new_got.insert(*idx, name.to_string());
+                } else {
+                    new_symbols.push(name.to_string());
+                }
+            }
+
+            // Put any names that weren't there last time in any free space in the GOT.
+            let mut idx: u64 = 0;
+            for name in &new_symbols {
+                while new_got.contains_key(&idx) {
+                    idx += 1;
+                }
+                new_got_entries.insert(name.to_string(), idx);
+                index.associate_got_index(name, idx)?;
+                new_got.insert(idx, name.to_string());
+            }
+
+            // Construct our GOT as a new global array. We initialise this array in the loader code.
+            let got_size: u32 = new_got
+                .keys()
+                .max()
+                .map_or(0, |m| *m + 1)
+                .try_into()
+                .expect("the computed custom GOT size is too large");
+
+            let ptr_ty = llvm.context.i8_type().ptr_type(AddressSpace::default());
+            let empty_got = ptr_ty
+                .const_array(vec![ptr_ty.const_null(); got_size as usize].as_slice())
+                .as_basic_value_enum();
+            let custom_got_ty =
+                BasicTypeEnum::ArrayType(Llvm::get_array_type(BasicTypeEnum::PointerType(ptr_ty), got_size));
+
+            let custom_got = llvm.create_global_variable(&self.module, "__custom_got", custom_got_ty);
+            custom_got.set_linkage(inkwell::module::Linkage::WeakODR);
+            custom_got.set_initial_value(Some(empty_got), custom_got_ty);
+
+            *got_entries = new_got_entries;
+        }
 
         //Generate opaque functions for implementations and associate them with their types
         let llvm = Llvm::new(context, context.create_builder());
@@ -135,6 +234,7 @@ impl<'ink> CodeGen<'ink> {
             annotations,
             &index,
             &mut self.debug,
+            &self.online_change,
         )?;
         let llvm = Llvm::new(context, context.create_builder());
         index.merge(llvm_impl_index);
@@ -193,11 +293,12 @@ impl<'ink> CodeGen<'ink> {
         unit: &CompilationUnit,
         annotations: &AstAnnotations,
         global_index: &Index,
-        llvm_index: &LlvmTypedIndex,
+        llvm_index: LlvmTypedIndex,
     ) -> Result<GeneratedModule<'ink>, Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
-        let pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);
+        let pou_generator =
+            PouGenerator::new(llvm, global_index, annotations, &llvm_index, &self.online_change);
 
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {
@@ -209,6 +310,8 @@ impl<'ink> CodeGen<'ink> {
             }
         }
 
+        let location = PathBuf::from(&unit.file_name);
+
         self.debug.finalize();
         log::debug!("{}", self.module.to_string());
 
@@ -217,11 +320,11 @@ impl<'ink> CodeGen<'ink> {
             self.module
                 .verify()
                 .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))
-                .map(|_| GeneratedModule { module: self.module, engine: RefCell::new(None) })
+                .map(|_| GeneratedModule { module: self.module, location, engine: RefCell::new(None) })
         }
 
         #[cfg(not(feature = "verify"))]
-        Ok(GeneratedModule { module: self.module, engine: RefCell::new(None) })
+        Ok(GeneratedModule { module: self.module, location, engine: RefCell::new(None) })
     }
 }
 
@@ -229,7 +332,17 @@ impl<'ink> GeneratedModule<'ink> {
     pub fn try_from_bitcode(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
         let module = Module::parse_bitcode_from_path(path, context.deref())
             .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
-        Ok(GeneratedModule { module, engine: RefCell::new(None) })
+        Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
+    }
+
+    pub fn from_memory(
+        context: &'ink CodegenContext,
+        buffer: &MemoryBuffer,
+        path: &Path,
+    ) -> Result<Self, Diagnostic> {
+        let module = Module::parse_bitcode_from_buffer(buffer, context.deref())
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
+        Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
 
     pub fn try_from_ir(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
@@ -241,7 +354,7 @@ impl<'ink> GeneratedModule<'ink> {
 
         log::debug!("{}", module.to_string());
 
-        Ok(GeneratedModule { module, engine: RefCell::new(None) })
+        Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
 
     pub fn merge(self, other: GeneratedModule<'ink>) -> Result<Self, Diagnostic> {
@@ -289,6 +402,10 @@ impl<'ink> GeneratedModule<'ink> {
             output_dir.join(output_name)
         };
         output
+    }
+
+    pub fn get_unit_location(&self) -> &Path {
+        &self.location
     }
 
     ///
@@ -410,6 +527,10 @@ impl<'ink> GeneratedModule<'ink> {
         } else {
             Err(Diagnostic::codegen_error("Could not write bitcode to file", SourceLocation::undefined()))
         }
+    }
+
+    pub fn to_in_memory_bitcode(&self) -> Result<MemoryBuffer, Diagnostic> {
+        Ok(self.module.write_bitcode_to_memory())
     }
 
     ///

@@ -4,12 +4,14 @@ expression: ast
 ---
 CompilationUnit {
     global_vars: [],
+    var_config: [],
     units: [
         POU {
             name: "program_0",
             variable_blocks: [],
             pou_type: Program,
             return_type: None,
+            interfaces: [],
         },
     ],
     implementations: [
@@ -46,6 +48,7 @@ CompilationUnit {
             access: None,
         },
     ],
+    interfaces: [],
     user_types: [],
     file_name: "<internal>",
 }

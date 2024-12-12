@@ -247,3 +247,431 @@ fn date_and_time_constants_test() {
     assert_eq!(diag, vec![]);
     insta::assert_snapshot!(format!("{vars:#?}"));
 }
+
+#[test]
+fn var_config_test() {
+    let src = "
+    VAR_CONFIG
+        instance1.foo.qux AT %IX3.1 : BOOL;
+        instance2.bar.qux AT %IX5.6 : BOOL;
+    END_VAR
+    ";
+    let (result, diag) = parse(src);
+
+    assert!(diag.is_empty());
+    insta::assert_debug_snapshot!(result, @r###"
+    CompilationUnit {
+        global_vars: [],
+        var_config: [
+            ConfigVariable {
+                reference: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "qux",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "instance1",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                data_type: DataTypeReference {
+                    referenced_type: "BOOL",
+                },
+                address: HardwareAccess {
+                    direction: Input,
+                    access: Bit,
+                    address: [
+                        LiteralInteger {
+                            value: 3,
+                        },
+                        LiteralInteger {
+                            value: 1,
+                        },
+                    ],
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 2,
+                                column: 26,
+                                offset: 42,
+                            }..TextLocation {
+                                line: 2,
+                                column: 35,
+                                offset: 51,
+                            },
+                        ),
+                    },
+                },
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 2,
+                            column: 8,
+                            offset: 24,
+                        }..TextLocation {
+                            line: 2,
+                            column: 25,
+                            offset: 41,
+                        },
+                    ),
+                },
+            },
+            ConfigVariable {
+                reference: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "qux",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "bar",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "instance2",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                data_type: DataTypeReference {
+                    referenced_type: "BOOL",
+                },
+                address: HardwareAccess {
+                    direction: Input,
+                    access: Bit,
+                    address: [
+                        LiteralInteger {
+                            value: 5,
+                        },
+                        LiteralInteger {
+                            value: 6,
+                        },
+                    ],
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 3,
+                                column: 26,
+                                offset: 86,
+                            }..TextLocation {
+                                line: 3,
+                                column: 35,
+                                offset: 95,
+                            },
+                        ),
+                    },
+                },
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 3,
+                            column: 8,
+                            offset: 68,
+                        }..TextLocation {
+                            line: 3,
+                            column: 25,
+                            offset: 85,
+                        },
+                    ),
+                },
+            },
+        ],
+        units: [],
+        implementations: [],
+        interfaces: [],
+        user_types: [],
+        file_name: "test.st",
+    }
+    "###);
+}
+
+#[test]
+fn var_config_location() {
+    let src = r#"
+    VAR_CONFIG
+        main.instance.foo AT %IX3.1 : BOOL;
+    END_VAR
+    "#;
+
+    let (result, _) = parse(src);
+
+    assert_eq!("main.instance.foo", &src[result.var_config[0].location.to_range().unwrap()]);
+}
+
+#[test]
+fn var_external() {
+    let src = r#"
+    VAR_GLOBAL 
+        arr: ARRAY [0..100] OF INT; 
+    END_VAR
+
+    FUNCTION foo
+    VAR_EXTERNAL 
+        arr : ARRAY [0..100] OF INT;
+    END_VAR
+    END_FUNCTION
+    "#;
+
+    let (result, _) = parse(src);
+
+    insta::assert_debug_snapshot!(result, @r###"
+    CompilationUnit {
+        global_vars: [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "arr",
+                        data_type: DataTypeDefinition {
+                            data_type: ArrayType {
+                                name: None,
+                                bounds: RangeStatement {
+                                    start: LiteralInteger {
+                                        value: 0,
+                                    },
+                                    end: LiteralInteger {
+                                        value: 100,
+                                    },
+                                },
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "INT",
+                                },
+                                is_variable_length: false,
+                            },
+                        },
+                    },
+                ],
+                variable_block_type: Global,
+            },
+        ],
+        var_config: [],
+        units: [
+            POU {
+                name: "foo",
+                variable_blocks: [
+                    VariableBlock {
+                        variables: [
+                            Variable {
+                                name: "arr",
+                                data_type: DataTypeDefinition {
+                                    data_type: ArrayType {
+                                        name: None,
+                                        bounds: RangeStatement {
+                                            start: LiteralInteger {
+                                                value: 0,
+                                            },
+                                            end: LiteralInteger {
+                                                value: 100,
+                                            },
+                                        },
+                                        referenced_type: DataTypeReference {
+                                            referenced_type: "INT",
+                                        },
+                                        is_variable_length: false,
+                                    },
+                                },
+                            },
+                        ],
+                        variable_block_type: External,
+                    },
+                ],
+                pou_type: Function,
+                return_type: None,
+                interfaces: [],
+            },
+        ],
+        implementations: [
+            Implementation {
+                name: "foo",
+                type_name: "foo",
+                linkage: Internal,
+                pou_type: Function,
+                statements: [],
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 9,
+                            column: 4,
+                            offset: 155,
+                        }..TextLocation {
+                            line: 9,
+                            column: 16,
+                            offset: 167,
+                        },
+                    ),
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 13,
+                            offset: 80,
+                        }..TextLocation {
+                            line: 5,
+                            column: 16,
+                            offset: 83,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: None,
+            },
+        ],
+        interfaces: [],
+        user_types: [],
+        file_name: "test.st",
+    }
+    "###);
+}
+
+#[test]
+fn var_external_constant() {
+    let src = r#"
+    VAR_GLOBAL 
+        arr: ARRAY [0..100] OF INT; 
+    END_VAR
+
+    FUNCTION foo
+    VAR_EXTERNAL CONSTANT
+        arr : ARRAY [0..100] OF INT;
+    END_VAR
+    END_FUNCTION
+    "#;
+
+    let (result, _) = parse(src);
+
+    insta::assert_debug_snapshot!(result, @r###"
+    CompilationUnit {
+        global_vars: [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "arr",
+                        data_type: DataTypeDefinition {
+                            data_type: ArrayType {
+                                name: None,
+                                bounds: RangeStatement {
+                                    start: LiteralInteger {
+                                        value: 0,
+                                    },
+                                    end: LiteralInteger {
+                                        value: 100,
+                                    },
+                                },
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "INT",
+                                },
+                                is_variable_length: false,
+                            },
+                        },
+                    },
+                ],
+                variable_block_type: Global,
+            },
+        ],
+        var_config: [],
+        units: [
+            POU {
+                name: "foo",
+                variable_blocks: [
+                    VariableBlock {
+                        variables: [
+                            Variable {
+                                name: "arr",
+                                data_type: DataTypeDefinition {
+                                    data_type: ArrayType {
+                                        name: None,
+                                        bounds: RangeStatement {
+                                            start: LiteralInteger {
+                                                value: 0,
+                                            },
+                                            end: LiteralInteger {
+                                                value: 100,
+                                            },
+                                        },
+                                        referenced_type: DataTypeReference {
+                                            referenced_type: "INT",
+                                        },
+                                        is_variable_length: false,
+                                    },
+                                },
+                            },
+                        ],
+                        variable_block_type: External,
+                    },
+                ],
+                pou_type: Function,
+                return_type: None,
+                interfaces: [],
+            },
+        ],
+        implementations: [
+            Implementation {
+                name: "foo",
+                type_name: "foo",
+                linkage: Internal,
+                pou_type: Function,
+                statements: [],
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 9,
+                            column: 4,
+                            offset: 163,
+                        }..TextLocation {
+                            line: 9,
+                            column: 16,
+                            offset: 175,
+                        },
+                    ),
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 13,
+                            offset: 80,
+                        }..TextLocation {
+                            line: 5,
+                            column: 16,
+                            offset: 83,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: None,
+            },
+        ],
+        interfaces: [],
+        user_types: [],
+        file_name: "test.st",
+    }
+    "###);
+}

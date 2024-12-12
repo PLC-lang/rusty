@@ -6,8 +6,8 @@ use itertools::Itertools;
 use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
-    AstId, AstNode, AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
-    TypeNature,
+    AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
+    Interface, LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -26,9 +26,9 @@ use self::{
 };
 
 pub mod const_expressions;
+pub mod indexer;
 mod instance_iterator;
 pub mod symbol;
-pub mod visitor;
 
 #[cfg(test)]
 mod tests;
@@ -70,6 +70,8 @@ pub struct VariableIndexEntry {
     pub argument_type: ArgumentType,
     /// true if this variable is a compile-time-constant
     is_constant: bool,
+    // true if this variable is in a 'VAR_EXTERNAL' block
+    is_var_external: bool,
     /// the variable's datatype
     pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
@@ -97,7 +99,7 @@ pub struct HardwareBinding {
 }
 
 impl HardwareBinding {
-    fn from_statement(index: &mut Index, it: &AstNode, scope: Option<String>) -> Option<Self> {
+    pub fn from_statement(index: &mut Index, it: &AstNode, scope: Option<String>) -> Option<Self> {
         if let AstStatement::HardwareAccess(data) = it.get_stmt() {
             Some(HardwareBinding {
                 access: data.access,
@@ -110,6 +112,7 @@ impl HardwareBinding {
                             expr.clone(),
                             typesystem::DINT_SIZE.to_string(),
                             scope.clone(),
+                            None,
                         )
                     })
                     .collect(),
@@ -129,6 +132,7 @@ pub struct MemberInfo<'b> {
     variable_type_name: &'b str,
     binding: Option<HardwareBinding>,
     is_constant: bool,
+    is_var_external: bool,
     varargs: Option<VarArgs>,
 }
 
@@ -147,6 +151,7 @@ impl VariableIndexEntry {
             initial_value: None,
             argument_type,
             is_constant: false,
+            is_var_external: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent,
             linkage: LinkageType::Internal,
@@ -168,6 +173,7 @@ impl VariableIndexEntry {
             initial_value: None,
             argument_type: ArgumentType::ByVal(VariableType::Global),
             is_constant: false,
+            is_var_external: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent: 0,
             linkage: LinkageType::Internal,
@@ -199,6 +205,11 @@ impl VariableIndexEntry {
 
     pub fn set_varargs(mut self, varargs: Option<VarArgs>) -> Self {
         self.varargs = varargs;
+        self
+    }
+
+    pub fn set_var_external(mut self, var_external: bool) -> Self {
+        self.is_var_external = var_external;
         self
     }
 
@@ -240,8 +251,17 @@ impl VariableIndexEntry {
     pub fn is_local(&self) -> bool {
         self.get_variable_type() == VariableType::Local
     }
+
     pub fn is_temp(&self) -> bool {
         self.get_variable_type() == VariableType::Temp
+    }
+
+    pub fn is_input(&self) -> bool {
+        self.get_variable_type() == VariableType::Input
+    }
+
+    pub fn is_inout(&self) -> bool {
+        self.get_variable_type() == VariableType::InOut
     }
 
     pub fn is_constant(&self) -> bool {
@@ -250,6 +270,10 @@ impl VariableIndexEntry {
 
     pub fn is_external(&self) -> bool {
         self.linkage == LinkageType::External
+    }
+
+    pub fn is_var_external(&self) -> bool {
+        self.is_var_external
     }
 
     pub fn get_declaration_type(&self) -> ArgumentType {
@@ -270,6 +294,10 @@ impl VariableIndexEntry {
 
     pub fn has_hardware_binding(&self) -> bool {
         self.binding.is_some()
+    }
+
+    pub fn is_template(&self) -> bool {
+        matches!(self.binding, Some(HardwareBinding { access: DirectAccessType::Template, .. }))
     }
 
     pub fn get_hardware_binding(&self) -> Option<&HardwareBinding> {
@@ -302,7 +330,7 @@ impl VariableIndexEntry {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArgumentType {
     ByVal(VariableType),
     ByRef(VariableType),
@@ -316,23 +344,16 @@ impl ArgumentType {
         }
     }
 
-    pub fn get_inner_ref(&self) -> &VariableType {
-        match self {
-            ArgumentType::ByRef(val) => val,
-            ArgumentType::ByVal(val) => val,
-        }
-    }
-
     pub fn is_by_ref(&self) -> bool {
         matches!(self, ArgumentType::ByRef(..))
     }
 
     pub fn is_private(&self) -> bool {
-        matches!(self.get_inner_ref(), VariableType::Temp | VariableType::Local)
+        matches!(self.get_inner(), VariableType::Temp | VariableType::Local)
     }
 
     pub fn is_input(&self) -> bool {
-        matches!(self.get_inner_ref(), VariableType::Input)
+        matches!(self.get_inner(), VariableType::Input)
     }
 }
 
@@ -345,6 +366,7 @@ pub enum VariableType {
     InOut,
     Global,
     Return,
+    External,
 }
 
 impl VariableType {
@@ -363,6 +385,7 @@ impl std::fmt::Display for VariableType {
             VariableType::InOut => write!(f, "InOut"),
             VariableType::Global => write!(f, "Global"),
             VariableType::Return => write!(f, "Return"),
+            VariableType::External => write!(f, "External"),
         }
     }
 }
@@ -375,6 +398,8 @@ pub enum ImplementationType {
     Action,
     Class,
     Method,
+    Init,
+    ProjectInit,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -412,6 +437,10 @@ impl ImplementationIndexEntry {
     pub fn is_in_unit(&self, unit: impl AsRef<str>) -> bool {
         self.get_location().is_in_unit(unit)
     }
+
+    pub(crate) fn is_init(&self) -> bool {
+        matches!(self.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
+    }
 }
 
 impl From<&PouType> for ImplementationType {
@@ -423,11 +452,72 @@ impl From<&PouType> for ImplementationType {
             PouType::Action => ImplementationType::Action,
             PouType::Class => ImplementationType::Class,
             PouType::Method { .. } => ImplementationType::Method,
+            PouType::Init => ImplementationType::Init,
+            PouType::ProjectInit => ImplementationType::ProjectInit,
         }
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+impl ImplementationType {
+    pub fn is_function_or_init(&self) -> bool {
+        matches!(
+            self,
+            ImplementationType::Function | ImplementationType::Init | ImplementationType::ProjectInit,
+        )
+    }
+
+    pub(crate) fn is_project_init(&self) -> bool {
+        matches!(self, ImplementationType::ProjectInit)
+    }
+}
+
+#[derive(PartialEq, Eq)]
+pub struct InterfaceIndexEntry {
+    /// The interface name
+    pub name: String,
+
+    /// The location of the interface as a whole
+    pub location: SourceLocation,
+
+    /// The location of the interface name
+    pub location_name: SourceLocation,
+
+    /// A list of qualified names of the methods in this interface; the actual methods are located in
+    /// [`Index::pous`]
+    pub methods: Vec<String>,
+}
+
+impl InterfaceIndexEntry {
+    /// Returns a list of methods defined in this interface
+    pub fn get_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
+        self.methods
+            .iter()
+            .map(|name| index.find_pou(name).expect("must exist because of present InterfaceIndexEntry"))
+            .collect()
+    }
+}
+
+impl std::fmt::Debug for InterfaceIndexEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("InterfaceIndexEntry")
+            .field("name", &self.name)
+            .field("methods", &self.methods)
+            .finish()
+    }
+}
+
+impl From<&Interface> for InterfaceIndexEntry {
+    fn from(interface: &Interface) -> Self {
+        InterfaceIndexEntry {
+            name: interface.name.clone(),
+            location: interface.location.clone(),
+            location_name: interface.location_name.clone(),
+            methods: interface.methods.iter().map(|method| method.name.clone()).collect(),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub enum PouIndexEntry {
     Program {
         name: String,
@@ -451,6 +541,7 @@ pub enum PouIndexEntry {
         is_variadic: bool,
         location: SourceLocation,
         is_generated: bool, // true if this entry was added automatically (e.g. by generics)
+        is_const: bool,
     },
     Class {
         name: String,
@@ -523,6 +614,7 @@ impl PouIndexEntry {
         linkage: LinkageType,
         is_variadic: bool,
         location: SourceLocation,
+        is_const: bool,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -532,6 +624,7 @@ impl PouIndexEntry {
             is_variadic,
             location,
             is_generated: false,
+            is_const,
         }
     }
 
@@ -544,6 +637,7 @@ impl PouIndexEntry {
         linkage: LinkageType,
         is_variadic: bool,
         location: SourceLocation,
+        is_const: bool,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -553,6 +647,7 @@ impl PouIndexEntry {
             is_variadic,
             location,
             is_generated: true,
+            is_const,
         }
     }
 
@@ -637,6 +732,16 @@ impl PouIndexEntry {
         }
     }
 
+    pub fn get_parent_pou_name(&self) -> &str {
+        match self {
+            PouIndexEntry::Method { parent_pou_name, .. } | PouIndexEntry::Action { parent_pou_name, .. } => {
+                parent_pou_name.as_str()
+            }
+
+            _ => unreachable!("invalid function call, only methods and actions have a parent POU"),
+        }
+    }
+
     /// returns the name of the struct-type used to store the POUs state
     /// (interface-variables)
     pub fn get_instance_struct_type_name(&self) -> Option<&str> {
@@ -715,12 +820,14 @@ impl PouIndexEntry {
         }
     }
 
-    /// returns true if this pou is an action
     pub fn is_action(&self) -> bool {
         matches!(self, PouIndexEntry::Action { .. })
     }
 
-    /// return true if this pou is a function
+    pub fn is_program(&self) -> bool {
+        matches!(self, PouIndexEntry::Program { .. })
+    }
+
     pub fn is_function(&self) -> bool {
         matches!(self, PouIndexEntry::Function { .. })
     }
@@ -740,8 +847,19 @@ impl PouIndexEntry {
         matches!(self, PouIndexEntry::Class { .. })
     }
 
-    pub(crate) fn is_method(&self) -> bool {
+    pub fn is_method(&self) -> bool {
         matches!(self, PouIndexEntry::Method { .. })
+    }
+
+    pub fn is_stateful(&self) -> bool {
+        matches!(
+            self,
+            PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Class { .. }
+        )
+    }
+
+    pub(crate) fn is_constant(&self) -> bool {
+        matches!(self, PouIndexEntry::Function { is_const: true, .. })
     }
 
     pub fn get_location(&self) -> &SourceLocation {
@@ -827,24 +945,27 @@ impl TypeIndex {
 /// The index contains information about all referencable elements.
 #[derive(Debug, Default)]
 pub struct Index {
-    /// all global variables
+    /// All global variables
     global_variables: SymbolMap<String, VariableIndexEntry>,
 
-    /// all struct initializers
+    /// All struct initializers
     global_initializers: SymbolMap<String, VariableIndexEntry>,
 
-    /// all enum-members with their names
+    /// All enum-members with their names
     enum_global_variables: SymbolMap<String, VariableIndexEntry>,
 
-    // all pous,
+    /// All pous,
     pous: SymbolMap<String, PouIndexEntry>,
 
-    /// all implementations
-    // we keep an IndexMap for implementations since duplication issues regarding implementations
-    // is handled by the `pous` SymbolMap
+    /// All interface definitions
+    interfaces: SymbolMap<String, InterfaceIndexEntry>,
+
+    /// All implementations
+    /// We keep an IndexMap for implementations since duplication issues regarding implementations
+    /// is handled by the `pous` SymbolMap
     implementations: FxIndexMap<String, ImplementationIndexEntry>,
 
-    /// an index with all type-information
+    /// An index with all type-information
     type_index: TypeIndex,
 
     constant_expressions: ConstExpressions,
@@ -854,6 +975,8 @@ pub struct Index {
 
     /// The labels contained in each pou
     labels: FxIndexMap<String, SymbolMap<String, Label>>,
+
+    config_variables: Vec<ConfigVariable>,
 }
 
 impl Index {
@@ -861,8 +984,7 @@ impl Index {
     ///
     /// imports all global_variables, types and implementations
     /// # Arguments
-    /// - `other` the other index. The elements are drained from the given index and moved
-    /// into the current one
+    /// - `other` the other index. The elements are drained from the given index and moved into the current one
     pub fn import(&mut self, mut other: Index) {
         //global variables
         for (name, e) in other.global_variables.drain(..) {
@@ -953,6 +1075,9 @@ impl Index {
         //implementations
         self.implementations.extend(other.implementations);
 
+        // interfaces
+        self.interfaces.extend(other.interfaces);
+
         //pous
         for (name, elements) in other.pous.drain(..) {
             for ele in elements {
@@ -965,6 +1090,8 @@ impl Index {
 
         //labels
         self.labels.extend(other.labels);
+
+        self.config_variables.extend(other.config_variables);
 
         //Constant expressions are intentionally not imported
         // self.constant_expressions.import(other.constant_expressions)
@@ -1005,8 +1132,8 @@ impl Index {
         import_from: &mut ConstExpressions,
         initializer_id: &Option<ConstId>,
     ) -> Option<ConstId> {
-        initializer_id.as_ref().and_then(|it| import_from.clone(it)).map(|(init, target_type, scope)| {
-            self.get_mut_const_expressions().add_constant_expression(init, target_type, scope)
+        initializer_id.as_ref().and_then(|it| import_from.clone(it)).map(|(init, target_type, scope, lhs)| {
+            self.get_mut_const_expressions().add_constant_expression(init, target_type, scope, lhs)
         })
     }
 
@@ -1020,8 +1147,8 @@ impl Index {
             TypeSize::LiteralInteger(_) => Some(*type_size),
             TypeSize::ConstExpression(id) => import_from
                 .clone(id)
-                .map(|(expr, target_type, scope)| {
-                    self.get_mut_const_expressions().add_constant_expression(expr, target_type, scope)
+                .map(|(expr, target_type, scope, lhs)| {
+                    self.get_mut_const_expressions().add_constant_expression(expr, target_type, scope, lhs)
                 })
                 .map(TypeSize::from_expression),
             TypeSize::Undetermined => Some(*type_size),
@@ -1083,22 +1210,33 @@ impl Index {
             .find_type(container_name)
             .and_then(|it| it.find_member(variable_name))
             .or(self.find_enum_variant_in_pou(container_name, variable_name))
+            // underlying type of an `ACTION`
             .or(container_name
                 .rfind('.')
                 .map(|p| &container_name[..p])
+                .and_then(|qualifier| self.find_member(qualifier, variable_name)))
+            // 'self' instance of a POUs init function
+            .or(container_name
+                .rfind('_')
+                .map(|p| &container_name[p + 1..])
                 .and_then(|qualifier| self.find_member(qualifier, variable_name)))
     }
 
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
     pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         // Find pou in index
-        self.find_local_member(container_name, variable_name).or_else(|| {
-            if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                self.find_member(class, variable_name)
-            } else {
-                None
-            }
-        })
+        self.find_local_member(container_name, variable_name)
+            .or_else(|| {
+                if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
+                    self.find_member(class, variable_name)
+                } else {
+                    None
+                }
+            })
+            .filter(|it| {
+                // VAR_EXTERNAL variables are not local members
+                !it.is_var_external()
+            })
     }
 
     /// Searches for method names in the given container, if not found, attempts to search for it in super class
@@ -1110,6 +1248,11 @@ impl Index {
         } else {
             None
         }
+    }
+
+    /// Returns an interface with the given name or None if it does not exist
+    pub fn find_interface(&self, name: &str) -> Option<&InterfaceIndexEntry> {
+        self.interfaces.get(name)
     }
 
     /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
@@ -1130,6 +1273,7 @@ impl Index {
         if segments.is_empty() {
             return None;
         }
+
         //For the first element, if the context does not contain that element, it is possible that the element is also a global variable
         let init = match context {
             Some(context) => self
@@ -1336,6 +1480,12 @@ impl Index {
         variable.and_then(|it| self.get_type(it.get_type_name()).ok())
     }
 
+    pub fn get_return_type_or_void(&self, pou_name: &str) -> &DataType {
+        self.find_return_variable(pou_name)
+            .and_then(|variable| self.find_type(variable.get_type_name()))
+            .unwrap_or(self.get_void_type())
+    }
+
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
         self.find_effective_type_by_name(type_name)
             .map(|it| it.get_type_information())
@@ -1370,6 +1520,11 @@ impl Index {
     /// Returns the map of pous, should not be used to search for pous -->  see find_pou
     pub fn get_pous(&self) -> &SymbolMap<String, PouIndexEntry> {
         &self.pous
+    }
+
+    /// Returns a reference of the [`Index::interfaces`] field
+    pub fn get_interfaces(&self) -> &SymbolMap<String, InterfaceIndexEntry> {
+        &self.interfaces
     }
 
     pub fn get_global_initializers(&self) -> &SymbolMap<String, VariableIndexEntry> {
@@ -1410,6 +1565,10 @@ impl Index {
         self.pous.get(&pou_name.to_lowercase())
     }
 
+    pub fn is_init_function(&self, pou_name: &str) -> bool {
+        self.find_implementation_by_name(pou_name).map(|it| it.is_init()).unwrap_or_default()
+    }
+
     pub fn register_program(&mut self, name: &str, location: SourceLocation, linkage: LinkageType) {
         let instance_variable =
             VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone()) // TODO: Naming convention (see plc_util/src/convention.rs)
@@ -1431,17 +1590,17 @@ impl Index {
         self.find_pou(pou_name).and_then(|it| it.find_implementation(self))
     }
 
-    /// creates a member-variable of a container to be accessed in a qualified name.
-    /// e.g. "POU.member", "StructName.member", etc.
+    /// Creates a member-variable of a container to be accessed in a qualified name, e.g. "POU.member",
+    /// "StructName.member", etc.
     ///
-    /// #Arguments
+    /// # Arguments
     /// * `container_name`- the name of hosting container (pou or struct)
     /// * `variable_name` - the name of the member variable
     /// * `variable_linkage` - the linkage-type of that variable (one of local, global, etc. )
     /// * `variable_type_name` - the variable's data type as a string
     /// * `initial_value` - the initial value as defined in the AST
     /// * `location` - the location (index) inside the container
-    pub fn register_member_variable(
+    pub fn create_member_variable(
         &mut self,
         member_info: MemberInfo,
         initial_value: Option<ConstId>,
@@ -1467,6 +1626,7 @@ impl Index {
         .set_initial_value(initial_value)
         .set_hardware_binding(member_info.binding)
         .set_varargs(member_info.varargs)
+        .set_var_external(member_info.is_var_external)
     }
 
     pub fn register_enum_variant(
@@ -1552,16 +1712,16 @@ impl Index {
         &'idx self,
         initial_type: &'idx DataTypeInformation,
     ) -> &'idx DataTypeInformation {
-        match initial_type {
-            DataTypeInformation::Pointer { inner_type_name, .. } => {
-                let inner_type = self
-                    .find_effective_type_info(inner_type_name)
-                    .map(|t| self.find_intrinsic_type(t))
-                    .unwrap_or_else(|| initial_type);
-                self.find_elementary_pointer_type(inner_type)
+        if let DataTypeInformation::Pointer { inner_type_name, .. } = initial_type {
+            if let Some(ty) = self.find_effective_type_info(inner_type_name) {
+                return self.find_elementary_pointer_type(self.find_intrinsic_type(ty));
+            } else {
+                // the inner type can't be found, return VOID as placeholder
+                return self.get_void_type().get_type_information();
             }
-            _ => initial_type,
         }
+
+        initial_type
     }
 
     /// Creates an iterator over all instances in the index
@@ -1634,9 +1794,17 @@ impl Index {
     pub fn get_labels(&self, pou_name: &str) -> Option<&SymbolMap<String, Label>> {
         self.labels.get(pou_name)
     }
+
+    pub fn get_config_variables(&self) -> &Vec<ConfigVariable> {
+        &self.config_variables
+    }
 }
 
 /// Returns a default initialization name for a variable or type
 pub fn get_initializer_name(name: &str) -> String {
     format!("__{name}__init")
+}
+
+pub fn get_init_fn_name(name: &str) -> String {
+    format!("__init_{name}").to_lowercase()
 }

@@ -7,5 +7,3 @@ error[E071]: Operator '/' unimplemented for pointers
   │
 8 │         ptr := ptr / ptr;
   │                ^^^^^^^^^ Operator '/' unimplemented for pointers
-
-

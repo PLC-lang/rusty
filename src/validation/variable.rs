@@ -1,15 +1,118 @@
-use plc_ast::ast::{ArgumentProperty, Pou, PouType, Variable, VariableBlock, VariableBlockType};
+use plc_ast::ast::{
+    ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Pou, PouType, Variable,
+    VariableBlock, VariableBlockType,
+};
 use plc_diagnostics::diagnostics::Diagnostic;
-
-use crate::typesystem::DataTypeInformation;
-use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
 
 use super::{
     array::validate_array_assignment,
-    statement::{validate_enum_variant_assignment, visit_statement},
+    statement::{validate_pointer_assignment, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
+use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
+use crate::{index::const_expressions::UnresolvableKind, typesystem::DataTypeInformation};
+use crate::{index::PouIndexEntry, validation::statement::validate_enum_variant_assignment};
+use crate::{index::VariableIndexEntry, resolver::StatementAnnotation};
+
+pub fn visit_config_variable<T: AnnotationMap>(
+    validator: &mut Validator,
+    var_config: &ConfigVariable,
+    context: &ValidationContext<T>,
+) {
+    let Some(StatementAnnotation::Variable { qualified_name, .. }) =
+        context.annotations.get(&var_config.reference)
+    else {
+        // The template variable referenced in the VAR_CONFIG block does not exist
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Template variable `{}` does not exist",
+                var_config.reference.get_flat_reference_name().unwrap_or_default(),
+            ))
+            .with_error_code("E101")
+            .with_location(&var_config.location),
+        );
+        return;
+    };
+
+    let Some(var_template) = context.index.find_fully_qualified_variable(qualified_name) else {
+        return;
+    };
+
+    // The template variable does exist, check
+    // (1) if the types of the config and template variable are the same
+    // (2) if the template variable has a hardware binding (`.. AT ... : ...`)
+    // (3) if the config variable has specified a full hardware address
+    // (4) if the template variable has specified a incomplete hardware address
+
+    // (1)
+    let (var_config_ty, var_config_ty_info) = {
+        let ty_name = &var_config.data_type.get_name().unwrap_or_default();
+        let ty = context.index.get_effective_type_or_void_by_name(ty_name);
+        let ty_info = ty.get_type_information();
+
+        (ty, ty_info)
+    };
+
+    let (var_template_ty, var_template_ty_info) = {
+        let ty = context.index.get_effective_type_or_void_by_name(&var_template.data_type_name);
+        let ty_info = context.index.find_elementary_pointer_type(ty.get_type_information());
+
+        (ty, ty_info)
+    };
+
+    if var_template_ty_info != var_config_ty_info {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Config and Template variable types differ ({} and {})",
+                validator.get_type_name_or_slice(var_config_ty),
+                validator.get_type_name_or_slice(var_template_ty)
+            ))
+            .with_error_code("E001")
+            .with_location(var_config.location.span(&var_config.data_type.get_location()))
+            .with_secondary_location(&var_template.source_location),
+        )
+    }
+
+    // (2)
+    if var_template.get_hardware_binding().is_none() {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "`{}` is missing a hardware binding",
+                var_config
+                    .reference
+                    .get_parent_name_of_reference()
+                    .or_else(|| var_config.reference.get_flat_reference_name())
+                    .unwrap_or_default(),
+            ))
+            .with_error_code("E102")
+            .with_location(&var_template.source_location)
+            .with_secondary_location(var_config.location.span(&var_config.data_type.get_location())),
+        );
+
+        // Early return, because we may get further false-positive errors due to incorrect declaration
+        return;
+    }
+
+    // (3)
+    if var_config.address.is_template() {
+        validator.push_diagnostic(
+            Diagnostic::new("Variables defined in a VAR_CONFIG block must have a complete address")
+                .with_error_code("E104")
+                .with_location(&var_config.address.location),
+        )
+    }
+
+    // (4)
+    if !var_template.is_template() {
+        validator.push_diagnostic(
+                    Diagnostic::new("The configured variable is not a template, overriding non-template hardware addresses is not allowed")
+                        .with_error_code("E103")
+                        .with_location(&var_config.location)
+                        .with_secondary_location(&var_template.source_location)
+                )
+    }
+}
 
 pub fn visit_variable_block<T: AnnotationMap>(
     validator: &mut Validator,
@@ -31,8 +134,19 @@ pub fn visit_variable_block<T: AnnotationMap>(
 }
 
 fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
+    if matches!(block.variable_block_type, VariableBlockType::External) {
+        validator.push_diagnostic(
+            Diagnostic::new("VAR_EXTERNAL blocks have no effect")
+                .with_error_code("E106")
+                .with_location(&block.location),
+        );
+    }
+
     if block.constant
-        && !matches!(block.variable_block_type, VariableBlockType::Global | VariableBlockType::Local)
+        && !matches!(
+            block.variable_block_type,
+            VariableBlockType::Global | VariableBlockType::Local | VariableBlockType::External
+        )
     {
         validator.push_diagnostic(
             Diagnostic::new("This variable block does not support the CONSTANT modifier")
@@ -143,6 +257,8 @@ fn validate_variable<T: AnnotationMap>(
     validate_array_ranges(validator, variable, context);
 
     if let Some(v_entry) = context.index.find_variable(context.qualifier, &[&variable.name]) {
+        validate_reference_to_declaration(validator, context, variable, v_entry);
+
         if let Some(initializer) = &variable.initializer {
             // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
             // assignment as a whole whereas the second function call (`visit_statement`) validates the
@@ -155,16 +271,47 @@ fn validate_variable<T: AnnotationMap>(
             .initial_value
             .and_then(|initial_id| context.index.get_const_expressions().find_const_expression(&initial_id))
         {
-            Some(ConstExpression::Unresolvable { reason, statement }) if reason.is_misc() => {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Unresolved constant `{}` variable: {}",
-                        variable.name.as_str(),
-                        reason.get_reason()
-                    ))
-                    .with_error_code("E033")
-                    .with_location(statement.get_location()),
-                );
+            Some(ConstExpression::Unresolvable { reason, statement }) => {
+                match reason {
+                    UnresolvableKind::Misc(reason) => validator.push_diagnostic(
+                        Diagnostic::new(format!(
+                            "Unresolved constant `{}` variable: {}",
+                            variable.name.as_str(),
+                            reason
+                        ))
+                        .with_error_code("E033")
+                        .with_location(statement.get_location()),
+                    ),
+                    UnresolvableKind::Overflow(..) => (),
+                    UnresolvableKind::Address(init) => {
+                        let Some(node) = init.initializer.as_ref() else {
+                            return;
+                        };
+
+                        let Some(rhs_ty) = context.annotations.get_type(node, context.index) else {
+                            let type_name = init.target_type_name.clone().unwrap_or_default();
+                            validator
+                                .push_diagnostic(Diagnostic::unknown_type(&type_name, node.get_location()));
+                            return;
+                        };
+
+                        if context.index.find_elementary_pointer_type(rhs_ty.get_type_information()).is_void()
+                        {
+                            // we could not find the type in the index, a validation for this exists elsewhere
+                            return;
+                        };
+
+                        report_temporary_address_in_pointer_initializer(validator, context, v_entry, node);
+
+                        validate_pointer_assignment(
+                            context,
+                            validator,
+                            context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
+                            rhs_ty,
+                            &node.get_location(),
+                        );
+                    }
+                };
             }
             Some(ConstExpression::Unresolved { statement, .. }) => {
                 validator.push_diagnostic(
@@ -173,7 +320,7 @@ fn validate_variable<T: AnnotationMap>(
                         .with_location(statement.get_location()),
                 );
             }
-            None if v_entry.is_constant() => {
+            None if v_entry.is_constant() && !v_entry.is_var_external() => {
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
                         .with_error_code("E033")
@@ -198,13 +345,107 @@ fn validate_variable<T: AnnotationMap>(
         {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
-                    "Invalid constant {} - Functionblock- and Class-instances cannot be delcared constant",
+                    "Invalid constant {}, FUNCTION_BLOCK- and CLASS-instances cannot be declared constant",
                     v_entry.get_name()
                 ))
                 .with_error_code("E035")
                 .with_location(&variable.location),
             );
         }
+    }
+}
+
+fn report_temporary_address_in_pointer_initializer<T: AnnotationMap>(
+    validator: &mut Validator<'_>,
+    context: &ValidationContext<'_, T>,
+    v_entry: &VariableIndexEntry,
+    initializer: &AstNode,
+) {
+    if v_entry.is_temp() {
+        return;
+    }
+
+    if let Some(pou) = context.qualifier.and_then(|q| context.index.find_pou(q)) {
+        match pou {
+            PouIndexEntry::Program { .. }
+            | PouIndexEntry::FunctionBlock { .. }
+            | PouIndexEntry::Class { .. } => (),
+            // PouIndexEntry::Method { .. } => {
+            //     unimplemented!("We'll worry about this once we get around to OOP")
+            // }
+            _ => return,
+        }
+    }
+
+    let (Some(flat_ref), Some(location)) = (match &initializer.get_stmt() {
+        AstStatement::ReferenceExpr(_) => {
+            (initializer.get_flat_reference_name(), Some(initializer.get_location()))
+        }
+        AstStatement::CallStatement(CallStatement { parameters, .. }) => (
+            parameters.as_ref().and_then(|it| it.as_ref().get_flat_reference_name()),
+            parameters.as_ref().map(|it| it.get_location()),
+        ),
+        _ => (None, None),
+    }) else {
+        return;
+    };
+
+    let Some(rhs_entry) = context.index.find_member(context.qualifier.unwrap_or_default(), flat_ref) else {
+        return;
+    };
+
+    if !rhs_entry.is_temp() {
+        return;
+    }
+
+    validator.diagnostics.push(
+        Diagnostic::new("Cannot assign address of temporary variable to a member-variable")
+            .with_location(location)
+            .with_error_code("E109"),
+    );
+}
+
+/// Returns a diagnostic if a `REFERENCE TO` variable is incorrectly declared.
+fn validate_reference_to_declaration<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    variable: &Variable,
+    variable_entry: &VariableIndexEntry,
+) {
+    let Some(variable_ty) = context.index.find_effective_type_by_name(variable_entry.get_type_name()) else {
+        return;
+    };
+
+    if !(variable_ty.get_type_information().is_reference_to()
+        || variable_ty.get_type_information().is_alias())
+    {
+        return;
+    }
+
+    let Some(inner_ty_name) = variable_ty.get_type_information().get_inner_pointer_type_name() else {
+        unreachable!("`REFERENCE TO` is defined as a pointer, hence this must exist")
+    };
+
+    // Assert that the referenced type is no variable reference
+    let qualifier = context.qualifier.unwrap_or_default();
+    let inner_ty_is_local_var = context.index.find_member(qualifier, inner_ty_name).is_some();
+    let inner_ty_is_global_var = context.index.find_global_variable(inner_ty_name).is_some();
+
+    if inner_ty_is_local_var || inner_ty_is_global_var {
+        validator.push_diagnostic(
+            Diagnostic::new("REFERENCE TO variables can not reference other variables")
+                .with_location(&variable_ty.location)
+                .with_error_code("E099"),
+        );
+    }
+
+    if let Some(ref initializer) = variable.initializer {
+        report_temporary_address_in_pointer_initializer(validator, context, variable_entry, initializer);
+
+        let Some(type_lhs) = context.annotations.get_type_hint(initializer, context.index) else { return };
+        let Some(type_rhs) = context.annotations.get_type(initializer, context.index) else { return };
+
+        validate_pointer_assignment(context, validator, type_lhs, type_rhs, &initializer.location);
     }
 }
 

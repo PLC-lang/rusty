@@ -7,5 +7,3 @@ error[E071]: Cannot continue loop when not inside a loop
   │
 6 │             CONTINUE;
   │             ^^^^^^^^ Cannot continue loop when not inside a loop
-
-

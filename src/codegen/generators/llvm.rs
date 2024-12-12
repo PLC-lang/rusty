@@ -27,7 +27,7 @@ pub trait GlobalValueExt {
     fn set_initial_value(self, initial_value: Option<BasicValueEnum>, data_type: BasicTypeEnum) -> Self;
 }
 
-impl<'ink> GlobalValueExt for GlobalValue<'ink> {
+impl GlobalValueExt for GlobalValue<'_> {
     fn make_constant(self) -> Self {
         self.set_constant(true);
         self.set_unnamed_addr(true);

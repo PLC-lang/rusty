@@ -2,31 +2,31 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %STRUCT_params = type { i8, i8, i8 }
 %prog = type { %STRUCT_params*, %STRUCT_params* }
 %main = type {}
 
-@global1 = global %STRUCT_params zeroinitializer, section "var-$RUSTY$global1:r3u8u8u8"
-@__STRUCT_params__init = unnamed_addr constant %STRUCT_params zeroinitializer, section "var-$RUSTY$__STRUCT_params__init:r3u8u8u8"
-@global2 = global %STRUCT_params zeroinitializer, section "var-$RUSTY$global2:r3u8u8u8"
-@global3 = global %STRUCT_params zeroinitializer, section "var-$RUSTY$global3:r3u8u8u8"
-@global4 = global i32 0, section "var-$RUSTY$global4:i32"
-@global5 = global [81 x i8] zeroinitializer, section "var-$RUSTY$global5:s8u81"
-@global6 = global float 0.000000e+00, section "var-$RUSTY$global6:f32"
-@prog_instance = global %prog zeroinitializer, section "var-$RUSTY$prog_instance:r2pr3u8u8u8pr3u8u8u8"
-@main_instance = global %main zeroinitializer, section "var-$RUSTY$main_instance:r0"
+@global1 = global %STRUCT_params zeroinitializer
+@__STRUCT_params__init = unnamed_addr constant %STRUCT_params zeroinitializer
+@global2 = global %STRUCT_params zeroinitializer
+@global3 = global %STRUCT_params zeroinitializer
+@global4 = global i32 0
+@global5 = global [81 x i8] zeroinitializer
+@global6 = global float 0.000000e+00
+@prog_instance = global %prog zeroinitializer
+@main_instance = global %main zeroinitializer
 
-define void @prog(%prog* %0) section "fn-$RUSTY$prog:v[pr3u8u8u8][pr3u8u8u8]" {
+define void @prog(%prog* %0) {
 entry:
   %input1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %input2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   store %STRUCT_params* @global1, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 8
   store %STRUCT_params* @global2, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align 8
@@ -36,3 +36,72 @@ entry:
   call void @prog(%prog* @prog_instance)
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%STRUCT_params = type { i8, i8, i8 }
+%prog = type { %STRUCT_params*, %STRUCT_params* }
+%main = type {}
+
+@__STRUCT_params__init = external global %STRUCT_params
+@prog_instance = external global %prog
+@main_instance = external global %main
+
+define void @__init_struct_params(%STRUCT_params* %0) {
+entry:
+  %self = alloca %STRUCT_params*, align 8
+  store %STRUCT_params* %0, %STRUCT_params** %self, align 8
+  ret void
+}
+
+define void @__init_prog(%prog* %0) {
+entry:
+  %self = alloca %prog*, align 8
+  store %prog* %0, %prog** %self, align 8
+  ret void
+}
+
+declare void @prog(%prog*)
+
+define void @__init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
+declare void @main(%main*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%prog = type { %STRUCT_params*, %STRUCT_params* }
+%STRUCT_params = type { i8, i8, i8 }
+%main = type {}
+
+@prog_instance = external global %prog
+@__STRUCT_params__init = external global %STRUCT_params
+@main_instance = external global %main
+@global1 = external global %STRUCT_params
+@global2 = external global %STRUCT_params
+@global3 = external global %STRUCT_params
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  call void @__init_prog(%prog* @prog_instance)
+  call void @__init_main(%main* @main_instance)
+  call void @__init_struct_params(%STRUCT_params* @global1)
+  call void @__init_struct_params(%STRUCT_params* @global2)
+  call void @__init_struct_params(%STRUCT_params* @global3)
+  ret void
+}
+
+declare void @__init_prog(%prog*)
+
+declare void @prog(%prog*)
+
+declare void @__init_main(%main*)
+
+declare void @main(%main*)
+
+declare void @__init_struct_params(%STRUCT_params*)

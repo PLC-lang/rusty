@@ -4,6 +4,7 @@ expression: ast
 ---
 CompilationUnit {
     global_vars: [],
+    var_config: [],
     units: [
         POU {
             name: "foo",
@@ -14,6 +15,7 @@ CompilationUnit {
                     referenced_type: "INT",
                 },
             ),
+            interfaces: [],
         },
     ],
     implementations: [
@@ -98,6 +100,7 @@ CompilationUnit {
             access: None,
         },
     ],
+    interfaces: [],
     user_types: [],
     file_name: "test.st",
 }

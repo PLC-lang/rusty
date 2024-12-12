@@ -1,11 +1,12 @@
 use anyhow::{bail, Result};
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
-use clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
+use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
-use plc::{output::FormatOption, ConfigFormat, DebugLevel, ErrorFormat, Target, Threads};
+use plc::output::FormatOption;
+use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
 
 pub type ParameterError = clap::Error;
 
@@ -13,14 +14,23 @@ pub type ParameterError = clap::Error;
 #[clap(
     group = ArgGroup::new("format"),
     about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
-    version,
 )]
-#[clap(propagate_version = true)]
 #[clap(subcommand_negates_reqs = true)]
 #[clap(subcommand_precedence_over_arg = true)]
 pub struct CompileParameters {
     #[clap(short, long, global = true, name = "output-file", help = "Write output to <output-file>")]
     pub output: Option<String>,
+
+    #[clap(
+        long = "ast",
+        group = "format",
+        global = true,
+        help = "Emit AST (Abstract Syntax Tree) as output"
+    )]
+    pub output_ast: bool,
+
+    #[clap(long = "version", group = "format", global = true)]
+    pub build_info: bool,
 
     #[clap(
         long = "ir",
@@ -57,7 +67,7 @@ pub struct CompileParameters {
     pub compile_only: bool,
 
     #[clap(long, name = "target-triple", global = true, help = "A target-triple supported by LLVM")]
-    pub target: Vec<Target>,
+    pub target: Option<Target>,
 
     #[clap(
         long,
@@ -71,7 +81,7 @@ pub struct CompileParameters {
     #[clap(
         name = "input-files",
         help = "Read input from <input-files>, may be a glob expression like 'src/**/*' or a sequence of files",
-        required = true,
+        // required = true,
         min_values = 1
     )]
     // having a vec allows bash to resolve *.st itself
@@ -84,10 +94,28 @@ pub struct CompileParameters {
     pub libraries: Vec<String>,
 
     #[clap(long, name = "sysroot", global = true, help = "Path to system root, used for linking")]
-    pub sysroot: Vec<String>,
+    pub sysroot: Option<String>,
 
     #[clap(name = "include", long, short = 'i', help = "Include source files for external functions")]
     pub includes: Vec<String>,
+
+    #[clap(
+        name = "script",
+        long,
+        global = true,
+        group = "linker_script",
+        help = "Specify a linker script to use"
+    )]
+    pub linker_script: Option<String>,
+
+    #[clap(
+        name = "no-linker-script",
+        long,
+        global = true,
+        group = "linker_script",
+        help = "Specify that no linker script should be used"
+    )]
+    pub no_linker_script: bool,
 
     #[clap(
         name = "hardware-conf",
@@ -99,6 +127,22 @@ pub struct CompileParameters {
     parse(try_from_str = validate_config)
     ) ]
     pub hardware_config: Option<String>,
+
+    #[clap(
+        name = "got-layout-file",
+        long,
+        global = true,
+        help = "Obtain information about the current custom GOT layout from the given file if it exists.
+    Save information about the generated custom GOT layout to the given file.
+    Format is detected by extension.
+    Supported formats : json, toml",
+        default_value = DEFAULT_GOT_LAYOUT_FILE,
+        parse(try_from_str = validate_config),
+        // FIXME: For some reason, this does not work at the moment but it really should
+        // The binary behaves as expected but the tests fail
+        // requires = "online-change"
+    ) ]
+    pub got_layout_file: String,
 
     #[clap(
         name = "optimization",
@@ -192,6 +236,12 @@ pub struct CompileParameters {
 
     #[clap(name = "check", long, help = "Check only, do not generate any output", global = true)]
     pub check_only: bool,
+
+    #[clap(
+        long,
+        help = "Emit a binary with specific compilation information, suitable for online changes when ran under a conforming runtime"
+    )]
+    pub online_change: bool,
 
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
@@ -308,17 +358,7 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
 
 impl CompileParameters {
     pub fn parse<T: AsRef<OsStr> + AsRef<str>>(args: &[T]) -> Result<CompileParameters, ParameterError> {
-        CompileParameters::try_parse_from(args).and_then(|result| {
-            if result.sysroot.len() > result.target.len() {
-                let mut cmd = CompileParameters::command();
-                Err(cmd.error(
-                    ErrorKind::ArgumentConflict,
-                    "There must be at most as many sysroots as there are targets",
-                ))
-            } else {
-                Ok(result)
-            }
-        })
+        CompileParameters::try_parse_from(args)
     }
 
     pub fn debug_level(&self) -> DebugLevel {
@@ -377,6 +417,11 @@ impl CompileParameters {
 
     pub fn config_format(&self) -> Option<ConfigFormat> {
         self.hardware_config.as_deref().and_then(get_config_format)
+    }
+
+    pub fn got_layout_format(&self) -> ConfigFormat {
+        // It is safe to unwrap here, since the provided argument to `--got-online-change` has been checked with `validate_config`
+        get_config_format(&self.got_layout_file).unwrap()
     }
 
     /// Returns the location where the build artifacts should be stored / output
@@ -457,7 +502,7 @@ mod cli_tests {
     use crate::cli::ConfigOption;
 
     use super::{CompileParameters, SubCommands};
-    use clap::{CommandFactory, ErrorKind};
+    use clap::ErrorKind;
     use plc::{output::FormatOption, ConfigFormat, ErrorFormat, OptimizationLevel};
     use pretty_assertions::assert_eq;
     use std::ffi::OsStr;
@@ -483,14 +528,6 @@ mod cli_tests {
     }
     macro_rules! vec_of_strings {
         ($($x:expr),*) => (&["plc", $($x),*]);
-    }
-
-    #[test]
-    fn missing_parameters_results_in_error() {
-        // no arguments
-        expect_argument_error(vec_of_strings![], ErrorKind::MissingRequiredArgument);
-        // no input file
-        expect_argument_error(vec_of_strings!["--ir"], ErrorKind::MissingRequiredArgument);
     }
 
     #[test]
@@ -557,7 +594,7 @@ mod cli_tests {
         let parameters =
             CompileParameters::parse(vec_of_strings!("alpha.st", "--target", "x86_64-linux-gnu")).unwrap();
 
-        assert_eq!(parameters.target, vec!["x86_64-linux-gnu".into()]);
+        assert_eq!(parameters.target, Some("x86_64-linux-gnu".into()));
     }
 
     #[test]
@@ -637,6 +674,16 @@ mod cli_tests {
     fn valid_output_formats() {
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ir")).unwrap();
         assert!(parameters.output_ir);
+        assert!(!parameters.output_ast);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
+
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ast")).unwrap();
+        assert!(!parameters.output_ir);
+        assert!(parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -645,6 +692,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--bc")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -653,6 +701,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--static")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -661,6 +710,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--pic")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(parameters.output_pic_obj);
@@ -669,6 +719,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--shared")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -677,6 +728,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--relocatable")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -685,6 +737,7 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
         assert!(!parameters.output_ir);
+        assert!(!parameters.output_ast);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -718,8 +771,8 @@ mod cli_tests {
     #[test]
     fn cli_supports_version() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
-            Ok(_) => panic!("expected version output, but found OK"),
-            Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayVersion),
+            Ok(version) => assert!(version.build_info),
+            _ => panic!("expected the build info flag to be true"),
         }
     }
 
@@ -742,12 +795,8 @@ mod cli_tests {
             "bin/build/libs",
             "--sysroot",
             "sysroot1",
-            "--sysroot",
-            "sysroot2",
             "--target",
             "targettest",
-            "--target",
-            "othertarget",
             "--linker",
             "cc"
         ))
@@ -761,8 +810,8 @@ mod cli_tests {
                 }
                 _ => panic!("Unexpected command"),
             };
-            assert_eq!(parameters.sysroot, vec!["sysroot1".to_string(), "sysroot2".to_string()]);
-            assert_eq!(parameters.target, vec!["targettest".into(), "othertarget".into()]);
+            assert_eq!(parameters.sysroot, Some("sysroot1".to_string()));
+            assert_eq!(parameters.target, Some("targettest".into()));
             assert_eq!(parameters.linker, Some("cc".to_string()));
         }
     }
@@ -811,19 +860,6 @@ mod cli_tests {
     }
 
     #[test]
-    fn sysroot_added() {
-        let parameters = CompileParameters::parse(vec_of_strings!(
-            "input.st",
-            "--target",
-            "targ",
-            "--sysroot",
-            "path/to/sysroot"
-        ))
-        .unwrap();
-        assert_eq!(parameters.sysroot, vec!["path/to/sysroot".to_string()]);
-    }
-
-    #[test]
     fn include_files_added() {
         let parameters = CompileParameters::parse(vec_of_strings!(
             "input.st",
@@ -868,33 +904,6 @@ mod cli_tests {
         assert_eq!(params.error_format, ErrorFormat::Clang);
         // set invalid error format
         expect_argument_error(vec_of_strings!("input.st", "--error-format=nothing"), ErrorKind::InvalidValue);
-    }
-
-    #[test]
-    fn target_sysroot_mismatch() {
-        let error = CompileParameters::parse(vec_of_strings!(
-            "build",
-            "file.json",
-            "--target",
-            "x86_64-linux-gnu",
-            "--sysroot",
-            "sysroot",
-            "--sysroot",
-            "sysroot2",
-            "--build-location",
-            "loc"
-        ))
-        .unwrap_err();
-
-        assert_eq!(
-            error.to_string(),
-            CompileParameters::command()
-                .error(
-                    ErrorKind::ArgumentConflict,
-                    "There must be at most as many sysroots as there are targets"
-                )
-                .to_string()
-        )
     }
 
     #[test]

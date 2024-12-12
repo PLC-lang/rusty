@@ -26,7 +26,7 @@ fn jumps_annotated_with_label_annoations() {
 
     let annotated_project = parse_and_annotate("plc", vec![cfc_file]).unwrap().1;
     let annotations = &annotated_project.annotations;
-    let (unit, ..) = &annotated_project.units[0];
+    let unit = &annotated_project.units[0].get_unit();
     // Get the jump
     let jump = &unit.implementations[0].statements[1];
     assert_debug_snapshot!(annotations.get(jump))
@@ -41,7 +41,7 @@ fn unbound_jumps_not_annotated() {
 
     let annotated_project = parse_and_annotate("plc", vec![cfc_file]).unwrap().1;
     let annotations = &annotated_project.annotations;
-    let (unit, ..) = &annotated_project.units[0];
+    let unit = &annotated_project.units[0].get_unit();
     // Get the jump
     let jump = &unit.implementations[0].statements[1];
     assert!(annotations.get(jump).is_none())
@@ -56,7 +56,7 @@ fn action_variables_annotated() {
 
     let annotated_project = parse_and_annotate("plc", vec![cfc_file]).unwrap().1;
     let annotations = &annotated_project.annotations;
-    let (unit, ..) = &annotated_project.units[0];
+    let unit = &annotated_project.units[0].get_unit();
 
     //Action 1 and 2 calls annotated
     let act1 = &unit.implementations[0].statements[1];
@@ -87,7 +87,7 @@ fn function_block_calls_are_annotated_correctly() {
 
     let annotated_project = parse_and_annotate("plc", vec![main, fb]).unwrap().1;
     let annotations = &annotated_project.annotations;
-    let (unit, ..) = &annotated_project.units[0];
+    let unit = &annotated_project.units[0].get_unit();
 
     let call_annotation = annotations.get(&unit.implementations[0].statements[0]).unwrap().clone();
     assert_debug_snapshot!(call_annotation, @r###"
@@ -98,7 +98,7 @@ fn function_block_calls_are_annotated_correctly() {
         argument_type: ByVal(
             Local,
         ),
-        is_auto_deref: false,
+        auto_deref: None,
     }
     "###);
 }

@@ -9,7 +9,7 @@ use plc_source::source_location::SourceLocationFactory;
 use plc_source::SourceCode;
 
 use crate::{
-    index::{visitor, Index},
+    index::{indexer, Index},
     lexer, parser,
     resolver::TypeAnnotator,
     test_utils::tests::parse_and_validate_buffered,
@@ -352,7 +352,7 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
             "test.st",
         );
         pre_process(&mut unit, id_provider);
-        index.import(visitor::visit(&unit));
+        index.import(indexer::index(&unit));
         index
     }
 
@@ -412,7 +412,7 @@ fn duplicate_with_generic() {
             file_name,
         );
         pre_process(&mut unit, id_provider);
-        index.import(visitor::visit(&unit));
+        index.import(indexer::index(&unit));
         (index, unit)
     }
 
@@ -689,43 +689,102 @@ fn inline_enum_variants_are_considered_when_checking_for_duplicate_variable_symb
     "###);
 }
 
-// #[test]
-// fn duplicate_with_generic_ir() {
-//     // GIVEN several files with calls to a generic function
-//     let file1: SourceCode = r"
-//             {external}
-//             FUNCTION foo <T: ANY_INT> : DATE
-//             VAR_INPUT
-//                 a : T;
-//                 b : T;
-//                 c : T;
-//             END_VAR
-//             END_FUNCTION
-//             "
-//     .into();
+#[test]
+fn duplicate_method_names_should_return_an_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM prg
+            // This shouldn't be fine
+            METHOD foo 
+            END_METHOD
 
-//     let file2: SourceCode = r"
-//         PROGRAM prg1
-//             foo(INT#1, SINT#2, SINT#3);
-//             foo(DINT#1, SINT#2, SINT#3);
-//             foo(INT#1, SINT#2, SINT#3);
-//             foo(INT#1, SINT#2, SINT#3);
-//         END_PROGRAM
-//         "
-//     .into();
-//     let file3: SourceCode = r"
-//         PROGRAM prg2
-//             foo(INT#1, SINT#2, SINT#3);
-//             foo(DINT#1, SINT#2, SINT#3);
-//             foo(INT#1, SINT#2, SINT#3);
-//             foo(INT#1, SINT#2, SINT#3);
-//         END_PROGRAM
-//         "
-//     .into();
-//     // WHEN we compile
-//     let ir = compile_to_string(vec![file1, file2, file3], vec![], None, DebugLevel::None).unwrap();
+            METHOD foo
+            END_METHOD
 
-//     // THEN we expect only 1 declaration per type-specific implementation of the generic function
-//     // although file2 & file3 both discovered them independently
-//     assert_snapshot!(ir);
-// }
+            // This should
+            METHOD bar
+            END_METHOD
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb
+            // This should be fine
+            METHOD foo
+            END_METHOD
+
+            // This shouldnt
+            METHOD bar 
+            END_METHOD
+
+            METHOD bar
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E004]: prg.foo: Ambiguous callable symbol.
+      ┌─ <internal>:4:20
+      │
+    4 │             METHOD foo 
+      │                    ^^^ prg.foo: Ambiguous callable symbol.
+      ·
+    7 │             METHOD foo
+      │                    --- see also
+
+    error[E004]: prg.foo: Ambiguous callable symbol.
+      ┌─ <internal>:7:20
+      │
+    4 │             METHOD foo 
+      │                    --- see also
+      ·
+    7 │             METHOD foo
+      │                    ^^^ prg.foo: Ambiguous callable symbol.
+
+    error[E004]: fb.bar: Ambiguous callable symbol.
+       ┌─ <internal>:21:20
+       │
+    21 │             METHOD bar 
+       │                    ^^^ fb.bar: Ambiguous callable symbol.
+       ·
+    24 │             METHOD bar
+       │                    --- see also
+
+    error[E004]: fb.bar: Ambiguous callable symbol.
+       ┌─ <internal>:24:20
+       │
+    21 │             METHOD bar 
+       │                    --- see also
+       ·
+    24 │             METHOD bar
+       │                    ^^^ fb.bar: Ambiguous callable symbol.
+
+    "###);
+}
+
+#[test]
+fn duplicate_interfaces() {
+    let source = r"
+    INTERFACE foo /* ... */ END_INTERFACE
+    INTERFACE foo /* ... */ END_INTERFACE
+    ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    assert_snapshot!(diagnostics, @r###"
+    error[E004]: foo: Ambiguous interface
+      ┌─ <internal>:2:15
+      │
+    2 │     INTERFACE foo /* ... */ END_INTERFACE
+      │               ^^^ foo: Ambiguous interface
+    3 │     INTERFACE foo /* ... */ END_INTERFACE
+      │               --- see also
+
+    error[E004]: foo: Ambiguous interface
+      ┌─ <internal>:3:15
+      │
+    2 │     INTERFACE foo /* ... */ END_INTERFACE
+      │               --- see also
+    3 │     INTERFACE foo /* ... */ END_INTERFACE
+      │               ^^^ foo: Ambiguous interface
+
+    "###);
+}

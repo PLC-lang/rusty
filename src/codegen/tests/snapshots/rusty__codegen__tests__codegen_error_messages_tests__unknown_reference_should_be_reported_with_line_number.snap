@@ -7,5 +7,3 @@ error[E048]: Could not resolve reference to y
   │
 6 │             x := y;
   │                  ^ Could not resolve reference to y
-
-

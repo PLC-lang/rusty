@@ -2,14 +2,14 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %Main = type { i16 }
 
-@Main_instance = global %Main zeroinitializer, section "var-$RUSTY$Main_instance:r1i16"
+@Main_instance = global %Main zeroinitializer
 
-define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) section "fn-$RUSTY$CheckRangeSigned:i16[i16][i16][i16]" {
+define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
   %CheckRangeSigned = alloca i16, align 2
   %value = alloca i16, align 2
@@ -25,10 +25,42 @@ entry:
   ret i16 %CheckRangeSigned_ret
 }
 
-define void @Main(%Main* %0) section "fn-$RUSTY$Main:v" {
+define void @Main(%Main* %0) {
 entry:
   %x = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
   %call = call i16 @CheckRangeSigned(i16 7, i16 0, i16 100)
   store i16 %call, i16* %x, align 2
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%Main = type { i16 }
+
+@Main_instance = external global %Main
+
+define void @__init_main(%Main* %0) {
+entry:
+  %self = alloca %Main*, align 8
+  store %Main* %0, %Main** %self, align 8
+  ret void
+}
+
+declare void @Main(%Main*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%Main = type { i16 }
+
+@Main_instance = external global %Main
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  call void @__init_main(%Main* @Main_instance)
+  ret void
+}
+
+declare void @__init_main(%Main*)
+
+declare void @Main(%Main*)

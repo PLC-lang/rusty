@@ -48,11 +48,12 @@ where
         optimization: plc::OptimizationLevel::None,
         ..Default::default()
     };
-    pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
+    pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
         //Index
         .index(ctxt.provider())
         //Resolve
         .annotate(ctxt.provider())
+        .lower(&project.get_init_symbol_name(), ctxt.provider())
         //Codegen
         .codegen_to_string(&compile_options)
 }

@@ -14,14 +14,14 @@ use crate::{
 use plc::output::FormatOption;
 use source_code::{SourceContainer, SourceType};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Linkage {
     Static,
     Shared(Package),
 }
 
 /// How a library is intended to be packaged for the project
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Package {
     /// The library is available locally, it needs to be shipped with the project
     Local,
@@ -30,7 +30,7 @@ pub enum Package {
 }
 
 /// Representation of a PLC Library
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Library<T: SourceContainer> {
     Compiled(CompiledLibrary<T>),
     Source(Project<T>),
@@ -49,7 +49,7 @@ pub struct CompiledLibrary<T: SourceContainer> {
 }
 
 /// The information required by a project to successfully include a library
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LibraryInformation<T: SourceContainer> {
     /// Location of the library if available
     location: Option<PathBuf>,
@@ -62,7 +62,7 @@ pub struct LibraryInformation<T: SourceContainer> {
 }
 
 /// A PLC project to build
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Project<T: SourceContainer> {
     /// Name of the project
     name: String,
@@ -105,12 +105,10 @@ impl<T: SourceContainer> LibraryInformation<T> {
     pub fn should_copy(&self) -> bool {
         matches!(self.linkage, Linkage::Shared(Package::Local))
     }
-}
 
-impl<T: SourceContainer + Clone> LibraryInformation<T> {
-    pub fn get_compiled_lib(&self) -> CompiledLibrary<T> {
+    pub fn get_compiled_lib(&self) -> &CompiledLibrary<T> {
         match &self.library {
-            Library::Compiled(lib) => lib.clone(),
+            Library::Compiled(lib) => lib,
             _ => todo!("Convert source lib to compiled lib"),
         }
     }
@@ -194,28 +192,6 @@ impl Project<PathBuf> {
         proj.includes = resolve_file_paths(proj.get_location(), files).unwrap();
         proj
     }
-
-    pub fn with_library_paths(self, paths: Vec<PathBuf>) -> Self {
-        let mut proj = self;
-        proj.library_paths.extend(resolve_file_paths(proj.get_location(), paths).unwrap());
-        proj
-    }
-
-    pub fn with_format(self, format: FormatOption) -> Self {
-        let mut proj = self;
-        proj.format = format;
-        proj
-    }
-
-    pub fn with_output_name(self, output: Option<String>) -> Self {
-        let mut proj = self;
-        proj.output = output.or(proj.output);
-        proj
-    }
-
-    pub fn get_library_paths(&self) -> &[PathBuf] {
-        &self.library_paths
-    }
 }
 
 impl<S: SourceContainer> Project<S> {
@@ -254,6 +230,28 @@ impl<S: SourceContainer> Project<S> {
             });
         }
         proj
+    }
+
+    pub fn with_library_paths(self, paths: Vec<PathBuf>) -> Self {
+        let mut proj = self;
+        proj.library_paths.extend(resolve_file_paths(proj.get_location(), paths).unwrap());
+        proj
+    }
+
+    pub fn with_format(self, format: FormatOption) -> Self {
+        let mut proj = self;
+        proj.format = format;
+        proj
+    }
+
+    pub fn with_output_name(self, output: Option<String>) -> Self {
+        let mut proj = self;
+        proj.output = output.or(proj.output);
+        proj
+    }
+
+    pub fn get_library_paths(&self) -> &[PathBuf] {
+        &self.library_paths
     }
 
     pub fn get_location(&self) -> Option<&Path> {
@@ -299,6 +297,11 @@ impl<S: SourceContainer> Project<S> {
     /// Returns the validation schema used for this project
     pub fn get_validation_schema(&self) -> impl AsRef<str> {
         include_str!("../schema/plc-json.schema")
+    }
+
+    /// Returns the symbol name of this projects main initializer function
+    pub fn get_init_symbol_name(&self) -> String {
+        format!("__init___{}", self.get_name().replace('.', "_"))
     }
 }
 

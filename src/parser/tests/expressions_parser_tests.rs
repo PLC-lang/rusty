@@ -734,12 +734,12 @@ fn literal_real_test() {
 fn cast(data_type: &str, value: AstNode) -> AstNode {
     AstFactory::create_cast_statement(
         AstFactory::create_member_reference(
-            AstFactory::create_identifier(data_type, &SourceLocation::undefined(), 0),
+            AstFactory::create_identifier(data_type, SourceLocation::internal(), 0),
             None,
             0,
         ),
         value,
-        &SourceLocation::undefined(),
+        &SourceLocation::internal(),
         0,
     )
 }
@@ -786,7 +786,7 @@ fn literal_cast_parse_test() {
 
     let ast_string = format!("{statement:#?}");
     fn literal(value: AstLiteral) -> AstNode {
-        AstFactory::create_literal(value, SourceLocation::undefined(), 0)
+        AstFactory::create_literal(value, SourceLocation::internal(), 0)
     }
 
     assert_eq!(
@@ -1584,19 +1584,21 @@ fn sized_string_as_function_return() {
                 is_wide: false,
                 size: Some(AstFactory::create_literal(
                     AstLiteral::new_integer(10),
-                    SourceLocation::undefined(),
+                    SourceLocation::internal(),
                     0,
                 )),
             },
-            location: SourceLocation::undefined(),
+            location: SourceLocation::internal(),
             scope: Some("foo".into()),
         }),
         variable_blocks: vec![],
-        location: SourceLocation::undefined(),
-        name_location: SourceLocation::undefined(),
+        location: SourceLocation::internal(),
+        name_location: SourceLocation::internal(),
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        interfaces: vec![],
+        is_const: false,
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));
@@ -1620,25 +1622,27 @@ fn array_type_as_function_return() {
             data_type: DataType::ArrayType {
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".into(),
-                    location: SourceLocation::undefined(),
+                    location: SourceLocation::internal(),
                 }),
                 bounds: AstFactory::create_range_statement(
-                    AstFactory::create_literal(AstLiteral::Integer(0), SourceLocation::undefined(), 0),
-                    AstFactory::create_literal(AstLiteral::Integer(10), SourceLocation::undefined(), 0),
+                    AstFactory::create_literal(AstLiteral::Integer(0), SourceLocation::internal(), 0),
+                    AstFactory::create_literal(AstLiteral::Integer(10), SourceLocation::internal(), 0),
                     0,
                 ),
                 name: None,
                 is_variable_length: false,
             },
-            location: SourceLocation::undefined(),
+            location: SourceLocation::internal(),
             scope: Some("foo".into()),
         }),
         variable_blocks: vec![],
-        location: SourceLocation::undefined(),
-        name_location: SourceLocation::undefined(),
+        location: SourceLocation::internal(),
+        name_location: SourceLocation::internal(),
         generics: vec![],
         linkage: LinkageType::Internal,
         super_class: None,
+        interfaces: vec![],
+        is_const: false,
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));

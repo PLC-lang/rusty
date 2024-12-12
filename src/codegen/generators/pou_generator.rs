@@ -16,6 +16,7 @@ use crate::{
     index::{self, ImplementationType},
     resolver::{AstAnnotations, Dependency},
     typesystem::{DataType, DataTypeInformation, VarArgs, DINT_TYPE},
+    OnlineChange,
 };
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -29,7 +30,7 @@ use crate::index::Index;
 use index::VariableType;
 
 use inkwell::{
-    module::Module,
+    module::{Linkage, Module},
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
     values::{BasicValue, BasicValueEnum, FunctionValue},
     AddressSpace,
@@ -49,10 +50,13 @@ pub struct PouGenerator<'ink, 'cg> {
     index: &'cg Index,
     annotations: &'cg AstAnnotations,
     llvm_index: &'cg LlvmTypedIndex<'ink>,
+    online_change: &'cg OnlineChange,
 }
 
 /// Creates opaque implementations for all callable items in the index
 /// Returns a Typed index containing the associated implementations.
+/// FIXME: Ignoring the arguments warning for now, should refactor later to pass the options in a struct
+#[allow(clippy::too_many_arguments)]
 pub fn generate_implementation_stubs<'ink>(
     module: &Module<'ink>,
     llvm: Llvm<'ink>,
@@ -61,9 +65,10 @@ pub fn generate_implementation_stubs<'ink>(
     annotations: &AstAnnotations,
     types_index: &LlvmTypedIndex<'ink>,
     debug: &mut DebugBuilderEnum<'ink>,
+    online_change: &OnlineChange,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut llvm_index = LlvmTypedIndex::default();
-    let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
+    let pou_generator = PouGenerator::new(llvm, index, annotations, types_index, online_change);
     let implementations = dependencies
         .into_iter()
         .filter_map(|it| {
@@ -108,6 +113,10 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     });
     for implementation in implementations {
         let type_name = implementation.get_type_name();
+        if implementation.is_init() {
+            // initializer functions don't need global constants to initialize members
+            continue;
+        }
         let pou_members = index.get_pou_members(type_name);
         let variables = pou_members.iter().filter(|it| it.is_local() || it.is_temp()).filter(|it| {
             let var_type =
@@ -133,6 +142,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
                         .make_constant()
                         .set_initial_value(Some(value), variable_type);
                     local_llvm_index.associate_global(&name, global_value)?;
+                    local_llvm_index.insert_new_got_index(&name)?;
                 }
             }
         }
@@ -149,12 +159,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         index: &'cg Index,
         annotations: &'cg AstAnnotations,
         llvm_index: &'cg LlvmTypedIndex<'ink>,
+        online_change: &'cg OnlineChange,
     ) -> PouGenerator<'ink, 'cg> {
-        PouGenerator { llvm, index, annotations, llvm_index }
+        PouGenerator { llvm, index, annotations, llvm_index, online_change }
     }
 
     fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> Result<String, Diagnostic> {
-        let ctx = SectionMangler::function(implementation.get_call_name());
+        let ctx = SectionMangler::function(implementation.get_call_name().to_lowercase());
 
         let params = self.index.get_declared_parameters(implementation.get_call_name());
 
@@ -224,10 +235,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     }
                     _ => {
                         dti.map(|it| {
-                            if !matches!(
-                                implementation.get_implementation_type(),
-                                ImplementationType::Function
-                            ) {
+                            if !implementation.get_implementation_type().is_function_or_init() {
                                 return *p;
                             }
                             // for aggregate function parameters we will generate a pointer instead of the value type.
@@ -285,8 +293,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let curr_f = module.add_function(implementation.get_call_name(), function_declaration, None);
 
-        let section_name = self.mangle_function(implementation)?;
-        curr_f.set_section(Some(&section_name));
+        let section_name = self.get_section(implementation)?;
+        curr_f.set_section(section_name.as_deref());
+
+        if implementation.get_implementation_type().is_project_init() {
+            self.add_global_constructor(module, curr_f)?;
+        }
 
         let pou_name = implementation.get_call_name();
         if let Some(pou) = self.index.find_pou(pou_name) {
@@ -307,6 +319,44 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         Ok(curr_f)
     }
 
+    /// Generates a global constructors entry
+    /// The entry contains the a call to the initializer function
+    fn add_global_constructor(
+        &self,
+        module: &Module<'ink>,
+        curr_f: FunctionValue<'ink>,
+    ) -> Result<(), Diagnostic> {
+        //Create a constructor struct
+        let ctor_str = self.llvm.context.struct_type(
+            &[
+                //Priority
+                self.llvm.context.i32_type().as_basic_type_enum(),
+                // Function pointer
+                curr_f.as_global_value().as_basic_value_enum().get_type(),
+                //Data
+                self.llvm.context.i8_type().ptr_type(AddressSpace::default()).as_basic_type_enum(),
+            ],
+            false,
+        );
+
+        //Create an entry for the global constructor of the project
+        let str_value = ctor_str.const_named_struct(&[
+            self.llvm.context.i32_type().const_zero().as_basic_value_enum(),
+            curr_f.as_global_value().as_basic_value_enum(),
+            self.llvm.context.i8_type().ptr_type(AddressSpace::default()).const_zero().as_basic_value_enum(),
+        ]);
+        //Create an array with the global constructor as an entry
+        let arr = ctor_str.const_array(&[str_value]);
+        //Create the global constructors variable or fetch it and append to it if already
+        //availabe
+        let global_ctors = module.get_global("llvm.global_ctors").unwrap_or_else(|| {
+            module.add_global(arr.get_type().as_basic_type_enum(), None, "llvm.global_ctors")
+        });
+
+        global_ctors.set_initializer(&arr);
+        global_ctors.set_linkage(Linkage::Appending);
+        Ok(())
+    }
     /// creates and returns all parameters for the given implementation
     /// for functions, this method creates a full list of parameters, for other POUs
     /// this method creates a single state-struct parameter
@@ -314,7 +364,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         implementation: &ImplementationIndexEntry,
     ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, Diagnostic> {
-        if implementation.implementation_type != ImplementationType::Function {
+        if !implementation.implementation_type.is_function_or_init() {
             let mut parameters = vec![];
             if implementation.get_implementation_type() == &ImplementationType::Method {
                 let class_name =
@@ -413,7 +463,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // generate local variables
-        if implementation.pou_type == PouType::Function {
+        if implementation.pou_type.is_function_or_init() {
             self.generate_local_function_arguments_accessors(
                 &mut local_index,
                 &implementation.type_name,
@@ -546,7 +596,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // handle all parameters (without return!)
-        for m in members.iter().filter(|it| !it.is_return()) {
+        for m in members.iter().filter(|it| !(it.is_return() || it.is_var_external())) {
             let parameter_name = m.get_name();
 
             let (name, variable) = if m.is_parameter() {
@@ -663,7 +713,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         //Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         let mut var_count = 0;
-        for m in members.iter() {
+        for m in members.iter().filter(|it| !it.is_var_external()) {
             let parameter_name = m.get_name();
 
             let (name, variable) = if m.is_temp() || m.is_return() {
@@ -722,6 +772,20 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         variable.source_location.get_column(),
                     );
                 }
+
+                if self
+                    .index
+                    .find_effective_type_by_name(variable.get_type_name())
+                    .map(|it| it.get_type_information())
+                    .is_some_and(|it| it.is_reference_to() || it.is_alias())
+                {
+                    // aliases and reference to variables have special handling for initialization. initialize with a nullpointer
+                    self.llvm.builder.build_store(
+                        left,
+                        left.get_type().get_element_type().into_pointer_type().const_null(),
+                    );
+                    continue;
+                };
                 let right_stmt =
                     self.index.get_const_expressions().maybe_get_constant_statement(&variable.initial_value);
                 self.generate_variable_initializer(variable, left, right_stmt, &exp_gen)?;
@@ -862,6 +926,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             Some([size, ty])
         } else {
             None
+        }
+    }
+
+    fn get_section(&self, implementation: &ImplementationIndexEntry) -> Result<Option<String>, Diagnostic> {
+        if self.online_change.is_enabled() {
+            self.mangle_function(implementation).map(Some)
+        } else {
+            Ok(None)
         }
     }
 }

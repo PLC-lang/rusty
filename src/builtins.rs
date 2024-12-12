@@ -26,7 +26,7 @@ use crate::{
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
     typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
-    validation::{Validator, Validators},
+    validation::{statement::validate_type_compatibility, Validator, Validators},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -35,20 +35,24 @@ lazy_static! {
         (
             "ADR",
             BuiltIn {
-                decl: "FUNCTION ADR<U: ANY> : LWORD
+                decl: "
+                {constant}
+                FUNCTION ADR<U: ANY> : LWORD
                 VAR_INPUT
                     in : U;
                 END_VAR
                 END_FUNCTION
             ",
                 annotation: None,
-                validation: None,
+                validation: Some(|validator, operator, parameters, _, _| {
+                    validate_argument_count(validator, operator, &parameters, 1);
+                }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
                         generator
                             .generate_lvalue(reference)
-                            .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
+                            .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
                         Err(Diagnostic::codegen_error(
                             "Expected exactly one parameter for REF",
@@ -61,7 +65,9 @@ lazy_static! {
         (
             "REF",
             BuiltIn {
-                decl: "FUNCTION REF<U: ANY> : REF_TO U
+                decl: "
+                {constant}
+                FUNCTION REF<U: ANY> : REF_TO U
                 VAR_INPUT
                     in : U;
                 END_VAR
@@ -91,16 +97,7 @@ lazy_static! {
                     );
                 }),
                 validation: Some(|validator, operator, parameters, _, _| {
-                    let Some(params) = parameters else {
-                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, 0, operator.get_location()));
-                        return;
-                    };
-
-                    let params = flatten_expression_list(params);
-
-                    if params.len() > 1 {
-                        validator.push_diagnostic(Diagnostic::invalid_argument_count(1, params.len(), operator.get_location()));
-                    }
+                    validate_argument_count(validator, operator, &parameters, 1);
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -339,8 +336,9 @@ lazy_static! {
 
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus)
                 }),
-                validation:Some(|validator, operator, parameters, _, _| {
-                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus)
+                validation:Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus);
                 }),
                 generic_name_resolver,
                 code: |_, _, _| {
@@ -364,7 +362,8 @@ lazy_static! {
 
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication)
                 }),
-                validation: Some(|validator, operator, parameters, _, _| {
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Multiplication)
                 }),
                 generic_name_resolver,
@@ -389,7 +388,8 @@ lazy_static! {
                     };
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus)
                 }),
-                validation:Some(|validator, operator, parameters, _, _| {
+                validation:Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Minus)
                 }),
                 generic_name_resolver,
@@ -414,7 +414,8 @@ lazy_static! {
                     };
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division)
                 }),
-                validation:Some(|validator, operator, parameters, _, _| {
+                validation:Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division)
                 }),
                 generic_name_resolver,
@@ -570,6 +571,24 @@ lazy_static! {
             }
         ),
     ]);
+}
+
+fn validate_types(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) {
+    let Some(params) = parameters else { return };
+
+    let types = flatten_expression_list(params);
+    let mut types = types.iter().peekable();
+
+    while let Some(left) = types.next() {
+        if let Some(right) = types.peek() {
+            validate_type_compatibility(validator, annotations, index, left, right);
+        }
+    }
 }
 
 fn validate_builtin_symbol_parameter_count(
@@ -801,6 +820,28 @@ fn validate_variable_length_array_bound_function(
             validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 1, operator.get_location()))
         }
         _ => unreachable!(),
+    }
+}
+
+fn validate_argument_count(
+    validator: &mut Validator,
+    operator: &AstNode,
+    parameters: &Option<&AstNode>,
+    expected: usize,
+) {
+    let Some(params) = parameters else {
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, 0, operator.get_location()));
+        return;
+    };
+
+    let params = flatten_expression_list(params);
+
+    if params.len() != expected {
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(
+            expected,
+            params.len(),
+            operator.get_location(),
+        ));
     }
 }
 

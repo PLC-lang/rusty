@@ -2,10 +2,10 @@
 source: src/codegen/tests/directaccess_test.rs
 expression: prog
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
-define i16 @main() section "fn-$RUSTY$main:i16" {
+define i16 @main() {
 entry:
   %main = alloca i16, align 2
   %d = alloca i64, align 8
@@ -17,4 +17,13 @@ entry:
   store i64 %or, i64* %d, align 4
   %main_ret = load i16, i16* %main, align 2
   ret i16 %main_ret
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  ret void
 }

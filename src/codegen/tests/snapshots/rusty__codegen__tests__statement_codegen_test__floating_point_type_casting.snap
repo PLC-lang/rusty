@@ -2,10 +2,10 @@
 source: src/codegen/tests/statement_codegen_test.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
-define i32 @fn() section "fn-$RUSTY$fn:i32" {
+define i32 @fn() {
 entry:
   %fn = alloca i32, align 4
   %a = alloca float, align 4
@@ -29,4 +29,13 @@ entry:
   store double 3.500000e+00, double* %f, align 8
   %fn_ret = load i32, i32* %fn, align 4
   ret i32 %fn_ret
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  ret void
 }

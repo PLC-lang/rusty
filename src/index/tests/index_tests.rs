@@ -1,7 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use insta::assert_debug_snapshot;
 use plc_ast::ast::{
-    pre_process, AstFactory, DataType, GenericBinding, LinkageType, Operator, TypeNature, UserTypeDeclaration,
+    pre_process, AstFactory, AutoDerefType, DataType, GenericBinding, LinkageType, Operator, TypeNature,
+    UserTypeDeclaration,
 };
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
@@ -858,7 +859,7 @@ fn pre_processing_generates_generic_types() {
             nature: TypeNature::Any,
         },
         initializer: None,
-        location: SourceLocation::undefined(),
+        location: SourceLocation::internal(),
         scope: Some("myFunc".into()),
     };
 
@@ -892,7 +893,7 @@ fn pre_processing_generates_nested_generic_types() {
             nature: TypeNature::Any,
         },
         initializer: None,
-        location: SourceLocation::undefined(),
+        location: SourceLocation::internal(),
         scope: Some("myFunc".into()),
     };
 
@@ -959,7 +960,7 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
     );
 
     pre_process(&mut ast, ids);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::indexer::index(&ast);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the globals
@@ -1001,7 +1002,7 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
     );
 
     pre_process(&mut ast, ids);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::indexer::index(&ast);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the members
@@ -1037,7 +1038,7 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     );
 
     pre_process(&mut ast, ids);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::indexer::index(&ast);
 
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
     // associated with the initial values of the type
@@ -1064,7 +1065,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
     );
 
     pre_process(&mut ast, ids);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::indexer::index(&ast);
 
     // THEN I expect the index to contain constants expressions used in the array-dimensions
 
@@ -1134,7 +1135,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     );
 
     pre_process(&mut ast, ids);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::indexer::index(&ast);
 
     // THEN I expect the index to contain constants expressions used in the string-len
 
@@ -1252,7 +1253,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
         &DataTypeInformation::Pointer {
             name: "__main_x".to_string(),
             inner_type_name: "INT".to_string(),
-            auto_deref: false,
+            auto_deref: None,
         }
     );
 
@@ -1263,7 +1264,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
         &DataTypeInformation::Pointer {
             name: "__auto_pointer_to_INT".to_string(),
             inner_type_name: "INT".to_string(),
-            auto_deref: true,
+            auto_deref: Some(AutoDerefType::Default),
         }
     );
 }
@@ -1302,7 +1303,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
         &DataTypeInformation::Pointer {
             name: "__main_x".to_string(),
             inner_type_name: "INT".to_string(),
-            auto_deref: false,
+            auto_deref: None,
         }
     );
 
@@ -1313,7 +1314,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
         &DataTypeInformation::Pointer {
             name: "__auto_pointer_to_INT".to_string(),
             inner_type_name: "INT".to_string(),
-            auto_deref: true,
+            auto_deref: Some(AutoDerefType::Default),
         }
     );
 }
@@ -1358,6 +1359,7 @@ fn a_program_pou_is_indexed() {
                 initial_value: None,
                 argument_type: ArgumentType::ByVal(VariableType::Global),
                 is_constant: false,
+                is_var_external: false,
                 data_type_name: "myProgram".into(),
                 location_in_parent: 0,
                 linkage: LinkageType::Internal,
@@ -1378,6 +1380,7 @@ fn a_program_pou_is_indexed() {
             is_variadic: false,
             location: source_location_factory.create_range(65..75),
             is_generated: false,
+            is_const: false,
         }),
         index.find_pou("myFunction"),
     );
@@ -1628,11 +1631,12 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     initial_value: None,
                     argument_type: ArgumentType::ByVal(VariableType::Input),
                     is_constant: false,
+                    is_var_external: false,
                     data_type_name: "__ptr_to___arr_vla_1_int".to_string(),
                     location_in_parent: 0,
                     linkage: LinkageType::Internal,
                     binding: None,
-                    source_location: SourceLocation::undefined(),
+                    source_location: SourceLocation::internal(),
                     varargs: None
                 },
                 VariableIndexEntry {
@@ -1641,11 +1645,12 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     initial_value: None,
                     argument_type: ArgumentType::ByVal(VariableType::Input),
                     is_constant: false,
+                    is_var_external: false,
                     data_type_name: "__bounds___arr_vla_1_int".to_string(),
                     location_in_parent: 1,
                     linkage: LinkageType::Internal,
                     binding: None,
-                    source_location: SourceLocation::undefined(),
+                    source_location: SourceLocation::internal(),
                     varargs: None
                 }
             ],
@@ -1679,4 +1684,507 @@ fn string_type_alias_without_size_is_indexed() {
     let my_alias = "MyWideString";
     let dt = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("WSTRING", dt.get_name());
+}
+
+#[test]
+fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    // Although foo has no initial value in its declaration, we inject one in the pre-processor
+    assert_debug_snapshot!(index.find_global_variable("foo").unwrap(), @r###"
+    VariableIndexEntry {
+        name: "foo",
+        qualified_name: "foo",
+        initial_value: Some(
+            Index {
+                index: 0,
+                generation: 0,
+            },
+        ),
+        argument_type: ByVal(
+            Global,
+        ),
+        is_constant: false,
+        is_var_external: false,
+        data_type_name: "__global_foo",
+        location_in_parent: 0,
+        linkage: Internal,
+        binding: Some(
+            HardwareBinding {
+                direction: Input,
+                access: Bit,
+                entries: [
+                    Index {
+                        index: 1,
+                        generation: 0,
+                    },
+                    Index {
+                        index: 2,
+                        generation: 0,
+                    },
+                    Index {
+                        index: 3,
+                        generation: 0,
+                    },
+                    Index {
+                        index: 4,
+                        generation: 0,
+                    },
+                ],
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 2,
+                            column: 16,
+                            offset: 40,
+                        }..TextLocation {
+                            line: 2,
+                            column: 29,
+                            offset: 53,
+                        },
+                    ),
+                },
+            },
+        ),
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 2,
+                    column: 12,
+                    offset: 36,
+                }..TextLocation {
+                    line: 2,
+                    column: 15,
+                    offset: 39,
+                },
+            ),
+        },
+        varargs: None,
+    }
+    "###);
+}
+
+#[test]
+fn aliased_hardware_access_variable_creates_global_var_for_address() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r###"
+    VariableIndexEntry {
+        name: "__PI_1_2_3_4",
+        qualified_name: "__PI_1_2_3_4",
+        initial_value: None,
+        argument_type: ByVal(
+            Global,
+        ),
+        is_constant: false,
+        is_var_external: false,
+        data_type_name: "BOOL",
+        location_in_parent: 0,
+        linkage: Internal,
+        binding: None,
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 2,
+                    column: 16,
+                    offset: 40,
+                }..TextLocation {
+                    line: 2,
+                    column: 29,
+                    offset: 53,
+                },
+            ),
+        },
+        varargs: None,
+    }
+    "###);
+
+    assert_debug_snapshot!(index.find_type("__global_foo"), @r###"
+    Some(
+        DataType {
+            name: "__global_foo",
+            initial_value: None,
+            information: Pointer {
+                name: "__global_foo",
+                inner_type_name: "BOOL",
+                auto_deref: Some(
+                    Alias,
+                ),
+            },
+            nature: Any,
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 30,
+                        offset: 54,
+                    }..TextLocation {
+                        line: 2,
+                        column: 36,
+                        offset: 60,
+                    },
+                ),
+            },
+        },
+    )
+    "###);
+}
+
+#[test]
+fn aliased_hardware_access_variable_is_initialized_with_the_address_as_ref() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    let foo = index.find_global_variable("foo").unwrap();
+    let foo_init_id = foo.initial_value.unwrap();
+
+    // ...the injected initial value is simply the internally created global mangled variabled
+    assert_debug_snapshot!(index.get_const_expressions().get_constant_statement(&foo_init_id), @r###"
+    Some(
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "__PI_1_2_3_4",
+                },
+            ),
+            base: None,
+        },
+    )
+    "###);
+}
+
+#[test]
+fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    assert_debug_snapshot!(index.find_type("__global_foo"), @r###"
+    Some(
+        DataType {
+            name: "__global_foo",
+            initial_value: None,
+            information: Pointer {
+                name: "__global_foo",
+                inner_type_name: "BOOL",
+                auto_deref: Some(
+                    Alias,
+                ),
+            },
+            nature: Any,
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 30,
+                        offset: 54,
+                    }..TextLocation {
+                        line: 2,
+                        column: 36,
+                        offset: 60,
+                    },
+                ),
+            },
+        },
+    )
+    "###);
+}
+
+#[test]
+fn address_used_in_2_aliases_only_created_once() {
+    // Given two aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `__I_1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            baz AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
+    Some(
+        VariableIndexEntry {
+            name: "__PI_1_2_3_4",
+            qualified_name: "__PI_1_2_3_4",
+            initial_value: None,
+            argument_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            is_var_external: false,
+            data_type_name: "BOOL",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 16,
+                        offset: 40,
+                    }..TextLocation {
+                        line: 2,
+                        column: 29,
+                        offset: 53,
+                    },
+                ),
+            },
+            varargs: None,
+        },
+    )
+    "###);
+}
+
+#[test]
+fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            bar AT %QX1.2.3.4 : BOOL;
+            foo1 AT %IW1.2.3.5 : WORD;
+            bar2 AT %QW1.2.3.5 : WORD;
+            END_VAR
+        ",
+    );
+
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
+    Some(
+        VariableIndexEntry {
+            name: "__PI_1_2_3_4",
+            qualified_name: "__PI_1_2_3_4",
+            initial_value: None,
+            argument_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            is_var_external: false,
+            data_type_name: "BOOL",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 16,
+                        offset: 40,
+                    }..TextLocation {
+                        line: 2,
+                        column: 29,
+                        offset: 53,
+                    },
+                ),
+            },
+            varargs: None,
+        },
+    )
+    "###);
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_5"), @r###"
+    Some(
+        VariableIndexEntry {
+            name: "__PI_1_2_3_5",
+            qualified_name: "__PI_1_2_3_5",
+            initial_value: None,
+            argument_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            is_var_external: false,
+            data_type_name: "WORD",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 4,
+                        column: 17,
+                        offset: 117,
+                    }..TextLocation {
+                        line: 4,
+                        column: 30,
+                        offset: 130,
+                    },
+                ),
+            },
+            varargs: None,
+        },
+    )
+    "###);
+}
+
+#[test]
+fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
+    // Given some aliased hardware access variable like `foo AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // two variables: (1) a pointer variable named foo and (2) an internally created global variable named
+    // `1.2.3.4` of type BOOL that is being pointed at by (1)
+    let (_, index) = index(
+        r"
+            VAR_GLOBAL
+            foo AT %IX1.2.3.4 : BOOL;
+            foo AT %ID1.2.3.4 : DWORD;
+            END_VAR
+        ",
+    );
+
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
+    Some(
+        VariableIndexEntry {
+            name: "__PI_1_2_3_4",
+            qualified_name: "__PI_1_2_3_4",
+            initial_value: None,
+            argument_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            is_var_external: false,
+            data_type_name: "BOOL",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 16,
+                        offset: 40,
+                    }..TextLocation {
+                        line: 2,
+                        column: 29,
+                        offset: 53,
+                    },
+                ),
+            },
+            varargs: None,
+        },
+    )
+    "###);
+}
+
+#[test]
+fn var_config_hardware_address_creates_global_variable() {
+    // Given some configured hardware access variable like `foo.bar AT %IX1.2.3.4 : BOOL` we expect the index to have
+    // an internally created global variable named `__PI_1.2.3.4` of type BOOL.
+    let (_, index) = index(
+        r"
+            VAR_CONFIG
+                foo.bar AT %IX1.2.3.4 : BOOL;
+            END_VAR
+        ",
+    );
+
+    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r###"
+    VariableIndexEntry {
+        name: "__PI_1_2_3_4",
+        qualified_name: "__PI_1_2_3_4",
+        initial_value: None,
+        argument_type: ByVal(
+            Global,
+        ),
+        is_constant: false,
+        is_var_external: false,
+        data_type_name: "BOOL",
+        location_in_parent: 0,
+        linkage: Internal,
+        binding: None,
+        source_location: SourceLocation {
+            span: Range(
+                TextLocation {
+                    line: 2,
+                    column: 24,
+                    offset: 48,
+                }..TextLocation {
+                    line: 2,
+                    column: 37,
+                    offset: 61,
+                },
+            ),
+        },
+        varargs: None,
+    }
+    "###);
+}
+
+#[test]
+fn var_externals_are_distinctly_indexed() {
+    let (_, index) = index(
+        "
+            VAR_GLOBAL 
+                arr: ARRAY [0..100] OF INT; 
+            END_VAR
+
+            FUNCTION foo
+            VAR_EXTERNAL
+                arr : ARRAY [0..100] OF INT;
+            END_VAR
+            END_FUNCTION
+        ",
+    );
+
+    let external = &index.get_pou_members("foo")[0];
+    let global = index.get_globals().get("arr").expect("global 'arr' must exist");
+    assert!(external.is_var_external());
+    assert_eq!(external.get_name(), global.get_name());
+    assert_eq!(external.get_variable_type(), VariableType::External);
+    assert_ne!(external, global);
+}
+
+#[test]
+fn var_externals_constants_are_both_flagged_as_external_and_constant() {
+    let (_, index) = index(
+        "
+            VAR_GLOBAL 
+                arr: ARRAY [0..100] OF INT; 
+            END_VAR
+
+            FUNCTION foo
+            VAR_EXTERNAL CONSTANT
+                arr : ARRAY [0..100] OF INT;
+            END_VAR
+            END_FUNCTION
+        ",
+    );
+
+    let external = &index.get_pou_members("foo")[0];
+    assert!(external.is_var_external() && external.is_constant());
 }

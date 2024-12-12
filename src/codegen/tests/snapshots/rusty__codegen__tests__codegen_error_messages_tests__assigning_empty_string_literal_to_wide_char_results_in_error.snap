@@ -7,5 +7,3 @@ error[E071]: Cannot generate WCHAR from empty literal
   │
 6 │         x := "";
   │              ^^ Cannot generate WCHAR from empty literal
-
-

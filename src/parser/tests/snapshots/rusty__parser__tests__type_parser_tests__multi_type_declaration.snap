@@ -4,8 +4,10 @@ expression: result
 ---
 CompilationUnit {
     global_vars: [],
+    var_config: [],
     units: [],
     implementations: [],
+    interfaces: [],
     user_types: [
         UserTypeDeclaration {
             data_type: StructType {

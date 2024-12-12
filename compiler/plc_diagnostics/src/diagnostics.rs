@@ -234,7 +234,10 @@ impl Diagnostic {
             .with_location(location)
     }
 
-    pub fn invalid_assignment(right_type: &str, left_type: &str, location: SourceLocation) -> Diagnostic {
+    pub fn invalid_assignment<T>(right_type: &str, left_type: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
         Diagnostic::new(format!("Invalid assignment: cannot assign '{right_type}' to '{left_type}'"))
             .with_error_code("E037")
             .with_location(location)
@@ -261,6 +264,12 @@ impl Diagnostic {
             format!("Cannot generate {type_name} from empty literal").as_str(),
             location,
         )
+    }
+
+    pub fn const_pragma_is_not_allowed(location: SourceLocation) -> Diagnostic {
+        Diagnostic::new("Pragma {constant} is not allowed in POU declarations")
+            .with_location(location)
+            .with_error_code("E105")
     }
 }
 

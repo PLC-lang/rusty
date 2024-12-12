@@ -5,6 +5,7 @@
 pub mod ast;
 pub mod control_statements;
 pub mod literals;
+pub mod mut_visitor;
 mod pre_processor;
 pub mod provider;
 pub mod visitor;

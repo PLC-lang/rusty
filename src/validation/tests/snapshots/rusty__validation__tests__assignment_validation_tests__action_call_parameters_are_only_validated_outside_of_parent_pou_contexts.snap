@@ -2,10 +2,8 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: diagnostics
 ---
-error[E030]: Missing inout parameter: arr
+error[E030]: Argument `arr` is missing
    ┌─ <internal>:33:13
    │
 33 │             fb.bar(); // INVALID - we are not in the parent context and while we use a qualified call, we don't know if the variable has been initialized
-   │             ^^^^^^ Missing inout parameter: arr
-
-
+   │             ^^^^^^ Argument `arr` is missing

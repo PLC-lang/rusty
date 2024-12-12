@@ -219,7 +219,7 @@ pub unsafe extern "C" fn FIND__WSTRING(src1: *const u16, src2: *const u16) -> i3
 /// longer than the base string.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn LEFT_EXT__STRING(src: *const u8, substr_len: i32, dest: *mut u8) -> i32 {
+pub unsafe extern "C-unwind" fn LEFT_EXT__STRING(src: *const u8, substr_len: i32, dest: *mut u8) -> i32 {
     if substr_len < 0 {
         panic!("Length parameter cannot be negative.");
     }
@@ -246,7 +246,7 @@ pub unsafe extern "C" fn LEFT_EXT__STRING(src: *const u8, substr_len: i32, dest:
 /// longer than the base string.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn LEFT_EXT__WSTRING(src: *const u16, substr_len: i32, dest: *mut u16) -> i32 {
+pub unsafe extern "C-unwind" fn LEFT_EXT__WSTRING(src: *const u16, substr_len: i32, dest: *mut u16) -> i32 {
     if substr_len < 0 {
         panic!("Length parameter cannot be negative.");
     }
@@ -273,7 +273,7 @@ pub unsafe extern "C" fn LEFT_EXT__WSTRING(src: *const u16, substr_len: i32, des
 /// longer than the base string.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn RIGHT_EXT__STRING(src: *const u8, substr_len: i32, dest: *mut u8) -> i32 {
+pub unsafe extern "C-unwind" fn RIGHT_EXT__STRING(src: *const u8, substr_len: i32, dest: *mut u8) -> i32 {
     if substr_len < 0 {
         panic!("Length parameter cannot be negative.");
     }
@@ -300,7 +300,7 @@ pub unsafe extern "C" fn RIGHT_EXT__STRING(src: *const u8, substr_len: i32, dest
 /// longer than the base string.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn RIGHT_EXT__WSTRING(src: *const u16, substr_len: i32, dest: *mut u16) -> i32 {
+pub unsafe extern "C-unwind" fn RIGHT_EXT__WSTRING(src: *const u16, substr_len: i32, dest: *mut u16) -> i32 {
     if substr_len < 0 {
         panic!("Length parameter cannot be negative.");
     }
@@ -327,7 +327,7 @@ pub unsafe extern "C" fn RIGHT_EXT__WSTRING(src: *const u16, substr_len: i32, de
 /// starting position of the base string.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn MID_EXT__STRING(
+pub unsafe extern "C-unwind" fn MID_EXT__STRING(
     src: *const u8,
     substr_len: i32,
     start_index: i32,
@@ -366,7 +366,7 @@ pub unsafe extern "C" fn MID_EXT__STRING(
 /// starting position of the base string.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn MID_EXT__WSTRING(
+pub unsafe extern "C-unwind" fn MID_EXT__WSTRING(
     src: *const u16,
     substr_len: i32,
     start_index: i32,
@@ -405,7 +405,7 @@ pub unsafe extern "C" fn MID_EXT__WSTRING(
 /// source array bounds.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn INSERT_EXT__STRING(
+pub unsafe extern "C-unwind" fn INSERT_EXT__STRING(
     src_base: *const u8,
     src_to_insert: *const u8,
     pos: i32,
@@ -438,7 +438,7 @@ pub unsafe extern "C" fn INSERT_EXT__STRING(
 /// source array bounds.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn INSERT_EXT__WSTRING(
+pub unsafe extern "C-unwind" fn INSERT_EXT__WSTRING(
     src_base: *const u16,
     src_to_insert: *const u16,
     pos: i32,
@@ -471,7 +471,7 @@ pub unsafe extern "C" fn INSERT_EXT__WSTRING(
 /// array or if trying to delete too many characters.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn DELETE_EXT__STRING(
+pub unsafe extern "C-unwind" fn DELETE_EXT__STRING(
     src: *const u8,
     num_chars_to_delete: i32,
     pos: i32,
@@ -514,7 +514,7 @@ pub unsafe extern "C" fn DELETE_EXT__STRING(
 /// array or if trying to delete too many characters.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn DELETE_EXT__WSTRING(
+pub unsafe extern "C-unwind" fn DELETE_EXT__WSTRING(
     src: *const u16,
     num_chars_to_delete: i32,
     pos: i32,
@@ -558,7 +558,7 @@ pub unsafe extern "C" fn DELETE_EXT__WSTRING(
 /// to replace more characters than remaining.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn REPLACE_EXT__STRING(
+pub unsafe extern "C-unwind" fn REPLACE_EXT__STRING(
     src_base: *const u8,
     src_replacement: *const u8,
     num_chars_to_replace: i32,
@@ -606,7 +606,7 @@ pub unsafe extern "C" fn REPLACE_EXT__STRING(
 /// to replace more characters than remaining.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn REPLACE_EXT__WSTRING(
+pub unsafe extern "C-unwind" fn REPLACE_EXT__WSTRING(
     src_base: *const u16,
     src_replacement: *const u16,
     num_chars_to_replace: i32,
@@ -671,7 +671,7 @@ pub unsafe extern "C" fn CONCAT__STRING(dest: *mut u8, argc: i32, argv: *const *
 /// to replace more characters than remaining.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CONCAT_EXT__STRING(dest: *mut u8, argc: i32, argv: *const *const u8) -> i32 {
+pub unsafe extern "C-unwind" fn CONCAT_EXT__STRING(dest: *mut u8, argc: i32, argv: *const *const u8) -> i32 {
     if argv.is_null() || dest.is_null() {
         panic!("Received null-pointer.")
     }
@@ -715,7 +715,11 @@ pub unsafe extern "C" fn CONCAT__WSTRING(dest: *mut u16, argc: i32, argv: *const
 /// to replace more characters than remaining.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn CONCAT_EXT__WSTRING(dest: *mut u16, argc: i32, argv: *const *const u16) -> i32 {
+pub unsafe extern "C-unwind" fn CONCAT_EXT__WSTRING(
+    dest: *mut u16,
+    argc: i32,
+    argv: *const *const u16,
+) -> i32 {
     if argv.is_null() || dest.is_null() {
         panic!("Received null-pointer.")
     }
@@ -760,7 +764,7 @@ where
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn __STRING_GREATER(argc: i32, argv: *const *const u8) -> bool {
+pub unsafe extern "C-unwind" fn __STRING_GREATER(argc: i32, argv: *const *const u8) -> bool {
     compare(argc, argv, Ordering::is_gt)
 }
 
@@ -772,7 +776,7 @@ pub unsafe extern "C" fn __STRING_GREATER(argc: i32, argv: *const *const u8) -> 
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn __WSTRING_GREATER(argc: i32, argv: *const *const u16) -> bool {
+pub unsafe extern "C-unwind" fn __WSTRING_GREATER(argc: i32, argv: *const *const u16) -> bool {
     compare(argc, argv, Ordering::is_gt)
 }
 
@@ -784,7 +788,7 @@ pub unsafe extern "C" fn __WSTRING_GREATER(argc: i32, argv: *const *const u16) -
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn __STRING_EQUAL(argc: i32, argv: *const *const u8) -> bool {
+pub unsafe extern "C-unwind" fn __STRING_EQUAL(argc: i32, argv: *const *const u8) -> bool {
     compare(argc, argv, Ordering::is_eq)
 }
 
@@ -796,7 +800,7 @@ pub unsafe extern "C" fn __STRING_EQUAL(argc: i32, argv: *const *const u8) -> bo
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn __WSTRING_EQUAL(argc: i32, argv: *const *const u16) -> bool {
+pub unsafe extern "C-unwind" fn __WSTRING_EQUAL(argc: i32, argv: *const *const u16) -> bool {
     compare(argc, argv, Ordering::is_eq)
 }
 
@@ -808,7 +812,7 @@ pub unsafe extern "C" fn __WSTRING_EQUAL(argc: i32, argv: *const *const u16) -> 
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn __STRING_LESS(argc: i32, argv: *const *const u8) -> bool {
+pub unsafe extern "C-unwind" fn __STRING_LESS(argc: i32, argv: *const *const u8) -> bool {
     compare(argc, argv, Ordering::is_lt)
 }
 
@@ -820,7 +824,7 @@ pub unsafe extern "C" fn __STRING_LESS(argc: i32, argv: *const *const u8) -> boo
 /// Works on raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn __WSTRING_LESS(argc: i32, argv: *const *const u16) -> bool {
+pub unsafe extern "C-unwind" fn __WSTRING_LESS(argc: i32, argv: *const *const u16) -> bool {
     compare(argc, argv, Ordering::is_lt)
 }
 

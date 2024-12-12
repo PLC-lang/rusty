@@ -2,15 +2,15 @@
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
-@BASE = unnamed_addr constant i32 7, section "var-$RUSTY$BASE:i32"
-@Direction.FORWARD = unnamed_addr constant i32 7, section "var-$RUSTY$FORWARD:e3i32"
-@Direction.UP = unnamed_addr constant i32 8, section "var-$RUSTY$UP:e3i32"
-@Direction.DOWN = unnamed_addr constant i32 28, section "var-$RUSTY$DOWN:e3i32"
+@BASE = unnamed_addr constant i32 7
+@Direction.FORWARD = unnamed_addr constant i32 7
+@Direction.UP = unnamed_addr constant i32 8
+@Direction.DOWN = unnamed_addr constant i32 28
 
-define i32 @drive() section "fn-$RUSTY$drive:i32" {
+define i32 @drive() {
 entry:
   %drive = alloca i32, align 4
   %input = alloca i32, align 4
@@ -58,4 +58,13 @@ else:                                             ; preds = %entry
 continue:                                         ; preds = %else, %case6, %case4, %case1, %case
   %drive_ret = load i32, i32* %drive, align 4
   ret i32 %drive_ret
+}
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  ret void
 }

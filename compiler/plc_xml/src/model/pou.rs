@@ -22,7 +22,7 @@ pub(crate) struct Pou<'xml> {
     pub interface: Option<Interface>,
 }
 
-impl<'xml> Pou<'xml> {
+impl Pou<'_> {
     fn with_attributes(self, attributes: FxHashMap<String, String>) -> Result<Self, Error> {
         Ok(Pou {
             name: Cow::from(attributes.get_or_err("name")?),
@@ -41,7 +41,7 @@ impl<'xml> Pou<'xml> {
     }
 }
 
-impl<'xml> Parseable for Pou<'xml> {
+impl Parseable for Pou<'_> {
     fn visit(reader: &mut Reader, tag: Option<BytesStart>) -> Result<Self, Error> {
         let Some(tag) = tag else { unreachable!() };
         let attributes = get_attributes(tag.attributes())?;
@@ -60,7 +60,7 @@ impl<'xml> Parseable for Pou<'xml> {
                     let actions: Vec<Action<'_>> = Parseable::visit(reader, Some(tag))?;
                     for mut action in actions.into_iter() {
                         // Copy the action type names
-                        action.type_name = pou.name.clone();
+                        action.type_name.clone_from(&pou.name);
                         pou.actions.push(action);
                     }
                 }

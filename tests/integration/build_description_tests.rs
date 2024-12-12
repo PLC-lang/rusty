@@ -97,31 +97,6 @@ fn build_with_target_but_without_sysroot() {
 
 #[test]
 #[serial]
-fn build_for_multiple_targets_and_sysroots() {
-    let dir = tempfile::tempdir().unwrap();
-    let parameters = &[
-        "plc",
-        "build",
-        &get_test_file("json/multi_target_and_sysroot.json"),
-        "--target",
-        "aarch64-linux-gnu",
-        "--target",
-        "x86_64-linux-gnu",
-        "--sysroot",
-        "sysroot",
-        "--sysroot",
-        "sysroot",
-        "--build-location",
-        dir.path().to_str().unwrap(),
-    ];
-    compile(parameters).unwrap();
-
-    assert!(dir.path().join("aarch64-linux-gnu").join("proj.so").is_file());
-    assert!(dir.path().join("x86_64-linux-gnu").join("proj.so").is_file());
-}
-
-#[test]
-#[serial]
 #[cfg_attr(target_os = "windows", ignore = "linker not available for Windows")]
 fn build_with_cc_linker() {
     let dir = tempfile::tempdir().unwrap();

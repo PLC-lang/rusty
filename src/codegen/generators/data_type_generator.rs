@@ -119,6 +119,7 @@ pub fn generate_data_types<'ink>(
 
     let mut tries = 0;
     let mut errors = FxHashMap::default();
+
     // If the tries are equal to the number of types remaining, it means we failed to resolve
     // anything
     while tries < types_to_init.len() {
@@ -159,22 +160,24 @@ pub fn generate_data_types<'ink>(
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
             })
             .collect::<Vec<_>>();
-        //Report the operation failure
-        return Err(Diagnostic::new("Some initial values were not generated")
-            .with_error_code("E075")
-            .with_sub_diagnostics(diags));
+        if !diags.is_empty() {
+            //Report the operation failure
+            return Err(Diagnostic::new("Some initial values were not generated")
+                .with_error_code("E075")
+                .with_sub_diagnostics(diags)); // FIXME: these sub-diagnostics aren't printed to the console
+        }
     }
     Ok(generator.types_index)
 }
 
-impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
+impl<'ink> DataTypeGenerator<'ink, '_> {
     /// generates the members of an opaque struct and associates its initial values
     fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), Diagnostic> {
         let information = data_type.get_type_information();
         if let DataTypeInformation::Struct { source, members, .. } = information {
             let members = members
                 .iter()
-                .filter(|it| !it.is_temp() && !it.is_return())
+                .filter(|it| !(it.is_temp() || it.is_return() || it.is_var_external()))
                 .map(|m| self.types_index.get_associated_type(m.get_type_name()))
                 .collect::<Result<Vec<BasicTypeEnum>, Diagnostic>>()?;
 
@@ -372,6 +375,15 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 self.annotations,
                 &self.types_index,
             );
+
+            let lhs_type = self.index.get_type_information_or_void(data_type_name);
+            if !initializer.is_literal() && (lhs_type.is_pointer() || lhs_type.is_alias()) {
+                return Ok(self
+                    .types_index
+                    .find_associated_type(lhs_type.get_name())
+                    .map(|it| it.const_zero().as_basic_value_enum()));
+            };
+
             generator.generate_expression(initializer).map(Some).map_err(|_| {
                 Diagnostic::cannot_generate_initializer(qualified_name, initializer.get_location())
             })

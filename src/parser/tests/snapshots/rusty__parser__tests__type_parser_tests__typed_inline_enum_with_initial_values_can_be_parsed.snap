@@ -65,4 +65,5 @@ POU {
     ],
     pou_type: Program,
     return_type: None,
+    interfaces: [],
 }

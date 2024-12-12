@@ -6,8 +6,9 @@ use plc_util::convention::internal_type_name;
 
 use crate::{
     ast::{
-        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable,
+        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit,
+        ConfigVariable, DataType, DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable,
+        VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -22,13 +23,13 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         let generic_types = preprocess_generic_structs(pou);
         unit.user_types.extend(generic_types);
 
-        let all_variables = pou
+        let local_variables = pou
             .variable_blocks
             .iter_mut()
             .flat_map(|it| it.variables.iter_mut())
             .filter(|it| should_generate_implicit_type(it));
 
-        for var in all_variables {
+        for var in local_variables {
             pre_process_variable_data_type(pou.name.as_str(), var, &mut unit.user_types)
         }
 
@@ -37,15 +38,8 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     }
 
     //process all variables from GVLs
-    let all_variables = unit
-        .global_vars
-        .iter_mut()
-        .flat_map(|gv| gv.variables.iter_mut())
-        .filter(|it| should_generate_implicit_type(it));
-
-    for var in all_variables {
-        pre_process_variable_data_type("global", var, &mut unit.user_types)
-    }
+    process_global_variables(unit, &mut id_provider);
+    process_var_config_variables(unit);
 
     //process all variables in dataTypes
     let mut new_types = vec![];
@@ -68,7 +62,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     let type_name = internal_type_name("", name);
                     let type_ref = DataTypeDeclaration::DataTypeReference {
                         referenced_type: type_name.clone(),
-                        location: SourceLocation::undefined(), //return_type.get_location(),
+                        location: SourceLocation::internal(), //return_type.get_location(),
                     };
                     let datatype = std::mem::replace(referenced_type, Box::new(type_ref));
                     if let DataTypeDeclaration::DataTypeDefinition { mut data_type, location, scope } =
@@ -150,6 +144,103 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         }
     }
     unit.user_types.append(&mut new_types);
+}
+
+fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProvider) {
+    let mut mangled_globals = Vec::new();
+
+    for global_var in unit.global_vars.iter_mut().flat_map(|block| block.variables.iter_mut()) {
+        let ref_ty = global_var.data_type_declaration.get_inner_pointer_ty();
+
+        if should_generate_implicit_type(global_var) {
+            pre_process_variable_data_type("global", global_var, &mut unit.user_types)
+        }
+
+        // In any case, we have to inject initializers into aliased hardware access variables
+        if let Some(ref node) = global_var.address {
+            if let AstStatement::HardwareAccess(hardware) = &node.stmt {
+                let name = hardware.get_mangled_variable_name();
+
+                // %I*: DWORD; should not be declared at this stage, it is just skipped
+                if hardware.is_template() {
+                    continue;
+                }
+
+                let mangled_initializer = AstFactory::create_member_reference(
+                    AstFactory::create_identifier(&name, SourceLocation::internal(), id_provider.next_id()),
+                    None,
+                    id_provider.next_id(),
+                );
+
+                global_var.initializer = Some(mangled_initializer);
+
+                let internal_mangled_var = Variable {
+                    name,
+                    data_type_declaration: ref_ty.unwrap_or(global_var.data_type_declaration.clone()),
+                    initializer: None,
+                    address: None,
+                    location: node.location.clone(),
+                };
+                mangled_globals.push(internal_mangled_var);
+            }
+        }
+    }
+
+    update_generated_globals(unit, mangled_globals);
+}
+
+fn process_var_config_variables(unit: &mut CompilationUnit) {
+    let block = get_internal_global_block(unit);
+    let variables = unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, .. }| {
+        let AstStatement::HardwareAccess(hardware) = &address.stmt else {
+            unreachable!("Must be parsed as hardware access")
+        };
+
+        if hardware.is_template() {
+            return None;
+        }
+
+        let name = hardware.get_mangled_variable_name();
+        if block.is_some_and(|it| it.variables.iter().any(|v| v.name == name)) {
+            return None;
+        };
+
+        Some(Variable {
+            name,
+            data_type_declaration: data_type.get_inner_pointer_ty().unwrap_or(data_type.clone()),
+            initializer: None,
+            address: None,
+            location: address.get_location(),
+        })
+    });
+
+    update_generated_globals(unit, variables.collect())
+}
+
+fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Variable>) {
+    let mut block = if let Some(index) = unit.global_vars.iter().position(|block| {
+        block.variable_block_type == VariableBlockType::Global && block.location.is_internal()
+    }) {
+        unit.global_vars.remove(index)
+    } else {
+        VariableBlock::default().with_block_type(VariableBlockType::Global)
+    };
+    for var in mangled_globals {
+        if !block.variables.contains(&var) {
+            block.variables.push(var);
+        }
+    }
+
+    unit.global_vars.push(block);
+}
+
+fn get_internal_global_block(unit: &CompilationUnit) -> Option<&VariableBlock> {
+    unit.global_vars
+        .iter()
+        .position(|block| {
+            block.variable_block_type == VariableBlockType::Global && block.location.is_internal()
+        })
+        .and_then(|index| unit.global_vars.get(index))
 }
 
 fn build_enum_initializer(
@@ -283,7 +374,7 @@ fn replace_generic_type_name(dt: &mut DataTypeDeclaration, generics: &FxHashMap<
         },
         DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
             if let Some(type_name) = generics.get(referenced_type) {
-                *referenced_type = type_name.clone();
+                referenced_type.clone_from(type_name);
             }
         }
     }

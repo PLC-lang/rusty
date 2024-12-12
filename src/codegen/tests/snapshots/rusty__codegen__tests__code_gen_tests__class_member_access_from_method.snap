@@ -1,23 +1,24 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %MyClass = type { i16, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer, section "var-$RUSTY$__MyClass__init:r2i16i16"
+@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 
-define void @MyClass(%MyClass* %0) section "fn-$RUSTY$MyClass:v" {
+define void @MyClass(%MyClass* %0) {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) section "fn-$RUSTY$MyClass.testMethod:v[i16]" {
+define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
@@ -33,5 +34,29 @@ entry:
   %load_y = load i16, i16* %y, align 2
   %3 = sext i16 %load_y to i32
   %tmpVar = icmp eq i32 %2, %3
+  ret void
+}
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%MyClass = type { i16, i16 }
+
+@__MyClass__init = external global %MyClass
+
+define void @__init_myclass(%MyClass* %0) {
+entry:
+  %self = alloca %MyClass*, align 8
+  store %MyClass* %0, %MyClass** %self, align 8
+  ret void
+}
+
+declare void @MyClass(%MyClass*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
   ret void
 }

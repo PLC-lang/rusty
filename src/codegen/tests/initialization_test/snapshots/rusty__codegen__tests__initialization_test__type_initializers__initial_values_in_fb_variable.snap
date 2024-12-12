@@ -2,28 +2,81 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %TON = type { i16, i16 }
 %main = type { i16, %TON, %TON }
 
-@__TON__init = unnamed_addr constant %TON zeroinitializer, section "var-$RUSTY$__TON__init:r2i16i16"
-@main_instance = global %main { i16 10, %TON { i16 10, i16 17 }, %TON { i16 17, i16 10 } }, section "var-$RUSTY$main_instance:r3i16r2i16i16r2i16i16"
+@__TON__init = unnamed_addr constant %TON zeroinitializer
+@main_instance = global %main { i16 10, %TON { i16 10, i16 17 }, %TON { i16 17, i16 10 } }
 @__main.struct1__init = unnamed_addr constant %TON { i16 10, i16 17 }
 @__main.struct2__init = unnamed_addr constant %TON { i16 17, i16 10 }
 
-define void @TON(%TON* %0) section "fn-$RUSTY$TON:v[i16][i16]" {
+define void @TON(%TON* %0) {
 entry:
   %a = getelementptr inbounds %TON, %TON* %0, i32 0, i32 0
   %b = getelementptr inbounds %TON, %TON* %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) section "fn-$RUSTY$main:v" {
+define void @main(%main* %0) {
 entry:
   %TEN = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %struct1 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
   %struct2 = getelementptr inbounds %main, %main* %0, i32 0, i32 2
   ret void
 }
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%TON = type { i16, i16 }
+%main = type { i16, %TON, %TON }
+
+@__TON__init = external global %TON
+@main_instance = external global %main
+
+define void @__init_ton(%TON* %0) {
+entry:
+  %self = alloca %TON*, align 8
+  store %TON* %0, %TON** %self, align 8
+  ret void
+}
+
+declare void @TON(%TON*)
+
+define void @__init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  %deref = load %main*, %main** %self, align 8
+  %struct1 = getelementptr inbounds %main, %main* %deref, i32 0, i32 1
+  call void @__init_ton(%TON* %struct1)
+  %deref1 = load %main*, %main** %self, align 8
+  %struct2 = getelementptr inbounds %main, %main* %deref1, i32 0, i32 2
+  call void @__init_ton(%TON* %struct2)
+  ret void
+}
+
+declare void @main(%main*)
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+%main = type { i16, %TON, %TON }
+%TON = type { i16, i16 }
+
+@main_instance = external global %main
+@__TON__init = external global %TON
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  call void @__init_main(%main* @main_instance)
+  ret void
+}
+
+declare void @__init_main(%main*)
+
+declare void @main(%main*)
+
+declare void @TON(%TON*)

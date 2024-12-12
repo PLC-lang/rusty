@@ -73,7 +73,7 @@ fn method_with_defaults_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "MyClass".into() });
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyClass.testMethod");
@@ -95,7 +95,7 @@ fn method_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "MyClass".into() });
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyClass.testMethod2");
@@ -134,7 +134,7 @@ fn method_with_return_type_can_be_parsed() {
     assert_eq!(class.pou_type, PouType::Class);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "MyClass".into() });
     let method = &unit.implementations[0];
 
     // classes have implementation because they are treated as other POUs
@@ -280,7 +280,7 @@ fn fb_method_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyFb".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "MyFb".into() });
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyFb.testMethod2");
@@ -328,7 +328,7 @@ fn fb_method_with_return_type_can_be_parsed() {
     assert_eq!(class.pou_type, PouType::FunctionBlock);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyShinyFb".into() });
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "MyShinyFb".into() });
     let method = &unit.implementations[0];
 
     // classes have implementation because they are treated as other POUs
@@ -339,4 +339,177 @@ fn fb_method_with_return_type_can_be_parsed() {
     assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Abstract));
     assert_ne!(method_pou.return_type, None);
     assert_eq!(method.overriding, true);
+}
+
+#[test]
+fn program_methods_can_be_parsed() {
+    let src = r#"
+        PROGRAM prog
+            METHOD INTERNAL FINAL OVERRIDE testMethod2 END_METHOD
+        END_PROG
+    "#;
+    let unit = parse(src).0;
+
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Program);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 2);
+
+    let method_pou = &unit.units[1];
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "prog".into() });
+    let method = &unit.implementations[0];
+
+    assert_eq!(method_pou.name, "prog.testMethod2");
+    assert_eq!(method.access, Some(AccessModifier::Internal));
+    assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Final));
+    assert_eq!(method_pou.return_type, None);
+    assert_eq!(method.overriding, true);
+}
+
+#[test]
+fn program_two_methods_can_be_parsed() {
+    let src = r#"
+            PROGRAM prog
+                METHOD INTERNAL testMethod2 END_METHOD
+                METHOD otherMethod VAR_TEMP END_VAR END_METHOD
+            END_PROGRAM
+        "#;
+    let unit = parse(src).0;
+
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Program);
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 3);
+
+    let method1 = &unit.implementations[0];
+    assert_eq!(method1.name, "prog.testMethod2");
+    assert_eq!(method1.access, Some(AccessModifier::Internal));
+
+    let method2 = &unit.implementations[1];
+    assert_eq!(method2.name, "prog.otherMethod");
+    assert_eq!(method2.access, Some(AccessModifier::Protected));
+}
+
+#[test]
+fn program_method_with_return_type_can_be_parsed() {
+    let src = r#"
+        PROGRAM prog
+            METHOD PRIVATE ABSTRACT OVERRIDE testMethod3 : SINT END_METHOD
+        END_PROGRAM
+    "#;
+    let unit = parse(src).0;
+
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Program);
+
+    let method_pou = &unit.units[1];
+    assert_eq!(method_pou.pou_type, PouType::Method { parent: "prog".into() });
+    let method = &unit.implementations[0];
+
+    // classes have implementation because they are treated as other POUs
+    assert_eq!(unit.implementations.len(), 2);
+
+    assert_eq!(method_pou.name, "prog.testMethod3");
+    assert_eq!(method.access, Some(AccessModifier::Private)); // TODO: default public?
+    assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Abstract));
+    assert_ne!(method_pou.return_type, None);
+    assert_eq!(method.overriding, true);
+}
+
+#[test]
+fn method_variable_blocks_can_be_parsed() {
+    let src = r"
+    FUNCTION_BLOCK fb
+        METHOD mthd
+            VAR
+                x : DINT;
+                y : DINT := 3;
+            END_VAR
+            VAR_TEMP
+                xTmp : DINT;
+                yTmp : DINT := 3;
+            END_VAR
+            VAR_INPUT
+                xIn : DINT;
+                yIn : DINT := 3;
+            END_VAR
+            VAR_OUTPUT
+                xOut : DINT;
+                yOut : DINT := 3;
+            END_VAR
+            VAR_IN_OUT
+                xIO : DINT;
+                yIO : DINT;
+            END_VAR
+        END_METHOD
+    END_FUNCTION_BLOCK
+
+    PROGRAM prg
+        METHOD mthd
+            VAR
+                x : DINT;
+                y : DINT := 3;
+            END_VAR
+            VAR_TEMP
+                xTmp : DINT;
+                yTmp : DINT := 3;
+            END_VAR
+            VAR_INPUT
+                xIn : DINT;
+                yIn : DINT := 3;
+            END_VAR
+            VAR_OUTPUT
+                xOut : DINT;
+                yOut : DINT := 3;
+            END_VAR
+            VAR_IN_OUT
+                xIO : DINT;
+                yIO : DINT;
+            END_VAR
+        END_METHOD
+    END_PROGRAM
+    ";
+
+    let (unit, _) = parse(src);
+    let fb_mthd = &unit.units[1];
+    assert_eq!(fb_mthd.name, "fb.mthd".to_string());
+    assert_eq!(fb_mthd.pou_type, PouType::Method { parent: "fb".into() });
+
+    let prg_mthd = &unit.units[3];
+    assert_eq!(prg_mthd.name, "prg.mthd".to_string());
+    assert_eq!(prg_mthd.pou_type, PouType::Method { parent: "prg".into() });
+
+    // we expect one of each of these `VariableBlockType` to be parsed
+    let expected_var_blocks = vec![
+        VariableBlockType::Local,
+        VariableBlockType::Temp,
+        VariableBlockType::Input(ArgumentProperty::ByVal),
+        VariableBlockType::Output,
+        VariableBlockType::InOut,
+    ];
+    let actual =
+        &fb_mthd.variable_blocks.iter().map(|it| it.variable_block_type).collect::<Vec<VariableBlockType>>();
+    assert_eq!(&expected_var_blocks, actual);
+    let actual =
+        &prg_mthd.variable_blocks.iter().map(|it| it.variable_block_type).collect::<Vec<VariableBlockType>>();
+    assert_eq!(&expected_var_blocks, actual);
+
+    // we expect to have parsed 10 variables and 4 of them (all `y`s apart from the in-out) to have initializer
+    let variables = &fb_mthd.variable_blocks.iter().fold(vec![], |mut acc, block| {
+        acc.extend(block.variables.iter());
+        acc
+    });
+    assert_eq!(variables.len(), 10);
+    let with_initializer = variables.iter().filter(|it| it.initializer.is_some());
+    assert_eq!(with_initializer.count(), 4);
+
+    let variables = &prg_mthd.variable_blocks.iter().fold(vec![], |mut acc, block| {
+        acc.extend(block.variables.iter());
+        acc
+    });
+    assert_eq!(variables.len(), 10);
+    let with_initializer = variables.iter().filter(|it| it.initializer.is_some());
+    assert_eq!(with_initializer.count(), 4);
 }

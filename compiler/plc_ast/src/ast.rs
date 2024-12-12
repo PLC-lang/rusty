@@ -2,6 +2,7 @@
 
 use std::{
     fmt::{Debug, Display, Formatter},
+    hash::Hash,
     ops::Range,
 };
 
@@ -22,7 +23,7 @@ use plc_source::source_location::*;
 
 pub type AstId = usize;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct GenericBinding {
     pub name: String,
     pub nature: TypeNature,
@@ -31,17 +32,36 @@ pub struct GenericBinding {
 #[derive(PartialEq)]
 pub struct Pou {
     pub name: String,
+    pub pou_type: PouType, // TODO(volsa): Rename to kind
     pub variable_blocks: Vec<VariableBlock>,
-    pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
-    /// the SourceLocation of the whole POU
+    /// The SourceLocation of the whole POU
     pub location: SourceLocation,
-    /// the SourceLocation of the POU's name
+    /// The SourceLocation of the POUs name
     pub name_location: SourceLocation,
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
     pub super_class: Option<String>,
+    /// A list of interfaces this POU implements
+    pub interfaces: Vec<InterfaceIdentifier>,
+    pub is_const: bool,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Interface {
+    pub name: String,
+    pub methods: Vec<Pou>,
+    pub location: SourceLocation,
+    pub location_name: SourceLocation,
+}
+
+/// Helper struct for [`Pou`] to get the location of the interface without relying on [`Interface`] which
+/// only exists if the interface is actually defined. Mostly needed for user-friendly validation messages.
+#[derive(Debug, PartialEq)]
+pub struct InterfaceIdentifier {
+    pub name: String,
+    pub location: SourceLocation,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -202,7 +222,8 @@ impl Debug for Pou {
         str.field("name", &self.name)
             .field("variable_blocks", &self.variable_blocks)
             .field("pou_type", &self.pou_type)
-            .field("return_type", &self.return_type);
+            .field("return_type", &self.return_type)
+            .field("interfaces", &self.interfaces);
         if !self.generics.is_empty() {
             str.field("generics", &self.generics);
         }
@@ -256,7 +277,12 @@ pub enum PouType {
     FunctionBlock,
     Action,
     Class,
-    Method { owner_class: String },
+    Method {
+        /// The parent of this method, i.e. a function block, class or an interface
+        parent: String,
+    },
+    Init,
+    ProjectInit,
 }
 
 impl Display for PouType {
@@ -268,6 +294,8 @@ impl Display for PouType {
             PouType::Action => write!(f, "Action"),
             PouType::Class => write!(f, "Class"),
             PouType::Method { .. } => write!(f, "Method"),
+            PouType::Init => write!(f, "Init"),
+            PouType::ProjectInit => write!(f, "ProjectInit"),
         }
     }
 }
@@ -275,19 +303,46 @@ impl Display for PouType {
 impl PouType {
     /// returns Some(owner_class) if this is a `Method` or otherwhise `None`
     pub fn get_optional_owner_class(&self) -> Option<String> {
-        if let PouType::Method { owner_class } = self {
-            Some(owner_class.clone())
+        if let PouType::Method { parent } = self {
+            Some(parent.clone())
         } else {
             None
         }
+    }
+
+    pub fn is_function_or_init(&self) -> bool {
+        matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit)
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ConfigVariable {
+    pub reference: AstNode,
+    pub data_type: DataTypeDeclaration,
+    pub address: AstNode,
+    pub location: SourceLocation,
+}
+
+impl ConfigVariable {
+    pub fn new(
+        reference: AstNode,
+        data_type: DataTypeDeclaration,
+        address: AstNode,
+        location: SourceLocation,
+    ) -> Self {
+        Self { reference, data_type, address, location }
     }
 }
 
 #[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
+    pub var_config: Vec<ConfigVariable>,
+    /// List of POU definitions (signature and some additional metadata)
     pub units: Vec<Pou>,
+    /// List of statements within a POU body
     pub implementations: Vec<Implementation>,
+    pub interfaces: Vec<Interface>,
     pub user_types: Vec<UserTypeDeclaration>,
     pub file_name: String,
 }
@@ -296,8 +351,10 @@ impl CompilationUnit {
     pub fn new(file_name: &str) -> Self {
         CompilationUnit {
             global_vars: Vec::new(),
+            var_config: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
+            interfaces: Vec::new(),
             user_types: Vec::new(),
             file_name: file_name.to_string(),
         }
@@ -330,6 +387,7 @@ pub enum VariableBlockType {
     Output,
     Global,
     InOut,
+    External,
 }
 
 impl Display for VariableBlockType {
@@ -341,6 +399,7 @@ impl Display for VariableBlockType {
             VariableBlockType::Output => write!(f, "Output"),
             VariableBlockType::Global => write!(f, "Global"),
             VariableBlockType::InOut => write!(f, "InOut"),
+            VariableBlockType::External => write!(f, "External"),
         }
     }
 }
@@ -362,6 +421,32 @@ pub struct VariableBlock {
     pub location: SourceLocation,
 }
 
+impl VariableBlock {
+    pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
+        self.variable_block_type = block_type;
+        self
+    }
+
+    pub fn with_variables(mut self, variables: Vec<Variable>) -> Self {
+        self.variables = variables;
+        self
+    }
+}
+
+impl Default for VariableBlock {
+    fn default() -> Self {
+        VariableBlock {
+            access: AccessModifier::Internal,
+            constant: false,
+            retain: false,
+            variables: vec![],
+            variable_block_type: VariableBlockType::Local,
+            linkage: LinkageType::Internal,
+            location: SourceLocation::internal(),
+        }
+    }
+}
+
 impl Debug for VariableBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("VariableBlock")
@@ -371,13 +456,19 @@ impl Debug for VariableBlock {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub struct Variable {
     pub name: String,
     pub data_type_declaration: DataTypeDeclaration,
     pub initializer: Option<AstNode>,
     pub address: Option<AstNode>,
     pub location: SourceLocation,
+}
+
+impl PartialEq for Variable {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.location == other.location
+    }
 }
 
 impl Debug for Variable {
@@ -401,6 +492,10 @@ impl Variable {
             location: self.data_type_declaration.get_location(),
         };
         std::mem::replace(&mut self.data_type_declaration, new_data_type)
+    }
+
+    pub fn get_name(&self) -> &str {
+        &self.name
     }
 }
 
@@ -441,6 +536,20 @@ impl DataTypeDeclaration {
     pub fn get_referenced_type(&self) -> Option<String> {
         let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = self else { return None };
         Some(referenced_type.to_owned())
+    }
+
+    pub fn get_inner_pointer_ty(&self) -> Option<DataTypeDeclaration> {
+        match self {
+            DataTypeDeclaration::DataTypeReference { .. } => Some(self.clone()),
+
+            DataTypeDeclaration::DataTypeDefinition { data_type, .. } => {
+                if let DataType::PointerType { referenced_type, .. } = data_type {
+                    return referenced_type.get_inner_pointer_ty();
+                }
+
+                None
+            }
+        }
     }
 }
 
@@ -488,6 +597,7 @@ pub enum DataType {
     PointerType {
         name: Option<String>,
         referenced_type: Box<DataTypeDeclaration>,
+        auto_deref: Option<AutoDerefType>,
     },
     StringType {
         name: Option<String>,
@@ -503,6 +613,18 @@ pub enum DataType {
         generic_symbol: String,
         nature: TypeNature,
     },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum AutoDerefType {
+    /// A plain pointer variable with the auto-deref trait, e.g. VAR_IN_OUT or VAR_INPUT{ref} variables
+    Default,
+
+    /// An alias pointer variable, e.g. `foo AT bar : DINT`
+    Alias,
+
+    /// A reference pointer variable, e.g. `foo : REFERENCE TO DINT;`
+    Reference,
 }
 
 impl DataType {
@@ -598,11 +720,14 @@ pub struct AstNode {
 #[try_into(ref)]
 pub enum AstStatement {
     EmptyStatement(EmptyStatement),
-    // a placeholder that indicates a default value of a datatype
+
+    // A placeholder which indicates a default value of a datatype
     DefaultValue(DefaultValue),
+
     // Literals
     Literal(AstLiteral),
     MultipliedStatement(MultipliedStatement),
+
     // Expressions
     ReferenceExpr(ReferenceExpr),
     Identifier(String),
@@ -614,15 +739,17 @@ pub enum AstStatement {
     ParenExpression(Box<AstNode>),
     RangeStatement(RangeStatement),
     VlaRangeStatement,
-    // Assignment
+
+    // TODO: Merge these variants with a `kind` field?
+    // Assignments
     Assignment(Assignment),
-    // OutputAssignment
     OutputAssignment(Assignment),
-    //Call Statement
+    RefAssignment(Assignment),
+
     CallStatement(CallStatement),
+
     // Control Statements
     ControlStatement(AstControlStatement),
-
     CaseCondition(Box<AstNode>),
     #[try_into(ignore)]
     ExitStatement(()),
@@ -678,6 +805,9 @@ impl Debug for AstNode {
             }
             AstStatement::OutputAssignment(Assignment { left, right }) => {
                 f.debug_struct("OutputAssignment").field("left", left).field("right", right).finish()
+            }
+            AstStatement::RefAssignment(Assignment { left, right }) => {
+                f.debug_struct("ReferenceAssignment").field("left", left).field("right", right).finish()
             }
             AstStatement::CallStatement(CallStatement { operator, parameters }) => f
                 .debug_struct("CallStatement")
@@ -844,6 +974,14 @@ impl AstNode {
         }
     }
 
+    pub fn get_parent_name_of_reference(&self) -> Option<&str> {
+        if let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }, ..) = &self.stmt {
+            base.as_ref().get_flat_reference_name()
+        } else {
+            None
+        }
+    }
+
     pub fn get_label_name(&self) -> Option<&str> {
         try_from!(self, LabelStatement).map(|it| it.name.as_str())
     }
@@ -970,6 +1108,13 @@ impl AstNode {
         let location = self.get_location();
         AstFactory::create_not_expression(self, location, id_provider.next_id())
     }
+
+    pub fn is_template(&self) -> bool {
+        matches!(
+            self.stmt,
+            AstStatement::HardwareAccess(HardwareAccess { access: DirectAccessType::Template, .. })
+        )
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1078,7 +1223,7 @@ mod tests {
         assert_eq!(PouType::FunctionBlock.to_string(), "FunctionBlock");
         assert_eq!(PouType::Action.to_string(), "Action");
         assert_eq!(PouType::Class.to_string(), "Class");
-        assert_eq!(PouType::Method { owner_class: "...".to_string() }.to_string(), "Method");
+        assert_eq!(PouType::Method { parent: "...".to_string() }.to_string(), "Method");
     }
 
     #[test]
@@ -1274,8 +1419,11 @@ impl AstFactory {
     }
 
     /// creates a new Identifier
-    pub fn create_identifier(name: &str, location: &SourceLocation, id: AstId) -> AstNode {
-        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.clone())
+    pub fn create_identifier<T>(name: &str, location: T, id: AstId) -> AstNode
+    where
+        T: Into<SourceLocation>,
+    {
+        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.into())
     }
 
     pub fn create_unary_expression(
@@ -1304,6 +1452,19 @@ impl AstFactory {
         let location = left.location.span(&right.location);
         AstNode::new(
             AstStatement::OutputAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
+            id,
+            location,
+        )
+    }
+
+    // TODO: Merge `create_assignment`, `create_output_assignment` and `create_ref_assignment`
+    //       once the the Assignment AstStatements have been merged and a `kind` field is available
+    //       I.e. something like `AstStatement::Assignment { data, kind: AssignmentKind { Normal, Output, Reference } }
+    //       and then fn create_assignment(kind: AssignmentKind, ...)
+    pub fn create_ref_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
+        let location = left.location.span(&right.location);
+        AstNode::new(
+            AstStatement::RefAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
             location,
         )
@@ -1407,18 +1568,21 @@ impl AstFactory {
         }
     }
 
-    pub fn create_call_statement(
+    pub fn create_call_statement<T>(
         operator: AstNode,
         parameters: Option<AstNode>,
         id: usize,
-        location: SourceLocation,
-    ) -> AstNode {
+        location: T,
+    ) -> AstNode
+    where
+        T: Into<SourceLocation>,
+    {
         AstNode {
             stmt: AstStatement::CallStatement(CallStatement {
                 operator: Box::new(operator),
                 parameters: parameters.map(Box::new),
             }),
-            location,
+            location: location.into(),
             id,
         }
     }
@@ -1441,7 +1605,7 @@ impl AstFactory {
                 parameters: Some(Box::new(AstNode::new(
                     AstStatement::ExpressionList(parameters),
                     parameter_list_id,
-                    SourceLocation::undefined(), //TODO: get real location
+                    SourceLocation::internal(), //TODO: get real location
                 ))),
             }),
             location: location.clone(),
@@ -1486,7 +1650,7 @@ impl AstFactory {
                 )),
                 parameters: Some(Box::new(AstFactory::create_expression_list(
                     parameters,
-                    SourceLocation::undefined(),
+                    SourceLocation::internal(),
                     id_provider.next_id(),
                 ))),
             }),
@@ -1521,6 +1685,11 @@ impl AstFactory {
 
     pub fn create_label_statement(name: String, location: SourceLocation, id: AstId) -> AstNode {
         AstNode { stmt: AstStatement::LabelStatement(LabelStatement { name }), location, id }
+    }
+
+    pub fn create_plus_one_expression(value: AstNode, location: SourceLocation, id: AstId) -> AstNode {
+        let one = AstFactory::create_literal(AstLiteral::Integer(1), location.clone(), id);
+        AstFactory::create_binary_expression(value, Operator::Plus, one, id)
     }
 }
 #[derive(Debug, Clone, PartialEq)]
@@ -1603,4 +1772,28 @@ pub struct JumpStatement {
 #[derive(Debug, Clone, PartialEq)]
 pub struct LabelStatement {
     pub name: String,
+}
+
+impl HardwareAccess {
+    pub fn get_mangled_variable_name(&self) -> String {
+        let HardwareAccess { direction, address, .. } = self;
+        let direction = match direction {
+            HardwareAccessType::Input | HardwareAccessType::Output => "PI",
+            HardwareAccessType::Memory => "M",
+            HardwareAccessType::Global => "G",
+        };
+        format!(
+            "__{direction}_{}",
+            address
+                .iter()
+                .flat_map(|node| node.get_literal_integer_value())
+                .map(|val| val.to_string())
+                .collect::<Vec<_>>()
+                .join("_")
+        )
+    }
+
+    pub fn is_template(&self) -> bool {
+        matches!(self.access, DirectAccessType::Template)
+    }
 }

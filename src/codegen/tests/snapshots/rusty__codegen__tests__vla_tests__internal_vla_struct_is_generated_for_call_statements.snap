@@ -2,14 +2,14 @@
 source: src/codegen/tests/vla_tests.rs
 expression: res
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 %__foo_vla = type { i16*, [2 x i32] }
 
-@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer, section "var-$RUSTY$____foo_vla__init:r2pai16ai32"
+@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
 
-define void @foo(%__foo_vla* %0) section "fn-$RUSTY$foo:v[r2pai16ai32]" {
+define void @foo(%__foo_vla* %0) {
 entry:
   %vla = alloca %__foo_vla, align 8
   %1 = bitcast %__foo_vla* %vla to i8*
@@ -18,7 +18,7 @@ entry:
   ret void
 }
 
-define void @bar() section "fn-$RUSTY$bar:v" {
+define void @bar() {
 entry:
   %arr = alloca [2 x i16], align 2
   %0 = bitcast [2 x i16]* %arr to i8*
@@ -45,3 +45,12 @@ declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) 
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
 attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  ret void
+}

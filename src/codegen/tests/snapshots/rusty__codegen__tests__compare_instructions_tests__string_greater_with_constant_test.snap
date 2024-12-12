@@ -2,12 +2,12 @@
 source: src/codegen/tests/compare_instructions_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"b\00"
 
-define i8 @STRING_GREATER(i8* %0, i8* %1) section "fn-$RUSTY$STRING_GREATER:u8[s8u1025][s8u1025]" {
+define i8 @STRING_GREATER(i8* %0, i8* %1) {
 entry:
   %STRING_GREATER = alloca i8, align 1
   %op1 = alloca [1025 x i8], align 1
@@ -23,7 +23,7 @@ entry:
   ret i8 %STRING_GREATER_ret
 }
 
-define i16 @baz() section "fn-$RUSTY$baz:i16" {
+define i16 @baz() {
 entry:
   %baz = alloca i16, align 2
   %a = alloca [81 x i8], align 1
@@ -47,3 +47,12 @@ declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noa
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
 attributes #1 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  ret void
+}

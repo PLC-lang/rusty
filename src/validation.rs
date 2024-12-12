@@ -1,14 +1,19 @@
-use plc_ast::ast::{AstNode, CompilationUnit};
+use plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
 use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
+use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
+use variable::visit_config_variable;
 
 use crate::{
+    expression_path::ExpressionPath,
     index::{
         const_expressions::{ConstExpression, UnresolvableKind},
-        Index, PouIndexEntry,
+        FxIndexSet, Index, PouIndexEntry,
     },
     resolver::AnnotationMap,
+    typesystem::DataType,
 };
 
 use self::{
@@ -23,7 +28,7 @@ mod array;
 mod global;
 mod pou;
 mod recursive;
-mod statement;
+pub(crate) mod statement;
 mod types;
 mod variable;
 
@@ -85,7 +90,7 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
     }
 }
 
-impl<'s, T: AnnotationMap> Clone for ValidationContext<'s, T> {
+impl<T: AnnotationMap> Clone for ValidationContext<'_, T> {
     fn clone(&self) -> Self {
         ValidationContext {
             annotations: self.annotations,
@@ -110,7 +115,7 @@ pub struct Validator<'a> {
     recursive_validator: RecursiveValidator,
 }
 
-impl<'a> Validators for Validator<'a> {
+impl Validators for Validator<'_> {
     fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
         self.diagnostics.push(diagnostic);
     }
@@ -120,13 +125,21 @@ impl<'a> Validators for Validator<'a> {
 }
 
 impl<'a> Validator<'a> {
-    pub fn new(context: &'a GlobalContext) -> Validator {
+    pub fn new(context: &'a GlobalContext) -> Validator<'a> {
         Validator {
             context,
             diagnostics: Vec::new(),
             global_validator: GlobalValidator::new(),
             recursive_validator: RecursiveValidator::new(),
         }
+    }
+
+    pub fn get_type_name_or_slice(&self, dt: &DataType) -> String {
+        if dt.is_internal() {
+            return dt.get_type_information().get_inner_name().to_string();
+        }
+
+        self.context.slice(&dt.location)
     }
 
     pub fn diagnostics(&mut self) -> Vec<Diagnostic> {
@@ -140,6 +153,7 @@ impl<'a> Validator<'a> {
     pub fn perform_global_validation(&mut self, index: &Index) {
         self.global_validator.validate(index);
         self.recursive_validator.validate(index);
+        self.validate_configured_templates(index);
 
         // XXX: To avoid bloating up this function any further, maybe package logic into seperate module or
         //      function if another global check is introduced (including the overflow checks)?
@@ -159,24 +173,98 @@ impl<'a> Validator<'a> {
 
     pub fn visit_unit<T: AnnotationMap>(&mut self, annotations: &T, index: &Index, unit: &CompilationUnit) {
         let context = ValidationContext { annotations, index, qualifier: None, is_call: false };
-        // validate POU and declared Variables
+        // Validate POU and declared Variables
         for pou in &unit.units {
             visit_pou(self, pou, &context.with_qualifier(pou.name.as_str()));
         }
 
-        // validate user declared types
+        // Validate user declared types
         for t in &unit.user_types {
             visit_user_type_declaration(self, t, &context);
         }
 
-        // validate global variables
+        // Validate config variables (VAR_CONFIG)
+        for variable in &unit.var_config {
+            visit_config_variable(self, variable, &context);
+        }
+
+        // Validate global variables
         for gv in &unit.global_vars {
             visit_variable_block(self, None, gv, &context);
         }
 
-        // validate implementations
+        // Validate implementations
         for implementation in &unit.implementations {
             visit_implementation(self, implementation, &context);
         }
+    }
+
+    pub fn validate_configured_templates(&mut self, index: &Index) {
+        // get config variables as string, along with their locations
+        let config_variables =
+            index.get_config_variables().iter().fold(FxHashMap::default(), |mut acc, var| {
+                match ExpressionPath::try_from(var) {
+                    Ok(p) => p.expand(index).into_iter().for_each(|p| {
+                        acc.entry(p)
+                            .and_modify(|entry: &mut Vec<SourceLocation>| entry.push(var.location.clone()))
+                            .or_insert(vec![var.location.clone()]);
+                    }),
+                    Err(e) => {
+                        self.diagnostics.extend(e);
+                    }
+                }
+                acc
+            });
+        // check for ambiguously configured template-variables
+        config_variables.values().for_each(|loc| {
+            if loc.len() > 1 {
+                self.diagnostics.push(
+                    Diagnostic::new("Template variable configured multiple times")
+                        .with_error_code("E108")
+                        .with_location(&loc[0])
+                        .with_secondary_locations(loc.iter().skip(1).cloned().collect()),
+                )
+            }
+        });
+
+        // collect all template-instances
+        let instances = index
+            .filter_instances(|entry, _| !entry.is_constant())
+            .filter(|(_, entry)| {
+                entry.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
+            })
+            .fold(vec![], |mut acc, (path, idxentry)| {
+                let path = path.expand(index);
+                let is_array = path.len() > 1;
+                path.into_iter().for_each(|p| {
+                    acc.push((p, (idxentry, is_array)));
+                });
+                acc
+            });
+
+        let mut incomplete_array_configurations = FxIndexSet::default();
+        // validate if all template-instances are configured in VAR_CONFIG blocks
+        for (segments, (val, is_array)) in instances {
+            if !config_variables.contains_key(&segments) {
+                if is_array {
+                    incomplete_array_configurations.insert(&val.source_location);
+                } else {
+                    self.diagnostics.push(
+                        Diagnostic::new("Template-variable must have a configuration")
+                            .with_error_code("E107")
+                            .with_location(&val.source_location),
+                    );
+                }
+            }
+        }
+
+        // report arrays which have elements that are missing configuration
+        incomplete_array_configurations.iter().for_each(|array_location| {
+            self.diagnostics.push(
+                Diagnostic::new("One or more template-elements in array have not been configured")
+                    .with_location(*array_location)
+                    .with_error_code("E107"),
+            );
+        });
     }
 }

@@ -1,25 +1,38 @@
 use std::{
+    collections::HashMap,
     env,
+    ffi::OsStr,
     fs::{self, File},
     io::Write,
     path::{Path, PathBuf},
+    sync::Mutex,
 };
 
-use crate::{CompileOptions, LinkOptions};
+use crate::{
+    cli::{self, CompileParameters, ConfigOption, SubCommands},
+    get_project, CompileOptions, LinkOptions, LinkerScript,
+};
 use ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
 
-use plc::index::FxIndexSet;
+use itertools::Itertools;
+use log::debug;
+use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::Index,
+    index::{indexer, FxIndexSet, Index},
+    linker::LinkerType,
+    lowering::AstLowerer,
     output::FormatOption,
     parser::parse_file,
-    resolver::{AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator},
+    resolver::{
+        const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
+        TypeAnnotator,
+    },
     validation::Validator,
-    ConfigFormat, Target,
+    ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,
@@ -33,20 +46,390 @@ use project::{
 use rayon::prelude::*;
 use source_code::{source_location::SourceLocation, SourceContainer};
 
+use serde_json;
+use tempfile::NamedTempFile;
+use toml;
+pub mod participant;
+
+pub struct BuildPipeline<T: SourceContainer> {
+    pub context: GlobalContext,
+    pub project: Project<T>,
+    pub diagnostician: Diagnostician,
+    pub compile_parameters: Option<CompileParameters>,
+    pub linker: LinkerType,
+    pub mutable_participants: Vec<Box<dyn PipelineParticipantMut>>,
+    pub participants: Vec<Box<dyn PipelineParticipant>>,
+}
+
+pub trait Pipeline {
+    fn run(&mut self) -> Result<(), Diagnostic>;
+    fn parse(&mut self) -> Result<ParsedProject, Diagnostic>;
+    fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic>;
+    fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic>;
+    fn generate(&mut self, context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic>;
+}
+
+impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
+    type Error = anyhow::Error;
+
+    fn try_from(compile_parameters: CompileParameters) -> Result<Self, Self::Error> {
+        //Create the project that will be compiled
+        let project = get_project(&compile_parameters)?;
+        let location = project.get_location().map(|it| it.to_path_buf());
+        if let Some(location) = &location {
+            log::debug!("PROJECT_ROOT={}", location.to_string_lossy());
+            env::set_var("PROJECT_ROOT", location);
+        }
+        let build_location = compile_parameters.get_build_location();
+        if let Some(location) = &build_location {
+            log::debug!("BUILD_LOCATION={}", location.to_string_lossy());
+            env::set_var("BUILD_LOCATION", location);
+        }
+        let lib_location = compile_parameters.get_lib_location();
+        if let Some(location) = &lib_location {
+            log::debug!("LIB_LOCATION={}", location.to_string_lossy());
+            env::set_var("LIB_LOCATION", location);
+        }
+        //Create diagnostics registry
+        //Create a diagnostican with the specified registry
+        //Use diagnostican
+        let diagnostician = match compile_parameters.error_format {
+            ErrorFormat::Rich => Diagnostician::default(),
+            ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
+            ErrorFormat::None => Diagnostician::null_diagnostician(),
+        };
+        let diagnostician = if let Some(configuration) = compile_parameters.get_error_configuration()? {
+            diagnostician.with_configuration(configuration)
+        } else {
+            diagnostician
+        };
+
+        // TODO: This can be improved quite a bit, e.g. `GlobalContext::new(project);`, to do that see the
+        //       commented `project` method in the GlobalContext implementation block
+        let context = GlobalContext::new()
+            .with_source(project.get_sources(), compile_parameters.encoding)?
+            .with_source(project.get_includes(), compile_parameters.encoding)?
+            .with_source(
+                project
+                    .get_libraries()
+                    .iter()
+                    .flat_map(LibraryInformation::get_includes)
+                    .collect::<Vec<_>>()
+                    .as_slice(),
+                None,
+            )?;
+
+        let linker = compile_parameters.linker.as_deref().into();
+        Ok(BuildPipeline {
+            context,
+            project,
+            diagnostician,
+            compile_parameters: Some(compile_parameters),
+            linker,
+            mutable_participants: vec![],
+            participants: vec![],
+        })
+    }
+}
+
+impl BuildPipeline<PathBuf> {
+    pub fn new<T>(args: &[T]) -> anyhow::Result<Self>
+    where
+        T: AsRef<str> + AsRef<OsStr> + std::fmt::Debug,
+    {
+        let compile_parameters = CompileParameters::parse(args)?;
+        compile_parameters.try_into()
+    }
+
+    pub fn register_mut_participant(&mut self, participant: Box<dyn PipelineParticipantMut>) {
+        self.mutable_participants.push(participant)
+    }
+
+    pub fn register_participant(&mut self, participant: Box<dyn PipelineParticipant>) {
+        self.participants.push(participant)
+    }
+}
+
+impl<T: SourceContainer> BuildPipeline<T> {
+    pub fn get_compile_options(&self) -> Option<CompileOptions> {
+        self.compile_parameters.as_ref().map(|params| {
+            let location = &self.project.get_location().map(|it| it.to_path_buf());
+            let output_format = params.output_format().unwrap_or_else(|| self.project.get_output_format());
+            CompileOptions {
+                root: location.to_owned(),
+                build_location: params.get_build_location(),
+                output: self.project.get_output_name(),
+                output_format,
+                optimization: params.optimization,
+                error_format: params.error_format,
+                debug_level: params.debug_level(),
+                single_module: params.single_module,
+                online_change: if params.online_change {
+                    OnlineChange::Enabled {
+                        file_name: params.got_layout_file.clone(),
+                        format: params.got_layout_format(),
+                    }
+                } else {
+                    OnlineChange::Disabled
+                },
+            }
+        })
+    }
+
+    pub fn get_link_options(&self) -> Option<LinkOptions> {
+        self.compile_parameters.as_ref().map(|params| {
+            let output_format = params.output_format().unwrap_or_else(|| self.project.get_output_format());
+            let libraries = self
+                .project
+                .get_libraries()
+                .iter()
+                .map(LibraryInformation::get_link_name)
+                .map(str::to_string)
+                .collect();
+            let mut library_paths: Vec<PathBuf> = self
+                .project
+                .get_libraries()
+                .iter()
+                .filter_map(LibraryInformation::get_path)
+                .map(Path::to_path_buf)
+                .collect();
+
+            library_paths.extend_from_slice(self.project.get_library_paths());
+            //Get the specified linker script or load the default linker script in a temp file
+            let linker_script = if params.no_linker_script {
+                LinkerScript::None
+            } else {
+                params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default()
+            };
+
+            LinkOptions {
+                libraries,
+                library_paths,
+                format: output_format,
+                linker: self.linker.clone(),
+                lib_location: params.get_lib_location(),
+                build_location: params.get_build_location(),
+                linker_script,
+            }
+        })
+    }
+
+    fn print_config_options(&self, option: ConfigOption) -> Result<(), Diagnostic> {
+        match option {
+            cli::ConfigOption::Schema => {
+                println!("{}", self.project.get_validation_schema().as_ref())
+            }
+            cli::ConfigOption::Diagnostics => {
+                println!("{}", self.diagnostician.get_diagnostic_configuration())
+            }
+        };
+
+        Ok(())
+    }
+
+    fn initialize_thread_pool(&self) {
+        //Set the global thread count
+        let thread_pool = rayon::ThreadPoolBuilder::new();
+        let global_pool = if let Some(CompileParameters { threads: Some(Threads::Fix(threads)), .. }) =
+            self.compile_parameters
+        {
+            log::info!("Using {threads} parallel threads");
+            thread_pool.num_threads(threads)
+        } else {
+            thread_pool
+        }
+        .build_global();
+
+        if let Err(err) = global_pool {
+            // Ignore the error here as the global threadpool might have been initialized
+            log::info!("{err}")
+        }
+    }
+}
+
+impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
+    fn run(&mut self) -> anyhow::Result<(), Diagnostic> {
+        if let Some((options, _format)) =
+            self.compile_parameters.as_ref().and_then(CompileParameters::get_config_options)
+        {
+            return self.print_config_options(options);
+        }
+        if let Some(CompileParameters { build_info: true, .. }) = self.compile_parameters {
+            println!("{}", option_env!("RUSTY_BUILD_INFO").unwrap_or("version information unavailable"));
+            return Ok(());
+        }
+
+        if let Some(CompileParameters { commands: Some(SubCommands::Explain { error }), .. }) =
+            &self.compile_parameters
+        {
+            //Explain the given error
+            println!("{}", self.diagnostician.explain(error));
+            return Ok(());
+        }
+
+        self.initialize_thread_pool();
+
+        let parsed_project = self.parse()?;
+        // 1. Parse, 2. Index and 3. Resolve / Annotate
+        let indexed_project = self.index(parsed_project)?;
+        let annotated_project = self.annotate(indexed_project)?;
+        // // 4. AST-lowering, re-index and re-resolve
+        let annotated_project =
+            annotated_project.lower(&self.project.get_init_symbol_name(), self.context.provider());
+        //TODO : this is post lowering, we might want to control this
+        if let Some(CompileParameters { output_ast: true, .. }) = self.compile_parameters {
+            return Ok(());
+        }
+
+        // 5. Validate
+        //TODO: this goes into a participant
+        annotated_project.validate(&self.context, &mut self.diagnostician)?;
+
+        //TODO: probably not needed, should be a participant anyway
+        if let Some((location, format)) = self
+            .compile_parameters
+            .as_ref()
+            .and_then(|it| it.hardware_config.as_ref())
+            .zip(self.compile_parameters.as_ref().and_then(CompileParameters::config_format))
+        {
+            annotated_project.generate_hardware_information(format, location)?;
+        }
+
+        // 5 : Codegen
+        if !self.compile_parameters.as_ref().map(CompileParameters::is_check).unwrap_or_default() {
+            let context = CodegenContext::create();
+            self.generate(&context, annotated_project)?;
+        }
+
+        Ok(())
+    }
+
+    fn parse(&mut self) -> Result<ParsedProject, Diagnostic> {
+        let project = ParsedProject::parse(&self.context, &self.project, &mut self.diagnostician)?;
+        Ok(project)
+    }
+
+    fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
+        self.participants.iter().for_each(|p| {
+            p.pre_index(&project);
+        });
+        let project = self.mutable_participants.iter().fold(project, |project, p| p.pre_index(project));
+        let indexed_project = project.index(self.context.provider());
+        self.participants.iter().for_each(|p| {
+            p.post_index(&indexed_project);
+        });
+        let indexed_project =
+            self.mutable_participants.iter().fold(indexed_project, |project, p| p.post_index(project));
+        Ok(indexed_project)
+    }
+
+    fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic> {
+        self.participants.iter().for_each(|p| {
+            p.pre_annotate(&project);
+        });
+        let annotated_project = project.annotate(self.context.provider());
+        self.participants.iter().for_each(|p| {
+            p.post_annotate(&annotated_project);
+        });
+        let annotated_project =
+            self.mutable_participants.iter().fold(annotated_project, |project, p| p.post_annotate(project));
+        Ok(annotated_project)
+    }
+
+    fn generate(&mut self, _context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic> {
+        self.participants.iter_mut().try_fold((), |_, participant| participant.pre_generate(&project))?;
+        let Some(compile_options) = self.get_compile_options() else {
+            log::debug!("No compile options provided");
+            return Ok(());
+        };
+        if compile_options.single_module || matches!(compile_options.output_format, FormatOption::Object) {
+            log::info!("Using single module mode");
+            let context = CodegenContext::create();
+            project
+                .generate_single_module(&context, &compile_options)?
+                .map(|module| {
+                    self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
+                })
+                .unwrap_or(Ok(()))?;
+        } else {
+            let got_layout =
+                if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+                    read_got_layout(file_name, *format)?
+                } else {
+                    HashMap::default()
+                };
+            let got_layout = Mutex::new(got_layout);
+            let _ = project
+                .units
+                .par_iter()
+                .map(|AnnotatedUnit { unit, dependencies, literals }| {
+                    let context = CodegenContext::create();
+                    let module = project.generate_module(
+                        &context,
+                        &compile_options,
+                        unit,
+                        dependencies,
+                        literals,
+                        &got_layout,
+                    )?;
+                    self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
+                })
+                .collect::<Result<Vec<_>, Diagnostic>>()?;
+        }
+        self.participants
+            .iter()
+            .map(|participant| participant.post_generate())
+            .reduce(|prev, curr| prev.and(curr))
+            .unwrap_or(Ok(()))?;
+        Ok(())
+    }
+}
+pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
+    if !Path::new(location).is_file() {
+        // Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
+        // creating our file when we want to.
+        return Ok(HashMap::new());
+    }
+
+    let s = fs::read_to_string(location)
+        .map_err(|_| Diagnostic::new("GOT layout could not be read from file"))?;
+    match format {
+        ConfigFormat::JSON => serde_json::from_str(&s)
+            .map_err(|_| Diagnostic::new("Could not deserialize GOT layout from JSON")),
+        ConfigFormat::TOML => {
+            toml::de::from_str(&s).map_err(|_| Diagnostic::new("Could not deserialize GOT layout from TOML"))
+        }
+    }
+}
+
+fn write_got_layout(
+    got_entries: HashMap<String, u64>,
+    location: &str,
+    format: ConfigFormat,
+) -> Result<(), Diagnostic> {
+    let s = match format {
+        ConfigFormat::JSON => serde_json::to_string(&got_entries)
+            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to JSON"))?,
+        ConfigFormat::TOML => toml::ser::to_string(&got_entries)
+            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to TOML"))?,
+    };
+
+    fs::write(location, s).map_err(|_| Diagnostic::new("GOT layout could not be written to file"))
+}
+
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
 ///been generated
-pub struct ParsedProject<T: SourceContainer + Sync> {
-    project: Project<T>,
+pub struct ParsedProject {
     units: Vec<CompilationUnit>,
 }
 
-impl<T: SourceContainer + Sync> ParsedProject<T> {
+impl ParsedProject {
     /// Parses a giving project, transforming it to a `ParsedProject`
     /// Reports parsing diagnostics such as Syntax error on the fly
-    pub fn parse(
+    pub fn parse<T: SourceContainer + Sync>(
         ctxt: &GlobalContext,
-        project: Project<T>,
+        project: &Project<T>,
         diagnostician: &mut Diagnostician,
     ) -> Result<Self, Diagnostic> {
         //TODO in parallel
@@ -64,6 +447,7 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                     source_code::SourceType::Xml => cfc::xml_parser::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
                 };
+
                 parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician)
             })
             .collect::<Vec<_>>();
@@ -95,11 +479,11 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
 
         let units = units.into_iter().collect::<Result<Vec<_>, Diagnostic>>()?;
 
-        Ok(ParsedProject { project, units })
+        Ok(ParsedProject { units })
     }
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
-    pub fn index(self, id_provider: IdProvider) -> IndexedProject<T> {
+    pub fn index(self, id_provider: IdProvider) -> IndexedProject {
         let indexed_units = self
             .units
             .into_par_iter()
@@ -107,7 +491,7 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
                 //Preprocess
                 pre_process(&mut unit, id_provider.clone());
                 //import to index
-                let index = plc::index::visitor::visit(&unit);
+                let index = indexer::index(&unit);
 
                 (index, unit)
             })
@@ -124,35 +508,29 @@ impl<T: SourceContainer + Sync> ParsedProject<T> {
         for data_type in plc::typesystem::get_builtin_types() {
             global_index.register_type(data_type);
         }
+
         // import builtin functions
         let builtins = plc::builtins::parse_built_ins(id_provider);
-        global_index.import(plc::index::visitor::visit(&builtins));
+        global_index.import(indexer::index(&builtins));
 
-        IndexedProject { project: ParsedProject { project: self.project, units }, index: global_index }
-    }
-
-    pub fn get_project(&self) -> &Project<T> {
-        &self.project
+        IndexedProject { project: ParsedProject { units }, index: global_index }
     }
 }
 
 ///A project that has also been indexed
 /// Units inside an index project are ready be resolved and annotated
-pub struct IndexedProject<T: SourceContainer + Sync> {
-    project: ParsedProject<T>,
+pub struct IndexedProject {
+    project: ParsedProject,
     index: Index,
 }
 
-impl<T: SourceContainer + Sync> IndexedProject<T> {
+impl IndexedProject {
     /// Creates annotations on the project in order to facilitate codegen and validation
-    pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject<T> {
-        //Resolve constants
-        //TODO: Not sure what we are currently doing with unresolvables
-        let (mut full_index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
+    pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject {
+        let (mut full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(self.index);
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
-
         let result = self
             .project
             .units
@@ -165,7 +543,7 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
             .collect::<Vec<_>>();
 
         for (unit, annotation, dependencies, literals) in result {
-            annotated_units.push((unit, dependencies, literals));
+            annotated_units.push(AnnotatedUnit::new(unit, dependencies, literals));
             all_annotations.import(annotation);
         }
 
@@ -173,35 +551,54 @@ impl<T: SourceContainer + Sync> IndexedProject<T> {
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
-        AnnotatedProject {
-            project: self.project.project,
-            units: annotated_units,
-            index: full_index,
-            annotations,
-        }
+        AnnotatedProject { units: annotated_units, index: full_index, annotations, unresolvables }
+    }
+}
+
+#[derive(Debug)]
+pub struct AnnotatedUnit {
+    unit: CompilationUnit,
+    dependencies: FxIndexSet<Dependency>,
+    literals: StringLiterals,
+}
+
+impl AnnotatedUnit {
+    pub fn new(
+        unit: CompilationUnit,
+        dependencies: FxIndexSet<Dependency>,
+        literals: StringLiterals,
+    ) -> Self {
+        Self { unit, dependencies, literals }
     }
 
-    fn get_parsed_project(&self) -> &ParsedProject<T> {
-        &self.project
-    }
-
-    pub fn get_project(&self) -> &Project<T> {
-        self.get_parsed_project().get_project()
+    pub fn get_unit(&self) -> &CompilationUnit {
+        &self.unit
     }
 }
 
 /// A project that has been annotated with information about different types and used units
-pub struct AnnotatedProject<T: SourceContainer + Sync> {
-    pub project: Project<T>,
-    pub units: Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>,
+pub struct AnnotatedProject {
+    pub units: Vec<AnnotatedUnit>,
     pub index: Index,
     pub annotations: AstAnnotations,
+    pub unresolvables: Vec<UnresolvableConstant>,
 }
 
-impl<T: SourceContainer + Sync> AnnotatedProject<T> {
-    pub fn get_project(&self) -> &Project<T> {
-        &self.project
+impl AnnotatedProject {
+    pub fn lower(self, symbol_name: &str, id_provider: IdProvider) -> AnnotatedProject {
+        let units = self.units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect::<Vec<_>>();
+        let lowered = AstLowerer::lower(
+            units,
+            self.index,
+            self.annotations,
+            self.unresolvables,
+            id_provider.clone(),
+            symbol_name,
+        );
+        // XXX: this step can be looped until there were no further lowering-changes, however at this time lowering once should suffice
+        ParsedProject { units: lowered }.index(id_provider.clone()).annotate(id_provider)
     }
+
     /// Validates the project, reports any new diagnostics on the fly
     pub fn validate(
         &self,
@@ -215,7 +612,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         let mut severity = diagnostician.handle(&diagnostics);
 
         //Perform per unit validation
-        self.units.iter().for_each(|(unit, _, _)| {
+        self.units.iter().for_each(|AnnotatedUnit { unit, .. }| {
             // validate unit
             validator.visit_unit(&self.annotations, &self.index, unit);
             // log errors
@@ -230,11 +627,18 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
     }
 
     pub fn codegen_to_string(&self, compile_options: &CompileOptions) -> Result<Vec<String>, Diagnostic> {
+        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            read_got_layout(file_name, *format)?
+        } else {
+            HashMap::default()
+        };
+        let got_layout = Mutex::new(got_layout);
+
         self.units
             .iter()
-            .map(|(unit, dependencies, literals)| {
+            .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 let context = CodegenContext::create();
-                self.generate_module(&context, compile_options, unit, dependencies, literals)
+                self.generate_module(&context, compile_options, unit, dependencies, literals, &got_layout)
                     .map(|it| it.persist_to_string())
             })
             .collect()
@@ -245,11 +649,19 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         context: &'ctx CodegenContext,
         compile_options: &CompileOptions,
     ) -> Result<Option<GeneratedModule<'ctx>>, Diagnostic> {
+        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            read_got_layout(file_name, *format)?
+        } else {
+            HashMap::default()
+        };
+        let got_layout = Mutex::new(got_layout);
+
         let Some(module) = self
             .units
             .iter()
-            .map(|(unit, dependencies, literals)| {
-                self.generate_module(context, compile_options, unit, dependencies, literals)
+            // TODO: this can be parallelized
+            .map(|AnnotatedUnit { unit, dependencies, literals }| {
+                self.generate_module(context, compile_options, unit, dependencies, literals, &got_layout)
             })
             .reduce(|a, b| {
                 let a = a?;
@@ -269,6 +681,7 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         unit: &CompilationUnit,
         dependencies: &FxIndexSet<Dependency>,
         literals: &StringLiterals,
+        got_layout: &Mutex<HashMap<String, u64>>,
     ) -> Result<GeneratedModule<'ctx>, Diagnostic> {
         let mut code_generator = plc::codegen::CodeGen::new(
             context,
@@ -276,6 +689,8 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             &unit.file_name,
             compile_options.optimization,
             compile_options.debug_level,
+            //FIXME don't clone here
+            compile_options.online_change.clone(),
         );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types
@@ -285,8 +700,9 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
             literals,
             dependencies,
             &self.index,
+            got_layout,
         )?;
-        code_generator.generate(context, unit, &self.annotations, &self.index, &llvm_index)
+        code_generator.generate(context, unit, &self.annotations, &self.index, llvm_index)
     }
 
     pub fn codegen_single_module<'ctx>(
@@ -320,6 +736,25 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         Ok(result)
     }
 
+    pub fn generate_modules<'ctx>(
+        &self,
+        context: &'ctx CodegenContext,
+        compile_options: &CompileOptions,
+    ) -> Result<Vec<GeneratedModule<'ctx>>, Diagnostic> {
+        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            read_got_layout(file_name, *format)?
+        } else {
+            HashMap::default()
+        };
+        let got_layout = Mutex::new(got_layout);
+        self.units
+            .iter()
+            .map(|AnnotatedUnit { unit, dependencies, literals }| {
+                self.generate_module(context, compile_options, unit, dependencies, literals, &got_layout)
+            })
+            .collect()
+    }
+
     pub fn codegen<'ctx>(
         &'ctx self,
         compile_options: &CompileOptions,
@@ -331,17 +766,29 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
         });
         ensure_compile_dirs(targets, &compile_directory)?;
         let targets = if targets.is_empty() { &[Target::System] } else { targets };
+
+        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            read_got_layout(file_name, *format)?
+        } else {
+            HashMap::default()
+        };
+        let got_layout = Mutex::new(got_layout);
+
         let res = targets
             .par_iter()
             .map(|target| {
                 let objects = self
                     .units
                     .par_iter()
-                    .map(|(unit, dependencies, literals)| {
+                    .map(|AnnotatedUnit { unit, dependencies, literals }| {
                         let current_dir = env::current_dir()?;
                         let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
                         let unit_location = PathBuf::from(&unit.file_name);
-                        let unit_location = fs::canonicalize(unit_location)?;
+                        let unit_location = if unit_location.exists() {
+                            fs::canonicalize(unit_location)?
+                        } else {
+                            unit_location
+                        };
                         let output_name = if unit_location.starts_with(current_dir) {
                             unit_location.strip_prefix(current_dir).map_err(|it| {
                                 Diagnostic::new(format!(
@@ -364,8 +811,15 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                         };
 
                         let context = CodegenContext::create(); //Create a build location for the generated object files
-                        let module =
-                            self.generate_module(&context, compile_options, unit, dependencies, literals)?;
+                        let module = self.generate_module(
+                            &context,
+                            compile_options,
+                            unit,
+                            dependencies,
+                            literals,
+                            &got_layout,
+                        )?;
+
                         module
                             .persist(
                                 Some(&compile_directory),
@@ -383,6 +837,10 @@ impl<T: SourceContainer + Sync> AnnotatedProject<T> {
                 Ok(GeneratedProject { target: target.clone(), objects })
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
+
+        if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            write_got_layout(got_layout.into_inner().unwrap(), file_name, *format)?;
+        }
 
         Ok(res)
     }
@@ -416,8 +874,8 @@ fn ensure_compile_dirs(targets: &[Target], compile_directory: &Path) -> Result<(
 /// Can be linked to generate a usable application
 #[derive(Debug)]
 pub struct GeneratedProject {
-    target: Target,
-    objects: Vec<Object>,
+    pub target: Target,
+    pub objects: Vec<Object>,
 }
 
 impl GeneratedProject {
@@ -440,6 +898,7 @@ impl GeneratedProject {
                 let codegen = self
                     .objects
                     .iter()
+                    .sorted()
                     .map(|obj| GeneratedModule::try_from_bitcode(&context, obj.get_path()))
                     .reduce(|a, b| {
                         let a = a?;
@@ -456,6 +915,7 @@ impl GeneratedProject {
                 let codegen = self
                     .objects
                     .iter()
+                    .sorted()
                     .map(|obj| GeneratedModule::try_from_ir(&context, obj.get_path()))
                     .reduce(|a, b| {
                         let a = a?;
@@ -467,7 +927,7 @@ impl GeneratedProject {
                     })??;
                 codegen.persist_to_ir(output_location)
             }
-            FormatOption::Object if self.objects.len() == 1 && objects.is_empty() => {
+            FormatOption::Object if objects.is_empty() => {
                 //Just copy over the object file, no need for a linker
                 if let [obj] = &self.objects[..] {
                     if obj.get_path() != output_location {
@@ -505,6 +965,34 @@ impl GeneratedProject {
                 if let Some(loc) = lib_location {
                     linker.add_lib_path(&loc.to_string_lossy());
                 }
+
+                //HACK: Create a temp file that would contain the bultin linker script
+                //FIXME: This has to be done regardless if the file is used or not because it has
+                //to be in scope by the time we call the linker
+                let mut file = NamedTempFile::new()?;
+                match link_options.linker_script {
+                    LinkerScript::Builtin => {
+                        let target = self.target.get_target_triple().to_string();
+                        //Only do this on linux systems
+                        if target.contains("linux") {
+                            if target.contains("x86_64") {
+                                let content = include_str!("../../../scripts/linker/x86_64.script");
+                                writeln!(file, "{content}")?;
+                                linker.set_linker_script(file.get_location_str().to_string());
+                            } else if target.contains("aarch64") {
+                                let content = include_str!("../../../scripts/linker/aarch64.script");
+                                writeln!(file, "{content}")?;
+                                linker.set_linker_script(file.get_location_str().to_string());
+                            } else {
+                                debug!("No script for target : {target}");
+                            }
+                        } else {
+                            debug!("No script for target : {target}");
+                        }
+                    }
+                    LinkerScript::Path(script) => linker.set_linker_script(script),
+                    LinkerScript::None => {}
+                };
 
                 match link_options.format {
                     FormatOption::Static => linker.build_exectuable(output_location).map_err(Into::into),

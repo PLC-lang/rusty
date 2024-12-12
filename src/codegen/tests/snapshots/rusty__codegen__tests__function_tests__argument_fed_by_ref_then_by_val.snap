@@ -2,10 +2,10 @@
 source: src/codegen/tests/function_tests.rs
 expression: result
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = '<internal>'
+source_filename = "<internal>"
 
-define i32 @main() section "fn-$RUSTY$main:i32" {
+define i32 @main() {
 entry:
   %main = alloca i32, align 4
   %arr = alloca [5 x i32], align 4
@@ -18,7 +18,7 @@ entry:
   ret i32 %main_ret
 }
 
-define i32 @fn_by_ref(i32* %0) section "fn-$RUSTY$fn_by_ref:i32[pau32]" {
+define i32 @fn_by_ref(i32* %0) {
 entry:
   %fn_by_ref = alloca i32, align 4
   %arg_by_ref = alloca i32*, align 8
@@ -30,7 +30,7 @@ entry:
   ret i32 %fn_by_ref_ret
 }
 
-define i32 @fn_by_val(i32* %0) section "fn-$RUSTY$fn_by_val:i32[au32]" {
+define i32 @fn_by_val(i32* %0) {
 entry:
   %fn_by_val = alloca i32, align 4
   %arg_by_val = alloca [5 x i32], align 4
@@ -51,3 +51,12 @@ declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noa
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
 attributes #1 = { argmemonly nofree nounwind willreturn }
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  ret void
+}
