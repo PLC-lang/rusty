@@ -983,7 +983,10 @@ impl AstNode {
     }
 
     pub fn get_label_name(&self) -> Option<&str> {
-        try_from!(self, LabelStatement).map(|it| it.name.as_str())
+        match &self.stmt {
+            AstStatement::LabelStatement(LabelStatement { name, .. }) => Some(name.as_str()),
+            _ => None,
+        }
     }
 
     pub fn is_empty_statement(&self) -> bool {
