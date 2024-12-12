@@ -335,6 +335,7 @@ impl WalkerMut for AstNode {
     where
         V: AstVisitorMut,
     {
+        //TODO: Since this is cloned it should neither be by ref nor mutable
         match self.stmt.clone() {
             AstStatement::EmptyStatement(ref mut stmt) => visitor.visit_empty_statement(stmt, self),
             AstStatement::DefaultValue(ref mut stmt) => visitor.visit_default_value(stmt, self),

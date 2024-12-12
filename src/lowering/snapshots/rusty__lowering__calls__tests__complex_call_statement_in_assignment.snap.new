@@ -1,6 +1,6 @@
 ---
 source: src/lowering/calls.rs
-assertion_line: 303
+assertion_line: 340
 expression: "unit.implementations[1]"
 ---
 Implementation {

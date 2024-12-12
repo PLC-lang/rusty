@@ -317,7 +317,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
 
 fn should_generate_implicit(datatype: &DataTypeDeclaration) -> bool {
     match datatype {
-        DataTypeDeclaration::DataTypeReference { .. } => false,
+        DataTypeDeclaration::DataTypeReference { .. } | DataTypeDeclaration::Aggregate { .. } => false,
         DataTypeDeclaration::DataTypeDefinition { data_type: DataType::VarArgs { .. }, .. } => false,
         DataTypeDeclaration::DataTypeDefinition { .. } => true,
     }
@@ -375,5 +375,6 @@ fn replace_generic_type_name(dt: &mut DataTypeDeclaration, generics: &FxHashMap<
                 referenced_type.clone_from(type_name);
             }
         }
+        DataTypeDeclaration::Aggregate { .. }=> todo!(),
     }
 }

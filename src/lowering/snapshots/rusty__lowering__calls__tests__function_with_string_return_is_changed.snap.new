@@ -1,0 +1,41 @@
+---
+source: src/lowering/calls.rs
+assertion_line: 205
+expression: "unit.units[0]"
+---
+POU {
+    name: "complexType",
+    variable_blocks: [
+        VariableBlock {
+            variables: [
+                Variable {
+                    name: "complexType",
+                    data_type: DataTypeReference {
+                        referenced_type: "STRING",
+                    },
+                },
+            ],
+            variable_block_type: InOut,
+        },
+        VariableBlock {
+            variables: [
+                Variable {
+                    name: "x",
+                    data_type: DataTypeReference {
+                        referenced_type: "DINT",
+                    },
+                },
+            ],
+            variable_block_type: Input(
+                ByVal,
+            ),
+        },
+    ],
+    pou_type: Function,
+    return_type: Some(
+        Aggregate {
+            referenced_type: "STRING",
+        },
+    ),
+    interfaces: [],
+}

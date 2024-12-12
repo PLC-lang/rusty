@@ -1,3 +1,5 @@
+use std::os::linux::raw::stat;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
     expression_generator::{to_i1, ExpressionCodeGenerator, ExpressionValue},
@@ -202,6 +204,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         "Cannot continue loop when not inside a loop",
                         statement.get_location(),
                     ));
+                }
+            }
+            AstStatement::ExpressionList(statements) => {
+                for stmt in statements {
+                    self.create_expr_generator().generate_expression(stmt)?;
                 }
             }
             _ => {

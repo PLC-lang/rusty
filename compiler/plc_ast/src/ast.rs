@@ -238,6 +238,10 @@ impl Pou {
     pub fn calc_return_name(pou_name: &str) -> &str {
         pou_name.split('.').last().unwrap_or_default()
     }
+
+    pub fn is_aggregate(&self) -> bool {
+        matches!(self.return_type, Some(DataTypeDeclaration::Aggregate { .. }))
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -502,7 +506,7 @@ impl Variable {
 pub enum DataTypeDeclaration {
     DataTypeReference { referenced_type: String, location: SourceLocation },
     DataTypeDefinition { data_type: DataType, location: SourceLocation, scope: Option<String> },
-    Aggregate
+    Aggregate { referenced_type: String, location: SourceLocation },
 }
 
 impl Debug for DataTypeDeclaration {
@@ -514,8 +518,8 @@ impl Debug for DataTypeDeclaration {
             DataTypeDeclaration::DataTypeDefinition { data_type, .. } => {
                 f.debug_struct("DataTypeDefinition").field("data_type", data_type).finish()
             }
-            Self::Aggregate => {
-                writeln!(f, "Aggregate")
+            DataTypeDeclaration::Aggregate { referenced_type, .. } => {
+                f.debug_struct("Aggregate").field("referenced_type", referenced_type).finish()
             }
         }
     }
@@ -524,9 +528,11 @@ impl Debug for DataTypeDeclaration {
 impl DataTypeDeclaration {
     pub fn get_name(&self) -> Option<&str> {
         match self {
-            DataTypeDeclaration::DataTypeReference { referenced_type, .. } => Some(referenced_type.as_str()),
+            Self::Aggregate { referenced_type, .. }
+            | DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
+                Some(referenced_type.as_str())
+            }
             DataTypeDeclaration::DataTypeDefinition { data_type, .. } => data_type.get_name(),
-            Self::Aggregate => None,
         }
     }
 
@@ -534,7 +540,7 @@ impl DataTypeDeclaration {
         match self {
             DataTypeDeclaration::DataTypeReference { location, .. } => location.clone(),
             DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
-            Self::Aggregate => SourceLocation::internal(),
+            Self::Aggregate { location, .. } => location.clone(),
         }
     }
 
@@ -554,8 +560,12 @@ impl DataTypeDeclaration {
 
                 None
             }
-            Self::Aggregate => None,
+            Self::Aggregate { .. } => todo!(),
         }
+    }
+
+    pub fn is_aggregate(&self) -> bool {
+        matches!(self, Self::Aggregate { .. })
     }
 }
 
