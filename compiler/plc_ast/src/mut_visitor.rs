@@ -1,11 +1,10 @@
 //! This module defines the `AstVisitorMut` trait and its associated macros.
 //! The `AstVisitorMut` trait provides a set of methods for mutably traversing and visiting ASTs
 
+use std::borrow::BorrowMut;
+
 use crate::ast::{
-    flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
-    CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement,
-    HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement,
-    ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
+    flatten_expression_list, Allocation, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement, CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement, HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock
 };
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;
@@ -42,6 +41,12 @@ pub trait WalkerMut {
 pub trait AstVisitorMut: Sized {
     fn visit(&mut self, node: &mut AstNode) {
         node.walk(self)
+    }
+
+    //Takes ownership of the node, manipulates it and returns a new node
+    fn map(&mut self, mut node: AstNode) -> AstNode {
+        node.borrow_mut().walk(self);
+        node
     }
 
     fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
@@ -169,6 +174,12 @@ pub trait AstVisitorMut: Sized {
     /// * `stmt` - The unwrapedyped `LabelStatement` node to visit.
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
     fn visit_label_statement(&mut self, _stmt: &mut LabelStatement, _node: &mut AstNode) {}
+
+    /// Visits a `Allocation` node.
+    /// # Arguments
+    /// * `stmt` - The unwrapedyped `Allocation` node to visit.
+    /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
+    fn visit_allocation(&mut self, _stmt: &mut Allocation, _node: &mut AstNode) {}
 }
 
 /// Helper method that walks through a slice of `ConditionalBlock` and applies the visitor's `walk` method to each node.
@@ -362,6 +373,7 @@ impl WalkerMut for AstNode {
             AstStatement::ReturnStatement(ref mut stmt) => visitor.visit_return_statement(stmt, self),
             AstStatement::JumpStatement(ref mut stmt) => visitor.visit_jump_statement(stmt, self),
             AstStatement::LabelStatement(ref mut stmt) => visitor.visit_label_statement(stmt, self),
+            AstStatement::AllocationStatement(ref mut stmt) => visitor.visit_allocation(stmt, self)
         }
     }
 }

@@ -3,9 +3,7 @@ use core::panic;
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::{
     ast::{
-        flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
-        DataType, DirectAccess, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr,
-        UnaryExpression, UserTypeDeclaration,
+        flatten_expression_list, Allocation, Assignment, AstFactory, AstNode, AstStatement, BinaryExpression, CallStatement, DataType, DirectAccess, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration
     },
     control_statements::{AstControlStatement, CaseStatement},
     literals::{Array, AstLiteral},
@@ -14,7 +12,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::{ArgumentType, Index, VariableType},
+    index::{ArgumentType, ImplementationType, Index, VariableType},
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
@@ -5573,13 +5571,13 @@ fn internal_var_config_global_resolves() {
             prog.instance1.foo AT %IX1.2.1 : DINT;
         END_VAR
 
-        FUNCTION_BLOCK FB 
-        VAR 
-            foo AT %I* : DINT; 
+        FUNCTION_BLOCK FB
+        VAR
+            foo AT %I* : DINT;
         END_VAR
         END_FUNCTION_BLOCK
 
-        PROGRAM prog 
+        PROGRAM prog
         VAR
             instance1: FB;
         END_VAR
@@ -5612,3 +5610,38 @@ fn internal_var_config_global_resolves() {
         unreachable!("Must be assignment")
     }
 }
+
+#[test]
+fn reference_to_alloca_resolved() {
+
+    let mut id_provider = IdProvider::default();
+    let (mut unit, mut index) = index_with_ids(
+        "
+        FUNCTION main : DINT
+        VAR
+            x : DINT;
+        END_VAR
+        x := foo;
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    unit.implementations[0].statements.insert(0, AstNode {
+        stmt: AstStatement::AllocationStatement(Allocation {
+            name: "foo".to_string(),
+            reference_type: "DINT".to_string()
+        }), id: id_provider.next_id(), location: SourceLocation::internal()
+    });
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    //Make sure the assignment is correctly resolved
+
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { right, ..}), .. } =
+        &unit.implementations[0].statements[1] {
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###""###);
+    } else {
+        unreachable!("Must be an assignment");
+    }
+}
+

@@ -6,11 +6,14 @@
 //! records all resulting types associated with the statement's id.
 
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::hash::Hash;
+use std::{
+    collections::{HashMap, VecDeque},
+    hash::Hash,
+};
 
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
+        self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
         Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
@@ -82,7 +85,7 @@ pub struct VisitorContext<'s> {
     pub id_provider: IdProvider,
 
     // what's the current strategy for resolving
-    resolve_strategy: Vec<ResolvingScope>,
+    resolve_strategy: Vec<ResolvingStrategy>,
 }
 
 impl<'s> VisitorContext<'s> {
@@ -131,7 +134,7 @@ impl<'s> VisitorContext<'s> {
     }
 
     // returns a copy of the current context and sets the resolve_strategy field to the given strategies
-    fn with_resolving_strategy(&self, resolve_strategy: Vec<ResolvingScope>) -> Self {
+    fn with_resolving_strategy(&self, resolve_strategy: Vec<ResolvingStrategy>) -> Self {
         let mut ctx = self.clone();
         ctx.in_body = true;
         ctx.resolve_strategy = resolve_strategy;
@@ -151,6 +154,8 @@ pub struct TypeAnnotator<'i> {
     /// A map containing every jump encountered in a file, and the label of where this jump should
     /// point. This is later used to annotate all jumps after the initial visit is done.
     jumps_to_annotate: FxHashMap<String, FxHashMap<String, Vec<AstId>>>,
+    // Scope to search for variables in
+    scopes: Scopes,
 }
 
 impl TypeAnnotator<'_> {
@@ -773,6 +778,7 @@ impl<'i> TypeAnnotator<'i> {
             dependencies: FxIndexSet::default(),
             string_literals: StringLiterals { utf08: FxHashSet::default(), utf16: FxHashSet::default() },
             jumps_to_annotate: FxHashMap::default(),
+            scopes: Scopes::global(),
         }
     }
 
@@ -791,7 +797,7 @@ impl<'i> TypeAnnotator<'i> {
             constant: false,
             in_body: false,
             id_provider,
-            resolve_strategy: ResolvingScope::default_scopes(),
+            resolve_strategy: ResolvingStrategy::default_scopes(),
             in_control: false,
         };
 
@@ -1529,6 +1535,16 @@ impl<'i> TypeAnnotator<'i> {
                     jumps.push(statement.get_id());
                 }
             }
+            AstStatement::AllocationStatement(Allocation { name, reference_type }) => {
+                self.scopes.enter(Scope::Local(VariableIndexEntry::new(
+                    name,
+                    name,
+                    reference_type,
+                    ArgumentType::ByVal(VariableType::Temp),
+                    u32::MAX,
+                    SourceLocation::internal(),
+                )))
+            }
             _ => {
                 self.visit_statement_literals(ctx, statement);
             }
@@ -1583,7 +1599,7 @@ impl<'i> TypeAnnotator<'i> {
                     if let Some(annotation) = self.resolve_reference_expression(
                         target,
                         optional_enum_qualifier,
-                        &ctx.with_resolving_strategy(vec![ResolvingScope::Variable]),
+                        &ctx.with_resolving_strategy(vec![ResolvingStrategy::Variable]),
                     ) {
                         self.annotate(target.as_ref(), annotation);
                         self.annotate(stmt, StatementAnnotation::value(qualifier.as_str()));
@@ -1652,7 +1668,7 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::Identifier(name, ..) => ctx
                 .resolve_strategy
                 .iter()
-                .find_map(|scope| scope.resolve_name(name, qualifier, self.index, ctx)),
+                .find_map(|scope| scope.resolve_name(name, qualifier, self.index, ctx, &self.scopes)),
 
             AstStatement::Literal(..) => {
                 self.visit_statement_literals(ctx, reference);
@@ -1679,9 +1695,9 @@ impl<'i> TypeAnnotator<'i> {
             }
             AstStatement::HardwareAccess(data, ..) => {
                 let name = data.get_mangled_variable_name();
-                ctx.resolve_strategy
-                    .iter()
-                    .find_map(|scope| scope.resolve_name(&name, qualifier, self.index, ctx))
+                ctx.resolve_strategy.iter().find_map(|strategy| {
+                    strategy.resolve_name(&name, qualifier, self.index, ctx, &self.scopes)
+                })
             }
             _ => None,
         }
@@ -1747,7 +1763,10 @@ impl<'i> TypeAnnotator<'i> {
             unreachable!("Always a call statement");
         };
         // #604 needed for recursive function calls
-        self.visit_statement(&ctx.with_resolving_strategy(ResolvingScope::call_operator_scopes()), operator);
+        self.visit_statement(
+            &ctx.with_resolving_strategy(ResolvingStrategy::call_operator_scopes()),
+            operator,
+        );
         let operator_qualifier = self.get_call_name(operator);
         //Use the context without the is_call =true
         //TODO why do we start a lhs context here???
@@ -2033,8 +2052,66 @@ fn get_real_type_name_for(value: &str) -> &'static str {
     REAL_TYPE
 }
 
-#[derive(Clone)]
-pub enum ResolvingScope {
+#[derive(Clone, Debug)]
+struct Scopes(VecDeque<Scope>);
+
+impl Scopes {
+    pub fn find_member<'idx>(
+        &'idx self,
+        index: &'idx Index,
+        container_name: &str,
+        variable_name: &str,
+    ) -> Option<&'idx VariableIndexEntry> {
+        self.0.iter().filter_map(|scope| scope.find_member(index, container_name, variable_name)).next()
+    }
+
+    pub fn enter(&mut self, scope: Scope) {
+        self.0.push_back(scope)
+    }
+
+    //TODO: this is not accurate, we need to pop much more than the the top scope
+    pub fn exit(&mut self) -> Option<Scope> {
+        self.0.pop_back()
+    }
+
+    fn global() -> Scopes {
+        Scopes(VecDeque::from([Scope::Global]))
+    }
+}
+
+#[derive(Clone, Debug)]
+enum Scope {
+    //Global scope relying on an index to find elements
+    Global,
+    //Local scope declared inline (alloca)
+    Local(VariableIndexEntry),
+    // A block scope like the body of an if or for
+    Block,
+}
+
+impl Scope {
+    pub fn find_member<'idx>(
+        &'idx self,
+        index: &'idx Index,
+        container_name: &str,
+        variable_name: &str,
+    ) -> Option<&'idx VariableIndexEntry> {
+        match self {
+            Scope::Global => index.find_member(container_name, variable_name),
+            Scope::Local(entry) => {
+                if entry.get_name() == variable_name {
+                    Some(entry)
+                } else {
+                    None
+                }
+            }
+            Scope::Block => None,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum ResolvingStrategy {
     Variable,      //try to resolve a variable
     POU,           //try to resolve a POU
     DataType,      //try to resolve a DataType
@@ -2042,16 +2119,16 @@ pub enum ResolvingScope {
     FunctionsOnly, //only consider functions
 }
 
-impl ResolvingScope {
+impl ResolvingStrategy {
     /// scopes that can be used for general references. Will resolve to local/global
     /// variables, Pous or datatypes
     pub fn default_scopes() -> Vec<Self> {
-        vec![ResolvingScope::Variable, ResolvingScope::POU, ResolvingScope::DataType]
+        vec![ResolvingStrategy::Variable, ResolvingStrategy::POU, ResolvingStrategy::DataType]
     }
 
     /// scopes intended for call-statement-operators
-    fn call_operator_scopes() -> Vec<ResolvingScope> {
-        let mut strategy = vec![ResolvingScope::FunctionsOnly];
+    fn call_operator_scopes() -> Vec<ResolvingStrategy> {
+        let mut strategy = vec![ResolvingStrategy::FunctionsOnly];
         strategy.extend(Self::default_scopes());
         strategy
     }
@@ -2067,27 +2144,28 @@ impl ResolvingScope {
         qualifier: Option<&str>,
         index: &Index,
         ctx: &VisitorContext,
+        scopes: &Scopes,
     ) -> Option<StatementAnnotation> {
         match self {
             // try to resolve the name as a variable
-            ResolvingScope::Variable => {
+            ResolvingStrategy::Variable => {
                 if let Some(qualifier) = qualifier {
                     // look for variable, enum with name "qualifier.name"
-                    index
-                        .find_member(qualifier, name)
+                    scopes
+                        .find_member(index, qualifier, name)
                         .or_else(|| index.find_enum_variant(qualifier, name))
                         .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
                 } else {
                     // look for member variable with name "pou.name"
                     // then try fopr a global variable called "name"
                     ctx.pou
-                        .and_then(|pou| index.find_member(pou, name))
+                        .and_then(|pou| scopes.find_member(index, pou, name))
                         .or_else(|| index.find_global_variable(name))
                         .map(|g| to_variable_annotation(g, index, g.is_constant()))
                 }
             }
             // try to resolve the name as POU/Action/Method
-            ResolvingScope::POU => {
+            ResolvingStrategy::POU => {
                 if let Some(qualifier) = qualifier {
                     // look for Pou/Action with name "qualifier.name"
                     index
@@ -2102,12 +2180,12 @@ impl ResolvingScope {
                                 //Use the type name of the pou in case we are resolving a
                                 //neighboring action
                                 index.find_pou(pou).map(|pou| pou.get_container())
-                                .and_then(|pou|ResolvingScope::POU.resolve_name(name, Some(pou), index, ctx)))
+                                .and_then(|pou|ResolvingStrategy::POU.resolve_name(name, Some(pou), index, ctx, scopes)))
                     })
                 }
             }
             // try to resolve the name as a datatype
-            ResolvingScope::DataType => {
+            ResolvingStrategy::DataType => {
                 if qualifier.is_none() {
                     // look for datatype with name "name"
                     index
@@ -2119,7 +2197,7 @@ impl ResolvingScope {
                 }
             }
             // try to resolve the name as an enum-type
-            ResolvingScope::EnumTypeOnly => {
+            ResolvingStrategy::EnumTypeOnly => {
                 if qualifier.is_none() {
                     // look for enum-tyoe with name "name"
                     index
@@ -2132,7 +2210,7 @@ impl ResolvingScope {
                 }
             }
             // try to resolve this name as a function
-            ResolvingScope::FunctionsOnly => {
+            ResolvingStrategy::FunctionsOnly => {
                 if qualifier.is_none() {
                     // look for function with name "name"
                     index.find_pou(name).filter(|it| it.is_function()).map(|pou| pou.into())

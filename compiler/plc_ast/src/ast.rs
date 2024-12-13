@@ -771,6 +771,7 @@ pub enum AstStatement {
     ReturnStatement(ReturnStatement),
     JumpStatement(JumpStatement),
     LabelStatement(LabelStatement),
+    AllocationStatement(Allocation),
 }
 
 impl Debug for AstNode {
@@ -889,6 +890,9 @@ impl Debug for AstNode {
             }
             AstStatement::LabelStatement(LabelStatement { name, .. }) => {
                 f.debug_struct("LabelStatement").field("name", name).finish()
+            }
+            AstStatement::AllocationStatement(Allocation {name, reference_type}) => {
+                f.debug_struct("Allocation").field("name", name).field("reference_type", reference_type).finish()
             }
         }
     }
@@ -1799,6 +1803,12 @@ pub struct JumpStatement {
 #[derive(Debug, Clone, PartialEq)]
 pub struct LabelStatement {
     pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Allocation {
+    pub name: String,
+    pub reference_type : String,
 }
 
 impl HardwareAccess {

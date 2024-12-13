@@ -2,11 +2,7 @@
 //! to make them VAR_IN_OUT calls, allowing them
 //! to be called from C_APIs and simplifying code generation
 
-use std::{
-    borrow::BorrowMut,
-    collections::VecDeque,
-    sync::atomic::AtomicI32,
-};
+use std::{borrow::BorrowMut, collections::VecDeque, sync::atomic::AtomicI32};
 
 use plc_ast::{
     ast::{
@@ -15,6 +11,7 @@ use plc_ast::{
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
+    visitor::Walker,
 };
 use plc_source::source_location::SourceLocation;
 
@@ -26,8 +23,8 @@ use crate::{
 // Performs lowering for aggregate types defined in functions
 pub struct AggregateTypeLowerer {
     index: Option<Index>,
-    // Operations that can be performed before or after the ast visit to change the parent ast
-    ast_operation: VecDeque<Box<dyn FnMut()>>,
+    // New statements to be added during visit, should always be drained when read
+    new_stmts: Vec<AstNode>,
     annotation: Option<Box<dyn AnnotationMap>>,
     id_provider: IdProvider,
     counter: AtomicI32,
@@ -92,12 +89,23 @@ impl AstVisitorMut for AggregateTypeLowerer {
         if self.annotation.is_none() {
             return;
         }
-        for (idx, stmt) in implementation.statements.iter_mut().enumerate() {
-            self.visit(stmt);
-
+        let mut new_stmts = vec![];
+        for stmt in implementation.statements.drain(..) {
+            new_stmts.push(self.map(stmt));
         }
-        //apply changes
+        implementation.statements.extend(new_stmts);
+    }
 
+    fn map(&mut self, mut node: AstNode) -> AstNode {
+        node.borrow_mut().walk(self);
+        let mut new_stmts = std::mem::take(&mut self.new_stmts);
+        if new_stmts.is_empty() {
+            node
+        } else {
+            let location = node.get_location();
+            new_stmts.push(node);
+            AstFactory::create_expression_list(new_stmts, location, self.id_provider.next_id())
+        }
     }
 
     fn visit_call_statement(
@@ -105,13 +113,15 @@ impl AstVisitorMut for AggregateTypeLowerer {
         _original_stmt: &mut plc_ast::ast::CallStatement,
         node: &mut plc_ast::ast::AstNode,
     ) {
-        let annotation = self.annotation.as_ref().expect("Must be annotated");
-        let index = self.index.as_ref().expect("Must be indexed");
-        let AstStatement::CallStatement(ref mut stmt) = &mut node.stmt else {
+        let AstStatement::CallStatement(stmt) = &mut node.stmt else {
             return;
         };
+        stmt.walk(self);
+        let annotation = self.annotation.as_ref().expect("Must be annotated");
+        let index = self.index.as_ref().expect("Must be indexed");
         //Get the function being called
-        let Some(crate::resolver::StatementAnnotation::Function { return_type, .. }) = annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator))
+        let Some(crate::resolver::StatementAnnotation::Function { return_type, .. }) =
+            annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator))
         else {
             return;
         };
@@ -120,26 +130,32 @@ impl AstVisitorMut for AggregateTypeLowerer {
         if return_type.is_aggregate_type() {
             //self.context.insert_before(alloca)
             //TODO: use qualified name
-            let name = format!("__{}{}", stmt.operator.get_flat_reference_name().unwrap_or_default(), self.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
+            let name = format!(
+                "__{}{}",
+                stmt.operator.get_flat_reference_name().unwrap_or_default(),
+                self.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+            );
             let reference = super::create_member_reference(&name, self.id_provider.clone(), None);
             //TODO : we are creating th expression list twice in case of no params
-            let AstNode {
-                stmt: AstStatement::ExpressionList(mut parameters),
-                id,
-                location
-            }  = *stmt.parameters.take().unwrap_or_else(|| Box::new(AstFactory::create_expression_list(vec![], SourceLocation::internal() , self.id_provider.next_id()))) else {
+            let AstNode { stmt: AstStatement::ExpressionList(mut parameters), id, location } =
+                *stmt.parameters.take().unwrap_or_else(|| {
+                    Box::new(AstFactory::create_expression_list(
+                        vec![],
+                        SourceLocation::internal(),
+                        self.id_provider.next_id(),
+                    ))
+                })
+            else {
                 return;
             };
             parameters.insert(0, reference);
-            dbg!(&parameters);
 
             stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
             //steal parameters, add one to the start, return parameters
             let reference = super::create_member_reference(&name, self.id_provider.clone(), None);
             let node = std::mem::replace(node, reference);
-            //self.context.insert_before(call with temp)
+            self.new_stmts.push(node);
         }
-        //stmt.walk(self);
     }
 }
 
@@ -180,7 +196,7 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            ast_operation: Default::default(),
+            new_stmts: Default::default(),
             id_provider: IdProvider::default(),
             counter: Default::default(),
         };
@@ -205,7 +221,7 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            ast_operation: Default::default(),
+            new_stmts: Default::default(),
             id_provider: IdProvider::default(),
             counter: Default::default(),
         };
@@ -257,7 +273,7 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            ast_operation: Default::default(),
+            new_stmts: Default::default(),
             id_provider: IdProvider::default(),
             counter: Default::default(),
         };
@@ -307,7 +323,7 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            ast_operation: Default::default(),
+            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
             counter: Default::default(),
         };
@@ -343,7 +359,7 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            ast_operation: Default::default(),
+            new_stmts: Default::default(),
             id_provider: IdProvider::default(),
             counter: Default::default(),
         };
@@ -378,7 +394,7 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            ast_operation: Default::default(),
+            new_stmts: Default::default(),
             id_provider: IdProvider::default(),
             counter: Default::default(),
         };
@@ -416,7 +432,7 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            ast_operation: Default::default(),
+            new_stmts: Default::default(),
             id_provider: IdProvider::default(),
             counter: Default::default(),
         };

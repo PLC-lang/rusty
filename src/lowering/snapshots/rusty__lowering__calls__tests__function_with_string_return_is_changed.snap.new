@@ -1,6 +1,6 @@
 ---
 source: src/lowering/calls.rs
-assertion_line: 205
+assertion_line: 229
 expression: "unit.units[0]"
 ---
 POU {

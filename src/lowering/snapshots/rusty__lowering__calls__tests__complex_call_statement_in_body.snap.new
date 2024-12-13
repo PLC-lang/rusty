@@ -1,6 +1,6 @@
 ---
 source: src/lowering/calls.rs
-assertion_line: 314
+assertion_line: 334
 expression: "unit.implementations[1]"
 ---
 Implementation {
@@ -9,13 +9,41 @@ Implementation {
     linkage: Internal,
     pou_type: Function,
     statements: [
-        ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__complexFunc0",
+        ExpressionList {
+            expressions: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "complexFunc",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__complexFunc0",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ],
+                        },
+                    ),
                 },
-            ),
-            base: None,
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__complexFunc0",
+                        },
+                    ),
+                    base: None,
+                },
+            ],
         },
     ],
     location: SourceLocation {
