@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/parser.rs`."><title>parser.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/parser.rs`."><title>parser.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rusty/</div>parser.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1419,8 +1420,7 @@
 <a href="#1419" id="1419">1419</a>
 <a href="#1420" id="1420">1420</a>
 <a href="#1421" id="1421">1421</a>
-<a href="#1422" id="1422">1422</a>
-</pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1422" id="1422">1422</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
 
@@ -1597,7 +1597,7 @@
 <span class="doccomment">/// Parses an interface and its methods / properties
 </span><span class="kw">fn </span>parse_interface(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; (Interface, Vec&lt;Implementation&gt;) {
     <span class="kw">let </span>location_start = lexer.range().start;
-    lexer.consume_or_report(KeywordInterface);
+    lexer.try_consume_or_report(KeywordInterface);
 
     <span class="kw">let </span>(name, location_name) = <span class="kw">match </span>lexer.token {
         Token::Identifier =&gt; parse_identifier(lexer).expect(<span class="string">"unreachable, already matched here"</span>),
@@ -1641,7 +1641,7 @@
         }
     }
 
-    lexer.consume_or_report(KeywordEndInterface);
+    lexer.try_consume_or_report(KeywordEndInterface);
     <span class="kw">let </span>location_end = lexer.range().start;
 
     (
@@ -1666,7 +1666,7 @@
 ///
 </span><span class="kw">fn </span>parse_pou(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-    pou_type: PouType,
+    kind: PouType,
     linkage: LinkageType,
     expected_end_token: lexer::Token,
     constant: bool,
@@ -1690,7 +1690,7 @@
     <span class="kw">let </span>pou = parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
         <span class="comment">// parse polymorphism mode for all pou types
         // check in validator if pou type allows polymorphism
-        </span><span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>pou_type);
+        </span><span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>kind);
 
         <span class="kw">let </span>(name, name_location) =
             parse_identifier(lexer).unwrap_or_else(|| (<span class="string">""</span>.to_string(), SourceLocation::undefined())); <span class="comment">// parse POU name
@@ -1704,7 +1704,7 @@
 
             <span class="comment">// parse an optional return type
             // classes do not have a return type (check in validator)
-            </span><span class="kw">let </span>return_type = parse_return_type(lexer, <span class="kw-2">&amp;</span>pou_type);
+            </span><span class="kw">let </span>return_type = parse_return_type(lexer, <span class="kw-2">&amp;</span>kind);
 
             <span class="comment">// parse variable declarations. note that var in/out/inout
             // blocks are not allowed inside of class declarations.
@@ -1731,16 +1731,16 @@
             // declarations before their implementation.
             // all other Pous need to be checked in the validator if they can have methods.
             </span><span class="kw">while </span><span class="macro">matches!</span>(lexer.token, KeywordMethod | PropertyConstant) {
-                <span class="kw">if </span>!<span class="macro">matches!</span>(pou_type, PouType::FunctionBlock | PouType::Class | PouType::Program) {
+                <span class="kw">if </span>!<span class="macro">matches!</span>(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
                     <span class="kw">let </span>location = lexer.source_range_factory.create_range(lexer.last_range.clone());
 
                     lexer.accept_diagnostic(
-                        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Methods cannot be declared in a POU of type '{pou_type}'."</span>))
+                        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Methods cannot be declared in a POU of type '{kind}'."</span>))
                             .with_location(location),
                     );
                     <span class="kw">break</span>;
                 }
-                <span class="kw">let </span>const_method = lexer.try_consume(<span class="kw-2">&amp;</span>PropertyConstant);
+                <span class="kw">let </span>const_method = lexer.try_consume(PropertyConstant);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>((pou, implementation)) = parse_method(lexer, <span class="kw-2">&amp;</span>name, linkage, const_method) {
                     impl_pous.push(pou);
                     implementations.push(implementation);
@@ -1752,7 +1752,7 @@
             </span>implementations.push(parse_implementation(
                 lexer,
                 linkage,
-                pou_type.clone(),
+                kind.clone(),
                 <span class="kw-2">&amp;</span>name,
                 <span class="kw-2">&amp;</span>name,
                 !generics.is_empty(),
@@ -1761,7 +1761,7 @@
 
             <span class="kw">let </span><span class="kw-2">mut </span>pous = <span class="macro">vec!</span>[Pou {
                 name,
-                pou_type,
+                kind,
                 variable_blocks,
                 return_type,
                 location: lexer.source_range_factory.create_range(start..lexer.range().end),
@@ -1791,13 +1791,13 @@
 }
 
 <span class="kw">fn </span>parse_generics(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;GenericBinding&gt; {
-    <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>Token::OperatorLess) {
+    <span class="kw">if </span>lexer.try_consume(Token::OperatorLess) {
         parse_any_in_region(lexer, <span class="macro">vec!</span>[Token::OperatorGreater], |lexer| {
             <span class="kw">let </span><span class="kw-2">mut </span>generics = <span class="macro">vec!</span>[];
             <span class="kw">loop </span>{
                 <span class="comment">//identifier
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>((name, <span class="kw">_</span>)) = parse_identifier(lexer) {
-                    lexer.consume_or_report(Token::KeywordColon);
+                    lexer.try_consume_or_report(Token::KeywordColon);
 
                     <span class="comment">//Expect a type nature
                     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(nature) = parse_identifier(lexer).map(|(it, <span class="kw">_</span>)| parse_type_nature(lexer, <span class="kw-2">&amp;</span>it))
@@ -1806,7 +1806,7 @@
                     }
                 }
 
-                <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>Token::KeywordComma) || lexer.try_consume(<span class="kw-2">&amp;</span>Token::OperatorGreater) {
+                <span class="kw">if </span>!lexer.try_consume(Token::KeywordComma) || lexer.try_consume(Token::OperatorGreater) {
                     <span class="kw">break</span>;
                 }
             }
@@ -1823,7 +1823,7 @@
 </span><span class="kw">fn </span>parse_interface_declarations(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;InterfaceIdentifier&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>declarations = Vec::new();
 
-    <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordImplements) {
+    <span class="kw">if </span>!lexer.try_consume(KeywordImplements) {
         <span class="kw">return </span>declarations;
     }
 
@@ -1888,9 +1888,9 @@
         PouType::Class | PouType::FunctionBlock | PouType::Method { .. } =&gt; {
             <span class="prelude-val">Some</span>(
                 <span class="comment">// See if the method/pou was declared FINAL or ABSTRACT
-                </span><span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordFinal) {
+                </span><span class="kw">if </span>lexer.try_consume(KeywordFinal) {
                     PolymorphismMode::Final
-                } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAbstract) {
+                } <span class="kw">else if </span>lexer.try_consume(KeywordAbstract) {
                     PolymorphismMode::Abstract
                 } <span class="kw">else </span>{
                     PolymorphismMode::None
@@ -1902,7 +1902,7 @@
 }
 
 <span class="kw">fn </span>parse_super_class(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-    <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordExtends) {
+    <span class="kw">if </span>lexer.try_consume(KeywordExtends) {
         <span class="kw">let </span>(name, <span class="kw">_</span>) = parse_identifier(lexer)<span class="question-mark">?</span>;
         <span class="prelude-val">Some</span>(name)
     } <span class="kw">else </span>{
@@ -1912,7 +1912,7 @@
 
 <span class="kw">fn </span>parse_return_type(lexer: <span class="kw-2">&amp;mut </span>ParseSession, pou_type: <span class="kw-2">&amp;</span>PouType) -&gt; <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt; {
     <span class="kw">let </span>start_return_type = lexer.range().start;
-    <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordColon) {
+    <span class="kw">if </span>lexer.try_consume(KeywordColon) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>((declaration, initializer)) = parse_data_type_definition(lexer, <span class="prelude-val">None</span>) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = initializer {
                 lexer.accept_diagnostic(
@@ -1989,12 +1989,12 @@
         lexer.advance(); <span class="comment">// eat METHOD keyword
 
         </span><span class="kw">let </span>access = <span class="prelude-val">Some</span>(parse_access_modifier(lexer));
-        <span class="kw">let </span>pou_type = PouType::Method { parent: parent.into() };
-        <span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>pou_type);
-        <span class="kw">let </span>overriding = lexer.try_consume(<span class="kw-2">&amp;</span>KeywordOverride);
+        <span class="kw">let </span>kind = PouType::Method { parent: parent.into() };
+        <span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>kind);
+        <span class="kw">let </span>overriding = lexer.try_consume(KeywordOverride);
         <span class="kw">let </span>(name, name_location) = parse_identifier(lexer)<span class="question-mark">?</span>;
         <span class="kw">let </span>generics = parse_generics(lexer);
-        <span class="kw">let </span>return_type = parse_return_type(lexer, <span class="kw-2">&amp;</span>pou_type);
+        <span class="kw">let </span>return_type = parse_return_type(lexer, <span class="kw-2">&amp;</span>kind);
 
         <span class="kw">let </span><span class="kw-2">mut </span>variable_blocks = <span class="macro">vec!</span>[];
         <span class="kw">while </span>lexer.token == KeywordVar
@@ -2025,7 +2025,7 @@
         <span class="prelude-val">Some</span>((
             Pou {
                 name: call_name,
-                pou_type,
+                kind,
                 variable_blocks,
                 return_type,
                 location: lexer.source_range_factory.create_range(method_start..method_end),
@@ -2043,13 +2043,13 @@
 }
 
 <span class="kw">fn </span>parse_access_modifier(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AccessModifier {
-    <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAccessPublic) {
+    <span class="kw">if </span>lexer.try_consume(KeywordAccessPublic) {
         AccessModifier::Public
-    } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAccessPrivate) {
+    } <span class="kw">else if </span>lexer.try_consume(KeywordAccessPrivate) {
         AccessModifier::Private
-    } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAccessProtected) {
+    } <span class="kw">else if </span>lexer.try_consume(KeywordAccessProtected) {
         AccessModifier::Protected
-    } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAccessInternal) {
+    } <span class="kw">else if </span>lexer.try_consume(KeywordAccessInternal) {
         AccessModifier::Internal
     } <span class="kw">else </span>{
         AccessModifier::Protected
@@ -2090,7 +2090,7 @@
         linkage,
         pou_type,
         statements,
-        location: lexer.source_range_factory.create_range(start..lexer.range().end),
+        location: lexer.source_range_factory.create_range(start..lexer.last_range.end),
         name_location,
         overriding: <span class="bool-val">false</span>,
         generic,
@@ -2155,7 +2155,7 @@
         <span class="kw">while </span>!lexer.closes_open_region(<span class="kw-2">&amp;</span>lexer.token) {
             <span class="kw">let </span>name = lexer.slice_and_advance();
             <span class="kw">let </span>name_location = lexer.last_location();
-            lexer.consume_or_report(KeywordColon);
+            lexer.try_consume_or_report(KeywordColon);
 
             <span class="kw">let </span>result = parse_full_data_type_definition(lexer, <span class="prelude-val">Some</span>(name));
 
@@ -2180,8 +2180,8 @@
 ) -&gt; <span class="prelude-ty">Option</span>&lt;DataTypeWithInitializer&gt; {
     <span class="kw">let </span>end_keyword = <span class="kw">if </span>lexer.token == KeywordStruct { KeywordEndStruct } <span class="kw">else </span>{ KeywordSemicolon };
     <span class="kw">let </span>parsed_datatype = parse_any_in_region(lexer, <span class="macro">vec!</span>[end_keyword], |lexer| {
-        <span class="kw">let </span>sized = lexer.try_consume(<span class="kw-2">&amp;</span>PropertySized);
-        <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordDotDotDot) {
+        <span class="kw">let </span>sized = lexer.try_consume(PropertySized);
+        <span class="kw">if </span>lexer.try_consume(KeywordDotDotDot) {
             <span class="prelude-val">Some</span>((
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::VarArgs { referenced_type: <span class="prelude-val">None</span>, sized },
@@ -2192,7 +2192,7 @@
             ))
         } <span class="kw">else </span>{
             parse_data_type_definition(lexer, name).map(|(type_def, initializer)| {
-                <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordDotDotDot) {
+                <span class="kw">if </span>lexer.try_consume(KeywordDotDotDot) {
                     (
                         DataTypeDeclaration::DataTypeDefinition {
                             data_type: DataType::VarArgs { referenced_type: <span class="prelude-val">Some</span>(Box::new(type_def)), sized },
@@ -2211,7 +2211,7 @@
     <span class="comment">// The standard allows semicolons at the end of an `END_STRUCT` keyword, hence if we parsed
     // a struct, try to also consume a semicolon if it exists
     </span><span class="kw">if </span>end_keyword == KeywordEndStruct {
-        lexer.try_consume(<span class="kw-2">&amp;</span>KeywordSemicolon);
+        lexer.try_consume(KeywordSemicolon);
     }
 
     parsed_datatype
@@ -2223,7 +2223,7 @@
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;DataTypeWithInitializer&gt; {
     <span class="kw">let </span>start = lexer.location();
-    <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordStruct) {
+    <span class="kw">if </span>lexer.try_consume(KeywordStruct) {
         <span class="comment">// Parse struct
         </span><span class="kw">let </span>variables = parse_variable_list(lexer);
         <span class="prelude-val">Some</span>((
@@ -2234,9 +2234,9 @@
             },
             <span class="prelude-val">None</span>,
         ))
-    } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordArray) {
+    } <span class="kw">else if </span>lexer.try_consume(KeywordArray) {
         parse_array_type_definition(lexer, name)
-    } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordPointer) {
+    } <span class="kw">else if </span>lexer.try_consume(KeywordPointer) {
         <span class="kw">let </span>start_pos = lexer.last_range.start;
         <span class="comment">//Report wrong keyword
         </span>lexer.accept_diagnostic(
@@ -2252,9 +2252,9 @@
             lexer.advance();
         }
         parse_pointer_definition(lexer, name, start_pos, <span class="prelude-val">None</span>)
-    } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordRef) {
+    } <span class="kw">else if </span>lexer.try_consume(KeywordRef) {
         parse_pointer_definition(lexer, name, lexer.last_range.start, <span class="prelude-val">None</span>)
-    } <span class="kw">else if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
+    } <span class="kw">else if </span>lexer.try_consume(KeywordParensOpen) {
         <span class="comment">//enum without datatype
         </span>parse_enum_type_definition(lexer, name)
     } <span class="kw">else if </span>lexer.token == KeywordString || lexer.token == KeywordWideString {
@@ -2299,7 +2299,7 @@
     <span class="comment">//Subrange
     </span><span class="kw">let </span>referenced_type = lexer.slice_and_advance();
 
-    <span class="kw">let </span>bounds = <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
+    <span class="kw">let </span>bounds = <span class="kw">if </span>lexer.try_consume(KeywordParensOpen) {
         <span class="comment">// INT (..) :=
         </span><span class="kw">let </span>bounds = parse_expression(lexer);
         <span class="macro">expect_token!</span>(lexer, KeywordParensClose, <span class="prelude-val">None</span>);
@@ -2312,7 +2312,7 @@
     <span class="kw">let </span>end = lexer.last_range.end;
 
     <span class="kw">let </span>initial_value: <span class="prelude-ty">Option</span>&lt;AstNode&gt; =
-        <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAssignment) || lexer.try_consume(<span class="kw-2">&amp;</span>KeywordReferenceAssignment) {
+        <span class="kw">if </span>lexer.try_consume(KeywordAssignment) || lexer.try_consume(KeywordReferenceAssignment) {
             <span class="prelude-val">Some</span>(parse_expression(lexer))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -2368,7 +2368,7 @@
 
 <span class="kw">fn </span>parse_string_size_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>opening_token = lexer.token;
-    <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordSquareParensOpen) || lexer.try_consume(<span class="kw-2">&amp;</span>KeywordParensOpen) {
+    <span class="kw">if </span>lexer.try_consume(KeywordSquareParensOpen) || lexer.try_consume(KeywordParensOpen) {
         <span class="kw">let </span>opening_location = lexer.range().start;
         <span class="kw">let </span>closing_tokens = <span class="macro">vec!</span>[KeywordSquareParensClose, KeywordParensClose];
         parse_any_in_region(lexer, closing_tokens, |lexer| {
@@ -2429,7 +2429,7 @@
         <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }),
     }
     .zip(<span class="prelude-val">Some</span>(
-        (lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAssignment) || lexer.try_consume(<span class="kw-2">&amp;</span>KeywordReferenceAssignment))
+        (lexer.try_consume(KeywordAssignment) || lexer.try_consume(KeywordReferenceAssignment))
             .then(|| parse_expression(lexer)),
     ))
 }
@@ -2444,7 +2444,7 @@
         </span><span class="kw">let </span>elements = parse_expression_list(lexer);
         <span class="prelude-val">Some</span>(elements)
     })<span class="question-mark">?</span>;
-    <span class="kw">let </span>initializer = lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAssignment).then(|| parse_expression(lexer));
+    <span class="kw">let </span>initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
     <span class="prelude-val">Some</span>((
         DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::EnumType { name, elements, numeric_type: DINT_TYPE.to_string() },
@@ -2593,7 +2593,7 @@
     <span class="kw">let </span>block_type = lexer.token;
     <span class="comment">//Consume the type token
     </span>lexer.advance();
-    <span class="kw">let </span>argument_property = <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>PropertyByRef) {
+    <span class="kw">let </span>argument_property = <span class="kw">if </span>lexer.try_consume(PropertyByRef) {
         <span class="comment">//Report a diagnostic if blocktype is incompatible
         </span><span class="kw">if </span>!<span class="macro">matches!</span>(block_type, KeywordVarInput) {
             lexer.accept_diagnostic(
@@ -2622,10 +2622,10 @@
     <span class="kw">let </span>location = lexer.location();
     <span class="kw">let </span>variable_block_type = parse_variable_block_type(lexer);
 
-    <span class="kw">let </span>constant = lexer.try_consume(<span class="kw-2">&amp;</span>KeywordConstant);
+    <span class="kw">let </span>constant = lexer.try_consume(KeywordConstant);
 
-    <span class="kw">let </span>retain = lexer.try_consume(<span class="kw-2">&amp;</span>KeywordRetain);
-    lexer.try_consume(<span class="kw-2">&amp;</span>KeywordNonRetain);
+    <span class="kw">let </span>retain = lexer.try_consume(KeywordRetain);
+    lexer.try_consume(KeywordNonRetain);
 
     <span class="kw">let </span>access = parse_access_modifier(lexer);
 
@@ -2669,7 +2669,7 @@
     <span class="kw">let </span>start = lexer.location();
     <span class="kw">let </span>qualified_reference = parse_reference(lexer);
     <span class="kw">let </span>location = start.span(<span class="kw-2">&amp;</span>lexer.last_location());
-    <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAt) {
+    <span class="kw">if </span>!lexer.try_consume(KeywordAt) {
         lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"AT"</span>, lexer.location()));
     }
 
@@ -2680,7 +2680,7 @@
 
     <span class="kw">let </span>address = parse_hardware_access(lexer, direction, access_type)<span class="question-mark">?</span>;
 
-    <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordColon) {
+    <span class="kw">if </span>!lexer.try_consume(KeywordColon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
             <span class="macro">format!</span>(<span class="string">"{KeywordColon:?}"</span>).as_str(),
             lexer.location(),
@@ -2701,7 +2701,7 @@
 
 <span class="kw">fn </span>parse_aliasing(lexer: <span class="kw-2">&amp;mut </span>ParseSession, names: <span class="kw-2">&amp;</span>(String, Range&lt;usize&gt;)) -&gt; <span class="prelude-ty">Option</span>&lt;Variable&gt; {
     <span class="kw">let </span>reference = parse_reference(lexer);
-    <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordColon) {
+    <span class="kw">if </span>!lexer.try_consume(KeywordColon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
             <span class="macro">format!</span>(<span class="string">"{KeywordColon:?}"</span>).as_str(),
             lexer.location(),
@@ -2710,7 +2710,7 @@
 
     <span class="kw">let </span>start = <span class="kw-2">&amp;</span>lexer.location().get_span().to_range().unwrap_or(lexer.last_range.clone()).start;
     <span class="kw">let </span>datatype = parse_pointer_definition(lexer, <span class="prelude-val">None</span>, <span class="kw-2">*</span>start, <span class="prelude-val">Some</span>(AutoDerefType::Alias));
-    <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordSemicolon) {
+    <span class="kw">if </span>!lexer.try_consume(KeywordSemicolon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
             <span class="macro">format!</span>(<span class="string">"{KeywordSemicolon:?}"</span>).as_str(),
             lexer.location(),
@@ -2742,7 +2742,7 @@
             <span class="kw">break</span>;
         }
 
-        <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordComma) {
+        <span class="kw">if </span>!lexer.try_consume(KeywordComma) {
             <span class="kw">let </span>next_token_start = lexer.range().start;
             lexer.accept_diagnostic(Diagnostic::missing_token(
                 <span class="macro">format!</span>(<span class="string">"{KeywordColon:?} or {KeywordComma:?}"</span>).as_str(),
@@ -2753,7 +2753,7 @@
 
     <span class="comment">//See if there's an AT keyword
     </span><span class="kw">let </span><span class="kw-2">mut </span>address: <span class="prelude-ty">Option</span>&lt;AstNode&gt; = <span class="prelude-val">None</span>;
-    <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordAt) {
+    <span class="kw">if </span>lexer.try_consume(KeywordAt) {
         <span class="kw">match </span>lexer.token {
             HardwareAccess((direction, access_type)) =&gt; {
                 address = parse_hardware_access(lexer, direction, access_type)
@@ -2776,7 +2776,7 @@
     };
 
     <span class="comment">// colon has to come before the data type
-    </span><span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordColon) {
+    </span><span class="kw">if </span>!lexer.try_consume(KeywordColon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
             <span class="macro">format!</span>(<span class="string">"{KeywordColon:?}"</span>).as_str(),
             lexer.location(),
@@ -2786,7 +2786,7 @@
     <span class="comment">// create variables with the same data type for each of the names
     </span><span class="kw">let </span><span class="kw-2">mut </span>variables = <span class="macro">vec!</span>[];
 
-    <span class="kw">let </span>parse_definition_opt = <span class="kw">if </span>lexer.try_consume(<span class="kw-2">&amp;</span>KeywordReferenceTo) {
+    <span class="kw">let </span>parse_definition_opt = <span class="kw">if </span>lexer.try_consume(KeywordReferenceTo) {
         parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">Some</span>(AutoDerefType::Reference))
     } <span class="kw">else if </span>address.is_some() {
         parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">Some</span>(AutoDerefType::Alias))
@@ -2794,7 +2794,7 @@
         parse_full_data_type_definition(lexer, <span class="prelude-val">None</span>)
     };
 
-    lexer.try_consume(<span class="kw-2">&amp;</span>KeywordSemicolon);
+    lexer.try_consume(KeywordSemicolon);
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>((data_type, initializer)) = parse_definition_opt {
         <span class="kw">for </span>(name, range) <span class="kw">in </span>var_names {
@@ -2825,7 +2825,7 @@
             <span class="kw">loop </span>{
                 <span class="kw">let </span>int = expressions_parser::parse_strict_literal_integer(lexer)<span class="question-mark">?</span>;
                 address.push(int);
-                <span class="kw">if </span>!lexer.try_consume(<span class="kw-2">&amp;</span>KeywordDot) {
+                <span class="kw">if </span>!lexer.try_consume(KeywordDot) {
                     <span class="kw">break</span>;
                 }
             }

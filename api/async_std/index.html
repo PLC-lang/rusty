@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Async version of the Rust standard library"><title>async_std - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button><a class="logo-container" href="../async_std/index.html"><img src="https://async.rs/images/logo--hero.svg" alt=""></a></nav><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../async_std/index.html"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><h2><a href="../async_std/index.html">async_<wbr>std</a><span class="version">1.13.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li></ul></section></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">async_std</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/async_std/lib.rs.html#1-337">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="async-version-of-the-rust-standard-library"><a class="doc-anchor" href="#async-version-of-the-rust-standard-library">§</a>Async version of the Rust standard library</h2>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Async version of the Rust standard library"><title>async_std - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="async_std" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button><a class="logo-container" href="../async_std/index.html"><img src="https://async.rs/images/logo--hero.svg" alt=""></a></nav><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../async_std/index.html"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><h2><a href="../async_std/index.html">async_<wbr>std</a><span class="version">1.13.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#async-version-of-the-rust-standard-library" title="Async version of the Rust standard library">Async version of the Rust standard library</a></li><li><a href="#how-to-read-this-documentation" title="How to read this documentation">How to read this documentation</a></li><li><a href="#what-is-in-the-async-std-documentation" title="What is in the `async-std` documentation?">What is in the <code>async-std</code> documentation?</a></li><li><a href="#contributing-changes-to-the-documentation" title="Contributing changes to the documentation">Contributing changes to the documentation</a></li><li><a href="#a-tour-of-async-std" title="A tour of `async-std`">A tour of <code>async-std</code></a><ul><li><a href="#platform-abstractions-and-io" title="Platform abstractions and I/O">Platform abstractions and I/O</a></li><li><a href="#timeouts-intervals-and-delays" title="Timeouts, intervals, and delays">Timeouts, intervals, and delays</a></li></ul></li><li><a href="#examples" title="Examples">Examples</a></li><li><a href="#features" title="Features">Features</a></li><li><a href="#runtime-configuration" title="Runtime configuration">Runtime configuration</a></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>async_std</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/async_std/lib.rs.html#1-337">source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="async-version-of-the-rust-standard-library"><a class="doc-anchor" href="#async-version-of-the-rust-standard-library">§</a>Async version of the Rust standard library</h2>
 <p><code>async-std</code> is a foundation of portable Rust software, a set of minimal and battle-tested
 shared abstractions for the <a href="https://crates.io">broader Rust ecosystem</a>. It offers std types, like
 <a href="future/trait.Future.html"><code>Future</code></a> and <a href="stream/trait.Stream.html"><code>Stream</code></a>, library-defined <a href="#primitives">operations on language primitives</a>,
@@ -134,8 +134,7 @@ are available only when the <code>unstable</code> Cargo feature is enabled:</p>
 </blockquote>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies.async-std]
 version = &quot;1.7.0&quot;
-features = [&quot;unstable&quot;]
-</code></pre></div>
+features = [&quot;unstable&quot;]</code></pre></div>
 <p>Items marked with
 &lt;span
 class=“module-item stab portability”
@@ -146,40 +145,34 @@ are available only when the <code>attributes</code> Cargo feature is enabled:</p
 </blockquote>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies.async-std]
 version = &quot;1.7.0&quot;
-features = [&quot;attributes&quot;]
-</code></pre></div>
+features = [&quot;attributes&quot;]</code></pre></div>
 <p>Compatibility with the <code>tokio</code> 1.0 runtime is also simultaneously possible
 using the <code>tokio1</code> Cargo feature:</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies.async-std]
 version = &quot;1.7.0&quot;
-features = [&quot;tokio1&quot;]
-</code></pre></div>
+features = [&quot;tokio1&quot;]</code></pre></div>
 <p>Compatibility with the <code>tokio</code> 0.2 runtime is possible using the <code>tokio02</code>
 Cargo feature:</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies.async-std]
 version = &quot;1.7.0&quot;
-features = [&quot;tokio02&quot;]
-</code></pre></div>
+features = [&quot;tokio02&quot;]</code></pre></div>
 <p>Compatibility with the <code>tokio</code> 0.3 runtime is also simultaneously possible
 using the <code>tokio03</code> Cargo feature:</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies.async-std]
 version = &quot;1.7.0&quot;
-features = [&quot;tokio03&quot;]
-</code></pre></div>
+features = [&quot;tokio03&quot;]</code></pre></div>
 <p>Additionally it’s possible to only use the core traits and combinators by
 only enabling the <code>std</code> Cargo feature:</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies.async-std]
 version = &quot;1.7.0&quot;
 default-features = false
-features = [&quot;std&quot;]
-</code></pre></div>
+features = [&quot;std&quot;]</code></pre></div>
 <p>And to use async-std on <code>no_std</code> targets that only support <code>alloc</code> only
 enable the <code>alloc</code> Cargo feature:</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies.async-std]
 version = &quot;1.7.0&quot;
 default-features = false
-features = [&quot;alloc&quot;]
-</code></pre></div><h2 id="runtime-configuration"><a class="doc-anchor" href="#runtime-configuration">§</a>Runtime configuration</h2>
+features = [&quot;alloc&quot;]</code></pre></div><h2 id="runtime-configuration"><a class="doc-anchor" href="#runtime-configuration">§</a>Runtime configuration</h2>
 <p>Several environment variables are available to tune the async-std
 runtime:</p>
 <ul>
