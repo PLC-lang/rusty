@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
-use clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
+use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
@@ -67,7 +67,7 @@ pub struct CompileParameters {
     pub compile_only: bool,
 
     #[clap(long, name = "target-triple", global = true, help = "A target-triple supported by LLVM")]
-    pub target: Vec<Target>,
+    pub target: Option<Target>,
 
     #[clap(
         long,
@@ -94,7 +94,7 @@ pub struct CompileParameters {
     pub libraries: Vec<String>,
 
     #[clap(long, name = "sysroot", global = true, help = "Path to system root, used for linking")]
-    pub sysroot: Vec<String>,
+    pub sysroot: Option<String>,
 
     #[clap(name = "include", long, short = 'i', help = "Include source files for external functions")]
     pub includes: Vec<String>,
@@ -359,17 +359,7 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
 
 impl CompileParameters {
     pub fn parse<T: AsRef<OsStr> + AsRef<str>>(args: &[T]) -> Result<CompileParameters, ParameterError> {
-        CompileParameters::try_parse_from(args).and_then(|result| {
-            if result.sysroot.len() > result.target.len() {
-                let mut cmd = CompileParameters::command();
-                Err(cmd.error(
-                    ErrorKind::ArgumentConflict,
-                    "There must be at most as many sysroots as there are targets",
-                ))
-            } else {
-                Ok(result)
-            }
-        })
+        CompileParameters::try_parse_from(args)
     }
 
     pub fn debug_level(&self) -> DebugLevel {
@@ -513,7 +503,7 @@ mod cli_tests {
     use crate::cli::ConfigOption;
 
     use super::{CompileParameters, SubCommands};
-    use clap::{CommandFactory, ErrorKind};
+    use clap::ErrorKind;
     use plc::{output::FormatOption, ConfigFormat, ErrorFormat, OptimizationLevel};
     use pretty_assertions::assert_eq;
     use std::ffi::OsStr;
@@ -605,7 +595,7 @@ mod cli_tests {
         let parameters =
             CompileParameters::parse(vec_of_strings!("alpha.st", "--target", "x86_64-linux-gnu")).unwrap();
 
-        assert_eq!(parameters.target, vec!["x86_64-linux-gnu".into()]);
+        assert_eq!(parameters.target, Some("x86_64-linux-gnu".into()));
     }
 
     #[test]
@@ -806,12 +796,8 @@ mod cli_tests {
             "bin/build/libs",
             "--sysroot",
             "sysroot1",
-            "--sysroot",
-            "sysroot2",
             "--target",
             "targettest",
-            "--target",
-            "othertarget",
             "--linker",
             "cc"
         ))
@@ -825,8 +811,8 @@ mod cli_tests {
                 }
                 _ => panic!("Unexpected command"),
             };
-            assert_eq!(parameters.sysroot, vec!["sysroot1".to_string(), "sysroot2".to_string()]);
-            assert_eq!(parameters.target, vec!["targettest".into(), "othertarget".into()]);
+            assert_eq!(parameters.sysroot, Some("sysroot1".to_string()));
+            assert_eq!(parameters.target, Some("targettest".into()));
             assert_eq!(parameters.linker, Some("cc".to_string()));
         }
     }
@@ -875,19 +861,6 @@ mod cli_tests {
     }
 
     #[test]
-    fn sysroot_added() {
-        let parameters = CompileParameters::parse(vec_of_strings!(
-            "input.st",
-            "--target",
-            "targ",
-            "--sysroot",
-            "path/to/sysroot"
-        ))
-        .unwrap();
-        assert_eq!(parameters.sysroot, vec!["path/to/sysroot".to_string()]);
-    }
-
-    #[test]
     fn include_files_added() {
         let parameters = CompileParameters::parse(vec_of_strings!(
             "input.st",
@@ -932,33 +905,6 @@ mod cli_tests {
         assert_eq!(params.error_format, ErrorFormat::Clang);
         // set invalid error format
         expect_argument_error(vec_of_strings!("input.st", "--error-format=nothing"), ErrorKind::InvalidValue);
-    }
-
-    #[test]
-    fn target_sysroot_mismatch() {
-        let error = CompileParameters::parse(vec_of_strings!(
-            "build",
-            "file.json",
-            "--target",
-            "x86_64-linux-gnu",
-            "--sysroot",
-            "sysroot",
-            "--sysroot",
-            "sysroot2",
-            "--build-location",
-            "loc"
-        ))
-        .unwrap_err();
-
-        assert_eq!(
-            error.to_string(),
-            CompileParameters::command()
-                .error(
-                    ErrorKind::ArgumentConflict,
-                    "There must be at most as many sysroots as there are targets"
-                )
-                .to_string()
-        )
     }
 
     #[test]

@@ -9,24 +9,25 @@
 //!  - Executables
 
 use anyhow::{anyhow, Result};
-use pipelines::AnnotatedProject;
+use pipelines::{
+    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
+};
 use std::{
-    env,
     ffi::OsStr,
     fmt::{Debug, Display},
     path::{Path, PathBuf},
+    sync::{Arc, RwLock},
 };
 
-use cli::{CompileParameters, ParameterError, SubCommands};
+use cli::{CompileParameters, ParameterError};
 use plc::{
     codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
-    OptimizationLevel, Target, Threads,
+    OptimizationLevel,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use plc_index::GlobalContext;
-use project::project::{LibraryInformation, Project};
-use rayon::prelude::{IntoParallelIterator, ParallelIterator};
+use project::project::Project;
 use source_code::SourceContainer;
 
 pub mod cli;
@@ -80,6 +81,7 @@ pub struct LinkOptions {
     pub format: FormatOption,
     pub linker: LinkerType,
     pub lib_location: Option<PathBuf>,
+    pub build_location: Option<PathBuf>,
     pub linker_script: LinkerScript,
 }
 
@@ -142,178 +144,26 @@ pub struct CompilationContext {
     pub link_options: LinkOptions,
 }
 
-pub fn get_compilation_context<T: AsRef<str> + AsRef<OsStr> + Debug>(
-    args: &[T],
-) -> Result<CompilationContext> {
-    let compile_parameters = CompileParameters::parse(args)?;
-    //Create the project that will be compiled
-    let project = get_project(&compile_parameters)?;
-    let output_format = compile_parameters.output_format().unwrap_or_else(|| project.get_output_format());
-    let location = project.get_location().map(|it| it.to_path_buf());
-    if let Some(location) = &location {
-        log::debug!("PROJECT_ROOT={}", location.to_string_lossy());
-        env::set_var("PROJECT_ROOT", location);
-    }
-    let build_location = compile_parameters.get_build_location();
-    if let Some(location) = &build_location {
-        log::debug!("BUILD_LOCATION={}", location.to_string_lossy());
-        env::set_var("BUILD_LOCATION", location);
-    }
-    let lib_location = compile_parameters.get_lib_location();
-    if let Some(location) = &lib_location {
-        log::debug!("LIB_LOCATION={}", location.to_string_lossy());
-        env::set_var("LIB_LOCATION", location);
-    }
-    //Create diagnostics registry
-    //Create a diagnostican with the specified registry
-    //Use diagnostican
-    let diagnostician = match compile_parameters.error_format {
-        ErrorFormat::Rich => Diagnostician::default(),
-        ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
-        ErrorFormat::None => Diagnostician::null_diagnostician(),
-    };
-    let diagnostician = if let Some(configuration) = compile_parameters.get_error_configuration()? {
-        diagnostician.with_configuration(configuration)
-    } else {
-        diagnostician
-    };
-
-    let compile_options = CompileOptions {
-        root: location,
-        build_location: compile_parameters.get_build_location(),
-        output: project.get_output_name(),
-        output_format,
-        optimization: compile_parameters.optimization,
-        error_format: compile_parameters.error_format,
-        debug_level: compile_parameters.debug_level(),
-        single_module: compile_parameters.single_module,
-        online_change: if compile_parameters.online_change {
-            OnlineChange::Enabled {
-                file_name: compile_parameters.got_layout_file.clone(),
-                format: compile_parameters.got_layout_format(),
-            }
-        } else {
-            OnlineChange::Disabled
-        },
-    };
-
-    let libraries =
-        project.get_libraries().iter().map(LibraryInformation::get_link_name).map(str::to_string).collect();
-    let mut library_paths: Vec<PathBuf> = project
-        .get_libraries()
-        .iter()
-        .filter_map(LibraryInformation::get_path)
-        .map(Path::to_path_buf)
-        .collect();
-
-    library_paths.extend_from_slice(project.get_library_paths());
-
-    //Get the specified linker script or load the default linker script in a temp file
-    let linker_script = if compile_parameters.no_linker_script {
-        LinkerScript::None
-    } else {
-        compile_parameters.linker_script.clone().map(LinkerScript::Path).unwrap_or_default()
-    };
-
-    let link_options = LinkOptions {
-        libraries,
-        library_paths,
-        format: output_format,
-        linker: compile_parameters.linker.as_deref().into(),
-        lib_location,
-        linker_script,
-    };
-
-    Ok(CompilationContext { compile_parameters, project, diagnostician, compile_options, link_options })
-}
-
-pub fn compile_with_options(compile_options: CompilationContext) -> Result<()> {
-    let CompilationContext { compile_parameters, project, mut diagnostician, compile_options, link_options } =
-        compile_options;
-    if let Some((options, _format)) = compile_parameters.get_config_options() {
-        return print_config_options(&project, &diagnostician, options);
-    }
-
-    if compile_parameters.build_info {
-        println!("{}", option_env!("RUSTY_BUILD_INFO").unwrap_or("version information unavailable"));
-        std::process::exit(0);
-    }
-
-    if let Some(SubCommands::Explain { error }) = &compile_parameters.commands {
-        //Explain the given error
-        println!("{}", diagnostician.explain(error));
-        return Ok(());
-    }
-
-    //Set the global thread count
-    let thread_pool = rayon::ThreadPoolBuilder::new();
-    let global_pool = if let Some(Threads::Fix(threads)) = compile_parameters.threads {
-        log::info!("Using {threads} parallel threads");
-        thread_pool.num_threads(threads)
-    } else {
-        thread_pool
-    }
-    .build_global();
-    if let Err(err) = global_pool {
-        // Ignore the error here as the global threadpool might have been initialized
-        log::info!("{err}")
-    }
-
-    // TODO: This can be improved quite a bit, e.g. `GlobalContext::new(project);`, to do that see the
-    //       commented `project` method in the GlobalContext implementation block
-    let ctxt = GlobalContext::new()
-        .with_source(project.get_sources(), compile_parameters.encoding)?
-        .with_source(project.get_includes(), compile_parameters.encoding)?
-        .with_source(
-            project
-                .get_libraries()
-                .iter()
-                .flat_map(LibraryInformation::get_includes)
-                .collect::<Vec<_>>()
-                .as_slice(),
-            None,
-        )?;
-
-    // 1. Parse, 2. Index and 3. Resolve / Annotate
-    let annotated_project = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?
-        .index(ctxt.provider())
-        .annotate(ctxt.provider())
-        // 4. AST-lowering, re-index and re-resolve
-        .lower(ctxt.provider());
-
-    if compile_parameters.output_ast {
-        println!("{:#?}", annotated_project.units);
-        return Ok(());
-    }
-
-    // 5. Validate
-    annotated_project.validate(&ctxt, &mut diagnostician)?;
-
-    if let Some((location, format)) =
-        compile_parameters.hardware_config.as_ref().zip(compile_parameters.config_format())
-    {
-        annotated_project.generate_hardware_information(format, location)?;
-    }
-
-    // 5 : Codegen
-    if !compile_parameters.is_check() {
-        let res = generate(&compile_options, &link_options, compile_parameters.target, annotated_project)
-            .map_err(|err| Diagnostic::codegen_error(err.get_message(), err.get_location()));
-        if let Err(res) = res {
-            diagnostician.handle(&[res]);
-            return Err(Diagnostic::new("Compilation aborted due to previous errors")
-                .with_error_code("E071")
-                .into());
-        }
-    }
-    Ok(())
-}
-
 pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     //Parse the arguments
-    let compile_context = get_compilation_context(args)?;
-    let format = compile_context.compile_parameters.error_format;
-    compile_with_options(compile_context).map_err(|err| {
+    let mut pipeline = BuildPipeline::new(args)?;
+    //register participants
+    let target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
+    let codegen_participant = CodegenParticipant {
+        compile_options: pipeline.get_compile_options().unwrap(),
+        link_options: pipeline.get_link_options().unwrap(),
+        target: target.clone(),
+        objects: Arc::new(RwLock::new(GeneratedProject {
+            target,
+            objects: pipeline.project.get_objects().to_vec(),
+        })),
+        got_layout: Default::default(),
+        compile_dirs: Default::default(),
+        libraries: pipeline.project.get_libraries().to_vec(),
+    };
+    pipeline.register_participant(Box::new(codegen_participant));
+    let format = pipeline.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default();
+    pipeline.run().map_err(|err| {
         //Only report the hint if we are using rich error reporting
         if matches!(format, ErrorFormat::Rich) {
             anyhow!(
@@ -321,42 +171,32 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
 Hint: You can use `plc explain <ErrorCode>` for more information"
             )
         } else {
-            err
+            err.into()
         }
     })
 }
 
-fn print_config_options<T: AsRef<Path> + Sync>(
-    project: &Project<T>,
-    diagnostician: &Diagnostician,
-    option: cli::ConfigOption,
-) -> std::result::Result<(), anyhow::Error> {
-    match option {
-        cli::ConfigOption::Schema => {
-            println!("{}", project.get_validation_schema().as_ref())
-        }
-        cli::ConfigOption::Diagnostics => {
-            println!("{}", diagnostician.get_diagnostic_configuration())
-        }
-    };
-
-    Ok(())
-}
-
 /// Parses and annotates a given project. Can be used in tests or api calls
-pub fn parse_and_annotate<T: SourceContainer>(
+pub fn parse_and_annotate<T: SourceContainer + Clone>(
     name: &str,
     src: Vec<T>,
-) -> Result<(GlobalContext, AnnotatedProject<T>), Diagnostic> {
+) -> Result<(GlobalContext, AnnotatedProject), Diagnostic> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
-    let ctxt = GlobalContext::new().with_source(project.get_sources(), None)?;
-    let mut diagnostician = Diagnostician::default();
-    let parsed = pipelines::ParsedProject::parse(&ctxt, project, &mut diagnostician)?;
-
-    // Create an index, add builtins then resolve
-    let provider = ctxt.provider();
-    Ok((ctxt, parsed.index(provider.clone()).annotate(provider.clone())))
+    let context = GlobalContext::new().with_source(project.get_sources(), None)?;
+    let mut pipeline = BuildPipeline {
+        context,
+        project,
+        diagnostician: Diagnostician::default(),
+        compile_parameters: None,
+        linker: LinkerType::Internal,
+        mutable_participants: Vec::default(),
+        participants: Vec::default(),
+    };
+    let project = pipeline.parse()?;
+    let project = pipeline.index(project)?;
+    let project = pipeline.annotate(project)?;
+    Ok((pipeline.context, project))
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls
@@ -374,62 +214,34 @@ fn generate_to_string_internal<T: SourceContainer>(
     src: Vec<T>,
     debug: bool,
 ) -> Result<String, Diagnostic> {
-    let mut diagnostician = Diagnostician::default();
-    let (ctxt, project) = parse_and_annotate(name, src)?;
-
+    // plc src --ir --single-module
+    let project = Project::new(name.to_string()).with_sources(src);
+    let context = GlobalContext::new().with_source(project.get_sources(), None)?;
+    let diagnostician = Diagnostician::default();
+    let mut params = cli::CompileParameters::parse(&["--ir", "--single-module", "-O", "none"])
+        .map_err(|e| Diagnostic::new(e.to_string()))?;
+    params.generate_debug = debug;
+    let mut pipeline = BuildPipeline {
+        context,
+        project,
+        diagnostician,
+        compile_parameters: Some(params),
+        linker: LinkerType::Internal,
+        mutable_participants: Vec::default(),
+        participants: Vec::default(),
+    };
+    let project = pipeline.parse()?;
+    let project = pipeline.index(project)?;
+    let project = pipeline.annotate(project)?;
     // Validate
-    project.validate(&ctxt, &mut diagnostician)?;
+    // TODO: move validation to participants, maybe refactor codegen to stop at generated modules and persist in dedicated step?
+    project.validate(&pipeline.context, &mut pipeline.diagnostician)?;
+    let context = CodegenContext::create();
+    let module =
+        project.generate_single_module(&context, pipeline.get_compile_options().as_ref().unwrap())?;
 
     // Generate
-    let context = CodegenContext::create();
-    let mut options = CompileOptions::default();
-    if debug {
-        options.debug_level = DebugLevel::Full(plc::DEFAULT_DWARF_VERSION);
-    }
-    let module = project.generate_single_module(&context, &options)?;
-
     module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new("Cannot generate module"))
-}
-
-fn generate(
-    compile_options: &CompileOptions,
-    linker_options: &LinkOptions,
-    targets: Vec<Target>,
-    resolved_project: AnnotatedProject<PathBuf>,
-) -> Result<(), Diagnostic> {
-    let res = if compile_options.single_module || matches!(linker_options.format, FormatOption::Object) {
-        log::info!("Using single module mode");
-        resolved_project.codegen_single_module(compile_options, &targets)?
-    } else {
-        resolved_project.codegen(compile_options, &targets)?
-    };
-    let project = resolved_project.get_project();
-    let output_name = project.get_output_name();
-    res.into_par_iter()
-        .map(|res| {
-            res.link(
-                project.get_objects(),
-                compile_options.build_location.as_deref(),
-                linker_options.lib_location.as_deref(),
-                &output_name,
-                linker_options.clone(),
-            )
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    if let Some(lib_location) = &linker_options.lib_location {
-        for library in
-            project.get_libraries().iter().filter(|it| it.should_copy()).map(|it| it.get_compiled_lib())
-        {
-            for obj in library.get_objects() {
-                let path = obj.get_path();
-                if let Some(name) = path.file_name() {
-                    std::fs::copy(path, lib_location.join(name))?;
-                }
-            }
-        }
-    }
-    //Run packaging commands
-    Ok(())
 }
 
 fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf>> {

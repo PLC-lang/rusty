@@ -83,6 +83,7 @@ pub struct CodeGen<'ink> {
 
 pub struct GeneratedModule<'ink> {
     module: Module<'ink>,
+    location: PathBuf,
     engine: RefCell<Option<ExecutionEngine<'ink>>>,
 }
 
@@ -309,6 +310,8 @@ impl<'ink> CodeGen<'ink> {
             }
         }
 
+        let location = PathBuf::from(&unit.file_name);
+
         self.debug.finalize();
         log::debug!("{}", self.module.to_string());
 
@@ -317,11 +320,11 @@ impl<'ink> CodeGen<'ink> {
             self.module
                 .verify()
                 .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))
-                .map(|_| GeneratedModule { module: self.module, engine: RefCell::new(None) })
+                .map(|_| GeneratedModule { module: self.module, location, engine: RefCell::new(None) })
         }
 
         #[cfg(not(feature = "verify"))]
-        Ok(GeneratedModule { module: self.module, engine: RefCell::new(None) })
+        Ok(GeneratedModule { module: self.module, location, engine: RefCell::new(None) })
     }
 }
 
@@ -329,7 +332,17 @@ impl<'ink> GeneratedModule<'ink> {
     pub fn try_from_bitcode(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
         let module = Module::parse_bitcode_from_path(path, context.deref())
             .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
-        Ok(GeneratedModule { module, engine: RefCell::new(None) })
+        Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
+    }
+
+    pub fn from_memory(
+        context: &'ink CodegenContext,
+        buffer: &MemoryBuffer,
+        path: &Path,
+    ) -> Result<Self, Diagnostic> {
+        let module = Module::parse_bitcode_from_buffer(buffer, context.deref())
+            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
+        Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
 
     pub fn try_from_ir(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
@@ -341,7 +354,7 @@ impl<'ink> GeneratedModule<'ink> {
 
         log::debug!("{}", module.to_string());
 
-        Ok(GeneratedModule { module, engine: RefCell::new(None) })
+        Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
 
     pub fn merge(self, other: GeneratedModule<'ink>) -> Result<Self, Diagnostic> {
@@ -389,6 +402,10 @@ impl<'ink> GeneratedModule<'ink> {
             output_dir.join(output_name)
         };
         output
+    }
+
+    pub fn get_unit_location(&self) -> &Path {
+        &self.location
     }
 
     ///
@@ -510,6 +527,10 @@ impl<'ink> GeneratedModule<'ink> {
         } else {
             Err(Diagnostic::codegen_error("Could not write bitcode to file", SourceLocation::undefined()))
         }
+    }
+
+    pub fn to_in_memory_bitcode(&self) -> Result<MemoryBuffer, Diagnostic> {
+        Ok(self.module.write_bitcode_to_memory())
     }
 
     ///
