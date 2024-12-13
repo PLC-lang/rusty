@@ -1803,14 +1803,7 @@
 <a href="#1802" id="1802">1802</a>
 <a href="#1803" id="1803">1803</a>
 <a href="#1804" id="1804">1804</a>
-<a href="#1805" id="1805">1805</a>
-<a href="#1806" id="1806">1806</a>
-<a href="#1807" id="1807">1807</a>
-<a href="#1808" id="1808">1808</a>
-<a href="#1809" id="1809">1809</a>
-<a href="#1810" id="1810">1810</a>
-<a href="#1811" id="1811">1811</a>
-<a href="#1812" id="1812">1812</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1805" id="1805">1805</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
@@ -1818,6 +1811,7 @@
     ops::Range,
 };
 
+<span class="kw">use </span>derive_more::TryInto;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
 <span class="kw">use crate</span>::{
@@ -2527,7 +2521,8 @@
     <span class="kw">pub </span>location: SourceLocation,
 }
 
-<span class="attr">#[derive(Debug, Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq, TryInto)]
+#[try_into(<span class="kw-2">ref</span>)]
 </span><span class="kw">pub enum </span>AstStatement {
     EmptyStatement(EmptyStatement),
 
@@ -2564,11 +2559,27 @@
     <span class="comment">// Control Statements
     </span>ControlStatement(AstControlStatement),
     CaseCondition(Box&lt;AstNode&gt;),
-    ExitStatement(()),
-    ContinueStatement(()),
+    <span class="attr">#[try_into(ignore)]
+    </span>ExitStatement(()),
+    <span class="attr">#[try_into(ignore)]
+    </span>ContinueStatement(()),
     ReturnStatement(ReturnStatement),
     JumpStatement(JumpStatement),
     LabelStatement(LabelStatement),
+}
+
+<span class="attr">#[macro_export]
+</span><span class="doccomment">/// A `try_from` convenience wrapper for `AstNode`, passed as the `ex:expr` argument.
+/// Will try to return a reference to the variants inner type, specified via the `t:ty` parameter.
+/// Converts the `try_from`-`Result` into an `Option`
+</span><span class="macro">macro_rules!</span> try_from {
+    () =&gt; { <span class="prelude-val">None </span>};
+    (<span class="macro-nonterminal">$ex</span>:expr, <span class="macro-nonterminal">$t</span>:ty) =&gt; {
+        &lt;<span class="kw-2">&amp;</span><span class="macro-nonterminal">$t</span>&gt;::try_from(<span class="macro-nonterminal">$ex</span>.get_stmt()).ok()
+    };
+    ($(<span class="macro-nonterminal">$ex</span>:tt)<span class="kw-2">*</span>, <span class="macro-nonterminal">$t</span>:ty) =&gt; {
+        <span class="macro">try_from!</span>($(<span class="macro-nonterminal">$ex</span>)<span class="kw-2">*</span>, <span class="macro-nonterminal">$t</span>).ok()
+    };
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>AstNode {
@@ -2695,11 +2706,7 @@
 <span class="kw">impl </span>AstNode {
     <span class="doccomment">///Returns the statement in a singleton list, or the contained statements if the statement is already a list
     </span><span class="kw">pub fn </span>get_as_list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
-        <span class="kw">if let </span>AstStatement::ExpressionList(expressions) = <span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
-            expressions.iter().collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>AstNode&gt;&gt;()
-        } <span class="kw">else </span>{
-            <span class="macro">vec!</span>[<span class="self">self</span>]
-        }
+        <span class="macro">try_from!</span>(<span class="self">self</span>, Vec&lt;AstNode&gt;).map(|it| it.iter().collect()).unwrap_or(<span class="macro">vec!</span>[<span class="self">self</span>])
     }
 
     <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SourceLocation {
@@ -2760,17 +2767,7 @@
 
     <span class="doccomment">/// Returns true if the current statement is a flat reference (e.g. `a`)
     </span><span class="kw">pub fn </span>is_flat_reference(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::Identifier(..)) || {
-            <span class="kw">if let </span>AstStatement::ReferenceExpr(
-                ReferenceExpr { access: ReferenceAccess::Member(reference), base: <span class="prelude-val">None </span>},
-                ..,
-            ) = <span class="kw-2">&amp;</span><span class="self">self</span>.stmt
-            {
-                <span class="macro">matches!</span>(reference.as_ref().stmt, AstStatement::Identifier(..))
-            } <span class="kw">else </span>{
-                <span class="bool-val">false
-            </span>}
-        }
+        <span class="self">self</span>.get_flat_reference_name().is_some()
     }
 
     <span class="doccomment">/// Returns the reference-name if this is a flat reference like `a`, or None if this is no flat reference
@@ -2886,15 +2883,7 @@
 
     <span class="doccomment">/// Returns true if the given token is an integer or float and zero.
     </span><span class="kw">pub fn </span>is_zero(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
-            AstStatement::Literal(kind, ..) =&gt; <span class="kw">match </span>kind {
-                AstLiteral::Integer(<span class="number">0</span>) =&gt; <span class="bool-val">true</span>,
-                AstLiteral::Real(val) =&gt; val == <span class="string">"0" </span>|| val == <span class="string">"0.0"</span>,
-                <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-            },
-
-            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-        }
+        <span class="macro">try_from!</span>(<span class="self">self</span>, AstLiteral).is_some_and(|it| it.is_zero())
     }
 
     <span class="kw">pub fn </span>is_binary_expression(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -2914,10 +2903,7 @@
     }
 
     <span class="kw">pub fn </span>get_literal_integer_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i128&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
-            AstStatement::Literal(AstLiteral::Integer(value), ..) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>value),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        }
+        <span class="macro">try_from!</span>(<span class="self">self</span>, AstLiteral).map(|it| it.get_literal_integer_value()).unwrap_or_default()
     }
 
     <span class="kw">pub fn </span>is_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {

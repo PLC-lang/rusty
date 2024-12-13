@@ -1,0 +1,88 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Converts to and from various cases."><title>convert_case - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="convert_case" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../convert_case/index.html">convert_<wbr>case</a><span class="version">0.4.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#command-line-utility-ccase" title="Command Line Utility `ccase`">Command Line Utility <code>ccase</code></a></li><li><a href="#rust-library" title="Rust Library">Rust Library</a></li><li><a href="#note-on-accuracy" title="Note on Accuracy">Note on Accuracy</a></li><li><a href="#random-feature" title="Random Feature">Random Feature</a></li></ul><h3><a href="#structs">Crate Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>convert_case</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/convert_case/lib.rs.html#1-337">source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Converts to and from various cases.</p>
+<h2 id="command-line-utility-ccase"><a class="doc-anchor" href="#command-line-utility-ccase">§</a>Command Line Utility <code>ccase</code></h2>
+<p>Since version “0.3.0” this crate is just a case conversion <em>library</em>.  The command line utility
+that uses the tools in this library has been moved to the <code>ccase</code> crate.  You can read about it
+at the <a href="https://github.com/rutrum/convert-case/tree/master/ccase">github repository</a>.</p>
+<h2 id="rust-library"><a class="doc-anchor" href="#rust-library">§</a>Rust Library</h2>
+<p>Provides a <a href="enum.Case.html"><code>Case</code></a> enum which defines a variety of cases to convert into.
+A <code>Case</code> can be used with an item that implements the <a href="trait.Casing.html"><code>Casing</code></a> trait,
+which allows the item to be converted to a given case.</p>
+<p>You can convert a string or string slice into a case using the <code>to_case</code> method.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>convert_case::{Case, Casing};
+
+<span class="macro">assert_eq!</span>(<span class="string">"Ronnie James Dio"</span>, <span class="string">"ronnie james dio"</span>.to_case(Case::Title));
+<span class="macro">assert_eq!</span>(<span class="string">"ronnieJamesDio"</span>, <span class="string">"Ronnie_James_dio"</span>.to_case(Case::Camel));
+<span class="macro">assert_eq!</span>(<span class="string">"Ronnie-James-Dio"</span>, <span class="string">"RONNIE_JAMES_DIO"</span>.to_case(Case::Train));</code></pre></div>
+<p>By default, <code>to_case</code> will split along all word boundaries, that is</p>
+<ul>
+<li>space characters <code> </code>,</li>
+<li>underscores <code>_</code>,</li>
+<li>hyphens <code>-</code>,</li>
+<li>and changes in capitalization <code>aA</code>.</li>
+</ul>
+<p>For more accuracy, the <code>from_case</code> method splits based on the word boundaries
+of a particular case.  For example, splitting from snake case will only treat
+underscores as word boundaries.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>convert_case::{Case, Casing};
+
+<span class="macro">assert_eq!</span>(
+    <span class="string">"2020 04 16 My Cat Cali"</span>,
+    <span class="string">"2020-04-16_my_cat_cali"</span>.to_case(Case::Title)
+);
+<span class="macro">assert_eq!</span>(
+    <span class="string">"2020-04-16 My Cat Cali"</span>,
+    <span class="string">"2020-04-16_my_cat_cali"</span>.from_case(Case::Snake).to_case(Case::Title)
+);</code></pre></div>
+<p>By default (and when converting from camel case or similar cases) <code>convert_case</code>
+will detect acronyms.  It also ignores any leading, trailing, or deplicate delimeters.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>convert_case::{Case, Casing};
+
+<span class="macro">assert_eq!</span>(<span class="string">"io_stream"</span>, <span class="string">"IOStream"</span>.to_case(Case::Snake));
+<span class="macro">assert_eq!</span>(<span class="string">"my_json_parser"</span>, <span class="string">"myJSONParser"</span>.to_case(Case::Snake));
+
+<span class="macro">assert_eq!</span>(<span class="string">"weird_var_name"</span>, <span class="string">"__weird--var _name-"</span>.to_case(Case::Snake));</code></pre></div>
+<p>It also works non-ascii characters.  However, no inferences on the language itself is made.
+For instance, the diagraph <code>ij</code> in dutch will not be capitalized, because it is represented
+as two distinct unicode characters.  However, <code>æ</code> would be capitalized.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>convert_case::{Case, Casing};
+
+<span class="macro">assert_eq!</span>(<span class="string">"granat-äpfel"</span>, <span class="string">"GranatÄpfel"</span>.to_case(Case::Kebab));
+
+<span class="comment">// The example from str::to_lowercase documentation
+</span><span class="kw">let </span>odysseus = <span class="string">"ὈΔΥΣΣΕΎΣ"</span>;
+<span class="macro">assert_eq!</span>(<span class="string">"ὀδυσσεύς"</span>, odysseus.to_case(Case::Lower));</code></pre></div>
+<p>For the purposes of case conversion, characters followed by numerics and vice-versa are
+considered word boundaries.  In addition, any special ascii characters (besides <code>_</code> and <code>-</code>)
+are ignored.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>convert_case::{Case, Casing};
+ 
+<span class="macro">assert_eq!</span>(<span class="string">"e_5150"</span>, <span class="string">"E5150"</span>.to_case(Case::Snake));
+<span class="macro">assert_eq!</span>(<span class="string">"10,000_days"</span>, <span class="string">"10,000Days"</span>.to_case(Case::Snake));
+<span class="macro">assert_eq!</span>(<span class="string">"HELLO, WORLD!"</span>, <span class="string">"Hello, world!"</span>.to_case(Case::Upper));
+<span class="macro">assert_eq!</span>(<span class="string">"One\ntwo\nthree"</span>, <span class="string">"ONE\nTWO\nTHREE"</span>.to_case(Case::Title));</code></pre></div>
+<h2 id="note-on-accuracy"><a class="doc-anchor" href="#note-on-accuracy">§</a>Note on Accuracy</h2>
+<p>The <code>Casing</code> methods <code>from_case</code> and <code>to_case</code> do not fail.  Conversion to a case will always
+succeed.  However, the results can still be unexpected.  Failure to detect any word boundaries
+for a particular case means the entire string will be considered a single word.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>convert_case::{Case, Casing};
+
+<span class="comment">// Mistakenly parsing using Case::Snake
+</span><span class="macro">assert_eq!</span>(<span class="string">"My-kebab-var"</span>, <span class="string">"my-kebab-var"</span>.from_case(Case::Snake).to_case(Case::Title));
+
+<span class="comment">// Converts using an unexpected method
+</span><span class="macro">assert_eq!</span>(<span class="string">"my_kebab_like_variable"</span>, <span class="string">"myKebab-like-variable"</span>.to_case(Case::Snake));</code></pre></div>
+<h2 id="random-feature"><a class="doc-anchor" href="#random-feature">§</a>Random Feature</h2>
+<p>To ensure this library had zero dependencies, randomness was moved to the <em>random</em> feature,
+which requires the <code>rand</code> crate. You can enable this feature by including the
+following in your <code>Cargo.toml</code>.</p>
+<div class="example-wrap"><pre class=""><code>[dependencies]
+convert_case = { version = &quot;^0.3, features = [&quot;random&quot;] }</code></pre></div>
+<p>This will add two additional cases: Random and PseudoRandom.  You can read about their
+construction in the <a href="enum.Case.html">Case enum</a>.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.FromCasing.html" title="struct convert_case::FromCasing">From<wbr>Casing</a></div><div class="desc docblock-short">Holds information about parsing before converting into a case.</div></li></ul><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.Case.html" title="enum convert_case::Case">Case</a></div><div class="desc docblock-short">Defines the type of casing a string can be.</div></li></ul><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="trait" href="trait.Casing.html" title="trait convert_case::Casing">Casing</a></div><div class="desc docblock-short">Describes items that can be converted into a case.</div></li></ul></section></div></main></body></html>

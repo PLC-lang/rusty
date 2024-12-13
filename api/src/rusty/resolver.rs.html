@@ -2208,11 +2208,7 @@
 <a href="#2207" id="2207">2207</a>
 <a href="#2208" id="2208">2208</a>
 <a href="#2209" id="2209">2209</a>
-<a href="#2210" id="2210">2210</a>
-<a href="#2211" id="2211">2211</a>
-<a href="#2212" id="2212">2212</a>
-<a href="#2213" id="2213">2213</a>
-<a href="#2214" id="2214">2214</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2210" id="2210">2210</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -2231,6 +2227,7 @@
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
     provider::IdProvider,
+    try_from,
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::internal_type_name;
@@ -4367,25 +4364,20 @@
     literal: <span class="kw-2">&amp;</span>AstNode,
 ) {
     <span class="comment">// check if we need to register an additional string-literal
-    </span><span class="kw">match </span>(cast_type.get_type_information(), literal.get_stmt()) {
-        (
-            DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
-            AstStatement::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ <span class="bool-val">true </span>})),
-        )
-        | (
-            DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
-            AstStatement::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ <span class="bool-val">false </span>})),
-        ) =&gt; {
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>AstLiteral::String(StringValue { <span class="kw-2">ref </span>value, is_wide })) = <span class="macro">try_from!</span>(literal, AstLiteral) <span class="kw">else </span>{
+        <span class="kw">return</span>;
+    };
+    <span class="kw">match </span>(cast_type.get_type_information(), is_wide) {
+        (DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }, <span class="bool-val">true</span>)
+        | (DataTypeInformation::String { encoding: StringEncoding::Utf16, .. }, <span class="bool-val">false</span>) =&gt; {
             <span class="comment">// re-register the string-literal in the opposite encoding
-            </span><span class="kw">if </span><span class="kw-2">*</span>is_wide {
-                literals.utf08.insert(value.to_string());
+            </span><span class="kw">if </span>is_wide {
+                literals.utf08.insert(value.into());
             } <span class="kw">else </span>{
-                literals.utf16.insert(value.to_string());
+                literals.utf16.insert(value.into());
             }
         }
-        <span class="kw">_ </span>=&gt; {
-            <span class="comment">//ignore
-        </span>}
+        <span class="kw">_ </span>=&gt; (),
     }
 }
 

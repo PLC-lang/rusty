@@ -76,7 +76,12 @@
 <a href="#75" id="75">75</a>
 <a href="#76" id="76">76</a>
 <a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a></pre></div><pre class="rust"><code><span class="kw">use </span>ast::ast::{AstFactory, AstNode, AstStatement};
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a></pre></div><pre class="rust"><code><span class="kw">use </span>ast::{
+    ast::{AstFactory, AstNode, CallStatement},
+    try_from,
+};
 
 <span class="kw">use </span>plc::index::FxIndexMap;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -132,11 +137,10 @@
                 <span class="kw">let </span>(rhs, remove_id) = ast_association
                     .get(<span class="kw-2">&amp;</span>ref_id)
                     .map(|stmt| {
-                        <span class="kw">if </span><span class="macro">matches!</span>(stmt.get_stmt(), AstStatement::CallStatement(..)) {
-                            (stmt.clone(), <span class="prelude-val">Some</span>(ref_id))
-                        } <span class="kw">else </span>{
-                            <span class="self">self</span>.transform_node(ref_id, session, ast_association)
-                        }
+                        <span class="macro">try_from!</span>(stmt, CallStatement).map_or_else(
+                            || <span class="self">self</span>.transform_node(ref_id, session, ast_association),
+                            |<span class="kw">_</span>| (stmt.clone(), <span class="prelude-val">Some</span>(ref_id)),
+                        )
                     })
                     .expect(<span class="string">"Expected AST statement, found None"</span>);
 

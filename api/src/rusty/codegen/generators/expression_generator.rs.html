@@ -2910,13 +2910,7 @@
 <a href="#2909" id="2909">2909</a>
 <a href="#2910" id="2910">2910</a>
 <a href="#2911" id="2911">2911</a>
-<a href="#2912" id="2912">2912</a>
-<a href="#2913" id="2913">2913</a>
-<a href="#2914" id="2914">2914</a>
-<a href="#2915" id="2915">2915</a>
-<a href="#2916" id="2916">2916</a>
-<a href="#2917" id="2917">2917</a>
-<a href="#2918" id="2918">2918</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2912" id="2912">2912</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
     builder::Builder,
@@ -2929,13 +2923,13 @@
 };
 <span class="kw">use </span>rustc_hash::FxHashSet;
 
-<span class="kw">use </span>plc_ast::ast::Assignment;
 <span class="kw">use </span>plc_ast::{
     ast::{
-        flatten_expression_list, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
+        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
         ReferenceAccess, ReferenceExpr,
     },
     literals::AstLiteral,
+    try_from,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -3794,10 +3788,7 @@
                 }
                 <span class="comment">// TODO: find a more reliable way to make sure if this is a call into a local action!!
                 </span>PouIndexEntry::Action { .. }
-                    <span class="kw">if </span><span class="macro">matches!</span>(
-                        operator.get_stmt(),
-                        AstStatement::ReferenceExpr(ReferenceExpr { base: <span class="prelude-val">None</span>, .. })
-                    ) =&gt;
+                    <span class="kw">if </span><span class="macro">try_from!</span>(operator, ReferenceExpr).is_some_and(|it| it.base.is_none()) =&gt;
                 {
                     <span class="comment">// special handling for local actions, get the parameter from the function context
                     </span>function_context
@@ -4204,17 +4195,14 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         param_context: <span class="kw-2">&amp;</span>CallParameterAssignment,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
-        <span class="kw">let </span>parameter_value = <span class="kw">match </span>param_context.assignment.get_stmt() {
-            <span class="comment">// explicit call parameter: foo(param := value)
-            </span>AstStatement::OutputAssignment(data) | AstStatement::Assignment(data) =&gt; {
-                <span class="self">self</span>.generate_formal_parameter(param_context, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right)<span class="question-mark">?</span>;
-                <span class="prelude-val">None
-            </span>}
+        <span class="kw">let </span><span class="prelude-val">Some</span>(data) = <span class="macro">try_from!</span>(param_context.assignment, Assignment) <span class="kw">else </span>{
             <span class="comment">// foo(x)
-            </span><span class="kw">_ </span>=&gt; <span class="self">self</span>.generate_nameless_parameter(param_context)<span class="question-mark">?</span>,
+            </span><span class="kw">return </span><span class="self">self</span>.generate_nameless_parameter(param_context);
         };
 
-        <span class="prelude-val">Ok</span>(parameter_value)
+        <span class="comment">// explicit call parameter: foo(param := value)
+        </span><span class="self">self</span>.generate_formal_parameter(param_context, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// generates the appropriate value for the given expression where the expression
