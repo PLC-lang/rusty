@@ -76,9 +76,9 @@ CompilationUnit {
                         column: 8,
                         offset: 32,
                     }..TextLocation {
-                        line: 3,
-                        column: 16,
-                        offset: 60,
+                        line: 2,
+                        column: 19,
+                        offset: 43,
                     },
                 ),
             },

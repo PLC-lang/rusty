@@ -8,7 +8,7 @@ fn simple_foo_program_can_be_parsed() {
     let result = parse(src).0;
 
     let prg = &result.units[0];
-    assert_eq!(prg.pou_type, PouType::Program);
+    assert_eq!(prg.kind, PouType::Program);
     assert_eq!(prg.name, "foo");
     assert!(prg.return_type.is_none());
     assert_eq!(prg.linkage, LinkageType::Internal);
@@ -20,7 +20,7 @@ fn external_simple_foo_program_can_be_parsed() {
     let result = parse(src).0;
 
     let prg = &result.units[0];
-    assert_eq!(prg.pou_type, PouType::Program);
+    assert_eq!(prg.kind, PouType::Program);
     assert_eq!(prg.name, "foo");
     assert!(prg.return_type.is_none());
     assert_eq!(prg.linkage, LinkageType::External);
