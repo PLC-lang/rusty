@@ -123,7 +123,7 @@ pub fn visit_statement<T: AnnotationMap>(
             if context.annotations.get(statement).is_none() {
                 validator.push_diagnostic(Diagnostic::unresolved_reference(
                     target.get_flat_reference_name().unwrap_or_default(),
-                    statement.get_location(),
+                    statement,
                 ))
             }
         }
@@ -459,7 +459,7 @@ fn validate_reference<T: AnnotationMap>(
 ) {
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
-        validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location.clone()));
+        validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
 
         // was this meant as a direct access?
         // TODO: find a way to solve this without re-resolving this name
@@ -1111,7 +1111,7 @@ fn validate_variable_length_array_assignment<T: AnnotationMap>(
         validator.push_diagnostic(Diagnostic::invalid_assignment(
             &validator.get_type_name_or_slice(right_type),
             &validator.get_type_name_or_slice(left_type),
-            location.clone(),
+            location,
         ));
     }
 }

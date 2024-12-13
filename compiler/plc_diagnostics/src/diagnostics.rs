@@ -176,21 +176,28 @@ impl Diagnostic {
 
 //Helper methods for diagnostics
 impl Diagnostic {
-    pub fn unexpected_token_found(expected: &str, found: &str, range: SourceLocation) -> Diagnostic {
+    pub fn unexpected_token_found<T>(expected: &str, found: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
         Diagnostic::new(format!("Unexpected token: expected {expected} but found {found}"))
             .with_error_code("E007")
-            .with_location(range)
-    }
-
-    pub fn missing_function(location: SourceLocation) -> Diagnostic {
-        Diagnostic::new("Cannot generate code outside of function context.")
-            .with_error_code("E072")
             .with_location(location)
     }
 
-    pub fn codegen_error<T>(message: impl Into<String>, location: T) -> Diagnostic
+    pub fn missing_function<T>(location: T) -> Diagnostic
     where
         T: Into<SourceLocation>,
+    {
+        Diagnostic::new("Cannot generate code outside of function context.")
+            .with_error_code("E072")
+            .with_location(location.into())
+    }
+
+    pub fn codegen_error<T, U>(message: T, location: U) -> Diagnostic
+    where
+        T: Into<String>,
+        U: Into<SourceLocation>,
     {
         Diagnostic::new(message).with_location(location.into()).with_error_code("E071")
     }
@@ -199,9 +206,12 @@ impl Diagnostic {
         Diagnostic::new(format!("{file}: Internal llvm error: {:}", llvm_error)).with_error_code("E005")
     }
 
-    pub fn missing_token(expected_token: &str, range: SourceLocation) -> Diagnostic {
+    pub fn missing_token<T>(expected_token: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
         Diagnostic::new(format!("Missing expected Token {expected_token}"))
-            .with_location(range)
+            .with_location(location)
             .with_error_code("E006")
     }
 
@@ -227,11 +237,17 @@ impl Diagnostic {
         .with_location(location.into())
     }
 
-    pub fn unknown_type(type_name: &str, location: SourceLocation) -> Diagnostic {
+    pub fn unknown_type<T>(type_name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
         Diagnostic::new(format!("Unknown type: {type_name:}")).with_error_code("E052").with_location(location)
     }
 
-    pub fn unresolved_reference(reference: &str, location: SourceLocation) -> Diagnostic {
+    pub fn unresolved_reference<T>(reference: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
         Diagnostic::new(format!("Could not resolve reference to {reference:}"))
             .with_error_code("E048")
             .with_location(location)
@@ -246,7 +262,10 @@ impl Diagnostic {
             .with_location(location)
     }
 
-    pub fn cannot_generate_initializer(variable_name: &str, location: SourceLocation) -> Diagnostic {
+    pub fn cannot_generate_initializer<T>(variable_name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
         Self::new(format!(
             "Cannot generate literal initializer for '{variable_name}': Value cannot be derived"
         ))
@@ -256,20 +275,23 @@ impl Diagnostic {
 
     pub fn cannot_generate_call_statement(operator: &AstNode) -> Diagnostic {
         //TODO: We could probably get a better slice here
-        Diagnostic::codegen_error(
-            format!("cannot generate call statement for {:?}", operator),
-            operator.get_location(),
-        )
+        Diagnostic::codegen_error(format!("cannot generate call statement for {:?}", operator), operator)
     }
 
-    pub fn cannot_generate_from_empty_literal(type_name: &str, location: SourceLocation) -> Diagnostic {
+    pub fn cannot_generate_from_empty_literal<T>(type_name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
         Diagnostic::codegen_error(
             format!("Cannot generate {type_name} from empty literal").as_str(),
             location,
         )
     }
 
-    pub fn const_pragma_is_not_allowed(location: SourceLocation) -> Diagnostic {
+    pub fn const_pragma_is_not_allowed<T>(location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
         Diagnostic::new("Pragma {constant} is not allowed in POU declarations")
             .with_location(location)
             .with_error_code("E105")
@@ -278,7 +300,10 @@ impl Diagnostic {
 
 // CFC related diagnostics
 impl Diagnostic {
-    pub fn unnamed_control(location: SourceLocation) -> Diagnostic {
+    pub fn unnamed_control<T>(location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
         Diagnostic::new("Unnamed control").with_error_code("E087").with_location(location)
     }
 }

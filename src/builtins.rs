@@ -138,7 +138,7 @@ lazy_static! {
                     //Generate an access from the first param
                     if let (&[k], params) = params.split_at(1) {
                         let type_hint = params.first()
-                        .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location.clone()))
+                        .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", &location))
                         .and_then(|it| generator.get_type_hint_info_for(it))?;
                         //Create a temp var
                         let result_type = generator.llvm_index.get_associated_type(type_hint.get_name())?;
@@ -259,9 +259,9 @@ lazy_static! {
                         // return size of llvm type
                         let size = generator.llvm_index
                             .get_associated_type(type_name)
-                            .map_err(|_| Diagnostic::codegen_error(format!("Could not find associated data type: {type_name}"), location.clone())
+                            .map_err(|_| Diagnostic::codegen_error(format!("Could not find associated data type: {type_name}"), &location)
                             )?.size_of()
-                            .ok_or_else(|| Diagnostic::codegen_error("Parameter type is not sized.", location.clone()))?
+                            .ok_or_else(|| Diagnostic::codegen_error("Parameter type is not sized.", &location))?
                             .as_basic_value_enum();
                             Ok(ExpressionValue::RValue(size))
                     } else {
@@ -598,7 +598,7 @@ fn validate_builtin_symbol_parameter_count(
     operation: Operator,
 ) {
     let Some(params) = parameters else {
-        validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 0, operator.get_location()));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 0, operator));
         return;
     };
 
@@ -607,20 +607,12 @@ fn validate_builtin_symbol_parameter_count(
         // non-extensible operators
         Operator::Minus | Operator::Division | Operator::NotEqual => {
             if count != 2 {
-                validator.push_diagnostic(Diagnostic::invalid_argument_count(
-                    2,
-                    count,
-                    operator.get_location(),
-                ));
+                validator.push_diagnostic(Diagnostic::invalid_argument_count(2, count, operator));
             }
         }
         _ => {
             if count < 2 {
-                validator.push_diagnostic(Diagnostic::invalid_argument_count(
-                    2,
-                    count,
-                    operator.get_location(),
-                ));
+                validator.push_diagnostic(Diagnostic::invalid_argument_count(2, count, operator));
             }
         }
     }
@@ -811,9 +803,7 @@ fn validate_variable_length_array_bound_function(
                 }
             };
         }
-        (Some(_), None) => {
-            validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 1, operator.get_location()))
-        }
+        (Some(_), None) => validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 1, operator)),
         _ => unreachable!(),
     }
 }
@@ -825,18 +815,14 @@ fn validate_argument_count(
     expected: usize,
 ) {
     let Some(params) = parameters else {
-        validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, 0, operator.get_location()));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, 0, operator));
         return;
     };
 
     let params = flatten_expression_list(params);
 
     if params.len() != expected {
-        validator.push_diagnostic(Diagnostic::invalid_argument_count(
-            expected,
-            params.len(),
-            operator.get_location(),
-        ));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, params.len(), operator));
     }
 }
 

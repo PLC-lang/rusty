@@ -157,7 +157,7 @@ pub fn generate_data_types<'ink>(
                 errors
                     .remove(name)
                     .map(|diag| diag.with_secondary_location(&ty.location))
-                    .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
+                    .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, &ty.location))
             })
             .collect::<Vec<_>>();
         if !diags.is_empty() {
@@ -384,9 +384,10 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                     .map(|it| it.const_zero().as_basic_value_enum()));
             };
 
-            generator.generate_expression(initializer).map(Some).map_err(|_| {
-                Diagnostic::cannot_generate_initializer(qualified_name, initializer.get_location())
-            })
+            generator
+                .generate_expression(initializer)
+                .map(Some)
+                .map_err(|_| Diagnostic::cannot_generate_initializer(qualified_name, initializer))
         } else {
             // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             self.index
@@ -416,7 +417,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             } else {
                 Err(Diagnostic::codegen_error(
                     format!("Expected {expected_ast} but found {initializer:?}"),
-                    initializer.get_location(),
+                    initializer,
                 ))
             }
         } else {

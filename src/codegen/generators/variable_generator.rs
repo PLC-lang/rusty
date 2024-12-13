@@ -180,7 +180,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 if initial_value.is_none() {
                     return Err(Diagnostic::codegen_error(
                         "Cannot generate uninitialized constant",
-                        global_variable.source_location.clone(),
+                        &global_variable.source_location,
                     ));
                 }
             }

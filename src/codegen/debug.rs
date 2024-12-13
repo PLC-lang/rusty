@@ -249,7 +249,7 @@ impl<'ink> DebugBuilder<'ink> {
         let res = self
             .debug_info
             .create_basic_type(name, size, encoding as u32, DIFlagsConstants::PUBLIC)
-            .map_err(|err| Diagnostic::codegen_error(err, location.clone()))?;
+            .map_err(|err| Diagnostic::codegen_error(err, location))?;
         self.register_concrete_type(name, DebugType::Basic(res));
         Ok(())
     }

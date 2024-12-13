@@ -163,7 +163,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         statement: &AstNode,
     ) -> Result<&'b FunctionContext<'ink, 'b>, Diagnostic> {
-        self.function_context.ok_or_else(|| Diagnostic::missing_function(statement.get_location()))
+        self.function_context.ok_or_else(|| Diagnostic::missing_function(statement))
     }
 
     /// entry point into the expression generator.
@@ -789,7 +789,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                     Diagnostic::codegen_error(
                         format!("Cannot build generate parameter: {parameter:#?}"),
-                        parameter.source_location.clone(),
+                        &parameter.source_location,
                     )
                 })?;
 
@@ -826,7 +826,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let parameter = self
                 .index
                 .find_fully_qualified_variable(qualified_name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))?;
+                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.as_ref()))?;
             let index = parameter.get_location_in_parent();
 
             self.generate_output_assignment(&CallParameterAssignment {
@@ -1005,7 +1005,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let v_type = self
                 .llvm_index
                 .find_associated_type(type_name)
-                .ok_or_else(|| Diagnostic::unknown_type(type_name, argument.get_location()))?;
+                .ok_or_else(|| Diagnostic::unknown_type(type_name, argument))?;
 
             let ptr_value = self.llvm.builder.build_alloca(v_type, "");
             if let Some(p) = declared_parameter {
@@ -1330,10 +1330,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 //this is a VAR_IN_OUT assignment, so don't load the value, assign the pointer
                 //expression may be empty -> generate a local variable for it
                 let generated_exp = if expression.is_empty_statement() {
-                    let temp_type =
-                        self.llvm_index.find_associated_type(inner_type_name).ok_or_else(|| {
-                            Diagnostic::unknown_type(parameter.get_name(), expression.get_location())
-                        })?;
+                    let temp_type = self
+                        .llvm_index
+                        .find_associated_type(inner_type_name)
+                        .ok_or_else(|| Diagnostic::unknown_type(parameter.get_name(), expression))?;
                     builder.build_alloca(temp_type, "empty_varinout").as_basic_value_enum()
                 } else {
                     self.generate_lvalue(expression)?.as_basic_value_enum()
@@ -1365,7 +1365,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let parameter = self
                 .index
                 .find_fully_qualified_variable(qualified_name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))?;
+                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left))?;
             let index = parameter.get_location_in_parent();
 
             // don't generate param assignments for empty statements, with the exception
@@ -1425,7 +1425,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .index
                         .find_fully_qualified_variable(qualified_name)
                         .map(VariableIndexEntry::get_location_in_parent)
-                        .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset.clone()))?;
+                        .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?;
                     let gep: PointerValue<'_> = self.llvm.get_member_pointer_from_struct(
                         *qualifier,
                         member_location,
@@ -1456,10 +1456,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .map_or(
                     self.llvm_index
                         .find_loaded_associated_variable_value(qualified_name)
-                        .ok_or_else(|| Diagnostic::unresolved_reference(name, offset.clone())),
+                        .ok_or_else(|| Diagnostic::unresolved_reference(name, offset)),
                     Ok,
                 ),
-            _ => Err(Diagnostic::unresolved_reference(name, offset.clone())),
+            _ => Err(Diagnostic::unresolved_reference(name, offset)),
         }
     }
 
@@ -1945,17 +1945,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
                 AstLiteral::Date(d) => d
                     .value()
-                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
+                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location))
                     .and_then(|ns| self.create_const_int(ns))
                     .map(ExpressionValue::RValue),
                 AstLiteral::DateAndTime(dt) => dt
                     .value()
-                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
+                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location))
                     .and_then(|ns| self.create_const_int(ns))
                     .map(ExpressionValue::RValue),
                 AstLiteral::TimeOfDay(tod) => tod
                     .value()
-                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
+                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location))
                     .and_then(|ns| self.create_const_int(ns))
                     .map(ExpressionValue::RValue),
                 AstLiteral::Time(t) => self.create_const_int(t.value()).map(ExpressionValue::RValue),
@@ -2008,7 +2008,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let declared_length = size.as_int_value(self.index).map_err(|msg| {
                     Diagnostic::codegen_error(
                         format!("Unable to generate string-literal: {msg}").as_str(),
-                        location.clone(),
+                        location,
                     )
                 })? as usize;
 
@@ -2103,7 +2103,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     {
                         let member: &VariableIndexEntry =
                             self.index.find_fully_qualified_variable(qualified_name).ok_or_else(|| {
-                                Diagnostic::unresolved_reference(qualified_name, data.left.get_location())
+                                Diagnostic::unresolved_reference(qualified_name, data.left.as_ref())
                             })?;
 
                         let index_in_parent = member.get_location_in_parent();
@@ -2133,10 +2133,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     // .or_else(|| self.index.find_associated_variable_value(name))
                     .or_else(|| self.llvm_index.find_associated_initial_value(member.get_type_name()))
                     .ok_or_else(|| {
-                        Diagnostic::cannot_generate_initializer(
-                            member.get_qualified_name(),
-                            assignments.get_location(),
-                        )
+                        Diagnostic::cannot_generate_initializer(member.get_qualified_name(), assignments)
                     })?;
 
                 member_values.push((member.get_location_in_parent(), initial_value));
@@ -2196,7 +2193,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .iter()
                     .map(|d| d.get_length(self.index))
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|msg| Diagnostic::codegen_error(msg.as_str(), location.clone()))?
+                    .map_err(|msg| Diagnostic::codegen_error(msg.as_str(), location))?
                     .into_iter()
                     .product();
 
@@ -2204,7 +2201,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             } else {
                 Err(Diagnostic::codegen_error(
                     format!("Expected array type but found: {:}", data_type.get_name()).as_str(),
-                    location.clone(),
+                    location,
                 ))
             }?;
 
@@ -2443,7 +2440,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             ) => {
                 let target_size = lsize
                     .as_int_value(self.index)
-                    .map_err(|err| Diagnostic::codegen_error(err.as_str(), left_location.clone()))?;
+                    .map_err(|err| Diagnostic::codegen_error(err.as_str(), &left_location))?;
                 let value_size = rsize
                     .as_int_value(self.index)
                     .map_err(|err| Diagnostic::codegen_error(err.as_str(), right_location))?;
@@ -2654,7 +2651,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             | (ReferenceAccess::Address, None) // &;
             => Err(Diagnostic::codegen_error(
                 "Expected a base-expressions, but found none.",
-                original_expression.get_location(),
+                original_expression,
             )),
         }
     }
@@ -2729,7 +2726,7 @@ pub fn get_implicit_call_parameter<'a>(
             let loc = parameters
                 .iter()
                 .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
-                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.get_location()))?;
+                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.as_ref()))?;
 
             (loc, data.right.as_ref(), false)
         }
