@@ -11,7 +11,6 @@ use semver::{Version, VersionReq};
 use toml::Value;
 
 /// A mdbook preprocessor to generate error code pages
-
 pub fn make_app() -> Command {
     Command::new("error_code_generator")
         .about("A mdbook preprocessor to generate error code pages")

@@ -17,6 +17,7 @@ use plc_ast::{
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
     provider::IdProvider,
+    try_from,
 };
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
@@ -2153,25 +2154,20 @@ fn accept_cast_string_literal(
     literal: &AstNode,
 ) {
     // check if we need to register an additional string-literal
-    match (cast_type.get_type_information(), literal.get_stmt()) {
-        (
-            DataTypeInformation::String { encoding: StringEncoding::Utf8, .. },
-            AstStatement::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ true })),
-        )
-        | (
-            DataTypeInformation::String { encoding: StringEncoding::Utf16, .. },
-            AstStatement::Literal(AstLiteral::String(StringValue { value, is_wide: is_wide @ false })),
-        ) => {
+    let Some(&AstLiteral::String(StringValue { ref value, is_wide })) = try_from!(literal, AstLiteral) else {
+        return;
+    };
+    match (cast_type.get_type_information(), is_wide) {
+        (DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }, true)
+        | (DataTypeInformation::String { encoding: StringEncoding::Utf16, .. }, false) => {
             // re-register the string-literal in the opposite encoding
-            if *is_wide {
-                literals.utf08.insert(value.to_string());
+            if is_wide {
+                literals.utf08.insert(value.into());
             } else {
-                literals.utf16.insert(value.to_string());
+                literals.utf16.insert(value.into());
             }
         }
-        _ => {
-            //ignore
-        }
+        _ => (),
     }
 }
 
