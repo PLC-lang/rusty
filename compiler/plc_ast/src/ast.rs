@@ -6,6 +6,7 @@ use std::{
     ops::Range,
 };
 
+use derive_more::TryInto;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -721,7 +722,8 @@ pub struct AstNode {
     pub location: SourceLocation,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, TryInto)]
+#[try_into(ref)]
 pub enum AstStatement {
     EmptyStatement(EmptyStatement),
 
@@ -758,11 +760,27 @@ pub enum AstStatement {
     // Control Statements
     ControlStatement(AstControlStatement),
     CaseCondition(Box<AstNode>),
+    #[try_into(ignore)]
     ExitStatement(()),
+    #[try_into(ignore)]
     ContinueStatement(()),
     ReturnStatement(ReturnStatement),
     JumpStatement(JumpStatement),
     LabelStatement(LabelStatement),
+}
+
+#[macro_export]
+/// A `try_from` convenience wrapper for `AstNode`, passed as the `ex:expr` argument.
+/// Will try to return a reference to the variants inner type, specified via the `t:ty` parameter.
+/// Converts the `try_from`-`Result` into an `Option`
+macro_rules! try_from {
+    () => { None };
+    ($ex:expr, $t:ty) => {
+        <&$t>::try_from($ex.get_stmt()).ok()
+    };
+    ($($ex:tt)*, $t:ty) => {
+        try_from!($($ex)*, $t).ok()
+    };
 }
 
 impl Debug for AstNode {
@@ -895,11 +913,7 @@ impl From<&AstNode> for SourceLocation {
 impl AstNode {
     ///Returns the statement in a singleton list, or the contained statements if the statement is already a list
     pub fn get_as_list(&self) -> Vec<&AstNode> {
-        if let AstStatement::ExpressionList(expressions) = &self.stmt {
-            expressions.iter().collect::<Vec<&AstNode>>()
-        } else {
-            vec![self]
-        }
+        try_from!(self, Vec<AstNode>).map(|it| it.iter().collect()).unwrap_or(vec![self])
     }
 
     pub fn get_location(&self) -> SourceLocation {
@@ -960,17 +974,7 @@ impl AstNode {
 
     /// Returns true if the current statement is a flat reference (e.g. `a`)
     pub fn is_flat_reference(&self) -> bool {
-        matches!(self.stmt, AstStatement::Identifier(..)) || {
-            if let AstStatement::ReferenceExpr(
-                ReferenceExpr { access: ReferenceAccess::Member(reference), base: None },
-                ..,
-            ) = &self.stmt
-            {
-                matches!(reference.as_ref().stmt, AstStatement::Identifier(..))
-            } else {
-                false
-            }
-        }
+        self.get_flat_reference_name().is_some()
     }
 
     /// Returns the reference-name if this is a flat reference like `a`, or None if this is no flat reference
@@ -1086,15 +1090,7 @@ impl AstNode {
 
     /// Returns true if the given token is an integer or float and zero.
     pub fn is_zero(&self) -> bool {
-        match &self.stmt {
-            AstStatement::Literal(kind, ..) => match kind {
-                AstLiteral::Integer(0) => true,
-                AstLiteral::Real(val) => val == "0" || val == "0.0",
-                _ => false,
-            },
-
-            _ => false,
-        }
+        try_from!(self, AstLiteral).is_some_and(|it| it.is_zero())
     }
 
     pub fn is_binary_expression(&self) -> bool {
@@ -1114,10 +1110,7 @@ impl AstNode {
     }
 
     pub fn get_literal_integer_value(&self) -> Option<i128> {
-        match &self.stmt {
-            AstStatement::Literal(AstLiteral::Integer(value), ..) => Some(*value),
-            _ => None,
-        }
+        try_from!(self, AstLiteral).map(|it| it.get_literal_integer_value()).unwrap_or_default()
     }
 
     pub fn is_identifier(&self) -> bool {

@@ -3,6 +3,7 @@ use std::fmt::{Debug, Formatter};
 use chrono::NaiveDate;
 
 use crate::ast::AstNode;
+use derive_more::TryInto;
 
 macro_rules! impl_getters {
     ($type:ty, [$($name:ident),+], [$($out:ty),+]) => {
@@ -14,7 +15,8 @@ macro_rules! impl_getters {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, TryInto)]
+#[try_into(ref)]
 pub enum AstLiteral {
     /// a null literal used to initialize pointers
     Null,
@@ -270,6 +272,19 @@ impl AstLiteral {
                 | AstLiteral::TimeOfDay { .. }
                 | AstLiteral::DateAndTime { .. }
         )
+    }
+
+    pub fn is_zero(&self) -> bool {
+        match self {
+            AstLiteral::Integer(0) => true,
+            AstLiteral::Real(val) => val == "0" || val == "0.0",
+            _ => false,
+        }
+    }
+
+    pub fn get_literal_integer_value(&self) -> Option<i128> {
+        let Self::Integer(val) = self else { return None };
+        Some(*val)
     }
 }
 
