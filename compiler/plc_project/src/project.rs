@@ -250,6 +250,12 @@ impl<S: SourceContainer> Project<S> {
         proj
     }
 
+    pub fn with_location(self, location: &str) -> Self {
+        let mut proj = self;
+        proj.location = Some(PathBuf::from(location));
+        proj
+    }
+
     pub fn get_library_paths(&self) -> &[PathBuf] {
         &self.library_paths
     }

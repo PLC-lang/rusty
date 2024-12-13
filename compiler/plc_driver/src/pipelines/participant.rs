@@ -11,6 +11,7 @@ use std::{
     sync::{Arc, Mutex, RwLock},
 };
 
+use ast::provider::IdProvider;
 use plc::{codegen::GeneratedModule, output::FormatOption, ConfigFormat, OnlineChange, Target};
 use plc_diagnostics::diagnostics::Diagnostic;
 use project::{object::Object, project::LibraryInformation};
@@ -65,6 +66,11 @@ pub trait PipelineParticipantMut {
     /// Implement this to access the project after it got indexed
     /// This happens directly after the index returns
     fn post_index(&self, indexed_project: IndexedProject) -> IndexedProject {
+        indexed_project
+    }
+    /// Implement this to access the project before it gets annotated
+    /// This happens directly after the constants are evaluated
+    fn pre_annotate(&self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project
     }
     /// Implement this to access the project after it got annotated
@@ -211,5 +217,38 @@ impl PipelineParticipantMut for LoweringParticipant {
 
     fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         annotated_project
+    }
+}
+
+pub struct InitParticipant {
+    symbol_name: String,
+    id_provider: IdProvider,
+}
+
+impl InitParticipant {
+    pub fn new(symbol_name: &str, id_provider: IdProvider) -> Self {
+        Self { symbol_name: symbol_name.into(), id_provider }
+    }
+
+    /// Adds additional, internally generated units to provide functions to be called by a runtime
+    /// in order to initialize pointers before first cycle.
+    ///
+    /// This method will consume the provided indexed project, modify the AST and re-index each unit
+    pub fn extend_with_init_units(&self, indexed_project: IndexedProject) -> IndexedProject {
+        let units = indexed_project.project.units;
+        let lowered = plc::lowering::InitVisitor::visit(
+            units,
+            indexed_project.index,
+            indexed_project.unresolvables,
+            self.id_provider.clone(),
+            &self.symbol_name,
+        );
+        ParsedProject { units: lowered }.index(self.id_provider.clone())
+    }
+}
+
+impl PipelineParticipantMut for InitParticipant {
+    fn pre_annotate(&self, indexed_project: IndexedProject) -> IndexedProject {
+        self.extend_with_init_units(indexed_project)
     }
 }

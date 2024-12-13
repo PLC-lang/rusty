@@ -10,7 +10,8 @@
 
 use anyhow::{anyhow, Result};
 use pipelines::{
-    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
+    participant::{CodegenParticipant, InitParticipant},
+    AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
 };
 use std::{
     ffi::OsStr,
@@ -162,7 +163,11 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
         libraries: pipeline.project.get_libraries().to_vec(),
     };
     pipeline.register_participant(Box::new(codegen_participant));
+    let init_participant =
+        InitParticipant::new(&pipeline.project.get_init_symbol_name(), pipeline.context.provider());
+    pipeline.register_mut_participant(Box::new(init_participant));
     let format = pipeline.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default();
+
     pipeline.run().map_err(|err| {
         //Only report the hint if we are using rich error reporting
         if matches!(format, ErrorFormat::Rich) {
