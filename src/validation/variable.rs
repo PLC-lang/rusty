@@ -182,7 +182,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
         return;
     };
 
-    match (&pou.pou_type, block.variable_block_type) {
+    match (&pou.kind, block.variable_block_type) {
         (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) => validator.push_diagnostic(
             Diagnostic::new(
                 "Variable Length Arrays are always by-ref, even when declared in a by-value block",
@@ -208,7 +208,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
         _ => validator.push_diagnostic(
             Diagnostic::new(format!(
                 "Variable Length Arrays are not allowed to be defined as {} variables inside a {}",
-                block.variable_block_type, pou.pou_type
+                block.variable_block_type, pou.kind
             ))
             .with_error_code("E044")
             .with_location(&variable.location),

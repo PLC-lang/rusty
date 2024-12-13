@@ -4,9 +4,6 @@ expression: "&diagnostics"
 ---
 error[E017]: A class cannot have an implementation
   ┌─ <internal>:6:13
-  │  
-6 │ ╭             LIGHT := TRUE;
-7 │ │         END_CLASS
-  │ ╰─────────────────^ A class cannot have an implementation
-
-
+  │
+6 │             LIGHT := TRUE;
+  │             ^^^^^^^^^^^^^^ A class cannot have an implementation
