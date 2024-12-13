@@ -1,4 +1,4 @@
-/// Defines shift operations
+//! Defines shift operations
 
 #[allow(non_snake_case)]
 #[no_mangle]

@@ -108,7 +108,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstNode {
         None
     };
 
-    lexer.consume_or_report(KeywordDo); // DO
+    lexer.try_consume_or_report(KeywordDo); // DO
 
     AstFactory::create_for_loop(
         counter_expression,
@@ -126,7 +126,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> AstNode {
     lexer.advance(); //WHILE
 
     let condition = parse_expression(lexer);
-    lexer.consume_or_report(KeywordDo);
+    lexer.try_consume_or_report(KeywordDo);
 
     AstFactory::create_while_statement(
         condition,

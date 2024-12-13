@@ -14,7 +14,7 @@ fn simple_foo_function_can_be_parsed() {
     let result = parse(src).0;
 
     let prg = &result.units[0];
-    assert_eq!(prg.pou_type, PouType::Function);
+    assert_eq!(prg.kind, PouType::Function);
     assert_eq!(prg.name, "foo");
     assert_debug_snapshot!(prg.return_type.as_ref().unwrap())
 }
@@ -25,7 +25,7 @@ fn simple_foo_function_block_can_be_parsed() {
     let result = parse(src).0;
 
     let prg = &result.units[0];
-    assert_eq!(prg.pou_type, PouType::FunctionBlock);
+    assert_eq!(prg.kind, PouType::FunctionBlock);
     assert_eq!(prg.name, "foo");
     assert!(prg.return_type.is_none());
 }
@@ -191,7 +191,7 @@ fn varargs_parameters_can_be_parsed() {
     let x = &parse_result.units[0];
     let expected = Pou {
         name: "foo".into(),
-        pou_type: PouType::Function,
+        kind: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeReference {
             referenced_type: "DINT".into(),
             location: SourceLocation::internal(),
@@ -263,7 +263,7 @@ fn sized_varargs_parameters_can_be_parsed() {
     let x = &parse_result.units[0];
     let expected = Pou {
         name: "foo".into(),
-        pou_type: PouType::Function,
+        kind: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeReference {
             referenced_type: "DINT".into(),
             location: SourceLocation::internal(),

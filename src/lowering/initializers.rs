@@ -311,16 +311,11 @@ fn create_init_wrapper_function(
     Some(global_init)
 }
 
-fn new_pou(
-    name: &str,
-    variable_blocks: Vec<VariableBlock>,
-    pou_type: PouType,
-    location: &SourceLocation,
-) -> Pou {
+fn new_pou(name: &str, variable_blocks: Vec<VariableBlock>, kind: PouType, location: &SourceLocation) -> Pou {
     Pou {
         name: name.into(),
         variable_blocks,
-        pou_type,
+        kind,
         return_type: None,
         location: location.clone(),
         name_location: location.to_owned(),
