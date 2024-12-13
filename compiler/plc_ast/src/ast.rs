@@ -517,6 +517,12 @@ impl Debug for DataTypeDeclaration {
     }
 }
 
+impl From<&DataTypeDeclaration> for SourceLocation {
+    fn from(value: &DataTypeDeclaration) -> Self {
+        value.get_location()
+    }
+}
+
 impl DataTypeDeclaration {
     pub fn get_name(&self) -> Option<&str> {
         match self {
@@ -877,6 +883,12 @@ impl Debug for AstNode {
                 f.debug_struct("LabelStatement").field("name", name).finish()
             }
         }
+    }
+}
+
+impl From<&AstNode> for SourceLocation {
+    fn from(value: &AstNode) -> Self {
+        value.get_location()
     }
 }
 

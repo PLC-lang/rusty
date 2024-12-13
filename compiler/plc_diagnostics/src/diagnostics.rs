@@ -188,8 +188,11 @@ impl Diagnostic {
             .with_location(location)
     }
 
-    pub fn codegen_error(message: impl Into<String>, location: SourceLocation) -> Diagnostic {
-        Diagnostic::new(message).with_location(location).with_error_code("E071")
+    pub fn codegen_error<T>(message: impl Into<String>, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(message).with_location(location.into()).with_error_code("E071")
     }
 
     pub fn llvm_error(file: &str, llvm_error: &str) -> Diagnostic {
