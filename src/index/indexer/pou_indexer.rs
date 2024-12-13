@@ -55,13 +55,13 @@ impl<'i> PouIndexer<'i> {
             information: DataTypeInformation::Struct {
                 name: pou.name.to_string(),
                 members,
-                source: StructSource::Pou(pou.pou_type.clone()),
+                source: StructSource::Pou(pou.kind.clone()),
             },
             nature: TypeNature::Any,
             location: pou.name_location.clone(),
         };
 
-        match &pou.pou_type {
+        match &pou.kind {
             PouType::Program => {
                 self.index_program(pou, pou_struct_type);
             }
@@ -198,7 +198,7 @@ impl<'i> PouIndexer<'i> {
                 }
 
                 let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
-                let block_type = get_declaration_type_for(block, &pou.pou_type);
+                let block_type = get_declaration_type_for(block, &pou.kind);
                 let type_name = if block_type.is_by_ref() {
                     //register a pointer type for argument
                     register_byref_pointer_type_for(self.index, var_type_name)

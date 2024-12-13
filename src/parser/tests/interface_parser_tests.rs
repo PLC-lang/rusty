@@ -387,15 +387,13 @@ mod error_handling {
         ";
 
         let diagnostics = parse_and_validate_buffered(source);
-        // TODO(volsa): The range of the error message is not correct
         insta::assert_snapshot!(diagnostics, @r###"
         warning[E113]: Interfaces can not have a default implementations
           ┌─ <internal>:4:17
           │  
         4 │ ╭                 1 > 2;
         5 │ │                 methodA := 5;
-        6 │ │             END_METHOD
-          │ ╰──────────────────────^ Interfaces can not have a default implementations
+          │ ╰─────────────────────────────^ Interfaces can not have a default implementations
 
         "###);
     }

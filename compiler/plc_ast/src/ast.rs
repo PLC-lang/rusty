@@ -32,7 +32,7 @@ pub struct GenericBinding {
 #[derive(PartialEq)]
 pub struct Pou {
     pub name: String,
-    pub pou_type: PouType, // TODO(volsa): Rename to kind
+    pub kind: PouType,
     pub variable_blocks: Vec<VariableBlock>,
     pub return_type: Option<DataTypeDeclaration>,
     /// The SourceLocation of the whole POU
@@ -221,7 +221,7 @@ impl Debug for Pou {
         let mut str = f.debug_struct("POU");
         str.field("name", &self.name)
             .field("variable_blocks", &self.variable_blocks)
-            .field("pou_type", &self.pou_type)
+            .field("pou_type", &self.kind)
             .field("return_type", &self.return_type)
             .field("interfaces", &self.interfaces);
         if !self.generics.is_empty() {
@@ -741,6 +741,9 @@ pub enum AstStatement {
     VlaRangeStatement,
 
     // TODO: Merge these variants with a `kind` field?
+    //       Update: Tried that, pattern matching becomes a pain in the ass; will probably be easier if we
+    //               introduce a `get_inner` method to extract the enum variants or potentially wait for
+    //               https://github.com/PLC-lang/rusty/pull/1221 to get merged
     // Assignments
     Assignment(Assignment),
     OutputAssignment(Assignment),
