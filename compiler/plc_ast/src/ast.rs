@@ -1,7 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use std::{
-    fmt::{Debug, Display, Formatter}, ops::Range
+    fmt::{Debug, Display, Formatter},
+    ops::Range,
+    usize,
 };
 
 use derive_more::TryInto;
@@ -731,6 +733,12 @@ pub struct AstNode {
     pub location: SourceLocation,
 }
 
+impl Default for AstNode {
+    fn default() -> Self {
+        AstFactory::create_empty_statement(SourceLocation::internal(), usize::MAX)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, TryInto)]
 #[try_into(ref, ref_mut, owned)]
 pub enum AstStatement {
@@ -924,9 +932,11 @@ impl Debug for AstNode {
             AstStatement::LabelStatement(LabelStatement { name, .. }) => {
                 f.debug_struct("LabelStatement").field("name", name).finish()
             }
-            AstStatement::AllocationStatement(Allocation {name, reference_type}) => {
-                f.debug_struct("Allocation").field("name", name).field("reference_type", reference_type).finish()
-            }
+            AstStatement::AllocationStatement(Allocation { name, reference_type }) => f
+                .debug_struct("Allocation")
+                .field("name", name)
+                .field("reference_type", reference_type)
+                .finish(),
         }
     }
 }
@@ -1232,6 +1242,17 @@ pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {
         }
         AstStatement::ParenExpression(expression) => flatten_expression_list(expression),
         _ => vec![list],
+    }
+}
+
+pub fn steal_expression_list(list: &mut AstNode) -> Vec<AstNode> {
+    match &mut list.stmt {
+        AstStatement::ExpressionList(expressions, ..) => expressions.drain(..).collect(),
+        AstStatement::ParenExpression(expression) => steal_expression_list(expression),
+        _ => {
+            let node = std::mem::take(list);
+            vec![node]
+        }
     }
 }
 
@@ -1820,7 +1841,7 @@ pub struct LabelStatement {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Allocation {
     pub name: String,
-    pub reference_type : String,
+    pub reference_type: String,
 }
 
 impl HardwareAccess {

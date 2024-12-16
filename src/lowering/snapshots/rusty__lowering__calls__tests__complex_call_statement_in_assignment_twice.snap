@@ -1,7 +1,7 @@
 ---
 source: src/lowering/calls.rs
-assertion_line: 467
 expression: "unit.implementations[1]"
+snapshot_kind: text
 ---
 Implementation {
     name: "main",

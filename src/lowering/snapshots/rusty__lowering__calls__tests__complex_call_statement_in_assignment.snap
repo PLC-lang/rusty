@@ -39,13 +39,23 @@ Implementation {
                         },
                     ),
                 },
-                ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "__complexFunc0",
-                        },
-                    ),
-                    base: None,
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__complexFunc0",
+                            },
+                        ),
+                        base: None,
+                    },
                 },
             ],
         },
@@ -53,13 +63,13 @@ Implementation {
     location: SourceLocation {
         span: Range(
             TextLocation {
-                line: 13,
+                line: 14,
                 column: 12,
-                offset: 331,
+                offset: 368,
             }..TextLocation {
-                line: 13,
-                column: 26,
-                offset: 345,
+                line: 14,
+                column: 31,
+                offset: 387,
             },
         ),
     },

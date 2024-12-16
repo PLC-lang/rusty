@@ -2,7 +2,11 @@
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
 use crate::ast::{
-    flatten_expression_list, Allocation, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement, CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock
+    flatten_expression_list, Allocation, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
+    CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess,
+    EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement,
+    MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
+    UserTypeDeclaration, Variable, VariableBlock,
 };
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;

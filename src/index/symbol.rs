@@ -19,7 +19,11 @@ impl<K, V> Default for SymbolMap<K, V> {
     }
 }
 
-impl<K,V> SymbolMap<K,V> where K: Hash + Eq, V: PartialEq + Eq {
+impl<K, V> SymbolMap<K, V>
+where
+    K: Hash + Eq,
+    V: PartialEq + Eq,
+{
     /// Removes a key, value pair from the multimap if it exists
     pub fn remove(&mut self, key: &K, value: &V) {
         if let Some(entries) = self.inner_map.get_mut(key) {
@@ -28,7 +32,6 @@ impl<K,V> SymbolMap<K,V> where K: Hash + Eq, V: PartialEq + Eq {
             }
         }
     }
-
 }
 
 impl<K, V> SymbolMap<K, V>
@@ -68,7 +71,6 @@ where
     pub fn insert_many<T: IntoIterator<Item = V>>(&mut self, key: K, values: T) {
         self.inner_map.entry(key).or_default().extend(values);
     }
-
 
     /// returns an iterator over all elements key-value tuples in their order. Note that
     /// keys with `n` associated elements will emit `n` key-value tuples in the returned
