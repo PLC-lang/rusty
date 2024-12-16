@@ -1,6 +1,6 @@
 use crate::{
     index::{get_init_fn_name, Index, PouIndexEntry, VariableIndexEntry},
-    resolver::{const_evaluator::UnresolvableConstant, AnnotationMap, AstAnnotations},
+    resolver::const_evaluator::UnresolvableConstant,
 };
 use initializers::{Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
@@ -10,67 +10,46 @@ use plc_ast::{
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
-    visit_all_nodes_mut,
 };
 use plc_source::source_location::SourceLocation;
 
 mod initializers;
-
 mod calls;
 
-pub struct AstLowerer {
+pub struct InitVisitor {
     index: Index,
-    annotations: AstAnnotations,
     unresolved_initializers: Initializers,
     var_config_initializers: Vec<AstNode>,
-    units: Vec<CompilationUnit>,
-    ctxt: LoweringContext,
+    ctxt: Context,
 }
 
-impl AstLowerer {
-    pub fn lower(
+impl InitVisitor {
+    pub fn visit(
         mut units: Vec<CompilationUnit>,
         index: Index,
-        annotations: AstAnnotations,
         unresolvables: Vec<UnresolvableConstant>,
         id_provider: IdProvider,
         init_symbol_name: &str,
     ) -> Vec<CompilationUnit> {
-        let mut lowerer = Self::new(index, annotations, unresolvables, id_provider);
+        let mut visitor = Self::new(index, unresolvables, id_provider);
         // visit all units
         units.iter_mut().for_each(|unit| {
-            lowerer.visit_compilation_unit(unit);
+            visitor.visit_compilation_unit(unit);
         });
 
-        let lowered = lowerer.with_units(units).lower_init_functions(init_symbol_name);
-
-        lowered.units
+        visitor.extend_ast(units, init_symbol_name)
     }
 
     fn new(
         index: Index,
-        annotations: AstAnnotations,
         unresolved_initializers: Vec<UnresolvableConstant>,
         id_provider: IdProvider,
     ) -> Self {
         Self {
             index,
-            annotations,
             unresolved_initializers: Initializers::new(&unresolved_initializers),
             var_config_initializers: vec![],
-            units: vec![],
-            ctxt: LoweringContext::new(id_provider),
-        }
-    }
-
-    fn with_units(self, units: Vec<CompilationUnit>) -> Self {
-        Self {
-            index: self.index,
-            annotations: self.annotations,
-            unresolved_initializers: self.unresolved_initializers,
-            var_config_initializers: self.var_config_initializers,
-            units,
-            ctxt: self.ctxt,
+            ctxt: Context::new(id_provider),
         }
     }
 
@@ -115,15 +94,12 @@ impl AstLowerer {
         };
 
         if let Some(initializer) = variable.initializer.as_ref() {
-            if self
-                .annotations
-                .get_type_hint(initializer, &self.index)
-                .map(|it| it.get_type_information())
-                .filter(|dti| dti.is_pointer())
-                .is_none()
-            {
+            let type_name =
+                variable.data_type_declaration.get_name().expect("Must have a type at this point");
+            let data_type = self.index.get_effective_type_or_void_by_name(type_name).get_type_information();
+            if !data_type.is_pointer() {
                 return;
-            };
+            }
 
             let updated_initializer = match &initializer.get_stmt() {
                 // no call-statement in the initializer, so something like `a AT b` or `a : REFERENCE TO ... REF= b`
@@ -327,11 +303,7 @@ impl AstLowerer {
     }
 }
 
-impl AstVisitorMut for AstLowerer {
-    fn visit(&mut self, node: &mut plc_ast::ast::AstNode) {
-        node.walk(self)
-    }
-
+impl AstVisitorMut for InitVisitor {
     fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
         self.collect_var_config_assignments(&unit.var_config);
         unit.walk(self)
@@ -342,22 +314,10 @@ impl AstVisitorMut for AstLowerer {
         implementation.walk(self);
     }
 
-    fn visit_variable_block(&mut self, block: &mut plc_ast::ast::VariableBlock) {
-        block.walk(self)
-    }
-
     fn visit_variable(&mut self, variable: &mut plc_ast::ast::Variable) {
         self.maybe_add_global_instance_initializer(variable);
         self.update_initializer(variable);
         variable.walk(self);
-    }
-
-    fn visit_enum_element(&mut self, element: &mut plc_ast::ast::AstNode) {
-        element.walk(self);
-    }
-
-    fn visit_data_type_declaration(&mut self, data_type_declaration: &mut plc_ast::ast::DataTypeDeclaration) {
-        data_type_declaration.walk(self);
     }
 
     fn visit_user_type_declaration(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
@@ -383,7 +343,7 @@ impl AstVisitorMut for AstLowerer {
 }
 
 #[derive(Clone, Default)]
-pub struct LoweringContext {
+struct Context {
     /// optional context for references (e.g. `x` may mean `POU.x` if used inside `POU` body or `STRUCT.x` if `x` is a member of `STRUCT`)
     scope: Option<String>,
 
@@ -391,7 +351,7 @@ pub struct LoweringContext {
 }
 
 // TODO: use &str with lifetimes, requires loads of changes to the visitor/walker traits
-impl LoweringContext {
+impl Context {
     fn new(id_provider: IdProvider) -> Self {
         Self { scope: None, id_provider }
     }
