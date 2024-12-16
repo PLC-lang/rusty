@@ -9,7 +9,7 @@ use plc_ast::ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-use super::AstLowerer;
+use super::InitVisitor;
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
 const INIT_COMPILATION_UNIT: &str = "__initializers";
 const VAR_CONFIG_INIT: &str = "__init___var_config";
@@ -99,22 +99,26 @@ impl<'lwr> Init<'lwr> for Initializers {
     }
 }
 
-impl AstLowerer {
-    pub fn lower_init_functions(mut self, init_symbol_name: &str) -> Self {
-        let units = create_init_units(&self);
+impl InitVisitor {
+    pub fn extend_ast(
+        mut self,
+        mut units: Vec<CompilationUnit>,
+        init_symbol_name: &str,
+    ) -> Vec<CompilationUnit> {
+        let new_units = create_init_units(&self);
 
-        if let Some(init_unit) = units.into_iter().reduce(|mut acc_unit, unit| {
+        if let Some(init_unit) = new_units.into_iter().reduce(|mut acc_unit, unit| {
             acc_unit.import(unit);
             acc_unit
         }) {
-            self.units.push(init_unit);
+            units.push(init_unit);
         }
 
         if let Some(global_init) = create_init_wrapper_function(&mut self, init_symbol_name) {
-            self.units.push(global_init);
+            units.push(global_init);
         }
 
-        self
+        units
     }
 }
 
@@ -125,7 +129,7 @@ fn create_var_config_init(statements: Vec<AstNode>) -> CompilationUnit {
     new_unit(pou, implementation, INIT_COMPILATION_UNIT)
 }
 
-fn create_init_units(lowerer: &AstLowerer) -> Vec<CompilationUnit> {
+fn create_init_units(lowerer: &InitVisitor) -> Vec<CompilationUnit> {
     let lookup = lowerer.unresolved_initializers.keys().map(|it| it.as_str()).collect::<FxIndexSet<_>>();
     lowerer
         .unresolved_initializers
@@ -142,7 +146,7 @@ fn create_init_units(lowerer: &AstLowerer) -> Vec<CompilationUnit> {
 }
 
 fn create_init_unit(
-    lowerer: &AstLowerer,
+    lowerer: &InitVisitor,
     container_name: &str,
     assignments: &InitAssignments,
     all_init_units: &FxIndexSet<&str>,
@@ -219,7 +223,10 @@ fn create_init_unit(
     Some(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
 }
 
-fn create_init_wrapper_function(lowerer: &mut AstLowerer, init_symbol_name: &str) -> Option<CompilationUnit> {
+fn create_init_wrapper_function(
+    lowerer: &mut InitVisitor,
+    init_symbol_name: &str,
+) -> Option<CompilationUnit> {
     let skip_var_config = lowerer.var_config_initializers.is_empty();
     if skip_var_config && lowerer.unresolved_initializers.is_empty() {
         return None;
