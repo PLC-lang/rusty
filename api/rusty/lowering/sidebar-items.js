@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["AstLowerer","LoweringContext"]};
+window.SIDEBAR_ITEMS = {"struct":["InitVisitor"]};

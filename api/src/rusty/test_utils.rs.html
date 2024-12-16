@@ -365,9 +365,7 @@
 <a href="#364" id="364">364</a>
 <a href="#365" id="365">365</a>
 <a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a></pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
+<a href="#367" id="367">367</a></pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">pub mod </span>tests {
 
     <span class="kw">use </span>std::{collections::HashMap, path::PathBuf, str::FromStr, sync::Mutex};
@@ -387,7 +385,7 @@
         codegen::{CodegenContext, GeneratedModule},
         index::{<span class="self">self</span>, FxIndexSet, Index},
         lexer,
-        lowering::AstLowerer,
+        lowering::InitVisitor,
         parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
@@ -483,14 +481,12 @@
     <span class="kw">pub fn </span>annotate_and_lower_with_ids(
         parse_result: CompilationUnit,
         index: Index,
-        <span class="kw-2">mut </span>id_provider: IdProvider,
+        id_provider: IdProvider,
     ) -&gt; Lowered {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>index, unresolvables) = evaluate_constants(index);
-        <span class="kw">let </span>annotation_map = annotate_with_ids(<span class="kw-2">&amp;</span>parse_result, <span class="kw-2">&amp;mut </span>index, id_provider.clone());
-        <span class="kw">let </span>lowered = AstLowerer::lower(
+        <span class="kw">let </span>(index, unresolvables) = evaluate_constants(index);
+        <span class="kw">let </span>lowered = InitVisitor::visit(
             <span class="macro">vec!</span>[parse_result],
             index,
-            AstAnnotations::new(annotation_map, id_provider.next_id()),
             unresolvables,
             id_provider.clone(),
             <span class="kw-2">&amp;</span>get_project_init_symbol(),

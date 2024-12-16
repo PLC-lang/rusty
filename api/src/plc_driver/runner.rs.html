@@ -63,7 +63,8 @@
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
-<a href="#65" id="65">65</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{pipelines::ParsedProject, CompileOptions};
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{pipelines::ParsedProject, CompileOptions};
 
 <span class="kw">use </span>plc::codegen::{CodegenContext, GeneratedModule};
 <span class="kw">use </span>plc_diagnostics::diagnostician::Diagnostician;
@@ -94,9 +95,10 @@
     <span class="kw">let </span>ctxt = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>).unwrap();
     <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::null_diagnostician();
     <span class="kw">let </span>parsed_project = ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;</span>project, <span class="kw-2">&amp;mut </span>diagnostician).unwrap();
-    <span class="kw">let </span>indexed_project = parsed_project.index(ctxt.provider());
-    <span class="kw">let </span>annotated_project =
-        indexed_project.annotate(ctxt.provider()).lower(<span class="kw-2">&amp;</span>project.get_init_symbol_name(), ctxt.provider());
+    <span class="kw">let </span>indexed_project = parsed_project
+        .index(ctxt.provider())
+        .extend_with_init_units(<span class="kw-2">&amp;</span>project.get_init_symbol_name(), ctxt.provider());
+    <span class="kw">let </span>annotated_project = indexed_project.annotate(ctxt.provider());
     <span class="kw">let </span>compile_options = CompileOptions {
         optimization: plc::OptimizationLevel::None,
         debug_level: plc::DebugLevel::None,

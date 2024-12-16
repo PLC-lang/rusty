@@ -1007,11 +1007,7 @@
 <a href="#1006" id="1006">1006</a>
 <a href="#1007" id="1007">1007</a>
 <a href="#1008" id="1008">1008</a>
-<a href="#1009" id="1009">1009</a>
-<a href="#1010" id="1010">1010</a>
-<a href="#1011" id="1011">1011</a>
-<a href="#1012" id="1012">1012</a>
-<a href="#1013" id="1013">1013</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{
+<a href="#1009" id="1009">1009</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     env,
     ffi::OsStr,
@@ -1037,7 +1033,7 @@
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::AstLowerer,
+    lowering::InitVisitor,
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -1286,9 +1282,6 @@
         <span class="comment">// 1. Parse, 2. Index and 3. Resolve / Annotate
         </span><span class="kw">let </span>indexed_project = <span class="self">self</span>.index(parsed_project)<span class="question-mark">?</span>;
         <span class="kw">let </span>annotated_project = <span class="self">self</span>.annotate(indexed_project)<span class="question-mark">?</span>;
-        <span class="comment">// // 4. AST-lowering, re-index and re-resolve
-        </span><span class="kw">let </span>annotated_project =
-            annotated_project.lower(<span class="kw-2">&amp;</span><span class="self">self</span>.project.get_init_symbol_name(), <span class="self">self</span>.context.provider());
         <span class="comment">//TODO : this is post lowering, we might want to control this
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(CompileParameters { output_ast: <span class="bool-val">true</span>, .. }) = <span class="self">self</span>.compile_parameters {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -1340,6 +1333,7 @@
         <span class="self">self</span>.participants.iter().for_each(|p| {
             p.pre_annotate(<span class="kw-2">&amp;</span>project);
         });
+        <span class="kw">let </span>project = <span class="self">self</span>.mutable_participants.iter().fold(project, |project, p| p.pre_annotate(project));
         <span class="kw">let </span>annotated_project = project.annotate(<span class="self">self</span>.context.provider());
         <span class="self">self</span>.participants.iter().for_each(|p| {
             p.post_annotate(<span class="kw-2">&amp;</span>annotated_project);
@@ -1526,7 +1520,8 @@
         </span><span class="kw">let </span>builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(indexer::index(<span class="kw-2">&amp;</span>builtins));
 
-        IndexedProject { project: ParsedProject { units }, index: global_index }
+        <span class="kw">let </span>(full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
+        IndexedProject { project: ParsedProject { units }, index: full_index, unresolvables }
     }
 }
 
@@ -1535,12 +1530,12 @@
 </span><span class="kw">pub struct </span>IndexedProject {
     project: ParsedProject,
     index: Index,
+    unresolvables: Vec&lt;UnresolvableConstant&gt;,
 }
 
 <span class="kw">impl </span>IndexedProject {
     <span class="doccomment">/// Creates annotations on the project in order to facilitate codegen and validation
     </span><span class="kw">pub fn </span>annotate(<span class="self">self</span>, <span class="kw-2">mut </span>id_provider: IdProvider) -&gt; AnnotatedProject {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(<span class="self">self</span>.index);
         <span class="comment">//Create and call the annotator
         </span><span class="kw">let </span><span class="kw-2">mut </span>annotated_units = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>all_annotations = AnnotationMapImpl::default();
@@ -1550,7 +1545,7 @@
             .into_par_iter()
             .map(|unit| {
                 <span class="kw">let </span>(annotation, dependencies, literals) =
-                    TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span>full_index, <span class="kw-2">&amp;</span>unit, id_provider.clone());
+                    TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span><span class="self">self</span>.index, <span class="kw-2">&amp;</span>unit, id_provider.clone());
                 (unit, annotation, dependencies, literals)
             })
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
@@ -1560,11 +1555,23 @@
             all_annotations.import(annotation);
         }
 
-        full_index.import(std::mem::take(<span class="kw-2">&amp;mut </span>all_annotations.new_index));
+        <span class="kw">let </span><span class="kw-2">mut </span>index = <span class="self">self</span>.index;
+        index.import(std::mem::take(<span class="kw-2">&amp;mut </span>all_annotations.new_index));
 
         <span class="kw">let </span>annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
-        AnnotatedProject { units: annotated_units, index: full_index, annotations, unresolvables }
+        AnnotatedProject { units: annotated_units, index, annotations }
+    }
+
+    <span class="doccomment">/// Adds additional, internally generated units to provide functions to be called by a runtime
+    /// in order to initialize pointers before first cycle.
+    ///
+    /// This method will consume the provided indexed project, modify the AST and re-index each unit
+    </span><span class="kw">pub fn </span>extend_with_init_units(<span class="self">self</span>, symbol_name: <span class="kw-2">&amp;</span>str, id_provider: IdProvider) -&gt; IndexedProject {
+        <span class="kw">let </span>units = <span class="self">self</span>.project.units;
+        <span class="kw">let </span>lowered =
+            InitVisitor::visit(units, <span class="self">self</span>.index, <span class="self">self</span>.unresolvables, id_provider.clone(), symbol_name);
+        ParsedProject { units: lowered }.index(id_provider.clone())
     }
 }
 
@@ -1594,24 +1601,9 @@
     <span class="kw">pub </span>units: Vec&lt;AnnotatedUnit&gt;,
     <span class="kw">pub </span>index: Index,
     <span class="kw">pub </span>annotations: AstAnnotations,
-    <span class="kw">pub </span>unresolvables: Vec&lt;UnresolvableConstant&gt;,
 }
 
 <span class="kw">impl </span>AnnotatedProject {
-    <span class="kw">pub fn </span>lower(<span class="self">self</span>, symbol_name: <span class="kw-2">&amp;</span>str, id_provider: IdProvider) -&gt; AnnotatedProject {
-        <span class="kw">let </span>units = <span class="self">self</span>.units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-        <span class="kw">let </span>lowered = AstLowerer::lower(
-            units,
-            <span class="self">self</span>.index,
-            <span class="self">self</span>.annotations,
-            <span class="self">self</span>.unresolvables,
-            id_provider.clone(),
-            symbol_name,
-        );
-        <span class="comment">// XXX: this step can be looped until there were no further lowering-changes, however at this time lowering once should suffice
-        </span>ParsedProject { units: lowered }.index(id_provider.clone()).annotate(id_provider)
-    }
-
     <span class="doccomment">/// Validates the project, reports any new diagnostics on the fly
     </span><span class="kw">pub fn </span>validate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
