@@ -6,6 +6,4 @@ warning[E022]: Missing Actions Container Name
   ┌─ <internal>:1:25
   │
 1 │ ACTIONS ACTION myAction END_ACTION END_ACTIONS
-  │                         ^^^^^^^^^^ Missing Actions Container Name
-
-
+  │                         ^ Missing Actions Container Name

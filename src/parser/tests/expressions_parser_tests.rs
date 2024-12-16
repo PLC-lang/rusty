@@ -1577,7 +1577,7 @@ fn sized_string_as_function_return() {
     let expected = Pou {
         name: "foo".into(),
         poly_mode: None,
-        pou_type: PouType::Function,
+        kind: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::StringType {
                 name: None,
@@ -1617,7 +1617,7 @@ fn array_type_as_function_return() {
     let expected = Pou {
         name: "foo".into(),
         poly_mode: None,
-        pou_type: PouType::Function,
+        kind: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::ArrayType {
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
