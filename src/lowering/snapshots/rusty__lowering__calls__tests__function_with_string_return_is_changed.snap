@@ -31,6 +31,10 @@ POU {
         },
     ],
     pou_type: Function,
-    return_type: None,
+    return_type: Some(
+        Aggregate {
+            referenced_type: "STRING",
+        },
+    ),
     interfaces: [],
 }

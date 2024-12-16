@@ -1,6 +1,6 @@
 ---
 source: src/lowering/calls.rs
-assertion_line: 402
+assertion_line: 428
 expression: "unit.implementations[1]"
 ---
 Implementation {
@@ -9,53 +9,38 @@ Implementation {
     linkage: Internal,
     pou_type: Function,
     statements: [
-        Assignment {
-            left: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "a",
-                    },
-                ),
-                base: None,
-            },
-            right: CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "complexFunc",
-                        },
-                    ),
-                    base: None,
+        ExpressionList {
+            expressions: [
+                Allocation {
+                    name: "__complexFunc0",
+                    reference_type: "STRING",
                 },
-                parameters: Some(
-                    Assignment {
-                        left: ReferenceExpr {
+                Allocation {
+                    name: "__complexFunc1",
+                    reference_type: "STRING",
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: CallStatement {
+                        operator: ReferenceExpr {
                             kind: Member(
                                 Identifier {
-                                    name: "x",
+                                    name: "complexFunc",
                                 },
                             ),
                             base: None,
                         },
-                        right: CallStatement {
-                            operator: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "complexFunc",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            parameters: Some(
-                                LiteralString {
-                                    value: "hello",
-                                    is_wide: false,
-                                },
-                            ),
-                        },
+                        parameters: None,
                     },
-                ),
-            },
+                },
+            ],
         },
     ],
     location: SourceLocation {
@@ -65,9 +50,9 @@ Implementation {
                 column: 12,
                 offset: 481,
             }..TextLocation {
-                line: 17,
-                column: 20,
-                offset: 546,
+                line: 16,
+                column: 56,
+                offset: 525,
             },
         ),
     },

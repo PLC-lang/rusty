@@ -2,16 +2,16 @@
 //! to make them VAR_IN_OUT calls, allowing them
 //! to be called from C_APIs and simplifying code generation
 
-use std::{borrow::BorrowMut, collections::VecDeque, sync::atomic::AtomicI32};
+use std::{borrow::BorrowMut, fmt::Debug, sync::atomic::AtomicI32};
 
 use plc_ast::{
     ast::{
-        AccessModifier, AstFactory, AstNode, AstStatement, LinkageType, Pou, Variable, VariableBlock,
-        VariableBlockType,
+        AccessModifier, Allocation, Assignment, AstFactory, AstNode, AstStatement, CallStatement,
+        LinkageType, Pou, Variable, VariableBlock, VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
-    visitor::Walker,
+    try_from_mut,
 };
 use plc_source::source_location::SourceLocation;
 
@@ -108,24 +108,29 @@ impl AstVisitorMut for AggregateTypeLowerer {
         }
     }
 
-    fn visit_call_statement(
-        &mut self,
-        _original_stmt: &mut plc_ast::ast::CallStatement,
-        node: &mut plc_ast::ast::AstNode,
-    ) {
-        let AstStatement::CallStatement(stmt) = &mut node.stmt else {
-            return;
-        };
+    fn visit_assignment(&mut self, node: &mut AstNode) {
+        let stmt = dbg!(try_from_mut!(node, Assignment).expect("Assignment"));
         stmt.walk(self);
+        dbg!(&self.new_stmts);
+    }
+
+    fn visit_call_statement(&mut self, node: &mut AstNode) {
+        let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
+        dbg!(&self.new_stmts);
+        dbg!(&stmt);
+        stmt.walk(self);
+        dbg!(&stmt);
+        dbg!(&self.new_stmts);
         let annotation = self.annotation.as_ref().expect("Must be annotated");
         let index = self.index.as_ref().expect("Must be indexed");
         //Get the function being called
-        let Some(crate::resolver::StatementAnnotation::Function { return_type, .. }) =
+        let Some(crate::resolver::StatementAnnotation::Function { return_type: return_type_name, .. }) =
             annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator))
         else {
+            dbg!("Breaking");
             return;
         };
-        let return_type = index.get_effective_type_or_void_by_name(return_type);
+        let return_type = index.get_effective_type_or_void_by_name(return_type_name);
         //TODO: needs to be on the function
         if return_type.is_aggregate_type() {
             //self.context.insert_before(alloca)
@@ -135,6 +140,16 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 stmt.operator.get_flat_reference_name().unwrap_or_default(),
                 self.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
             );
+            //Create an allocation of the new type
+            let alloca = AstNode {
+                stmt: AstStatement::AllocationStatement(Allocation {
+                    name: name.clone(),
+                    reference_type: return_type_name.to_string(),
+                }),
+                id: self.id_provider.next_id(),
+                location: SourceLocation::internal(),
+            };
+            self.new_stmts.push(alloca);
             let reference = super::create_member_reference(&name, self.id_provider.clone(), None);
             //TODO : we are creating th expression list twice in case of no params
             let AstNode { stmt: AstStatement::ExpressionList(mut parameters), id, location } =
@@ -146,15 +161,16 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     ))
                 })
             else {
+                dbg!("Breaking");
                 return;
             };
             parameters.insert(0, reference);
 
             stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
             //steal parameters, add one to the start, return parameters
-            let reference = super::create_member_reference(&name, self.id_provider.clone(), None);
-            let node = std::mem::replace(node, reference);
-            self.new_stmts.push(node);
+            let mut reference = super::create_member_reference(&name, self.id_provider.clone(), None);
+            std::mem::swap(node.get_stmt_mut(), reference.get_stmt_mut());
+            self.new_stmts.push(dbg!(reference));
         }
     }
 }
@@ -336,7 +352,8 @@ mod tests {
 
     #[test]
     fn complex_call_statement_in_assignment() {
-        let (mut unit, index) = test_index(
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
             r#"
         FUNCTION complexFunc : STRING
         VAR
@@ -354,22 +371,27 @@ mod tests {
             a := complexFunc();
         END_FUNCTION
         "#,
+            id_provider.clone(),
         );
 
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
             new_stmts: Default::default(),
-            id_provider: IdProvider::default(),
+            id_provider: id_provider.clone(),
             counter: Default::default(),
         };
+        lowerer.visit_compilation_unit(&mut unit);
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
 
     #[test]
     fn complex_call_statement_in_call() {
-        let (mut unit, index) = test_index(
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
             r#"
         FUNCTION complexFunc : STRING
         VAR_INPUT
@@ -389,22 +411,27 @@ mod tests {
             a := complexFunc(x := complexFunc('hello'));
         END_FUNCTION
         "#,
+            id_provider.clone(),
         );
 
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
             new_stmts: Default::default(),
-            id_provider: IdProvider::default(),
+            id_provider: id_provider.clone(),
             counter: Default::default(),
         };
+        lowerer.visit_compilation_unit(&mut unit);
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
 
     #[test]
     fn complex_call_statement_in_assignment_twice() {
-        let (mut unit, index) = test_index(
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
             r#"
         FUNCTION complexFunc : STRING
         VAR_INPUT
@@ -427,15 +454,19 @@ mod tests {
             a := complexFunc();
         END_FUNCTION
         "#,
+            id_provider.clone(),
         );
 
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
             new_stmts: Default::default(),
-            id_provider: IdProvider::default(),
+            id_provider: id_provider.clone(),
             counter: Default::default(),
         };
+        lowerer.visit_compilation_unit(&mut unit);
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }

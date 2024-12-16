@@ -1,6 +1,6 @@
 ---
 source: src/lowering/calls.rs
-assertion_line: 334
+assertion_line: 346
 expression: "unit.implementations[1]"
 ---
 Implementation {
@@ -11,6 +11,10 @@ Implementation {
     statements: [
         ExpressionList {
             expressions: [
+                Allocation {
+                    name: "__complexFunc0",
+                    reference_type: "STRING",
+                },
                 CallStatement {
                     operator: ReferenceExpr {
                         kind: Member(
@@ -53,9 +57,9 @@ Implementation {
                 column: 12,
                 offset: 331,
             }..TextLocation {
-                line: 14,
-                column: 20,
-                offset: 366,
+                line: 13,
+                column: 26,
+                offset: 345,
             },
         ),
     },

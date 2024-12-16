@@ -1,6 +1,5 @@
 ---
 source: src/lowering/calls.rs
-assertion_line: 384
 expression: "unit.implementations[1]"
 ---
 Implementation {
@@ -39,23 +38,13 @@ Implementation {
                         },
                     ),
                 },
-                Assignment {
-                    left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "a",
-                            },
-                        ),
-                        base: None,
-                    },
-                    right: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__complexFunc0",
-                            },
-                        ),
-                        base: None,
-                    },
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__complexFunc0",
+                        },
+                    ),
+                    base: None,
                 },
             ],
         },
@@ -63,13 +52,13 @@ Implementation {
     location: SourceLocation {
         span: Range(
             TextLocation {
-                line: 14,
+                line: 13,
                 column: 12,
-                offset: 368,
+                offset: 331,
             }..TextLocation {
                 line: 14,
-                column: 31,
-                offset: 387,
+                column: 20,
+                offset: 366,
             },
         ),
     },

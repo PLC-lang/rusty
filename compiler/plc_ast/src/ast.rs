@@ -1,9 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use std::{
-    fmt::{Debug, Display, Formatter},
-    hash::Hash,
-    ops::Range,
+    fmt::{Debug, Display, Formatter}, ops::Range
 };
 
 use derive_more::TryInto;
@@ -734,7 +732,7 @@ pub struct AstNode {
 }
 
 #[derive(Debug, Clone, PartialEq, TryInto)]
-#[try_into(ref)]
+#[try_into(ref, ref_mut, owned)]
 pub enum AstStatement {
     EmptyStatement(EmptyStatement),
 
@@ -792,6 +790,20 @@ macro_rules! try_from {
     };
     ($($ex:tt)*, $t:ty) => {
         try_from!($($ex)*, $t).ok()
+    };
+}
+
+#[macro_export]
+/// A `try_from` convenience wrapper for `AstNode`, passed as the `ex:expr` argument.
+/// Will try to return a reference to the variants inner type, specified via the `t:ty` parameter.
+/// Converts the `try_from`-`Result` into an `Option`
+macro_rules! try_from_mut {
+    () => { None };
+    ($ex:expr, $t:ty) => {
+        <&mut $t>::try_from($ex.get_stmt_mut()).ok()
+    };
+    ($($ex:tt)*, $t:ty) => {
+        try_from_mut!($($ex)*, $t).ok()
     };
 }
 
@@ -939,6 +951,10 @@ impl AstNode {
 
     pub fn get_stmt(&self) -> &AstStatement {
         &self.stmt
+    }
+
+    pub fn get_stmt_mut(&mut self) -> &mut AstStatement {
+        &mut self.stmt
     }
 
     /// Similar to [`AstNode::get_stmt`] with the exception of peeling parenthesized expressions.

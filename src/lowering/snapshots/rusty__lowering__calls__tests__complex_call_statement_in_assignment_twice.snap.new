@@ -1,6 +1,6 @@
 ---
 source: src/lowering/calls.rs
-assertion_line: 440
+assertion_line: 467
 expression: "unit.implementations[1]"
 ---
 Implementation {
@@ -9,47 +9,105 @@ Implementation {
     linkage: Internal,
     pou_type: Function,
     statements: [
-        Assignment {
-            left: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "a",
+        ExpressionList {
+            expressions: [
+                Allocation {
+                    name: "__complexFunc0",
+                    reference_type: "STRING",
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "complexFunc",
+                            },
+                        ),
+                        base: None,
                     },
-                ),
-                base: None,
-            },
-            right: CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "complexFunc",
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__complexFunc0",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ],
                         },
                     ),
-                    base: None,
                 },
-                parameters: None,
-            },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__complexFunc0",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ],
         },
-        Assignment {
-            left: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "a",
+        ExpressionList {
+            expressions: [
+                Allocation {
+                    name: "__complexFunc1",
+                    reference_type: "STRING",
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "complexFunc",
+                            },
+                        ),
+                        base: None,
                     },
-                ),
-                base: None,
-            },
-            right: CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "complexFunc",
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__complexFunc1",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ],
                         },
                     ),
-                    base: None,
                 },
-                parameters: None,
-            },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__complexFunc1",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ],
         },
     ],
     location: SourceLocation {
@@ -59,9 +117,9 @@ Implementation {
                 column: 12,
                 offset: 374,
             }..TextLocation {
-                line: 20,
-                column: 20,
-                offset: 605,
+                line: 19,
+                column: 31,
+                offset: 584,
             },
         ),
     },
