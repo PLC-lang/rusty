@@ -7,8 +7,7 @@
 
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::{
-    collections::{HashMap, VecDeque},
-    hash::Hash,
+    any::Any, collections::VecDeque, hash::Hash
 };
 
 use plc_ast::{
@@ -541,7 +540,7 @@ impl Dependency {
     }
 }
 
-pub trait AnnotationMap {
+pub trait AnnotationMap: ToAny {
     fn get(&self, s: &AstNode) -> Option<&StatementAnnotation>;
 
     fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation>;
@@ -622,6 +621,26 @@ pub struct AstAnnotations {
     bool_id: AstId,
 
     bool_annotation: StatementAnnotation,
+}
+
+pub trait ToAny: 'static {
+    fn as_any(&mut self) -> &mut dyn Any;
+}
+
+impl<T: 'static> ToAny for T {
+    fn as_any(&mut self) -> &mut dyn Any {
+        self
+    }
+}
+
+impl AstAnnotations {
+    pub fn from_dyn<'a>(mut annotation_map: Box<dyn AnnotationMap>, bool_id: AstId) -> Self {
+        
+        let it: &mut dyn Any = annotation_map.as_any();
+        let annotation_map = it.downcast_mut::<AnnotationMapImpl>().map(std::mem::take).expect("AnnotationMapImpl");
+
+        Self::new(annotation_map, bool_id)
+    }
 }
 
 impl AnnotationMap for AstAnnotations {

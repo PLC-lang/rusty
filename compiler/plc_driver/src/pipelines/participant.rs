@@ -231,12 +231,13 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         let AnnotatedProject { mut units, index, annotations } = annotated_project;
+        let bool_id = annotations.get_bool_id();
         self.index = Some(index);
         self.annotation = Some(Box::new(annotations));
         
         units.iter_mut().for_each(|AnnotatedUnit { unit, ..  }| {
             self.visit_unit(unit);
         });
-        AnnotatedProject { units, index: self.index.take().expect("Index"), annotations: self.annotation.take().expect("Annotations") }
+        AnnotatedProject { units, index: self.index.take().expect("Index"), annotations: AstAnnotations::from_dyn(self.annotation.take().expect("AstAnnotation"), bool_id) }
     }
 }
