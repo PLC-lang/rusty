@@ -1,5 +1,3 @@
-use std::os::linux::raw::stat;
-
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
     expression_generator::{to_i1, ExpressionCodeGenerator, ExpressionValue},

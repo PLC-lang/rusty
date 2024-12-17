@@ -14,7 +14,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 
 mod initializers;
-mod calls;
+pub mod calls;
 
 pub struct InitVisitor {
     index: Index,

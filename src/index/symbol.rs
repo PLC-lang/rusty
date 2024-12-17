@@ -2,7 +2,7 @@
 
 use crate::index::FxIndexMap;
 use indexmap::Equivalent;
-use std::{hash::Hash, ops::Index};
+use std::hash::Hash;
 
 /// A multi-map implementation with a stable order of elements. When iterating
 /// the keys or the values, the iterator reflects the order of insertion.

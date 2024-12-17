@@ -14,7 +14,7 @@ use crate::{
         llvm_index::LlvmTypedIndex,
     },
     index::{self, ImplementationType},
-    resolver::{AstAnnotations, Dependency},
+    resolver::{AnnotationMap, AstAnnotations, Dependency},
     typesystem::{DataType, DataTypeInformation, VarArgs, DINT_TYPE},
     OnlineChange,
 };
@@ -694,6 +694,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         debug: &DebugBuilderEnum<'ink>,
     ) -> Result<(), Diagnostic> {
         let members = self.index.get_pou_members(type_name);
+        dbg!(members);
         let param_pointer = function_context
             .function
             .get_nth_param(arg_index)
@@ -715,15 +716,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let mut var_count = 0;
         for m in members.iter().filter(|it| !it.is_var_external()) {
             let parameter_name = m.get_name();
-
+            dbg!(m);
             let (name, variable) = if m.is_temp() || m.is_return() {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
                 (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type))
             } else {
-                let ptr = self
-                    .llvm
-                    .builder
-                    .build_struct_gep(param_pointer, var_count as u32, parameter_name)
+                dbg!(self.index);
+                let ptr = dbg!(self
+                                    .llvm
+                                    .builder
+                                    .build_struct_gep(param_pointer, var_count as u32, parameter_name))
                     .expect(INTERNAL_LLVM_ERROR);
 
                 var_count += 1;

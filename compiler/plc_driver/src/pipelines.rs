@@ -310,13 +310,13 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.participants.iter().for_each(|p| {
             p.pre_index(&project);
         });
-        let project = self.mutable_participants.iter().fold(project, |project, p| p.pre_index(project));
+        let project = self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_index(project));
         let indexed_project = project.index(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_index(&indexed_project);
         });
         let indexed_project =
-            self.mutable_participants.iter().fold(indexed_project, |project, p| p.post_index(project));
+            self.mutable_participants.iter_mut().fold(indexed_project, |project, p| p.post_index(project));
         Ok(indexed_project)
     }
 
@@ -324,13 +324,13 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.participants.iter().for_each(|p| {
             p.pre_annotate(&project);
         });
-        let project = self.mutable_participants.iter().fold(project, |project, p| p.pre_annotate(project));
+        let project = self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_annotate(project));
         let annotated_project = project.annotate(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_annotate(&annotated_project);
         });
         let annotated_project =
-            self.mutable_participants.iter().fold(annotated_project, |project, p| p.post_annotate(project));
+            self.mutable_participants.iter_mut().fold(annotated_project, |project, p| p.post_annotate(project));
         Ok(annotated_project)
     }
 

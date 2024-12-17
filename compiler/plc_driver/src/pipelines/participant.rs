@@ -12,12 +12,12 @@ use std::{
 };
 
 use ast::provider::IdProvider;
-use plc::{codegen::GeneratedModule, output::FormatOption, ConfigFormat, OnlineChange, Target};
+use plc::{codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption, resolver::{AnnotationMap, AstAnnotations}, ConfigFormat, OnlineChange, Target};
 use plc_diagnostics::diagnostics::Diagnostic;
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
-use super::{AnnotatedProject, GeneratedProject, IndexedProject, ParsedProject};
+use super::{AnnotatedProject, AnnotatedUnit, GeneratedProject, IndexedProject, ParsedProject};
 
 /// A Build particitpant for different steps in the pipeline
 /// Implementors can decide parse the Ast and project information
@@ -60,22 +60,22 @@ pub trait PipelineParticipant: Sync + Send {
 pub trait PipelineParticipantMut {
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
-    fn pre_index(&self, parsed_project: ParsedProject) -> ParsedProject {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         parsed_project
     }
     /// Implement this to access the project after it got indexed
     /// This happens directly after the index returns
-    fn post_index(&self, indexed_project: IndexedProject) -> IndexedProject {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project
     }
     /// Implement this to access the project before it gets annotated
     /// This happens directly after the constants are evaluated
-    fn pre_annotate(&self, indexed_project: IndexedProject) -> IndexedProject {
+    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project
     }
     /// Implement this to access the project after it got annotated
     /// This happens directly after annotations
-    fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         annotated_project
     }
 }
@@ -204,30 +204,6 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
     }
 }
 
-pub struct LoweringParticipant;
-
-impl PipelineParticipantMut for LoweringParticipant {
-    fn post_index(&self, indexed_project: IndexedProject) -> IndexedProject {
-        //Collect all functions and methods that have aggregate types
-        //Adjust the signature to become a VAR_IN_OUT
-        //Reparse and Re-Index the pous
-        //  -> Remove the old struct and pou from index and units vector
-        indexed_project
-    }
-
-    fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        //For each implementation
-        //If a function/method call has an aggregate return
-        //Allocate a value for the return -> declare a VAR_TEMP (until we have localized vars)
-        //Rewrite it to have a pointer as the first (second) argument
-        // -> For assignment, we first call the method with a temp, and then assign temp
-        // -> Nested calls are interesting....
-        //Re-index the unit and re-annotate it
-        // -> remove the annotations for this unit from the current annotations
-        annotated_project
-    }
-}
-
 pub struct InitParticipant {
     symbol_name: String,
     id_provider: IdProvider,
@@ -240,7 +216,27 @@ impl InitParticipant {
 }
 
 impl PipelineParticipantMut for InitParticipant {
-    fn pre_annotate(&self, indexed_project: IndexedProject) -> IndexedProject {
+    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project.extend_with_init_units(&self.symbol_name, self.id_provider.clone())
+    }
+}
+
+impl PipelineParticipantMut for AggregateTypeLowerer {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { mut project, index, unresolvables } = indexed_project;
+        self.index = Some(index);
+        self.visit(&mut project.units);
+        IndexedProject { project, index: self.index.take().expect("Index"), unresolvables }
+    }
+
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { mut units, index, annotations } = annotated_project;
+        self.index = Some(index);
+        self.annotation = Some(Box::new(annotations));
+        
+        units.iter_mut().for_each(|AnnotatedUnit { unit, ..  }| {
+            self.visit_unit(unit);
+        });
+        AnnotatedProject { units, index: self.index.take().expect("Index"), annotations: self.annotation.take().expect("Annotations") }
     }
 }

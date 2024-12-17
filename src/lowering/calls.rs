@@ -6,8 +6,7 @@ use std::{borrow::BorrowMut, sync::atomic::AtomicI32};
 
 use plc_ast::{
     ast::{
-        steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory,
-        AstNode, AstStatement, CallStatement, LinkageType, Pou, Variable, VariableBlock, VariableBlockType,
+        steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock, VariableBlockType
     }, control_statements::{AstControlStatement, ConditionalBlock}, mut_visitor::{AstVisitorMut, WalkerMut}, provider::IdProvider, try_from_mut
 };
 use plc_source::source_location::SourceLocation;
@@ -18,16 +17,31 @@ use crate::{
 };
 
 // Performs lowering for aggregate types defined in functions
+#[derive(Default)]
 pub struct AggregateTypeLowerer {
-    index: Option<Index>,
+    pub index: Option<Index>,
+    pub annotation: Option<Box<dyn AnnotationMap>>,
+    pub id_provider: IdProvider,
     // New statements to be added during visit, should always be drained when read
     new_stmts: Vec<AstNode>,
-    annotation: Option<Box<dyn AnnotationMap>>,
-    id_provider: IdProvider,
     counter: AtomicI32,
 }
 
 impl AggregateTypeLowerer {
+    pub fn new(id_provider: IdProvider) -> Self {
+        Self { id_provider, ..Default::default()}
+    }
+
+    pub fn visit(&mut self, units: &mut Vec<CompilationUnit>) {
+        units.iter_mut().for_each(|u| 
+            self.visit_compilation_unit(u)
+        );
+    }
+
+    pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
+        self.visit_compilation_unit(unit);
+    }
+
     fn steal_and_walk_list(&mut self, list: &mut Vec<AstNode>) {
         let mut new_stmts = vec![];
         for stmt in list.drain(..) {

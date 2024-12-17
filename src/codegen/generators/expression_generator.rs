@@ -13,8 +13,7 @@ use rustc_hash::FxHashSet;
 
 use plc_ast::{
     ast::{
-        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
-        ReferenceAccess, ReferenceExpr,
+        flatten_expression_list, Allocation, Assignment, AstFactory, AstNode, AstStatement, DirectAccessType, Operator, ReferenceAccess, ReferenceExpr
     },
     literals::AstLiteral,
     try_from,
@@ -249,6 +248,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.generate_unary_expression(&data.operator, &data.value).map(ExpressionValue::RValue)
             }
             AstStatement::ParenExpression(expr) => self.generate_expression_value(expr),
+            AstStatement::AllocationStatement(Allocation { name, reference_type }) => {
+                let ty = self.llvm_index.find_associated_type(reference_type).expect("Type must exist at this point");
+                Ok(ExpressionValue::LValue(self.llvm.builder.build_alloca(ty, name)))
+            }
             //fallback
             _ => self.generate_literal(expression),
         }
