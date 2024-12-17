@@ -344,3 +344,32 @@ fn string_size_correctly_set_in_dwarf_info() {
     // Note: 65 and not 64 because of the null terminator
     assert_snapshot!(result);
 }
+
+#[test]
+fn zero_sized_types_do_not_have_alignments() {
+    let result = codegen_with_debug(
+        "
+        FUNCTION_BLOCK nonZeroA
+            VAR
+                idx : BYTE;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM nonZeroB
+            VAR
+                idx : BYTE;
+            END_VAR
+        END_PROGRAM
+
+        PROGRAM         zeroB /* empty */ END_PROGRAM
+        FUNCTION_BLOCK  zeroA /* empty */ END_FUNCTION_BLOCK
+        ",
+    );
+
+    // Previously, debugging variables with a zero-sized type between two non-zero sized types would yield incorrect
+    // data when displaying their content. This issue arose because zero-sized types were given an alignment despite
+    // not needing one. This test verifies that zero-sized types do not have an alignment in the debug information.
+    // The result should have neither a `size` nor a `aligmnent` here:
+    assert!(result.contains(r#"!DICompositeType(tag: DW_TAG_structure_type, name: "zeroA", scope: !2, file: !2, line: 15, flags: DIFlagPublic, elements: !15, identifier: "zeroA")"#));
+    assert!(result.contains(r#"!DICompositeType(tag: DW_TAG_structure_type, name: "zeroB", scope: !2, file: !2, line: 14, flags: DIFlagPublic, elements: !15, identifier: "zeroB")"#));
+}
