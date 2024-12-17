@@ -666,7 +666,7 @@ impl DataTypeInformation {
     }
 
     pub fn get_alignment(&self, index: &Index) -> Bytes {
-        if self.get_size(index) == Bytes::new(0) {
+        if self.get_size(index).value() == 0 {
             return Bytes::new(0);
         }
 
