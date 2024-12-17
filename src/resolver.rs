@@ -514,10 +514,10 @@ impl From<&PouIndexEntry> for StatementAnnotation {
                 StatementAnnotation::Program { qualified_name: name.to_string() }
             }
             PouIndexEntry::Method { name, return_type, .. } => StatementAnnotation::Function {
-                return_type: return_type.to_string(),
-                qualified_name: name.to_string(),
-                call_name: None,
-            },
+                            return_type: return_type.to_string(),
+                            qualified_name: name.to_string(),
+                            call_name: None,
+                        },
             PouIndexEntry::Action { name, .. } => {
                 StatementAnnotation::Program { qualified_name: name.to_string() }
             }

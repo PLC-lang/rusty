@@ -64,7 +64,7 @@ path = "src/lib.rs"
 members = [
     "xtask",
     "errorcode_book_generator",
-    "libs/stdlib",
+    # "libs/stdlib",
     "compiler/plc_driver",
     "compiler/plc_ast",
     "compiler/plc_diagnostics",

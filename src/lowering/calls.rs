@@ -2,13 +2,13 @@
 //! to make them VAR_IN_OUT calls, allowing them
 //! to be called from C_APIs and simplifying code generation
 
-use std::{borrow::BorrowMut, fmt::Debug, sync::atomic::AtomicI32};
+use std::{borrow::BorrowMut, sync::atomic::AtomicI32};
 
 use plc_ast::{
     ast::{
-        flatten_expression_list, steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory,
+        steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory,
         AstNode, AstStatement, CallStatement, LinkageType, Pou, Variable, VariableBlock, VariableBlockType,
-    }, control_statements::{AstControlStatement, ConditionalBlock}, mut_visitor::{self, AstVisitorMut, WalkerMut}, provider::IdProvider, try_from_mut
+    }, control_statements::{AstControlStatement, ConditionalBlock}, mut_visitor::{AstVisitorMut, WalkerMut}, provider::IdProvider, try_from_mut
 };
 use plc_source::source_location::SourceLocation;
 
@@ -37,7 +37,7 @@ impl AggregateTypeLowerer {
     }
 
     fn walk_conditional_blocks(&mut self, blocks: &mut Vec<ConditionalBlock>) {
-        for b in blocks {            
+        for b in blocks {
             b.condition.walk(self);
             self.steal_and_walk_list(&mut b.body);
         }
@@ -137,7 +137,6 @@ impl AstVisitorMut for AggregateTypeLowerer {
         let Some(crate::resolver::StatementAnnotation::Function { return_type: return_type_name, .. }) =
             annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator))
         else {
-            dbg!("Breaking");
             return;
         };
         let return_type = index.get_effective_type_or_void_by_name(return_type_name);
@@ -276,6 +275,31 @@ mod tests {
         assert_debug_snapshot!(lowerer.index.unwrap().find_pou_type("complexType").unwrap());
     }
 
+    #[test]
+    fn method_with_string_return_is_changed() {
+        let (mut unit, index) = test_index(
+            r#"
+        FUNCTION_BLOCK fb
+        METHOD complexMethod : STRING
+            complexMethod := 'hello';
+        END_METHOD
+        END_FUNCTION_BLOCK
+        "#
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            new_stmts: Default::default(),
+            id_provider: IdProvider::default(),
+            counter: Default::default(),
+        };
+
+        lowerer.visit_compilation_unit(&mut unit);
+        assert_debug_snapshot!(unit.units[1]);
+        assert_debug_snapshot!(lowerer.index.unwrap().find_pou_type("fb.complexMethod").unwrap());
+    }
+
     // Are we in a call?
     // foo(x:= baz()); callStatement -> Reference baz_1
     // foo(x:= baz()); callStatement -> Reference baz_2
@@ -378,6 +402,47 @@ mod tests {
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
+    }
+
+    #[test]
+    fn complex_call_statement_in_assignment_method() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION_BLOCK fb
+        METHOD complexMethod : STRING
+            complexMethod := 'hello';
+        END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+        VAR
+            a : STRING;
+            myFb : fb;
+        END_VAR
+            // Should turn to
+            // __alloca __complexFunc1 : STRING;
+            // complexFunc(__complexFunc1);
+            // a := __complexFunc1;
+            a := myFb.complexMethod();
+        END_FUNCTION
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            new_stmts: Default::default(),
+            id_provider: id_provider.clone(),
+            counter: Default::default(),
+        };
+
+        lowerer.visit_compilation_unit(&mut unit);
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+        assert_debug_snapshot!(unit.implementations[2]);
     }
 
     #[test]
@@ -599,7 +664,7 @@ mod tests {
             //a := __complexFunc1;
             a := complexFunc();
         END_IF
-        
+
         END_FUNCTION
         "#,
             id_provider.clone(),
@@ -637,7 +702,7 @@ mod tests {
         IF complexFunc() = 'hello' THEN
             // do nothing
         END_IF
-        
+
         END_FUNCTION
         "#,
             id_provider.clone(),
@@ -656,7 +721,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
-    
+
     #[test]
     fn complex_call_statement_in_else_block() {
         let id_provider = IdProvider::default();
@@ -670,14 +735,14 @@ mod tests {
         VAR a : STRING; END_VAR
         IF FALSE THEN
             // do nothing
-        ELSE 
+        ELSE
             //Should be turned to:
             //alloca __complexFunc1 : STRING;
             //complexFunc(__complexFunc1);
             //a := __complexFunc1;
             a := complexFunc();
         END_IF
-        
+
         END_FUNCTION
         "#,
             id_provider.clone(),
@@ -696,7 +761,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
-    
+
     #[test]
     fn complex_call_statement_in_elif_condition() {
         let id_provider = IdProvider::default();
@@ -713,9 +778,9 @@ mod tests {
         ELSIF complexFunc() = 'hello' THEN // FIXME: currently has side-effects, is always evaluated
             // do nothing
         END_IF
-        
+
         END_FUNCTION
-        
+
         END_FUNCTION
         "#,
             id_provider.clone(),

@@ -52,6 +52,6 @@
                 "RUST_LOG": "rusty"
             },
             "terminal": "integrated"
-        },
+        }
     ]
 }

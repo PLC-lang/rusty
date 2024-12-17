@@ -1,7 +1,6 @@
 ---
 source: src/lowering/calls.rs
 expression: "unit.implementations[1]"
-snapshot_kind: text
 ---
 Implementation {
     name: "main",
@@ -81,7 +80,7 @@ Implementation {
             }..TextLocation {
                 line: 15,
                 column: 14,
-                offset: 414,
+                offset: 413,
             },
         ),
     },

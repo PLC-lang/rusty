@@ -1,0 +1,29 @@
+---
+source: src/lowering/calls.rs
+expression: "unit.units[1]"
+---
+POU {
+    name: "fb.complexMethod",
+    variable_blocks: [
+        VariableBlock {
+            variables: [
+                Variable {
+                    name: "complexMethod",
+                    data_type: DataTypeReference {
+                        referenced_type: "STRING",
+                    },
+                },
+            ],
+            variable_block_type: InOut,
+        },
+    ],
+    pou_type: Method {
+        parent: "fb",
+    },
+    return_type: Some(
+        Aggregate {
+            referenced_type: "STRING",
+        },
+    ),
+    interfaces: [],
+}

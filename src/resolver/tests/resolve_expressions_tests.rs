@@ -1790,11 +1790,11 @@ fn method_references_are_resolved() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
         "
-        CLASS cls
+        FUNCTION_BLOCK cls
         METHOD foo : INT
             foo;
         END_METHOD
-        END_CLASS
+        END_FUNCTION_BLOCK
 
         FUNCTION buz : INT
         VAR cl : cls; END_VAR
