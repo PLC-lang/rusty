@@ -525,10 +525,11 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
                             "Data Type {datatype_name} not supported as a function return type!"
                         ))
                         .with_error_code("E027")
-                        .with_location(declaration.get_location()),
+                        .with_location(&declaration),
                     )
                 }
             }
+
             Some(declaration)
         } else {
             //missing return type
