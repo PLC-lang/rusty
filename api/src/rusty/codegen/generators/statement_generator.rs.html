@@ -986,7 +986,7 @@
                 }) <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                         <span class="string">"Could not find label for {statement:?}"</span>,
-                        statement.get_location(),
+                        statement,
                     ));
                 };
                 <span class="comment">//Set current location as else block
@@ -1014,7 +1014,7 @@
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                         <span class="string">"Cannot break out of loop when not inside a loop"</span>,
-                        statement.get_location(),
+                        statement,
                     ));
                 }
             }
@@ -1025,7 +1025,7 @@
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                         <span class="string">"Cannot continue loop when not inside a loop"</span>,
-                        statement.get_location(),
+                        statement,
                     ));
                 }
             }
@@ -1112,9 +1112,9 @@
 
         <span class="kw">let </span>exp_gen = <span class="self">self</span>.create_expr_generator();
         <span class="kw">let </span>left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
-            it.get_basic_value_enum().try_into().map_err(|err| {
-                Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"{err:?}"</span>).as_str(), left_statement.get_location())
-            })
+            it.get_basic_value_enum()
+                .try_into()
+                .map_err(|err| Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"{err:?}"</span>).as_str(), left_statement))
         })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>left_type = exp_gen.get_type_hint_info_for(left_statement)<span class="question-mark">?</span>;

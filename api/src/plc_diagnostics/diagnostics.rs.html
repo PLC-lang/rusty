@@ -364,7 +364,35 @@
 <a href="#363" id="363">363</a>
 <a href="#364" id="364">364</a>
 <a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Display;
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Display;
 
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
@@ -542,29 +570,42 @@
 
 <span class="comment">//Helper methods for diagnostics
 </span><span class="kw">impl </span>Diagnostic {
-    <span class="kw">pub fn </span>unexpected_token_found(expected: <span class="kw-2">&amp;</span>str, found: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>unexpected_token_found&lt;T&gt;(expected: <span class="kw-2">&amp;</span>str, found: <span class="kw-2">&amp;</span>str, location: T) -&gt; Diagnostic
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
         Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Unexpected token: expected {expected} but found {found}"</span>))
             .with_error_code(<span class="string">"E007"</span>)
-            .with_location(range)
-    }
-
-    <span class="kw">pub fn </span>missing_function(location: SourceLocation) -&gt; Diagnostic {
-        Diagnostic::new(<span class="string">"Cannot generate code outside of function context."</span>)
-            .with_error_code(<span class="string">"E072"</span>)
             .with_location(location)
     }
 
-    <span class="kw">pub fn </span>codegen_error(message: <span class="kw">impl </span>Into&lt;String&gt;, location: SourceLocation) -&gt; Diagnostic {
-        Diagnostic::new(message).with_location(location).with_error_code(<span class="string">"E071"</span>)
+    <span class="kw">pub fn </span>missing_function&lt;T&gt;(location: T) -&gt; Diagnostic
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
+        Diagnostic::new(<span class="string">"Cannot generate code outside of function context."</span>)
+            .with_error_code(<span class="string">"E072"</span>)
+            .with_location(location.into())
+    }
+
+    <span class="kw">pub fn </span>codegen_error&lt;T, U&gt;(message: T, location: U) -&gt; Diagnostic
+    <span class="kw">where
+        </span>T: Into&lt;String&gt;,
+        U: Into&lt;SourceLocation&gt;,
+    {
+        Diagnostic::new(message).with_location(location.into()).with_error_code(<span class="string">"E071"</span>)
     }
 
     <span class="kw">pub fn </span>llvm_error(file: <span class="kw-2">&amp;</span>str, llvm_error: <span class="kw-2">&amp;</span>str) -&gt; Diagnostic {
         Diagnostic::new(<span class="macro">format!</span>(<span class="string">"{file}: Internal llvm error: {:}"</span>, llvm_error)).with_error_code(<span class="string">"E005"</span>)
     }
 
-    <span class="kw">pub fn </span>missing_token(expected_token: <span class="kw-2">&amp;</span>str, range: SourceLocation) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>missing_token&lt;T&gt;(expected_token: <span class="kw-2">&amp;</span>str, location: T) -&gt; Diagnostic
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
         Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Missing expected Token {expected_token}"</span>))
-            .with_location(range)
+            .with_location(location)
             .with_error_code(<span class="string">"E006"</span>)
     }
 
@@ -590,11 +631,17 @@
         .with_location(location.into())
     }
 
-    <span class="kw">pub fn </span>unknown_type(type_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>unknown_type&lt;T&gt;(type_name: <span class="kw-2">&amp;</span>str, location: T) -&gt; Diagnostic
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
         Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Unknown type: {type_name:}"</span>)).with_error_code(<span class="string">"E052"</span>).with_location(location)
     }
 
-    <span class="kw">pub fn </span>unresolved_reference(reference: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>unresolved_reference&lt;T&gt;(reference: <span class="kw-2">&amp;</span>str, location: T) -&gt; Diagnostic
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
         Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Could not resolve reference to {reference:}"</span>))
             .with_error_code(<span class="string">"E048"</span>)
             .with_location(location)
@@ -609,7 +656,10 @@
             .with_location(location)
     }
 
-    <span class="kw">pub fn </span>cannot_generate_initializer(variable_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>cannot_generate_initializer&lt;T&gt;(variable_name: <span class="kw-2">&amp;</span>str, location: T) -&gt; Diagnostic
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
         <span class="self">Self</span>::new(<span class="macro">format!</span>(
             <span class="string">"Cannot generate literal initializer for '{variable_name}': Value cannot be derived"
         </span>))
@@ -619,20 +669,23 @@
 
     <span class="kw">pub fn </span>cannot_generate_call_statement(operator: <span class="kw-2">&amp;</span>AstNode) -&gt; Diagnostic {
         <span class="comment">//TODO: We could probably get a better slice here
-        </span>Diagnostic::codegen_error(
-            <span class="macro">format!</span>(<span class="string">"cannot generate call statement for {:?}"</span>, operator),
-            operator.get_location(),
-        )
+        </span>Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"cannot generate call statement for {:?}"</span>, operator), operator)
     }
 
-    <span class="kw">pub fn </span>cannot_generate_from_empty_literal(type_name: <span class="kw-2">&amp;</span>str, location: SourceLocation) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>cannot_generate_from_empty_literal&lt;T&gt;(type_name: <span class="kw-2">&amp;</span>str, location: T) -&gt; Diagnostic
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
         Diagnostic::codegen_error(
             <span class="macro">format!</span>(<span class="string">"Cannot generate {type_name} from empty literal"</span>).as_str(),
             location,
         )
     }
 
-    <span class="kw">pub fn </span>const_pragma_is_not_allowed(location: SourceLocation) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>const_pragma_is_not_allowed&lt;T&gt;(location: T) -&gt; Diagnostic
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
         Diagnostic::new(<span class="string">"Pragma {constant} is not allowed in POU declarations"</span>)
             .with_location(location)
             .with_error_code(<span class="string">"E105"</span>)
@@ -641,7 +694,10 @@
 
 <span class="comment">// CFC related diagnostics
 </span><span class="kw">impl </span>Diagnostic {
-    <span class="kw">pub fn </span>unnamed_control(location: SourceLocation) -&gt; Diagnostic {
+    <span class="kw">pub fn </span>unnamed_control&lt;T&gt;(location: T) -&gt; Diagnostic
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
         Diagnostic::new(<span class="string">"Unnamed control"</span>).with_error_code(<span class="string">"E087"</span>).with_location(location)
     }
 }

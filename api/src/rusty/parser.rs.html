@@ -1420,7 +1420,8 @@
 <a href="#1419" id="1419">1419</a>
 <a href="#1420" id="1420">1420</a>
 <a href="#1421" id="1421">1421</a>
-<a href="#1422" id="1422">1422</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
 
@@ -1947,10 +1948,11 @@
                             <span class="string">"Data Type {datatype_name} not supported as a function return type!"
                         </span>))
                         .with_error_code(<span class="string">"E027"</span>)
-                        .with_location(declaration.get_location()),
+                        .with_location(<span class="kw-2">&amp;</span>declaration),
                     )
                 }
             }
+
             <span class="prelude-val">Some</span>(declaration)
         } <span class="kw">else </span>{
             <span class="comment">//missing return type

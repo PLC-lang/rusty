@@ -1202,7 +1202,7 @@
         <span class="kw">let </span>res = <span class="self">self
             </span>.debug_info
             .create_basic_type(name, size, encoding <span class="kw">as </span>u32, DIFlagsConstants::PUBLIC)
-            .map_err(|err| Diagnostic::codegen_error(err, location.clone()))<span class="question-mark">?</span>;
+            .map_err(|err| Diagnostic::codegen_error(err, location))<span class="question-mark">?</span>;
         <span class="self">self</span>.register_concrete_type(name, DebugType::Basic(res));
         <span class="prelude-val">Ok</span>(())
     }

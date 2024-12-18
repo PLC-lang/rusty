@@ -299,10 +299,7 @@
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#301" id="301">301</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span><span class="kw">crate</span>::typesystem::{CHAR_TYPE, WCHAR_TYPE};
 <span class="kw">use </span>inkwell::types::ArrayType;
 <span class="kw">use </span>inkwell::{
@@ -436,10 +433,7 @@
         offset: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'a</span>&gt;, Diagnostic&gt; {
         <span class="self">self</span>.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(|<span class="kw">_</span>| {
-            Diagnostic::codegen_error(
-                <span class="macro">format!</span>(<span class="string">"Cannot generate qualified reference for {name:}"</span>),
-                offset.clone(),
-            )
+            Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"Cannot generate qualified reference for {name:}"</span>), offset)
         })
     }
 
@@ -573,7 +567,7 @@
             <span class="kw">let </span>value = <span class="self">self</span>.context.i8_type().const_int(<span class="kw-2">*</span>first <span class="kw">as </span>u64, <span class="bool-val">false</span>);
             <span class="prelude-val">Ok</span>(BasicValueEnum::IntValue(value))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Diagnostic::cannot_generate_from_empty_literal(CHAR_TYPE, location.clone()))
+            <span class="prelude-val">Err</span>(Diagnostic::cannot_generate_from_empty_literal(CHAR_TYPE, location))
         }
     }
 
@@ -590,7 +584,7 @@
                 <span class="kw">let </span>value = <span class="self">self</span>.context.i16_type().const_int(first <span class="kw">as </span>u64, <span class="bool-val">false</span>);
                 <span class="prelude-val">Ok</span>(BasicValueEnum::IntValue(value))
             }
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::cannot_generate_from_empty_literal(WCHAR_TYPE, location.clone())),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::cannot_generate_from_empty_literal(WCHAR_TYPE, location)),
         }
     }
 

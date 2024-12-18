@@ -490,10 +490,7 @@
 <a href="#489" id="489">489</a>
 <a href="#490" id="490">490</a>
 <a href="#491" id="491">491</a>
-<a href="#492" id="492">492</a>
-<a href="#493" id="493">493</a>
-<a href="#494" id="494">494</a>
-<a href="#495" id="495">495</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
+<a href="#492" id="492">492</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
     ast::{
         flatten_expression_list, get_enum_element_name, Assignment, AstFactory, AstNode, AstStatement,
         AutoDerefType, DataType, DataTypeDeclaration, RangeStatement, TypeNature, UserTypeDeclaration,
@@ -745,10 +742,7 @@
                     })
                 }
 
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                    <span class="string">"Invalid array definition: RangeStatement expected"</span>,
-                    it.get_location(),
-                )),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Invalid array definition: RangeStatement expected"</span>, <span class="kw-2">*</span>it)),
             })
             .collect();
 

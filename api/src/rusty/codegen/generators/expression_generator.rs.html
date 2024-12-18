@@ -2895,22 +2895,7 @@
 <a href="#2894" id="2894">2894</a>
 <a href="#2895" id="2895">2895</a>
 <a href="#2896" id="2896">2896</a>
-<a href="#2897" id="2897">2897</a>
-<a href="#2898" id="2898">2898</a>
-<a href="#2899" id="2899">2899</a>
-<a href="#2900" id="2900">2900</a>
-<a href="#2901" id="2901">2901</a>
-<a href="#2902" id="2902">2902</a>
-<a href="#2903" id="2903">2903</a>
-<a href="#2904" id="2904">2904</a>
-<a href="#2905" id="2905">2905</a>
-<a href="#2906" id="2906">2906</a>
-<a href="#2907" id="2907">2907</a>
-<a href="#2908" id="2908">2908</a>
-<a href="#2909" id="2909">2909</a>
-<a href="#2910" id="2910">2910</a>
-<a href="#2911" id="2911">2911</a>
-<a href="#2912" id="2912">2912</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2897" id="2897">2897</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
     builder::Builder,
@@ -3075,7 +3060,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         statement: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt;, Diagnostic&gt; {
-        <span class="self">self</span>.function_context.ok_or_else(|| Diagnostic::missing_function(statement.get_location()))
+        <span class="self">self</span>.function_context.ok_or_else(|| Diagnostic::missing_function(statement))
     }
 
     <span class="doccomment">/// entry point into the expression generator.
@@ -3191,7 +3176,7 @@
                 <span class="comment">// We'll _probably_ land here because we're dealing with aggregate types, see also
                 // https://github.com/PLC-lang/rusty/issues/288
                 </span><span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">"Cannot propagate constant value for '{qualified_name:}'"</span>);
-                Diagnostic::codegen_error(message, expression.get_location())
+                Diagnostic::codegen_error(message, expression)
             })<span class="question-mark">?</span>;
 
         <span class="comment">//  generate the resulting constant-expression (which should be a Value, no ptr-reference)
@@ -3330,7 +3315,7 @@
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Cannot cast from {} to Integer Type"</span>, access_type.get_name()))
                 .with_error_code(<span class="string">"E051"</span>)
-                .with_location(index.get_location()))
+                .with_location(index))
         }
     }
 
@@ -3370,10 +3355,7 @@
                         .build_int_neg(generated_exp.into_int_value(), <span class="string">"tmpVar"</span>)
                         .as_basic_value_enum())
                 } <span class="kw">else </span>{
-                    <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                        <span class="string">"Negated expression must be numeric"</span>,
-                        expression.get_location(),
-                    ))
+                    <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Negated expression must be numeric"</span>, expression))
                 }
             }
             <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(),
@@ -3433,7 +3415,7 @@
             </span>.ok_or_else(|| {
                 Diagnostic::codegen_error(
                     <span class="macro">format!</span>(<span class="string">"No callable implementation associated to {implementation_name:?}"</span>),
-                    operator.get_location(),
+                    operator,
                 )
             })<span class="question-mark">?</span>;
 
@@ -3583,7 +3565,7 @@
             //       global context isn't passed into codegen
             </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(<span class="string">"{element:?} not a direct access"</span>))
                 .with_error_code(<span class="string">"E055"</span>)
-                .with_location(element.get_location()))
+                .with_location(<span class="kw-2">*</span>element))
         }<span class="question-mark">?</span>;
         <span class="kw">for </span>element <span class="kw">in </span>direct_access {
             <span class="kw">let </span>rhs_next = <span class="kw">if let </span>AstStatement::DirectAccess(data, ..) = element.get_stmt() {
@@ -3598,7 +3580,7 @@
                 //       global context isn't passed into codegen
                 </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(<span class="string">"{element:?} not a direct access"</span>))
                     .with_error_code(<span class="string">"E055"</span>)
-                    .with_location(element.get_location()))
+                    .with_location(<span class="kw-2">*</span>element))
             }<span class="question-mark">?</span>;
             index = <span class="self">self</span>.llvm.builder.build_int_add(index, rhs_next, <span class="string">""</span>);
         }
@@ -3704,7 +3686,7 @@
                 <span class="kw">let </span>output = builder.build_struct_gep(parameter_struct, index, <span class="string">""</span>).map_err(|<span class="kw">_</span>| {
                     Diagnostic::codegen_error(
                         <span class="macro">format!</span>(<span class="string">"Cannot build generate parameter: {parameter:#?}"</span>),
-                        parameter.source_location.clone(),
+                        <span class="kw-2">&amp;</span>parameter.source_location,
                     )
                 })<span class="question-mark">?</span>;
 
@@ -3741,7 +3723,7 @@
             <span class="kw">let </span>parameter = <span class="self">self
                 </span>.index
                 .find_fully_qualified_variable(qualified_name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))<span class="question-mark">?</span>;
+                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.as_ref()))<span class="question-mark">?</span>;
             <span class="kw">let </span>index = parameter.get_location_in_parent();
 
             <span class="self">self</span>.generate_output_assignment(<span class="kw-2">&amp;</span>CallParameterAssignment {
@@ -3852,7 +3834,7 @@
                         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
                     } <span class="kw">else </span>{
                         <span class="comment">// we are not variadic, we have too many parameters here
-                        </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Too many parameters"</span>, parameter.get_location()))
+                        </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Too many parameters"</span>, parameter))
                     }
                 })<span class="question-mark">?</span>;
 
@@ -3917,7 +3899,7 @@
             </span><span class="kw">let </span>v_type = <span class="self">self
                 </span>.llvm_index
                 .find_associated_type(type_name)
-                .ok_or_else(|| Diagnostic::unknown_type(type_name, argument.get_location()))<span class="question-mark">?</span>;
+                .ok_or_else(|| Diagnostic::unknown_type(type_name, argument))<span class="question-mark">?</span>;
 
             <span class="kw">let </span>ptr_value = <span class="self">self</span>.llvm.builder.build_alloca(v_type, <span class="string">""</span>);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = declared_parameter {
@@ -4090,10 +4072,7 @@
             </span>.llvm_index
             .find_associated_pou_type(function_name) <span class="comment">//Using find instead of get to control the compile error
             </span>.ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">"No type associated with '{instance_name:}'"</span>),
-                    context.get_location(),
-                )
+                Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"No type associated with '{instance_name:}'"</span>), context)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.create_local_variable(<span class="kw-2">&amp;</span>instance_name, <span class="kw-2">&amp;</span>function_type))
@@ -4227,7 +4206,7 @@
             <span class="kw">let </span>pointer_to_param = builder.build_struct_gep(parameter_struct, index, <span class="string">""</span>).map_err(|<span class="kw">_</span>| {
                 Diagnostic::codegen_error(
                     <span class="macro">format!</span>(<span class="string">"Cannot build generate parameter: {expression:#?}"</span>),
-                    expression.get_location(),
+                    expression,
                 )
             })<span class="question-mark">?</span>;
 
@@ -4242,10 +4221,10 @@
                 <span class="comment">//this is a VAR_IN_OUT assignment, so don't load the value, assign the pointer
                 //expression may be empty -&gt; generate a local variable for it
                 </span><span class="kw">let </span>generated_exp = <span class="kw">if </span>expression.is_empty_statement() {
-                    <span class="kw">let </span>temp_type =
-                        <span class="self">self</span>.llvm_index.find_associated_type(inner_type_name).ok_or_else(|| {
-                            Diagnostic::unknown_type(parameter.get_name(), expression.get_location())
-                        })<span class="question-mark">?</span>;
+                    <span class="kw">let </span>temp_type = <span class="self">self
+                        </span>.llvm_index
+                        .find_associated_type(inner_type_name)
+                        .ok_or_else(|| Diagnostic::unknown_type(parameter.get_name(), expression))<span class="question-mark">?</span>;
                     builder.build_alloca(temp_type, <span class="string">"empty_varinout"</span>).as_basic_value_enum()
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.generate_lvalue(expression)<span class="question-mark">?</span>.as_basic_value_enum()
@@ -4277,7 +4256,7 @@
             <span class="kw">let </span>parameter = <span class="self">self
                 </span>.index
                 .find_fully_qualified_variable(qualified_name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.get_location()))<span class="question-mark">?</span>;
+                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left))<span class="question-mark">?</span>;
             <span class="kw">let </span>index = parameter.get_location_in_parent();
 
             <span class="comment">// don't generate param assignments for empty statements, with the exception
@@ -4306,9 +4285,7 @@
     </span><span class="kw">pub fn </span>generate_lvalue(<span class="kw-2">&amp;</span><span class="self">self</span>, reference_statement: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="self">self</span>.generate_expression_value(reference_statement).and_then(|it| {
             <span class="kw">let </span>v: <span class="prelude-ty">Result</span>&lt;PointerValue, <span class="kw">_</span>&gt; = it.get_basic_value_enum().try_into();
-            v.map_err(|err| {
-                Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"{err:?}"</span>).as_str(), reference_statement.get_location())
-            })
+            v.map_err(|err| Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"{err:?}"</span>).as_str(), reference_statement))
         })
     }
 
@@ -4339,7 +4316,7 @@
                         </span>.index
                         .find_fully_qualified_variable(qualified_name)
                         .map(VariableIndexEntry::get_location_in_parent)
-                        .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset.clone()))<span class="question-mark">?</span>;
+                        .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))<span class="question-mark">?</span>;
                     <span class="kw">let </span>gep: PointerValue&lt;<span class="lifetime">'_</span>&gt; = <span class="self">self</span>.llvm.get_member_pointer_from_struct(
                         <span class="kw-2">*</span>qualifier,
                         member_location,
@@ -4370,10 +4347,10 @@
                 </span>.map_or(
                     <span class="self">self</span>.llvm_index
                         .find_loaded_associated_variable_value(qualified_name)
-                        .ok_or_else(|| Diagnostic::unresolved_reference(name, offset.clone())),
+                        .ok_or_else(|| Diagnostic::unresolved_reference(name, offset)),
                     <span class="prelude-val">Ok</span>,
                 ),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::unresolved_reference(name, offset.clone())),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::unresolved_reference(name, offset)),
         }
     }
 
@@ -4429,7 +4406,7 @@
         <span class="kw">let </span>start_offset = dimension
             .start_offset
             .as_int_value(<span class="self">self</span>.index)
-            .map_err(|it| Diagnostic::codegen_error(it, access_expression.get_location()))<span class="question-mark">?</span>;
+            .map_err(|it| Diagnostic::codegen_error(it, access_expression))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>access_value = <span class="self">self</span>.generate_expression(access_expression)<span class="question-mark">?</span>;
         <span class="comment">//If start offset is not 0, adjust the current statement with an add operation
@@ -4474,7 +4451,7 @@
                     <span class="comment">// make sure dimensions match statement list
                     </span><span class="kw">let </span>statements = access.get_as_list();
                     <span class="kw">if </span>statements.is_empty() || statements.len() != dimensions.len() {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Invalid array access"</span>, access.get_location()));
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Invalid array access"</span>, access));
                     }
 
                     <span class="comment">// e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
@@ -4485,7 +4462,7 @@
                         .map_err(|msg| {
                             Diagnostic::codegen_error(
                                 <span class="macro">format!</span>(<span class="string">"Invalid array dimensions access: {msg}"</span>).as_str(),
-                                access.get_location(),
+                                access,
                             )
                         })<span class="question-mark">?</span>;
 
@@ -4542,9 +4519,8 @@
 
                     <span class="comment">// make sure we got an int-value
                     </span><span class="kw">let </span>index_access: IntValue = index_access.and_then(|it| {
-                        it.try_into().map_err(|<span class="kw">_</span>| {
-                            Diagnostic::codegen_error(<span class="string">"non-numeric index-access"</span>, access.get_location())
-                        })
+                        it.try_into()
+                            .map_err(|<span class="kw">_</span>| Diagnostic::codegen_error(<span class="string">"non-numeric index-access"</span>, access))
                     })<span class="question-mark">?</span>;
 
                     <span class="kw">let </span>accessor_sequence = <span class="kw">if </span>lvalue.get_type().get_element_type().is_array_type() {
@@ -4567,7 +4543,7 @@
 
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(pointer);
                 }
-                <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Invalid array access"</span>, access.get_location()))
+                <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Invalid array access"</span>, access))
             })
     }
 
@@ -4618,7 +4594,7 @@
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                         <span class="macro">format!</span>(<span class="string">"'{operator}' operation must contain one int type"</span>).as_str(),
-                        expression.get_location(),
+                        expression,
                     ))
                 }
             }
@@ -4684,7 +4660,7 @@
                 .as_basic_value_enum()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                 <span class="macro">format!</span>(<span class="string">"Operator '{operator}' unimplemented for pointers"</span>).as_str(),
-                expression.get_location(),
+                expression,
             )),
         };
 
@@ -4844,7 +4820,7 @@
         <span class="kw">let </span>cannot_generate_literal = || {
             Diagnostic::codegen_error(
                 <span class="macro">format!</span>(<span class="string">"Cannot generate Literal for {literal_statement:?}"</span>),
-                literal_statement.get_location(),
+                literal_statement,
             )
         };
 
@@ -4860,17 +4836,17 @@
                 }
                 AstLiteral::Date(d) =&gt; d
                     .value()
-                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
+                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location))
                     .and_then(|ns| <span class="self">self</span>.create_const_int(ns))
                     .map(ExpressionValue::RValue),
                 AstLiteral::DateAndTime(dt) =&gt; dt
                     .value()
-                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
+                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location))
                     .and_then(|ns| <span class="self">self</span>.create_const_int(ns))
                     .map(ExpressionValue::RValue),
                 AstLiteral::TimeOfDay(tod) =&gt; tod
                     .value()
-                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))
+                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location))
                     .and_then(|ns| <span class="self">self</span>.create_const_int(ns))
                     .map(ExpressionValue::RValue),
                 AstLiteral::Time(t) =&gt; <span class="self">self</span>.create_const_int(t.value()).map(ExpressionValue::RValue),
@@ -4923,7 +4899,7 @@
                 <span class="kw">let </span>declared_length = size.as_int_value(<span class="self">self</span>.index).map_err(|msg| {
                     Diagnostic::codegen_error(
                         <span class="macro">format!</span>(<span class="string">"Unable to generate string-literal: {msg}"</span>).as_str(),
-                        location.clone(),
+                        location,
                     )
                 })<span class="question-mark">? </span><span class="kw">as </span>usize;
 
@@ -5000,10 +4976,7 @@
             .get_type_hint(statement, <span class="self">self</span>.index)
             .or_else(|| <span class="self">self</span>.annotations.get_type(statement, <span class="self">self</span>.index))
             .ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    <span class="macro">format!</span>(<span class="string">"no type hint available for {statement:#?}"</span>),
-                    statement.get_location(),
-                )
+                Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"no type hint available for {statement:#?}"</span>), statement)
             })
     }
 
@@ -5021,7 +4994,7 @@
                     {
                         <span class="kw">let </span>member: <span class="kw-2">&amp;</span>VariableIndexEntry =
                             <span class="self">self</span>.index.find_fully_qualified_variable(qualified_name).ok_or_else(|| {
-                                Diagnostic::unresolved_reference(qualified_name, data.left.get_location())
+                                Diagnostic::unresolved_reference(qualified_name, data.left.as_ref())
                             })<span class="question-mark">?</span>;
 
                         <span class="kw">let </span>index_in_parent = member.get_location_in_parent();
@@ -5032,13 +5005,13 @@
                     } <span class="kw">else </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                             <span class="string">"struct member lvalue required as left operand of assignment"</span>,
-                            data.left.get_location(),
+                            data.left.as_ref(),
                         ));
                     }
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                         <span class="string">"struct literal must consist of explicit assignments in the form of member := value"</span>,
-                        assignment.get_location(),
+                        assignment,
                     ));
                 }
             }
@@ -5051,10 +5024,7 @@
                     <span class="comment">// .or_else(|| self.index.find_associated_variable_value(name))
                     </span>.or_else(|| <span class="self">self</span>.llvm_index.find_associated_initial_value(member.get_type_name()))
                     .ok_or_else(|| {
-                        Diagnostic::cannot_generate_initializer(
-                            member.get_qualified_name(),
-                            assignments.get_location(),
-                        )
+                        Diagnostic::cannot_generate_initializer(member.get_qualified_name(), assignments)
                     })<span class="question-mark">?</span>;
 
                 member_values.push((member.get_location_in_parent(), initial_value));
@@ -5076,13 +5046,13 @@
                         struct_name,
                         member_values.len()
                     ),
-                    assignments.get_location(),
+                    assignments,
                 ))
             }
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                 <span class="macro">format!</span>(<span class="string">"Expected Struct-literal, got {assignments:#?}"</span>),
-                assignments.get_location(),
+                assignments,
             ))
         }
     }
@@ -5114,7 +5084,7 @@
                     .iter()
                     .map(|d| d.get_length(<span class="self">self</span>.index))
                     .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()
-                    .map_err(|msg| Diagnostic::codegen_error(msg.as_str(), location.clone()))<span class="question-mark">?
+                    .map_err(|msg| Diagnostic::codegen_error(msg.as_str(), location))<span class="question-mark">?
                     </span>.into_iter()
                     .product();
 
@@ -5122,7 +5092,7 @@
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                     <span class="macro">format!</span>(<span class="string">"Expected array type but found: {:}"</span>, data_type.get_name()).as_str(),
-                    location.clone(),
+                    location,
                 ))
             }<span class="question-mark">?</span>;
 
@@ -5260,7 +5230,7 @@
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                     <span class="macro">format!</span>(<span class="string">"Cannot generate phi-expression for operator {operator:}"</span>),
-                    left.get_location(),
+                    left,
                 ));
             }
         };
@@ -5312,7 +5282,7 @@
                     <span class="self">self</span>.get_type_hint_for(right)<span class="question-mark">?</span>.get_name(),
                 )
                 .as_str(),
-                left.get_location(),
+                left,
             ))
         }
     }
@@ -5361,7 +5331,7 @@
             ) =&gt; {
                 <span class="kw">let </span>target_size = lsize
                     .as_int_value(<span class="self">self</span>.index)
-                    .map_err(|err| Diagnostic::codegen_error(err.as_str(), left_location.clone()))<span class="question-mark">?</span>;
+                    .map_err(|err| Diagnostic::codegen_error(err.as_str(), <span class="kw-2">&amp;</span>left_location))<span class="question-mark">?</span>;
                 <span class="kw">let </span>value_size = rsize
                     .as_int_value(<span class="self">self</span>.index)
                     .map_err(|err| Diagnostic::codegen_error(err.as_str(), right_location))<span class="question-mark">?</span>;
@@ -5508,7 +5478,7 @@
 
                 <span class="kw">if let </span>AstStatement::DirectAccess(data) = member.as_ref().get_stmt() {
                     <span class="kw">let </span>(<span class="prelude-val">Some</span>(base), <span class="prelude-val">Some</span>(base_value)) = (base, base_value) <span class="kw">else </span>{
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Cannot generate DirectAccess without base value."</span>, original_expression.get_location()));
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Cannot generate DirectAccess without base value."</span>, original_expression));
                     };
                     <span class="self">self</span>.generate_direct_access_expression(base, <span class="kw-2">&amp;</span>base_value, member, <span class="kw-2">&amp;</span>data.access, <span class="kw-2">&amp;</span>data.index)
                 } <span class="kw">else </span>{
@@ -5572,7 +5542,7 @@
             </span>| (ReferenceAccess::Address, <span class="prelude-val">None</span>) <span class="comment">// &amp;;
             </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                 <span class="string">"Expected a base-expressions, but found none."</span>,
-                original_expression.get_location(),
+                original_expression,
             )),
         }
     }
@@ -5640,14 +5610,14 @@
                     <span class="comment">//TODO: use global context to get an expression slice
                     </span>Diagnostic::new(<span class="string">"Expression is not assignable"</span>)
                         .with_error_code(<span class="string">"E050"</span>)
-                        .with_location(argument.get_location()),
+                        .with_location(argument),
                 );
             };
 
             <span class="kw">let </span>loc = parameters
                 .iter()
                 .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
-                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.get_location()))<span class="question-mark">?</span>;
+                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.as_ref()))<span class="question-mark">?</span>;
 
             (loc, data.right.as_ref(), <span class="bool-val">false</span>)
         }

@@ -390,7 +390,7 @@
                 <span class="kw">if </span>initial_value.is_none() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                         <span class="string">"Cannot generate uninitialized constant"</span>,
-                        global_variable.source_location.clone(),
+                        <span class="kw-2">&amp;</span>global_variable.source_location,
                     ));
                 }
             }

@@ -1740,11 +1740,7 @@
 <a href="#1739" id="1739">1739</a>
 <a href="#1740" id="1740">1740</a>
 <a href="#1741" id="1741">1741</a>
-<a href="#1742" id="1742">1742</a>
-<a href="#1743" id="1743">1743</a>
-<a href="#1744" id="1744">1744</a>
-<a href="#1745" id="1745">1745</a>
-<a href="#1746" id="1746">1746</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<a href="#1742" id="1742">1742</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
 <span class="kw">use </span>plc_ast::ast::Assignment;
@@ -1860,7 +1856,7 @@
             </span>validator.push_diagnostic(
                 Diagnostic::new(<span class="string">"Case condition used outside of case statement! Did you mean to use ';'?"</span>)
                     .with_error_code(<span class="string">"E079"</span>)
-                    .with_location(condition.get_location()),
+                    .with_location(condition.as_ref()),
             );
             visit_statement(validator, condition, context);
         }
@@ -1869,7 +1865,7 @@
             <span class="kw">if </span>context.annotations.get(statement).is_none() {
                 validator.push_diagnostic(Diagnostic::unresolved_reference(
                     target.get_flat_reference_name().unwrap_or_default(),
-                    statement.get_location(),
+                    statement,
                 ))
             }
         }
@@ -1913,7 +1909,7 @@
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="string">"Index-Access requires an array-value."</span>)
                         .with_error_code(<span class="string">"E069"</span>)
-                        .with_location(statement.get_location()),
+                        .with_location(statement),
                 );
             }
         }
@@ -1939,7 +1935,7 @@
                 validator.diagnostics.push(
                     Diagnostic::new(<span class="string">"Dereferencing requires a pointer-value."</span>)
                         .with_error_code(<span class="string">"E068"</span>)
-                        .with_location(statement.get_location()),
+                        .with_location(statement),
                 );
             }
         }
@@ -1950,7 +1946,7 @@
                 validator.diagnostics.push(
                     Diagnostic::new(<span class="string">"Address-of requires a value."</span>)
                         .with_error_code(<span class="string">"E070"</span>)
-                        .with_location(statement.get_location()),
+                        .with_location(statement),
                 );
             }
         }
@@ -2002,7 +1998,7 @@
                     access.get_bit_width()
                 ))
                 .with_error_code(<span class="string">"E055"</span>)
-                .with_location(m.get_location()),
+                .with_location(m),
             )
         }
     }
@@ -2205,7 +2201,7 @@
 ) {
     <span class="comment">// unresolved reference
     </span><span class="kw">if </span>!context.annotations.has_type_annotation(statement) {
-        validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location.clone()));
+        validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
 
         <span class="comment">// was this meant as a direct access?
         // TODO: find a way to solve this without re-resolving this name
@@ -2312,7 +2308,7 @@
                 target_type.get_name()
             ))
             .with_error_code(<span class="string">"E059"</span>)
-            .with_location(access.get_location()),
+            .with_location(access),
         ),
     }
 }
@@ -2322,7 +2318,7 @@
         validator.push_diagnostic(
             Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Expected array access with {ndims} dimensions, found {dims}"</span>))
                 .with_error_code(<span class="string">"E045"</span>)
-                .with_location(access.get_location()),
+                .with_location(access),
         )
     }
 }
@@ -2344,7 +2340,7 @@
                             range.start, range.end
                         ))
                         .with_error_code(<span class="string">"E058"</span>)
-                        .with_location(access.get_location()),
+                        .with_location(access),
                     )
                 }
             }
@@ -2358,7 +2354,7 @@
                             type_info.get_name()
                     ))
                     .with_error_code(<span class="string">"E059"</span>)
-                    .with_location(access.get_location())
+                    .with_location(access)
             )
         }
     }
@@ -2407,7 +2403,7 @@
                         <span class="string">"This equal statement has no effect, did you mean `{lhs} := {rhs}`?"
                     </span>))
                     .with_error_code(<span class="string">"E023"</span>)
-                    .with_location(statement.get_location()),
+                    .with_location(statement),
                 );
             }
 
@@ -2460,7 +2456,7 @@
                     left_type.get_name(),
                 ))
                 .with_error_code(<span class="string">"E073"</span>)
-                .with_location(statement.get_location()),
+                .with_location(statement),
             );
         }
     }
@@ -2540,7 +2536,7 @@
                 param.get_variable_type()
             ))
             .with_error_code(<span class="string">"E031"</span>)
-            .with_location(arg.get_location()),
+            .with_location(arg),
         ),
     }
 }
@@ -2663,7 +2659,7 @@
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Cannot assign to CONSTANT '{qualified_name}'"</span>))
                         .with_error_code(<span class="string">"E036"</span>)
-                        .with_location(left.get_location()),
+                        .with_location(left),
                 );
             } <span class="kw">else </span>{
                 <span class="comment">// ...enum variable where the RHS does not match its variants
@@ -2692,7 +2688,7 @@
             validator.push_diagnostic(
                 Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Expression {expression} is not assignable."</span>))
                     .with_error_code(<span class="string">"E050"</span>)
-                    .with_location(left.get_location()),
+                    .with_location(left),
             );
         }
 
@@ -2795,7 +2791,7 @@
                     <span class="string">"Value evaluated at run-time, use an enum variant from `{}`"</span>,
                     validator.get_type_name_or_slice(left_dt)
                 ))
-                .with_location(right.get_location())
+                .with_location(right)
                 .with_secondary_location(<span class="kw-2">&amp;</span>left_dt.location)
                 .with_error_code(<span class="string">"E091"</span>),
             );
@@ -2817,7 +2813,7 @@
                         variant.get_name()
                     ))
                     .with_error_code(<span class="string">"E092"</span>)
-                    .with_location(right.get_location())
+                    .with_location(right)
                     .with_secondary_location(<span class="kw-2">&amp;</span>left_dt.location),
                 );
             }
@@ -2829,7 +2825,7 @@
                     validator.context.slice(<span class="kw-2">&amp;</span>right.location),
                     validator.get_type_name_or_slice(left_dt)
                 ))
-                .with_location(right.get_location())
+                .with_location(right)
                 .with_secondary_location(<span class="kw-2">&amp;</span>left_dt.location)
                 .with_error_code(<span class="string">"E040"</span>),
             );
@@ -2857,7 +2853,7 @@
         validator.push_diagnostic(Diagnostic::invalid_assignment(
             <span class="kw-2">&amp;</span>validator.get_type_name_or_slice(right_type),
             <span class="kw-2">&amp;</span>validator.get_type_name_or_slice(left_type),
-            location.clone(),
+            location,
         ));
     }
 }
@@ -3064,7 +3060,7 @@
                         validator.push_diagnostic(
                             Diagnostic::new(<span class="string">"Cannot mix implicit and explicit call parameters!"</span>)
                                 .with_error_code(<span class="string">"E031"</span>)
-                                .with_location(argument.get_location()),
+                                .with_location(<span class="kw-2">*</span>argument),
                         );
                     }
                 }
@@ -3073,7 +3069,7 @@
                     validator.push_diagnostic(
                         Diagnostic::new(<span class="string">"Invalid call parameters"</span>)
                             .with_error_code(<span class="string">"E089"</span>)
-                            .with_location(argument.get_location())
+                            .with_location(<span class="kw-2">*</span>argument)
                             .with_sub_diagnostic(err),
                     );
                     <span class="kw">break</span>;
@@ -3110,7 +3106,7 @@
                         validator.push_diagnostic(
                             Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Argument `{}` is missing"</span>, p.get_name()))
                                 .with_error_code(<span class="string">"E030"</span>)
-                                .with_location(fn_ident.get_location()),
+                                .with_location(fn_ident),
                         );
                     }
                 });
@@ -3165,9 +3161,7 @@
         <span class="comment">// invalid case conditions
         </span><span class="kw">if </span><span class="macro">matches!</span>(condition.get_stmt(), AstStatement::Assignment(<span class="kw">_</span>) | AstStatement::CallStatement(<span class="kw">_</span>)) {
             validator.push_diagnostic(
-                Diagnostic::new(<span class="string">"Invalid case condition!"</span>)
-                    .with_error_code(<span class="string">"E079"</span>)
-                    .with_location(condition.get_location()),
+                Diagnostic::new(<span class="string">"Invalid case condition!"</span>).with_error_code(<span class="string">"E079"</span>).with_location(condition),
             );
         }
 
@@ -3182,7 +3176,7 @@
                         err.get_reason()
                     ))
                     .with_error_code(<span class="string">"E080"</span>)
-                    .with_location(condition.get_location()),
+                    .with_location(condition),
                 )
             })
             .map(|v| {
@@ -3194,7 +3188,7 @@
                                 <span class="string">"Duplicate condition value: {value}. Occurred more than once!"
                             </span>))
                             .with_error_code(<span class="string">"E078"</span>)
-                            .with_location(condition.get_location()),
+                            .with_location(condition),
                         );
                     }
                 };
@@ -3219,9 +3213,7 @@
         <span class="kw">if </span>kind.is_real() || !kind.is_numerical() {
             <span class="kw">let </span>slice = validator.get_type_name_or_slice(kind);
             <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">"Expected an integer value, got `{slice}`"</span>);
-            validator.push_diagnostic(
-                Diagnostic::new(message).with_location(node.get_location()).with_error_code(<span class="string">"E094"</span>),
-            );
+            validator.push_diagnostic(Diagnostic::new(message).with_location(<span class="kw-2">*</span>node).with_error_code(<span class="string">"E094"</span>));
         }
     })
 
@@ -3254,7 +3246,7 @@
             validator.push_diagnostic(
                 Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Could not resolve generic type {generic_symbol} with {nature}"</span>))
                     .with_error_code(<span class="string">"E064"</span>)
-                    .with_location(statement.get_location()),
+                    .with_location(statement),
             );
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>((actual_type, generic_nature)) = context
             .annotations
@@ -3274,7 +3266,7 @@
                         generic_nature
                     ))
                     .with_error_code(<span class="string">"E062"</span>)
-                    .with_location(statement.get_location()),
+                    .with_location(statement),
                 );
             }
         }

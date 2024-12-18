@@ -936,8 +936,7 @@
 <a href="#935" id="935">935</a>
 <a href="#936" id="936">936</a>
 <a href="#937" id="937">937</a>
-<a href="#938" id="938">938</a>
-<a href="#939" id="939">939</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#938" id="938">938</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use super</span>::{
     data_type_generator::get_default_for,
@@ -1346,7 +1345,7 @@
         <span class="kw">let </span>current_function = <span class="self">self</span>.llvm_index.find_associated_implementation(pou_name).ok_or_else(|| {
             Diagnostic::codegen_error(
                 <span class="macro">format!</span>(<span class="string">"Could not find generated stub for {pou_name}"</span>),
-                implementation.location.clone(),
+                <span class="kw-2">&amp;</span>implementation.location,
             )
         })<span class="question-mark">?</span>;
 
@@ -1379,7 +1378,7 @@
                 || {
                     Diagnostic::codegen_error(
                         <span class="macro">format!</span>(<span class="string">"Could not find implementation for {}"</span>, <span class="kw-2">&amp;</span>implementation.name),
-                        implementation.location.clone(),
+                        <span class="kw-2">&amp;</span>implementation.location,
                     )
                 },
             )<span class="question-mark">?</span>,
@@ -1515,9 +1514,8 @@
                 .is_some()
             {
                 <span class="comment">// function return is handled by an out-pointer
-                </span><span class="kw">let </span>parameter = params_iter
-                    .next()
-                    .ok_or_else(|| Diagnostic::missing_function(ret_v.source_location.clone()))<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>parameter =
+                    params_iter.next().ok_or_else(|| Diagnostic::missing_function(<span class="kw-2">&amp;</span>ret_v.source_location))<span class="question-mark">?</span>;
 
                 <span class="comment">// remove the out-param so the loop below will not see it again
                 // generate special accessor for aggrate function output (out-ptr)
@@ -1539,9 +1537,8 @@
             <span class="kw">let </span>parameter_name = m.get_name();
 
             <span class="kw">let </span>(name, variable) = <span class="kw">if </span>m.is_parameter() {
-                <span class="kw">let </span>ptr_value = params_iter
-                    .next()
-                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))<span class="question-mark">?</span>;
+                <span class="kw">let </span>ptr_value =
+                    params_iter.next().ok_or_else(|| Diagnostic::missing_function(<span class="kw-2">&amp;</span>m.source_location))<span class="question-mark">?</span>;
                 <span class="kw">let </span>member_type_name = m.get_type_name();
                 <span class="kw">let </span>type_info = <span class="self">self</span>.index.get_type_information_or_void(member_type_name);
                 <span class="kw">let </span>ty = index.get_associated_type(member_type_name)<span class="question-mark">?</span>;
@@ -1572,9 +1569,10 @@
                     <span class="kw">let </span>(size, alignment) = <span class="kw">if let </span>DataTypeInformation::String { size, encoding } = type_info
                     {
                         <span class="comment">// since passed string args might be larger than the local acceptor, we need to first memset the local variable to 0
-                        </span><span class="kw">let </span>size = size.as_int_value(<span class="self">self</span>.index).map_err(|err| {
-                            Diagnostic::codegen_error(err.as_str(), m.source_location.clone())
-                        })<span class="question-mark">? </span><span class="kw">as </span>u64;
+                        </span><span class="kw">let </span>size = size
+                            .as_int_value(<span class="self">self</span>.index)
+                            .map_err(|err| Diagnostic::codegen_error(err.as_str(), <span class="kw-2">&amp;</span>m.source_location))<span class="question-mark">?
+                            </span><span class="kw">as </span>u64;
                         <span class="kw">let </span>char_width = encoding.get_bytes_per_char();
                         <span class="self">self</span>.llvm
                             .builder
@@ -1584,7 +1582,7 @@
                                 <span class="self">self</span>.llvm.context.i8_type().const_zero(),
                                 <span class="self">self</span>.llvm.context.i64_type().const_int(size * char_width <span class="kw">as </span>u64, <span class="bool-val">true</span>),
                             )
-                            .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))<span class="question-mark">?</span>;
+                            .map_err(|e| Diagnostic::codegen_error(e, <span class="kw-2">&amp;</span>m.source_location))<span class="question-mark">?</span>;
                         (
                             <span class="comment">// we then reduce the amount of bytes to be memcopied by the equivalent of one grapheme in bytes to preserve the null-terminator
                             </span><span class="self">self</span>.llvm.context.i64_type().const_int((size - <span class="number">1</span>) * char_width <span class="kw">as </span>u64, <span class="bool-val">true</span>),
@@ -1595,7 +1593,7 @@
                             <span class="comment">// XXX: can this still fail at this point? might be `unreachable`
                             </span><span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                                 <span class="string">"Unable to determine type size"</span>,
-                                m.source_location.clone(),
+                                <span class="kw-2">&amp;</span>m.source_location,
                             ));
                         };
                         (size, <span class="number">1</span>)
@@ -1603,7 +1601,7 @@
                     <span class="self">self</span>.llvm
                         .builder
                         .build_memcpy(bitcast, alignment, ptr_value.into_pointer_value(), alignment, size)
-                        .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))<span class="question-mark">?</span>;
+                        .map_err(|e| Diagnostic::codegen_error(e, <span class="kw-2">&amp;</span>m.source_location))<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.llvm.builder.build_store(ptr, ptr_value);
                 };
@@ -1637,7 +1635,7 @@
             .function
             .get_nth_param(arg_index)
             .map(BasicValueEnum::into_pointer_value)
-            .ok_or_else(|| Diagnostic::missing_function(location.clone()))<span class="question-mark">?</span>;
+            .ok_or_else(|| Diagnostic::missing_function(location))<span class="question-mark">?</span>;
         <span class="comment">//Generate POU struct declaration for debug
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(block) = <span class="self">self</span>.llvm.builder.get_insert_block() {
             debug.add_variable_declaration(
@@ -1731,7 +1729,7 @@
             } <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
-                    variable.source_location.clone(),
+                    <span class="kw-2">&amp;</span>variable.source_location,
                 ));
             }
         }
@@ -1754,7 +1752,7 @@
             .map_err(|err| err.with_location(<span class="kw-2">&amp;</span>variable.source_location))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>type_size = variable_llvm_type.size_of().ok_or_else(|| {
-            Diagnostic::codegen_error(<span class="string">"Couldn't determine type size"</span>, variable.source_location.clone())
+            Diagnostic::codegen_error(<span class="string">"Couldn't determine type size"</span>, <span class="kw-2">&amp;</span>variable.source_location)
         });
 
         <span class="comment">// initialize the variable with the initial_value
@@ -1822,7 +1820,7 @@
             } <span class="kw">else </span>{
                 <span class="macro">unreachable!</span>(<span class="string">"initializing an array should be memcpy-able or memset-able"</span>);
             };
-            init_result.map_err(|msg| Diagnostic::codegen_error(msg, variable.source_location.clone()))<span class="question-mark">?</span>;
+            init_result.map_err(|msg| Diagnostic::codegen_error(msg, <span class="kw-2">&amp;</span>variable.source_location))<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
             <span class="self">self</span>.llvm.builder.build_store(variable_to_initialize, value);
         }

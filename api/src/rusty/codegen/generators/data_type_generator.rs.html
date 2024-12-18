@@ -473,7 +473,8 @@
 <a href="#472" id="472">472</a>
 <a href="#473" id="473">473</a>
 <a href="#474" id="474">474</a>
-<a href="#475" id="475">475</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span><span class="kw">crate</span>::codegen::debug::Debug;
 <span class="kw">use </span><span class="kw">crate</span>::index::{FxIndexSet, Index, VariableIndexEntry, VariableType};
 <span class="kw">use </span><span class="kw">crate</span>::resolver::{AstAnnotations, Dependency};
@@ -632,7 +633,7 @@
                 errors
                     .remove(name)
                     .map(|diag| diag.with_secondary_location(<span class="kw-2">&amp;</span>ty.location))
-                    .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, ty.location.clone()))
+                    .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, <span class="kw-2">&amp;</span>ty.location))
             })
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="kw">if </span>!diags.is_empty() {
@@ -859,9 +860,10 @@
                     .map(|it| it.const_zero().as_basic_value_enum()));
             };
 
-            generator.generate_expression(initializer).map(<span class="prelude-val">Some</span>).map_err(|<span class="kw">_</span>| {
-                Diagnostic::cannot_generate_initializer(qualified_name, initializer.get_location())
-            })
+            generator
+                .generate_expression(initializer)
+                .map(<span class="prelude-val">Some</span>)
+                .map_err(|<span class="kw">_</span>| Diagnostic::cannot_generate_initializer(qualified_name, initializer))
         } <span class="kw">else </span>{
             <span class="comment">// if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             </span><span class="self">self</span>.index
@@ -891,7 +893,7 @@
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                     <span class="macro">format!</span>(<span class="string">"Expected {expected_ast} but found {initializer:?}"</span>),
-                    initializer.get_location(),
+                    initializer,
                 ))
             }
         } <span class="kw">else </span>{

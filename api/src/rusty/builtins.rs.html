@@ -955,26 +955,7 @@
 <a href="#954" id="954">954</a>
 <a href="#955" id="955">955</a>
 <a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a>
-<a href="#958" id="958">958</a>
-<a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
-<a href="#962" id="962">962</a>
-<a href="#963" id="963">963</a>
-<a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
-<a href="#969" id="969">969</a>
-<a href="#970" id="970">970</a>
-<a href="#971" id="971">971</a>
-<a href="#972" id="972">972</a>
-<a href="#973" id="973">973</a>
-<a href="#974" id="974">974</a>
-<a href="#975" id="975">975</a>
-<a href="#976" id="976">976</a></pre></div><pre class="rust"><code><span class="kw">use </span>inkwell::{
+<a href="#957" id="957">957</a></pre></div><pre class="rust"><code><span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
     types::BasicType,
     values::{BasicValue, IntValue},
@@ -1114,7 +1095,7 @@
                     <span class="comment">//Generate an access from the first param
                     </span><span class="kw">if let </span>(<span class="kw-2">&amp;</span>[k], params) = params.split_at(<span class="number">1</span>) {
                         <span class="kw">let </span>type_hint = params.first()
-                        .ok_or_else(|| Diagnostic::codegen_error(<span class="string">"Invalid signature for MUX"</span>, location.clone()))
+                        .ok_or_else(|| Diagnostic::codegen_error(<span class="string">"Invalid signature for MUX"</span>, <span class="kw-2">&amp;</span>location))
                         .and_then(|it| generator.get_type_hint_info_for(it))<span class="question-mark">?</span>;
                         <span class="comment">//Create a temp var
                         </span><span class="kw">let </span>result_type = generator.llvm_index.get_associated_type(type_hint.get_name())<span class="question-mark">?</span>;
@@ -1235,9 +1216,9 @@
                         <span class="comment">// return size of llvm type
                         </span><span class="kw">let </span>size = generator.llvm_index
                             .get_associated_type(type_name)
-                            .map_err(|<span class="kw">_</span>| Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"Could not find associated data type: {type_name}"</span>), location.clone())
+                            .map_err(|<span class="kw">_</span>| Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"Could not find associated data type: {type_name}"</span>), <span class="kw-2">&amp;</span>location)
                             )<span class="question-mark">?</span>.size_of()
-                            .ok_or_else(|| Diagnostic::codegen_error(<span class="string">"Parameter type is not sized."</span>, location.clone()))<span class="question-mark">?
+                            .ok_or_else(|| Diagnostic::codegen_error(<span class="string">"Parameter type is not sized."</span>, <span class="kw-2">&amp;</span>location))<span class="question-mark">?
                             </span>.as_basic_value_enum();
                             <span class="prelude-val">Ok</span>(ExpressionValue::RValue(size))
                     } <span class="kw">else </span>{
@@ -1574,7 +1555,7 @@
     operation: Operator,
 ) {
     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
-        validator.push_diagnostic(Diagnostic::invalid_argument_count(<span class="number">2</span>, <span class="number">0</span>, operator.get_location()));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(<span class="number">2</span>, <span class="number">0</span>, operator));
         <span class="kw">return</span>;
     };
 
@@ -1583,20 +1564,12 @@
         <span class="comment">// non-extensible operators
         </span>Operator::Minus | Operator::Division | Operator::NotEqual =&gt; {
             <span class="kw">if </span>count != <span class="number">2 </span>{
-                validator.push_diagnostic(Diagnostic::invalid_argument_count(
-                    <span class="number">2</span>,
-                    count,
-                    operator.get_location(),
-                ));
+                validator.push_diagnostic(Diagnostic::invalid_argument_count(<span class="number">2</span>, count, operator));
             }
         }
         <span class="kw">_ </span>=&gt; {
             <span class="kw">if </span>count &lt; <span class="number">2 </span>{
-                validator.push_diagnostic(Diagnostic::invalid_argument_count(
-                    <span class="number">2</span>,
-                    count,
-                    operator.get_location(),
-                ));
+                validator.push_diagnostic(Diagnostic::invalid_argument_count(<span class="number">2</span>, count, operator));
             }
         }
     }
@@ -1741,7 +1714,8 @@
     index: <span class="kw-2">&amp;</span>Index,
 ) {
     <span class="kw">let </span><span class="prelude-val">Some</span>(parameters) = parameters <span class="kw">else </span>{
-        validator.push_diagnostic(Diagnostic::invalid_argument_count(<span class="number">2</span>, <span class="number">0</span>, operator.get_location()));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(<span class="number">2</span>, <span class="number">0</span>, operator));
+
         <span class="comment">// no params, nothing to validate
         </span><span class="kw">return</span>;
     };
@@ -1749,11 +1723,7 @@
     <span class="kw">let </span>params = ast::flatten_expression_list(parameters);
 
     <span class="kw">if </span>params.len() &gt; <span class="number">2 </span>{
-        validator.push_diagnostic(Diagnostic::invalid_argument_count(
-            <span class="number">2</span>,
-            params.len(),
-            operator.get_location(),
-        ));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(<span class="number">2</span>, params.len(), operator));
     }
 
     <span class="kw">match </span>(params.first(), params.get(<span class="number">1</span>)) {
@@ -1768,7 +1738,7 @@
                         TypeNature::Int
                     ))
                     .with_error_code(<span class="string">"E062"</span>)
-                    .with_location(idx.get_location()),
+                    .with_location(<span class="kw-2">*</span>idx),
                 )
             }
 
@@ -1785,16 +1755,12 @@
 
                 <span class="kw">if </span>dimension_idx &lt; <span class="number">1 </span>|| dimension_idx &gt; n_dimensions {
                     validator.push_diagnostic(
-                        Diagnostic::new(<span class="string">"Index out of bound"</span>)
-                            .with_error_code(<span class="string">"E046"</span>)
-                            .with_location(operator.get_location()),
+                        Diagnostic::new(<span class="string">"Index out of bound"</span>).with_error_code(<span class="string">"E046"</span>).with_location(operator),
                     )
                 }
             };
         }
-        (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; {
-            validator.push_diagnostic(Diagnostic::invalid_argument_count(<span class="number">2</span>, <span class="number">1</span>, operator.get_location()))
-        }
+        (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; validator.push_diagnostic(Diagnostic::invalid_argument_count(<span class="number">2</span>, <span class="number">1</span>, operator)),
         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
     }
 }
@@ -1806,18 +1772,14 @@
     expected: usize,
 ) {
     <span class="kw">let </span><span class="prelude-val">Some</span>(params) = parameters <span class="kw">else </span>{
-        validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, <span class="number">0</span>, operator.get_location()));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, <span class="number">0</span>, operator));
         <span class="kw">return</span>;
     };
 
     <span class="kw">let </span>params = flatten_expression_list(params);
 
     <span class="kw">if </span>params.len() != expected {
-        validator.push_diagnostic(Diagnostic::invalid_argument_count(
-            expected,
-            params.len(),
-            operator.get_location(),
-        ));
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, params.len(), operator));
     }
 }
 

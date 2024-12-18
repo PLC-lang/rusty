@@ -517,8 +517,8 @@
                 return_type_impl.get_name(),
             ))
             .with_error_code(<span class="string">"E112"</span>)
-            .with_location(method_impl.get_location())
-            .with_secondary_location(method_ref.get_location()),
+            .with_location(method_impl)
+            .with_secondary_location(method_ref),
         );
     }
 
@@ -553,7 +553,7 @@
                             parameter_impl.get_type_name(),
                         ))
                         .with_error_code(<span class="string">"E112"</span>)
-                        .with_location(method_impl.get_location())
+                        .with_location(method_impl)
                         .with_secondary_location(<span class="kw-2">&amp;</span>parameter_ref.source_location),
                     );
                 }
@@ -568,7 +568,7 @@
                             parameter_impl.get_declaration_type().get_inner(),
                         ))
                         .with_error_code(<span class="string">"E112"</span>)
-                        .with_location(method_impl.get_location())
+                        .with_location(method_impl)
                         .with_secondary_location(<span class="kw-2">&amp;</span>parameter_ref.source_location),
                     );
                 }
@@ -584,7 +584,7 @@
                         method_impl.get_name()
                     ))
                     .with_error_code(<span class="string">"E112"</span>)
-                    .with_location(method_impl.get_location())
+                    .with_location(method_impl)
                     .with_secondary_location(<span class="kw-2">&amp;</span>parameter_ref.source_location),
                 );
             }
@@ -604,7 +604,7 @@
                 ))
                 .with_error_code(<span class="string">"E112"</span>)
                 .with_location(<span class="kw-2">&amp;</span>parameter.source_location)
-                .with_secondary_location(method_ref.get_location()),
+                .with_secondary_location(method_ref),
             );
         }
     }

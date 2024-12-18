@@ -1803,7 +1803,19 @@
 <a href="#1802" id="1802">1802</a>
 <a href="#1803" id="1803">1803</a>
 <a href="#1804" id="1804">1804</a>
-<a href="#1805" id="1805">1805</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1805" id="1805">1805</a>
+<a href="#1806" id="1806">1806</a>
+<a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
+<a href="#1809" id="1809">1809</a>
+<a href="#1810" id="1810">1810</a>
+<a href="#1811" id="1811">1811</a>
+<a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
+<a href="#1817" id="1817">1817</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
@@ -2323,6 +2335,12 @@
     }
 }
 
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>DataTypeDeclaration&gt; <span class="kw">for </span>SourceLocation {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>DataTypeDeclaration) -&gt; <span class="self">Self </span>{
+        value.get_location()
+    }
+}
+
 <span class="kw">impl </span>DataTypeDeclaration {
     <span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">match </span><span class="self">self </span>{
@@ -2700,6 +2718,12 @@
                 f.debug_struct(<span class="string">"LabelStatement"</span>).field(<span class="string">"name"</span>, name).finish()
             }
         }
+    }
+}
+
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>AstNode&gt; <span class="kw">for </span>SourceLocation {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="self">Self </span>{
+        value.get_location()
     }
 }
 

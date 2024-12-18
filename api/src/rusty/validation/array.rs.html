@@ -293,7 +293,7 @@
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"Array assignments must be surrounded with `[]`"</span>)
                 .with_error_code(<span class="string">"E043"</span>)
-                .with_location(stmt_rhs.get_location()),
+                .with_location(stmt_rhs),
         );
         <span class="kw">return</span>; <span class="comment">// Return here, because array size validation is error-prone with incorrect assignments
     </span>}
@@ -339,7 +339,7 @@
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="string">"Struct initializers within arrays have to be wrapped by `()`"</span>)
                         .with_error_code(<span class="string">"E043"</span>)
-                        .with_location(invalid.get_location()),
+                        .with_location(invalid),
                 );
             }
         }
@@ -349,7 +349,7 @@
             validator.push_diagnostic(
                 Diagnostic::new(<span class="string">"Struct initializers within arrays have to be wrapped by `()`"</span>)
                     .with_error_code(<span class="string">"E043"</span>)
-                    .with_location(rhs_stmt.get_location()),
+                    .with_location(rhs_stmt),
             );
         }
 
