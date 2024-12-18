@@ -22,7 +22,8 @@ use std::{
 
 use cli::{CompileParameters, ParameterError};
 use plc::{
-    codegen::CodegenContext, linker::LinkerType, lowering::calls::AggregateTypeLowerer, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange, OptimizationLevel
+    codegen::CodegenContext, linker::LinkerType, lowering::calls::AggregateTypeLowerer, output::FormatOption,
+    DebugLevel, ErrorFormat, OnlineChange, OptimizationLevel,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};

@@ -90,10 +90,11 @@ pub struct GeneratedModule<'ink> {
     engine: RefCell<Option<ExecutionEngine<'ink>>>,
 }
 
-/// We need to be able to process the modules within threads
-/// TODO: is this really correct, is an LLVM module thread safe?
-unsafe impl<'ink> Send for GeneratedModule<'ink> {}
-unsafe impl<'ink> Sync for GeneratedModule<'ink> {}
+impl<'a> AsRef<GeneratedModule<'a>> for GeneratedModule<'a> {
+    fn as_ref(&self) -> &GeneratedModule<'a> {
+        self
+    }
+}
 
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
 type MainEmptyFunction<U> = unsafe extern "C" fn() -> U;

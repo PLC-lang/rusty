@@ -13,7 +13,8 @@ use rustc_hash::FxHashSet;
 
 use plc_ast::{
     ast::{
-        flatten_expression_list, Allocation, Assignment, AstFactory, AstNode, AstStatement, DirectAccessType, Operator, ReferenceAccess, ReferenceExpr
+        flatten_expression_list, Allocation, Assignment, AstFactory, AstNode, AstStatement, DirectAccessType,
+        Operator, ReferenceAccess, ReferenceExpr,
     },
     literals::AstLiteral,
     try_from,
@@ -248,10 +249,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.generate_unary_expression(&data.operator, &data.value).map(ExpressionValue::RValue)
             }
             AstStatement::ParenExpression(expr) => self.generate_expression_value(expr),
-            AstStatement::AllocationStatement(Allocation { name, reference_type }) => {
-                let ty = self.llvm_index.find_associated_type(reference_type).expect("Type must exist at this point");
-                Ok(ExpressionValue::LValue(self.llvm.builder.build_alloca(ty, name)))
-            }
             //fallback
             _ => self.generate_literal(expression),
         }
@@ -531,22 +528,22 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // generate the debug statetment for a call
         self.register_debug_location(operator);
 
-        // if this is a function that returns an aggregate type we need to allocate an out.pointer
-        let by_ref_func_out: Option<PointerValue> = if let PouIndexEntry::Function { return_type, .. } = pou {
-            let data_type = self.index.get_effective_type_or_void_by_name(return_type);
-            if data_type.is_aggregate_type() {
-                // this is a function call with a return variable fed as an out-pointer
-                let llvm_type = self.llvm_index.get_associated_type(data_type.get_name())?;
-                let out_pointer = self.llvm.create_local_variable("", &llvm_type);
-                // add the out-ptr as its first parameter
-                arguments_list.insert(0, out_pointer.into());
-                Some(out_pointer)
-            } else {
-                None
-            }
-        } else {
-            None
-        };
+        // // if this is a function that returns an aggregate type we need to allocate an out.pointer
+        // let by_ref_func_out: Option<PointerValue> = if let PouIndexEntry::Function { return_type, .. } = pou {
+        //     let data_type = self.index.get_effective_type_or_void_by_name(return_type);
+        //     if data_type.is_aggregate_type() {
+        //         // this is a function call with a return variable fed as an out-pointer
+        //         let llvm_type = self.llvm_index.get_associated_type(data_type.get_name())?;
+        //         let out_pointer = self.llvm.create_local_variable("", &llvm_type);
+        //         // add the out-ptr as its first parameter
+        //         arguments_list.insert(0, out_pointer.into());
+        //         Some(out_pointer)
+        //     } else {
+        //         None
+        //     }
+        // } else {
+        //     None
+        // };
 
         // Check for the function within the GOT. If it's there, we need to generate an indirect
         // call to its location within the GOT, which should contain a function pointer.
@@ -567,7 +564,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // - the out-pointer if we generated one in by_ref_func_out
         // - or the call's return value
         // - or a null-ptr
-        let value = by_ref_func_out.map(|it| Ok(ExpressionValue::LValue(it))).unwrap_or_else(|| {
+        let value = //by_ref_func_out.map(|it| Ok(ExpressionValue::LValue(it))).unwrap_or_else(||
+        {
             let v = call.try_as_basic_value().either(Ok, |_| {
                 // we return an uninitialized int pointer for void methods :-/
                 // dont deref it!!
@@ -577,7 +575,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .as_basic_value_enum())
             });
             v.map(ExpressionValue::RValue)
-        });
+        };//);
 
         // after the call we need to copy the values for assigned outputs
         // this is only necessary for outputs defined as `rusty::index::ArgumentType::ByVal` (PROGRAM, FUNCTION_BLOCK)

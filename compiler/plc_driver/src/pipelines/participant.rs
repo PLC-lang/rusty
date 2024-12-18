@@ -12,7 +12,10 @@ use std::{
 };
 
 use ast::provider::IdProvider;
-use plc::{codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption, resolver::{AnnotationMap, AstAnnotations}, ConfigFormat, OnlineChange, Target};
+use plc::{
+    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption,
+    resolver::AstAnnotations, ConfigFormat, OnlineChange, Target,
+};
 use plc_diagnostics::diagnostics::Diagnostic;
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
@@ -223,21 +226,25 @@ impl PipelineParticipantMut for InitParticipant {
 
 impl PipelineParticipantMut for AggregateTypeLowerer {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, index, unresolvables } = indexed_project;
+        let IndexedProject { mut project, index, .. } = indexed_project;
         self.index = Some(index);
         self.visit(&mut project.units);
-        IndexedProject { project, index: self.index.take().expect("Index"), unresolvables }
+
+        //Re-index
+        //TODO: it would be nice if we could unimport
+        project.index(self.id_provider.clone())
     }
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        let AnnotatedProject { mut units, index, annotations } = annotated_project;
-        let bool_id = annotations.get_bool_id();
+        let AnnotatedProject { units, index, annotations } = annotated_project;
         self.index = Some(index);
         self.annotation = Some(Box::new(annotations));
-        
-        units.iter_mut().for_each(|AnnotatedUnit { unit, ..  }| {
-            self.visit_unit(unit);
-        });
-        AnnotatedProject { units, index: self.index.take().expect("Index"), annotations: AstAnnotations::from_dyn(self.annotation.take().expect("AstAnnotation"), bool_id) }
+
+        let units = units.into_iter().map(|AnnotatedUnit { mut unit, .. }| {
+            self.visit_unit(&mut unit);
+            unit
+        }).collect();
+        let indexed_project = IndexedProject { project: ParsedProject {units}, index: self.index.take().expect("Index"), unresolvables: vec![] };
+        indexed_project.annotate(self.id_provider.clone())
     }
 }

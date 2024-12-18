@@ -141,6 +141,9 @@ impl BuildPipeline<PathBuf> {
         compile_parameters.try_into()
     }
 
+}
+
+impl<T: SourceContainer> BuildPipeline<T> {
     pub fn register_mut_participant(&mut self, participant: Box<dyn PipelineParticipantMut>) {
         self.mutable_participants.push(participant)
     }
@@ -148,9 +151,6 @@ impl BuildPipeline<PathBuf> {
     pub fn register_participant(&mut self, participant: Box<dyn PipelineParticipant>) {
         self.participants.push(participant)
     }
-}
-
-impl<T: SourceContainer> BuildPipeline<T> {
     pub fn get_compile_options(&self) -> Option<CompileOptions> {
         self.compile_parameters.as_ref().map(|params| {
             let location = &self.project.get_location().map(|it| it.to_path_buf());
@@ -315,22 +315,26 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.participants.iter().for_each(|p| {
             p.post_index(&indexed_project);
         });
-        let indexed_project =
+        let project =
             self.mutable_participants.iter_mut().fold(indexed_project, |project, p| p.post_index(project));
-        Ok(indexed_project)
+
+        Ok(project)
     }
 
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic> {
         self.participants.iter().for_each(|p| {
             p.pre_annotate(&project);
         });
-        let project = self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_annotate(project));
+        let project =
+            self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_annotate(project));
         let annotated_project = project.annotate(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_annotate(&annotated_project);
         });
-        let annotated_project =
-            self.mutable_participants.iter_mut().fold(annotated_project, |project, p| p.post_annotate(project));
+        let annotated_project = self
+            .mutable_participants
+            .iter_mut()
+            .fold(annotated_project, |project, p| p.post_annotate(project));
         Ok(annotated_project)
     }
 
@@ -346,7 +350,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             project
                 .generate_single_module(&context, &compile_options)?
                 .map(|module| {
-                    self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
+                    self.participants.iter_mut().try_fold((), |_, participant| participant.generate(&module))
                 })
                 .unwrap_or(Ok(()))?;
         } else {
@@ -511,8 +515,9 @@ impl ParsedProject {
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(indexer::index(&builtins));
 
-        let (full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
-        IndexedProject { project: ParsedProject { units }, index: full_index, unresolvables }
+        //TODO: evaluate constants should probably be a participant
+        let (index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
+        IndexedProject { project: ParsedProject { units }, index, unresolvables }
     }
 }
 

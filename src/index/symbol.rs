@@ -32,6 +32,14 @@ where
             }
         }
     }
+
+    pub fn remove_if<F: Fn(&V) -> bool>(&mut self, key: &K, value: F) {
+        if let Some(entries) = self.inner_map.get_mut(key) {
+            if let Some(index) = entries.iter().position(value) {
+                entries.remove(index);
+            }
+        }
+    }
 }
 
 impl<K, V> SymbolMap<K, V>

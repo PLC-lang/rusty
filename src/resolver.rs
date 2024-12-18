@@ -6,9 +6,7 @@
 //! records all resulting types associated with the statement's id.
 
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::{
-    any::Any, collections::VecDeque, hash::Hash
-};
+use std::{any::Any, collections::VecDeque, fmt::Debug, hash::Hash};
 
 use plc_ast::{
     ast::{
@@ -420,7 +418,7 @@ impl From<ast::AutoDerefType> for AutoDerefType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum StatementAnnotation {
     /// an expression that resolves to a certain type (e.g. `a + b` --> `INT`)
     Value {
@@ -463,6 +461,8 @@ pub enum StatementAnnotation {
     Label {
         name: String,
     },
+    #[default]
+    None,
 }
 
 impl StatementAnnotation {
@@ -513,10 +513,10 @@ impl From<&PouIndexEntry> for StatementAnnotation {
                 StatementAnnotation::Program { qualified_name: name.to_string() }
             }
             PouIndexEntry::Method { name, return_type, .. } => StatementAnnotation::Function {
-                            return_type: return_type.to_string(),
-                            qualified_name: name.to_string(),
-                            call_name: None,
-                        },
+                return_type: return_type.to_string(),
+                qualified_name: name.to_string(),
+                call_name: None,
+            },
             PouIndexEntry::Action { name, .. } => {
                 StatementAnnotation::Program { qualified_name: name.to_string() }
             }
@@ -581,7 +581,9 @@ pub trait AnnotationMap: ToAny {
                 .and_then(|it| self.get_type_name_for_annotation(it)),
             StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } => Some(type_name),
-            StatementAnnotation::Function { .. } | StatementAnnotation::Label { .. } => None,
+            StatementAnnotation::Function { .. }
+            | StatementAnnotation::Label { .. }
+            | StatementAnnotation::None => None,
         }
     }
 
@@ -615,7 +617,7 @@ pub trait AnnotationMap: ToAny {
     fn get_generic_nature(&self, s: &AstNode) -> Option<&TypeNature>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct AstAnnotations {
     annotation_map: AnnotationMapImpl,
     bool_id: AstId,
@@ -627,17 +629,26 @@ pub trait ToAny: 'static {
     fn as_any(&mut self) -> &mut dyn Any;
 }
 
-impl<T: 'static> ToAny for T {
-    fn as_any(&mut self) -> &mut dyn Any {
+impl<T: AnnotationMap> ToAny for T {
+    fn as_any(&mut  self) -> &mut dyn Any {
         self
     }
 }
 
+// impl<T: 'static> ToAny for T {
+//     fn as_any(&mut self) -> &mut dyn Any {
+//         self
+//     }
+// }
+
 impl AstAnnotations {
-    pub fn from_dyn<'a>(mut annotation_map: Box<dyn AnnotationMap>, bool_id: AstId) -> Self {
-        
+    pub fn from_dyn(mut annotation_map: Box<dyn AnnotationMap>, bool_id: AstId) -> Self {
         let it: &mut dyn Any = annotation_map.as_any();
-        let annotation_map = it.downcast_mut::<AnnotationMapImpl>().map(std::mem::take).expect("AnnotationMapImpl");
+        if let Some(map) = it.downcast_mut::<AstAnnotations>().map(std::mem::take) {
+            return map;
+        }
+        let annotation_map =
+            it.downcast_mut::<AnnotationMapImpl>().map(std::mem::take).expect("AnnotationMapImpl");
 
         Self::new(annotation_map, bool_id)
     }
@@ -774,6 +785,7 @@ impl AnnotationMap for AnnotationMapImpl {
     fn get_generic_nature(&self, s: &AstNode) -> Option<&TypeNature> {
         self.generic_nature_map.get(&s.get_id())
     }
+
 }
 
 #[derive(Default, Debug)]
@@ -1556,14 +1568,19 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             AstStatement::AllocationStatement(Allocation { name, reference_type }) => {
-                self.scopes.enter(Scope::Local(VariableIndexEntry::new(
+                let qualified_name = if let Some(pou) = ctx.pou {
+                    format!("{}.{}", pou, name)
+                } else {
+                    name.to_string()
+                };
+                self.scopes.enter(Scope::Local(Box::new(VariableIndexEntry::new(
                     name,
-                    name,
+                    &qualified_name,
                     reference_type,
                     ArgumentType::ByVal(VariableType::Temp),
                     u32::MAX,
-                    SourceLocation::internal(),
-                )))
+                    statement.get_location(),
+                ))))
             }
             _ => {
                 self.visit_statement_literals(ctx, statement);
@@ -2090,6 +2107,7 @@ impl Scopes {
     }
 
     //TODO: this is not accurate, we need to pop much more than the the top scope
+    #[allow(dead_code)]
     pub fn exit(&mut self) -> Option<Scope> {
         self.0.pop_back()
     }
@@ -2104,8 +2122,9 @@ enum Scope {
     //Global scope relying on an index to find elements
     Global,
     //Local scope declared inline (alloca)
-    Local(VariableIndexEntry),
+    Local(Box<VariableIndexEntry>),
     // A block scope like the body of an if or for
+    #[allow(dead_code)]
     Block,
 }
 

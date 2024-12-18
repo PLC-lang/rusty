@@ -13,8 +13,8 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-mod initializers;
 pub mod calls;
+mod initializers;
 
 pub struct InitVisitor {
     index: Index,
@@ -374,12 +374,16 @@ impl Context {
     }
 }
 
-fn create_member_reference(ident: &str, mut id_provider: IdProvider, base: Option<AstNode>) -> AstNode {
+fn create_member_reference_with_location(ident: &str, mut id_provider: IdProvider, base: Option<AstNode>, location: SourceLocation) -> AstNode {
     AstFactory::create_member_reference(
-        AstFactory::create_identifier(ident, SourceLocation::internal(), id_provider.next_id()),
+        AstFactory::create_identifier(ident, location, id_provider.next_id()),
         base,
         id_provider.next_id(),
     )
+}
+
+fn create_member_reference(ident: &str, id_provider: IdProvider, base: Option<AstNode>) -> AstNode {
+    create_member_reference_with_location(ident, id_provider, base, SourceLocation::internal())
 }
 
 fn create_assignment_if_necessary(

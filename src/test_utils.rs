@@ -88,6 +88,28 @@ pub mod tests {
         (unit, index, diagnostics)
     }
 
+    pub fn index_unit_with_id(unit: &CompilationUnit, id_provider: IdProvider) -> Index {
+
+        let mut index = Index::default();
+        //Import builtins
+        let builtins = builtins::parse_built_ins(id_provider.clone());
+
+        index.import(index::indexer::index(&builtins));
+        // import built-in types like INT, BOOL, etc.
+        for data_type in get_builtin_types() {
+            index.register_type(data_type);
+        }
+
+        index.import(index::indexer::index(unit));
+        index
+
+    }
+
+    pub fn index_unit(unit: &CompilationUnit) -> Index {
+        let id_provider = IdProvider::default();
+        index_unit_with_id(unit, id_provider)
+    }
+
     pub fn index(src: &str) -> (CompilationUnit, Index) {
         let id_provider = IdProvider::default();
         let (unit, index, _) = do_index(src, id_provider);

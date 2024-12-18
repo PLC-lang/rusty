@@ -4,9 +4,9 @@
 use std::borrow::BorrowMut;
 
 use crate::ast::{
-    flatten_expression_list, Allocation, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
-    CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement,
-    HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement,
+    flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
+    CompilationUnit, DataType, DataTypeDeclaration, DirectAccess,
+    HardwareAccess, Implementation, JumpStatement, MultipliedStatement, Pou, RangeStatement,
     ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
 };
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
@@ -205,7 +205,7 @@ pub trait AstVisitorMut: Sized {
     /// # Arguments
     /// * `stmt` - The unwrapedyped `Allocation` node to visit.
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
-    fn visit_allocation(&mut self, node: &mut AstNode) {}
+    fn visit_allocation(&mut self, _node: &mut AstNode) {}
 }
 
 /// Helper method that walks through a slice of `ConditionalBlock` and applies the visitor's `walk` method to each node.

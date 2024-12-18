@@ -6,13 +6,18 @@ use std::{borrow::BorrowMut, sync::atomic::AtomicI32};
 
 use plc_ast::{
     ast::{
-        steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock, VariableBlockType
-    }, control_statements::{AstControlStatement, ConditionalBlock}, mut_visitor::{AstVisitorMut, WalkerMut}, provider::IdProvider, try_from_mut
+        steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory, AstNode, AstStatement,
+        CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock, VariableBlockType,
+    },
+    control_statements::{AstControlStatement, ConditionalBlock},
+    mut_visitor::{AstVisitorMut, WalkerMut},
+    provider::IdProvider,
+    try_from_mut,
 };
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::{indexer, Index},
+    index::Index,
     resolver::AnnotationMap,
 };
 
@@ -29,13 +34,11 @@ pub struct AggregateTypeLowerer {
 
 impl AggregateTypeLowerer {
     pub fn new(id_provider: IdProvider) -> Self {
-        Self { id_provider, ..Default::default()}
+        Self { id_provider, ..Default::default() }
     }
 
-    pub fn visit(&mut self, units: &mut Vec<CompilationUnit>) {
-        units.iter_mut().for_each(|u| 
-            self.visit_compilation_unit(u)
-        );
+    pub fn visit(&mut self, units: &mut [CompilationUnit]) {
+        units.iter_mut().for_each(|u| self.visit_compilation_unit(u));
     }
 
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
@@ -64,13 +67,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
             //don't walk if we have no index to use
             return;
         }
-        let old_index = indexer::index(unit);
         unit.walk(self);
-        let new_index = indexer::index(unit);
-        if let Some(index) = self.index.borrow_mut() {
-            index.remove(old_index);
-            index.import(new_index);
-        }
     }
     // Change the signature for functions/methods with aggregate returns
     fn visit_pou(&mut self, pou: &mut Pou) {
@@ -142,6 +139,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
     }
 
     fn visit_call_statement(&mut self, node: &mut AstNode) {
+        let original_location = node.get_location();
         // self.steal_and_walk_call_statement(node);
         let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
         stmt.walk(self);
@@ -169,12 +167,12 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     reference_type: return_type_name.to_string(),
                 }),
                 id: self.id_provider.next_id(),
-                location: SourceLocation::internal(),
+                location: original_location.clone(),
             };
             self.new_stmts.push(alloca);
             let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
             let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
-            let reference = super::create_member_reference(&name, self.id_provider.clone(), None);
+            let reference = super::create_member_reference_with_location(&name, self.id_provider.clone(), None, original_location.clone());
             //TODO : we are creating th expression list twice in case of no params
             let mut parameters =
                 stmt.parameters.as_mut().map(|it| steal_expression_list(it.borrow_mut())).unwrap_or_default();
@@ -183,7 +181,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
 
             stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
             //steal parameters, add one to the start, return parameters
-            let mut reference = super::create_member_reference(&name, self.id_provider.clone(), None);
+            let mut reference = super::create_member_reference_with_location(&name, self.id_provider.clone(), None, original_location);
             std::mem::swap(node.get_stmt_mut(), reference.get_stmt_mut());
             self.new_stmts.push(reference);
         }
@@ -225,8 +223,9 @@ mod tests {
     use plc_ast::provider::IdProvider;
     use pretty_assertions::assert_eq;
 
+    use crate::index::indexer;
     use crate::lowering::calls::AggregateTypeLowerer;
-    use crate::test_utils::tests::{annotate_with_ids, index as test_index, index_with_ids};
+    use crate::test_utils::tests::{annotate_with_ids, index as test_index, index_unit_with_id, index_with_ids};
 
     #[test]
     fn function_with_simple_return_not_changed() {
@@ -260,13 +259,15 @@ mod tests {
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(indexer::index(&unit));
         assert_eq!(unit, original_unit);
         assert_debug_snapshot!(lowerer.index.unwrap().find_pou_type("simpleFunc").unwrap());
     }
 
     #[test]
     fn function_with_string_return_is_changed() {
-        let (mut unit, index) = test_index(
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
             r#"
         FUNCTION complexType : STRING
         VAR_INPUT
@@ -275,41 +276,46 @@ mod tests {
         complexType := 'hello';
         END_FUNCTION
         "#,
+        id_provider.clone()
         );
 
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
             new_stmts: Default::default(),
-            id_provider: IdProvider::default(),
+            id_provider: id_provider.clone(),
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         assert_debug_snapshot!(unit.units[0]);
         assert_debug_snapshot!(lowerer.index.unwrap().find_pou_type("complexType").unwrap());
     }
 
     #[test]
     fn method_with_string_return_is_changed() {
-        let (mut unit, index) = test_index(
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
             r#"
         FUNCTION_BLOCK fb
         METHOD complexMethod : STRING
             complexMethod := 'hello';
         END_METHOD
         END_FUNCTION_BLOCK
-        "#
+        "#,
+        id_provider.clone()
         );
 
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
             new_stmts: Default::default(),
-            id_provider: IdProvider::default(),
+            id_provider: id_provider.clone(),
             counter: Default::default(),
         };
 
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         assert_debug_snapshot!(unit.units[1]);
         assert_debug_snapshot!(lowerer.index.unwrap().find_pou_type("fb.complexMethod").unwrap());
     }
@@ -339,7 +345,8 @@ mod tests {
     //
     #[test]
     fn simple_call_statement() {
-        let (mut unit, index) = test_index(
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
             r#"
         FUNCTION simpleFunc : DINT
         VAR_INPUT
@@ -352,16 +359,19 @@ mod tests {
             simpleFunc();
         END_FUNCTION
         "#,
+        id_provider.clone()
         );
 
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
             new_stmts: Default::default(),
-            id_provider: IdProvider::default(),
+            id_provider: id_provider.clone(),
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        //re-index the new unit
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         //Reparse the original unit without modifications
         let (original_unit, _index) = test_index(
             r#"
@@ -412,6 +422,7 @@ mod tests {
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
@@ -453,6 +464,7 @@ mod tests {
         };
 
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
@@ -491,6 +503,7 @@ mod tests {
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
@@ -531,6 +544,7 @@ mod tests {
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
@@ -571,6 +585,7 @@ mod tests {
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
@@ -611,6 +626,7 @@ mod tests {
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
@@ -654,6 +670,7 @@ mod tests {
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
@@ -692,6 +709,7 @@ mod tests {
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
@@ -730,6 +748,7 @@ mod tests {
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
@@ -770,6 +789,7 @@ mod tests {
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
@@ -808,6 +828,7 @@ mod tests {
             counter: Default::default(),
         };
         lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);

@@ -5650,7 +5650,7 @@ fn reference_to_alloca_resolved() {
         insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
         Variable {
             resulting_type: "DINT",
-            qualified_name: "foo",
+            qualified_name: "main.foo",
             constant: false,
             argument_type: ByVal(
                 Temp,
@@ -5740,7 +5740,7 @@ fn reference_to_alloca_nested_resolved() {
         insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
         Variable {
             resulting_type: "DINT",
-            qualified_name: "foo",
+            qualified_name: "main.foo",
             constant: false,
             argument_type: ByVal(
                 Temp,
@@ -5764,7 +5764,7 @@ fn reference_to_alloca_nested_resolved() {
         insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
         Variable {
             resulting_type: "DINT",
-            qualified_name: "baz",
+            qualified_name: "main.baz",
             constant: false,
             argument_type: ByVal(
                 Temp,

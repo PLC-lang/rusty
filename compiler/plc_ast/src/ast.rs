@@ -3,7 +3,6 @@
 use std::{
     fmt::{Debug, Display, Formatter},
     ops::Range,
-    usize,
 };
 
 use derive_more::TryInto;
@@ -1247,7 +1246,7 @@ pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {
 
 pub fn steal_expression_list(list: &mut AstNode) -> Vec<AstNode> {
     match &mut list.stmt {
-        AstStatement::ExpressionList(expressions, ..) => expressions.drain(..).collect(),
+        AstStatement::ExpressionList(expressions, ..) => std::mem::take(expressions),
         AstStatement::ParenExpression(expression) => steal_expression_list(expression),
         _ => {
             let node = std::mem::take(list);
