@@ -72,7 +72,7 @@ fn validate_array<T: AnnotationMap>(
         validator.push_diagnostic(
             Diagnostic::new("Array assignments must be surrounded with `[]`")
                 .with_error_code("E043")
-                .with_location(stmt_rhs.get_location()),
+                .with_location(stmt_rhs),
         );
         return; // Return here, because array size validation is error-prone with incorrect assignments
     }
@@ -118,7 +118,7 @@ fn validate_array_of_structs<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new("Struct initializers within arrays have to be wrapped by `()`")
                         .with_error_code("E043")
-                        .with_location(invalid.get_location()),
+                        .with_location(invalid),
                 );
             }
         }
@@ -128,7 +128,7 @@ fn validate_array_of_structs<T: AnnotationMap>(
             validator.push_diagnostic(
                 Diagnostic::new("Struct initializers within arrays have to be wrapped by `()`")
                     .with_error_code("E043")
-                    .with_location(rhs_stmt.get_location()),
+                    .with_location(rhs_stmt),
             );
         }
 

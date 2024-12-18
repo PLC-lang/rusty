@@ -567,6 +567,12 @@ pub enum PouIndexEntry {
     },
 }
 
+impl From<&PouIndexEntry> for SourceLocation {
+    fn from(value: &PouIndexEntry) -> Self {
+        value.get_location().clone()
+    }
+}
+
 impl PouIndexEntry {
     /// creates a new Program-PouIndexEntry
     /// # Arguments

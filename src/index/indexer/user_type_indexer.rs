@@ -250,10 +250,7 @@ impl UserTypeIndexer<'_, '_> {
                     })
                 }
 
-                _ => Err(Diagnostic::codegen_error(
-                    "Invalid array definition: RangeStatement expected",
-                    it.get_location(),
-                )),
+                _ => Err(Diagnostic::codegen_error("Invalid array definition: RangeStatement expected", *it)),
             })
             .collect();
 

@@ -161,7 +161,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 }) else {
                     return Err(Diagnostic::codegen_error(
                         "Could not find label for {statement:?}",
-                        statement.get_location(),
+                        statement,
                     ));
                 };
                 //Set current location as else block
@@ -189,7 +189,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 } else {
                     return Err(Diagnostic::codegen_error(
                         "Cannot break out of loop when not inside a loop",
-                        statement.get_location(),
+                        statement,
                     ));
                 }
             }
@@ -200,7 +200,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 } else {
                     return Err(Diagnostic::codegen_error(
                         "Cannot continue loop when not inside a loop",
-                        statement.get_location(),
+                        statement,
                     ));
                 }
             }
@@ -287,9 +287,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let exp_gen = self.create_expr_generator();
         let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
-            it.get_basic_value_enum().try_into().map_err(|err| {
-                Diagnostic::codegen_error(format!("{err:?}").as_str(), left_statement.get_location())
-            })
+            it.get_basic_value_enum()
+                .try_into()
+                .map_err(|err| Diagnostic::codegen_error(format!("{err:?}").as_str(), left_statement))
         })?;
 
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;

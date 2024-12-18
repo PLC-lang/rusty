@@ -132,10 +132,7 @@ impl<'a> Llvm<'a> {
         offset: &SourceLocation,
     ) -> Result<PointerValue<'a>, Diagnostic> {
         self.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(|_| {
-            Diagnostic::codegen_error(
-                format!("Cannot generate qualified reference for {name:}"),
-                offset.clone(),
-            )
+            Diagnostic::codegen_error(format!("Cannot generate qualified reference for {name:}"), offset)
         })
     }
 
@@ -269,7 +266,7 @@ impl<'a> Llvm<'a> {
             let value = self.context.i8_type().const_int(*first as u64, false);
             Ok(BasicValueEnum::IntValue(value))
         } else {
-            Err(Diagnostic::cannot_generate_from_empty_literal(CHAR_TYPE, location.clone()))
+            Err(Diagnostic::cannot_generate_from_empty_literal(CHAR_TYPE, location))
         }
     }
 
@@ -286,7 +283,7 @@ impl<'a> Llvm<'a> {
                 let value = self.context.i16_type().const_int(first as u64, false);
                 Ok(BasicValueEnum::IntValue(value))
             }
-            None => Err(Diagnostic::cannot_generate_from_empty_literal(WCHAR_TYPE, location.clone())),
+            None => Err(Diagnostic::cannot_generate_from_empty_literal(WCHAR_TYPE, location)),
         }
     }
 
