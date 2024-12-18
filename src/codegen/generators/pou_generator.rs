@@ -846,13 +846,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         };
 
         let is_aggregate_type = variable_data_type.is_aggregate_type();
-        let variable_to_initialize = if variable.is_return() && is_aggregate_type {
-            //if this is an out-pointer we need to deref it first
-            self.llvm.builder.build_load(variable_to_initialize, "deref").into_pointer_value()
-        } else {
-            variable_to_initialize
-        };
-
         // initialize the variable with the initial_value
         if is_aggregate_type {
             // for arrays/structs, we prefere a memcpy, not a store operation
