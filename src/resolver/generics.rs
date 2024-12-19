@@ -5,7 +5,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     builtins,
     codegen::generators::expression_generator::get_implicit_call_parameter,
-    index::{Index, PouIndexEntry},
+    index::{ArgumentType, Index, PouIndexEntry, VariableType},
     resolver::AnnotationMap,
     typesystem::{
         self, DataType, DataTypeInformation, StringEncoding, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE,
@@ -125,7 +125,7 @@ impl TypeAnnotator<'_> {
     pub fn register_generic_pou_entries(
         &mut self,
         generic_function: &PouIndexEntry,
-        return_type: &str,
+        return_type_name: &str,
         new_name: &str,
         generics: &FxHashMap<String, GenericType>,
     ) {
@@ -141,10 +141,11 @@ impl TypeAnnotator<'_> {
                 generic_implementation.get_location().to_owned(),
             );
 
+            let return_type = self.index.find_type(return_type_name).expect("Return type must be in the index");
             //register a copy of the pou under the new name
             self.annotation_map.new_index.register_pou(PouIndexEntry::create_generated_function_entry(
                 new_name,
-                return_type,
+                return_type_name,
                 &[],
                 LinkageType::External, //it has to be external, we should have already found this in the global index if it was internal
                 generic_function.is_variadic(),
@@ -168,7 +169,16 @@ impl TypeAnnotator<'_> {
 
                         //register the member under the new container (old: foo__T, new: foo__INT)
                         //with its new type-name (old: T, new: INT)
-                        member.into_typed(new_name, &new_type_name)
+                        let mut entry = member.into_typed(new_name, &new_type_name);
+                        if return_type.is_aggregate_type() {
+                            if member.is_return() {
+                               entry.argument_type = ArgumentType::ByRef(VariableType::InOut);
+                               entry.location_in_parent = 0;
+                            } else {
+                                entry.location_in_parent += 1;
+                            }
+                        }
+                        entry
                     })
                     .collect::<Vec<_>>();
                 DataTypeInformation::Struct { name: new_name.to_string(), source: source.clone(), members }

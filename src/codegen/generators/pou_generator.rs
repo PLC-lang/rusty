@@ -809,78 +809,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         initializer_statement: Option<&AstNode>,
         exp_gen: &ExpressionCodeGenerator,
     ) -> Result<(), Diagnostic> {
-        let variable_llvm_type = self
-            .llvm_index
-            .get_associated_type(variable.get_type_name())
-            .map_err(|err| err.with_location(&variable.source_location))?;
-
-        let type_size = variable_llvm_type.size_of().ok_or_else(|| {
-            Diagnostic::codegen_error("Couldn't determine type size", variable.source_location.clone())
-        });
-
-        // initialize the variable with the initial_value
-        let variable_data_type = self.index.get_effective_type_or_void_by_name(variable.get_type_name());
-
-        let v_type_info = variable_data_type.get_type_information();
-
-        const DEFAULT_ALIGNMENT: u32 = 1;
-        let (value, alignment) =
-        // 1st try: see if there is a global variable with the right name - naming convention :-(
-        if let Some(global_variable) =  self.llvm_index.find_global_value(&index::get_initializer_name(variable.get_qualified_name())) {
-            (global_variable.as_basic_value_enum(), global_variable.get_alignment())
-        // 2nd try: see if there is an initializer-statement
-        } else if let Some(initializer) = initializer_statement {
-            (exp_gen.generate_expression(initializer)?, DEFAULT_ALIGNMENT)
-        // 3rd try: see if ther is a global variable with the variable's type name - naming convention :-(
-        } else if let Some(global_variable) = self.llvm_index.find_global_value(&index::get_initializer_name(variable.get_type_name())) {
-            (global_variable.as_basic_value_enum(), global_variable.get_alignment())
-        // 4th try, see if the datatype has a default initializer
-        } else if let Some(initial_value) = self.llvm_index.find_associated_initial_value(variable.get_type_name()) {
-            (initial_value, DEFAULT_ALIGNMENT)
-        // no inital value defined + array type - so we use a 0 byte the memset the array to 0
-        }else if v_type_info.is_array() || v_type_info.is_string() {
-            (self.llvm.context.i8_type().const_zero().as_basic_value_enum(), DEFAULT_ALIGNMENT)
-        // no initial value defined + no-array
-        } else {
-            (get_default_for(variable_llvm_type), DEFAULT_ALIGNMENT)
-        };
-
-        let is_aggregate_type = variable_data_type.is_aggregate_type();
-        // initialize the variable with the initial_value
-        if is_aggregate_type {
-            // for arrays/structs, we prefere a memcpy, not a store operation
-            // we assume that we got a global variable with the initial value that we can copy from
-            let init_result: Result<(), &str> = if value.is_pointer_value() {
-                // mem-copy from an global constant variable
-                self.llvm
-                    .builder
-                    .build_memcpy(
-                        variable_to_initialize,
-                        std::cmp::max(1, alignment),
-                        value.into_pointer_value(),
-                        std::cmp::max(1, alignment),
-                        type_size?,
-                    )
-                    .map(|_| ())
-            } else if value.is_int_value() {
-                // mem-set the value (usually 0) over the whole memory-area
-                self.llvm
-                    .builder
-                    .build_memset(
-                        variable_to_initialize,
-                        std::cmp::max(1, alignment),
-                        value.into_int_value(),
-                        type_size?,
-                    )
-                    .map(|_| ())
-            } else {
-                unreachable!("initializing an array should be memcpy-able or memset-able");
-            };
-            init_result.map_err(|msg| Diagnostic::codegen_error(msg, variable.source_location.clone()))?;
-        } else {
-            self.llvm.builder.build_store(variable_to_initialize, value);
-        }
-        Ok(())
+        self.llvm.generate_variable_initializer(
+            self.llvm_index,
+            self.index,
+            (variable.get_qualified_name(), variable.get_type_name(), &variable.source_location),
+            variable_to_initialize,
+            initializer_statement,
+            exp_gen,
+        )
     }
 
     fn get_variadic_size_and_pointer(

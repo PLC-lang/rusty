@@ -825,6 +825,7 @@ pub fn validate_pointer_assignment<T>(
         let inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
 
         if len_lhs != len_rhs || inner_ty_lhs != inner_ty_rhs {
+            dbg!(type_lhs, type_rhs);
             validator.push_diagnostic(Diagnostic::invalid_assignment(
                 &validator.get_type_name_or_slice(type_rhs),
                 &validator.get_type_name_or_slice(type_lhs),
@@ -832,6 +833,7 @@ pub fn validate_pointer_assignment<T>(
             ));
         }
     } else if type_info_lhs != type_info_rhs {
+        dbg!(type_info_lhs, type_info_rhs);
         let type_name_lhs = validator.get_type_name_or_slice(type_lhs);
         let type_name_rhs = validator.get_type_name_or_slice(type_rhs);
 
@@ -1108,6 +1110,7 @@ fn validate_variable_length_array_assignment<T: AnnotationMap>(
     let right_dims = right_type.get_type_information().get_dimensions().unwrap();
 
     if left_dt != right_dt || left_dims != right_dims {
+        dbg!(left_type, right_type);
         validator.push_diagnostic(Diagnostic::invalid_assignment(
             &validator.get_type_name_or_slice(right_type),
             &validator.get_type_name_or_slice(left_type),

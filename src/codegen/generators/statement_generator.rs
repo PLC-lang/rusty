@@ -222,6 +222,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 let ty =
                     llvm_index.find_associated_type(reference_type).expect("Type must exist at this point");
                 let value = self.llvm.builder.build_alloca(ty, name);
+                self.llvm.generate_variable_initializer(&llvm_index, self.index, (name, reference_type, &statement.location), value, None, &self.create_expr_generator(&llvm_index))?;
                 llvm_index.associate_loaded_local_variable(
                     self.function_context.linking_context.get_type_name(),
                     name,

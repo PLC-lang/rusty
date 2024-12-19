@@ -1,0 +1,93 @@
+---
+source: src/lowering/calls.rs
+expression: "units[0].0.global_vars"
+---
+[
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "a",
+                data_type: DataTypeReference {
+                    referenced_type: "STRING",
+                },
+            },
+            Variable {
+                name: "b",
+                data_type: DataTypeReference {
+                    referenced_type: "__global_b",
+                },
+                initializer: Some(
+                    CallStatement {
+                        operator: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "REF",
+                                },
+                            ),
+                            base: None,
+                        },
+                        parameters: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "a",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+            Variable {
+                name: "c",
+                data_type: DataTypeReference {
+                    referenced_type: "__global_c",
+                },
+                initializer: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "b",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            Variable {
+                name: "b",
+                data_type: DataTypeReference {
+                    referenced_type: "__global_b",
+                },
+                initializer: Some(
+                    CallStatement {
+                        operator: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "ADR",
+                                },
+                            ),
+                            base: None,
+                        },
+                        parameters: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "a",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+        ],
+        variable_block_type: Global,
+    },
+    VariableBlock {
+        variables: [],
+        variable_block_type: Global,
+    },
+]

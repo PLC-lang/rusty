@@ -16,10 +16,7 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-use crate::{
-    index::Index,
-    resolver::AnnotationMap,
-};
+use crate::{index::Index, resolver::AnnotationMap};
 
 // Performs lowering for aggregate types defined in functions
 #[derive(Default)]
@@ -143,11 +140,16 @@ impl AstVisitorMut for AggregateTypeLowerer {
         // self.steal_and_walk_call_statement(node);
         let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
         stmt.walk(self);
-        let annotation = self.annotation.as_ref().expect("Must be annotated");
-        let index = self.index.as_ref().expect("Must be indexed");
+        let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
+            //Early exit if not annotated or indexed
+            return;
+        };
         //Get the function being called
-        let Some(crate::resolver::StatementAnnotation::Function { qualified_name, return_type: return_type_name, .. }) =
-            annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator))
+        let Some(crate::resolver::StatementAnnotation::Function {
+            qualified_name,
+            return_type: return_type_name,
+            ..
+        }) = annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator))
         else {
             return;
         };
@@ -173,7 +175,12 @@ impl AstVisitorMut for AggregateTypeLowerer {
             self.new_stmts.push(alloca);
             let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
             let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
-            let reference = super::create_member_reference_with_location(&name, self.id_provider.clone(), None, original_location.clone());
+            let reference = super::create_member_reference_with_location(
+                &name,
+                self.id_provider.clone(),
+                None,
+                original_location.clone(),
+            );
             //TODO : we are creating th expression list twice in case of no params
             let mut parameters =
                 stmt.parameters.as_mut().map(|it| steal_expression_list(it.borrow_mut())).unwrap_or_default();
@@ -182,7 +189,12 @@ impl AstVisitorMut for AggregateTypeLowerer {
 
             stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
             //steal parameters, add one to the start, return parameters
-            let mut reference = super::create_member_reference_with_location(&name, self.id_provider.clone(), None, original_location);
+            let mut reference = super::create_member_reference_with_location(
+                &name,
+                self.id_provider.clone(),
+                None,
+                original_location,
+            );
             std::mem::swap(node.get_stmt_mut(), reference.get_stmt_mut());
             self.new_stmts.push(reference);
         }
@@ -226,7 +238,10 @@ mod tests {
 
     use crate::index::indexer;
     use crate::lowering::calls::AggregateTypeLowerer;
-    use crate::test_utils::tests::{annotate_with_ids, index as test_index, index_unit_with_id, index_with_ids};
+    use crate::test_utils::tests::{
+        annotate_and_lower_with_ids, annotate_with_ids, index as test_index, index_and_lower,
+        index_unit_with_id, index_with_ids,
+    };
 
     #[test]
     fn function_with_simple_return_not_changed() {
@@ -277,7 +292,7 @@ mod tests {
         complexType := 'hello';
         END_FUNCTION
         "#,
-        id_provider.clone()
+            id_provider.clone(),
         );
 
         let mut lowerer = AggregateTypeLowerer {
@@ -304,7 +319,7 @@ mod tests {
         END_METHOD
         END_FUNCTION_BLOCK
         "#,
-        id_provider.clone()
+            id_provider.clone(),
         );
 
         let mut lowerer = AggregateTypeLowerer {
@@ -360,7 +375,7 @@ mod tests {
             simpleFunc();
         END_FUNCTION
         "#,
-        id_provider.clone()
+            id_provider.clone(),
         );
 
         let mut lowerer = AggregateTypeLowerer {
@@ -863,5 +878,64 @@ mod tests {
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[0]);
+    }
+
+    #[test]
+    fn call_statements_in_initializers_not_changed() {
+        let id_provider = IdProvider::default();
+        let src = r#"
+        FUNCTION main
+        VAR
+            a : STRING;
+            b : REF_TO STRING := REF(a);
+            c : REFERENCE TO STRING REF=b;
+            b : POINTER TO STRING := ADR(a);
+        END_VAR
+        END_FUNCTION
+        "#;
+
+        let (unit, index, ..) = index_and_lower(src, id_provider.clone());
+        let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
+        assert_debug_snapshot!(units[0].0.implementations[0]);
+    }
+
+    #[test]
+    fn call_statemements_in_global() {
+        let id_provider = IdProvider::default();
+        let src = r#"
+        VAR_GLOBAL
+            a : STRING;
+            b : REF_TO STRING := REF(a);
+            c : REFERENCE TO STRING REF=b;
+            b : POINTER TO STRING := ADR(a);
+        END_VAR
+        "#;
+
+        let (unit, index, ..) = index_and_lower(src, id_provider.clone());
+        let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
+        assert_debug_snapshot!(units[0].0.global_vars);
+    }
+
+    #[test]
+    fn generic_call_statement() {
+
+        let id_provider = IdProvider::default();
+        let src = r#"
+        FUNCTION main : STRING
+            main := MID('hello');
+        END_FUNCTION
+
+        {external}
+        FUNCTION MID < T: ANY_STRING >: T
+        VAR_INPUT
+            IN: T;
+        END_VAR
+        END_FUNCTION
+        "#;
+
+        let (unit, index, ..) = index_and_lower(src, id_provider.clone());
+        let (_, index, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
+        assert_debug_snapshot!(index.find_pou_type("MID__STRING").unwrap());
+        assert_debug_snapshot!(units[0].0.implementations[1]);
     }
 }
