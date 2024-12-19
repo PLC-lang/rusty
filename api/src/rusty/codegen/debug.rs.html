@@ -951,7 +951,9 @@
 <a href="#950" id="950">950</a>
 <a href="#951" id="951">951</a>
 <a href="#952" id="952">952</a>
-<a href="#953" id="953">953</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
@@ -1232,11 +1234,13 @@
         <span class="kw">let </span><span class="kw-2">mut </span>running_offset = MemoryLocation::new(<span class="number">0</span>);
         <span class="kw">for </span>(member_name, dt, location) <span class="kw">in </span>index_types.into_iter() {
             <span class="kw">let </span>di_type = <span class="self">self</span>.get_or_create_debug_type(dt, index)<span class="question-mark">?</span>;
+
             <span class="comment">//Adjust the offset based on the field alignment
             </span><span class="kw">let </span>type_info = dt.get_type_information();
             <span class="kw">let </span>alignment = type_info.get_alignment(index);
             <span class="kw">let </span>size = type_info.get_size(index);
             running_offset = running_offset.align_to(alignment);
+
             types.push(
                 <span class="self">self</span>.debug_info
                     .create_member_type(

@@ -279,7 +279,7 @@
 
     <span class="comment">// see https://en.wikipedia.org/wiki/Data_structure_alignment#Computing_padding
     </span><span class="kw">pub fn </span>align_to(<span class="self">self</span>, align: Bytes) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>align = align.value() - <span class="number">1</span>;
+        <span class="kw">let </span>align = align.value().saturating_sub(<span class="number">1</span>);
         MemoryLocation::new((<span class="self">self</span>.value() + align) &amp; !align)
     }
 

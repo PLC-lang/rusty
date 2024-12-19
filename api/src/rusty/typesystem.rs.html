@@ -1449,7 +1449,11 @@
 <a href="#1448" id="1448">1448</a>
 <a href="#1449" id="1449">1449</a>
 <a href="#1450" id="1450">1450</a>
-<a href="#1451" id="1451">1451</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
     mem::size_of,
@@ -2117,6 +2121,10 @@
     }
 
     <span class="kw">pub fn </span>get_alignment(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; Bytes {
+        <span class="kw">if </span><span class="self">self</span>.get_size(index).value() == <span class="number">0 </span>{
+            <span class="kw">return </span>Bytes::new(<span class="number">0</span>);
+        }
+
         <span class="kw">let </span>type_layout = index.get_type_layout();
         <span class="kw">match </span><span class="self">self </span>{
             DataTypeInformation::Array { inner_type_name, .. } =&gt; {
