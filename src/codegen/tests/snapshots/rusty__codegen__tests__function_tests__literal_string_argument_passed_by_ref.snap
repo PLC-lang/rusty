@@ -10,15 +10,16 @@ source_filename = "<internal>"
 @main_instance = global %main zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
-declare void @func([81 x i8]*, i8*)
+declare void @func(i8*, i8*)
 
 define void @main(%main* %0) {
 entry:
   %res = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %1 = alloca [81 x i8], align 1
-  call void @func([81 x i8]* %1, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0))
+  %__func0 = alloca [81 x i8], align 1
+  %1 = bitcast [81 x i8]* %__func0 to i8*
+  call void @func(i8* %1, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0))
   %2 = bitcast [81 x i8]* %res to i8*
-  %3 = bitcast [81 x i8]* %1 to i8*
+  %3 = bitcast [81 x i8]* %__func0 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 %3, i32 80, i1 false)
   ret void
 }

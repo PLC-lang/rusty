@@ -146,14 +146,15 @@ impl AstVisitorMut for AggregateTypeLowerer {
         let annotation = self.annotation.as_ref().expect("Must be annotated");
         let index = self.index.as_ref().expect("Must be indexed");
         //Get the function being called
-        let Some(crate::resolver::StatementAnnotation::Function { return_type: return_type_name, .. }) =
+        let Some(crate::resolver::StatementAnnotation::Function { qualified_name, return_type: return_type_name, .. }) =
             annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator))
         else {
             return;
         };
+        let function_entry = index.find_pou(qualified_name).expect("Function not found");
         let return_type = index.get_effective_type_or_void_by_name(return_type_name);
         //TODO: needs to be on the function
-        if return_type.is_aggregate_type() {
+        if return_type.is_aggregate_type() && !function_entry.is_buitin() {
             //TODO: use qualified name
             let name = format!(
                 "__{}{}",
@@ -833,5 +834,34 @@ mod tests {
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
+    }
+
+    #[test]
+    fn do_not_change_builtin_call() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION main
+        VAR a : STRING; END_VAR
+            a := SEL('hello', 'world');
+        END_FUNCTION
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            new_stmts: Default::default(),
+            id_provider: id_provider.clone(),
+            counter: Default::default(),
+        };
+
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+        assert_debug_snapshot!(unit.implementations[0]);
     }
 }

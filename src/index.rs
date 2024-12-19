@@ -857,6 +857,10 @@ impl PouIndexEntry {
         )
     }
 
+    pub fn is_buitin(&self) -> bool {
+        self.get_linkage() == &LinkageType::BuiltIn
+    }
+
     pub(crate) fn is_constant(&self) -> bool {
         matches!(self, PouIndexEntry::Function { is_const: true, .. })
     }
