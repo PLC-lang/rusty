@@ -62,9 +62,7 @@ pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> Ge
 
     match project.generate_single_module(codegen_context, &compile_options) {
         Ok(res) => {
-            let res = res.unwrap();
-            res.print_to_stderr();
-            res
+            res.unwrap()
         }
         Err(e) => panic!("{e}"),
     }
