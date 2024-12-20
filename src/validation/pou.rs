@@ -155,8 +155,8 @@ where
                 return_type_impl.get_name(),
             ))
             .with_error_code("E112")
-            .with_location(method_impl.get_location())
-            .with_secondary_location(method_ref.get_location()),
+            .with_location(method_impl)
+            .with_secondary_location(method_ref),
         );
     }
 
@@ -191,7 +191,7 @@ where
                             parameter_impl.get_type_name(),
                         ))
                         .with_error_code("E112")
-                        .with_location(method_impl.get_location())
+                        .with_location(method_impl)
                         .with_secondary_location(&parameter_ref.source_location),
                     );
                 }
@@ -206,7 +206,7 @@ where
                             parameter_impl.get_declaration_type().get_inner(),
                         ))
                         .with_error_code("E112")
-                        .with_location(method_impl.get_location())
+                        .with_location(method_impl)
                         .with_secondary_location(&parameter_ref.source_location),
                     );
                 }
@@ -222,7 +222,7 @@ where
                         method_impl.get_name()
                     ))
                     .with_error_code("E112")
-                    .with_location(method_impl.get_location())
+                    .with_location(method_impl)
                     .with_secondary_location(&parameter_ref.source_location),
                 );
             }
@@ -242,7 +242,7 @@ where
                 ))
                 .with_error_code("E112")
                 .with_location(&parameter.source_location)
-                .with_secondary_location(method_ref.get_location()),
+                .with_secondary_location(method_ref),
             );
         }
     }

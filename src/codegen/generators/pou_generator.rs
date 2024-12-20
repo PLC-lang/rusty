@@ -406,7 +406,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let current_function = self.llvm_index.find_associated_implementation(pou_name).ok_or_else(|| {
             Diagnostic::codegen_error(
                 format!("Could not find generated stub for {pou_name}"),
-                implementation.location.clone(),
+                &implementation.location,
             )
         })?;
 
@@ -439,7 +439,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 || {
                     Diagnostic::codegen_error(
                         format!("Could not find implementation for {}", &implementation.name),
-                        implementation.location.clone(),
+                        &implementation.location,
                     )
                 },
             )?,
@@ -600,9 +600,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let parameter_name = m.get_name();
 
             let (name, variable) = if m.is_parameter() {
-                let ptr_value = params_iter
-                    .next()
-                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
+                let ptr_value =
+                    params_iter.next().ok_or_else(|| Diagnostic::missing_function(&m.source_location))?;
                 let member_type_name = m.get_type_name();
                 let type_info = self.index.get_type_information_or_void(member_type_name);
                 let ty = index.get_associated_type(member_type_name)?;
@@ -633,9 +632,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     let (size, alignment) = if let DataTypeInformation::String { size, encoding } = type_info
                     {
                         // since passed string args might be larger than the local acceptor, we need to first memset the local variable to 0
-                        let size = size.as_int_value(self.index).map_err(|err| {
-                            Diagnostic::codegen_error(err.as_str(), m.source_location.clone())
-                        })? as u64;
+                        let size = size
+                            .as_int_value(self.index)
+                            .map_err(|err| Diagnostic::codegen_error(err.as_str(), &m.source_location))?
+                            as u64;
                         let char_width = encoding.get_bytes_per_char();
                         self.llvm
                             .builder
@@ -645,7 +645,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                                 self.llvm.context.i8_type().const_zero(),
                                 self.llvm.context.i64_type().const_int(size * char_width as u64, true),
                             )
-                            .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
+                            .map_err(|e| Diagnostic::codegen_error(e, &m.source_location))?;
                         (
                             // we then reduce the amount of bytes to be memcopied by the equivalent of one grapheme in bytes to preserve the null-terminator
                             self.llvm.context.i64_type().const_int((size - 1) * char_width as u64, true),
@@ -656,7 +656,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             // XXX: can this still fail at this point? might be `unreachable`
                             return Err(Diagnostic::codegen_error(
                                 "Unable to determine type size",
-                                m.source_location.clone(),
+                                &m.source_location,
                             ));
                         };
                         (size, 1)
@@ -664,7 +664,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     self.llvm
                         .builder
                         .build_memcpy(bitcast, alignment, ptr_value.into_pointer_value(), alignment, size)
-                        .map_err(|e| Diagnostic::codegen_error(e, m.source_location.clone()))?;
+                        .map_err(|e| Diagnostic::codegen_error(e, &m.source_location))?;
                 } else {
                     self.llvm.builder.build_store(ptr, ptr_value);
                 };
@@ -698,7 +698,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .function
             .get_nth_param(arg_index)
             .map(BasicValueEnum::into_pointer_value)
-            .ok_or_else(|| Diagnostic::missing_function(location.clone()))?;
+            .ok_or_else(|| Diagnostic::missing_function(location))?;
         //Generate POU struct declaration for debug
         if let Some(block) = self.llvm.builder.get_insert_block() {
             debug.add_variable_declaration(
@@ -791,7 +791,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             } else {
                 return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
-                    variable.source_location.clone(),
+                    &variable.source_location,
                 ));
             }
         }

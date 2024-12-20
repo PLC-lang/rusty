@@ -72,7 +72,7 @@ fn transform_jump(
         .as_ref()
         .filter(|it| !it.is_empty())
         .map(|it| session.parse_expression(it.as_ref(), control.local_id, control.execution_order_id))
-        .ok_or_else(|| Diagnostic::unnamed_control(location.clone()))?;
+        .ok_or_else(|| Diagnostic::unnamed_control(&location))?;
 
     Ok(AstFactory::create_jump_statement(Box::new(condition), Box::new(target), location, session.next_id()))
 }

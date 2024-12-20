@@ -18,7 +18,7 @@ pub fn visit_data_type_declaration<T: AnnotationMap>(
     match declaration {
         DataTypeDeclaration::DataTypeReference { referenced_type, location } => {
             if context.index.find_effective_type_by_name(referenced_type).is_none() {
-                validator.push_diagnostic(Diagnostic::unknown_type(referenced_type, location.into()));
+                validator.push_diagnostic(Diagnostic::unknown_type(referenced_type, location));
             };
         }
         DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } => {

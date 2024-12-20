@@ -249,7 +249,7 @@ impl<'ink> DebugBuilder<'ink> {
         let res = self
             .debug_info
             .create_basic_type(name, size, encoding as u32, DIFlagsConstants::PUBLIC)
-            .map_err(|err| Diagnostic::codegen_error(err, location.clone()))?;
+            .map_err(|err| Diagnostic::codegen_error(err, location))?;
         self.register_concrete_type(name, DebugType::Basic(res));
         Ok(())
     }
@@ -279,11 +279,13 @@ impl<'ink> DebugBuilder<'ink> {
         let mut running_offset = MemoryLocation::new(0);
         for (member_name, dt, location) in index_types.into_iter() {
             let di_type = self.get_or_create_debug_type(dt, index)?;
+
             //Adjust the offset based on the field alignment
             let type_info = dt.get_type_information();
             let alignment = type_info.get_alignment(index);
             let size = type_info.get_size(index);
             running_offset = running_offset.align_to(alignment);
+
             types.push(
                 self.debug_info
                     .create_member_type(

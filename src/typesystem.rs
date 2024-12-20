@@ -666,6 +666,10 @@ impl DataTypeInformation {
     }
 
     pub fn get_alignment(&self, index: &Index) -> Bytes {
+        if self.get_size(index).value() == 0 {
+            return Bytes::new(0);
+        }
+
         let type_layout = index.get_type_layout();
         match self {
             DataTypeInformation::Array { inner_type_name, .. } => {
