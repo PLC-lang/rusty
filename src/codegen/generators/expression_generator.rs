@@ -13,8 +13,8 @@ use rustc_hash::FxHashSet;
 
 use plc_ast::{
     ast::{
-        flatten_expression_list, Allocation, Assignment, AstFactory, AstNode, AstStatement, DirectAccessType,
-        Operator, ReferenceAccess, ReferenceExpr,
+        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
+        ReferenceAccess, ReferenceExpr,
     },
     literals::AstLiteral,
     try_from,
@@ -507,7 +507,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return builtin.codegen(self, parameters_list.as_slice(), operator.get_location());
         }
 
-        let mut arguments_list = self.generate_pou_call_arguments_list(
+        let arguments_list = self.generate_pou_call_arguments_list(
             pou,
             parameters_list.as_slice(),
             implementation,

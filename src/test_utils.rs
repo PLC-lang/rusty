@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod tests {
 
-    use std::{any::Any, collections::HashMap, path::PathBuf, str::FromStr, sync::Mutex};
+    use std::{collections::HashMap, path::PathBuf, str::FromStr, sync::Mutex};
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
@@ -21,8 +21,8 @@ pub mod tests {
         lowering::{calls::AggregateTypeLowerer, InitVisitor},
         parser,
         resolver::{
-            const_evaluator::evaluate_constants, AnnotationMap, AnnotationMapImpl, AstAnnotations,
-            Dependency, StringLiterals, TypeAnnotator,
+            const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
+            StringLiterals, TypeAnnotator,
         },
         typesystem::get_builtin_types,
         DebugLevel, OnlineChange, Validator,
@@ -170,12 +170,10 @@ pub mod tests {
         let mut all_annotations = AnnotationMapImpl::default();
         let mut units = indexed_units
             .into_iter()
-            .map(|unit| {
-                let (mut annotations, ..) =
-                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
+            .inspect(|unit| {
+                let (mut annotations, ..) = TypeAnnotator::visit_unit(&full_index, unit, id_provider.clone());
                 full_index.import(std::mem::take(&mut annotations.new_index));
                 all_annotations.import(annotations);
-                unit
             })
             .collect::<Vec<_>>();
 

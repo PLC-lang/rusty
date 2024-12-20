@@ -1,7 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use super::{
-    data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
     llvm::{GlobalValueExt, Llvm},
     section_names,

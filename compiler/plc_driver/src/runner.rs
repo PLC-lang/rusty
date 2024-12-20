@@ -1,6 +1,5 @@
 use crate::{
-    cli::CompileParameters,
-    pipelines::{participant::InitParticipant, BuildPipeline, ParsedProject, Pipeline},
+    pipelines::{participant::InitParticipant, BuildPipeline, Pipeline},
     CompileOptions,
 };
 

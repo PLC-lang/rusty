@@ -13,8 +13,8 @@ use std::{
 
 use ast::provider::IdProvider;
 use plc::{
-    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption,
-    resolver::AstAnnotations, ConfigFormat, OnlineChange, Target,
+    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption, ConfigFormat,
+    OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use project::{object::Object, project::LibraryInformation};
