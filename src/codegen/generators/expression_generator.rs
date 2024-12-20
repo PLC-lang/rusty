@@ -575,7 +575,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .as_basic_value_enum())
             });
             v.map(ExpressionValue::RValue)
-        };//);
+        }; //);
 
         // after the call we need to copy the values for assigned outputs
         // this is only necessary for outputs defined as `rusty::index::ArgumentType::ByVal` (PROGRAM, FUNCTION_BLOCK)

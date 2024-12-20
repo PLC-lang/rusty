@@ -374,7 +374,12 @@ impl Context {
     }
 }
 
-fn create_member_reference_with_location(ident: &str, mut id_provider: IdProvider, base: Option<AstNode>, location: SourceLocation) -> AstNode {
+fn create_member_reference_with_location(
+    ident: &str,
+    mut id_provider: IdProvider,
+    base: Option<AstNode>,
+    location: SourceLocation,
+) -> AstNode {
     AstFactory::create_member_reference(
         AstFactory::create_identifier(ident, location, id_provider.next_id()),
         base,

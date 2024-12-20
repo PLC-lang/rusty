@@ -5,9 +5,9 @@ use std::borrow::BorrowMut;
 
 use crate::ast::{
     flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
-    CompilationUnit, DataType, DataTypeDeclaration, DirectAccess,
-    HardwareAccess, Implementation, JumpStatement, MultipliedStatement, Pou, RangeStatement,
-    ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
+    CompilationUnit, DataType, DataTypeDeclaration, DirectAccess, HardwareAccess, Implementation,
+    JumpStatement, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
+    UserTypeDeclaration, Variable, VariableBlock,
 };
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;

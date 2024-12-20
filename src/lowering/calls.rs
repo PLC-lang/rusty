@@ -918,7 +918,6 @@ mod tests {
 
     #[test]
     fn generic_call_statement() {
-
         let id_provider = IdProvider::default();
         let src = r#"
         FUNCTION main : STRING

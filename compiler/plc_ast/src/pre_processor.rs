@@ -377,6 +377,6 @@ fn replace_generic_type_name(dt: &mut DataTypeDeclaration, generics: &FxHashMap<
                 referenced_type.clone_from(type_name);
             }
         }
-        DataTypeDeclaration::Aggregate { .. } => {}//todo!(),
+        DataTypeDeclaration::Aggregate { .. } => {} //todo!(),
     }
 }

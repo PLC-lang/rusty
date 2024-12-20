@@ -6,7 +6,8 @@ use itertools::Itertools;
 use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
-    AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType, Interface, LinkageType, PouType, TypeNature
+    AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
+    Interface, LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -1801,7 +1802,6 @@ impl Index {
     pub fn get_config_variables(&self) -> &Vec<ConfigVariable> {
         &self.config_variables
     }
-
 }
 
 /// Returns a default initialization name for a variable or type

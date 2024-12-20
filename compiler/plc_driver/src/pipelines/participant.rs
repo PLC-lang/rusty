@@ -240,11 +240,18 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
         self.index = Some(index);
         self.annotation = Some(Box::new(annotations));
 
-        let units = units.into_iter().map(|AnnotatedUnit { mut unit, .. }| {
-            self.visit_unit(&mut unit);
-            dbg!(unit)
-        }).collect();
-        let indexed_project = IndexedProject { project: ParsedProject {units}, index: self.index.take().expect("Index"), unresolvables: vec![] };
+        let units = units
+            .into_iter()
+            .map(|AnnotatedUnit { mut unit, .. }| {
+                self.visit_unit(&mut unit);
+                unit
+            })
+            .collect();
+        let indexed_project = IndexedProject {
+            project: ParsedProject { units },
+            index: self.index.take().expect("Index"),
+            unresolvables: vec![],
+        };
         indexed_project.annotate(self.id_provider.clone())
     }
 }

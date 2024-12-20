@@ -1,6 +1,5 @@
 ---
 source: src/lowering/calls.rs
-assertion_line: 938
 expression: "index.find_pou_type(\"MID__STRING\").unwrap()"
 snapshot_kind: text
 ---
@@ -47,7 +46,7 @@ DataType {
                 ),
                 is_constant: false,
                 is_var_external: false,
-                data_type_name: "STRING",
+                data_type_name: "__auto_pointer_to_STRING",
                 location_in_parent: 0,
                 linkage: Internal,
                 binding: None,

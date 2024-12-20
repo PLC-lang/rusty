@@ -140,7 +140,6 @@ impl BuildPipeline<PathBuf> {
         let compile_parameters = CompileParameters::parse(args)?;
         compile_parameters.try_into()
     }
-
 }
 
 impl<T: SourceContainer> BuildPipeline<T> {

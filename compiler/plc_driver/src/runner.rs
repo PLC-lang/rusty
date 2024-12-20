@@ -1,6 +1,13 @@
-use crate::{cli::CompileParameters, pipelines::{participant::InitParticipant, BuildPipeline, ParsedProject, Pipeline}, CompileOptions};
+use crate::{
+    cli::CompileParameters,
+    pipelines::{participant::InitParticipant, BuildPipeline, ParsedProject, Pipeline},
+    CompileOptions,
+};
 
-use plc::{codegen::{CodegenContext, GeneratedModule}, lowering::calls::AggregateTypeLowerer};
+use plc::{
+    codegen::{CodegenContext, GeneratedModule},
+    lowering::calls::AggregateTypeLowerer,
+};
 use plc_diagnostics::diagnostician::Diagnostician;
 use plc_index::GlobalContext;
 use project::project::Project;
@@ -61,9 +68,7 @@ pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> Ge
     };
 
     match project.generate_single_module(codegen_context, &compile_options) {
-        Ok(res) => {
-            res.unwrap()
-        }
+        Ok(res) => res.unwrap(),
         Err(e) => panic!("{e}"),
     }
 }

@@ -308,7 +308,6 @@ impl<'a> Llvm<'a> {
         }
     }
 
-
     /// initializes the variable represented by `variable` by storing into the given `variable_to_initialize` pointer using either
     /// the optional `initializer_statement` (hence code like: `variable : type := initializer_statement`), or determine the initial
     /// value with the help of the `variable`'s index entry by e.g. looking for a default value of the variable's type
@@ -322,13 +321,12 @@ impl<'a> Llvm<'a> {
         exp_gen: &ExpressionCodeGenerator,
     ) -> Result<(), Diagnostic> {
         let (qualified_name, type_name, location) = variable;
-        let variable_llvm_type = llvm_index
-            .get_associated_type(type_name)
-            .map_err(|err| err.with_location(location))?;
+        let variable_llvm_type =
+            llvm_index.get_associated_type(type_name).map_err(|err| err.with_location(location))?;
 
-        let type_size = variable_llvm_type.size_of().ok_or_else(|| {
-            Diagnostic::codegen_error("Couldn't determine type size", location.clone())
-        });
+        let type_size = variable_llvm_type
+            .size_of()
+            .ok_or_else(|| Diagnostic::codegen_error("Couldn't determine type size", location.clone()));
 
         // initialize the variable with the initial_value
         let variable_data_type = index.get_effective_type_or_void_by_name(type_name);
@@ -364,8 +362,7 @@ impl<'a> Llvm<'a> {
             // we assume that we got a global variable with the initial value that we can copy from
             let init_result: Result<(), &str> = if value.is_pointer_value() {
                 // mem-copy from an global constant variable
-                self
-                    .builder
+                self.builder
                     .build_memcpy(
                         variable_to_initialize,
                         std::cmp::max(1, alignment),
@@ -376,8 +373,7 @@ impl<'a> Llvm<'a> {
                     .map(|_| ())
             } else if value.is_int_value() {
                 // mem-set the value (usually 0) over the whole memory-area
-                self
-                    .builder
+                self.builder
                     .build_memset(
                         variable_to_initialize,
                         std::cmp::max(1, alignment),

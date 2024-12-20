@@ -443,7 +443,7 @@ pub enum StatementAnnotation {
         return_type: String,
         /// The defined qualified name of the function
         qualified_name: String,
-        /// The call name of the function iff it defers from the qualified name (generics)
+        /// The call name of the function iff it differs from the qualified name (generics)
         call_name: Option<String>,
     },
     /// a reference to a type (e.g. `INT`)
@@ -630,7 +630,7 @@ pub trait ToAny: 'static {
 }
 
 impl<T: AnnotationMap> ToAny for T {
-    fn as_any(&mut  self) -> &mut dyn Any {
+    fn as_any(&mut self) -> &mut dyn Any {
         self
     }
 }
@@ -785,7 +785,6 @@ impl AnnotationMap for AnnotationMapImpl {
     fn get_generic_nature(&self, s: &AstNode) -> Option<&TypeNature> {
         self.generic_nature_map.get(&s.get_id())
     }
-
 }
 
 #[derive(Default, Debug)]
@@ -1568,11 +1567,8 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             AstStatement::AllocationStatement(Allocation { name, reference_type }) => {
-                let qualified_name = if let Some(pou) = ctx.pou {
-                    format!("{}.{}", pou, name)
-                } else {
-                    name.to_string()
-                };
+                let qualified_name =
+                    if let Some(pou) = ctx.pou { format!("{}.{}", pou, name) } else { name.to_string() };
                 self.scopes.enter(Scope::Local(Box::new(VariableIndexEntry::new(
                     name,
                     &qualified_name,

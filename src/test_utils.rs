@@ -21,7 +21,8 @@ pub mod tests {
         lowering::{calls::AggregateTypeLowerer, InitVisitor},
         parser,
         resolver::{
-            const_evaluator::evaluate_constants, AnnotationMap, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator
+            const_evaluator::evaluate_constants, AnnotationMap, AnnotationMapImpl, AstAnnotations,
+            Dependency, StringLiterals, TypeAnnotator,
         },
         typesystem::get_builtin_types,
         DebugLevel, OnlineChange, Validator,
@@ -88,7 +89,6 @@ pub mod tests {
     }
 
     pub fn index_unit_with_id(unit: &CompilationUnit, id_provider: IdProvider) -> Index {
-
         let mut index = Index::default();
         //Import builtins
         let builtins = builtins::parse_built_ins(id_provider.clone());
@@ -101,7 +101,6 @@ pub mod tests {
 
         index.import(index::indexer::index(unit));
         index
-
     }
 
     pub fn index(src: &str) -> (CompilationUnit, Index) {

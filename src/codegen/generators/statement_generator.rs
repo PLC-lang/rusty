@@ -222,7 +222,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 let ty =
                     llvm_index.find_associated_type(reference_type).expect("Type must exist at this point");
                 let value = self.llvm.builder.build_alloca(ty, name);
-                self.llvm.generate_variable_initializer(&llvm_index, self.index, (name, reference_type, &statement.location), value, None, &self.create_expr_generator(&llvm_index))?;
+                self.llvm.generate_variable_initializer(
+                    &llvm_index,
+                    self.index,
+                    (name, reference_type, &statement.location),
+                    value,
+                    None,
+                    &self.create_expr_generator(&llvm_index),
+                )?;
                 llvm_index.associate_loaded_local_variable(
                     self.function_context.linking_context.get_type_name(),
                     name,
@@ -245,7 +252,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         statement: &AstControlStatement,
     ) -> Result<(), Diagnostic> {
         match statement {
-            AstControlStatement::If(ifstmt) => self.generate_if_statement(llvm_index, &ifstmt.blocks, &ifstmt.else_block),
+            AstControlStatement::If(ifstmt) => {
+                self.generate_if_statement(llvm_index, &ifstmt.blocks, &ifstmt.else_block)
+            }
             AstControlStatement::ForLoop(for_stmt) => self.generate_for_statement(
                 llvm_index,
                 &for_stmt.counter,
@@ -635,7 +644,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ///
     /// - `condition` the while's condition
     /// - `body` the while's body statements
-    fn generate_while_statement(&self, llvm_index: &'a LlvmTypedIndex<'b>, condition: &AstNode, body: &[AstNode]) -> Result<(), Diagnostic> {
+    fn generate_while_statement(
+        &self,
+        llvm_index: &'a LlvmTypedIndex<'b>,
+        condition: &AstNode,
+        body: &[AstNode],
+    ) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let (condition_block, _) = self.generate_base_while_statement(llvm_index, condition, body)?;
