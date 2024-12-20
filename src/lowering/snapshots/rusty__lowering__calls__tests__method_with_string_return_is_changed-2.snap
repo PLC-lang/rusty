@@ -1,0 +1,60 @@
+---
+source: src/lowering/calls.rs
+expression: "lowerer.index.unwrap().find_pou_type(\"fb.complexMethod\").unwrap()"
+---
+DataType {
+    name: "fb.complexMethod",
+    initial_value: None,
+    information: Struct {
+        name: "fb.complexMethod",
+        members: [
+            VariableIndexEntry {
+                name: "complexMethod",
+                qualified_name: "fb.complexMethod.complexMethod",
+                initial_value: None,
+                argument_type: ByRef(
+                    InOut,
+                ),
+                is_constant: false,
+                is_var_external: false,
+                data_type_name: "__auto_pointer_to_STRING",
+                location_in_parent: 0,
+                linkage: Internal,
+                binding: None,
+                source_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 2,
+                            column: 15,
+                            offset: 42,
+                        }..TextLocation {
+                            line: 2,
+                            column: 28,
+                            offset: 55,
+                        },
+                    ),
+                },
+                varargs: None,
+            },
+        ],
+        source: Pou(
+            Method {
+                parent: "fb",
+            },
+        ),
+    },
+    nature: Any,
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 2,
+                column: 15,
+                offset: 42,
+            }..TextLocation {
+                line: 2,
+                column: 28,
+                offset: 55,
+            },
+        ),
+    },
+}

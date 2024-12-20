@@ -1,6 +1,12 @@
-use crate::{pipelines::ParsedProject, CompileOptions};
+use crate::{
+    pipelines::{participant::InitParticipant, BuildPipeline, Pipeline},
+    CompileOptions,
+};
 
-use plc::codegen::{CodegenContext, GeneratedModule};
+use plc::{
+    codegen::{CodegenContext, GeneratedModule},
+    lowering::calls::AggregateTypeLowerer,
+};
 use plc_diagnostics::diagnostician::Diagnostician;
 use plc_index::GlobalContext;
 use project::project::Project;
@@ -23,23 +29,44 @@ impl Default for MainType {
 /// Sources must be `Compilable`, default implementations include `String` and `&str`
 /// An implementation is also provided for `Vec<SourceContainer>`
 ///
-pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedModule<'_> {
+pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> GeneratedModule<'_> {
     let source = source.containers();
     let project = Project::new("TestProject".to_string()).with_sources(source);
-    let ctxt = GlobalContext::new().with_source(project.get_sources(), None).unwrap();
-    let mut diagnostician = Diagnostician::null_diagnostician();
-    let parsed_project = ParsedProject::parse(&ctxt, &project, &mut diagnostician).unwrap();
-    let indexed_project = parsed_project
-        .index(ctxt.provider())
-        .extend_with_init_units(&project.get_init_symbol_name(), ctxt.provider());
-    let annotated_project = indexed_project.annotate(ctxt.provider());
+    let context = GlobalContext::new().with_source(project.get_sources(), None).unwrap();
+    let diagnostician = Diagnostician::null_diagnostician();
+    let mut pipeline = BuildPipeline {
+        context,
+        project,
+        diagnostician,
+        compile_parameters: None,
+        linker: plc::linker::LinkerType::Internal,
+        mutable_participants: Default::default(),
+        participants: Default::default(),
+    };
+
+    let init_participant =
+        InitParticipant::new(&pipeline.project.get_init_symbol_name(), pipeline.context.provider());
+    pipeline.register_mut_participant(Box::new(init_participant));
+
+    let aggregate_return_participant = AggregateTypeLowerer::new(pipeline.context.provider());
+    pipeline.register_mut_participant(Box::new(aggregate_return_participant));
+
+    let project = pipeline.parse().unwrap();
+    let project = pipeline.index(project).unwrap();
+    let project = pipeline.annotate(project).unwrap();
+
+    // let parsed_project = ParsedProject::parse(&ctxt, &project, &mut diagnostician).unwrap();
+    // let indexed_project = parsed_project
+    //     .index(ctxt.provider())
+    //     .extend_with_init_units(&project.get_init_symbol_name(), ctxt.provider());
+    // let annotated_project = indexed_project.annotate(ctxt.provider());
     let compile_options = CompileOptions {
         optimization: plc::OptimizationLevel::None,
         debug_level: plc::DebugLevel::None,
         ..Default::default()
     };
 
-    match annotated_project.generate_single_module(context, &compile_options) {
+    match project.generate_single_module(codegen_context, &compile_options) {
         Ok(res) => res.unwrap(),
         Err(e) => panic!("{e}"),
     }
@@ -51,6 +78,7 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
 pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
     let context: CodegenContext = CodegenContext::create();
     let module = compile(&context, source);
+    // module.print_to_stderr();
     module.run::<T, U>("main", params)
 }
 
@@ -61,6 +89,6 @@ pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
 pub fn compile_and_run_no_params<U, S: Compilable>(source: S) -> U {
     let context: CodegenContext = CodegenContext::create();
     let module = compile(&context, source);
-    module.print_to_stderr();
+    // module.print_to_stderr();
     module.run_no_param::<U>("main")
 }

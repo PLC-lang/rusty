@@ -3,15 +3,16 @@ use core::panic;
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::{
     ast::{
-        flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
-        DataType, DirectAccess, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr,
-        UnaryExpression, UserTypeDeclaration,
+        flatten_expression_list, Allocation, Assignment, AstNode, AstStatement, BinaryExpression,
+        CallStatement, DataType, DirectAccess, MultipliedStatement, Pou, RangeStatement, ReferenceAccess,
+        ReferenceExpr, UnaryExpression, UserTypeDeclaration,
     },
-    control_statements::{AstControlStatement, CaseStatement},
+    control_statements::{AstControlStatement, CaseStatement, IfStatement},
     literals::{Array, AstLiteral},
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
+use pretty_assertions::assert_eq;
 
 use crate::{
     index::{ArgumentType, Index, VariableType},
@@ -1789,11 +1790,11 @@ fn method_references_are_resolved() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
         "
-        CLASS cls
+        FUNCTION_BLOCK cls
         METHOD foo : INT
             foo;
         END_METHOD
-        END_CLASS
+        END_FUNCTION_BLOCK
 
         FUNCTION buz : INT
         VAR cl : cls; END_VAR
@@ -5573,13 +5574,13 @@ fn internal_var_config_global_resolves() {
             prog.instance1.foo AT %IX1.2.1 : DINT;
         END_VAR
 
-        FUNCTION_BLOCK FB 
-        VAR 
-            foo AT %I* : DINT; 
+        FUNCTION_BLOCK FB
+        VAR
+            foo AT %I* : DINT;
         END_VAR
         END_FUNCTION_BLOCK
 
-        PROGRAM prog 
+        PROGRAM prog
         VAR
             instance1: FB;
         END_VAR
@@ -5610,5 +5611,168 @@ fn internal_var_config_global_resolves() {
         "###);
     } else {
         unreachable!("Must be assignment")
+    }
+}
+
+#[test]
+fn reference_to_alloca_resolved() {
+    let mut id_provider = IdProvider::default();
+    let (mut unit, mut index) = index_with_ids(
+        "
+        FUNCTION main : DINT
+        VAR
+            x : DINT;
+        END_VAR
+        x := foo;
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    unit.implementations[0].statements.insert(
+        0,
+        AstNode {
+            stmt: AstStatement::AllocationStatement(Allocation {
+                name: "foo".to_string(),
+                reference_type: "DINT".to_string(),
+            }),
+            id: id_provider.next_id(),
+            location: SourceLocation::internal(),
+        },
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    //Make sure the assignment is correctly resolved
+
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
+        &unit.implementations[0].statements[1]
+    {
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "DINT",
+            qualified_name: "main.foo",
+            constant: false,
+            argument_type: ByVal(
+                Temp,
+            ),
+            auto_deref: None,
+        }
+        "###);
+    } else {
+        unreachable!("Must be an assignment");
+    }
+}
+
+#[test]
+fn reference_to_alloca_nested_resolved() {
+    let mut id_provider = IdProvider::default();
+    let (mut unit, mut index) = index_with_ids(
+        "
+        FUNCTION main : DINT
+        VAR
+            x : DINT;
+        END_VAR
+        x := foo; //0 - Non resolvable
+        // 1 - alloca foo added programatically
+        x := foo; // 2 - Resolves to foo
+        x := baz; // 3 - Non resolvable
+        IF foo > 10 THEN // 4
+            // 4-0 alloca baz added programatically
+            x := baz; //4-1 Resolves to baz
+        END_IF
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    unit.implementations[0].statements.insert(
+        1,
+        AstNode {
+            stmt: AstStatement::AllocationStatement(Allocation {
+                name: "foo".to_string(),
+                reference_type: "DINT".to_string(),
+            }),
+            id: id_provider.next_id(),
+            location: SourceLocation::internal(),
+        },
+    );
+
+    if let AstNode {
+        stmt: AstStatement::ControlStatement(AstControlStatement::If(IfStatement { blocks, .. })),
+        ..
+    } = &mut unit.implementations[0].statements[4]
+    {
+        blocks[0].body.insert(
+            0,
+            AstNode {
+                stmt: AstStatement::AllocationStatement(Allocation {
+                    name: "baz".to_string(),
+                    reference_type: "DINT".to_string(),
+                }),
+                id: id_provider.next_id(),
+                location: SourceLocation::internal(),
+            },
+        );
+    };
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    //Make sure the assignment is correctly resolved
+
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
+        &unit.implementations[0].statements[0]
+    {
+        assert_eq!(annotations.get(right), None);
+    } else {
+        unreachable!("Must be an assignment");
+    }
+
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
+        &unit.implementations[0].statements[3]
+    {
+        assert_eq!(annotations.get(right), None);
+    } else {
+        unreachable!("Must be an assignment");
+    }
+
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
+        &unit.implementations[0].statements[2]
+    {
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "DINT",
+            qualified_name: "main.foo",
+            constant: false,
+            argument_type: ByVal(
+                Temp,
+            ),
+            auto_deref: None,
+        }
+        "###);
+    } else {
+        unreachable!("Must be an assignment");
+    }
+
+    let AstNode {
+        stmt: AstStatement::ControlStatement(AstControlStatement::If(IfStatement { blocks, .. })),
+        ..
+    } = &unit.implementations[0].statements[4]
+    else {
+        unreachable!("Must be an if statetment");
+    };
+
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = &blocks[0].body[1] {
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        Variable {
+            resulting_type: "DINT",
+            qualified_name: "main.baz",
+            constant: false,
+            argument_type: ByVal(
+                Temp,
+            ),
+            auto_deref: None,
+        }
+        "###);
+    } else {
+        unreachable!("Must be an assignment");
     }
 }

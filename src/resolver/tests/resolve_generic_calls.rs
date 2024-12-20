@@ -7,7 +7,7 @@ use plc_ast::{
 use crate::{
     assert_type_and_hint,
     resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
-    test_utils::tests::{annotate_with_ids, index_with_ids},
+    test_utils::tests::{annotate_and_lower_with_ids, annotate_with_ids, index_and_lower, index_with_ids},
     typesystem::{
         DataTypeInformation, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE,
     },
@@ -1036,7 +1036,7 @@ fn generic_return_type_name_resolved_correctly() {
 #[test]
 fn literal_string_as_parameter_resolves_correctly() {
     let id_provider = IdProvider::default();
-    let (unit, mut index) = index_with_ids(
+    let (unit, index, _) = index_and_lower(
         r#"
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT
@@ -1051,23 +1051,22 @@ fn literal_string_as_parameter_resolves_correctly() {
         id_provider.clone(),
     );
 
-    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let statement = &unit.implementations[1].statements[0];
+    let (annotations, index, units) = annotate_and_lower_with_ids(unit, index, id_provider);
+    let statement = flatten_expression_list(&units[0].0.implementations[1].statements[0])[1];
 
     if let AstNode {
         stmt: AstStatement::CallStatement(CallStatement { operator, parameters, .. }, ..), ..
     } = statement
     {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-        assert_type_and_hint!(&annotations, &index, parameters[0], "__STRING_54", Some(STRING_TYPE));
-        assert_eq!(
-            annotations.get(operator).unwrap(),
-            &StatementAnnotation::Function {
-                return_type: "STRING".to_string(),
-                qualified_name: "foo".to_string(),
-                call_name: Some("foo__STRING".to_string()),
-            }
-        );
+        assert_type_and_hint!(&annotations, &index, parameters[1], "__STRING_54", Some(STRING_TYPE));
+        insta::assert_debug_snapshot!(annotations.get(operator).unwrap(), @r#"
+        Function {
+            return_type: "STRING",
+            qualified_name: "foo__STRING",
+            call_name: None,
+        }
+        "#);
     } else {
         unreachable!("This should always be a call statement.")
     }

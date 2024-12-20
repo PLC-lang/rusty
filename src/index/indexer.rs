@@ -11,7 +11,7 @@ use super::{Index, InterfaceIndexEntry};
 
 mod global_var_indexer;
 mod implementation_indexer;
-mod pou_indexer;
+pub mod pou_indexer;
 mod user_type_indexer;
 
 /// Indexes all symbols found in the given Compiliation Unit

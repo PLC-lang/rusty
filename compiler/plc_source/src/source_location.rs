@@ -228,6 +228,12 @@ impl Display for SourceLocation {
     }
 }
 
+impl Default for SourceLocation {
+    fn default() -> Self {
+        Self::internal()
+    }
+}
+
 impl SourceLocation {
     /// Constructs an undefined SourceRange with a 0..0 range and no filename
     pub fn undefined() -> SourceLocation {

@@ -75,7 +75,7 @@ pub struct VariableIndexEntry {
     /// the variable's datatype
     pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
-    location_in_parent: u32,
+    pub location_in_parent: u32,
     /// Wether the variable is externally or internally available
     linkage: LinkageType,
     /// A binding to a hardware or external location
@@ -862,6 +862,10 @@ impl PouIndexEntry {
             self,
             PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Class { .. }
         )
+    }
+
+    pub fn is_buitin(&self) -> bool {
+        self.get_linkage() == &LinkageType::BuiltIn
     }
 
     pub(crate) fn is_constant(&self) -> bool {

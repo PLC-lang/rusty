@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-declare void @CONCAT([1025 x i8]*, i8*, i8*)
+declare void @CONCAT(i8*, i8*, i8*)
 
 define i8 @LIST_ADD(i8* %0, i8* %1) {
 entry:
@@ -19,13 +19,16 @@ entry:
   call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast1, i8 0, i64 2, i1 false)
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast1, i8* align 1 %1, i64 1, i1 false)
   store i8 0, i8* %LIST_ADD, align 1
-  %2 = bitcast [2 x i8]* %sx to i8*
-  %3 = bitcast [1001 x i8]* %INS to i8*
-  %4 = alloca [1025 x i8], align 1
-  call void @CONCAT([1025 x i8]* %4, i8* %2, i8* %3)
+  %__CONCAT0 = alloca [1025 x i8], align 1
+  %2 = bitcast [1025 x i8]* %__CONCAT0 to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([1025 x i8]* getelementptr ([1025 x i8], [1025 x i8]* null, i32 1) to i64), i1 false)
+  %3 = bitcast [1025 x i8]* %__CONCAT0 to i8*
+  %4 = bitcast [2 x i8]* %sx to i8*
   %5 = bitcast [1001 x i8]* %INS to i8*
-  %6 = bitcast [1025 x i8]* %4 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %5, i8* align 1 %6, i32 1000, i1 false)
+  call void @CONCAT(i8* %3, i8* %4, i8* %5)
+  %6 = bitcast [1001 x i8]* %INS to i8*
+  %7 = bitcast [1025 x i8]* %__CONCAT0 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %6, i8* align 1 %7, i32 1000, i1 false)
   %LIST_ADD_ret = load i8, i8* %LIST_ADD, align 1
   ret i8 %LIST_ADD_ret
 }

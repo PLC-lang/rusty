@@ -1,6 +1,9 @@
+use crate::codegen::generators::data_type_generator::get_default_for;
+use crate::codegen::llvm_index::LlvmTypedIndex;
+use crate::index::Index;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::typesystem::{CHAR_TYPE, WCHAR_TYPE};
-use inkwell::types::ArrayType;
+use inkwell::types::{ArrayType, BasicType};
 use inkwell::{
     builder::Builder,
     context::Context,
@@ -9,9 +12,11 @@ use inkwell::{
     values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
     AddressSpace,
 };
+use plc_ast::ast::AstNode;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
+use super::expression_generator::ExpressionCodeGenerator;
 use super::ADDRESS_SPACE_GENERIC;
 
 /// Holds dependencies required to generate IR-code
@@ -55,6 +60,7 @@ impl GlobalValueExt for GlobalValue<'_> {
     }
 }
 
+type Variable<'a> = (&'a str, &'a str, &'a SourceLocation);
 impl<'a> Llvm<'a> {
     /// constructs a new LLVM struct
     pub fn new(context: &'a Context, builder: Builder<'a>) -> Llvm<'a> {
@@ -297,5 +303,88 @@ impl<'a> Llvm<'a> {
             BasicTypeEnum::StructType(_) => llvm_type.into_struct_type().array_type(size),
             BasicTypeEnum::VectorType(_) => llvm_type.into_vector_type().array_type(size),
         }
+    }
+
+    /// initializes the variable represented by `variable` by storing into the given `variable_to_initialize` pointer using either
+    /// the optional `initializer_statement` (hence code like: `variable : type := initializer_statement`), or determine the initial
+    /// value with the help of the `variable`'s index entry by e.g. looking for a default value of the variable's type
+    pub fn generate_variable_initializer(
+        &self,
+        llvm_index: &LlvmTypedIndex,
+        index: &Index,
+        variable: Variable,
+        variable_to_initialize: PointerValue,
+        initializer_statement: Option<&AstNode>,
+        exp_gen: &ExpressionCodeGenerator,
+    ) -> Result<(), Diagnostic> {
+        let (qualified_name, type_name, location) = variable;
+        let variable_llvm_type =
+            llvm_index.get_associated_type(type_name).map_err(|err| err.with_location(location))?;
+
+        let type_size = variable_llvm_type
+            .size_of()
+            .ok_or_else(|| Diagnostic::codegen_error("Couldn't determine type size", location.clone()));
+
+        // initialize the variable with the initial_value
+        let variable_data_type = index.get_effective_type_or_void_by_name(type_name);
+
+        let v_type_info = variable_data_type.get_type_information();
+
+        const DEFAULT_ALIGNMENT: u32 = 1;
+        let (value, alignment) =
+        // 1st try: see if there is a global variable with the right name - naming convention :-(
+        if let Some(global_variable) =  llvm_index.find_global_value(&crate::index::get_initializer_name(qualified_name)) {
+            (global_variable.as_basic_value_enum(), global_variable.get_alignment())
+        // 2nd try: see if there is an initializer-statement
+        } else if let Some(initializer) = initializer_statement {
+            (exp_gen.generate_expression(initializer)?, DEFAULT_ALIGNMENT)
+        // 3rd try: see if ther is a global variable with the variable's type name - naming convention :-(
+        } else if let Some(global_variable) = llvm_index.find_global_value(&crate::index::get_initializer_name(type_name)) {
+            (global_variable.as_basic_value_enum(), global_variable.get_alignment())
+        // 4th try, see if the datatype has a default initializer
+        } else if let Some(initial_value) = llvm_index.find_associated_initial_value(type_name) {
+            (initial_value, DEFAULT_ALIGNMENT)
+        // no inital value defined + array type - so we use a 0 byte the memset the array to 0
+        }else if v_type_info.is_array() || v_type_info.is_string() {
+            (self.context.i8_type().const_zero().as_basic_value_enum(), DEFAULT_ALIGNMENT)
+        // no initial value defined + no-array
+        } else {
+            (get_default_for(variable_llvm_type), DEFAULT_ALIGNMENT)
+        };
+
+        let is_aggregate_type = variable_data_type.is_aggregate_type();
+        // initialize the variable with the initial_value
+        if is_aggregate_type {
+            // for arrays/structs, we prefere a memcpy, not a store operation
+            // we assume that we got a global variable with the initial value that we can copy from
+            let init_result: Result<(), &str> = if value.is_pointer_value() {
+                // mem-copy from an global constant variable
+                self.builder
+                    .build_memcpy(
+                        variable_to_initialize,
+                        std::cmp::max(1, alignment),
+                        value.into_pointer_value(),
+                        std::cmp::max(1, alignment),
+                        type_size?,
+                    )
+                    .map(|_| ())
+            } else if value.is_int_value() {
+                // mem-set the value (usually 0) over the whole memory-area
+                self.builder
+                    .build_memset(
+                        variable_to_initialize,
+                        std::cmp::max(1, alignment),
+                        value.into_int_value(),
+                        type_size?,
+                    )
+                    .map(|_| ())
+            } else {
+                unreachable!("initializing an array should be memcpy-able or memset-able");
+            };
+            init_result.map_err(|msg| Diagnostic::codegen_error(msg, location.clone()))?;
+        } else {
+            self.builder.build_store(variable_to_initialize, value);
+        }
+        Ok(())
     }
 }

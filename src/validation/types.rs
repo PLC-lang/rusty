@@ -24,6 +24,7 @@ pub fn visit_data_type_declaration<T: AnnotationMap>(
         DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } => {
             visit_data_type(validator, data_type, location, context)
         }
+        DataTypeDeclaration::Aggregate { .. } => {}
     }
 }
 

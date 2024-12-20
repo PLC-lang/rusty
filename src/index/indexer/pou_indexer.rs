@@ -29,7 +29,7 @@ impl<'i> PouIndexer<'i> {
 
         //register a function's return type as a member variable
         let return_type_name = pou.return_type.as_ref().and_then(|it| it.get_name()).unwrap_or(VOID_TYPE);
-        if pou.return_type.is_some() {
+        if pou.return_type.is_some() && !pou.is_aggregate() {
             let entry = self.index.create_member_variable(
                 MemberInfo {
                     container_name: &pou.name,
@@ -271,7 +271,7 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
 }
 
 /// registers an auto-deref pointer type for the inner_type_name if it does not already exist
-fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> String {
+pub fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> String {
     //get unique name
     let type_name = internal_type_name("auto_pointer_to_", inner_type_name);
 
