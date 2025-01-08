@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.40.0/src/macros.rs`."><title>macros.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/</div>macros.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.42.0/src/macros.rs`."><title>macros.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/</div>macros.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -529,7 +529,74 @@
 <a href="#528" id="528">528</a>
 <a href="#529" id="529">529</a>
 <a href="#530" id="530">530</a>
-<a href="#531" id="531">531</a></pre></div><pre class="rust"><code><span class="doccomment">/// Utility macro to return the name of the current function.
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a></pre></div><pre class="rust"><code><span class="doccomment">/// Utility macro to return the name of the current function.
 </span><span class="attr">#[doc(hidden)]
 #[macro_export]
 </span><span class="macro">macro_rules!</span> _function_name {
@@ -546,11 +613,24 @@
     }};
 }
 
-<span class="doccomment">/// Asserts a `Serialize` snapshot in CSV format.
+<span class="attr">#[doc(hidden)]
+#[macro_export]
+</span><span class="macro">macro_rules!</span> _get_workspace_root {
+    () =&gt; {{
+        <span class="kw">use </span>std::env;
+
+        <span class="comment">// Note the `env!("CARGO_MANIFEST_DIR")` needs to be in the macro (in
+        // contrast to a function in insta) because the macro needs to capture
+        // the value in the caller library, an exclusive property of macros.
+        </span><span class="macro-nonterminal">$crate::_macro_support::get_cargo_workspace</span>(<span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>))
+    }};
+}
+
+<span class="doccomment">/// Asserts a [`serde::Serialize`] snapshot in CSV format.
 ///
 /// **Feature:** `csv` (disabled by default)
 ///
-/// This works exactly like [`crate::assert_yaml_snapshot!`]
+/// This works exactly like [`assert_yaml_snapshot!`](crate::assert_yaml_snapshot!)
 /// but serializes in [CSV](https://github.com/burntsushi/rust-csv) format instead of
 /// YAML.
 ///
@@ -575,11 +655,11 @@
     };
 }
 
-<span class="doccomment">/// Asserts a `Serialize` snapshot in TOML format.
+<span class="doccomment">/// Asserts a [`serde::Serialize`] snapshot in TOML format.
 ///
 /// **Feature:** `toml` (disabled by default)
 ///
-/// This works exactly like [`crate::assert_yaml_snapshot!`]
+/// This works exactly like [`assert_yaml_snapshot!`](crate::assert_yaml_snapshot!)
 /// but serializes in [TOML](https://github.com/alexcrichton/toml-rs) format instead of
 /// YAML.  Note that TOML cannot represent all values due to limitations in the
 /// format.
@@ -605,14 +685,14 @@
     };
 }
 
-<span class="doccomment">/// Asserts a `Serialize` snapshot in YAML format.
+<span class="doccomment">/// Asserts a [`serde::Serialize`] snapshot in YAML format.
 ///
 /// **Feature:** `yaml`
 ///
-/// The value needs to implement the `serde::Serialize` trait and the snapshot
+/// The value needs to implement the [`serde::Serialize`] trait and the snapshot
 /// will be serialized in YAML format.  This does mean that unlike the debug
 /// snapshot variant the type of the value does not appear in the output.
-/// You can however use the `assert_ron_snapshot!` macro to dump out
+/// You can however use the [`assert_ron_snapshot!`](crate::assert_ron_snapshot!) macro to dump out
 /// the value in [RON](https://github.com/ron-rs/ron/) format which retains some
 /// type information for more accurate comparisons.
 ///
@@ -623,7 +703,7 @@
 /// assert_yaml_snapshot!(vec![1, 2, 3]);
 /// ```
 ///
-/// Unlike the [`crate::assert_debug_snapshot!`]
+/// Unlike the [`assert_debug_snapshot!`](crate::assert_debug_snapshot!)
 /// macro, this one has a secondary mode where redactions can be defined.
 ///
 /// The third argument to the macro can be an object expression for redaction.
@@ -659,11 +739,11 @@
     };
 }
 
-<span class="doccomment">/// Asserts a `Serialize` snapshot in RON format.
+<span class="doccomment">/// Asserts a [`serde::Serialize`] snapshot in RON format.
 ///
 /// **Feature:** `ron` (disabled by default)
 ///
-/// This works exactly like [`assert_yaml_snapshot!`]
+/// This works exactly like [`assert_yaml_snapshot!`](crate::assert_yaml_snapshot!)
 /// but serializes in [RON](https://github.com/ron-rs/ron/) format instead of
 /// YAML which retains some type information for more accurate comparisons.
 ///
@@ -689,11 +769,11 @@
     };
 }
 
-<span class="doccomment">/// Asserts a `Serialize` snapshot in JSON format.
+<span class="doccomment">/// Asserts a [`serde::Serialize`] snapshot in JSON format.
 ///
 /// **Feature:** `json`
 ///
-/// This works exactly like [`assert_yaml_snapshot!`] but serializes in JSON format.
+/// This works exactly like [`assert_yaml_snapshot!`](crate::assert_yaml_snapshot!) but serializes in JSON format.
 /// This is normally not recommended because it makes diffs less reliable, but it can
 /// be useful for certain specialized situations.
 ///
@@ -719,11 +799,11 @@
     };
 }
 
-<span class="doccomment">/// Asserts a `Serialize` snapshot in compact JSON format.
+<span class="doccomment">/// Asserts a [`serde::Serialize`] snapshot in compact JSON format.
 ///
 /// **Feature:** `json`
 ///
-/// This works exactly like [`assert_json_snapshot!`] but serializes into a single
+/// This works exactly like [`assert_json_snapshot!`](crate::assert_json_snapshot!) but serializes into a single
 /// line for as long as the output is less than 120 characters.  This can be useful
 /// in cases where you are working with small result outputs but comes at the cost
 /// of slightly worse diffing behavior.
@@ -815,10 +895,10 @@
     };
 }
 
-<span class="doccomment">/// Asserts a `Debug` snapshot.
+<span class="doccomment">/// Asserts a [`Debug`] snapshot.
 ///
-/// The value needs to implement the `fmt::Debug` trait.  This is useful for
-/// simple values that do not implement the `Serialize` trait, but does not
+/// The value needs to implement the [`Debug`] trait.  This is useful for
+/// simple values that do not implement the [`serde::Serialize`] trait, but does not
 /// permit redactions.
 ///
 /// Debug is called with `"{:#?}"`, which means this uses pretty-print.
@@ -829,10 +909,10 @@
     };
 }
 
-<span class="doccomment">/// Asserts a `Debug` snapshot in compact format.
+<span class="doccomment">/// Asserts a [`Debug`] snapshot in compact format.
 ///
-/// The value needs to implement the `fmt::Debug` trait.  This is useful for
-/// simple values that do not implement the `Serialize` trait, but does not
+/// The value needs to implement the [`Debug`] trait.  This is useful for
+/// simple values that do not implement the [`serde::Serialize`] trait, but does not
 /// permit redactions.
 ///
 /// Debug is called with `"{:?}"`, which means this does not use pretty-print.
@@ -857,7 +937,7 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(
             <span class="macro-nonterminal">transform </span>= <span class="macro-nonterminal">$transform</span>,
             <span class="attr">#[allow(clippy::needless_raw_string_hashes)]
-            </span><span class="macro-nonterminal">$crate::_macro_support::ReferenceValue::Inline</span>(<span class="macro-nonterminal">$snapshot</span>),
+            </span><span class="macro-nonterminal">$crate::_macro_support::InlineValue</span>(<span class="macro-nonterminal">$snapshot</span>),
             $(<span class="macro-nonterminal">$arg</span>),*
         )
     };
@@ -877,10 +957,12 @@
     <span class="comment">// The main macro body — every call to this macro should end up here.
     </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$value</span>:expr, <span class="macro-nonterminal">$debug_expr</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
         <span class="macro-nonterminal">$crate::_macro_support::assert_snapshot</span>(
-            <span class="macro-nonterminal">$name</span>.into(),
-            <span class="attr">#[allow(clippy::redundant_closure_call)]
-            </span><span class="kw-2">&amp;</span><span class="macro-nonterminal">$transform</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$value</span>),
-            <span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>),
+            (
+                <span class="macro-nonterminal">$name</span>,
+                <span class="attr">#[allow(clippy::redundant_closure_call)]
+                </span><span class="macro-nonterminal">$transform</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$value</span>).as_str(),
+            ).into(),
+            <span class="macro-nonterminal">$</span><span class="macro">crate::_get_workspace_root!</span>().<span class="macro-nonterminal">as_path</span>(),
             <span class="macro-nonterminal">$</span><span class="macro">crate::_function_name!</span>(),
             <span class="macro">module_path!</span>(),
             <span class="macro">file!</span>(),
@@ -891,9 +973,52 @@
     };
 }
 
-<span class="doccomment">/// Asserts a `Display` snapshot.
+<span class="doccomment">/// (Experimental)
+/// Asserts a binary snapshot in the form of a [`Vec&lt;u8&gt;`].
 ///
-/// This is now deprecated, replaced by the more generic `assert_snapshot!()`
+/// The contents get stored in a separate file next to the metadata file. The extension for this
+/// file must be passed as part of the name. For an implicit snapshot name just an extension can be
+/// passed starting with a `.`.
+///
+/// This feature is considered experimental: we may make incompatible changes for the next couple
+/// of versions after 1.41.
+///
+/// Examples:
+///
+/// ```no_run
+/// // implicit name:
+/// insta::assert_binary_snapshot!(".txt", b"abcd".to_vec());
+///
+/// // named:
+/// insta::assert_binary_snapshot!("my_snapshot.bin", [0, 1, 2, 3].to_vec());
+/// ```
+</span><span class="attr">#[macro_export]
+</span><span class="macro">macro_rules!</span> assert_binary_snapshot {
+    (<span class="macro-nonterminal">$name_and_extension</span>:expr, <span class="macro-nonterminal">$value</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
+        <span class="macro-nonterminal">$</span><span class="macro">crate::assert_binary_snapshot!</span>(<span class="macro-nonterminal">$name_and_extension</span>, <span class="macro-nonterminal">$value</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$value</span>));
+    };
+
+    (<span class="macro-nonterminal">$name_and_extension</span>:expr, <span class="macro-nonterminal">$value</span>:expr, <span class="macro-nonterminal">$debug_expr</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
+        <span class="macro-nonterminal">$crate::_macro_support::assert_snapshot</span>(
+            <span class="macro-nonterminal">$crate::_macro_support::BinarySnapshotValue </span>{
+                name_and_extension: <span class="macro-nonterminal">$name_and_extension</span>,
+                content: <span class="macro-nonterminal">$value</span>,
+            }
+            .into(),
+            <span class="macro-nonterminal">$</span><span class="macro">crate::_get_workspace_root!</span>().<span class="macro-nonterminal">as_path</span>(),
+            <span class="macro-nonterminal">$</span><span class="macro">crate::_function_name!</span>(),
+            <span class="macro">module_path!</span>(),
+            <span class="macro">file!</span>(),
+            <span class="macro">line!</span>(),
+            <span class="macro-nonterminal">$debug_expr</span>,
+        )
+        .unwrap()
+    };
+}
+
+<span class="doccomment">/// Asserts a [`Display`](std::fmt::Display) snapshot.
+///
+/// This is now deprecated, replaced by the more generic [`assert_snapshot!`](crate::assert_snapshot!)
 </span><span class="attr">#[macro_export]
 #[deprecated = <span class="string">"use assert_snapshot!() instead"</span>]
 </span><span class="macro">macro_rules!</span> assert_display_snapshot {
@@ -902,10 +1027,10 @@
     };
 }
 
-<span class="doccomment">/// Asserts a string snapshot.
+<span class="doccomment">/// Asserts a [`String`] snapshot.
 ///
-/// This is the simplest of all assertion methods.  It accepts any value that
-/// implements `fmt::Display`.
+/// This is the simplest of all assertion methods.
+/// It accepts any value that implements [`Display`](std::fmt::Display).
 ///
 /// ```no_run
 /// # use insta::*;
@@ -1016,17 +1141,26 @@
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"glob"</span>)))]
 #[macro_export]
 </span><span class="macro">macro_rules!</span> glob {
-    (<span class="macro-nonterminal">$base_path</span>:expr, <span class="macro-nonterminal">$glob</span>:expr, <span class="macro-nonterminal">$closure</span>:expr) =&gt; {{
+    <span class="comment">// TODO: I think we could remove the three-argument version of this macro
+    // and just support a pattern such as
+    // `glob!("../test_data/inputs/*.txt"...`.
+    </span>(<span class="macro-nonterminal">$base_path</span>:expr, <span class="macro-nonterminal">$glob</span>:expr, <span class="macro-nonterminal">$closure</span>:expr) =&gt; {{
         <span class="kw">use </span>std::path::Path;
-        <span class="kw">let </span>base = <span class="macro-nonterminal">$crate::_macro_support::get_cargo_workspace</span>(<span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>))
-            .join(Path::new(<span class="macro">file!</span>()).parent().unwrap())
+
+        <span class="kw">let </span>base = <span class="macro-nonterminal">$</span><span class="macro">crate::_get_workspace_root!</span>()
+            .<span class="macro-nonterminal">join</span>(Path::new(<span class="macro">file!</span>()).parent().unwrap())
             .join(<span class="macro-nonterminal">$base_path</span>)
             .to_path_buf();
 
         <span class="comment">// we try to canonicalize but on some platforms (eg: wasm) that might not work, so
         // we instead silently fall back.
         </span><span class="kw">let </span>base = base.canonicalize().unwrap_or_else(|<span class="kw">_</span>| base);
-        <span class="macro-nonterminal">$crate::_macro_support::glob_exec</span>(<span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>), <span class="kw-2">&amp;</span>base, <span class="macro-nonterminal">$glob</span>, <span class="macro-nonterminal">$closure</span>);
+        <span class="macro-nonterminal">$crate::_macro_support::glob_exec</span>(
+            <span class="macro-nonterminal">$</span><span class="macro">crate::_get_workspace_root!</span>().<span class="macro-nonterminal">as_path</span>(),
+            <span class="kw-2">&amp;</span>base,
+            <span class="macro-nonterminal">$glob</span>,
+            <span class="macro-nonterminal">$closure</span>,
+        );
     }};
 
     (<span class="macro-nonterminal">$glob</span>:expr, <span class="macro-nonterminal">$closure</span>:expr) =&gt; {{

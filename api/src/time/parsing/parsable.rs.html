@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.36/src/parsing/parsable.rs`."><title>parsable.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/parsing/</div>parsable.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.37/src/parsing/parsable.rs`."><title>parsable.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/parsing/</div>parsable.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -785,7 +785,19 @@
 <a href="#784" id="784">784</a>
 <a href="#785" id="785">785</a>
 <a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a></pre></div><pre class="rust"><code><span class="doccomment">//! A trait that can be used to parse an item from an input.
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a></pre></div><pre class="rust"><code><span class="doccomment">//! A trait that can be used to parse an item from an input.
 
 </span><span class="kw">use </span>core::ops::Deref;
 
@@ -802,7 +814,7 @@
 <span class="kw">use crate</span>::{error, Date, Month, OffsetDateTime, Time, UtcOffset, Weekday};
 
 <span class="doccomment">/// A type that can be parsed.
-</span><span class="attr">#[cfg_attr(__time_03_docs, doc(notable_trait))]
+</span><span class="attr">#[cfg_attr(docsrs, doc(notable_trait))]
 #[doc(alias = <span class="string">"Parseable"</span>)]
 </span><span class="kw">pub trait </span>Parsable: sealed::Sealed {}
 <span class="kw">impl </span>Parsable <span class="kw">for </span>BorrowedFormatItem&lt;<span class="lifetime">'_</span>&gt; {}
@@ -1061,10 +1073,9 @@
             <span class="bool-val">false</span>,
         )(input)
         .or_else(|| <span class="kw">match </span>input {
-            [
-                <span class="string">b'a'</span>..=<span class="string">b'i' </span>| <span class="string">b'k'</span>..=<span class="string">b'z' </span>| <span class="string">b'A'</span>..=<span class="string">b'I' </span>| <span class="string">b'K'</span>..=<span class="string">b'Z'</span>,
-                rest @ ..,
-            ] =&gt; <span class="prelude-val">Some</span>(ParsedItem(rest, <span class="number">0</span>)),
+            [<span class="string">b'a'</span>..=<span class="string">b'i' </span>| <span class="string">b'k'</span>..=<span class="string">b'z' </span>| <span class="string">b'A'</span>..=<span class="string">b'I' </span>| <span class="string">b'K'</span>..=<span class="string">b'Z'</span>, rest @ ..] =&gt; {
+                <span class="prelude-val">Some</span>(ParsedItem(rest, <span class="number">0</span>))
+            }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         });
         <span class="kw">if let </span><span class="prelude-val">Some</span>(zone_literal) = zone_literal {
@@ -1211,10 +1222,9 @@
             <span class="bool-val">false</span>,
         )(input)
         .or_else(|| <span class="kw">match </span>input {
-            [
-                <span class="string">b'a'</span>..=<span class="string">b'i' </span>| <span class="string">b'k'</span>..=<span class="string">b'z' </span>| <span class="string">b'A'</span>..=<span class="string">b'I' </span>| <span class="string">b'K'</span>..=<span class="string">b'Z'</span>,
-                rest @ ..,
-            ] =&gt; <span class="prelude-val">Some</span>(ParsedItem(rest, <span class="number">0</span>)),
+            [<span class="string">b'a'</span>..=<span class="string">b'i' </span>| <span class="string">b'k'</span>..=<span class="string">b'z' </span>| <span class="string">b'A'</span>..=<span class="string">b'I' </span>| <span class="string">b'K'</span>..=<span class="string">b'Z'</span>, rest @ ..] =&gt; {
+                <span class="prelude-val">Some</span>(ParsedItem(rest, <span class="number">0</span>))
+            }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         });
 
@@ -1307,9 +1317,16 @@
         <span class="kw">let </span>input = exactly_n_digits::&lt;<span class="number">2</span>, <span class="kw">_</span>&gt;(input)
             .and_then(|item| item.consume_value(|value| parsed.set_day(value)))
             .ok_or(InvalidComponent(<span class="string">"day"</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span>input = ascii_char_ignore_case::&lt;<span class="string">b'T'</span>&gt;(input)
-            .ok_or(InvalidLiteral)<span class="question-mark">?
-            </span>.into_inner();
+
+        <span class="comment">// RFC3339 allows any separator, not just `T`, not just `space`.
+        // cf. Section 5.6: Internet Date/Time Format:
+        //   NOTE: ISO 8601 defines date and time separated by "T".
+        //   Applications using this syntax may choose, for the sake of
+        //   readability, to specify a full-date and full-time separated by
+        //   (say) a space character.
+        // Specifically, rusqlite uses space separators.
+        </span><span class="kw">let </span>input = input.get(<span class="number">1</span>..).ok_or(InvalidComponent(<span class="string">"separator"</span>))<span class="question-mark">?</span>;
+
         <span class="kw">let </span>input = exactly_n_digits::&lt;<span class="number">2</span>, <span class="kw">_</span>&gt;(input)
             .and_then(|item| item.consume_value(|value| parsed.set_hour_24(value)))
             .ok_or(InvalidComponent(<span class="string">"hour"</span>))<span class="question-mark">?</span>;
@@ -1405,9 +1422,16 @@
         <span class="kw">let </span>input = dash(input).ok_or(InvalidLiteral)<span class="question-mark">?</span>.into_inner();
         <span class="kw">let </span>ParsedItem(input, day) =
             exactly_n_digits::&lt;<span class="number">2</span>, <span class="kw">_</span>&gt;(input).ok_or(InvalidComponent(<span class="string">"day"</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span>input = ascii_char_ignore_case::&lt;<span class="string">b'T'</span>&gt;(input)
-            .ok_or(InvalidLiteral)<span class="question-mark">?
-            </span>.into_inner();
+
+        <span class="comment">// RFC3339 allows any separator, not just `T`, not just `space`.
+        // cf. Section 5.6: Internet Date/Time Format:
+        //   NOTE: ISO 8601 defines date and time separated by "T".
+        //   Applications using this syntax may choose, for the sake of
+        //   readability, to specify a full-date and full-time separated by
+        //   (say) a space character.
+        // Specifically, rusqlite uses space separators.
+        </span><span class="kw">let </span>input = input.get(<span class="number">1</span>..).ok_or(InvalidComponent(<span class="string">"separator"</span>))<span class="question-mark">?</span>;
+
         <span class="kw">let </span>ParsedItem(input, hour) =
             exactly_n_digits::&lt;<span class="number">2</span>, <span class="kw">_</span>&gt;(input).ok_or(InvalidComponent(<span class="string">"hour"</span>))<span class="question-mark">?</span>;
         <span class="kw">let </span>input = colon(input).ok_or(InvalidLiteral)<span class="question-mark">?</span>.into_inner();

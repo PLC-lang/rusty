@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.5.7/src/sys/unix.rs`."><title>unix.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="socket2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">socket2/sys/</div>unix.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/socket2-0.5.8/src/sys/unix.rs`."><title>unix.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="socket2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">socket2/sys/</div>unix.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -3166,7 +3166,26 @@
 <a href="#3165" id="3165">3165</a>
 <a href="#3166" id="3166">3166</a>
 <a href="#3167" id="3167">3167</a>
-<a href="#3168" id="3168">3168</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2015 The Rust Project Developers.
+<a href="#3168" id="3168">3168</a>
+<a href="#3169" id="3169">3169</a>
+<a href="#3170" id="3170">3170</a>
+<a href="#3171" id="3171">3171</a>
+<a href="#3172" id="3172">3172</a>
+<a href="#3173" id="3173">3173</a>
+<a href="#3174" id="3174">3174</a>
+<a href="#3175" id="3175">3175</a>
+<a href="#3176" id="3176">3176</a>
+<a href="#3177" id="3177">3177</a>
+<a href="#3178" id="3178">3178</a>
+<a href="#3179" id="3179">3179</a>
+<a href="#3180" id="3180">3180</a>
+<a href="#3181" id="3181">3181</a>
+<a href="#3182" id="3182">3182</a>
+<a href="#3183" id="3183">3183</a>
+<a href="#3184" id="3184">3184</a>
+<a href="#3185" id="3185">3185</a>
+<a href="#3186" id="3186">3186</a>
+<a href="#3187" id="3187">3187</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2015 The Rust Project Developers.
 //
 // Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
 // https://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license
@@ -3186,6 +3205,7 @@
     feature = <span class="string">"all"</span>,
     any(
         target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"visionos"</span>,
         target_os = <span class="string">"macos"</span>,
         target_os = <span class="string">"tvos"</span>,
         target_os = <span class="string">"watchos"</span>,
@@ -3199,6 +3219,7 @@
         target_os = <span class="string">"android"</span>,
         target_os = <span class="string">"freebsd"</span>,
         target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"visionos"</span>,
         target_os = <span class="string">"linux"</span>,
         target_os = <span class="string">"macos"</span>,
         target_os = <span class="string">"tvos"</span>,
@@ -3214,6 +3235,7 @@
         target_os = <span class="string">"android"</span>,
         target_os = <span class="string">"freebsd"</span>,
         target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"visionos"</span>,
         target_os = <span class="string">"linux"</span>,
         target_os = <span class="string">"macos"</span>,
         target_os = <span class="string">"tvos"</span>,
@@ -3231,6 +3253,7 @@
 
 <span class="attr">#[cfg(not(any(
     target_os = <span class="string">"ios"</span>,
+    target_os = <span class="string">"visionos"</span>,
     target_os = <span class="string">"macos"</span>,
     target_os = <span class="string">"tvos"</span>,
     target_os = <span class="string">"watchos"</span>,
@@ -3328,6 +3351,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>libc::IP_TOS;
 <span class="attr">#[cfg(not(any(
     target_os = <span class="string">"ios"</span>,
+    target_os = <span class="string">"visionos"</span>,
     target_os = <span class="string">"macos"</span>,
     target_os = <span class="string">"tvos"</span>,
     target_os = <span class="string">"watchos"</span>,
@@ -3335,6 +3359,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>libc::SO_LINGER;
 <span class="attr">#[cfg(any(
     target_os = <span class="string">"ios"</span>,
+    target_os = <span class="string">"visionos"</span>,
     target_os = <span class="string">"macos"</span>,
     target_os = <span class="string">"tvos"</span>,
     target_os = <span class="string">"watchos"</span>,
@@ -3370,6 +3395,7 @@
     target_os = <span class="string">"haiku"</span>,
     target_os = <span class="string">"illumos"</span>,
     target_os = <span class="string">"ios"</span>,
+    target_os = <span class="string">"visionos"</span>,
     target_os = <span class="string">"macos"</span>,
     target_os = <span class="string">"netbsd"</span>,
     target_os = <span class="string">"nto"</span>,
@@ -3385,6 +3411,7 @@
     target_os = <span class="string">"haiku"</span>,
     target_os = <span class="string">"illumos"</span>,
     target_os = <span class="string">"ios"</span>,
+    target_os = <span class="string">"visionos"</span>,
     target_os = <span class="string">"macos"</span>,
     target_os = <span class="string">"netbsd"</span>,
     target_os = <span class="string">"openbsd"</span>,
@@ -3404,6 +3431,7 @@
         target_os = <span class="string">"fuchsia"</span>,
         target_os = <span class="string">"illumos"</span>,
         target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"visionos"</span>,
         target_os = <span class="string">"linux"</span>,
         target_os = <span class="string">"macos"</span>,
         target_os = <span class="string">"netbsd"</span>,
@@ -3418,6 +3446,7 @@
 
 <span class="attr">#[cfg(any(
     target_os = <span class="string">"ios"</span>,
+    target_os = <span class="string">"visionos"</span>,
     target_os = <span class="string">"macos"</span>,
     target_os = <span class="string">"nto"</span>,
     target_os = <span class="string">"tvos"</span>,
@@ -3427,6 +3456,7 @@
 <span class="attr">#[cfg(not(any(
     target_os = <span class="string">"haiku"</span>,
     target_os = <span class="string">"ios"</span>,
+    target_os = <span class="string">"visionos"</span>,
     target_os = <span class="string">"macos"</span>,
     target_os = <span class="string">"nto"</span>,
     target_os = <span class="string">"openbsd"</span>,
@@ -3452,6 +3482,7 @@
 <span class="doccomment">/// Maximum size of a buffer passed to system call like `recv` and `send`.
 </span><span class="attr">#[cfg(not(any(
     target_os = <span class="string">"ios"</span>,
+    target_os = <span class="string">"visionos"</span>,
     target_os = <span class="string">"macos"</span>,
     target_os = <span class="string">"tvos"</span>,
     target_os = <span class="string">"watchos"</span>,
@@ -3468,6 +3499,7 @@
 // both platforms.
 </span><span class="attr">#[cfg(any(
     target_os = <span class="string">"ios"</span>,
+    target_os = <span class="string">"visionos"</span>,
     target_os = <span class="string">"macos"</span>,
     target_os = <span class="string">"tvos"</span>,
     target_os = <span class="string">"watchos"</span>,
@@ -3507,6 +3539,7 @@
     target_os = <span class="string">"hurd"</span>,
     target_os = <span class="string">"illumos"</span>,
     target_os = <span class="string">"ios"</span>,
+    target_os = <span class="string">"visionos"</span>,
     target_os = <span class="string">"macos"</span>,
     target_os = <span class="string">"netbsd"</span>,
     target_os = <span class="string">"nto"</span>,
@@ -4402,6 +4435,7 @@
         target_os = <span class="string">"hurd"</span>,
         target_os = <span class="string">"illumos"</span>,
         target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"visionos"</span>,
         target_os = <span class="string">"linux"</span>,
         target_os = <span class="string">"macos"</span>,
         target_os = <span class="string">"netbsd"</span>,
@@ -4559,6 +4593,47 @@
     }
 }
 
+<span class="attr">#[cfg(all(
+    feature = <span class="string">"all"</span>,
+    any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"fuchsia"</span>, target_os = <span class="string">"linux"</span>)
+))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>original_dst(fd: Socket) -&gt; io::Result&lt;SockAddr&gt; {
+    <span class="comment">// Safety: `getsockopt` initialises the `SockAddr` for us.
+    </span><span class="kw">unsafe </span>{
+        SockAddr::try_init(|storage, len| {
+            <span class="macro">syscall!</span>(getsockopt(
+                fd,
+                libc::SOL_IP,
+                libc::SO_ORIGINAL_DST,
+                storage.cast(),
+                len
+            ))
+        })
+    }
+    .map(|(<span class="kw">_</span>, addr)| addr)
+}
+
+<span class="doccomment">/// Get the value for the `IP6T_SO_ORIGINAL_DST` option on this socket.
+///
+/// This value contains the original destination IPv6 address of the connection
+/// redirected using `ip6tables` `REDIRECT` or `TPROXY`.
+</span><span class="attr">#[cfg(all(feature = <span class="string">"all"</span>, any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>)))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>original_dst_ipv6(fd: Socket) -&gt; io::Result&lt;SockAddr&gt; {
+    <span class="comment">// Safety: `getsockopt` initialises the `SockAddr` for us.
+    </span><span class="kw">unsafe </span>{
+        SockAddr::try_init(|storage, len| {
+            <span class="macro">syscall!</span>(getsockopt(
+                fd,
+                libc::SOL_IPV6,
+                libc::IP6T_SO_ORIGINAL_DST,
+                storage.cast(),
+                len
+            ))
+        })
+    }
+    .map(|(<span class="kw">_</span>, addr)| addr)
+}
+
 <span class="doccomment">/// Unix only API.
 </span><span class="kw">impl </span><span class="kw">crate</span>::Socket {
     <span class="doccomment">/// Accept a new incoming connection from this listener.
@@ -4630,6 +4705,7 @@
     </span><span class="attr">#[cfg_attr(
         any(
             target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"visionos"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"tvos"</span>,
             target_os = <span class="string">"watchos"
@@ -4666,6 +4742,7 @@
         feature = <span class="string">"all"</span>,
         any(
             target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"visionos"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"tvos"</span>,
             target_os = <span class="string">"watchos"</span>,
@@ -4677,6 +4754,7 @@
             feature = <span class="string">"all"</span>,
             any(
                 target_os = <span class="string">"ios"</span>,
+                target_os = <span class="string">"visionos"</span>,
                 target_os = <span class="string">"macos"</span>,
                 target_os = <span class="string">"tvos"</span>,
                 target_os = <span class="string">"watchos"</span>,
@@ -4689,6 +4767,7 @@
 
     <span class="attr">#[cfg(any(
         target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"visionos"</span>,
         target_os = <span class="string">"macos"</span>,
         target_os = <span class="string">"tvos"</span>,
         target_os = <span class="string">"watchos"</span>,
@@ -5125,6 +5204,7 @@
         feature = <span class="string">"all"</span>,
         any(
             target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"visionos"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"tvos"</span>,
             target_os = <span class="string">"watchos"</span>,
@@ -5136,6 +5216,7 @@
             feature = <span class="string">"all"</span>,
             any(
                 target_os = <span class="string">"ios"</span>,
+                target_os = <span class="string">"visionos"</span>,
                 target_os = <span class="string">"macos"</span>,
                 target_os = <span class="string">"tvos"</span>,
                 target_os = <span class="string">"watchos"</span>,
@@ -5161,6 +5242,7 @@
         feature = <span class="string">"all"</span>,
         any(
             target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"visionos"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"tvos"</span>,
             target_os = <span class="string">"watchos"</span>,
@@ -5172,6 +5254,7 @@
             feature = <span class="string">"all"</span>,
             any(
                 target_os = <span class="string">"ios"</span>,
+                target_os = <span class="string">"visionos"</span>,
                 target_os = <span class="string">"macos"</span>,
                 target_os = <span class="string">"tvos"</span>,
                 target_os = <span class="string">"watchos"</span>,
@@ -5197,6 +5280,7 @@
         feature = <span class="string">"all"</span>,
         any(
             target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"visionos"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"tvos"</span>,
             target_os = <span class="string">"watchos"</span>,
@@ -5208,6 +5292,7 @@
             feature = <span class="string">"all"</span>,
             any(
                 target_os = <span class="string">"ios"</span>,
+                target_os = <span class="string">"visionos"</span>,
                 target_os = <span class="string">"macos"</span>,
                 target_os = <span class="string">"tvos"</span>,
                 target_os = <span class="string">"watchos"</span>,
@@ -5228,6 +5313,7 @@
         feature = <span class="string">"all"</span>,
         any(
             target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"visionos"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"tvos"</span>,
             target_os = <span class="string">"watchos"</span>,
@@ -5239,6 +5325,7 @@
             feature = <span class="string">"all"</span>,
             any(
                 target_os = <span class="string">"ios"</span>,
+                target_os = <span class="string">"visionos"</span>,
                 target_os = <span class="string">"macos"</span>,
                 target_os = <span class="string">"tvos"</span>,
                 target_os = <span class="string">"watchos"</span>,
@@ -5256,6 +5343,7 @@
         feature = <span class="string">"all"</span>,
         any(
             target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"visionos"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"tvos"</span>,
             target_os = <span class="string">"watchos"</span>,
@@ -5267,6 +5355,7 @@
             feature = <span class="string">"all"</span>,
             any(
                 target_os = <span class="string">"ios"</span>,
+                target_os = <span class="string">"visionos"</span>,
                 target_os = <span class="string">"macos"</span>,
                 target_os = <span class="string">"tvos"</span>,
                 target_os = <span class="string">"watchos"</span>,
@@ -5287,6 +5376,7 @@
         feature = <span class="string">"all"</span>,
         any(
             target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"visionos"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"tvos"</span>,
             target_os = <span class="string">"watchos"</span>,
@@ -5298,6 +5388,7 @@
             feature = <span class="string">"all"</span>,
             any(
                 target_os = <span class="string">"ios"</span>,
+                target_os = <span class="string">"visionos"</span>,
                 target_os = <span class="string">"macos"</span>,
                 target_os = <span class="string">"tvos"</span>,
                 target_os = <span class="string">"watchos"</span>,
@@ -5539,62 +5630,6 @@
         }
     }
 
-    <span class="doccomment">/// Get the value for the `SO_ORIGINAL_DST` option on this socket.
-    ///
-    /// This value contains the original destination IPv4 address of the connection
-    /// redirected using `iptables` `REDIRECT` or `TPROXY`.
-    </span><span class="attr">#[cfg(all(
-        feature = <span class="string">"all"</span>,
-        any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"fuchsia"</span>, target_os = <span class="string">"linux"</span>)
-    ))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(all(
-            feature = <span class="string">"all"</span>,
-            any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"fuchsia"</span>, target_os = <span class="string">"linux"</span>)
-        )))
-    )]
-    </span><span class="kw">pub fn </span>original_dst(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SockAddr&gt; {
-        <span class="comment">// Safety: `getsockopt` initialises the `SockAddr` for us.
-        </span><span class="kw">unsafe </span>{
-            SockAddr::try_init(|storage, len| {
-                <span class="macro">syscall!</span>(getsockopt(
-                    <span class="self">self</span>.as_raw(),
-                    libc::SOL_IP,
-                    libc::SO_ORIGINAL_DST,
-                    storage.cast(),
-                    len
-                ))
-            })
-        }
-        .map(|(<span class="kw">_</span>, addr)| addr)
-    }
-
-    <span class="doccomment">/// Get the value for the `IP6T_SO_ORIGINAL_DST` option on this socket.
-    ///
-    /// This value contains the original destination IPv6 address of the connection
-    /// redirected using `ip6tables` `REDIRECT` or `TPROXY`.
-    </span><span class="attr">#[cfg(all(feature = <span class="string">"all"</span>, any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>)))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(all(feature = <span class="string">"all"</span>, any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>))))
-    )]
-    </span><span class="kw">pub fn </span>original_dst_ipv6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SockAddr&gt; {
-        <span class="comment">// Safety: `getsockopt` initialises the `SockAddr` for us.
-        </span><span class="kw">unsafe </span>{
-            SockAddr::try_init(|storage, len| {
-                <span class="macro">syscall!</span>(getsockopt(
-                    <span class="self">self</span>.as_raw(),
-                    libc::SOL_IPV6,
-                    libc::IP6T_SO_ORIGINAL_DST,
-                    storage.cast(),
-                    len
-                ))
-            })
-        }
-        .map(|(<span class="kw">_</span>, addr)| addr)
-    }
-
     <span class="doccomment">/// Copies data between a `file` and this socket using the `sendfile(2)`
     /// system call. Because this copying is done within the kernel,
     /// `sendfile()` is more efficient than the combination of `read(2)` and
@@ -5621,6 +5656,7 @@
             target_os = <span class="string">"android"</span>,
             target_os = <span class="string">"freebsd"</span>,
             target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"visionos"</span>,
             target_os = <span class="string">"linux"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"tvos"</span>,
@@ -5636,6 +5672,7 @@
                 target_os = <span class="string">"android"</span>,
                 target_os = <span class="string">"freebsd"</span>,
                 target_os = <span class="string">"ios"</span>,
+                target_os = <span class="string">"visionos"</span>,
                 target_os = <span class="string">"linux"</span>,
                 target_os = <span class="string">"macos"</span>,
                 target_os = <span class="string">"tvos"</span>,
@@ -5659,6 +5696,7 @@
         feature = <span class="string">"all"</span>,
         any(
             target_os = <span class="string">"ios"</span>,
+            target_os = <span class="string">"visionos"</span>,
             target_os = <span class="string">"macos"</span>,
             target_os = <span class="string">"tvos"</span>,
             target_os = <span class="string">"watchos"</span>,

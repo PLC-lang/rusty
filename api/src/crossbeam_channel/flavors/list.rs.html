@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/crossbeam-channel-0.5.13/src/flavors/list.rs`."><title>list.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="crossbeam_channel" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">crossbeam_channel/flavors/</div>list.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/crossbeam-channel-0.5.14/src/flavors/list.rs`."><title>list.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="crossbeam_channel" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">crossbeam_channel/flavors/</div>list.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -756,9 +756,25 @@
 <a href="#755" id="755">755</a>
 <a href="#756" id="756">756</a>
 <a href="#757" id="757">757</a>
-<a href="#758" id="758">758</a></pre></div><pre class="rust"><code><span class="doccomment">//! Unbounded channel implemented as a linked list.
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a></pre></div><pre class="rust"><code><span class="doccomment">//! Unbounded channel implemented as a linked list.
 
-</span><span class="kw">use </span>std::boxed::Box;
+</span><span class="kw">use </span>std::alloc::{alloc_zeroed, handle_alloc_error, Layout};
+<span class="kw">use </span>std::boxed::Box;
 <span class="kw">use </span>std::cell::UnsafeCell;
 <span class="kw">use </span>std::marker::PhantomData;
 <span class="kw">use </span>std::mem::MaybeUninit;
@@ -808,11 +824,6 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; Slot&lt;T&gt; {
-    <span class="kw">const </span>UNINIT: <span class="self">Self </span>= <span class="self">Self </span>{
-        msg: UnsafeCell::new(MaybeUninit::uninit()),
-        state: AtomicUsize::new(<span class="number">0</span>),
-    };
-
     <span class="doccomment">/// Waits until a message is written into the slot.
     </span><span class="kw">fn </span>wait_write(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let </span>backoff = Backoff::new();
@@ -834,12 +845,31 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; Block&lt;T&gt; {
+    <span class="kw">const </span>LAYOUT: Layout = {
+        <span class="kw">let </span>layout = Layout::new::&lt;<span class="self">Self</span>&gt;();
+        <span class="macro">assert!</span>(
+            layout.size() != <span class="number">0</span>,
+            <span class="string">"Block should never be zero-sized, as it has an AtomicPtr field"
+        </span>);
+        layout
+    };
+
     <span class="doccomment">/// Creates an empty block.
-    </span><span class="kw">fn </span>new() -&gt; Block&lt;T&gt; {
-        <span class="self">Self </span>{
-            next: AtomicPtr::new(ptr::null_mut()),
-            slots: [Slot::UNINIT; BLOCK_CAP],
+    </span><span class="kw">fn </span>new() -&gt; Box&lt;<span class="self">Self</span>&gt; {
+        <span class="comment">// SAFETY: layout is not zero-sized
+        </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ alloc_zeroed(<span class="self">Self</span>::LAYOUT) };
+        <span class="comment">// Handle allocation failure
+        </span><span class="kw">if </span>ptr.is_null() {
+            handle_alloc_error(<span class="self">Self</span>::LAYOUT)
         }
+        <span class="comment">// SAFETY: This is safe because:
+        //  [1] `Block::next` (AtomicPtr) may be safely zero initialized.
+        //  [2] `Block::slots` (Array) may be safely zero initialized because of [3, 4].
+        //  [3] `Slot::msg` (UnsafeCell) may be safely zero initialized because it
+        //       holds a MaybeUninit.
+        //  [4] `Slot::state` (AtomicUsize) may be safely zero initialized.
+        // TODO: unsafe { Box::new_zeroed().assume_init() }
+        </span><span class="kw">unsafe </span>{ Box::from_raw(ptr.cast()) }
     }
 
     <span class="doccomment">/// Waits until the next pointer is set.
@@ -981,13 +1011,13 @@
             <span class="comment">// If we're going to have to install the next block, allocate it in advance in order to
             // make the wait for other threads as short as possible.
             </span><span class="kw">if </span>offset + <span class="number">1 </span>== BLOCK_CAP &amp;&amp; next_block.is_none() {
-                next_block = <span class="prelude-val">Some</span>(Box::new(Block::&lt;T&gt;::new()));
+                next_block = <span class="prelude-val">Some</span>(Block::&lt;T&gt;::new());
             }
 
             <span class="comment">// If this is the first message to be sent into the channel, we need to allocate the
             // first block and install it.
             </span><span class="kw">if </span>block.is_null() {
-                <span class="kw">let </span>new = Box::into_raw(Box::new(Block::&lt;T&gt;::new()));
+                <span class="kw">let </span>new = Box::into_raw(Block::&lt;T&gt;::new());
 
                 <span class="kw">if </span><span class="self">self
                     </span>.tail

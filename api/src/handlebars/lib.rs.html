@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-5.1.2/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-6.3.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -429,20 +429,7 @@
 <a href="#428" id="428">428</a>
 <a href="#429" id="429">429</a>
 <a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a></pre></div><pre class="rust"><code><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/handlebars/5.1.2"</span>)]
+<a href="#431" id="431">431</a></pre></div><pre class="rust"><code><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/handlebars/6.3.0"</span>)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 </span><span class="doccomment">//! # Handlebars
 //!
@@ -457,19 +444,19 @@
 //! use handlebars::Handlebars;
 //!
 //! # fn main() {
-//!   // create the handlebars registry
-//!   let mut handlebars = Handlebars::new();
+//! // create the handlebars registry
+//! let mut handlebars = Handlebars::new();
 //!
-//!   // register the template. The template string will be verified and compiled.
-//!   let source = "hello {{world}}";
-//!   assert!(handlebars.register_template_string("t1", source).is_ok());
+//! // register the template. The template string will be verified and compiled.
+//! let source = "hello {{world}}";
+//! assert!(handlebars.register_template_string("t1", source).is_ok());
 //!
-//!   // Prepare some data.
-//!   //
-//!   // The data type should implements `serde::Serialize`
-//!   let mut data = BTreeMap::new();
-//!   data.insert("world".to_string(), "世界!".to_string());
-//!   assert_eq!(handlebars.render("t1", &amp;data).unwrap(), "hello 世界!");
+//! // Prepare some data.
+//! //
+//! // The data type should implements `serde::Serialize`
+//! let mut data = BTreeMap::new();
+//! data.insert("world".to_string(), "世界!".to_string());
+//! assert_eq!(handlebars.render("t1", &amp;data).unwrap(), "hello 世界!");
 //! # }
 //! ```
 //!
@@ -570,15 +557,13 @@
 //! Templates are created from `String`s and registered to `Handlebars` with a name.
 //!
 //! ```
-//! # extern crate handlebars;
-//!
 //! use handlebars::Handlebars;
 //!
 //! # fn main() {
-//!   let mut handlebars = Handlebars::new();
-//!   let source = "hello {{world}}";
+//! let mut handlebars = Handlebars::new();
+//! let source = "hello {{world}}";
 //!
-//!   assert!(handlebars.register_template_string("t1", source).is_ok())
+//! assert!(handlebars.register_template_string("t1", source).is_ok())
 //! # }
 //! ```
 //!
@@ -591,17 +576,16 @@
 //! without registration.
 //!
 //! ```
-//! # use std::error::Error;
 //! use handlebars::Handlebars;
 //! use std::collections::BTreeMap;
 //!
-//! # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-//!   let mut handlebars = Handlebars::new();
-//!   let source = "hello {{world}}";
+//! # fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+//! let mut handlebars = Handlebars::new();
+//! let source = "hello {{world}}";
 //!
-//!   let mut data = BTreeMap::new();
-//!   data.insert("world".to_string(), "世界!".to_string());
-//!   assert_eq!(handlebars.render_template(source, &amp;data)?, "hello 世界!".to_owned());
+//! let mut data = BTreeMap::new();
+//! data.insert("world".to_string(), "世界!".to_string());
+//! assert_eq!(handlebars.render_template(source, &amp;data)?, "hello 世界!".to_owned());
 //! # Ok(())
 //! # }
 //! ```
@@ -609,10 +593,10 @@
 //! #### Additional features for loading template from
 //!
 //! * Feature `dir_source` enables template loading
-//! `register_templates_directory` from given directory.
+//!   `register_templates_directory` from given directory.
 //! * Feature `rust-embed` enables template loading
-//! `register_embed_templates` from embedded resources in rust struct
-//! generated with `RustEmbed`.
+//!   `register_embed_templates` from embedded resources in rust struct
+//!   generated with `RustEmbed`.
 //!
 //! ### Rendering Something
 //!
@@ -623,69 +607,60 @@
 //! You can use default `render` function to render a template into `String`. From 0.9, there's `render_to_write` to render text into anything of `std::io::Write`.
 //!
 //! ```
-//! # use std::error::Error;
-//! # #[macro_use]
-//! # extern crate serde_derive;
-//! # extern crate handlebars;
-//!
 //! use handlebars::Handlebars;
 //!
-//! #[derive(Serialize)]
+//! #[derive(serde::Serialize)]
 //! struct Person {
 //!   name: String,
 //!   age: i16,
 //! }
 //!
-//! # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-//!   let source = "Hello, {{name}}";
+//! # fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+//! let source = "Hello, {{name}}";
 //!
-//!   let mut handlebars = Handlebars::new();
-//!   assert!(handlebars.register_template_string("hello", source).is_ok());
+//! let mut handlebars = Handlebars::new();
+//! assert!(handlebars.register_template_string("hello", source).is_ok());
 //!
-//!
-//!   let data = Person {
-//!       name: "Ning Sun".to_string(),
-//!       age: 27
-//!   };
-//!   assert_eq!(handlebars.render("hello", &amp;data)?, "Hello, Ning Sun".to_owned());
+//! let data = Person {
+//!     name: "Ning Sun".to_string(),
+//!     age: 27
+//! };
+//! assert_eq!(handlebars.render("hello", &amp;data)?, "Hello, Ning Sun".to_owned());
 //! # Ok(())
 //! # }
-//! #
 //! ```
 //!
 //! Or if you don't need the template to be cached or referenced by other ones, you can
 //! simply render it without registering.
 //!
 //! ```
-//! # use std::error::Error;
-//! # #[macro_use]
-//! # extern crate serde_derive;
-//! # extern crate handlebars;
 //! use handlebars::Handlebars;
-//! # #[derive(Serialize)]
+//! # #[derive(serde::Serialize)]
 //! # struct Person {
 //! #  name: String,
 //! #  age: i16,
 //! # }
 //!
-//! # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-//!   let source = "Hello, {{name}}";
+//! # fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+//! let source = "Hello, {{name}}";
 //!
-//!   let mut handlebars = Handlebars::new();
+//! let mut handlebars = Handlebars::new();
 //!
-//!   let data = Person {
-//!       name: "Ning Sun".to_string(),
-//!       age: 27
-//!   };
-//!   assert_eq!(handlebars.render_template("Hello, {{name}}", &amp;data)?,
-//!       "Hello, Ning Sun".to_owned());
+//! let data = Person {
+//!     name: "Ning Sun".to_string(),
+//!     age: 27
+//! };
+//! assert_eq!(
+//!   handlebars.render_template("Hello, {{name}}", &amp;data)?,
+//!   "Hello, Ning Sun".to_owned()
+//! );
 //! # Ok(())
 //! # }
 //! ```
 //!
 //! #### Escaping
 //!
-//! As per the handlebars spec, output using `{{expression}}` is escaped by default (to be precise, the characters `&amp;"&lt;&gt;'`=_` are replaced by their respective html / xml entities). However, since the use cases of a rust template engine are probably a bit more diverse than those of a JavaScript one, this implementation allows the user to supply a custom escape function to be used instead. For more information see the `EscapeFn` type and `Handlebars::register_escape_fn()` method. In particular, `no_escape()` can be used as the escape function if no escaping at all should be performed.
+//! As per the handlebars spec, output using `{{expression}}` is escaped by default (to be precise, the characters ``&amp;"&lt;&gt;'`=_`` are replaced by their respective html / xml entities). However, since the use cases of a rust template engine are probably a bit more diverse than those of a JavaScript one, this implementation allows the user to supply a custom escape function to be used instead. For more information see the `EscapeFn` type and `Handlebars::register_escape_fn()` method. In particular, `no_escape()` can be used as the escape function if no escaping at all should be performed.
 //!
 //! ### Custom Helper
 //!
@@ -693,7 +668,6 @@
 //!
 //! ```
 //! use std::io::Write;
-//! # use std::error::Error;
 //! use handlebars::*;
 //!
 //! // implement by a structure impls HelperDef
@@ -720,31 +694,32 @@
 //! }
 //!
 //!
-//! # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-//!   let mut handlebars = Handlebars::new();
-//!   handlebars.register_helper("simple-helper", Box::new(SimpleHelper));
-//!   handlebars.register_helper("another-simple-helper", Box::new(another_simple_helper));
-//!   // via closure
-//!   handlebars.register_helper("closure-helper",
-//!       Box::new(|h: &amp;Helper, r: &amp;Handlebars, _: &amp;Context, rc: &amp;mut RenderContext, out: &amp;mut dyn Output| -&gt; HelperResult {
-//!           let param =
-//!           h.param(0).ok_or(RenderErrorReason::ParamNotFoundForIndex("closure-helper", 0))?;
+//! # fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+//! let mut handlebars = Handlebars::new();
+//! handlebars.register_helper("simple-helper", Box::new(SimpleHelper));
+//! handlebars.register_helper("another-simple-helper", Box::new(another_simple_helper));
+//! // via closure
+//! handlebars.register_helper("closure-helper",
+//!     Box::new(|h: &amp;Helper, r: &amp;Handlebars, _: &amp;Context, rc: &amp;mut RenderContext, out: &amp;mut dyn Output| -&gt; HelperResult {
+//!         let param =
+//!         h.param(0).ok_or(RenderErrorReason::ParamNotFoundForIndex("closure-helper", 0))?;
 //!
-//!           out.write("3rd helper: ")?;
-//!           out.write(param.value().render().as_ref())?;
-//!           Ok(())
-//!       }));
+//!         out.write("3rd helper: ")?;
+//!         out.write(param.value().render().as_ref())?;
+//!         Ok(())
+//!     }));
 //!
-//!   let tpl = "{{simple-helper 1}}\n{{another-simple-helper 2}}\n{{closure-helper 3}}";
-//!   assert_eq!(handlebars.render_template(tpl, &amp;())?,
-//!       "1st helper: 1\n2nd helper: 2\n3rd helper: 3".to_owned());
+//! let tpl = "{{simple-helper 1}}\n{{another-simple-helper 2}}\n{{closure-helper 3}}";
+//! assert_eq!(
+//!   handlebars.render_template(tpl, &amp;())?,
+//!   "1st helper: 1\n2nd helper: 2\n3rd helper: 3".to_owned()
+//! );
 //! # Ok(())
 //! # }
-//!
 //! ```
 //!
 //! Data available to helper can be found in [Helper](struct.Helper.html). And there are more
-//! examples in [HelperDef](trait.HelperDef.html) page.
+//! examples in [`HelperDef`](trait.HelperDef.html) page.
 //!
 //! You can learn more about helpers by looking into source code of built-in helpers.
 //!
@@ -815,17 +790,16 @@
 //!
 //! ```
 //! # #[cfg(feature = "string_helpers")] {
-//! # use std::error::Error;
-//! # extern crate handlebars;
 //! use handlebars::Handlebars;
 //!
-//! # fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+//! # fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+//! let mut handlebars = Handlebars::new();
 //!
-//!   let mut handlebars = Handlebars::new();
-//!
-//!   let data = serde_json::json!({"value": "lower camel case"});
-//!   assert_eq!(handlebars.render_template("This is {{lowerCamelCase value}}", &amp;data)?,
-//!       "This is lowerCamelCase".to_owned());
+//! let data = serde_json::json!({"value": "lower camel case"});
+//! assert_eq!(
+//!   handlebars.render_template("This is {{lowerCamelCase value}}", &amp;data)?,
+//!   "This is lowerCamelCase".to_owned()
+//! );
 //! # Ok(())
 //! # }
 //! # }
@@ -850,12 +824,12 @@
 #[macro_use]
 </span><span class="kw">extern crate </span>serde_json;
 
-<span class="kw">pub use </span><span class="self">self</span>::block::{BlockContext, BlockParams};
+<span class="kw">pub use </span><span class="self">self</span>::block::{BlockContext, BlockParamHolder, BlockParams};
 <span class="kw">pub use </span><span class="self">self</span>::context::Context;
 <span class="kw">pub use </span><span class="self">self</span>::decorators::DecoratorDef;
 <span class="kw">pub use </span><span class="self">self</span>::error::{RenderError, RenderErrorReason, TemplateError, TemplateErrorReason};
 <span class="kw">pub use </span><span class="self">self</span>::helpers::{HelperDef, HelperResult};
-<span class="kw">pub use </span><span class="self">self</span>::json::path::Path;
+<span class="kw">pub use </span><span class="self">self</span>::json::path::{Path, PathSeg};
 <span class="kw">pub use </span><span class="self">self</span>::json::value::{to_json, JsonRender, JsonTruthy, PathAndJson, ScopedJson};
 <span class="kw">pub use </span><span class="self">self</span>::local_vars::LocalVars;
 <span class="kw">pub use </span><span class="self">self</span>::output::{Output, StringOutput};

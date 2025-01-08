@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.40.0/src/settings.rs`."><title>settings.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/</div>settings.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.42.0/src/settings.rs`."><title>settings.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/</div>settings.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -590,16 +590,36 @@
 <a href="#589" id="589">589</a>
 <a href="#590" id="590">590</a>
 <a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a></pre></div><pre class="rust"><code><span class="kw">use </span>once_cell::sync::Lazy;
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
+</span><span class="kw">use </span>serde::{de::value::Error <span class="kw">as </span>ValueError, Serialize};
+<span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::mem;
 <span class="kw">use </span>std::path::{Path, PathBuf};
 <span class="kw">use </span>std::pin::Pin;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::task::{Context, Poll};
-
-<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
-</span><span class="kw">use </span>serde::{de::value::Error <span class="kw">as </span>ValueError, Serialize};
 
 <span class="kw">use </span><span class="kw">crate</span>::content::Content;
 <span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
@@ -609,26 +629,25 @@
 <span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::redaction::{dynamic_redaction, sorted_redaction, ContentPath, Redaction, Selector};
 
-<span class="macro">lazy_static::lazy_static!</span> {
-    <span class="kw">static </span><span class="kw-2">ref </span>DEFAULT_SETTINGS: Arc&lt;ActualSettings&gt; = {
-        Arc::new(ActualSettings {
-            sort_maps: <span class="bool-val">false</span>,
-            snapshot_path: <span class="string">"snapshots"</span>.into(),
-            snapshot_suffix: <span class="string">""</span>.into(),
-            input_file: <span class="prelude-val">None</span>,
-            description: <span class="prelude-val">None</span>,
-            info: <span class="prelude-val">None</span>,
-            omit_expression: <span class="bool-val">false</span>,
-            prepend_module_to_snapshot: <span class="bool-val">true</span>,
-            <span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
-            </span>redactions: Redactions::default(),
-            <span class="attr">#[cfg(feature = <span class="string">"filters"</span>)]
-            </span>filters: Filters::default(),
-            <span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
-            </span>allow_empty_glob: <span class="bool-val">false</span>,
-        })
-    };
-}
+<span class="kw">static </span>DEFAULT_SETTINGS: Lazy&lt;Arc&lt;ActualSettings&gt;&gt; = Lazy::new(|| {
+    Arc::new(ActualSettings {
+        sort_maps: <span class="bool-val">false</span>,
+        snapshot_path: <span class="string">"snapshots"</span>.into(),
+        snapshot_suffix: <span class="string">""</span>.into(),
+        input_file: <span class="prelude-val">None</span>,
+        description: <span class="prelude-val">None</span>,
+        info: <span class="prelude-val">None</span>,
+        omit_expression: <span class="bool-val">false</span>,
+        prepend_module_to_snapshot: <span class="bool-val">true</span>,
+        <span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
+        </span>redactions: Redactions::default(),
+        <span class="attr">#[cfg(feature = <span class="string">"filters"</span>)]
+        </span>filters: Filters::default(),
+        <span class="attr">#[cfg(feature = <span class="string">"glob"</span>)]
+        </span>allow_empty_glob: <span class="bool-val">false</span>,
+    })
+});
+
 <span class="macro">thread_local!</span>(<span class="kw">static </span>CURRENT_SETTINGS: RefCell&lt;Settings&gt; = RefCell::new(Settings::new()));
 
 <span class="doccomment">/// Represents stored redactions.
@@ -768,7 +787,7 @@
 <span class="kw">impl </span>Settings {
     <span class="doccomment">/// Returns the default settings.
     ///
-    /// It's recommended to use `clone_current` instead so that
+    /// It's recommended to use [`Self::clone_current`] instead so that
     /// already applied modifications are not discarded.
     </span><span class="kw">pub fn </span>new() -&gt; Settings {
         Settings::default()
@@ -788,7 +807,7 @@
     <span class="doccomment">/// Enables forceful sorting of maps before serialization.
     ///
     /// Note that this only applies to snapshots that undergo serialization
-    /// (eg: does not work for `assert_debug_snapshot!`.)
+    /// (eg: does not work for [`assert_debug_snapshot!`](crate::assert_debug_snapshot!).)
     ///
     /// The default value is `false`.
     </span><span class="kw">pub fn </span>set_sort_maps(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: bool) {
@@ -802,7 +821,7 @@
 
     <span class="doccomment">/// Disables prepending of modules to the snapshot filename.
     ///
-    /// By default the filename of a snapshot is `&lt;module&gt;__&lt;name&gt;.snap`.
+    /// By default, the filename of a snapshot is `&lt;module&gt;__&lt;name&gt;.snap`.
     /// Setting this flag to `false` changes the snapshot filename to just
     /// `&lt;name&gt;.snap`.
     ///
@@ -818,7 +837,7 @@
 
     <span class="doccomment">/// Allows the [`glob!`] macro to succeed if it matches no files.
     ///
-    /// By default the glob macro will fail the test if it does not find
+    /// By default, the glob macro will fail the test if it does not find
     /// any files to prevent accidental typos.  This can be disabled when
     /// fixtures should be conditional.
     ///
@@ -861,10 +880,10 @@
 
     <span class="doccomment">/// Sets the input file reference.
     ///
-    /// This value is completely unused by the snapshot testing system but
-    /// it lets you store some meta data with a snapshot that refers you back
-    /// to the input file.  The path stored here is made relative to the
-    /// workspace root before storing with the snapshot.
+    /// This value is completely unused by the snapshot testing system but it
+    /// allows storing some metadata with a snapshot that refers back to the
+    /// input file.  The path stored here is made relative to the workspace root
+    /// before storing with the snapshot.
     </span><span class="kw">pub fn </span>set_input_file&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: P) {
         <span class="self">self</span>._private_inner_mut().input_file(p);
     }
@@ -887,7 +906,7 @@
     /// super useful by itself, particularly when working with loops and generated
     /// tests.  In that case the `description` can be set as extra information.
     ///
-    /// See also [`set_info`](Self::set_info).
+    /// See also [`Self::set_info`].
     </span><span class="kw">pub fn </span>set_description&lt;S: Into&lt;String&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: S) {
         <span class="self">self</span>._private_inner_mut().description(value);
     }
@@ -912,7 +931,7 @@
     /// As an example the input parameters to the function that creates the snapshot
     /// can be persisted here.
     ///
-    /// Alternatively you can use [`set_raw_info`](Self::set_raw_info) instead.
+    /// Alternatively you can use [`Self::set_raw_info`] instead.
     </span><span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"serde"</span>)))]
     </span><span class="kw">pub fn </span>set_info&lt;S: Serialize&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>S) {
@@ -921,7 +940,7 @@
 
     <span class="doccomment">/// Sets the info from a content object.
     ///
-    /// This works like [`set_info`](Self::set_info) but does not require `serde`.
+    /// This works like [`Self::set_info`] but does not require [`serde`].
     </span><span class="kw">pub fn </span>set_raw_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, content: <span class="kw-2">&amp;</span>Content) {
         <span class="self">self</span>._private_inner_mut().raw_info(content);
     }
@@ -957,7 +976,7 @@
     /// snapshots.
     ///
     /// Note that this only applies to snapshots that undergo serialization
-    /// (eg: does not work for `assert_debug_snapshot!`.)
+    /// (eg: does not work for [`assert_debug_snapshot!`](crate::assert_debug_snapshot!).)
     </span><span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"redactions"</span>)))]
     </span><span class="kw">pub fn </span>add_redaction&lt;R: Into&lt;Redaction&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, selector: <span class="kw-2">&amp;</span>str, replacement: R) {
@@ -976,7 +995,7 @@
     ///
     /// This works similar to a redaction but instead of changing the value it
     /// asserts the value at a certain place.  This function is internally
-    /// supposed to call things like `assert_eq!`.
+    /// supposed to call things like [`assert_eq!`].
     ///
     /// This is a shortcut to `add_redaction(selector, dynamic_redaction(...))`;
     </span><span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
@@ -1029,7 +1048,7 @@
     ///
     /// The first argument is the [`regex`] pattern to apply, the second is a replacement
     /// string.  The replacement string has the same functionality as the second argument
-    /// to [`Regex::replace`](regex::Regex::replace).
+    /// to [`regex::Regex::replace`].
     ///
     /// This is useful to perform some cleanup procedures on the snapshot for unstable values.
     ///
@@ -1085,7 +1104,7 @@
 
     <span class="doccomment">/// Runs a function with the current settings bound to the thread.
     ///
-    /// This is an alternative to [`bind_to_scope`](Settings::bind_to_scope)
+    /// This is an alternative to [`Self::bind_to_scope`]()
     /// which does not require holding on to a drop guard.  The return value
     /// of the closure is passed through.
     ///
@@ -1102,7 +1121,7 @@
         f()
     }
 
-    <span class="doccomment">/// Like `bind` but for futures.
+    <span class="doccomment">/// Like [`Self::bind`] but for futures.
     ///
     /// This lets you bind settings for the duration of a future like this:
     ///
@@ -1161,7 +1180,7 @@
         CURRENT_SETTINGS.with(|x| {
             <span class="kw">let </span><span class="kw-2">mut </span>x = x.borrow_mut();
             <span class="kw">let </span>old = mem::replace(<span class="kw-2">&amp;mut </span>x.inner, <span class="self">self</span>.inner.clone());
-            SettingsBindDropGuard(<span class="prelude-val">Some</span>(old))
+            SettingsBindDropGuard(<span class="prelude-val">Some</span>(old), std::marker::PhantomData)
         })
     }
 
@@ -1171,9 +1190,30 @@
     }
 }
 
-<span class="doccomment">/// Returned from [`bind_to_scope`](Settings::bind_to_scope)
+<span class="doccomment">/// Returned from [`Settings::bind_to_scope`]
+///
+/// This type is not shareable between threads:
+///
+/// ```compile_fail E0277
+/// let mut settings = insta::Settings::clone_current();
+/// settings.set_snapshot_suffix("test drop guard");
+/// let guard = settings.bind_to_scope();
+///
+/// std::thread::spawn(move || { let guard = guard; }); // doesn't compile
+/// ```
+///
+/// This is to ensure tests under async runtimes like `tokio` don't show unexpected results
 </span><span class="attr">#[must_use = <span class="string">"The guard is immediately dropped so binding has no effect. Use `let _guard = ...` to bind it."</span>]
-</span><span class="kw">pub struct </span>SettingsBindDropGuard(<span class="prelude-ty">Option</span>&lt;Arc&lt;ActualSettings&gt;&gt;);
+</span><span class="kw">pub struct </span>SettingsBindDropGuard(
+    <span class="prelude-ty">Option</span>&lt;Arc&lt;ActualSettings&gt;&gt;,
+    <span class="doccomment">/// A ZST that is not [`Send`] but is [`Sync`]
+    ///
+    /// This is necessary due to the lack of stable [negative impls](https://github.com/rust-lang/rust/issues/68318).
+    ///
+    /// Required as [`SettingsBindDropGuard`] modifies a thread local variable which would end up
+    /// with unexpected results if sent to a different thread.
+    </span>std::marker::PhantomData&lt;std::sync::MutexGuard&lt;<span class="lifetime">'static</span>, ()&gt;&gt;,
+);
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>SettingsBindDropGuard {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {

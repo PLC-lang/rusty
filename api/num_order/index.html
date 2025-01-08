@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`num-order` implements numerically consistent Eq, Ord and Hash for various `num` types."><title>num_order - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="num_order" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../num_order/index.html">num_<wbr>order</a><span class="version">1.2.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#optional-features" title="Optional Features">Optional Features</a></li></ul><h3><a href="#traits">Crate Items</a></h3><ul class="block"><li><a href="#traits" title="Traits">Traits</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>num_order</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/num_order/lib.rs.html#1-112">source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>num-order</code> implements numerically consistent <a href="https://doc.rust-lang.org/1.83.0/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a>, <a href="https://doc.rust-lang.org/1.83.0/core/cmp/trait.Ord.html" title="trait core::cmp::Ord">Ord</a> and
+<a href="https://doc.rust-lang.org/1.83.0/core/hash/trait.Hash.html" title="trait core::hash::Hash">Hash</a> for various <code>num</code> types.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::cmp::Ordering;
+<span class="kw">use </span>std::hash::Hasher;
+<span class="kw">use </span>std::collections::hash_map::DefaultHasher;
+<span class="kw">use </span>num_order::NumOrd;
+
+<span class="macro">assert!</span>(NumOrd::num_eq(<span class="kw-2">&amp;</span><span class="number">3u64</span>, <span class="kw-2">&amp;</span><span class="number">3.0f32</span>));
+<span class="macro">assert!</span>(NumOrd::num_lt(<span class="kw-2">&amp;</span>-<span class="number">4.7f64</span>, <span class="kw-2">&amp;</span>-<span class="number">4i8</span>));
+<span class="macro">assert!</span>(!NumOrd::num_ge(<span class="kw-2">&amp;</span>-<span class="number">3i8</span>, <span class="kw-2">&amp;</span><span class="number">1u16</span>));
+
+<span class="comment">// 40_000_000 can be exactly represented in f32, 40_000_001 cannot
+// 40_000_001 becames 40_000_000.0 in f32
+</span><span class="macro">assert_eq!</span>(NumOrd::num_cmp(<span class="kw-2">&amp;</span><span class="number">40_000_000f32</span>, <span class="kw-2">&amp;</span><span class="number">40_000_000u32</span>), Ordering::Equal);
+<span class="macro">assert_ne!</span>(NumOrd::num_cmp(<span class="kw-2">&amp;</span><span class="number">40_000_001f32</span>, <span class="kw-2">&amp;</span><span class="number">40_000_001u32</span>), Ordering::Equal);
+<span class="macro">assert_eq!</span>(NumOrd::num_partial_cmp(<span class="kw-2">&amp;</span>f32::NAN, <span class="kw-2">&amp;</span><span class="number">40_000_002u32</span>), <span class="prelude-val">None</span>);
+
+<span class="kw">use </span>num_order::NumHash;
+<span class="comment">// same hash values are guaranteed for equal numbers
+</span><span class="kw">let </span><span class="kw-2">mut </span>hasher1 = DefaultHasher::new();
+<span class="number">3u64</span>.num_hash(<span class="kw-2">&amp;mut </span>hasher1);
+<span class="kw">let </span><span class="kw-2">mut </span>hasher2 = DefaultHasher::new();
+<span class="number">3.0f32</span>.num_hash(<span class="kw-2">&amp;mut </span>hasher2);
+<span class="macro">assert_eq!</span>(hasher1.finish(), hasher2.finish())</code></pre></div>
+<p>This crate can serve applications where <a href="https://crates.io/crates/float-ord">float-ord</a>,
+<a href="https://crates.io/crates/num-cmp">num-cmp</a>, <a href="https://crates.io/crates/num-ord">num-ord</a> are used.
+Meanwhile it also supports hashing and more numeric types (<code>num-bigint</code>, etc.).</p>
+<h2 id="optional-features"><a class="doc-anchor" href="#optional-features">§</a>Optional Features</h2>
+<ul>
+<li><code>std</code>: enable std library</li>
+<li><code>num-bigint</code>: Support comparing against and hashing <code>num-bigint::{BigInt, BigUint}</code></li>
+<li><code>num-rational</code>: Support comparing against and hashing <code>num-rational::Ratio&lt;I&gt;</code>, where <code>I</code> can be
+<code>i8</code>, <code>i16</code>, <code>i32</code>, <code>i64</code>, <code>i128</code> and <code>isize</code>. <code>Ratio&lt;BigInt&gt;</code> is supported when both <code>num-bigint</code>
+and <code>num-rational</code> is enabled</li>
+<li><code>num-complex</code>: Support comparing against and hashing <code>num-complex::{Complex32, Complex64}</code></li>
+</ul>
+</div></details><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="trait" href="trait.NumHash.html" title="trait num_order::NumHash">NumHash</a></div><div class="desc docblock-short">Consistent hash implementation among different numeric types.</div></li><li><div class="item-name"><a class="trait" href="trait.NumOrd.html" title="trait num_order::NumOrd">NumOrd</a></div><div class="desc docblock-short">Consistent comparison among different numeric types.</div></li></ul></section></div></main></body></html>

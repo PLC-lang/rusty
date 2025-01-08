@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-5.1.2/src/template.rs`."><title>template.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>template.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-6.3.0/src/template.rs`."><title>template.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>template.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1446,7 +1446,66 @@
 <a href="#1445" id="1445">1445</a>
 <a href="#1446" id="1446">1446</a>
 <a href="#1447" id="1447">1447</a>
-<a href="#1448" id="1448">1448</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::{HashMap, VecDeque};
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::{HashMap, VecDeque};
 <span class="kw">use </span>std::iter::Peekable;
 <span class="kw">use </span>std::str::FromStr;
 
@@ -1460,15 +1519,23 @@
 <span class="kw">use </span><span class="kw">crate</span>::json::path::{parse_json_path_from_iter, Path};
 <span class="kw">use </span><span class="kw">crate</span>::support;
 
-<span class="kw">use </span><span class="self">self</span>::TemplateElement::<span class="kw-2">*</span>;
+<span class="kw">use </span>derive_builder::Builder;
 
-<span class="attr">#[derive(PartialEq, Eq, Clone, Debug)]
+<span class="kw">use </span><span class="self">self</span>::TemplateElement::{
+    Comment, DecoratorBlock, DecoratorExpression, Expression, HelperBlock, HtmlExpression,
+    PartialBlock, PartialExpression, RawString,
+};
+
+<span class="attr">#[non_exhaustive]
+#[derive(PartialEq, Eq, Clone, Debug)]
 </span><span class="kw">pub struct </span>TemplateMapping(<span class="kw">pub </span>usize, <span class="kw">pub </span>usize);
 
 <span class="doccomment">/// A handlebars template
-</span><span class="attr">#[derive(PartialEq, Eq, Clone, Debug, Default)]
+</span><span class="attr">#[non_exhaustive]
+#[derive(Builder, PartialEq, Eq, Clone, Debug, Default)]
 </span><span class="kw">pub struct </span>Template {
-    <span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="attr">#[builder(setter(into, strip_option), default)]
+    </span><span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="kw">pub </span>elements: Vec&lt;TemplateElement&gt;,
     <span class="kw">pub </span>mapping: Vec&lt;TemplateMapping&gt;,
 }
@@ -1476,19 +1543,18 @@
 <span class="attr">#[derive(Default)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TemplateOptions {
     <span class="kw">pub</span>(<span class="kw">crate</span>) prevent_indent: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) is_partial: bool,
     <span class="kw">pub</span>(<span class="kw">crate</span>) name: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
 <span class="kw">impl </span>TemplateOptions {
     <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-        <span class="self">self</span>.name
-            .as_ref()
-            .cloned()
-            .unwrap_or_else(|| <span class="string">"Unnamed"</span>.to_owned())
+        <span class="self">self</span>.name.clone().unwrap_or_else(|| <span class="string">"Unnamed"</span>.to_owned())
     }
 }
 
-<span class="attr">#[derive(PartialEq, Eq, Clone, Debug)]
+<span class="attr">#[non_exhaustive]
+#[derive(Builder, PartialEq, Eq, Clone, Debug)]
 </span><span class="kw">pub struct </span>Subexpression {
     <span class="comment">// we use box here avoid resursive struct definition
     </span><span class="kw">pub </span>element: Box&lt;TemplateElement&gt;,
@@ -1510,6 +1576,7 @@
                 block_param: <span class="prelude-val">None</span>,
                 block: <span class="bool-val">false</span>,
                 chain: <span class="bool-val">false</span>,
+                indent_before_write: <span class="bool-val">false</span>,
             }))),
         }
     }
@@ -1548,23 +1615,27 @@
     }
 }
 
-<span class="attr">#[derive(PartialEq, Eq, Clone, Debug)]
+<span class="attr">#[non_exhaustive]
+#[derive(PartialEq, Eq, Clone, Debug)]
 </span><span class="kw">pub enum </span>BlockParam {
     Single(Parameter),
     Pair((Parameter, Parameter)),
 }
 
-<span class="attr">#[derive(PartialEq, Eq, Clone, Debug)]
+<span class="attr">#[non_exhaustive]
+#[derive(Builder, PartialEq, Eq, Clone, Debug)]
 </span><span class="kw">pub struct </span>ExpressionSpec {
     <span class="kw">pub </span>name: Parameter,
     <span class="kw">pub </span>params: Vec&lt;Parameter&gt;,
     <span class="kw">pub </span>hash: HashMap&lt;String, Parameter&gt;,
-    <span class="kw">pub </span>block_param: <span class="prelude-ty">Option</span>&lt;BlockParam&gt;,
+    <span class="attr">#[builder(setter(strip_option), default)]
+    </span><span class="kw">pub </span>block_param: <span class="prelude-ty">Option</span>&lt;BlockParam&gt;,
     <span class="kw">pub </span>omit_pre_ws: bool,
     <span class="kw">pub </span>omit_pro_ws: bool,
 }
 
-<span class="attr">#[derive(PartialEq, Eq, Clone, Debug)]
+<span class="attr">#[non_exhaustive]
+#[derive(PartialEq, Eq, Clone, Debug)]
 </span><span class="kw">pub enum </span>Parameter {
     <span class="comment">// for helper name only
     </span>Name(String),
@@ -1574,20 +1645,25 @@
     Subexpression(Subexpression),
 }
 
-<span class="attr">#[derive(PartialEq, Eq, Clone, Debug)]
+<span class="attr">#[non_exhaustive]
+#[derive(Builder, PartialEq, Eq, Clone, Debug)]
 </span><span class="kw">pub struct </span>HelperTemplate {
     <span class="kw">pub </span>name: Parameter,
     <span class="kw">pub </span>params: Vec&lt;Parameter&gt;,
     <span class="kw">pub </span>hash: HashMap&lt;String, Parameter&gt;,
-    <span class="kw">pub </span>block_param: <span class="prelude-ty">Option</span>&lt;BlockParam&gt;,
-    <span class="kw">pub </span>template: <span class="prelude-ty">Option</span>&lt;Template&gt;,
-    <span class="kw">pub </span>inverse: <span class="prelude-ty">Option</span>&lt;Template&gt;,
+    <span class="attr">#[builder(setter(strip_option), default)]
+    </span><span class="kw">pub </span>block_param: <span class="prelude-ty">Option</span>&lt;BlockParam&gt;,
+    <span class="attr">#[builder(setter(strip_option), default)]
+    </span><span class="kw">pub </span>template: <span class="prelude-ty">Option</span>&lt;Template&gt;,
+    <span class="attr">#[builder(setter(strip_option), default)]
+    </span><span class="kw">pub </span>inverse: <span class="prelude-ty">Option</span>&lt;Template&gt;,
     <span class="kw">pub </span>block: bool,
     <span class="kw">pub </span>chain: bool,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) indent_before_write: bool,
 }
 
 <span class="kw">impl </span>HelperTemplate {
-    <span class="kw">pub fn </span>new(exp: ExpressionSpec, block: bool) -&gt; HelperTemplate {
+    <span class="kw">pub fn </span>new(exp: ExpressionSpec, block: bool, indent_before_write: bool) -&gt; HelperTemplate {
         HelperTemplate {
             name: exp.name,
             params: exp.params,
@@ -1597,10 +1673,15 @@
             template: <span class="prelude-val">None</span>,
             inverse: <span class="prelude-val">None</span>,
             chain: <span class="bool-val">false</span>,
+            indent_before_write,
         }
     }
 
-    <span class="kw">pub fn </span>new_chain(exp: ExpressionSpec, block: bool) -&gt; HelperTemplate {
+    <span class="kw">pub fn </span>new_chain(
+        exp: ExpressionSpec,
+        block: bool,
+        indent_before_write: bool,
+    ) -&gt; HelperTemplate {
         HelperTemplate {
             name: exp.name,
             params: exp.params,
@@ -1610,6 +1691,7 @@
             template: <span class="prelude-val">None</span>,
             inverse: <span class="prelude-val">None</span>,
             chain: <span class="bool-val">true</span>,
+            indent_before_write,
         }
     }
 
@@ -1624,6 +1706,7 @@
             inverse: <span class="prelude-val">None</span>,
             block: <span class="bool-val">false</span>,
             chain: <span class="bool-val">false</span>,
+            indent_before_write: <span class="bool-val">false</span>,
         }
     }
 
@@ -1707,24 +1790,29 @@
     }
 }
 
-<span class="attr">#[derive(PartialEq, Eq, Clone, Debug)]
+<span class="attr">#[non_exhaustive]
+#[derive(Builder, PartialEq, Eq, Clone, Debug)]
 </span><span class="kw">pub struct </span>DecoratorTemplate {
     <span class="kw">pub </span>name: Parameter,
     <span class="kw">pub </span>params: Vec&lt;Parameter&gt;,
     <span class="kw">pub </span>hash: HashMap&lt;String, Parameter&gt;,
-    <span class="kw">pub </span>template: <span class="prelude-ty">Option</span>&lt;Template&gt;,
+    <span class="attr">#[builder(setter(strip_option), default)]
+    </span><span class="kw">pub </span>template: <span class="prelude-ty">Option</span>&lt;Template&gt;,
     <span class="comment">// for partial indent
+    </span><span class="attr">#[builder(setter(into, strip_option), default)]
     </span><span class="kw">pub </span>indent: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) indent_before_write: bool,
 }
 
 <span class="kw">impl </span>DecoratorTemplate {
-    <span class="kw">pub fn </span>new(exp: ExpressionSpec) -&gt; DecoratorTemplate {
+    <span class="kw">pub fn </span>new(exp: ExpressionSpec, indent_before_write: bool) -&gt; DecoratorTemplate {
         DecoratorTemplate {
             name: exp.name,
             params: exp.params,
             hash: exp.hash,
             template: <span class="prelude-val">None</span>,
             indent: <span class="prelude-val">None</span>,
+            indent_before_write,
         }
     }
 }
@@ -1999,9 +2087,15 @@
         source: <span class="kw-2">&amp;</span>str,
         current_span: <span class="kw-2">&amp;</span>Span&lt;<span class="lifetime">'_</span>&gt;,
         prevent_indent: bool,
+        is_partial: bool,
     ) -&gt; bool {
-        <span class="kw">let </span>with_trailing_newline =
-            support::str::starts_with_empty_line(<span class="kw-2">&amp;</span>source[current_span.end()..]);
+        <span class="kw">let </span>continuation = <span class="kw-2">&amp;</span>source[current_span.end()..];
+
+        <span class="kw">let </span><span class="kw-2">mut </span>with_trailing_newline = support::str::starts_with_empty_line(continuation);
+
+        <span class="comment">// For full templates, we behave as if there was a trailing newline if we encounter
+        // the end of input. See #611.
+        </span>with_trailing_newline |= !is_partial &amp;&amp; continuation.is_empty();
 
         <span class="kw">if </span>with_trailing_newline {
             <span class="kw">let </span>with_leading_newline =
@@ -2108,7 +2202,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>end_pos: <span class="prelude-ty">Option</span>&lt;Position&lt;<span class="lifetime">'_</span>&gt;&gt; = <span class="prelude-val">None</span>;
         <span class="kw">loop </span>{
             <span class="kw">if let </span><span class="prelude-val">Some</span>(pair) = it.next() {
-                <span class="kw">let </span>prev_end = end_pos.as_ref().map(|p| p.pos()).unwrap_or(<span class="number">0</span>);
+                <span class="kw">let </span>prev_end = end_pos.as_ref().map_or(<span class="number">0</span>, pest::Position::pos);
                 <span class="kw">let </span>rule = pair.as_rule();
                 <span class="kw">let </span>span = pair.as_span();
 
@@ -2166,6 +2260,7 @@
                         };
 
                         <span class="kw">let </span>t = template_stack.front_mut().unwrap();
+
                         t.push_element(
                             Template::raw_string(
                                 <span class="kw-2">&amp;</span>source[start..span.end()],
@@ -2186,18 +2281,6 @@
                     | Rule::partial_block_start =&gt; {
                         <span class="kw">let </span>exp = Template::parse_expression(source, it.by_ref(), span.end())<span class="question-mark">?</span>;
 
-                        <span class="kw">match </span>rule {
-                            Rule::helper_block_start | Rule::raw_block_start =&gt; {
-                                <span class="kw">let </span>helper_template = HelperTemplate::new(exp.clone(), <span class="bool-val">true</span>);
-                                helper_stack.push_front(helper_template);
-                            }
-                            Rule::decorator_block_start | Rule::partial_block_start =&gt; {
-                                <span class="kw">let </span>decorator = DecoratorTemplate::new(exp.clone());
-                                decorator_stack.push_front(decorator);
-                            }
-                            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-                        }
-
                         <span class="kw">if </span>exp.omit_pre_ws {
                             Template::remove_previous_whitespace(<span class="kw-2">&amp;mut </span>template_stack);
                         }
@@ -2210,7 +2293,24 @@
                             source,
                             <span class="kw-2">&amp;</span>span,
                             <span class="bool-val">true</span>,
+                            options.is_partial,
                         );
+
+                        <span class="kw">let </span>indent_before_write = trim_line_required &amp;&amp; !exp.omit_pre_ws;
+
+                        <span class="kw">match </span>rule {
+                            Rule::helper_block_start | Rule::raw_block_start =&gt; {
+                                <span class="kw">let </span>helper_template =
+                                    HelperTemplate::new(exp.clone(), <span class="bool-val">true</span>, indent_before_write);
+                                helper_stack.push_front(helper_template);
+                            }
+                            Rule::decorator_block_start | Rule::partial_block_start =&gt; {
+                                <span class="kw">let </span>decorator =
+                                    DecoratorTemplate::new(exp.clone(), indent_before_write);
+                                decorator_stack.push_front(decorator);
+                            }
+                            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+                        }
 
                         <span class="kw">let </span>t = template_stack.front_mut().unwrap();
                         t.mapping.push(TemplateMapping(line_no, col_no));
@@ -2236,7 +2336,10 @@
                             source,
                             <span class="kw-2">&amp;</span>span,
                             <span class="bool-val">true</span>,
+                            options.is_partial,
                         );
+
+                        <span class="kw">let </span>indent_before_write = trim_line_required &amp;&amp; !exp.omit_pre_ws;
 
                         <span class="kw">let </span>t = template_stack.pop_front().unwrap();
                         <span class="kw">let </span>h = helper_stack.front_mut().unwrap();
@@ -2247,7 +2350,11 @@
 
                         h.set_chain_template(<span class="prelude-val">Some</span>(t));
                         <span class="kw">if </span>rule == Rule::invert_chain_tag {
-                            h.insert_inverse_node(Box::new(HelperTemplate::new_chain(exp, <span class="bool-val">true</span>)));
+                            h.insert_inverse_node(Box::new(HelperTemplate::new_chain(
+                                exp,
+                                <span class="bool-val">true</span>,
+                                indent_before_write,
+                            )));
                         }
                     }
 
@@ -2282,7 +2389,8 @@
 
                         <span class="kw">match </span>rule {
                             Rule::expression | Rule::html_expression =&gt; {
-                                <span class="kw">let </span>helper_template = HelperTemplate::new(exp.clone(), <span class="bool-val">false</span>);
+                                <span class="kw">let </span>helper_template =
+                                    HelperTemplate::new(exp.clone(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                                 <span class="kw">let </span>el = <span class="kw">if </span>rule == Rule::expression {
                                     Expression(Box::new(helper_template))
                                 } <span class="kw">else </span>{
@@ -2294,12 +2402,14 @@
                             Rule::decorator_expression | Rule::partial_expression =&gt; {
                                 <span class="comment">// do not auto trim ident spaces for
                                 // partial_expression(&gt;)
-                                </span><span class="kw">let </span>prevent_indent = rule != Rule::partial_expression;
+                                </span><span class="kw">let </span>prevent_indent =
+                                    !(rule == Rule::partial_expression &amp;&amp; options.prevent_indent);
                                 trim_line_required = Template::process_standalone_statement(
                                     <span class="kw-2">&amp;mut </span>template_stack,
                                     source,
                                     <span class="kw-2">&amp;</span>span,
                                     prevent_indent,
+                                    options.is_partial,
                                 );
 
                                 <span class="comment">// indent for partial expression &gt;
@@ -2313,8 +2423,11 @@
                                     );
                                 }
 
-                                <span class="kw">let </span><span class="kw-2">mut </span>decorator = DecoratorTemplate::new(exp.clone());
-                                decorator.indent = indent.map(|s| s.to_owned());
+                                <span class="kw">let </span><span class="kw-2">mut </span>decorator = DecoratorTemplate::new(
+                                    exp.clone(),
+                                    trim_line_required &amp;&amp; !exp.omit_pre_ws,
+                                );
+                                decorator.indent = indent.map(std::borrow::ToOwned::to_owned);
 
                                 <span class="kw">let </span>el = <span class="kw">if </span>rule == Rule::decorator_expression {
                                     DecoratorExpression(Box::new(decorator))
@@ -2332,6 +2445,7 @@
                                     source,
                                     <span class="kw-2">&amp;</span>span,
                                     <span class="bool-val">true</span>,
+                                    options.is_partial,
                                 );
 
                                 <span class="kw">let </span><span class="kw-2">mut </span>h = helper_stack.pop_front().unwrap();
@@ -2361,6 +2475,7 @@
                                     source,
                                     <span class="kw-2">&amp;</span>span,
                                     <span class="bool-val">true</span>,
+                                    options.is_partial,
                                 );
 
                                 <span class="kw">let </span><span class="kw-2">mut </span>d = decorator_stack.pop_front().unwrap();
@@ -2394,6 +2509,7 @@
                             source,
                             <span class="kw-2">&amp;</span>span,
                             <span class="bool-val">true</span>,
+                            options.is_partial,
                         );
 
                         <span class="kw">let </span>text = span
@@ -2409,6 +2525,7 @@
                             source,
                             <span class="kw-2">&amp;</span>span,
                             <span class="bool-val">true</span>,
+                            options.is_partial,
                         );
 
                         <span class="kw">let </span>text = span
@@ -2425,7 +2542,7 @@
                     end_pos = <span class="prelude-val">Some</span>(span.end_pos());
                 }
             } <span class="kw">else </span>{
-                <span class="kw">let </span>prev_end = end_pos.as_ref().map(|e| e.pos()).unwrap_or(<span class="number">0</span>);
+                <span class="kw">let </span>prev_end = end_pos.as_ref().map_or(<span class="number">0</span>, pest::Position::pos);
                 <span class="kw">if </span>prev_end &lt; source.len() {
                     <span class="kw">let </span>text = <span class="kw-2">&amp;</span>source[prev_end..source.len()];
                     <span class="comment">// is some called in if check
@@ -2462,7 +2579,8 @@
     }
 }
 
-<span class="attr">#[derive(PartialEq, Eq, Clone, Debug)]
+<span class="attr">#[non_exhaustive]
+#[derive(PartialEq, Eq, Clone, Debug)]
 </span><span class="kw">pub enum </span>TemplateElement {
     RawString(String),
     HtmlExpression(Box&lt;HelperTemplate&gt;),
@@ -2486,7 +2604,7 @@
         <span class="kw">let </span>t = Template::compile(source).ok().unwrap();
         <span class="macro">assert_eq!</span>(t.elements.len(), <span class="number">1</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="kw-2">*</span>t.elements.get(<span class="number">0</span>).unwrap(),
+            <span class="kw-2">*</span>t.elements.first().unwrap(),
             RawString(<span class="string">"foo {{bar}}"</span>.to_string())
         );
     }
@@ -2496,7 +2614,7 @@
         <span class="kw">let </span>source = <span class="string">r"\\\\"</span>;
         <span class="kw">let </span>t = Template::compile(source).ok().unwrap();
         <span class="macro">assert_eq!</span>(t.elements.len(), <span class="number">1</span>);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>t.elements.get(<span class="number">0</span>).unwrap(), RawString(source.to_string()));
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>t.elements.first().unwrap(), RawString(source.to_string()));
     }
 
     <span class="attr">#[test]
@@ -2505,7 +2623,7 @@
         <span class="kw">let </span>t = Template::compile(source).ok().unwrap();
         <span class="macro">assert_eq!</span>(t.elements.len(), <span class="number">1</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="kw-2">*</span>t.elements.get(<span class="number">0</span>).unwrap(),
+            <span class="kw-2">*</span>t.elements.first().unwrap(),
             RawString(<span class="string">"{{{{foo}}}} bar"</span>.to_string())
         );
     }
@@ -2519,7 +2637,7 @@
 
         <span class="macro">assert_eq!</span>(t.elements.len(), <span class="number">10</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>t.elements.get(<span class="number">0</span>).unwrap(), RawString(<span class="string">"&lt;h1&gt;"</span>.to_string()));
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>t.elements.first().unwrap(), RawString(<span class="string">"&lt;h1&gt;"</span>.to_string()));
         <span class="macro">assert_eq!</span>(
             <span class="kw-2">*</span>t.elements.get(<span class="number">1</span>).unwrap(),
             Expression(Box::new(HelperTemplate::with_path(Path::with_named_paths(
@@ -2550,9 +2668,9 @@
                 <span class="macro">assert_eq!</span>(h.name.as_name().unwrap(), <span class="string">"foo"</span>.to_string());
                 <span class="macro">assert_eq!</span>(h.params.len(), <span class="number">1</span>);
                 <span class="macro">assert_eq!</span>(
-                    <span class="kw-2">*</span>(h.params.get(<span class="number">0</span>).unwrap()),
+                    <span class="kw-2">*</span>(h.params.first().unwrap()),
                     Parameter::Path(Path::with_named_paths(<span class="kw-2">&amp;</span>[<span class="string">"bar"</span>]))
-                )
+                );
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="macro">panic!</span>(<span class="string">"Helper expression here"</span>);
@@ -2597,11 +2715,11 @@
         <span class="kw">let </span>t = Template::compile(source).ok().unwrap();
 
         <span class="macro">assert_eq!</span>(t.elements.len(), <span class="number">4</span>);
-        <span class="kw">match </span><span class="kw-2">*</span>t.elements.get(<span class="number">0</span>).unwrap() {
+        <span class="kw">match </span><span class="kw-2">*</span>t.elements.first().unwrap() {
             Expression(<span class="kw-2">ref </span>h) =&gt; {
                 <span class="macro">assert_eq!</span>(h.name.as_name().unwrap(), <span class="string">"foo"</span>.to_owned());
                 <span class="macro">assert_eq!</span>(h.params.len(), <span class="number">1</span>);
-                <span class="kw">if let </span><span class="kw-2">&amp;</span>Parameter::Subexpression(<span class="kw-2">ref </span>t) = h.params.get(<span class="number">0</span>).unwrap() {
+                <span class="kw">if let </span>Parameter::Subexpression(t) = h.params.first().unwrap() {
                     <span class="macro">assert_eq!</span>(t.name(), <span class="string">"bar"</span>.to_owned());
                 } <span class="kw">else </span>{
                     <span class="macro">panic!</span>(<span class="string">"Subexpression expected"</span>);
@@ -2616,9 +2734,9 @@
             Expression(<span class="kw-2">ref </span>h) =&gt; {
                 <span class="macro">assert_eq!</span>(h.name.as_name().unwrap(), <span class="string">"foo"</span>.to_string());
                 <span class="macro">assert_eq!</span>(h.params.len(), <span class="number">1</span>);
-                <span class="kw">if let </span><span class="kw-2">&amp;</span>Parameter::Subexpression(<span class="kw-2">ref </span>t) = h.params.get(<span class="number">0</span>).unwrap() {
+                <span class="kw">if let </span>Parameter::Subexpression(t) = h.params.first().unwrap() {
                     <span class="macro">assert_eq!</span>(t.name(), <span class="string">"bar"</span>.to_owned());
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(Parameter::Path(p)) = t.params().unwrap().get(<span class="number">0</span>) {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(Parameter::Path(p)) = t.params().unwrap().first() {
                         <span class="macro">assert_eq!</span>(p, <span class="kw-2">&amp;</span>Path::with_named_paths(<span class="kw-2">&amp;</span>[<span class="string">"baz"</span>]));
                     } <span class="kw">else </span>{
                         <span class="macro">panic!</span>(<span class="string">"non-empty param expected "</span>);
@@ -2638,9 +2756,9 @@
                 <span class="macro">assert_eq!</span>(h.params.len(), <span class="number">1</span>);
                 <span class="macro">assert_eq!</span>(h.hash.len(), <span class="number">1</span>);
 
-                <span class="kw">if let </span><span class="kw-2">&amp;</span>Parameter::Subexpression(<span class="kw-2">ref </span>t) = h.params.get(<span class="number">0</span>).unwrap() {
+                <span class="kw">if let </span>Parameter::Subexpression(t) = h.params.first().unwrap() {
                     <span class="macro">assert_eq!</span>(t.name(), <span class="string">"baz"</span>.to_owned());
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(Parameter::Path(p)) = t.params().unwrap().get(<span class="number">0</span>) {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(Parameter::Path(p)) = t.params().unwrap().first() {
                         <span class="macro">assert_eq!</span>(p, <span class="kw-2">&amp;</span>Path::with_named_paths(<span class="kw-2">&amp;</span>[<span class="string">"bar"</span>]));
                     } <span class="kw">else </span>{
                         <span class="macro">panic!</span>(<span class="string">"non-empty param expected "</span>);
@@ -2649,7 +2767,7 @@
                     <span class="macro">panic!</span>(<span class="string">"Subexpression expected (baz bar)"</span>);
                 }
 
-                <span class="kw">if let </span><span class="kw-2">&amp;</span>Parameter::Subexpression(<span class="kw-2">ref </span>t) = h.hash.get(<span class="string">"then"</span>).unwrap() {
+                <span class="kw">if let </span>Parameter::Subexpression(t) = h.hash.get(<span class="string">"then"</span>).unwrap() {
                     <span class="macro">assert_eq!</span>(t.name(), <span class="string">"bar"</span>.to_owned());
                 } <span class="kw">else </span>{
                     <span class="macro">panic!</span>(<span class="string">"Subexpression expected (bar)"</span>);
@@ -2699,7 +2817,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_unclosed_expression() {
         <span class="kw">let </span>sources = [<span class="string">"{{invalid"</span>, <span class="string">"{{{invalid"</span>, <span class="string">"{{invalid}"</span>, <span class="string">"{{!hello"</span>];
-        <span class="kw">for </span>s <span class="kw">in </span>sources.iter() {
+        <span class="kw">for </span>s <span class="kw">in </span><span class="kw-2">&amp;</span>sources {
             <span class="kw">let </span>result = Template::compile(s.to_owned());
             <span class="kw">let </span>err = result.expect_err(<span class="string">"expected a syntax error"</span>);
             <span class="kw">let </span>syntax_error_msg = <span class="kw">match </span>err.reason() {
@@ -2728,7 +2846,7 @@
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>ht) = h.template {
                             <span class="macro">assert_eq!</span>(ht.elements.len(), <span class="number">1</span>);
                             <span class="macro">assert_eq!</span>(
-                                <span class="kw-2">*</span>ht.elements.get(<span class="number">0</span>).unwrap(),
+                                <span class="kw-2">*</span>ht.elements.first().unwrap(),
                                 RawString(<span class="string">"good{{night}}"</span>.to_owned())
                             );
                         } <span class="kw">else </span>{
@@ -2891,7 +3009,7 @@
         <span class="kw">let </span>s = <span class="string">"{{#&gt;(X)}}{{/X}}"</span>;
         <span class="kw">let </span>result = Template::compile(s);
         <span class="macro">assert!</span>(result.is_err());
-        <span class="macro">assert_eq!</span>(<span class="string">"decorator \"Subexpression(Subexpression { element: Expression(HelperTemplate { name: Path(Relative(([Named(\\\"X\\\")], \\\"X\\\"))), params: [], hash: {}, block_param: None, template: None, inverse: None, block: false, chain: false }) })\" was opened, but \"X\" is closing"</span>, <span class="macro">format!</span>(<span class="string">"{}"</span>, result.unwrap_err().reason()));
+        <span class="macro">assert_eq!</span>(<span class="string">"decorator \"Subexpression(Subexpression { element: Expression(HelperTemplate { name: Path(Relative(([Named(\\\"X\\\")], \\\"X\\\"))), params: [], hash: {}, block_param: None, template: None, inverse: None, block: false, chain: false, indent_before_write: false }) })\" was opened, but \"X\" is closing"</span>, <span class="macro">format!</span>(<span class="string">"{}"</span>, result.unwrap_err().reason()));
     }
 }
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tracing-0.1.40/src/macros.rs`."><title>macros.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tracing" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tracing/</div>macros.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tracing-0.1.41/src/macros.rs`."><title>macros.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tracing" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tracing/</div>macros.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -3158,12 +3158,7 @@
 <a href="#3157" id="3157">3157</a>
 <a href="#3158" id="3158">3158</a>
 <a href="#3159" id="3159">3159</a>
-<a href="#3160" id="3160">3160</a>
-<a href="#3161" id="3161">3161</a>
-<a href="#3162" id="3162">3162</a>
-<a href="#3163" id="3163">3163</a>
-<a href="#3164" id="3164">3164</a>
-<a href="#3165" id="3165">3165</a></pre></div><pre class="rust"><code><span class="doccomment">/// Constructs a new span.
+<a href="#3160" id="3160">3160</a></pre></div><pre class="rust"><code><span class="doccomment">/// Constructs a new span.
 ///
 /// See [the top-level documentation][lib] for details on the syntax accepted by
 /// this macro.
@@ -3792,7 +3787,7 @@
             target: <span class="macro-nonterminal">$target</span>,
             parent: <span class="macro-nonterminal">$parent</span>,
             <span class="macro-nonterminal">$lvl</span>,
-            { message = <span class="macro">::core::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
+            { message = <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
         )
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="macro-nonterminal">$lvl</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = $(<span class="macro-nonterminal">$fields</span>:tt)* ) =&gt; (
@@ -3843,7 +3838,7 @@
             <span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>,
             target: <span class="macro-nonterminal">$target</span>,
             <span class="macro-nonterminal">$lvl</span>,
-            { message = <span class="macro">::core::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
+            { message = <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
         )
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, <span class="macro-nonterminal">$lvl</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = $(<span class="macro-nonterminal">$fields</span>:tt)* ) =&gt; (
@@ -3859,9 +3854,9 @@
         <span class="kw">static </span>__CALLSITE: <span class="macro-nonterminal">$crate::callsite::DefaultCallsite </span>= <span class="macro-nonterminal">$</span><span class="macro">crate::callsite2!</span> {
             <span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::concat!</span>(
                 <span class="string">"event "</span>,
-                <span class="macro">file!</span>(),
+                <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::file!</span>(),
                 <span class="string">":"</span>,
-                <span class="macro">line!</span>()
+                <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::line!</span>()
             ),
             <span class="macro-nonterminal">kind</span>: <span class="macro-nonterminal">$crate::metadata::Kind::EVENT</span>,
             target: <span class="macro-nonterminal">$target</span>,
@@ -3901,7 +3896,7 @@
             <span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>,
             parent: <span class="macro-nonterminal">$parent</span>,
             <span class="macro-nonterminal">$lvl</span>,
-            { message = <span class="macro">::core::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
+            { message = <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
         )
     );
     (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="macro-nonterminal">$lvl</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = $(<span class="macro-nonterminal">$fields</span>:tt)* ) =&gt; (
@@ -3954,7 +3949,7 @@
             <span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>,
             parent: <span class="macro-nonterminal">$parent</span>,
             <span class="macro-nonterminal">$lvl</span>,
-            { message = <span class="macro">::core::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
+            { message = <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
         )
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="macro-nonterminal">$lvl</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = $(<span class="macro-nonterminal">$fields</span>:tt)* ) =&gt; (
@@ -4004,7 +3999,7 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(
             <span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>,
             <span class="macro-nonterminal">$lvl</span>,
-            { message = <span class="macro">::core::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
+            { message = <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
         )
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$lvl</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = $(<span class="macro-nonterminal">$fields</span>:tt)* ) =&gt; (
@@ -4020,9 +4015,9 @@
         <span class="kw">static </span>__CALLSITE: <span class="macro-nonterminal">$crate::callsite::DefaultCallsite </span>= <span class="macro-nonterminal">$</span><span class="macro">crate::callsite2!</span> {
             <span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::concat!</span>(
                 <span class="string">"event "</span>,
-                <span class="macro">file!</span>(),
+                <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::file!</span>(),
                 <span class="string">":"</span>,
-                <span class="macro">line!</span>()
+                <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::line!</span>()
             ),
             <span class="macro-nonterminal">kind</span>: <span class="macro-nonterminal">$crate::metadata::Kind::EVENT</span>,
             target: <span class="macro-nonterminal">$target</span>,
@@ -4059,7 +4054,7 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(
             <span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>,
             <span class="macro-nonterminal">$lvl</span>,
-            { message = <span class="macro">::core::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
+            { message = <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
         )
     );
     (target: <span class="macro-nonterminal">$target</span>:expr, <span class="macro-nonterminal">$lvl</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = $(<span class="macro-nonterminal">$fields</span>:tt)* ) =&gt; (
@@ -4075,7 +4070,7 @@
             <span class="macro-nonterminal">target</span>: <span class="macro">module_path!</span>(),
             parent: <span class="macro-nonterminal">$parent</span>,
             <span class="macro-nonterminal">$lvl</span>,
-            { message = <span class="macro">::core::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
+            { message = <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
         )
     );
     (parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="macro-nonterminal">$lvl</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = $(<span class="macro-nonterminal">$field</span>:tt)<span class="kw-2">*</span>) =&gt; (
@@ -4135,7 +4130,7 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(
             <span class="macro-nonterminal">target</span>: <span class="macro">module_path!</span>(),
             <span class="macro-nonterminal">$lvl</span>,
-            { message = <span class="macro">::core::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
+            { message = <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::format_args!</span>($(<span class="macro-nonterminal">$arg</span>)+), $(<span class="macro-nonterminal">$fields</span>)* }
         )
     );
     ( <span class="macro-nonterminal">$lvl</span>:expr, { $(<span class="macro-nonterminal">$fields</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
@@ -4282,15 +4277,15 @@
 /// in false positives or false negatives include:
 ///
 /// - If a subscriber is using a filter which may enable a span or event based
-/// on field names, but `enabled!` is invoked without listing field names,
-/// `enabled!` may return a false negative if a specific field name would
-/// cause the subscriber to enable something that would otherwise be disabled.
+///   on field names, but `enabled!` is invoked without listing field names,
+///   `enabled!` may return a false negative if a specific field name would
+///   cause the subscriber to enable something that would otherwise be disabled.
 /// - If a subscriber is using a filter which enables or disables specific events by
-/// file path and line number,  a particular event may be enabled/disabled
-/// even if an `enabled!` invocation with the same level, target, and fields
-/// indicated otherwise.
+///   file path and line number,  a particular event may be enabled/disabled
+///   even if an `enabled!` invocation with the same level, target, and fields
+///   indicated otherwise.
 /// - The subscriber can choose to enable _only_ spans or _only_ events, which `enabled`
-/// will not reflect.
+///   will not reflect.
 ///
 /// `enabled!()` requires a [level](crate::Level) argument, an optional `target:`
 /// argument, and an optional set of field names. If the fields are not provided,
@@ -4353,9 +4348,9 @@
             <span class="kw">static </span>__CALLSITE: <span class="macro-nonterminal">$crate::callsite::DefaultCallsite </span>= <span class="macro-nonterminal">$</span><span class="macro">crate::callsite2!</span> {
                 <span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::concat!</span>(
                     <span class="string">"enabled "</span>,
-                    <span class="macro">file!</span>(),
+                    <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::file!</span>(),
                     <span class="string">":"</span>,
-                    <span class="macro">line!</span>()
+                    <span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::line!</span>()
                 ),
                 <span class="macro-nonterminal">kind</span>: <span class="macro-nonterminal">$kind</span>.hint(),
                 target: <span class="macro-nonterminal">$target</span>,
@@ -4470,14 +4465,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -4487,14 +4482,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -4504,14 +4499,14 @@
     </span>(target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -4521,14 +4516,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::TRACE</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -4712,7 +4707,6 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(
             <span class="macro-nonterminal">target</span>: <span class="macro">module_path!</span>(),
             <span class="macro-nonterminal">$crate::Level::TRACE</span>,
-            {},
             $(<span class="macro-nonterminal">$arg</span>)+
         )
     );
@@ -4747,14 +4741,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -4764,14 +4758,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -4781,14 +4775,14 @@
     </span>(target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -4798,14 +4792,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::DEBUG</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -4989,7 +4983,6 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(
             <span class="macro-nonterminal">target</span>: <span class="macro">module_path!</span>(),
             <span class="macro-nonterminal">$crate::Level::DEBUG</span>,
-            {},
             $(<span class="macro-nonterminal">$arg</span>)+
         )
     );
@@ -5035,14 +5028,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5052,14 +5045,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5069,14 +5062,14 @@
     </span>(target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5086,14 +5079,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::INFO</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5277,7 +5270,6 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(
             <span class="macro-nonterminal">target</span>: <span class="macro">module_path!</span>(),
             <span class="macro-nonterminal">$crate::Level::INFO</span>,
-            {},
             $(<span class="macro-nonterminal">$arg</span>)+
         )
     );
@@ -5316,14 +5308,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5333,14 +5325,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5350,14 +5342,14 @@
     </span>(target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5367,14 +5359,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::WARN</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5558,7 +5550,6 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(
             <span class="macro-nonterminal">target</span>: <span class="macro">module_path!</span>(),
             <span class="macro-nonterminal">$crate::Level::WARN</span>,
-            {},
             $(<span class="macro-nonterminal">$arg</span>)+
         )
     );
@@ -5593,14 +5584,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5610,14 +5601,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, target: <span class="macro-nonterminal">$target</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, target: <span class="macro-nonterminal">$target</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5627,14 +5618,14 @@
     </span>(target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (target: <span class="macro-nonterminal">$target</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">target</span>: <span class="macro-nonterminal">$target</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5644,14 +5635,14 @@
     </span>(name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, { $(<span class="macro-nonterminal">$field</span>:tt)* }, $(<span class="macro-nonterminal">$arg</span>:tt)* ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$field</span>)* }, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
-    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)+ ) =&gt; (
-        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { $(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)+ })
+    (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+ $(<span class="macro-nonterminal">$field</span>:tt)* ) =&gt; (
+        <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, { %$(<span class="macro-nonterminal">$k</span>).+ $(<span class="macro-nonterminal">$field</span>)* })
     );
     (name: <span class="macro-nonterminal">$name</span>:expr, parent: <span class="macro-nonterminal">$parent</span>:expr, $(<span class="macro-nonterminal">$arg</span>:tt)+ ) =&gt; (
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(<span class="macro-nonterminal">name</span>: <span class="macro-nonterminal">$name</span>, parent: <span class="macro-nonterminal">$parent</span>, <span class="macro-nonterminal">$crate::Level::ERROR</span>, {}, $(<span class="macro-nonterminal">$arg</span>)+)
@@ -5835,7 +5826,6 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::event!</span>(
             <span class="macro-nonterminal">target</span>: <span class="macro">module_path!</span>(),
             <span class="macro-nonterminal">$crate::Level::ERROR</span>,
-            {},
             $(<span class="macro-nonterminal">$arg</span>)+
         )
     );
@@ -5967,79 +5957,79 @@
     // };
     </span>(@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = <span class="question-mark">?</span><span class="macro-nonterminal">$val</span>:expr, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
             $(<span class="macro-nonterminal">$rest</span>)*
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = %<span class="macro-nonterminal">$val</span>:expr, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
             $(<span class="macro-nonterminal">$rest</span>)*
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = <span class="macro-nonterminal">$val</span>:expr, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val </span><span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val </span><span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
             $(<span class="macro-nonterminal">$rest</span>)*
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+ <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+ <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
             $(<span class="macro-nonterminal">$rest</span>)*
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
             $(<span class="macro-nonterminal">$rest</span>)*
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
             $(<span class="macro-nonterminal">$rest</span>)*
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = <span class="question-mark">?</span><span class="macro-nonterminal">$val</span>:expr) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = %<span class="macro-nonterminal">$val</span>:expr) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+ = <span class="macro-nonterminal">$val</span>:expr) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val </span><span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val </span><span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, $(<span class="macro-nonterminal">$k</span>:ident).+) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+ <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+ <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, <span class="question-mark">?</span>$(<span class="macro-nonterminal">$k</span>:ident).+) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, %$(<span class="macro-nonterminal">$k</span>:ident).+) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span>$(<span class="macro-nonterminal">$k</span>).+) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
         )
     };
@@ -6047,40 +6037,40 @@
     <span class="comment">// Handle literal names
     </span>(@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, <span class="macro-nonterminal">$k</span>:literal = <span class="question-mark">?</span><span class="macro-nonterminal">$val</span>:expr, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
             $(<span class="macro-nonterminal">$rest</span>)*
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, <span class="macro-nonterminal">$k</span>:literal = %<span class="macro-nonterminal">$val</span>:expr, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
             $(<span class="macro-nonterminal">$rest</span>)*
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, <span class="macro-nonterminal">$k</span>:literal = <span class="macro-nonterminal">$val</span>:expr, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val </span><span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val </span><span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
             $(<span class="macro-nonterminal">$rest</span>)*
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, <span class="macro-nonterminal">$k</span>:literal = <span class="question-mark">?</span><span class="macro-nonterminal">$val</span>:expr) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>debug(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, <span class="macro-nonterminal">$k</span>:literal = %<span class="macro-nonterminal">$val</span>:expr) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span>display(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val</span>) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
         )
     };
     (@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, <span class="macro-nonterminal">$k</span>:literal = <span class="macro-nonterminal">$val</span>:expr) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
-            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val </span><span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
+            @ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$val </span><span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)) },
             <span class="macro-nonterminal">$next</span>,
         )
     };
@@ -6128,7 +6118,7 @@
 
     <span class="comment">// Remainder is unparsable, but exists --- must be format args!
     </span>(@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* }, <span class="macro-nonterminal">$next</span>:expr, $(<span class="macro-nonterminal">$rest</span>:tt)+) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(@ { (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, ::core::option::Option::Some(<span class="kw-2">&amp;</span><span class="macro">::core::format_args!</span>($(<span class="macro-nonterminal">$rest</span>)+) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)), $(<span class="macro-nonterminal">$out</span>),* }, <span class="macro-nonterminal">$next</span>, )
+        <span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(@ { (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$next</span>, <span class="macro-nonterminal">$crate::__macro_support::Option::Some</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro">crate::__macro_support::format_args!</span>($(<span class="macro-nonterminal">$rest</span>)+) <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Value)), $(<span class="macro-nonterminal">$out</span>),* }, <span class="macro-nonterminal">$next</span>, )
     };
 
     <span class="comment">// === entry ===
@@ -6139,7 +6129,7 @@
             <span class="kw">let </span><span class="kw-2">mut </span>iter = <span class="macro-nonterminal">$fields</span>.iter();
             <span class="macro-nonterminal">$fields</span>.value_set(<span class="macro-nonterminal">$</span><span class="macro">crate::valueset!</span>(
                 @ { },
-                <span class="macro-nonterminal">::core::iter::Iterator::next</span>(<span class="kw-2">&amp;mut </span>iter).expect(<span class="string">"FieldSet corrupted (this is a bug)"</span>),
+                <span class="macro-nonterminal">$crate::__macro_support::Iterator::next</span>(<span class="kw-2">&amp;mut </span>iter).expect(<span class="string">"FieldSet corrupted (this is a bug)"</span>),
                 $(<span class="macro-nonterminal">$kvs</span>)+
             ))
         }
@@ -6206,7 +6196,7 @@
         <span class="macro-nonterminal">$</span><span class="macro">crate::fieldset!</span>(@ { $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, <span class="macro-nonterminal">$k </span>} $(<span class="macro-nonterminal">$rest</span>)<span class="kw-2">*</span>)
     };
 
-    <span class="comment">// Remainder is unparseable, but exists --- must be format args!
+    <span class="comment">// Remainder is unparsable, but exists --- must be format args!
     </span>(@ { $(,)* $(<span class="macro-nonterminal">$out</span>:expr),* } $(<span class="macro-nonterminal">$rest</span>:tt)+) =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::fieldset!</span>(@ { <span class="string">"message"</span>, $(<span class="macro-nonterminal">$out</span>),<span class="kw-2">*</span>, })
     };
@@ -6236,8 +6226,8 @@
 <span class="attr">#[doc(hidden)]
 #[macro_export]
 </span><span class="macro">macro_rules!</span> __tracing_stringify {
-    (<span class="macro-nonterminal">$s</span>:expr) =&gt; {
-        <span class="macro">stringify!</span>(<span class="macro-nonterminal">$s</span>)
+    ($(<span class="macro-nonterminal">$t</span>:tt)<span class="kw-2">*</span>) =&gt; {
+        <span class="macro">stringify!</span>($(<span class="macro-nonterminal">$t</span>)<span class="kw-2">*</span>)
     };
 }
 

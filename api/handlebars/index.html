@@ -1,23 +1,23 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Handlebars"><title>handlebars - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../handlebars/index.html">handlebars</a><span class="version">5.1.2</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#handlebars" title="Handlebars">Handlebars</a><ul><li><a href="#quick-start" title="Quick Start">Quick Start</a></li><li><a href="#features" title="Features">Features</a></li><li><a href="#limitations" title="Limitations">Limitations</a></li><li><a href="#usage" title="Usage">Usage</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li><li><a href="#types-1" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>handlebars</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/handlebars/lib.rs.html#1-444">source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="handlebars"><a class="doc-anchor" href="#handlebars">§</a>Handlebars</h2>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Handlebars"><title>handlebars - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../handlebars/index.html">handlebars</a><span class="version">6.3.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#handlebars" title="Handlebars">Handlebars</a><ul><li><a href="#quick-start" title="Quick Start">Quick Start</a></li><li><a href="#features" title="Features">Features</a></li><li><a href="#limitations" title="Limitations">Limitations</a></li><li><a href="#usage" title="Usage">Usage</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li><li><a href="#types-1" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>handlebars</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/handlebars/lib.rs.html#1-431">source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="handlebars"><a class="doc-anchor" href="#handlebars">§</a>Handlebars</h2>
 <p><a href="http://handlebarsjs.com/">Handlebars</a> is a modern and extensible templating solution originally created in the JavaScript world. It’s used by many popular frameworks like <a href="http://emberjs.com">Ember.js</a> and Chaplin. It’s also ported to some other platforms such as <a href="https://github.com/jknack/handlebars.java">Java</a>.</p>
 <p>And this is handlebars Rust implementation, designed for general purpose text generation.</p>
 <h3 id="quick-start"><a class="doc-anchor" href="#quick-start">§</a>Quick Start</h3>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::collections::BTreeMap;
 <span class="kw">use </span>handlebars::Handlebars;
 
-  <span class="comment">// create the handlebars registry
-  </span><span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
+<span class="comment">// create the handlebars registry
+</span><span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
 
-  <span class="comment">// register the template. The template string will be verified and compiled.
-  </span><span class="kw">let </span>source = <span class="string">"hello {{world}}"</span>;
-  <span class="macro">assert!</span>(handlebars.register_template_string(<span class="string">"t1"</span>, source).is_ok());
+<span class="comment">// register the template. The template string will be verified and compiled.
+</span><span class="kw">let </span>source = <span class="string">"hello {{world}}"</span>;
+<span class="macro">assert!</span>(handlebars.register_template_string(<span class="string">"t1"</span>, source).is_ok());
 
-  <span class="comment">// Prepare some data.
-  //
-  // The data type should implements `serde::Serialize`
-  </span><span class="kw">let </span><span class="kw-2">mut </span>data = BTreeMap::new();
-  data.insert(<span class="string">"world"</span>.to_string(), <span class="string">"世界!"</span>.to_string());
-  <span class="macro">assert_eq!</span>(handlebars.render(<span class="string">"t1"</span>, <span class="kw-2">&amp;</span>data).unwrap(), <span class="string">"hello 世界!"</span>);</code></pre></div>
+<span class="comment">// Prepare some data.
+//
+// The data type should implements `serde::Serialize`
+</span><span class="kw">let </span><span class="kw-2">mut </span>data = BTreeMap::new();
+data.insert(<span class="string">"world"</span>.to_string(), <span class="string">"世界!"</span>.to_string());
+<span class="macro">assert_eq!</span>(handlebars.render(<span class="string">"t1"</span>, <span class="kw-2">&amp;</span>data).unwrap(), <span class="string">"hello 世界!"</span>);</code></pre></div>
 <p>In this example, we created a template registry and registered a template named <code>t1</code>.
 Then we rendered a <code>BTreeMap</code> with an entry of key <code>world</code>, the result is just what
 we expected.</p>
@@ -75,13 +75,12 @@ in order to use in templates. You have to make sure your data implements the
 <h3 id="usage"><a class="doc-anchor" href="#usage">§</a>Usage</h3><h4 id="template-creation-and-registration"><a class="doc-anchor" href="#template-creation-and-registration">§</a>Template Creation and Registration</h4>
 <p>Templates are created from <code>String</code>s and registered to <code>Handlebars</code> with a name.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
-<span class="kw">use </span>handlebars::Handlebars;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>handlebars::Handlebars;
 
-  <span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
-  <span class="kw">let </span>source = <span class="string">"hello {{world}}"</span>;
+<span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
+<span class="kw">let </span>source = <span class="string">"hello {{world}}"</span>;
 
-  <span class="macro">assert!</span>(handlebars.register_template_string(<span class="string">"t1"</span>, source).is_ok())</code></pre></div>
+<span class="macro">assert!</span>(handlebars.register_template_string(<span class="string">"t1"</span>, source).is_ok())</code></pre></div>
 <p>On registration, the template is parsed, compiled and cached in the registry. So further
 usage will benefit from the one-time work. Also features like include, inheritance
 that involves template reference requires you to register those template first with
@@ -92,12 +91,12 @@ without registration.</p>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>handlebars::Handlebars;
 <span class="kw">use </span>std::collections::BTreeMap;
 
-  <span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
-  <span class="kw">let </span>source = <span class="string">"hello {{world}}"</span>;
+<span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
+<span class="kw">let </span>source = <span class="string">"hello {{world}}"</span>;
 
-  <span class="kw">let </span><span class="kw-2">mut </span>data = BTreeMap::new();
-  data.insert(<span class="string">"world"</span>.to_string(), <span class="string">"世界!"</span>.to_string());
-  <span class="macro">assert_eq!</span>(handlebars.render_template(source, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>, <span class="string">"hello 世界!"</span>.to_owned());</code></pre></div>
+<span class="kw">let </span><span class="kw-2">mut </span>data = BTreeMap::new();
+data.insert(<span class="string">"world"</span>.to_string(), <span class="string">"世界!"</span>.to_string());
+<span class="macro">assert_eq!</span>(handlebars.render_template(source, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>, <span class="string">"hello 世界!"</span>.to_owned());</code></pre></div>
 <h5 id="additional-features-for-loading-template-from"><a class="doc-anchor" href="#additional-features-for-loading-template-from">§</a>Additional features for loading template from</h5>
 <ul>
 <li>Feature <code>dir_source</code> enables template loading
@@ -111,43 +110,43 @@ generated with <code>RustEmbed</code>.</li>
 <p>That means, if you want to render something, you have to ensure the data type implements the <code>serde::Serialize</code> trait. Most rust internal types already have that trait. Use <code>#derive[Serialize]</code> for your types to generate default implementation.</p>
 <p>You can use default <code>render</code> function to render a template into <code>String</code>. From 0.9, there’s <code>render_to_write</code> to render text into anything of <code>std::io::Write</code>.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
-<span class="kw">use </span>handlebars::Handlebars;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>handlebars::Handlebars;
 
-<span class="attr">#[derive(Serialize)]
+<span class="attr">#[derive(serde::Serialize)]
 </span><span class="kw">struct </span>Person {
   name: String,
   age: i16,
 }
 
-  <span class="kw">let </span>source = <span class="string">"Hello, {{name}}"</span>;
+<span class="kw">let </span>source = <span class="string">"Hello, {{name}}"</span>;
 
-  <span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
-  <span class="macro">assert!</span>(handlebars.register_template_string(<span class="string">"hello"</span>, source).is_ok());
+<span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
+<span class="macro">assert!</span>(handlebars.register_template_string(<span class="string">"hello"</span>, source).is_ok());
 
-
-  <span class="kw">let </span>data = Person {
-      name: <span class="string">"Ning Sun"</span>.to_string(),
-      age: <span class="number">27
-  </span>};
-  <span class="macro">assert_eq!</span>(handlebars.render(<span class="string">"hello"</span>, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>, <span class="string">"Hello, Ning Sun"</span>.to_owned());</code></pre></div>
+<span class="kw">let </span>data = Person {
+    name: <span class="string">"Ning Sun"</span>.to_string(),
+    age: <span class="number">27
+</span>};
+<span class="macro">assert_eq!</span>(handlebars.render(<span class="string">"hello"</span>, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>, <span class="string">"Hello, Ning Sun"</span>.to_owned());</code></pre></div>
 <p>Or if you don’t need the template to be cached or referenced by other ones, you can
 simply render it without registering.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>handlebars::Handlebars;
 
-  <span class="kw">let </span>source = <span class="string">"Hello, {{name}}"</span>;
+<span class="kw">let </span>source = <span class="string">"Hello, {{name}}"</span>;
 
-  <span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
+<span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
 
-  <span class="kw">let </span>data = Person {
-      name: <span class="string">"Ning Sun"</span>.to_string(),
-      age: <span class="number">27
-  </span>};
-  <span class="macro">assert_eq!</span>(handlebars.render_template(<span class="string">"Hello, {{name}}"</span>, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>,
-      <span class="string">"Hello, Ning Sun"</span>.to_owned());</code></pre></div>
+<span class="kw">let </span>data = Person {
+    name: <span class="string">"Ning Sun"</span>.to_string(),
+    age: <span class="number">27
+</span>};
+<span class="macro">assert_eq!</span>(
+  handlebars.render_template(<span class="string">"Hello, {{name}}"</span>, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>,
+  <span class="string">"Hello, Ning Sun"</span>.to_owned()
+);</code></pre></div>
 <h5 id="escaping"><a class="doc-anchor" href="#escaping">§</a>Escaping</h5>
-<p>As per the handlebars spec, output using <code>{{expression}}</code> is escaped by default (to be precise, the characters <code>&amp;"&lt;&gt;'</code>=_<code>are replaced by their respective html / xml entities). However, since the use cases of a rust template engine are probably a bit more diverse than those of a JavaScript one, this implementation allows the user to supply a custom escape function to be used instead. For more information see the</code>EscapeFn<code>type and</code>Handlebars::register_escape_fn()<code>method. In particular,</code>no_escape()` can be used as the escape function if no escaping at all should be performed.</p>
+<p>As per the handlebars spec, output using <code>{{expression}}</code> is escaped by default (to be precise, the characters <code>&amp;"&lt;&gt;'`=_</code> are replaced by their respective html / xml entities). However, since the use cases of a rust template engine are probably a bit more diverse than those of a JavaScript one, this implementation allows the user to supply a custom escape function to be used instead. For more information see the <code>EscapeFn</code> type and <code>Handlebars::register_escape_fn()</code> method. In particular, <code>no_escape()</code> can be used as the escape function if no escaping at all should be performed.</p>
 <h4 id="custom-helper"><a class="doc-anchor" href="#custom-helper">§</a>Custom Helper</h4>
 <p>Handlebars is nothing without helpers. You can also create your own helpers with rust. Helpers in handlebars-rust are custom struct implements the <code>HelperDef</code> trait, concretely, the <code>call</code> function. For your convenience, most of stateless helpers can be implemented as bare functions.</p>
 
@@ -178,26 +177,27 @@ simply render it without registering.</p>
 }
 
 
-  <span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
-  handlebars.register_helper(<span class="string">"simple-helper"</span>, Box::new(SimpleHelper));
-  handlebars.register_helper(<span class="string">"another-simple-helper"</span>, Box::new(another_simple_helper));
-  <span class="comment">// via closure
-  </span>handlebars.register_helper(<span class="string">"closure-helper"</span>,
-      Box::new(|h: <span class="kw-2">&amp;</span>Helper, r: <span class="kw-2">&amp;</span>Handlebars, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Context, rc: <span class="kw-2">&amp;mut </span>RenderContext, out: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Output| -&gt; HelperResult {
-          <span class="kw">let </span>param =
-          h.param(<span class="number">0</span>).ok_or(RenderErrorReason::ParamNotFoundForIndex(<span class="string">"closure-helper"</span>, <span class="number">0</span>))<span class="question-mark">?</span>;
+<span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
+handlebars.register_helper(<span class="string">"simple-helper"</span>, Box::new(SimpleHelper));
+handlebars.register_helper(<span class="string">"another-simple-helper"</span>, Box::new(another_simple_helper));
+<span class="comment">// via closure
+</span>handlebars.register_helper(<span class="string">"closure-helper"</span>,
+    Box::new(|h: <span class="kw-2">&amp;</span>Helper, r: <span class="kw-2">&amp;</span>Handlebars, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Context, rc: <span class="kw-2">&amp;mut </span>RenderContext, out: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Output| -&gt; HelperResult {
+        <span class="kw">let </span>param =
+        h.param(<span class="number">0</span>).ok_or(RenderErrorReason::ParamNotFoundForIndex(<span class="string">"closure-helper"</span>, <span class="number">0</span>))<span class="question-mark">?</span>;
 
-          out.write(<span class="string">"3rd helper: "</span>)<span class="question-mark">?</span>;
-          out.write(param.value().render().as_ref())<span class="question-mark">?</span>;
-          <span class="prelude-val">Ok</span>(())
-      }));
+        out.write(<span class="string">"3rd helper: "</span>)<span class="question-mark">?</span>;
+        out.write(param.value().render().as_ref())<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
+    }));
 
-  <span class="kw">let </span>tpl = <span class="string">"{{simple-helper 1}}\n{{another-simple-helper 2}}\n{{closure-helper 3}}"</span>;
-  <span class="macro">assert_eq!</span>(handlebars.render_template(tpl, <span class="kw-2">&amp;</span>())<span class="question-mark">?</span>,
-      <span class="string">"1st helper: 1\n2nd helper: 2\n3rd helper: 3"</span>.to_owned());
-</code></pre></div>
+<span class="kw">let </span>tpl = <span class="string">"{{simple-helper 1}}\n{{another-simple-helper 2}}\n{{closure-helper 3}}"</span>;
+<span class="macro">assert_eq!</span>(
+  handlebars.render_template(tpl, <span class="kw-2">&amp;</span>())<span class="question-mark">?</span>,
+  <span class="string">"1st helper: 1\n2nd helper: 2\n3rd helper: 3"</span>.to_owned()
+);</code></pre></div>
 <p>Data available to helper can be found in <a href="struct.Helper.html">Helper</a>. And there are more
-examples in <a href="trait.HelperDef.html">HelperDef</a> page.</p>
+examples in <a href="trait.HelperDef.html"><code>HelperDef</code></a> page.</p>
 <p>You can learn more about helpers by looking into source code of built-in helpers.</p>
 <h4 id="script-helper"><a class="doc-anchor" href="#script-helper">§</a>Script Helper</h4>
 <p>Like our JavaScript counterparts, handlebars allows user to define simple helpers with
@@ -254,14 +254,15 @@ conversions from the <a href="https://docs.rs/heck/latest/heck"><code>heck</code
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>handlebars::Handlebars;
 
+<span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
 
-  <span class="kw">let </span><span class="kw-2">mut </span>handlebars = Handlebars::new();
-
-  <span class="kw">let </span>data = <span class="macro">serde_json::json!</span>({<span class="string">"value"</span>: <span class="string">"lower camel case"</span>});
-  <span class="macro">assert_eq!</span>(handlebars.render_template(<span class="string">"This is {{lowerCamelCase value}}"</span>, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>,
-      <span class="string">"This is lowerCamelCase"</span>.to_owned());</code></pre></div>
+<span class="kw">let </span>data = <span class="macro">serde_json::json!</span>({<span class="string">"value"</span>: <span class="string">"lower camel case"</span>});
+<span class="macro">assert_eq!</span>(
+  handlebars.render_template(<span class="string">"This is {{lowerCamelCase value}}"</span>, <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>,
+  <span class="string">"This is lowerCamelCase"</span>.to_owned()
+);</code></pre></div>
 </div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name" id="reexport.Template"><code>pub use self::template::<a class="struct" href="template/struct.Template.html" title="struct handlebars::template::Template">Template</a>;</code></div></li></ul><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="template/index.html" title="mod handlebars::template">template</a></div></li></ul><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="macro" href="macro.handlebars_helper.html" title="macro handlebars::handlebars_helper">handlebars_<wbr>helper</a></div><div class="desc docblock-short">Macro that allows you to quickly define a handlebars helper by passing a
-name and a closure.</div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.BlockContext.html" title="struct handlebars::BlockContext">Block<wbr>Context</a></div><div class="desc docblock-short">A data structure holds contextual data for current block scope.</div></li><li><div class="item-name"><a class="struct" href="struct.BlockParams.html" title="struct handlebars::BlockParams">Block<wbr>Params</a></div><div class="desc docblock-short">A map holds block parameters. The parameter can be either a value or a reference</div></li><li><div class="item-name"><a class="struct" href="struct.Context.html" title="struct handlebars::Context">Context</a></div><div class="desc docblock-short">The context wrap data you render on your templates.</div></li><li><div class="item-name"><a class="struct" href="struct.Decorator.html" title="struct handlebars::Decorator">Decorator</a></div><div class="desc docblock-short">Render-time Decorator data when using in a decorator definition</div></li><li><div class="item-name"><a class="struct" href="struct.Handlebars.html" title="struct handlebars::Handlebars">Handlebars</a></div><div class="desc docblock-short">The single entry point of your Handlebars templates</div></li><li><div class="item-name"><a class="struct" href="struct.Helper.html" title="struct handlebars::Helper">Helper</a></div><div class="desc docblock-short">Render-time Helper data when using in a helper definition</div></li><li><div class="item-name"><a class="struct" href="struct.LocalVars.html" title="struct handlebars::LocalVars">Local<wbr>Vars</a></div></li><li><div class="item-name"><a class="struct" href="struct.PathAndJson.html" title="struct handlebars::PathAndJson">Path<wbr>AndJson</a></div><div class="desc docblock-short">Json wrapper that holds the Json value and reference path information</div></li><li><div class="item-name"><a class="struct" href="struct.RenderContext.html" title="struct handlebars::RenderContext">Render<wbr>Context</a></div><div class="desc docblock-short">The context of a render call</div></li><li><div class="item-name"><a class="struct" href="struct.RenderError.html" title="struct handlebars::RenderError">Render<wbr>Error</a></div><div class="desc docblock-short">Error when rendering data on template.</div></li><li><div class="item-name"><a class="struct" href="struct.StringOutput.html" title="struct handlebars::StringOutput">String<wbr>Output</a></div></li><li><div class="item-name"><a class="struct" href="struct.TemplateError.html" title="struct handlebars::TemplateError">Template<wbr>Error</a></div><div class="desc docblock-short">Error on parsing template.</div></li></ul><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.Path.html" title="enum handlebars::Path">Path</a></div><div class="desc docblock-short">Represents the Json path in templates.</div></li><li><div class="item-name"><a class="enum" href="enum.RenderErrorReason.html" title="enum handlebars::RenderErrorReason">Render<wbr>Error<wbr>Reason</a></div><div class="desc docblock-short">Template rendering error</div></li><li><div class="item-name"><a class="enum" href="enum.ScopedJson.html" title="enum handlebars::ScopedJson">Scoped<wbr>Json</a></div><div class="desc docblock-short">A JSON wrapper designed for handlebars internal use case</div></li><li><div class="item-name"><a class="enum" href="enum.TemplateErrorReason.html" title="enum handlebars::TemplateErrorReason">Template<wbr>Error<wbr>Reason</a></div><div class="desc docblock-short">Template parsing error</div></li></ul><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="trait" href="trait.DecoratorDef.html" title="trait handlebars::DecoratorDef">Decorator<wbr>Def</a></div><div class="desc docblock-short">Decorator Definition</div></li><li><div class="item-name"><a class="trait" href="trait.Evaluable.html" title="trait handlebars::Evaluable">Evaluable</a></div><div class="desc docblock-short">Evaluate decorator</div></li><li><div class="item-name"><a class="trait" href="trait.HelperDef.html" title="trait handlebars::HelperDef">Helper<wbr>Def</a></div><div class="desc docblock-short">Helper Definition</div></li><li><div class="item-name"><a class="trait" href="trait.JsonRender.html" title="trait handlebars::JsonRender">Json<wbr>Render</a></div><div class="desc docblock-short">Render Json data with default format</div></li><li><div class="item-name"><a class="trait" href="trait.JsonTruthy.html" title="trait handlebars::JsonTruthy">Json<wbr>Truthy</a></div></li><li><div class="item-name"><a class="trait" href="trait.Output.html" title="trait handlebars::Output">Output</a></div><div class="desc docblock-short">The Output API.</div></li><li><div class="item-name"><a class="trait" href="trait.Renderable.html" title="trait handlebars::Renderable">Renderable</a></div><div class="desc docblock-short">Render trait</div></li></ul><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="fn" href="fn.html_escape.html" title="fn handlebars::html_escape">html_<wbr>escape</a></div><div class="desc docblock-short">The default <em>escape fn</em> replaces the characters <code>&amp;"&lt;&gt;</code>
+name and a closure.</div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.BlockContext.html" title="struct handlebars::BlockContext">Block<wbr>Context</a></div><div class="desc docblock-short">A data structure holds contextual data for current block scope.</div></li><li><div class="item-name"><a class="struct" href="struct.BlockParams.html" title="struct handlebars::BlockParams">Block<wbr>Params</a></div><div class="desc docblock-short">A map holds block parameters. The parameter can be either a value or a reference</div></li><li><div class="item-name"><a class="struct" href="struct.Context.html" title="struct handlebars::Context">Context</a></div><div class="desc docblock-short">The context wrap data you render on your templates.</div></li><li><div class="item-name"><a class="struct" href="struct.Decorator.html" title="struct handlebars::Decorator">Decorator</a></div><div class="desc docblock-short">Render-time Decorator data when using in a decorator definition</div></li><li><div class="item-name"><a class="struct" href="struct.Handlebars.html" title="struct handlebars::Handlebars">Handlebars</a></div><div class="desc docblock-short">The single entry point of your Handlebars templates</div></li><li><div class="item-name"><a class="struct" href="struct.Helper.html" title="struct handlebars::Helper">Helper</a></div><div class="desc docblock-short">Render-time Helper data when using in a helper definition</div></li><li><div class="item-name"><a class="struct" href="struct.LocalVars.html" title="struct handlebars::LocalVars">Local<wbr>Vars</a></div></li><li><div class="item-name"><a class="struct" href="struct.PathAndJson.html" title="struct handlebars::PathAndJson">Path<wbr>AndJson</a></div><div class="desc docblock-short">Json wrapper that holds the Json value and reference path information</div></li><li><div class="item-name"><a class="struct" href="struct.RenderContext.html" title="struct handlebars::RenderContext">Render<wbr>Context</a></div><div class="desc docblock-short">The context of a render call</div></li><li><div class="item-name"><a class="struct" href="struct.RenderError.html" title="struct handlebars::RenderError">Render<wbr>Error</a></div><div class="desc docblock-short">Error when rendering data on template.</div></li><li><div class="item-name"><a class="struct" href="struct.StringOutput.html" title="struct handlebars::StringOutput">String<wbr>Output</a></div></li><li><div class="item-name"><a class="struct" href="struct.TemplateError.html" title="struct handlebars::TemplateError">Template<wbr>Error</a></div><div class="desc docblock-short">Error on parsing template.</div></li></ul><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.BlockParamHolder.html" title="enum handlebars::BlockParamHolder">Block<wbr>Param<wbr>Holder</a></div></li><li><div class="item-name"><a class="enum" href="enum.Path.html" title="enum handlebars::Path">Path</a></div><div class="desc docblock-short">Represents the Json path in templates.</div></li><li><div class="item-name"><a class="enum" href="enum.PathSeg.html" title="enum handlebars::PathSeg">PathSeg</a></div></li><li><div class="item-name"><a class="enum" href="enum.RenderErrorReason.html" title="enum handlebars::RenderErrorReason">Render<wbr>Error<wbr>Reason</a></div><div class="desc docblock-short">Template rendering error</div></li><li><div class="item-name"><a class="enum" href="enum.ScopedJson.html" title="enum handlebars::ScopedJson">Scoped<wbr>Json</a></div><div class="desc docblock-short">A JSON wrapper designed for handlebars internal use case</div></li><li><div class="item-name"><a class="enum" href="enum.TemplateErrorReason.html" title="enum handlebars::TemplateErrorReason">Template<wbr>Error<wbr>Reason</a></div><div class="desc docblock-short">Template parsing error</div></li></ul><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="trait" href="trait.DecoratorDef.html" title="trait handlebars::DecoratorDef">Decorator<wbr>Def</a></div><div class="desc docblock-short">Decorator Definition</div></li><li><div class="item-name"><a class="trait" href="trait.Evaluable.html" title="trait handlebars::Evaluable">Evaluable</a></div><div class="desc docblock-short">Evaluate decorator</div></li><li><div class="item-name"><a class="trait" href="trait.HelperDef.html" title="trait handlebars::HelperDef">Helper<wbr>Def</a></div><div class="desc docblock-short">Helper Definition</div></li><li><div class="item-name"><a class="trait" href="trait.JsonRender.html" title="trait handlebars::JsonRender">Json<wbr>Render</a></div><div class="desc docblock-short">Render Json data with default format</div></li><li><div class="item-name"><a class="trait" href="trait.JsonTruthy.html" title="trait handlebars::JsonTruthy">Json<wbr>Truthy</a></div></li><li><div class="item-name"><a class="trait" href="trait.Output.html" title="trait handlebars::Output">Output</a></div><div class="desc docblock-short">The Output API.</div></li><li><div class="item-name"><a class="trait" href="trait.Renderable.html" title="trait handlebars::Renderable">Renderable</a></div><div class="desc docblock-short">Render trait</div></li></ul><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="fn" href="fn.html_escape.html" title="fn handlebars::html_escape">html_<wbr>escape</a></div><div class="desc docblock-short">The default <em>escape fn</em> replaces the characters <code>&amp;"&lt;&gt;</code>
 with the equivalent html / xml entities.</div></li><li><div class="item-name"><a class="fn" href="fn.no_escape.html" title="fn handlebars::no_escape">no_<wbr>escape</a></div><div class="desc docblock-short"><code>EscapeFn</code> that does not change anything. Useful when using in a non-html
 environment.</div></li><li><div class="item-name"><a class="fn" href="fn.to_json.html" title="fn handlebars::to_json">to_json</a></div><div class="desc docblock-short">Convert any serializable data into Serde Json type</div></li></ul><h2 id="types-1" class="section-header">Type Aliases<a href="#types-1" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="type" href="type.EscapeFn.html" title="type handlebars::EscapeFn">Escape<wbr>Fn</a></div><div class="desc docblock-short">This type represents an <em>escape fn</em>, that is a function whose purpose it is
 to escape potentially problematic characters in a string.</div></li><li><div class="item-name"><a class="type" href="type.HelperResult.html" title="type handlebars::HelperResult">Helper<wbr>Result</a></div><div class="desc docblock-short">A type alias for <code>Result&lt;(), RenderError&gt;</code></div></li></ul></section></div></main></body></html>

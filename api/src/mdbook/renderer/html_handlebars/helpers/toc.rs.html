@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mdbook-0.4.40/src/renderer/html_handlebars/helpers/toc.rs`."><title>toc.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="mdbook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">mdbook/renderer/html_handlebars/helpers/</div>toc.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mdbook-0.4.43/src/renderer/html_handlebars/helpers/toc.rs`."><title>toc.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="mdbook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">mdbook/renderer/html_handlebars/helpers/</div>toc.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -187,35 +187,10 @@
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::path::Path;
+<a href="#189" id="189">189</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::path::Path;
 <span class="kw">use </span>std::{cmp::Ordering, collections::BTreeMap};
 
-<span class="kw">use </span><span class="kw">crate</span>::utils;
-<span class="kw">use </span><span class="kw">crate</span>::utils::bracket_escape;
+<span class="kw">use </span><span class="kw">crate</span>::utils::special_escape;
 
 <span class="kw">use </span>handlebars::{
     Context, Handlebars, Helper, HelperDef, Output, RenderContext, RenderError, RenderErrorReason,
@@ -245,21 +220,6 @@
                     RenderErrorReason::Other(<span class="string">"Could not decode the JSON data"</span>.to_owned()).into()
                 })
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>current_path = rc
-            .evaluate(ctx, <span class="string">"@root/path"</span>)<span class="question-mark">?
-            </span>.as_json()
-            .as_str()
-            .ok_or_else(|| {
-                RenderErrorReason::Other(<span class="string">"Type error for `path`, string expected"</span>.to_owned())
-            })<span class="question-mark">?
-            </span>.replace(<span class="string">'\"'</span>, <span class="string">""</span>);
-
-        <span class="kw">let </span>current_section = rc
-            .evaluate(ctx, <span class="string">"@root/section"</span>)<span class="question-mark">?
-            </span>.as_json()
-            .as_str()
-            .map(str::to_owned)
-            .unwrap_or_default();
 
         <span class="kw">let </span>fold_enable = rc
             .evaluate(ctx, <span class="string">"@root/fold_enable"</span>)<span class="question-mark">?
@@ -277,31 +237,27 @@
                 RenderErrorReason::Other(<span class="string">"Type error for `fold_level`, u64 expected"</span>.to_owned())
             })<span class="question-mark">?</span>;
 
+        <span class="comment">// If true, then this is the iframe and we need target="_parent"
+        </span><span class="kw">let </span>is_toc_html = rc
+            .evaluate(ctx, <span class="string">"@root/is_toc_html"</span>)<span class="question-mark">?
+            </span>.as_json()
+            .as_bool()
+            .unwrap_or(<span class="bool-val">false</span>);
+
         out.write(<span class="string">"&lt;ol class=\"chapter\"&gt;"</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>current_level = <span class="number">1</span>;
-        <span class="comment">// The "index" page, which has this attribute set, is supposed to alias the first chapter in
-        // the book, i.e. the first link. There seems to be no easy way to determine which chapter
-        // the "index" is aliasing from within the renderer, so this is used instead to force the
-        // first link to be active. See further below.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>is_first_chapter = ctx.data().get(<span class="string">"is_index"</span>).is_some();
 
         <span class="kw">for </span>item <span class="kw">in </span>chapters {
-            <span class="kw">let </span>(section, level) = <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = item.get(<span class="string">"section"</span>) {
+            <span class="kw">let </span>(_section, level) = <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = item.get(<span class="string">"section"</span>) {
                 (s.as_str(), s.matches(<span class="string">'.'</span>).count())
             } <span class="kw">else </span>{
                 (<span class="string">""</span>, <span class="number">1</span>)
             };
 
-            <span class="kw">let </span>is_expanded =
-                <span class="kw">if </span>!fold_enable || (!section.is_empty() &amp;&amp; current_section.starts_with(section)) {
-                    <span class="comment">// Expand if folding is disabled, or if the section is an
-                    // ancestor or the current section itself.
-                    </span><span class="bool-val">true
-                </span>} <span class="kw">else </span>{
-                    <span class="comment">// Levels that are larger than this would be folded.
-                    </span>level - <span class="number">1 </span>&lt; fold_level <span class="kw">as </span>usize
-                };
+            <span class="comment">// Expand if folding is disabled, or if levels that are larger than this would not
+            // be folded.
+            </span><span class="kw">let </span>is_expanded = !fold_enable || level - <span class="number">1 </span>&lt; (fold_level <span class="kw">as </span>usize);
 
             <span class="kw">match </span>level.cmp(<span class="kw-2">&amp;</span>current_level) {
                 Ordering::Greater =&gt; {
@@ -334,7 +290,7 @@
             <span class="comment">// Part title
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(title) = item.get(<span class="string">"part"</span>) {
                 out.write(<span class="string">"&lt;li class=\"part-title\"&gt;"</span>)<span class="question-mark">?</span>;
-                out.write(<span class="kw-2">&amp;</span>bracket_escape(title))<span class="question-mark">?</span>;
+                out.write(<span class="kw-2">&amp;</span>special_escape(title))<span class="question-mark">?</span>;
                 out.write(<span class="string">"&lt;/li&gt;"</span>)<span class="question-mark">?</span>;
                 <span class="kw">continue</span>;
             }
@@ -352,16 +308,12 @@
                         </span>.replace(<span class="string">'\\'</span>, <span class="string">"/"</span>);
 
                     <span class="comment">// Add link
-                    </span>out.write(<span class="kw-2">&amp;</span>utils::fs::path_to_root(<span class="kw-2">&amp;</span>current_path))<span class="question-mark">?</span>;
-                    out.write(<span class="kw-2">&amp;</span>tmp)<span class="question-mark">?</span>;
-                    out.write(<span class="string">"\""</span>)<span class="question-mark">?</span>;
-
-                    <span class="kw">if </span>path == <span class="kw-2">&amp;</span>current_path || is_first_chapter {
-                        is_first_chapter = <span class="bool-val">false</span>;
-                        out.write(<span class="string">" class=\"active\""</span>)<span class="question-mark">?</span>;
-                    }
-
-                    out.write(<span class="string">"&gt;"</span>)<span class="question-mark">?</span>;
+                    </span>out.write(<span class="kw-2">&amp;</span>tmp)<span class="question-mark">?</span>;
+                    out.write(<span class="kw">if </span>is_toc_html {
+                        <span class="string">"\" target=\"_parent\"&gt;"
+                    </span>} <span class="kw">else </span>{
+                        <span class="string">"\"&gt;"
+                    </span>})<span class="question-mark">?</span>;
                     path_exists = <span class="bool-val">true</span>;
                 }
                 <span class="kw">_ </span>=&gt; {
@@ -380,7 +332,7 @@
             }
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = item.get(<span class="string">"name"</span>) {
-                out.write(<span class="kw-2">&amp;</span>bracket_escape(name))<span class="question-mark">?
+                out.write(<span class="kw-2">&amp;</span>special_escape(name))<span class="question-mark">?
             </span>}
 
             <span class="kw">if </span>path_exists {

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/unicase-2.7.0/src/unicode/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="unicase" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">unicase/unicode/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/unicase-2.8.1/src/unicode/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="unicase" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">unicase/unicode/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -198,8 +198,24 @@
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a></pre></div><pre class="rust"><code><span class="attr">#[cfg(__unicase__iter_cmp)]
-</span><span class="kw">use </span>core::cmp::Ordering;
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a></pre></div><pre class="rust"><code><span class="kw">use </span>alloc::string::String;
+<span class="kw">use </span>core::cmp::Ordering;
 <span class="kw">use </span>core::hash::{Hash, Hasher};
 
 <span class="kw">use </span><span class="self">self</span>::map::lookup;
@@ -207,6 +223,12 @@
 
 <span class="attr">#[derive(Clone, Copy, Debug, Default)]
 </span><span class="kw">pub struct </span>Unicode&lt;S&gt;(<span class="kw">pub </span>S);
+
+<span class="kw">impl</span>&lt;S: AsRef&lt;str&gt;&gt; Unicode&lt;S&gt; {
+    <span class="kw">pub fn </span>to_folded_case(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="self">self</span>.<span class="number">0</span>.as_ref().chars().flat_map(lookup).collect()
+    }
+}
 
 <span class="kw">impl</span>&lt;S1: AsRef&lt;str&gt;, S2: AsRef&lt;str&gt;&gt; PartialEq&lt;Unicode&lt;S2&gt;&gt; <span class="kw">for </span>Unicode&lt;S1&gt; {
     <span class="attr">#[inline]
@@ -235,16 +257,14 @@
 
 <span class="kw">impl</span>&lt;S: AsRef&lt;str&gt;&gt; Eq <span class="kw">for </span>Unicode&lt;S&gt; {}
 
-<span class="attr">#[cfg(__unicase__iter_cmp)]
-</span><span class="kw">impl</span>&lt;T: AsRef&lt;str&gt;&gt; PartialOrd <span class="kw">for </span>Unicode&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;str&gt;&gt; PartialOrd <span class="kw">for </span>Unicode&lt;T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
         <span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
     }
 }
 
-<span class="attr">#[cfg(__unicase__iter_cmp)]
-</span><span class="kw">impl</span>&lt;T: AsRef&lt;str&gt;&gt; Ord <span class="kw">for </span>Unicode&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;str&gt;&gt; Ord <span class="kw">for </span>Unicode&lt;T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
         <span class="kw">let </span>self_chars = <span class="self">self</span>.<span class="number">0</span>.as_ref().chars().flat_map(lookup);
@@ -259,8 +279,15 @@
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">4</span>];
         <span class="kw">for </span>c <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.as_ref().chars().flat_map(|c| lookup(c)) {
             <span class="kw">let </span>len = char_to_utf8(c, <span class="kw-2">&amp;mut </span>buf);
-            hasher.write(<span class="kw-2">&amp;</span>buf[..len])
+            <span class="comment">// we can't use `write(buf)` because the ASCII variant uses
+            // `write_u8`. The docs for Hash say that's technically different.
+            // ¯\_(ツ)_/¯
+            </span><span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span><span class="kw-2">&amp;</span>buf[..len] {
+                hasher.write_u8(b);
+            }
         }
+        <span class="comment">// prefix-freedom
+        </span>hasher.write_u8(<span class="number">0xFF</span>);
     }
 }
 
@@ -382,6 +409,11 @@
         <span class="macro">eq!</span>(<span class="string">"ﬂour"</span>, <span class="string">"flour"</span>);
         <span class="macro">eq!</span>(<span class="string">"Maße"</span>, <span class="string">"MASSE"</span>);
         <span class="macro">eq!</span>(<span class="string">"ᾲ στο διάολο"</span>, <span class="string">"ὰι στο διάολο"</span>);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_to_folded_case() {
+        <span class="macro">assert_eq!</span>(Unicode(<span class="string">"Maße"</span>).to_folded_case(), <span class="string">"masse"</span>);
     }
 
     <span class="attr">#[cfg(feature = <span class="string">"nightly"</span>)]

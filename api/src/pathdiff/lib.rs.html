@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pathdiff-0.2.1/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pathdiff" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">pathdiff/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pathdiff-0.2.3/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pathdiff" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">pathdiff/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -220,7 +220,37 @@
 <a href="#219" id="219">219</a>
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2012-2015 The Rust Project Developers. See the COPYRIGHT
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2012-2015 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
 // http://rust-lang.org/COPYRIGHT.
 //
@@ -233,6 +263,8 @@
 // Adapted from rustc's path_relative_from
 // https://github.com/rust-lang/rust/blob/e1d0de82cc40b666b88d4a6d2c9dcbc81d7ed27f/src/librustc_back/rpath.rs#L116-L158
 
+</span><span class="attr">#![cfg_attr(docsrs, feature(doc_cfg))]
+
 </span><span class="kw">use </span>std::path::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Construct a relative path from a provided base directory path to the provided path.
@@ -241,17 +273,24 @@
 /// use pathdiff::diff_paths;
 /// use std::path::*;
 ///
-/// let baz = "/foo/bar/baz";
-/// let bar = "/foo/bar";
-/// let quux = "/foo/bar/quux";
-/// assert_eq!(diff_paths(bar, baz), Some("../".into()));
-/// assert_eq!(diff_paths(baz, bar), Some("baz".into()));
-/// assert_eq!(diff_paths(quux, baz), Some("../quux".into()));
-/// assert_eq!(diff_paths(baz, quux), Some("../baz".into()));
-/// assert_eq!(diff_paths(bar, quux), Some("../".into()));
+/// assert_eq!(diff_paths("/foo/bar",      "/foo/bar/baz"),  Some("../".into()));
+/// assert_eq!(diff_paths("/foo/bar/baz",  "/foo/bar"),      Some("baz".into()));
+/// assert_eq!(diff_paths("/foo/bar/quux", "/foo/bar/baz"),  Some("../quux".into()));
+/// assert_eq!(diff_paths("/foo/bar/baz",  "/foo/bar/quux"), Some("../baz".into()));
+/// assert_eq!(diff_paths("/foo/bar",      "/foo/bar/quux"), Some("../".into()));
 ///
-/// assert_eq!(diff_paths(&amp;baz, &amp;bar.to_string()), Some("baz".into()));
-/// assert_eq!(diff_paths(Path::new(baz), Path::new(bar).to_path_buf()), Some("baz".into()));
+/// assert_eq!(diff_paths("/foo/bar",      "baz"),           Some("/foo/bar".into()));
+/// assert_eq!(diff_paths("/foo/bar",      "/baz"),          Some("../foo/bar".into()));
+/// assert_eq!(diff_paths("foo",           "bar"),           Some("../foo".into()));
+///
+/// assert_eq!(
+///     diff_paths(&amp;"/foo/bar/baz", "/foo/bar".to_string()),
+///     Some("baz".into())
+/// );
+/// assert_eq!(
+///     diff_paths(Path::new("/foo/bar/baz"), Path::new("/foo/bar").to_path_buf()),
+///     Some("baz".into())
+/// );
 /// ```
 </span><span class="kw">pub fn </span>diff_paths&lt;P, B&gt;(path: P, base: B) -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt;
 <span class="kw">where
@@ -304,22 +343,31 @@
 
     <span class="doccomment">/// Construct a relative UTF-8 path from a provided base directory path to the provided path.
     ///
+    /// Requires the `camino` feature.
+    ///
     /// ```rust
     /// # extern crate camino;
     /// use camino::*;
     /// use pathdiff::diff_utf8_paths;
     ///
-    /// let baz = "/foo/bar/baz";
-    /// let bar = "/foo/bar";
-    /// let quux = "/foo/bar/quux";
-    /// assert_eq!(diff_utf8_paths(bar, baz), Some("../".into()));
-    /// assert_eq!(diff_utf8_paths(baz, bar), Some("baz".into()));
-    /// assert_eq!(diff_utf8_paths(quux, baz), Some("../quux".into()));
-    /// assert_eq!(diff_utf8_paths(baz, quux), Some("../baz".into()));
-    /// assert_eq!(diff_utf8_paths(bar, quux), Some("../".into()));
+    /// assert_eq!(diff_utf8_paths("/foo/bar",      "/foo/bar/baz"),  Some("../".into()));
+    /// assert_eq!(diff_utf8_paths("/foo/bar/baz",  "/foo/bar"),      Some("baz".into()));
+    /// assert_eq!(diff_utf8_paths("/foo/bar/quux", "/foo/bar/baz"),  Some("../quux".into()));
+    /// assert_eq!(diff_utf8_paths("/foo/bar/baz",  "/foo/bar/quux"), Some("../baz".into()));
+    /// assert_eq!(diff_utf8_paths("/foo/bar",      "/foo/bar/quux"), Some("../".into()));
     ///
-    /// assert_eq!(diff_utf8_paths(&amp;baz, &amp;bar.to_string()), Some("baz".into()));
-    /// assert_eq!(diff_utf8_paths(Utf8Path::new(baz), Utf8Path::new(bar).to_path_buf()), Some("baz".into()));
+    /// assert_eq!(diff_utf8_paths("/foo/bar",      "baz"),           Some("/foo/bar".into()));
+    /// assert_eq!(diff_utf8_paths("/foo/bar",      "/baz"),          Some("../foo/bar".into()));
+    /// assert_eq!(diff_utf8_paths("foo",           "bar"),           Some("../foo".into()));
+    ///
+    /// assert_eq!(
+    ///     diff_utf8_paths(&amp;"/foo/bar/baz", "/foo/bar".to_string()),
+    ///     Some("baz".into())
+    /// );
+    /// assert_eq!(
+    ///     diff_utf8_paths(Utf8Path::new("/foo/bar/baz"), Utf8Path::new("/foo/bar").to_path_buf()),
+    ///     Some("baz".into())
+    /// );
     /// ```
     </span><span class="attr">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"camino"</span>)))]
     </span><span class="kw">pub fn </span>diff_utf8_paths&lt;P, B&gt;(path: P, base: B) -&gt; <span class="prelude-ty">Option</span>&lt;Utf8PathBuf&gt;
@@ -374,12 +422,24 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>cfg_if::cfg_if;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_absolute() {
-        assert_diff_paths(<span class="string">"/foo"</span>, <span class="string">"/bar"</span>, <span class="prelude-val">Some</span>(<span class="string">"../foo"</span>));
-        assert_diff_paths(<span class="string">"/foo"</span>, <span class="string">"bar"</span>, <span class="prelude-val">Some</span>(<span class="string">"/foo"</span>));
-        assert_diff_paths(<span class="string">"foo"</span>, <span class="string">"/bar"</span>, <span class="prelude-val">None</span>);
+        <span class="kw">fn </span>abs(path: <span class="kw-2">&amp;</span>str) -&gt; String {
+            <span class="comment">// Absolute paths look different on Windows vs Unix.
+            </span><span class="macro">cfg_if!</span> {
+                <span class="kw">if </span><span class="attr">#[cfg(windows)] </span>{
+                    <span class="macro">format!</span>(<span class="string">"C:\\{}"</span>, path)
+                } <span class="kw">else </span>{
+                    <span class="macro">format!</span>(<span class="string">"/{}"</span>, path)
+                }
+            }
+        }
+
+        assert_diff_paths(<span class="kw-2">&amp;</span>abs(<span class="string">"foo"</span>), <span class="kw-2">&amp;</span>abs(<span class="string">"bar"</span>), <span class="prelude-val">Some</span>(<span class="string">"../foo"</span>));
+        assert_diff_paths(<span class="kw-2">&amp;</span>abs(<span class="string">"foo"</span>), <span class="string">"bar"</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>abs(<span class="string">"foo"</span>)));
+        assert_diff_paths(<span class="string">"foo"</span>, <span class="kw-2">&amp;</span>abs(<span class="string">"bar"</span>), <span class="prelude-val">None</span>);
         assert_diff_paths(<span class="string">"foo"</span>, <span class="string">"bar"</span>, <span class="prelude-val">Some</span>(<span class="string">"../foo"</span>));
     }
 

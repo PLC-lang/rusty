@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/bstr-1.10.0/src/impls.rs`."><title>impls.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">bstr/</div>impls.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/bstr-1.11.3/src/impls.rs`."><title>impls.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">bstr/</div>impls.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1251,9 +1251,99 @@
 <a href="#1250" id="1250">1250</a>
 <a href="#1251" id="1251">1251</a>
 <a href="#1252" id="1252">1252</a>
-<a href="#1253" id="1253">1253</a></pre></div><pre class="rust"><code><span class="macro">macro_rules!</span> impl_partial_eq {
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a></pre></div><pre class="rust"><code><span class="macro">macro_rules!</span> impl_partial_eq {
     (<span class="macro-nonterminal">$lhs</span>:ty, <span class="macro-nonterminal">$rhs</span>:ty) =&gt; {
-        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$rhs</span>) -&gt; bool {
                 <span class="kw">let </span>other: <span class="kw-2">&amp;</span>[u8] = other.as_ref();
@@ -1261,7 +1351,27 @@
             }
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
+            <span class="attr">#[inline]
+            </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$lhs</span>) -&gt; bool {
+                <span class="kw">let </span>this: <span class="kw-2">&amp;</span>[u8] = <span class="self">self</span>.as_ref();
+                PartialEq::eq(this, other.as_bytes())
+            }
+        }
+    };
+}
+
+<span class="macro">macro_rules!</span> impl_partial_eq_n {
+    (<span class="macro-nonterminal">$lhs</span>:ty, <span class="macro-nonterminal">$rhs</span>:ty) =&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="kw">const </span>N: usize&gt; PartialEq&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
+            <span class="attr">#[inline]
+            </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$rhs</span>) -&gt; bool {
+                <span class="kw">let </span>other: <span class="kw-2">&amp;</span>[u8] = other.as_ref();
+                PartialEq::eq(<span class="self">self</span>.as_bytes(), other)
+            }
+        }
+
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="kw">const </span>N: usize&gt; PartialEq&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$lhs</span>) -&gt; bool {
                 <span class="kw">let </span>this: <span class="kw-2">&amp;</span>[u8] = <span class="self">self</span>.as_ref();
@@ -1274,7 +1384,7 @@
 <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="macro">macro_rules!</span> impl_partial_eq_cow {
     (<span class="macro-nonterminal">$lhs</span>:ty, <span class="macro-nonterminal">$rhs</span>:ty) =&gt; {
-        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$rhs</span>) -&gt; bool {
                 <span class="kw">let </span>other: <span class="kw-2">&amp;</span>[u8] = (<span class="kw-2">&amp;**</span>other).as_ref();
@@ -1282,11 +1392,11 @@
             }
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; PartialEq&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$lhs</span>) -&gt; bool {
-                <span class="kw">let </span>this: <span class="kw-2">&amp;</span>[u8] = (<span class="kw-2">&amp;**</span>other).as_ref();
-                PartialEq::eq(this, <span class="self">self</span>.as_bytes())
+                <span class="kw">let </span>this: <span class="kw-2">&amp;</span>[u8] = (<span class="kw-2">&amp;**</span><span class="self">self</span>).as_ref();
+                PartialEq::eq(this, other.as_bytes())
             }
         }
     };
@@ -1294,7 +1404,7 @@
 
 <span class="macro">macro_rules!</span> impl_partial_ord {
     (<span class="macro-nonterminal">$lhs</span>:ty, <span class="macro-nonterminal">$rhs</span>:ty) =&gt; {
-        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$rhs</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
                 <span class="kw">let </span>other: <span class="kw-2">&amp;</span>[u8] = other.as_ref();
@@ -1302,7 +1412,27 @@
             }
         }
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; PartialOrd&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
+            <span class="attr">#[inline]
+            </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$lhs</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+                <span class="kw">let </span>this: <span class="kw-2">&amp;</span>[u8] = <span class="self">self</span>.as_ref();
+                PartialOrd::partial_cmp(this, other.as_bytes())
+            }
+        }
+    };
+}
+
+<span class="macro">macro_rules!</span> impl_partial_ord_n {
+    (<span class="macro-nonterminal">$lhs</span>:ty, <span class="macro-nonterminal">$rhs</span>:ty) =&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="kw">const </span>N: usize&gt; PartialOrd&lt;<span class="macro-nonterminal">$rhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$lhs </span>{
+            <span class="attr">#[inline]
+            </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$rhs</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+                <span class="kw">let </span>other: <span class="kw-2">&amp;</span>[u8] = other.as_ref();
+                PartialOrd::partial_cmp(<span class="self">self</span>.as_bytes(), other)
+            }
+        }
+
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="kw">const </span>N: usize&gt; PartialOrd&lt;<span class="macro-nonterminal">$lhs</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$rhs </span>{
             <span class="attr">#[inline]
             </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$lhs</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
                 <span class="kw">let </span>this: <span class="kw-2">&amp;</span>[u8] = <span class="self">self</span>.as_ref();
@@ -1314,7 +1444,7 @@
 
 <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">mod </span>bstring {
-    <span class="kw">use </span>core::{cmp::Ordering, fmt, ops, str::FromStr};
+    <span class="kw">use </span>core::{cmp::Ordering, fmt, hash, ops, str::FromStr};
 
     <span class="kw">use </span>alloc::{
         borrow::{Borrow, BorrowMut, Cow, ToOwned},
@@ -1609,7 +1739,7 @@
     <span class="kw">impl </span>PartialEq <span class="kw">for </span>BString {
         <span class="attr">#[inline]
         </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>BString) -&gt; bool {
-            <span class="kw-2">&amp;</span><span class="self">self</span>[..] == <span class="kw-2">&amp;</span>other[..]
+            <span class="self">self</span>[..] == other[..]
         }
     }
 
@@ -1621,6 +1751,15 @@
     <span class="macro">impl_partial_eq!</span>(BString, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str);
     <span class="macro">impl_partial_eq!</span>(BString, BStr);
     <span class="macro">impl_partial_eq!</span>(BString, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>BStr);
+    <span class="macro">impl_partial_eq_n!</span>(BString, [u8; N]);
+    <span class="macro">impl_partial_eq_n!</span>(BString, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8; N]);
+
+    <span class="kw">impl </span>hash::Hash <span class="kw">for </span>BString {
+        <span class="attr">#[inline]
+        </span><span class="kw">fn </span>hash&lt;H: hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+            <span class="self">self</span>.as_bytes().hash(state);
+        }
+    }
 
     <span class="kw">impl </span>PartialOrd <span class="kw">for </span>BString {
         <span class="attr">#[inline]
@@ -1644,13 +1783,15 @@
     <span class="macro">impl_partial_ord!</span>(BString, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str);
     <span class="macro">impl_partial_ord!</span>(BString, BStr);
     <span class="macro">impl_partial_ord!</span>(BString, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>BStr);
+    <span class="macro">impl_partial_ord_n!</span>(BString, [u8; N]);
+    <span class="macro">impl_partial_ord_n!</span>(BString, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8; N]);
 }
 
 <span class="kw">mod </span>bstr {
     <span class="kw">use </span>core::{
         borrow::{Borrow, BorrowMut},
         cmp::Ordering,
-        fmt, ops,
+        fmt, hash, ops,
     };
 
     <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
@@ -1727,25 +1868,20 @@
             <span class="kw">for </span>(s, e, ch) <span class="kw">in </span><span class="self">self</span>.char_indices() {
                 <span class="kw">match </span>ch {
                     <span class="string">'\0' </span>=&gt; <span class="macro">write!</span>(f, <span class="string">"\\0"</span>)<span class="question-mark">?</span>,
+                    <span class="string">'\x01'</span>..=<span class="string">'\x7f' </span>=&gt; {
+                        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, (ch <span class="kw">as </span>u8).escape_ascii())<span class="question-mark">?</span>;
+                    }
                     <span class="string">'\u{FFFD}' </span>=&gt; {
                         <span class="kw">let </span>bytes = <span class="self">self</span>[s..e].as_bytes();
                         <span class="kw">if </span>bytes == <span class="string">b"\xEF\xBF\xBD" </span>{
                             <span class="macro">write!</span>(f, <span class="string">"{}"</span>, ch.escape_debug())<span class="question-mark">?</span>;
                         } <span class="kw">else </span>{
                             <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span><span class="self">self</span>[s..e].as_bytes() {
-                                <span class="macro">write!</span>(f, <span class="string">r"\x{:02X}"</span>, b)<span class="question-mark">?</span>;
+                                <span class="macro">write!</span>(f, <span class="string">"\\x{:02x}"</span>, b)<span class="question-mark">?</span>;
                             }
                         }
                     }
-                    <span class="comment">// ASCII control characters except \0, \n, \r, \t
-                    </span><span class="string">'\x01'</span>..=<span class="string">'\x08'
-                    </span>| <span class="string">'\x0b'
-                    </span>| <span class="string">'\x0c'
-                    </span>| <span class="string">'\x0e'</span>..=<span class="string">'\x19'
-                    </span>| <span class="string">'\x7f' </span>=&gt; {
-                        <span class="macro">write!</span>(f, <span class="string">"\\x{:02x}"</span>, ch <span class="kw">as </span>u32)<span class="question-mark">?</span>;
-                    }
-                    <span class="string">'\n' </span>| <span class="string">'\r' </span>| <span class="string">'\t' </span>| <span class="kw">_ </span>=&gt; {
+                    <span class="kw">_ </span>=&gt; {
                         <span class="macro">write!</span>(f, <span class="string">"{}"</span>, ch.escape_debug())<span class="question-mark">?</span>;
                     }
                 }
@@ -2064,6 +2200,8 @@
     <span class="macro">impl_partial_eq!</span>(BStr, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]);
     <span class="macro">impl_partial_eq!</span>(BStr, str);
     <span class="macro">impl_partial_eq!</span>(BStr, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str);
+    <span class="macro">impl_partial_eq_n!</span>(BStr, [u8; N]);
+    <span class="macro">impl_partial_eq_n!</span>(BStr, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8; N]);
 
     <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
     </span><span class="macro">impl_partial_eq!</span>(BStr, Vec&lt;u8&gt;);
@@ -2079,6 +2217,13 @@
     </span><span class="macro">impl_partial_eq_cow!</span>(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>BStr, Cow&lt;<span class="lifetime">'a</span>, str&gt;);
     <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
     </span><span class="macro">impl_partial_eq_cow!</span>(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>BStr, Cow&lt;<span class="lifetime">'a</span>, [u8]&gt;);
+
+    <span class="kw">impl </span>hash::Hash <span class="kw">for </span>BStr {
+        <span class="attr">#[inline]
+        </span><span class="kw">fn </span>hash&lt;H: hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+            <span class="self">self</span>.as_bytes().hash(state);
+        }
+    }
 
     <span class="kw">impl </span>PartialOrd <span class="kw">for </span>BStr {
         <span class="attr">#[inline]
@@ -2098,6 +2243,8 @@
     <span class="macro">impl_partial_ord!</span>(BStr, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]);
     <span class="macro">impl_partial_ord!</span>(BStr, str);
     <span class="macro">impl_partial_ord!</span>(BStr, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str);
+    <span class="macro">impl_partial_ord_n!</span>(BStr, [u8; N]);
+    <span class="macro">impl_partial_ord_n!</span>(BStr, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8; N]);
 
     <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
     </span><span class="macro">impl_partial_ord!</span>(BStr, Vec&lt;u8&gt;);
@@ -2481,10 +2628,23 @@
     // replacement codepoint, then we emit the codepoint just like other
     // non-printable Unicode characters.
     </span><span class="macro">assert_eq!</span>(
-        <span class="string">b"\"\\xFF\xEF\xBF\xBD\\xFF\""</span>.as_bstr(),
+        <span class="string">b"\"\\xff\xef\xbf\xbd\\xff\""</span>.as_bstr(),
         <span class="comment">// Before fixing #72, the output here would be:
         //   \\xFF\\xEF\\xBF\\xBD\\xFF
-        </span>B(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{:?}"</span>, <span class="string">b"\xFF\xEF\xBF\xBD\xFF"</span>.as_bstr())).as_bstr(),
+        </span>B(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{:?}"</span>, <span class="string">b"\xff\xef\xbf\xbd\xff"</span>.as_bstr())).as_bstr(),
+    );
+
+    <span class="comment">// Tests that all ASCII control characters are in lower case.
+    </span><span class="macro">assert_eq!</span>(
+        <span class="string">b"\"\\xed\\xa0\\x80Aa\\x7f\\x0b\""</span>.as_bstr(),
+        <span class="comment">// Before fixing #188, the output here would be:
+        //   \\xED\\xA0\\x80Aa\\x7f\\x0b
+        </span>B(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{:?}"</span>, <span class="string">b"\xed\xa0\x80Aa\x7f\x0b"</span>.as_bstr())).as_bstr(),
+    );
+
+    <span class="macro">assert_eq!</span>(
+        <span class="string">r#""\0\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x11\x12\r\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f \x7f\x80\x81\xfe\xff""#</span>,
+        <span class="macro">format!</span>(<span class="string">"{:?}"</span>, <span class="string">b"\0\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x11\x12\r\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f \x7f\x80\x81\xfe\xff"</span>.as_bstr()),
     );
 }
 
@@ -2503,5 +2663,25 @@
     <span class="kw">let </span>c3 = Cow::from(<span class="string">"hello str"</span>);
     <span class="kw">let </span>c4 = <span class="string">"goodbye str"</span>;
     <span class="macro">assert_ne!</span>(c3, c4);
+}
+
+<span class="attr">#[test]
+#[cfg(feature = <span class="string">"alloc"</span>)]
+</span><span class="kw">fn </span>test_eq_ord() {
+    <span class="kw">use </span>core::cmp::Ordering;
+
+    <span class="kw">use crate</span>::{BStr, BString};
+
+    <span class="kw">let </span>b = BStr::new(<span class="string">"hello"</span>);
+    <span class="macro">assert_eq!</span>(b, <span class="string">b"hello"</span>);
+    <span class="macro">assert_ne!</span>(b, <span class="string">b"world"</span>);
+    <span class="macro">assert_eq!</span>(b.partial_cmp(<span class="string">b"hello"</span>), <span class="prelude-val">Some</span>(Ordering::Equal));
+    <span class="macro">assert_eq!</span>(b.partial_cmp(<span class="string">b"world"</span>), <span class="prelude-val">Some</span>(Ordering::Less));
+
+    <span class="kw">let </span>b = BString::from(<span class="string">"hello"</span>);
+    <span class="macro">assert_eq!</span>(b, <span class="string">b"hello"</span>);
+    <span class="macro">assert_ne!</span>(b, <span class="string">b"world"</span>);
+    <span class="macro">assert_eq!</span>(b.partial_cmp(<span class="string">b"hello"</span>), <span class="prelude-val">Some</span>(Ordering::Equal));
+    <span class="macro">assert_eq!</span>(b.partial_cmp(<span class="string">b"world"</span>), <span class="prelude-val">Some</span>(Ordering::Less));
 }
 </code></pre></div></section></main></body></html>

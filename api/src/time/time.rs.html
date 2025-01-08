@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.36/src/time.rs`."><title>time.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/</div>time.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.37/src/time.rs`."><title>time.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/</div>time.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -950,7 +950,14 @@
 <a href="#949" id="949">949</a>
 <a href="#950" id="950">950</a>
 <a href="#951" id="951">951</a>
-<a href="#952" id="952">952</a></pre></div><pre class="rust"><code><span class="doccomment">//! The [`Time`] struct and its associated `impl`s.
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a></pre></div><pre class="rust"><code><span class="doccomment">//! The [`Time`] struct and its associated `impl`s.
 
 </span><span class="attr">#[cfg(feature = <span class="string">"formatting"</span>)]
 </span><span class="kw">use </span>alloc::string::String;
@@ -1095,25 +1102,26 @@
         ]);
     }
 
-    <span class="doccomment">/// Create a `Time` that is exactly midnight.
+    <span class="doccomment">/// A `Time` that is exactly midnight. This is the smallest possible value for a `Time`.
     ///
     /// ```rust
     /// # use time::Time;
     /// # use time_macros::time;
     /// assert_eq!(Time::MIDNIGHT, time!(0:00));
     /// ```
-    </span><span class="kw">pub const </span>MIDNIGHT: <span class="self">Self </span>= <span class="self">Self</span>::MIN;
-
-    <span class="doccomment">/// The smallest value that can be represented by `Time`.
-    ///
-    /// `00:00:00.0`
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MIN: <span class="self">Self </span>=
+    </span><span class="attr">#[doc(alias = <span class="string">"MIN"</span>)]
+    </span><span class="kw">pub const </span>MIDNIGHT: <span class="self">Self </span>=
         <span class="self">Self</span>::from_hms_nanos_ranged(Hours::MIN, Minutes::MIN, Seconds::MIN, Nanoseconds::MIN);
 
-    <span class="doccomment">/// The largest value that can be represented by `Time`.
+    <span class="doccomment">/// A `Time` that is one nanosecond before midnight. This is the largest possible value for a
+    /// `Time`.
     ///
-    /// `23:59:59.999_999_999`
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX: <span class="self">Self </span>=
+    /// ```rust
+    /// # use time::Time;
+    /// # use time_macros::time;
+    /// assert_eq!(Time::MAX, time!(23:59:59.999_999_999));
+    /// ```
+    </span><span class="kw">pub const </span>MAX: <span class="self">Self </span>=
         <span class="self">Self</span>::from_hms_nanos_ranged(Hours::MAX, Minutes::MAX, Seconds::MAX, Nanoseconds::MAX);
 
     <span class="comment">// region: constructors
@@ -1611,7 +1619,9 @@
     ///     time!(01:02:03.004_005_006).replace_millisecond(7),
     ///     Ok(time!(01:02:03.007))
     /// );
-    /// assert!(time!(01:02:03.004_005_006).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
+    /// assert!(time!(01:02:03.004_005_006)
+    ///     .replace_millisecond(1_000)
+    ///     .is_err()); // 1_000 isn't a valid millisecond
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `Time`."</span>]
     </span><span class="kw">pub const fn </span>replace_millisecond(
@@ -1631,7 +1641,9 @@
     ///     time!(01:02:03.004_005_006).replace_microsecond(7_008),
     ///     Ok(time!(01:02:03.007_008))
     /// );
-    /// assert!(time!(01:02:03.004_005_006).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
+    /// assert!(time!(01:02:03.004_005_006)
+    ///     .replace_microsecond(1_000_000)
+    ///     .is_err()); // 1_000_000 isn't a valid microsecond
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `Time`."</span>]
     </span><span class="kw">pub const fn </span>replace_microsecond(
@@ -1651,7 +1663,9 @@
     ///     time!(01:02:03.004_005_006).replace_nanosecond(7_008_009),
     ///     Ok(time!(01:02:03.007_008_009))
     /// );
-    /// assert!(time!(01:02:03.004_005_006).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
+    /// assert!(time!(01:02:03.004_005_006)
+    ///     .replace_nanosecond(1_000_000_000)
+    ///     .is_err()); // 1_000_000_000 isn't a valid nanosecond
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `Time`."</span>]
     </span><span class="kw">pub const fn </span>replace_nanosecond(

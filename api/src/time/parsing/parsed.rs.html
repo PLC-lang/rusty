@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.36/src/parsing/parsed.rs`."><title>parsed.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/parsing/</div>parsed.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.37/src/parsing/parsed.rs`."><title>parsed.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/parsing/</div>parsed.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -901,13 +901,160 @@
 <a href="#900" id="900">900</a>
 <a href="#901" id="901">901</a>
 <a href="#902" id="902">902</a>
-<a href="#903" id="903">903</a></pre></div><pre class="rust"><code><span class="doccomment">//! Information parsed from an input and format description.
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a></pre></div><pre class="rust"><code><span class="doccomment">//! Information parsed from an input and format description.
 
 </span><span class="kw">use </span>core::num::{NonZeroU16, NonZeroU8};
 
 <span class="kw">use </span>deranged::{
-    OptionRangedI128, OptionRangedI32, OptionRangedI8, OptionRangedU16, OptionRangedU32,
-    OptionRangedU8, RangedI128, RangedI32, RangedI8, RangedU16, RangedU32, RangedU8,
+    OptionRangedI128, OptionRangedI16, OptionRangedI32, OptionRangedI8, OptionRangedU16,
+    OptionRangedU32, OptionRangedU8, RangedI128, RangedI16, RangedI32, RangedI8, RangedU16,
+    RangedU32, RangedU8,
 };
 <span class="kw">use </span>num_conv::prelude::<span class="kw-2">*</span>;
 
@@ -1018,10 +1165,14 @@
 </span><span class="kw">pub struct </span>Parsed {
     <span class="doccomment">/// Calendar year.
     </span>year: OptionRangedI32&lt;{ MIN_YEAR }, { MAX_YEAR }&gt;,
+    <span class="doccomment">/// All digits except the last two of the calendar year.
+    </span>year_century: OptionRangedI16&lt;{ (MIN_YEAR / <span class="number">100</span>) <span class="kw">as </span>i16 }, { (MAX_YEAR / <span class="number">100</span>) <span class="kw">as </span>i16 }&gt;,
     <span class="doccomment">/// The last two digits of the calendar year.
     </span>year_last_two: OptionRangedU8&lt;<span class="number">0</span>, <span class="number">99</span>&gt;,
     <span class="doccomment">/// Year of the [ISO week date](https://en.wikipedia.org/wiki/ISO_week_date).
     </span>iso_year: OptionRangedI32&lt;{ MIN_YEAR }, { MAX_YEAR }&gt;,
+    <span class="doccomment">/// All digits except the last two of the ISO week year.
+    </span>iso_year_century: OptionRangedI16&lt;{ (MIN_YEAR / <span class="number">100</span>) <span class="kw">as </span>i16 }, { (MAX_YEAR / <span class="number">100</span>) <span class="kw">as </span>i16 }&gt;,
     <span class="doccomment">/// The last two digits of the ISO week year.
     </span>iso_year_last_two: OptionRangedU8&lt;<span class="number">0</span>, <span class="number">99</span>&gt;,
     <span class="doccomment">/// Month of the year.
@@ -1046,7 +1197,6 @@
     <span class="doccomment">/// Whether the `hour_12` field indicates a time that "PM".
     </span>hour_12_is_pm: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     <span class="doccomment">/// Minute within the hour.
-    </span><span class="comment">// minute: MaybeUninit&lt;u8&gt;,
     </span>minute: OptionRangedU8&lt;<span class="number">0</span>, { Minute::per(Hour) - <span class="number">1 </span>}&gt;,
     <span class="doccomment">/// Second within the minute.
     </span><span class="comment">// do not subtract one, as leap seconds may be allowed
@@ -1074,7 +1224,13 @@
     &gt;,
     <span class="doccomment">/// Indicates whether the [`UtcOffset`] is negative. This information is obtained when parsing
     /// the offset hour, but may not otherwise be stored due to "-0" being equivalent to "0".
-    </span>offset_is_negative: <span class="prelude-ty">Option</span>&lt;bool&gt;,
+    </span>offset_is_negative: bool,
+    <span class="doccomment">/// Indicates whether the `year_century` component is negative. This information is obtained
+    /// when parsing, but may not otherwise be stored due to "-0" being equivalent to "0".
+    </span>year_century_is_negative: bool,
+    <span class="doccomment">/// Indicates whether the `iso_year_century` component is negative. This information is
+    /// obtained when parsing, but may not otherwise be stored due to "-0" being equivalent to "0".
+    </span>iso_year_century_is_negative: bool,
     <span class="doccomment">/// Indicates whether a leap second is permitted to be parsed. This is required by some
     /// well-known formats.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) leap_second_allowed: bool,
@@ -1091,8 +1247,10 @@
     </span><span class="kw">pub const fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             year: OptionRangedI32::None,
+            year_century: OptionRangedI16::None,
             year_last_two: OptionRangedU8::None,
             iso_year: OptionRangedI32::None,
+            iso_year_century: OptionRangedI16::None,
             iso_year_last_two: OptionRangedU8::None,
             month: <span class="prelude-val">None</span>,
             sunday_week_number: OptionRangedU8::None,
@@ -1111,7 +1269,9 @@
             offset_minute: OptionRangedI8::None,
             offset_second: OptionRangedI8::None,
             unix_timestamp_nanos: OptionRangedI128::None,
-            offset_is_negative: <span class="prelude-val">None</span>,
+            offset_is_negative: <span class="bool-val">false</span>,
+            year_century_is_negative: <span class="bool-val">false</span>,
+            iso_year_century_is_negative: <span class="bool-val">false</span>,
             leap_second_allowed: <span class="bool-val">false</span>,
         }
     }
@@ -1195,14 +1355,20 @@
                 <span class="prelude-val">Ok</span>(remaining)
             }
             Component::Year(modifiers) =&gt; {
-                <span class="kw">let </span>ParsedItem(remaining, value) =
+                <span class="kw">let </span>ParsedItem(remaining, (value, is_negative)) =
                     parse_year(input, modifiers).ok_or(InvalidComponent(<span class="string">"year"</span>))<span class="question-mark">?</span>;
                 <span class="kw">match </span>(modifiers.iso_week_based, modifiers.repr) {
                     (<span class="bool-val">false</span>, modifier::YearRepr::Full) =&gt; <span class="self">self</span>.set_year(value),
+                    (<span class="bool-val">false</span>, modifier::YearRepr::Century) =&gt; {
+                        <span class="self">self</span>.set_year_century(value.truncate(), is_negative)
+                    }
                     (<span class="bool-val">false</span>, modifier::YearRepr::LastTwo) =&gt; {
                         <span class="self">self</span>.set_year_last_two(value.cast_unsigned().truncate())
                     }
                     (<span class="bool-val">true</span>, modifier::YearRepr::Full) =&gt; <span class="self">self</span>.set_iso_year(value),
+                    (<span class="bool-val">true</span>, modifier::YearRepr::Century) =&gt; {
+                        <span class="self">self</span>.set_iso_year_century(value.truncate(), is_negative)
+                    }
                     (<span class="bool-val">true</span>, modifier::YearRepr::LastTwo) =&gt; {
                         <span class="self">self</span>.set_iso_year_last_two(value.cast_unsigned().truncate())
                     }
@@ -1239,7 +1405,7 @@
                 .and_then(|parsed| {
                     parsed.consume_value(|(value, is_negative)| {
                         <span class="self">self</span>.set_offset_hour(value)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.offset_is_negative = <span class="prelude-val">Some</span>(is_negative);
+                        <span class="self">self</span>.offset_is_negative = is_negative;
                         <span class="prelude-val">Some</span>(())
                     })
                 })
@@ -1276,6 +1442,25 @@
         <span class="self">self</span>.year.get_primitive()
     }
 
+    <span class="doccomment">/// Obtain the `year_century` component.
+    ///
+    /// If the year is zero, the sign of the century is not stored. To differentiate between
+    /// positive and negative zero, use `year_century_is_negative`.
+    </span><span class="kw">pub const fn </span>year_century(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i16&gt; {
+        <span class="self">self</span>.year_century.get_primitive()
+    }
+
+    <span class="doccomment">/// Obtain the `year_century_is_negative` component.
+    ///
+    /// This indicates whether the value returned from `year_century` is negative. If the year is
+    /// zero, it is necessary to call this method for disambiguation.
+    </span><span class="kw">pub const fn </span>year_century_is_negative(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
+        <span class="kw">match </span><span class="self">self</span>.year_century() {
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.year_century_is_negative),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="doccomment">/// Obtain the `year_last_two` component.
     </span><span class="kw">pub const fn </span>year_last_two(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u8&gt; {
         <span class="self">self</span>.year_last_two.get_primitive()
@@ -1284,6 +1469,25 @@
     <span class="doccomment">/// Obtain the `iso_year` component.
     </span><span class="kw">pub const fn </span>iso_year(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i32&gt; {
         <span class="self">self</span>.iso_year.get_primitive()
+    }
+
+    <span class="doccomment">/// Obtain the `iso_year_century` component.
+    ///
+    /// If the year is zero, the sign of the century is not stored. To differentiate between
+    /// positive and negative zero, use `iso_year_century_is_negative`.
+    </span><span class="kw">pub const fn </span>iso_year_century(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i16&gt; {
+        <span class="self">self</span>.iso_year_century.get_primitive()
+    }
+
+    <span class="doccomment">/// Obtain the `iso_year_century_is_negative` component.
+    ///
+    /// This indicates whether the value returned from `iso_year_century` is negative. If the year
+    /// is zero, it is necessary to call this method for disambiguation.
+    </span><span class="kw">pub const fn </span>iso_year_century_is_negative(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
+        <span class="kw">match </span><span class="self">self</span>.iso_year_century() {
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.iso_year_century_is_negative),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
+        }
     }
 
     <span class="doccomment">/// Obtain the `iso_year_last_two` component.
@@ -1371,7 +1575,7 @@
     <span class="doccomment">/// Obtain the `offset_minute` component.
     </span><span class="kw">pub const fn </span>offset_minute_signed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i8&gt; {
         <span class="kw">match </span>(<span class="self">self</span>.offset_minute.get_primitive(), <span class="self">self</span>.offset_is_negative) {
-            (<span class="prelude-val">Some</span>(offset_minute), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Some</span>(-offset_minute),
+            (<span class="prelude-val">Some</span>(offset_minute), <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(-offset_minute),
             (<span class="prelude-val">Some</span>(offset_minute), <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(offset_minute),
             (<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
@@ -1387,7 +1591,7 @@
     <span class="doccomment">/// Obtain the `offset_second` component.
     </span><span class="kw">pub const fn </span>offset_second_signed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i8&gt; {
         <span class="kw">match </span>(<span class="self">self</span>.offset_second.get_primitive(), <span class="self">self</span>.offset_is_negative) {
-            (<span class="prelude-val">Some</span>(offset_second), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Some</span>(-offset_second),
+            (<span class="prelude-val">Some</span>(offset_second), <span class="bool-val">true</span>) =&gt; <span class="prelude-val">Some</span>(-offset_second),
             (<span class="prelude-val">Some</span>(offset_second), <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(offset_second),
             (<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
@@ -1417,9 +1621,43 @@
 </span><span class="kw">impl </span>Parsed {
     <span class="macro">setters!</span> {
         year set_year with_year i32;
+    }
+
+    <span class="doccomment">/// Set the `year_century` component.
+    ///
+    /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
+    /// the sign is inferred from the value.
+    </span><span class="kw">pub fn </span>set_year_century(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i16, is_negative: bool) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+        <span class="self">self</span>.year_century = OptionRangedI16::Some(<span class="macro">const_try_opt!</span>(RangedI16::new(value)));
+        <span class="kw">if </span>value != <span class="number">0 </span>{
+            <span class="self">self</span>.year_century_is_negative = value.is_negative();
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.year_century_is_negative = is_negative;
+        }
+        <span class="prelude-val">Some</span>(())
+    }
+
+    <span class="macro">setters!</span> {
         year_last_two set_year_last_two with_year_last_two u8;
         iso_year set_iso_year with_iso_year i32;
         iso_year_last_two set_iso_year_last_two with_iso_year_last_two u8;
+    }
+
+    <span class="doccomment">/// Set the `iso_year_century` component.
+    ///
+    /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
+    /// the sign is inferred from the value.
+    </span><span class="kw">pub fn </span>set_iso_year_century(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i16, is_negative: bool) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+        <span class="self">self</span>.iso_year_century = OptionRangedI16::Some(<span class="macro">const_try_opt!</span>(RangedI16::new(value)));
+        <span class="kw">if </span>value != <span class="number">0 </span>{
+            <span class="self">self</span>.iso_year_century_is_negative = value.is_negative();
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.iso_year_century_is_negative = is_negative;
+        }
+        <span class="prelude-val">Some</span>(())
+    }
+
+    <span class="macro">setters!</span> {
         month set_month with_month Month;
         sunday_week_number set_sunday_week_number with_sunday_week_number u8;
         monday_week_number set_monday_week_number with_monday_week_number u8;
@@ -1479,6 +1717,20 @@
         <span class="prelude-val">Some</span>(<span class="self">self</span>)
     }
 
+    <span class="doccomment">/// Set the `year_century` component and return `self`.
+    ///
+    /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
+    /// the sign is inferred from the value.
+    </span><span class="kw">pub const fn </span>with_year_century(<span class="kw-2">mut </span><span class="self">self</span>, value: i16, is_negative: bool) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="self">self</span>.year_century = OptionRangedI16::Some(<span class="macro">const_try_opt!</span>(RangedI16::new(value)));
+        <span class="kw">if </span>value != <span class="number">0 </span>{
+            <span class="self">self</span>.year_century_is_negative = value.is_negative();
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.year_century_is_negative = is_negative;
+        }
+        <span class="prelude-val">Some</span>(<span class="self">self</span>)
+    }
+
     <span class="doccomment">/// Set the `year_last_two` component and return `self`.
     </span><span class="kw">pub const fn </span>with_year_last_two(<span class="kw-2">mut </span><span class="self">self</span>, value: u8) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="self">self</span>.year_last_two = OptionRangedU8::Some(<span class="macro">const_try_opt!</span>(RangedU8::new(value)));
@@ -1488,6 +1740,20 @@
     <span class="doccomment">/// Set the `iso_year` component and return `self`.
     </span><span class="kw">pub const fn </span>with_iso_year(<span class="kw-2">mut </span><span class="self">self</span>, value: i32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="self">self</span>.iso_year = OptionRangedI32::Some(<span class="macro">const_try_opt!</span>(RangedI32::new(value)));
+        <span class="prelude-val">Some</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Set the `iso_year_century` component and return `self`.
+    ///
+    /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
+    /// the sign is inferred from the value.
+    </span><span class="kw">pub const fn </span>with_iso_year_century(<span class="kw-2">mut </span><span class="self">self</span>, value: i16, is_negative: bool) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="self">self</span>.iso_year_century = OptionRangedI16::Some(<span class="macro">const_try_opt!</span>(RangedI16::new(value)));
+        <span class="kw">if </span>value != <span class="number">0 </span>{
+            <span class="self">self</span>.iso_year_century_is_negative = value.is_negative();
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.iso_year_century_is_negative = is_negative;
+        }
         <span class="prelude-val">Some</span>(<span class="self">self</span>)
     }
 
@@ -1631,7 +1897,7 @@
 <span class="kw">impl </span>TryFrom&lt;Parsed&gt; <span class="kw">for </span>Date {
     <span class="kw">type </span>Error = error::TryFromParsed;
 
-    <span class="kw">fn </span>try_from(parsed: Parsed) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>try_from(<span class="kw-2">mut </span>parsed: Parsed) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="doccomment">/// Match on the components that need to be present.
         </span><span class="macro">macro_rules!</span> match_ {
             (<span class="kw">_ </span>=&gt; <span class="macro-nonterminal">$catch_all</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
@@ -1661,10 +1927,36 @@
             }
         }
 
-        <span class="comment">// TODO Only the basics have been covered. There are many other valid values that are not
-        // currently constructed from the information known.
+        <span class="comment">// If we do not have the year but we have *both* the century and the last two digits, we can
+        // construct the year. Likewise for the ISO year.
+        </span><span class="kw">if let </span>(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(century), <span class="prelude-val">Some</span>(is_negative), <span class="prelude-val">Some</span>(last_two)) = (
+            parsed.year(),
+            parsed.year_century(),
+            parsed.year_century_is_negative(),
+            parsed.year_last_two(),
+        ) {
+            <span class="kw">let </span>year = <span class="kw">if </span>is_negative {
+                <span class="number">100 </span>* century.extend::&lt;i32&gt;() - last_two.cast_signed().extend::&lt;i32&gt;()
+            } <span class="kw">else </span>{
+                <span class="number">100 </span>* century.extend::&lt;i32&gt;() + last_two.cast_signed().extend::&lt;i32&gt;()
+            };
+            parsed.year = OptionRangedI32::from(RangedI32::new(year));
+        }
+        <span class="kw">if let </span>(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(century), <span class="prelude-val">Some</span>(is_negative), <span class="prelude-val">Some</span>(last_two)) = (
+            parsed.iso_year(),
+            parsed.iso_year_century(),
+            parsed.iso_year_century_is_negative(),
+            parsed.iso_year_last_two(),
+        ) {
+            <span class="kw">let </span>iso_year = <span class="kw">if </span>is_negative {
+                <span class="number">100 </span>* century.extend::&lt;i32&gt;() - last_two.cast_signed().extend::&lt;i32&gt;()
+            } <span class="kw">else </span>{
+                <span class="number">100 </span>* century.extend::&lt;i32&gt;() + last_two.cast_signed().extend::&lt;i32&gt;()
+            };
+            parsed.iso_year = OptionRangedI32::from(RangedI32::new(iso_year));
+        }
 
-        </span><span class="macro">match_!</span> {
+        <span class="macro">match_!</span> {
             (year, ordinal) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from_ordinal_date(year, ordinal.get())<span class="question-mark">?</span>),
             (year, month, day) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from_calendar_date(year, month, day.get())<span class="question-mark">?</span>),
             (iso_year, iso_week_number, weekday) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from_iso_week_date(

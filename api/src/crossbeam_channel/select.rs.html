@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/crossbeam-channel-0.5.13/src/select.rs`."><title>select.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="crossbeam_channel" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">crossbeam_channel/</div>select.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/crossbeam-channel-0.5.14/src/select.rs`."><title>select.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="crossbeam_channel" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">crossbeam_channel/</div>select.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1271,7 +1271,33 @@
 <a href="#1270" id="1270">1270</a>
 <a href="#1271" id="1271">1271</a>
 <a href="#1272" id="1272">1272</a>
-<a href="#1273" id="1273">1273</a></pre></div><pre class="rust"><code><span class="doccomment">//! Interface to the select mechanism.
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a></pre></div><pre class="rust"><code><span class="doccomment">//! Interface to the select mechanism.
 
 </span><span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::marker::PhantomData;
@@ -1884,6 +1910,9 @@
 
     <span class="doccomment">/// The next index to assign to an operation.
     </span>next_index: usize,
+
+    <span class="doccomment">/// Whether to use the index of handles as bias for selecting ready operations.
+    </span>biased: bool,
 }
 
 <span class="kw">unsafe impl </span>Send <span class="kw">for </span>Select&lt;<span class="lifetime">'_</span>&gt; {}
@@ -1906,6 +1935,28 @@
         Select {
             handles: Vec::with_capacity(<span class="number">4</span>),
             next_index: <span class="number">0</span>,
+            biased: <span class="bool-val">false</span>,
+        }
+    }
+
+    <span class="doccomment">/// Creates an empty list of channel operations with biased selection.
+    ///
+    /// When multiple handles are ready, this will select the operation with the lowest index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crossbeam_channel::Select;
+    ///
+    /// let mut sel = Select::new_biased();
+    ///
+    /// // The list of operations is empty, which means no operation can be selected.
+    /// assert!(sel.try_select().is_err());
+    /// ```
+    </span><span class="kw">pub fn </span>new_biased() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            biased: <span class="bool-val">true</span>,
+            ..Default::default()
         }
     }
 
@@ -2047,7 +2098,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>try_select(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;SelectedOperation&lt;<span class="lifetime">'a</span>&gt;, TrySelectError&gt; {
-        try_select(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, <span class="bool-val">false</span>)
+        try_select(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, <span class="self">self</span>.biased)
     }
 
     <span class="doccomment">/// Blocks until one of the operations becomes ready and selects it.
@@ -2094,7 +2145,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>select(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SelectedOperation&lt;<span class="lifetime">'a</span>&gt; {
-        select(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, <span class="bool-val">false</span>)
+        select(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, <span class="self">self</span>.biased)
     }
 
     <span class="doccomment">/// Blocks for a limited time until one of the operations becomes ready and selects it.
@@ -2144,7 +2195,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         timeout: Duration,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;SelectedOperation&lt;<span class="lifetime">'a</span>&gt;, SelectTimeoutError&gt; {
-        select_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, timeout, <span class="bool-val">false</span>)
+        select_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, timeout, <span class="self">self</span>.biased)
     }
 
     <span class="doccomment">/// Blocks until a given deadline, or until one of the operations becomes ready and selects it.
@@ -2196,7 +2247,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         deadline: Instant,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;SelectedOperation&lt;<span class="lifetime">'a</span>&gt;, SelectTimeoutError&gt; {
-        select_deadline(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, deadline, <span class="bool-val">false</span>)
+        select_deadline(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, deadline, <span class="self">self</span>.biased)
     }
 
     <span class="doccomment">/// Attempts to find a ready operation without blocking.
@@ -2235,7 +2286,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>try_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;usize, TryReadyError&gt; {
-        <span class="kw">match </span>run_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, Timeout::Now, <span class="bool-val">false</span>) {
+        <span class="kw">match </span>run_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, Timeout::Now, <span class="self">self</span>.biased) {
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(TryReadyError),
             <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(index),
         }
@@ -2288,7 +2339,7 @@
             <span class="macro">panic!</span>(<span class="string">"no operations have been added to `Select`"</span>);
         }
 
-        run_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, Timeout::Never, <span class="bool-val">false</span>).unwrap()
+        run_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, Timeout::Never, <span class="self">self</span>.biased).unwrap()
     }
 
     <span class="doccomment">/// Blocks for a limited time until one of the operations becomes ready.
@@ -2381,7 +2432,7 @@
     /// }
     /// ```
     </span><span class="kw">pub fn </span>ready_deadline(<span class="kw-2">&amp;mut </span><span class="self">self</span>, deadline: Instant) -&gt; <span class="prelude-ty">Result</span>&lt;usize, ReadyTimeoutError&gt; {
-        <span class="kw">match </span>run_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, Timeout::At(deadline), <span class="bool-val">false</span>) {
+        <span class="kw">match </span>run_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>.handles, Timeout::At(deadline), <span class="self">self</span>.biased) {
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(ReadyTimeoutError),
             <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(index),
         }
@@ -2393,6 +2444,7 @@
         Select {
             handles: <span class="self">self</span>.handles.clone(),
             next_index: <span class="self">self</span>.next_index,
+            biased: <span class="self">self</span>.biased,
         }
     }
 }

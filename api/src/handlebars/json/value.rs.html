@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-5.1.2/src/json/value.rs`."><title>value.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/json/</div>value.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-6.3.0/src/json/value.rs`."><title>value.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/json/</div>value.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -200,7 +200,15 @@
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a></pre></div><pre class="rust"><code><span class="kw">use </span>serde::Serialize;
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a></pre></div><pre class="rust"><code><span class="kw">use </span>serde::Serialize;
 <span class="kw">use </span>serde_json::value::{to_value, Value <span class="kw">as </span>Json};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DEFAULT_VALUE: Json = Json::Null;
@@ -252,7 +260,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'reg</span>: <span class="lifetime">'rc</span>, <span class="lifetime">'rc</span>&gt; From&lt;Json&gt; <span class="kw">for </span>ScopedJson&lt;<span class="lifetime">'rc</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'rc</span>&gt; From&lt;Json&gt; <span class="kw">for </span>ScopedJson&lt;<span class="lifetime">'rc</span>&gt; {
     <span class="kw">fn </span>from(v: Json) -&gt; ScopedJson&lt;<span class="lifetime">'rc</span>&gt; {
         ScopedJson::Derived(v)
     }
@@ -290,6 +298,14 @@
         <span class="self">self</span>.value.as_json()
     }
 
+    <span class="doccomment">/// Returns the value, if it is a constant. Otherwise returns None.
+    </span><span class="kw">pub fn </span>try_get_constant_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'rc </span>Json&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.value {
+            ScopedJson::Constant(value) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>value),
+            ScopedJson::Context(<span class="kw">_</span>, <span class="kw">_</span>) | ScopedJson::Derived(<span class="kw">_</span>) | ScopedJson::Missing =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="doccomment">/// Test if value is missing
     </span><span class="kw">pub fn </span>is_value_missing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.value.is_missing()
@@ -315,7 +331,7 @@
             Json::String(<span class="kw-2">ref </span>s) =&gt; s.to_string(),
             Json::Bool(i) =&gt; i.to_string(),
             Json::Number(<span class="kw-2">ref </span>n) =&gt; n.to_string(),
-            Json::Null =&gt; <span class="string">""</span>.to_owned(),
+            Json::Null =&gt; String::new(),
             Json::Array(<span class="kw-2">ref </span>a) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
                 buf.push(<span class="string">'['</span>);
@@ -352,10 +368,10 @@
             Json::Bool(<span class="kw-2">ref </span>i) =&gt; <span class="kw-2">*</span>i,
             Json::Number(<span class="kw-2">ref </span>n) =&gt; {
                 <span class="kw">if </span>include_zero {
-                    n.as_f64().map(|f| !f.is_nan()).unwrap_or(<span class="bool-val">false</span>)
+                    n.as_f64().is_some_and(|f| !f.is_nan())
                 } <span class="kw">else </span>{
                     <span class="comment">// there is no inifity in json/serde_json
-                    </span>n.as_f64().map(|f| f.is_normal()).unwrap_or(<span class="bool-val">false</span>)
+                    </span>n.as_f64().is_some_and(f64::is_normal)
                 }
             }
             Json::Null =&gt; <span class="bool-val">false</span>,

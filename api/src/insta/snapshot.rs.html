@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.40.0/src/snapshot.rs`."><title>snapshot.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/</div>snapshot.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.42.0/src/snapshot.rs`."><title>snapshot.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/</div>snapshot.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1033,28 +1033,218 @@
 <a href="#1032" id="1032">1032</a>
 <a href="#1033" id="1033">1033</a>
 <a href="#1034" id="1034">1034</a>
-<a href="#1035" id="1035">1035</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
+<a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
+<a href="#1169" id="1169">1169</a>
+<a href="#1170" id="1170">1170</a>
+<a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    content::{<span class="self">self</span>, json, yaml, Content},
+    elog,
+    utils::style,
+};
+<span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>std::env;
 <span class="kw">use </span>std::error::Error;
 <span class="kw">use </span>std::fs;
 <span class="kw">use </span>std::io::{BufRead, BufReader, Write};
 <span class="kw">use </span>std::path::{Path, PathBuf};
+<span class="kw">use </span>std::rc::Rc;
 <span class="kw">use </span>std::time::{SystemTime, UNIX_EPOCH};
+<span class="kw">use </span>std::{borrow::Cow, fmt};
 
-<span class="kw">use </span><span class="kw">crate</span>::content::{<span class="self">self</span>, json, yaml, Content};
+<span class="kw">static </span>RUN_ID: Lazy&lt;String&gt; = Lazy::new(|| {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(run_id) = env::var(<span class="string">"NEXTEST_RUN_ID"</span>) {
+        run_id
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>d = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+        <span class="macro">format!</span>(<span class="string">"{}-{}"</span>, d.as_secs(), d.subsec_nanos())
+    }
+});
 
-<span class="macro">lazy_static::lazy_static!</span> {
-    <span class="kw">static </span><span class="kw-2">ref </span>RUN_ID: String = {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(run_id) = env::var(<span class="string">"NEXTEST_RUN_ID"</span>) {
-            run_id
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>d = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-            <span class="macro">format!</span>(<span class="string">"{}-{}"</span>, d.as_secs(), d.subsec_nanos())
-        }
-    };
-}
-
-<span class="attr">#[derive(Debug)]
+<span class="doccomment">/// Holds a pending inline snapshot loaded from a json file or read from an assert
+/// macro (doesn't write to the rust file, which is done by `cargo-insta`)
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>PendingInlineSnapshot {
     <span class="kw">pub </span>run_id: String,
     <span class="kw">pub </span>line: u32,
@@ -1122,8 +1312,12 @@
                 <span class="kw">match </span>key.as_str() {
                     <span class="prelude-val">Some</span>(<span class="string">"run_id"</span>) =&gt; run_id = value.as_str().map(|x| x.to_string()),
                     <span class="prelude-val">Some</span>(<span class="string">"line"</span>) =&gt; line = value.as_u64().map(|x| x <span class="kw">as </span>u32),
-                    <span class="prelude-val">Some</span>(<span class="string">"old"</span>) <span class="kw">if </span>!value.is_nil() =&gt; old = <span class="prelude-val">Some</span>(Snapshot::from_content(value)<span class="question-mark">?</span>),
-                    <span class="prelude-val">Some</span>(<span class="string">"new"</span>) <span class="kw">if </span>!value.is_nil() =&gt; new = <span class="prelude-val">Some</span>(Snapshot::from_content(value)<span class="question-mark">?</span>),
+                    <span class="prelude-val">Some</span>(<span class="string">"old"</span>) <span class="kw">if </span>!value.is_nil() =&gt; {
+                        old = <span class="prelude-val">Some</span>(Snapshot::from_content(value, TextSnapshotKind::Inline)<span class="question-mark">?</span>)
+                    }
+                    <span class="prelude-val">Some</span>(<span class="string">"new"</span>) <span class="kw">if </span>!value.is_nil() =&gt; {
+                        new = <span class="prelude-val">Some</span>(Snapshot::from_content(value, TextSnapshotKind::Inline)<span class="question-mark">?</span>)
+                    }
                     <span class="kw">_ </span>=&gt; {}
                 }
             }
@@ -1163,6 +1357,18 @@
     }
 }
 
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">pub enum </span>SnapshotKind {
+    Text,
+    Binary { extension: String },
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>SnapshotKind {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        SnapshotKind::Text
+    }
+}
+
 <span class="doccomment">/// Snapshot metadata information.
 </span><span class="attr">#[derive(Debug, Default, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>MetaData {
@@ -1179,6 +1385,8 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) info: <span class="prelude-ty">Option</span>&lt;Content&gt;,
     <span class="doccomment">/// Reference to the input file.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) input_file: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="doccomment">/// The type of the snapshot (string or binary).
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) snapshot_kind: SnapshotKind,
 }
 
 <span class="kw">impl </span>MetaData {
@@ -1232,6 +1440,13 @@
             <span class="kw">let </span><span class="kw-2">mut </span>expression = <span class="prelude-val">None</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>info = <span class="prelude-val">None</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>input_file = <span class="prelude-val">None</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>snapshot_type = TmpSnapshotKind::Text;
+            <span class="kw">let </span><span class="kw-2">mut </span>extension = <span class="prelude-val">None</span>;
+
+            <span class="kw">enum </span>TmpSnapshotKind {
+                Text,
+                Binary,
+            }
 
             <span class="kw">for </span>(key, value) <span class="kw">in </span>map.into_iter() {
                 <span class="kw">match </span>key.as_str() {
@@ -1241,6 +1456,15 @@
                     <span class="prelude-val">Some</span>(<span class="string">"expression"</span>) =&gt; expression = value.as_str().map(Into::into),
                     <span class="prelude-val">Some</span>(<span class="string">"info"</span>) <span class="kw">if </span>!value.is_nil() =&gt; info = <span class="prelude-val">Some</span>(value),
                     <span class="prelude-val">Some</span>(<span class="string">"input_file"</span>) =&gt; input_file = value.as_str().map(Into::into),
+                    <span class="prelude-val">Some</span>(<span class="string">"snapshot_kind"</span>) =&gt; {
+                        snapshot_type = <span class="kw">match </span>value.as_str() {
+                            <span class="prelude-val">Some</span>(<span class="string">"binary"</span>) =&gt; TmpSnapshotKind::Binary,
+                            <span class="kw">_ </span>=&gt; TmpSnapshotKind::Text,
+                        }
+                    }
+                    <span class="prelude-val">Some</span>(<span class="string">"extension"</span>) =&gt; {
+                        extension = value.as_str().map(Into::into);
+                    }
                     <span class="kw">_ </span>=&gt; {}
                 }
             }
@@ -1252,6 +1476,12 @@
                 expression,
                 info,
                 input_file,
+                snapshot_kind: <span class="kw">match </span>snapshot_type {
+                    TmpSnapshotKind::Text =&gt; SnapshotKind::Text,
+                    TmpSnapshotKind::Binary =&gt; SnapshotKind::Binary {
+                        extension: extension.ok_or(content::Error::MissingField)<span class="question-mark">?</span>,
+                    },
+                },
             })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(content::Error::UnexpectedDataType.into())
@@ -1279,6 +1509,14 @@
             fields.push((<span class="string">"input_file"</span>, Content::from(input_file)));
         }
 
+        <span class="kw">match </span><span class="self">self</span>.snapshot_kind {
+            SnapshotKind::Text =&gt; {}
+            SnapshotKind::Binary { <span class="kw-2">ref </span>extension } =&gt; {
+                fields.push((<span class="string">"extension"</span>, Content::from(extension.clone())));
+                fields.push((<span class="string">"snapshot_kind"</span>, Content::from(<span class="string">"binary"</span>)));
+            }
+        }
+
         Content::Struct(<span class="string">"MetaData"</span>, fields)
     }
 
@@ -1290,7 +1528,8 @@
         // snapshot. But we don't know that from here (notably
         // `self.input_file.is_none()` is not a correct approach). Given that
         // `--require-full-match` is experimental and we're working on making
-        // inline &amp; file snapshots more coherent, I'm leaving this as is for now.
+        // inline &amp; file snapshots more coherent, I'm leaving this as is for
+        // now.
         </span><span class="kw">if </span><span class="self">self</span>.assertion_line.is_some() {
             <span class="kw">let </span><span class="kw-2">mut </span>rv = <span class="self">self</span>.clone();
             rv.assertion_line = <span class="prelude-val">None</span>;
@@ -1301,7 +1540,13 @@
     }
 }
 
-<span class="doccomment">/// A helper to work with stored snapshots.
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+</span><span class="kw">pub enum </span>TextSnapshotKind {
+    Inline,
+    File,
+}
+
+<span class="doccomment">/// A helper to work with file snapshots.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>Snapshot {
     module_name: String,
@@ -1333,6 +1578,8 @@
             <span class="kw">let </span>content = yaml::parse_str(<span class="kw-2">&amp;</span>buf, p)<span class="question-mark">?</span>;
             MetaData::from_content(content)<span class="question-mark">?
         </span><span class="comment">// legacy format
+        // (but not viable to move into `match_legacy` given it's more than
+        // just the snapshot value itself...)
         </span>} <span class="kw">else </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>rv = MetaData::default();
             <span class="kw">loop </span>{
@@ -1354,18 +1601,34 @@
                     }
                 }
             }
-            <span class="macro">eprintln!</span>(<span class="string">"A snapshot uses an old snapshot format; please update it to the new format with `cargo insta --force-update-snapshots.\n\nSnapshot is at: {}"</span>, p.to_string_lossy());
+            <span class="macro">elog!</span>(<span class="string">"A snapshot uses a legacy snapshot format; please update it to the new format with `cargo insta test --force-update-snapshots --accept`.\nSnapshot is at: {}"</span>, p.to_string_lossy());
             rv
         };
 
-        buf.clear();
-        <span class="kw">for </span>(idx, line) <span class="kw">in </span>f.lines().enumerate() {
-            <span class="kw">let </span>line = line<span class="question-mark">?</span>;
-            <span class="kw">if </span>idx &gt; <span class="number">0 </span>{
-                buf.push(<span class="string">'\n'</span>);
+        <span class="kw">let </span>contents = <span class="kw">match </span>metadata.snapshot_kind {
+            SnapshotKind::Text =&gt; {
+                buf.clear();
+                <span class="kw">for </span>(idx, line) <span class="kw">in </span>f.lines().enumerate() {
+                    <span class="kw">let </span>line = line<span class="question-mark">?</span>;
+                    <span class="kw">if </span>idx &gt; <span class="number">0 </span>{
+                        buf.push(<span class="string">'\n'</span>);
+                    }
+                    buf.push_str(<span class="kw-2">&amp;</span>line);
+                }
+
+                TextSnapshotContents {
+                    contents: buf,
+                    kind: TextSnapshotKind::File,
+                }
+                .into()
             }
-            buf.push_str(<span class="kw-2">&amp;</span>line);
-        }
+            SnapshotKind::Binary { <span class="kw-2">ref </span>extension } =&gt; {
+                <span class="kw">let </span>path = build_binary_path(extension, p);
+                <span class="kw">let </span>contents = fs::read(path)<span class="question-mark">?</span>;
+
+                SnapshotContents::Binary(Rc::new(contents))
+            }
+        };
 
         <span class="kw">let </span>(snapshot_name, module_name) = names_of_path(p);
 
@@ -1373,12 +1636,11 @@
             module_name,
             <span class="prelude-val">Some</span>(snapshot_name),
             metadata,
-            buf.into(),
+            contents,
         ))
     }
 
-    <span class="doccomment">/// Creates an empty snapshot.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_components(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_components(
         module_name: String,
         snapshot_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
         metadata: MetaData,
@@ -1393,7 +1655,7 @@
     }
 
     <span class="attr">#[cfg(feature = <span class="string">"_cargo_insta_internal"</span>)]
-    </span><span class="kw">fn </span>from_content(content: Content) -&gt; <span class="prelude-ty">Result</span>&lt;Snapshot, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
+    </span><span class="kw">fn </span>from_content(content: Content, kind: TextSnapshotKind) -&gt; <span class="prelude-ty">Result</span>&lt;Snapshot, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
         <span class="kw">if let </span>Content::Map(map) = content {
             <span class="kw">let </span><span class="kw-2">mut </span>module_name = <span class="prelude-val">None</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>snapshot_name = <span class="prelude-val">None</span>;
@@ -1406,12 +1668,16 @@
                     <span class="prelude-val">Some</span>(<span class="string">"snapshot_name"</span>) =&gt; snapshot_name = value.as_str().map(|x| x.to_string()),
                     <span class="prelude-val">Some</span>(<span class="string">"metadata"</span>) =&gt; metadata = <span class="prelude-val">Some</span>(MetaData::from_content(value)<span class="question-mark">?</span>),
                     <span class="prelude-val">Some</span>(<span class="string">"snapshot"</span>) =&gt; {
-                        snapshot = <span class="prelude-val">Some</span>(SnapshotContents(
-                            value
-                                .as_str()
-                                .ok_or(content::Error::UnexpectedDataType)<span class="question-mark">?
-                                </span>.to_string(),
-                        ))
+                        snapshot = <span class="prelude-val">Some</span>(
+                            TextSnapshotContents {
+                                contents: value
+                                    .as_str()
+                                    .ok_or(content::Error::UnexpectedDataType)<span class="question-mark">?
+                                    </span>.to_string(),
+                                kind,
+                            }
+                            .into(),
+                        );
                     }
                     <span class="kw">_ </span>=&gt; {}
                 }
@@ -1430,11 +1696,16 @@
 
     <span class="kw">fn </span>as_content(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Content {
         <span class="kw">let </span><span class="kw-2">mut </span>fields = <span class="macro">vec!</span>[(<span class="string">"module_name"</span>, Content::from(<span class="self">self</span>.module_name.as_str()))];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <span class="self">self</span>.snapshot_name.as_deref() {
+        <span class="comment">// Note this is currently never used, since this method is only used for
+        // inline snapshots
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <span class="self">self</span>.snapshot_name.as_deref() {
             fields.push((<span class="string">"snapshot_name"</span>, Content::from(name)));
         }
         fields.push((<span class="string">"metadata"</span>, <span class="self">self</span>.metadata.as_content()));
-        fields.push((<span class="string">"snapshot"</span>, Content::from(<span class="self">self</span>.snapshot.<span class="number">0</span>.as_str())));
+
+        <span class="kw">if let </span>SnapshotContents::Text(<span class="kw-2">ref </span>content) = <span class="self">self</span>.snapshot {
+            fields.push((<span class="string">"snapshot"</span>, Content::from(content.to_string())));
+        }
 
         Content::Struct(<span class="string">"Content"</span>, fields)
     }
@@ -1460,136 +1731,190 @@
     }
 
     <span class="doccomment">/// Snapshot contents match another snapshot's.
-    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Snapshot) -&gt; bool {
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="self">self</span>.contents() == other.contents()
+            <span class="comment">// For binary snapshots the extension also need to be the same:
+            </span>&amp;&amp; <span class="self">self</span>.metadata.snapshot_kind == other.metadata.snapshot_kind
     }
 
-    <span class="doccomment">/// Snapshot contents _and_ metadata match another snapshot's.
-    </span><span class="kw">pub fn </span>matches_fully(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Snapshot) -&gt; bool {
-        <span class="self">self</span>.snapshot.matches_fully(<span class="kw-2">&amp;</span>other.snapshot)
-            &amp;&amp; <span class="self">self</span>.metadata.trim_for_persistence() == other.metadata.trim_for_persistence()
-    }
-
-    <span class="doccomment">/// The snapshot contents as a &amp;str
-    </span><span class="kw">pub fn </span>contents_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="self">self</span>.snapshot.as_str()
+    <span class="doccomment">/// Both the exact snapshot contents and the persisted metadata match another snapshot's.
+    </span><span class="comment">// (could rename to `matches_exact` for consistency, after some current
+    // pending merge requests are merged)
+    </span><span class="kw">pub fn </span>matches_fully(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">match </span>(<span class="self">self</span>.contents(), other.contents()) {
+            (SnapshotContents::Text(self_contents), SnapshotContents::Text(other_contents)) =&gt; {
+                <span class="comment">// Note that we previously would match the exact values of the
+                // unnormalized text. But that's too strict — it means we can
+                // never match a snapshot that has leading/trailing whitespace.
+                // So instead we check it matches on the latest format.
+                // Generally those should be the same — latest should be doing
+                // the minimum normalization; if they diverge we could update
+                // this to be stricter.
+                //
+                // (I think to do this perfectly, we'd want to match the
+                // _reference_ value unnormalized, but the _generated_ value
+                // normalized. That way, we can get the But at the moment we
+                // don't distinguish between which is which in our data
+                // structures.)
+                </span><span class="kw">let </span>contents_match_exact = self_contents.matches_latest(other_contents);
+                <span class="kw">match </span>self_contents.kind {
+                    TextSnapshotKind::File =&gt; {
+                        <span class="self">self</span>.metadata.trim_for_persistence()
+                            == other.metadata.trim_for_persistence()
+                            &amp;&amp; contents_match_exact
+                    }
+                    TextSnapshotKind::Inline =&gt; contents_match_exact,
+                }
+            }
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>.matches(other),
+        }
     }
 
     <span class="kw">fn </span>serialize_snapshot(<span class="kw-2">&amp;</span><span class="self">self</span>, md: <span class="kw-2">&amp;</span>MetaData) -&gt; String {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = yaml::to_string(<span class="kw-2">&amp;</span>md.as_content());
         buf.push_str(<span class="string">"---\n"</span>);
-        buf.push_str(<span class="self">self</span>.contents_str());
-        buf.push(<span class="string">'\n'</span>);
+
+        <span class="kw">if let </span>SnapshotContents::Text(<span class="kw-2">ref </span>contents) = <span class="self">self</span>.snapshot {
+            buf.push_str(<span class="kw-2">&amp;</span>contents.to_string());
+            buf.push(<span class="string">'\n'</span>);
+        }
+
         buf
     }
 
-    <span class="kw">fn </span>save_with_metadata(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        path: <span class="kw-2">&amp;</span>Path,
-        ref_file: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;,
-        md: <span class="kw-2">&amp;</span>MetaData,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
+    <span class="comment">// We take `md` as an argument here because the calling methods want to
+    // adjust it; e.g. removing volatile fields when writing to the final
+    // `.snap` file.
+    </span><span class="kw">fn </span>save_with_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path, md: <span class="kw-2">&amp;</span>MetaData) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(folder) = path.parent() {
             fs::create_dir_all(folder)<span class="question-mark">?</span>;
         }
 
         <span class="kw">let </span>serialized_snapshot = <span class="self">self</span>.serialize_snapshot(md);
+        fs::write(path, serialized_snapshot)
+            .map_err(|e| content::Error::FileIo(e, path.to_path_buf()))<span class="question-mark">?</span>;
 
-        <span class="comment">// check the reference file for contents.  Note that we always want to
-        // compare snapshots that were trimmed to persistence here.  This is a
-        // stricter check than even `matches_fully`, since it's comparing the
-        // exact contents of the file.
-        </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(old) = fs::read_to_string(ref_file.unwrap_or(path)) {
-            <span class="kw">let </span>persisted = <span class="kw">match </span>md.trim_for_persistence() {
-                Cow::Owned(trimmed) =&gt; Cow::Owned(<span class="self">self</span>.serialize_snapshot(<span class="kw-2">&amp;</span>trimmed)),
-                Cow::Borrowed(trimmed) =&gt; {
-                    <span class="comment">// This condition needs to hold, otherwise we need to
-                    // compare the old value to a newly trimmed serialized snapshot
-                    </span><span class="macro">debug_assert_eq!</span>(trimmed, md);
-
-                    Cow::Borrowed(<span class="kw-2">&amp;</span>serialized_snapshot)
-                }
-            };
-            <span class="kw">if </span>old == persisted.as_str() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
-            }
+        <span class="kw">if let </span>SnapshotContents::Binary(<span class="kw-2">ref </span>contents) = <span class="self">self</span>.snapshot {
+            fs::write(<span class="self">self</span>.build_binary_path(path).unwrap(), <span class="kw-2">&amp;**</span>contents)
+                .map_err(|e| content::Error::FileIo(e, path.to_path_buf()))<span class="question-mark">?</span>;
         }
 
-        fs::write(path, serialized_snapshot)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub fn </span>build_binary_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw">impl </span>Into&lt;PathBuf&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
+        <span class="kw">if let </span>SnapshotKind::Binary { <span class="kw-2">ref </span>extension } = <span class="self">self</span>.metadata.snapshot_kind {
+            <span class="prelude-val">Some</span>(build_binary_path(extension, path))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
     <span class="doccomment">/// Saves the snapshot.
-    ///
-    /// Returns `true` if the snapshot was saved.  This will return `false` if there
-    /// was already a snapshot with matching contents.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub fn </span>save(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
-        <span class="self">self</span>.save_with_metadata(path, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.metadata.trim_for_persistence())
+    </span><span class="kw">pub fn </span>save(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
+        <span class="self">self</span>.save_with_metadata(path, <span class="kw-2">&amp;</span><span class="self">self</span>.metadata.trim_for_persistence())
     }
 
-    <span class="doccomment">/// Same as `save` but instead of writing a normal snapshot file this will write
+    <span class="doccomment">/// Same as [`Self::save`] but instead of writing a normal snapshot file this will write
     /// a `.snap.new` file with additional information.
     ///
-    /// If the existing snapshot matches the new file, then `None` is returned, otherwise
-    /// the name of the new snapshot file.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>save_new(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;PathBuf&gt;, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
-        <span class="kw">let </span>new_path = path.to_path_buf().with_extension(<span class="string">"snap.new"</span>);
-        <span class="kw">if </span><span class="self">self</span>.save_with_metadata(<span class="kw-2">&amp;</span>new_path, <span class="prelude-val">Some</span>(path), <span class="kw-2">&amp;</span><span class="self">self</span>.metadata)<span class="question-mark">? </span>{
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(new_path))
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
-        }
+    /// The path of the new snapshot file is returned.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>save_new(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
+        <span class="comment">// TODO: should we be the actual extension here rather than defaulting
+        // to the standard `.snap`?
+        </span><span class="kw">let </span>new_path = path.to_path_buf().with_extension(<span class="string">"snap.new"</span>);
+        <span class="self">self</span>.save_with_metadata(<span class="kw-2">&amp;</span>new_path, <span class="kw-2">&amp;</span><span class="self">self</span>.metadata)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(new_path)
     }
 }
 
 <span class="doccomment">/// The contents of a Snapshot
-</span><span class="comment">// Could be Cow, but I think limited savings
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>SnapshotContents(String);
+</span><span class="kw">pub enum </span>SnapshotContents {
+    Text(TextSnapshotContents),
+
+    <span class="comment">// This is in an `Rc` because we need to be able to clone this struct cheaply and the contents
+    // of the `Vec` could be rather large. The reason it's not an `Rc&lt;[u8]&gt;` is because creating one
+    // of those would require re-allocating because of the additional size needed for the reference
+    // count.
+    </span>Binary(Rc&lt;Vec&lt;u8&gt;&gt;),
+}
+
+<span class="comment">// Could be Cow, but I think limited savings
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
+</span><span class="kw">pub struct </span>TextSnapshotContents {
+    contents: String,
+    <span class="kw">pub </span>kind: TextSnapshotKind,
+}
+
+<span class="kw">impl </span>From&lt;TextSnapshotContents&gt; <span class="kw">for </span>SnapshotContents {
+    <span class="kw">fn </span>from(value: TextSnapshotContents) -&gt; <span class="self">Self </span>{
+        SnapshotContents::Text(value)
+    }
+}
 
 <span class="kw">impl </span>SnapshotContents {
-    <span class="kw">pub fn </span>from_inline(value: <span class="kw-2">&amp;</span>str) -&gt; SnapshotContents {
-        SnapshotContents(get_inline_snapshot_value(value))
+    <span class="kw">pub fn </span>is_binary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, SnapshotContents::Binary(<span class="kw">_</span>))
+    }
+}
+
+<span class="kw">impl </span>TextSnapshotContents {
+    <span class="kw">pub fn </span>new(contents: String, kind: TextSnapshotKind) -&gt; TextSnapshotContents {
+        <span class="comment">// We could store a normalized version of the string as part of `new`;
+        // it would avoid allocating a new `String` when we get the normalized
+        // versions, which we may do a few times. (We want to store the
+        // unnormalized version because it allows us to use `matches_fully`.)
+        </span>TextSnapshotContents { contents, kind }
     }
 
-    <span class="doccomment">/// Returns the snapshot contents as string with surrounding whitespace removed.
-    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="kw">let </span>out = <span class="self">self</span>.<span class="number">0</span>.trim_start_matches([<span class="string">'\r'</span>, <span class="string">'\n'</span>]).trim_end();
-        <span class="comment">// Old inline snapshots have `---` at the start, so this strips that if
-        // it exists. Soon we can start printing a warning and then eventually
-        // remove it in the next version.
-        </span><span class="kw">match </span>out.strip_prefix(<span class="string">"---\n"</span>) {
-            <span class="prelude-val">Some</span>(s) =&gt; s,
-            <span class="prelude-val">None </span>=&gt; out,
+    <span class="doccomment">/// Snapshot matches based on the latest format.
+    </span><span class="kw">pub fn </span>matches_latest(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="self">self</span>.to_string() == other.to_string()
+    }
+
+    <span class="kw">pub fn </span>matches_legacy(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="kw">fn </span>as_str_legacy(sc: <span class="kw-2">&amp;</span>TextSnapshotContents) -&gt; String {
+            <span class="kw">let </span>out = sc.to_string();
+            <span class="comment">// Legacy inline snapshots have `---` at the start, so this strips that if
+            // it exists.
+            </span><span class="kw">let </span>out = <span class="kw">match </span>out.strip_prefix(<span class="string">"---\n"</span>) {
+                <span class="prelude-val">Some</span>(old_snapshot) =&gt; old_snapshot.to_string(),
+                <span class="prelude-val">None </span>=&gt; out,
+            };
+            <span class="kw">match </span>sc.kind {
+                TextSnapshotKind::Inline =&gt; legacy_inline_normalize(<span class="kw-2">&amp;</span>out),
+                TextSnapshotKind::File =&gt; out,
+            }
         }
+        as_str_legacy(<span class="self">self</span>) == as_str_legacy(other)
     }
 
-    <span class="doccomment">/// Returns the snapshot contents as string without any trimming.
-    </span><span class="kw">pub fn </span>as_str_exact(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="self">self</span>.<span class="number">0</span>.as_str()
+    <span class="kw">fn </span>normalize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">let </span>kind_specific_normalization = <span class="kw">match </span><span class="self">self</span>.kind {
+            TextSnapshotKind::Inline =&gt; normalize_inline_snapshot(<span class="kw-2">&amp;</span><span class="self">self</span>.contents),
+            TextSnapshotKind::File =&gt; <span class="self">self</span>.contents.clone(),
+        };
+        <span class="comment">// Then this we do for both kinds
+        </span><span class="kw">let </span>out = kind_specific_normalization
+            .trim_start_matches([<span class="string">'\r'</span>, <span class="string">'\n'</span>])
+            .trim_end();
+        out.replace(<span class="string">"\r\n"</span>, <span class="string">"\n"</span>)
     }
 
-    <span class="kw">pub fn </span>matches_fully(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>SnapshotContents) -&gt; bool {
-        <span class="self">self</span>.as_str_exact() == other.as_str_exact()
-    }
-
-    <span class="kw">pub fn </span>to_inline(<span class="kw-2">&amp;</span><span class="self">self</span>, indentation: usize) -&gt; String {
-        <span class="kw">let </span>contents = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>;
+    <span class="doccomment">/// Returns the string literal, including `#` delimiters, to insert into a
+    /// Rust source file.
+    </span><span class="kw">pub fn </span>to_inline(<span class="kw-2">&amp;</span><span class="self">self</span>, indentation: usize) -&gt; String {
+        <span class="kw">let </span>contents = <span class="self">self</span>.normalize();
         <span class="kw">let </span><span class="kw-2">mut </span>out = String::new();
 
         <span class="comment">// We don't technically need to escape on newlines, but it reduces diffs
         </span><span class="kw">let </span>is_escape = contents.contains([<span class="string">'\\'</span>, <span class="string">'"'</span>, <span class="string">'\n'</span>]);
-        <span class="comment">// Escape the string if needed, with `r#`, using with 1 more `#` than
-        // the maximum number of existing contiguous `#`.
+        <span class="comment">// Escape the string if needed, with `r#`, using the required number of `#`s
         </span><span class="kw">let </span>delimiter = <span class="kw">if </span>is_escape {
-            <span class="kw">let </span>max_contiguous_hash = contents
-                .split(|c| c != <span class="string">'#'</span>)
-                .map(|group| group.len())
-                .max()
-                .unwrap_or(<span class="number">0</span>);
             out.push(<span class="string">'r'</span>);
-            <span class="string">"#"</span>.repeat(max_contiguous_hash + <span class="number">1</span>)
+            <span class="string">"#"</span>.repeat(required_hashes(<span class="kw-2">&amp;</span>contents))
         } <span class="kw">else </span>{
             <span class="string">""</span>.to_string()
         };
@@ -1603,8 +1928,9 @@
             out.extend(
                 contents
                     .lines()
-                    <span class="comment">// newline needs to be at the start, since we don't want the end
-                    // finishing with a newline - the closing suffix should be on the same line
+                    <span class="comment">// Adds an additional newline at the start of multiline
+                    // string (not sure this is the clearest way of representing
+                    // it, but it works...)
                     </span>.map(|l| {
                         <span class="macro">format!</span>(
                             <span class="string">"\n{:width$}{l}"</span>,
@@ -1613,53 +1939,83 @@
                             l = l
                         )
                     })
-                    <span class="comment">// `lines` removes the final line ending - add back
+                    <span class="comment">// `lines` removes the final line ending — add back. Include
+                    // indentation so the closing delimited aligns with the full string.
                     </span>.chain(<span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">"\n{:width$}"</span>, <span class="string">""</span>, width = indentation))),
             );
         } <span class="kw">else </span>{
-            out.push_str(contents);
+            out.push_str(contents.as_str());
         }
 
         out.push(<span class="string">'"'</span>);
         out.push_str(<span class="kw-2">&amp;</span>delimiter);
-
         out
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt; <span class="kw">for </span>SnapshotContents {
-    <span class="kw">fn </span>from(value: Cow&lt;<span class="lifetime">'a</span>, str&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span>value {
-            Cow::Borrowed(s) =&gt; SnapshotContents::from(s),
-            Cow::Owned(s) =&gt; SnapshotContents::from(s),
-        }
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>TextSnapshotContents {
+    <span class="doccomment">/// Returns the snapshot contents as a normalized string (for example,
+    /// removing surrounding whitespace)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.normalize())
     }
-}
-
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>str&gt; <span class="kw">for </span>SnapshotContents {
-    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>str) -&gt; SnapshotContents {
-        <span class="comment">// make sure we have unix newlines consistently
-        </span>SnapshotContents(value.replace(<span class="string">"\r\n"</span>, <span class="string">"\n"</span>))
-    }
-}
-
-<span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>SnapshotContents {
-    <span class="kw">fn </span>from(value: String) -&gt; SnapshotContents {
-        <span class="comment">// make sure we have unix newlines consistently
-        </span>SnapshotContents(value.replace(<span class="string">"\r\n"</span>, <span class="string">"\n"</span>))
-    }
-}
-
-<span class="kw">impl </span>From&lt;SnapshotContents&gt; <span class="kw">for </span>String {
-    <span class="kw">fn </span>from(value: SnapshotContents) -&gt; String {
-        value.<span class="number">0
-    </span>}
 }
 
 <span class="kw">impl </span>PartialEq <span class="kw">for </span>SnapshotContents {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        <span class="self">self</span>.as_str() == other.as_str()
+        <span class="kw">match </span>(<span class="self">self</span>, other) {
+            (SnapshotContents::Text(this), SnapshotContents::Text(other)) =&gt; {
+                <span class="comment">// Ideally match on current rules, but otherwise fall back to legacy rules
+                </span><span class="kw">if </span>this.matches_latest(other) {
+                    <span class="bool-val">true
+                </span>} <span class="kw">else if </span>this.matches_legacy(other) {
+                    <span class="macro">elog!</span>(<span class="string">"{} {}\n{}"</span>,style(<span class="string">"Snapshot test passes but the existing value is in a legacy format. Please run `cargo insta test --force-update-snapshots` to update to a newer format."</span>).yellow().bold(),<span class="string">"Snapshot contents:"</span>, this.to_string());
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    <span class="bool-val">false
+                </span>}
+            }
+            (SnapshotContents::Binary(this), SnapshotContents::Binary(other)) =&gt; this == other,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+        }
     }
+}
+
+<span class="kw">fn </span>build_binary_path(extension: <span class="kw-2">&amp;</span>str, path: <span class="kw">impl </span>Into&lt;PathBuf&gt;) -&gt; PathBuf {
+    <span class="kw">let </span>path = path.into();
+    <span class="kw">let </span><span class="kw-2">mut </span>new_extension = path.extension().unwrap().to_os_string();
+    new_extension.push(<span class="string">"."</span>);
+    new_extension.push(extension);
+
+    path.with_extension(new_extension)
+}
+
+<span class="doccomment">/// The number of `#` we need to surround a raw string literal with.
+</span><span class="kw">fn </span>required_hashes(text: <span class="kw-2">&amp;</span>str) -&gt; usize {
+    <span class="kw">let </span>splits = text.split(<span class="string">'"'</span>);
+    <span class="kw">if </span>splits.clone().count() &lt;= <span class="number">1 </span>{
+        <span class="kw">return </span><span class="number">0</span>;
+    }
+
+    splits
+        .map(|s| s.chars().take_while(|<span class="kw-2">&amp;</span>c| c == <span class="string">'#'</span>).count() + <span class="number">1</span>)
+        .max()
+        .unwrap()
+}
+
+<span class="attr">#[test]
+</span><span class="kw">fn </span>test_required_hashes() {
+    <span class="macro">assert_snapshot!</span>(required_hashes(<span class="string">""</span>), @<span class="string">"0"</span>);
+    <span class="macro">assert_snapshot!</span>(required_hashes(<span class="string">"Hello, world!"</span>), @<span class="string">"0"</span>);
+    <span class="macro">assert_snapshot!</span>(required_hashes(<span class="string">"\"\""</span>), @<span class="string">"1"</span>);
+    <span class="macro">assert_snapshot!</span>(required_hashes(<span class="string">"##"</span>), @<span class="string">"0"</span>);
+    <span class="macro">assert_snapshot!</span>(required_hashes(<span class="string">"\"#\"#"</span>), @<span class="string">"2"</span>);
+    <span class="macro">assert_snapshot!</span>(required_hashes(<span class="string">r##""#"##</span>), @<span class="string">"2"</span>);
+    <span class="macro">assert_snapshot!</span>(required_hashes(<span class="string">r######"foo ""##### bar "###" baz"######</span>), @<span class="string">"6"</span>);
+    <span class="macro">assert_snapshot!</span>(required_hashes(<span class="string">"\"\"\""</span>), @<span class="string">"1"</span>);
+    <span class="macro">assert_snapshot!</span>(required_hashes(<span class="string">"####"</span>), @<span class="string">"0"</span>);
+    <span class="macro">assert_snapshot!</span>(required_hashes(<span class="string">r###"\"\"##\"\""###</span>), @<span class="string">"3"</span>);
+    <span class="macro">assert_snapshot!</span>(required_hashes(<span class="string">r###"r"#"Raw string"#""###</span>), @<span class="string">"2"</span>);
 }
 
 <span class="kw">fn </span>count_leading_spaces(value: <span class="kw-2">&amp;</span>str) -&gt; usize {
@@ -1681,14 +2037,11 @@
         .unwrap_or(<span class="number">0</span>)
 }
 
-<span class="comment">// Removes excess indentation, removes excess whitespace at start &amp; end
-// and changes newlines to \n.
+<span class="doccomment">/// Removes excess indentation, and changes newlines to \n.
 </span><span class="kw">fn </span>normalize_inline_snapshot(snapshot: <span class="kw-2">&amp;</span>str) -&gt; String {
     <span class="kw">let </span>indentation = min_indentation(snapshot);
     snapshot
-        .trim_end()
         .lines()
-        .skip_while(|l| l.is_empty())
         .map(|l| l.get(indentation..).unwrap_or(<span class="string">""</span>))
         .collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;()
         .join(<span class="string">"\n"</span>)
@@ -1741,140 +2094,116 @@
     </span>);
 }
 
-<span class="doccomment">/// Helper function that returns the real inline snapshot value from a given
-/// frozen value string.  If the string starts with the '⋮' character
-/// (optionally prefixed by whitespace) the alternative serialization format
-/// is picked which has slightly improved indentation semantics.
-///
-/// This also changes all newlines to \n
-</span><span class="kw">fn </span>get_inline_snapshot_value(frozen_value: <span class="kw-2">&amp;</span>str) -&gt; String {
-    <span class="comment">// TODO: could move this into the SnapshotContents `from_inline` method
-    // (the only call site)
-
-    </span><span class="kw">if </span>frozen_value.trim_start().starts_with(<span class="string">'⋮'</span>) {
-        <span class="macro">eprintln!</span>(<span class="string">"A snapshot uses an old snapshot format; please update it to the new format with `cargo insta --force-update-snapshots.\n\nValue: {}"</span>, frozen_value);
-
-        <span class="comment">// legacy format - retain so old snapshots still work
-        </span><span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>line_iter = frozen_value.lines();
-        <span class="kw">let </span><span class="kw-2">mut </span>indentation = <span class="number">0</span>;
-
-        <span class="kw">for </span>line <span class="kw">in </span><span class="kw-2">&amp;mut </span>line_iter {
-            <span class="kw">let </span>line_trimmed = line.trim_start();
-            <span class="kw">if </span>line_trimmed.is_empty() {
-                <span class="kw">continue</span>;
-            }
-            indentation = line.len() - line_trimmed.len();
-            <span class="comment">// 3 because '⋮' is three utf-8 bytes long
-            </span>buf.push_str(<span class="kw-2">&amp;</span>line_trimmed[<span class="number">3</span>..]);
-            buf.push(<span class="string">'\n'</span>);
-            <span class="kw">break</span>;
-        }
-
-        <span class="kw">for </span>line <span class="kw">in </span><span class="kw-2">&amp;mut </span>line_iter {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(prefix) = line.get(..indentation) {
-                <span class="kw">if </span>!prefix.trim().is_empty() {
-                    <span class="kw">return </span><span class="string">""</span>.to_string();
-                }
-            }
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(remainder) = line.get(indentation..) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = remainder.strip_prefix(<span class="string">'⋮'</span>) {
-                    buf.push_str(rest);
-                    buf.push(<span class="string">'\n'</span>);
-                } <span class="kw">else if </span>remainder.trim().is_empty() {
-                    <span class="kw">continue</span>;
-                } <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="string">""</span>.to_string();
-                }
-            }
-        }
-
-        buf.trim_end().to_string()
-    } <span class="kw">else </span>{
-        normalize_inline_snapshot(frozen_value)
+<span class="doccomment">/// legacy format - retain so old snapshots still work
+</span><span class="kw">fn </span>legacy_inline_normalize(frozen_value: <span class="kw-2">&amp;</span>str) -&gt; String {
+    <span class="kw">if </span>!frozen_value.trim_start().starts_with(<span class="string">'⋮'</span>) {
+        <span class="kw">return </span>frozen_value.to_string();
     }
+    <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>line_iter = frozen_value.lines();
+    <span class="kw">let </span><span class="kw-2">mut </span>indentation = <span class="number">0</span>;
+
+    <span class="kw">for </span>line <span class="kw">in </span><span class="kw-2">&amp;mut </span>line_iter {
+        <span class="kw">let </span>line_trimmed = line.trim_start();
+        <span class="kw">if </span>line_trimmed.is_empty() {
+            <span class="kw">continue</span>;
+        }
+        indentation = line.len() - line_trimmed.len();
+        <span class="comment">// 3 because '⋮' is three utf-8 bytes long
+        </span>buf.push_str(<span class="kw-2">&amp;</span>line_trimmed[<span class="number">3</span>..]);
+        buf.push(<span class="string">'\n'</span>);
+        <span class="kw">break</span>;
+    }
+
+    <span class="kw">for </span>line <span class="kw">in </span><span class="kw-2">&amp;mut </span>line_iter {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(prefix) = line.get(..indentation) {
+            <span class="kw">if </span>!prefix.trim().is_empty() {
+                <span class="kw">return </span><span class="string">""</span>.to_string();
+            }
+        }
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(remainder) = line.get(indentation..) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = remainder.strip_prefix(<span class="string">'⋮'</span>) {
+                buf.push_str(rest);
+                buf.push(<span class="string">'\n'</span>);
+            } <span class="kw">else if </span>remainder.trim().is_empty() {
+                <span class="kw">continue</span>;
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><span class="string">""</span>.to_string();
+            }
+        }
+    }
+
+    buf.trim_end().to_string()
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_snapshot_contents() {
     <span class="kw">use </span>similar_asserts::assert_eq;
-    <span class="kw">let </span>snapshot_contents = SnapshotContents(<span class="string">"testing"</span>.to_string());
+    <span class="kw">let </span>snapshot_contents =
+        TextSnapshotContents::new(<span class="string">"testing"</span>.to_string(), TextSnapshotKind::Inline);
     <span class="macro">assert_eq!</span>(snapshot_contents.to_inline(<span class="number">0</span>), <span class="string">r#""testing""#</span>);
 
     <span class="kw">let </span>t = <span class="kw-2">&amp;</span><span class="string">"
 a
 b"</span>[<span class="number">1</span>..];
     <span class="macro">assert_eq!</span>(
-        SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>),
-        <span class="string">r##"r#"
+        TextSnapshotContents::new(t.to_string(), TextSnapshotKind::Inline).to_inline(<span class="number">0</span>),
+        <span class="string">r##"r"
 a
 b
-"#"##
+""##
     </span>);
 
     <span class="macro">assert_eq!</span>(
-        SnapshotContents(
-            <span class="string">"a
-b"
-            </span>.to_string()
-        )
-        .to_inline(<span class="number">4</span>),
-        <span class="string">r##"r#"
+        TextSnapshotContents::new(<span class="string">"a\nb"</span>.to_string(), TextSnapshotKind::Inline).to_inline(<span class="number">4</span>),
+        <span class="string">r##"r"
     a
     b
-    "#"##
+    ""##
     </span>);
 
-    <span class="kw">let </span>t = <span class="kw-2">&amp;</span><span class="string">"
-    a
-    b"</span>[<span class="number">1</span>..];
     <span class="macro">assert_eq!</span>(
-        SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>),
-        <span class="string">r##"r#"
-    a
-    b
-"#"##
-    </span>);
-
-    <span class="kw">let </span>t = <span class="kw-2">&amp;</span><span class="string">"
+        TextSnapshotContents::new(<span class="string">"\n    a\n    b"</span>.to_string(), TextSnapshotKind::Inline)
+            .to_inline(<span class="number">0</span>),
+        <span class="string">r##"r"
 a
+b
+""##
+    </span>);
 
-b"</span>[<span class="number">1</span>..];
     <span class="macro">assert_eq!</span>(
-        SnapshotContents(t.to_string()).to_inline(<span class="number">4</span>),
-        <span class="string">r##"r#"
+        TextSnapshotContents::new(<span class="string">"\na\n\nb"</span>.to_string(), TextSnapshotKind::Inline).to_inline(<span class="number">4</span>),
+        <span class="string">r##"r"
     a
 
     b
-    "#"##
+    ""##
     </span>);
 
-    <span class="kw">let </span>t = <span class="kw-2">&amp;</span><span class="string">"
-    ab
-"</span>[<span class="number">1</span>..];
     <span class="macro">assert_eq!</span>(
-        SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>),
-        <span class="string">r##"r#"
-    ab
-"#"##
+        TextSnapshotContents::new(<span class="string">"\n    ab\n"</span>.to_string(), TextSnapshotKind::Inline).to_inline(<span class="number">0</span>),
+        <span class="string">r##""ab""##
     </span>);
 
-    <span class="kw">let </span>t = <span class="string">"ab"</span>;
-    <span class="macro">assert_eq!</span>(SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>), <span class="string">r#""ab""#</span>);
+    <span class="macro">assert_eq!</span>(
+        TextSnapshotContents::new(<span class="string">"ab"</span>.to_string(), TextSnapshotKind::Inline).to_inline(<span class="number">0</span>),
+        <span class="string">r#""ab""#
+    </span>);
 }
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_snapshot_contents_hashes() {
-    <span class="kw">let </span>t = <span class="string">"a###b"</span>;
-    <span class="macro">assert_eq!</span>(SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>), <span class="string">r#""a###b""#</span>);
-
-    <span class="kw">let </span>t = <span class="string">"a\n\\###b"</span>;
     <span class="macro">assert_eq!</span>(
-        SnapshotContents(t.to_string()).to_inline(<span class="number">0</span>),
-        <span class="string">r#####"r####"
+        TextSnapshotContents::new(<span class="string">"a###b"</span>.to_string(), TextSnapshotKind::Inline).to_inline(<span class="number">0</span>),
+        <span class="string">r#""a###b""#
+    </span>);
+
+    <span class="macro">assert_eq!</span>(
+        TextSnapshotContents::new(<span class="string">"a\n\\###b"</span>.to_string(), TextSnapshotKind::Inline).to_inline(<span class="number">0</span>),
+        <span class="string">r#####"r"
 a
 \###b
-"####"#####
+""#####
     </span>);
 }
 
@@ -1888,10 +2217,12 @@ a
             <span class="string">r#"
    1
    2
-    "#
-        </span>),
-        <span class="string">r###"1
-2"###
+   "#</span>,
+        ),
+        <span class="string">r###"
+1
+2
+"###
     </span>);
 
     <span class="macro">assert_eq!</span>(
@@ -1900,7 +2231,8 @@ a
             1
     2"#
         </span>),
-        <span class="string">r###"        1
+        <span class="string">r###"
+        1
 2"###
     </span>);
 
@@ -1911,8 +2243,10 @@ a
             2
     "#
         </span>),
-        <span class="string">r###"1
-2"###
+        <span class="string">r###"
+1
+2
+"###
     </span>);
 
     <span class="macro">assert_eq!</span>(
@@ -1922,7 +2256,8 @@ a
    2
 "#
         </span>),
-        <span class="string">r###"1
+        <span class="string">r###"
+1
 2"###
     </span>);
 
@@ -1932,7 +2267,9 @@ a
         a
     "#
         </span>),
-        <span class="string">"a"
+        <span class="string">"
+a
+"
     </span>);
 
     <span class="macro">assert_eq!</span>(normalize_inline_snapshot(<span class="string">""</span>), <span class="string">""</span>);
@@ -1945,9 +2282,11 @@ a
 c
     "#
         </span>),
-        <span class="string">r###"    a
+        <span class="string">r###"
+    a
     b
-c"###
+c
+    "###
     </span>);
 
     <span class="macro">assert_eq!</span>(
@@ -1956,7 +2295,9 @@ c"###
 a
     "#
         </span>),
-        <span class="string">"a"
+        <span class="string">"
+a
+    "
     </span>);
 
     <span class="macro">assert_eq!</span>(
@@ -1964,7 +2305,8 @@ a
             <span class="string">"
     a"
         </span>),
-        <span class="string">"a"
+        <span class="string">"
+a"
     </span>);
 
     <span class="macro">assert_eq!</span>(
@@ -2035,7 +2377,7 @@ a
 <span class="attr">#[test]
 </span><span class="kw">fn </span>test_inline_snapshot_value_newline() {
     <span class="comment">// https://github.com/mitsuhiko/insta/issues/39
-    </span><span class="macro">assert_eq!</span>(get_inline_snapshot_value(<span class="string">"\n"</span>), <span class="string">""</span>);
+    </span><span class="macro">assert_eq!</span>(normalize_inline_snapshot(<span class="string">"\n"</span>), <span class="string">""</span>);
 }
 
 <span class="attr">#[test]
@@ -2067,5 +2409,33 @@ a
     <span class="kw">let </span>r = Range { start: <span class="number">0</span>, end: <span class="number">10 </span>};
     <span class="macro">assert_debug_snapshot!</span>(r, @<span class="string">"0..10"</span>);
     <span class="macro">assert_debug_snapshot!</span>(r, @<span class="string">"0..10"</span>);
+}
+
+<span class="attr">#[test]
+</span><span class="kw">fn </span>test_empty_lines() {
+    <span class="macro">assert_snapshot!</span>(<span class="string">r#"single line should fit on a single line"#</span>, @<span class="string">"single line should fit on a single line"</span>);
+    <span class="macro">assert_snapshot!</span>(<span class="string">r#"single line should fit on a single line, even if it's really really really really really really really really really long"#</span>, @<span class="string">"single line should fit on a single line, even if it's really really really really really really really really really long"</span>);
+
+    <span class="macro">assert_snapshot!</span>(<span class="string">r#"multiline content starting on first line
+
+    final line
+    "#</span>, @<span class="string">r###"
+    multiline content starting on first line
+
+        final line
+
+    "###</span>);
+
+    <span class="macro">assert_snapshot!</span>(<span class="string">r#"
+    multiline content starting on second line
+
+    final line
+    "#</span>, @<span class="string">r###"
+
+        multiline content starting on second line
+
+        final line
+
+    "###</span>);
 }
 </code></pre></div></section></main></body></html>

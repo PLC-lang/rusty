@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/bstr-1.10.0/src/ascii.rs`."><title>ascii.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">bstr/</div>ascii.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/bstr-1.11.3/src/ascii.rs`."><title>ascii.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">bstr/</div>ascii.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -334,8 +334,7 @@
 <a href="#333" id="333">333</a>
 <a href="#334" id="334">334</a>
 <a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
-<a href="#337" id="337">337</a></pre></div><pre class="rust"><code><span class="comment">// The following ~400 lines of code exists for exactly one purpose, which is
+<a href="#336" id="336">336</a></pre></div><pre class="rust"><code><span class="comment">// The following ~400 lines of code exists for exactly one purpose, which is
 // to optimize this code:
 //
 //     byte_slice.iter().position(|&amp;b| b &gt; 0x7F).unwrap_or(byte_slice.len())
@@ -360,6 +359,8 @@
 
 </span><span class="attr">#[cfg(any(test, miri, not(target_arch = <span class="string">"x86_64"</span>)))]
 </span><span class="kw">const </span>USIZE_BYTES: usize = core::mem::size_of::&lt;usize&gt;();
+<span class="attr">#[cfg(any(test, miri, not(target_arch = <span class="string">"x86_64"</span>)))]
+</span><span class="kw">const </span>ALIGN_MASK: usize = core::mem::align_of::&lt;usize&gt;() - <span class="number">1</span>;
 <span class="attr">#[cfg(any(test, miri, not(target_arch = <span class="string">"x86_64"</span>)))]
 </span><span class="kw">const </span>FALLBACK_LOOP_SIZE: usize = <span class="number">2 </span>* USIZE_BYTES;
 
@@ -390,7 +391,6 @@
 
 <span class="attr">#[cfg(any(test, miri, not(target_arch = <span class="string">"x86_64"</span>)))]
 </span><span class="kw">fn </span>first_non_ascii_byte_fallback(slice: <span class="kw-2">&amp;</span>[u8]) -&gt; usize {
-    <span class="kw">let </span>align = USIZE_BYTES - <span class="number">1</span>;
     <span class="kw">let </span>start_ptr = slice.as_ptr();
     <span class="kw">let </span>end_ptr = slice[slice.len()..].as_ptr();
     <span class="kw">let </span><span class="kw-2">mut </span>ptr = start_ptr;
@@ -406,7 +406,7 @@
             <span class="kw">return </span>first_non_ascii_byte_mask(mask);
         }
 
-        ptr = ptr_add(ptr, USIZE_BYTES - (start_ptr <span class="kw">as </span>usize &amp; align));
+        ptr = ptr_add(ptr, USIZE_BYTES - (start_ptr <span class="kw">as </span>usize &amp; ALIGN_MASK));
         <span class="macro">debug_assert!</span>(ptr &gt; start_ptr);
         <span class="macro">debug_assert!</span>(ptr_sub(end_ptr, USIZE_BYTES) &gt;= start_ptr);
         <span class="kw">if </span>slice.len() &gt;= FALLBACK_LOOP_SIZE {
@@ -570,14 +570,12 @@
 
 <span class="doccomment">/// Increment the given pointer by the given amount.
 </span><span class="kw">unsafe fn </span>ptr_add(ptr: <span class="kw-2">*const </span>u8, amt: usize) -&gt; <span class="kw-2">*const </span>u8 {
-    <span class="macro">debug_assert!</span>(amt &lt; ::core::isize::MAX <span class="kw">as </span>usize);
-    ptr.offset(amt <span class="kw">as </span>isize)
+    ptr.add(amt)
 }
 
 <span class="doccomment">/// Decrement the given pointer by the given amount.
 </span><span class="kw">unsafe fn </span>ptr_sub(ptr: <span class="kw-2">*const </span>u8, amt: usize) -&gt; <span class="kw-2">*const </span>u8 {
-    <span class="macro">debug_assert!</span>(amt &lt; ::core::isize::MAX <span class="kw">as </span>usize);
-    ptr.offset((amt <span class="kw">as </span>isize).wrapping_neg())
+    ptr.sub(amt)
 }
 
 <span class="attr">#[cfg(any(test, miri, not(target_arch = <span class="string">"x86_64"</span>)))]

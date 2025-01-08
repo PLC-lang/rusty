@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.19/src/parser/matches/arg_matches.rs`."><title>arg_matches.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">clap_builder/parser/matches/</div>arg_matches.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.24/src/parser/matches/arg_matches.rs`."><title>arg_matches.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">clap_builder/parser/matches/</div>arg_matches.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -2028,7 +2028,27 @@
 <a href="#2027" id="2027">2027</a>
 <a href="#2028" id="2028">2028</a>
 <a href="#2029" id="2029">2029</a>
-<a href="#2030" id="2030">2030</a></pre></div><pre class="rust"><code><span class="comment">// Std
+<a href="#2030" id="2030">2030</a>
+<a href="#2031" id="2031">2031</a>
+<a href="#2032" id="2032">2032</a>
+<a href="#2033" id="2033">2033</a>
+<a href="#2034" id="2034">2034</a>
+<a href="#2035" id="2035">2035</a>
+<a href="#2036" id="2036">2036</a>
+<a href="#2037" id="2037">2037</a>
+<a href="#2038" id="2038">2038</a>
+<a href="#2039" id="2039">2039</a>
+<a href="#2040" id="2040">2040</a>
+<a href="#2041" id="2041">2041</a>
+<a href="#2042" id="2042">2042</a>
+<a href="#2043" id="2043">2043</a>
+<a href="#2044" id="2044">2044</a>
+<a href="#2045" id="2045">2045</a>
+<a href="#2046" id="2046">2046</a>
+<a href="#2047" id="2047">2047</a>
+<a href="#2048" id="2048">2048</a>
+<a href="#2049" id="2049">2049</a>
+<a href="#2050" id="2050">2050</a></pre></div><pre class="rust"><code><span class="comment">// Std
 </span><span class="kw">use </span>std::any::Any;
 <span class="kw">use </span>std::ffi::{OsStr, OsString};
 <span class="kw">use </span>std::fmt::Debug;
@@ -2113,8 +2133,12 @@
     ///
     /// Returns `None` if the option wasn't present.
     ///
+    /// &lt;div class="warning"&gt;
+    ///
     /// *NOTE:* This will always return `Some(value)` if [`default_value`] has been set.
     /// [`ArgMatches::value_source`] can be used to check if a value is present at runtime.
+    ///
+    /// &lt;/div&gt;
     ///
     /// # Panic
     ///
@@ -2404,8 +2428,12 @@
     ///
     /// Returns `None` if the option wasn't present.
     ///
+    /// &lt;div class="warning"&gt;
+    ///
     /// *NOTE:* This will always return `Some(value)` if [`default_value`] has been set.
     /// [`ArgMatches::value_source`] can be used to check if a value is present at runtime.
+    ///
+    /// &lt;/div&gt;
     ///
     /// # Panic
     ///
@@ -2515,8 +2543,12 @@
 
     <span class="doccomment">/// Check if values are present for the argument or group id
     ///
+    /// &lt;div class="warning"&gt;
+    ///
     /// *NOTE:* This will always return `true` if [`default_value`] has been set.
     /// [`ArgMatches::value_source`] can be used to check if a value is present at runtime.
+    ///
+    /// &lt;/div&gt;
     ///
     /// # Panics
     ///
@@ -2642,8 +2674,12 @@
     ///
     /// The examples should clear this up.
     ///
+    /// &lt;div class="warning"&gt;
+    ///
     /// *NOTE:* If an argument is allowed multiple times, this method will only give the *first*
     /// index.  See [`ArgMatches::indices_of`].
+    ///
+    /// &lt;/div&gt;
     ///
     /// # Panics
     ///
@@ -2790,8 +2826,12 @@
     /// refer to the *values* `-o val` would therefore not represent two distinct indices, only the
     /// index for `val` would be recorded. This is by design.
     ///
+    /// &lt;div class="warning"&gt;
+    ///
     /// *NOTE:* For more information about how clap indices compared to argv indices, see
     /// [`ArgMatches::index_of`]
+    ///
+    /// &lt;/div&gt;
     ///
     /// # Panics
     ///
@@ -3398,7 +3438,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>IdsRef&lt;<span class="lifetime">'a</span>&gt; {}
+<span class="kw">impl </span>ExactSizeIterator <span class="kw">for </span>IdsRef&lt;<span class="lifetime">'_</span>&gt; {}
 
 <span class="doccomment">/// Iterate over multiple values for an argument via [`ArgMatches::remove_many`].
 ///
@@ -3595,7 +3635,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>RawValues&lt;<span class="lifetime">'a</span>&gt; {}
+<span class="kw">impl </span>ExactSizeIterator <span class="kw">for </span>RawValues&lt;<span class="lifetime">'_</span>&gt; {}
 
 <span class="doccomment">/// Creates an empty iterator.
 </span><span class="kw">impl </span>Default <span class="kw">for </span>RawValues&lt;<span class="lifetime">'_</span>&gt; {
@@ -3639,7 +3679,7 @@
 }
 
 <span class="attr">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DoubleEndedIterator <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">'a</span>&gt; {
+</span><span class="kw">impl </span>DoubleEndedIterator <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.iter.next_back() {
             <span class="self">self</span>.len -= <span class="number">1</span>;
@@ -3651,11 +3691,11 @@
 }
 
 <span class="attr">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">'a</span>&gt; {}
+</span><span class="kw">impl </span>ExactSizeIterator <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">'_</span>&gt; {}
 
 <span class="doccomment">/// Creates an empty iterator. Used for `unwrap_or_default()`.
 </span><span class="attr">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Default <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">'a</span>&gt; {
+</span><span class="kw">impl </span>Default <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [Vec&lt;AnyValue&gt;; <span class="number">0</span>] = [];
         GroupedValues {
@@ -3757,7 +3797,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; ExactSizeIterator <span class="kw">for </span>OccurrencesRef&lt;<span class="lifetime">'a</span>, T&gt; <span class="kw">where </span><span class="self">Self</span>: <span class="lifetime">'a </span>{}
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Default <span class="kw">for </span>OccurrencesRef&lt;<span class="lifetime">'a</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>OccurrencesRef&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [Vec&lt;AnyValue&gt;; <span class="number">0</span>] = [];
         OccurrencesRef {
@@ -3816,15 +3856,15 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DoubleEndedIterator <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">'a</span>&gt; {
+<span class="kw">impl </span>DoubleEndedIterator <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="self">self</span>.iter.next_back()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">'a</span>&gt; {}
+<span class="kw">impl </span>ExactSizeIterator <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">'_</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Default <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">'a</span>&gt; {
+<span class="kw">impl </span>Default <span class="kw">for </span>RawOccurrences&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [Vec&lt;OsString&gt;; <span class="number">0</span>] = [];
         RawOccurrences {
@@ -3863,7 +3903,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>RawOccurrenceValues&lt;<span class="lifetime">'a</span>&gt; {}
+<span class="kw">impl </span>ExactSizeIterator <span class="kw">for </span>RawOccurrenceValues&lt;<span class="lifetime">'_</span>&gt; {}
 
 <span class="doccomment">/// Iterate over indices for where an argument appeared when parsing, via [`ArgMatches::indices_of`]
 ///
@@ -3892,7 +3932,7 @@
     len: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>Indices&lt;<span class="lifetime">'a</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>Indices&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Item = usize;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
@@ -3908,7 +3948,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; DoubleEndedIterator <span class="kw">for </span>Indices&lt;<span class="lifetime">'a</span>&gt; {
+<span class="kw">impl </span>DoubleEndedIterator <span class="kw">for </span>Indices&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.iter.next_back() {
             <span class="self">self</span>.len -= <span class="number">1</span>;
@@ -3919,10 +3959,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ExactSizeIterator <span class="kw">for </span>Indices&lt;<span class="lifetime">'a</span>&gt; {}
+<span class="kw">impl </span>ExactSizeIterator <span class="kw">for </span>Indices&lt;<span class="lifetime">'_</span>&gt; {}
 
 <span class="doccomment">/// Creates an empty iterator.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Default <span class="kw">for </span>Indices&lt;<span class="lifetime">'a</span>&gt; {
+</span><span class="kw">impl </span>Default <span class="kw">for </span>Indices&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [usize; <span class="number">0</span>] = [];
         <span class="comment">// This is never called because the iterator is empty:

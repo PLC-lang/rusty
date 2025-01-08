@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/http-1.1.0/src/header/map.rs`."><title>map.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">http/header/</div>map.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/http-1.2.0/src/header/map.rs`."><title>map.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">http/header/</div>map.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -4422,7 +4422,7 @@
             <span class="prelude-val">Ok</span>(HeaderMap {
                 mask: (raw_cap - <span class="number">1</span>) <span class="kw">as </span>Size,
                 indices: <span class="macro">vec!</span>[Pos::none(); raw_cap].into_boxed_slice(),
-                entries: Vec::with_capacity(raw_cap),
+                entries: Vec::with_capacity(usable_capacity(raw_cap)),
                 extra_values: Vec::new(),
                 danger: Danger::Green,
             })
@@ -4606,12 +4606,12 @@
             </span>.entries
             .len()
             .checked_add(additional)
-            .ok_or_else(|| MaxSizeReached::new())<span class="question-mark">?</span>;
+            .ok_or_else(MaxSizeReached::new)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>cap &gt; <span class="self">self</span>.indices.len() {
             <span class="kw">let </span>cap = cap
                 .checked_next_power_of_two()
-                .ok_or_else(|| MaxSizeReached::new())<span class="question-mark">?</span>;
+                .ok_or_else(MaxSizeReached::new)<span class="question-mark">?</span>;
             <span class="kw">if </span>cap &gt; MAX_SIZE {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(MaxSizeReached::new());
             }
@@ -4967,7 +4967,7 @@
         } <span class="kw">else </span>{
             ValueIter {
                 map: <span class="self">self</span>,
-                index: ::std::usize::MAX,
+                index: usize::MAX,
                 front: <span class="prelude-val">None</span>,
                 back: <span class="prelude-val">None</span>,
             }
@@ -5350,9 +5350,9 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>find&lt;K: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>K) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt;
+    </span><span class="kw">fn </span>find&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>K) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt;
     <span class="kw">where
-        </span>K: Hash + Into&lt;HeaderName&gt;,
+        </span>K: Hash + Into&lt;HeaderName&gt; + <span class="question-mark">?</span>Sized,
         HeaderName: PartialEq&lt;K&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.entries.is_empty() {
@@ -5921,7 +5921,7 @@
 /// let headers: HeaderMap = (&amp;map).try_into().expect("valid headers");
 /// assert_eq!(headers["X-Custom-Header"], "my value");
 /// ```
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K, V, T&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>HashMap&lt;K, V&gt;&gt; <span class="kw">for </span>HeaderMap&lt;T&gt;
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K, V, S, T&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>HashMap&lt;K, V, S&gt;&gt; <span class="kw">for </span>HeaderMap&lt;T&gt;
 <span class="kw">where
     </span>K: Eq + Hash,
     HeaderName: TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>K&gt;,
@@ -5931,7 +5931,7 @@
 {
     <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn </span>try_from(c: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>HashMap&lt;K, V&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>try_from(c: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>HashMap&lt;K, V, S&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         c.iter()
             .map(|(k, v)| -&gt; <span class="kw">crate</span>::Result&lt;(HeaderName, T)&gt; {
                 <span class="kw">let </span>name = TryFrom::try_from(k).map_err(Into::into)<span class="question-mark">?</span>;
@@ -7504,9 +7504,9 @@
     current.wrapping_sub(desired_pos(mask, hash)) &amp; mask <span class="kw">as </span>usize
 }
 
-<span class="kw">fn </span>hash_elem_using&lt;K: <span class="question-mark">?</span>Sized&gt;(danger: <span class="kw-2">&amp;</span>Danger, k: <span class="kw-2">&amp;</span>K) -&gt; HashValue
+<span class="kw">fn </span>hash_elem_using&lt;K&gt;(danger: <span class="kw-2">&amp;</span>Danger, k: <span class="kw-2">&amp;</span>K) -&gt; HashValue
 <span class="kw">where
-    </span>K: Hash,
+    </span>K: Hash + <span class="question-mark">?</span>Sized,
 {
     <span class="kw">use </span>fnv::FnvHasher;
 
@@ -7739,7 +7739,7 @@
     <span class="kw">impl </span>Sealed <span class="kw">for </span>String {
         <span class="attr">#[inline]
         </span><span class="kw">fn </span>try_entry&lt;T&gt;(<span class="self">self</span>, map: <span class="kw-2">&amp;mut </span>HeaderMap&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Entry&lt;<span class="lifetime">'_</span>, T&gt;, TryEntryError&gt; {
-            <span class="prelude-val">Ok</span>(<span class="self">self</span>.as_str().try_entry(map)<span class="question-mark">?</span>)
+            <span class="self">self</span>.as_str().try_entry(map)
         }
 
         <span class="attr">#[inline]

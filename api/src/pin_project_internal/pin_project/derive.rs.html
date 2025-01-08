@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-project-internal-1.1.5/src/pin_project/derive.rs`."><title>derive.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="pin_project_internal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">pin_project_internal/pin_project/</div>derive.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-project-internal-1.1.8/src/pin_project/derive.rs`."><title>derive.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="pin_project_internal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">pin_project_internal/pin_project/</div>derive.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1128,14 +1128,25 @@
 <a href="#1127" id="1127">1127</a>
 <a href="#1128" id="1128">1128</a>
 <a href="#1129" id="1129">1129</a>
-<a href="#1130" id="1130">1130</a></pre></div><pre class="rust"><code><span class="comment">// SPDX-License-Identifier: Apache-2.0 OR MIT
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a></pre></div><pre class="rust"><code><span class="comment">// SPDX-License-Identifier: Apache-2.0 OR MIT
 
 </span><span class="kw">use </span>proc_macro2::{Delimiter, Group, Span, TokenStream};
 <span class="kw">use </span>quote::{format_ident, quote, quote_spanned, ToTokens};
 <span class="kw">use </span>syn::{
-    parse_quote, punctuated::Punctuated, token, visit_mut::VisitMut, Attribute, Data, DataEnum,
-    DeriveInput, Error, Field, Fields, FieldsNamed, FieldsUnnamed, Generics, Ident, Index,
-    Lifetime, LifetimeParam, Meta, <span class="prelude-ty">Result</span>, Token, Type, Variant, Visibility, WhereClause,
+    parse_quote, punctuated::Punctuated, token, visit_mut::VisitMut, Attribute, Error, Field,
+    Fields, FieldsNamed, FieldsUnnamed, Generics, Ident, Index, Item, Lifetime, LifetimeParam,
+    Meta, <span class="prelude-ty">Result</span>, Token, Type, Variant, Visibility, WhereClause,
 };
 
 <span class="kw">use super</span>::{
@@ -1148,30 +1159,31 @@
 };
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>parse_derive(input: TokenStream) -&gt; <span class="prelude-ty">Result</span>&lt;TokenStream&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>input: DeriveInput = syn::parse2(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>input: Item = syn::parse2(input)<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>cx;
     <span class="kw">let </span><span class="kw-2">mut </span>generate = GenerateTokens::default();
 
-    <span class="kw">let </span>ident = <span class="kw-2">&amp;</span>input.ident;
-    <span class="kw">let </span>ty_generics = input.generics.split_for_impl().<span class="number">1</span>;
-    <span class="kw">let </span>self_ty = <span class="macro">parse_quote!</span>(#ident #ty_generics);
-    <span class="kw">let </span><span class="kw-2">mut </span>visitor = ReplaceReceiver(<span class="kw-2">&amp;</span>self_ty);
-    visitor.visit_generics_mut(<span class="kw-2">&amp;mut </span>input.generics);
-    visitor.visit_data_mut(<span class="kw-2">&amp;mut </span>input.data);
-
-    <span class="kw">match </span><span class="kw-2">&amp;</span>input.data {
-        Data::Struct(data) =&gt; {
-            cx = Context::new(<span class="kw-2">&amp;</span>input.attrs, <span class="kw-2">&amp;</span>input.vis, ident, <span class="kw-2">&amp;mut </span>input.generics, Struct)<span class="question-mark">?</span>;
-            parse_struct(<span class="kw-2">&amp;mut </span>cx, <span class="kw-2">&amp;</span>data.fields, <span class="kw-2">&amp;mut </span>generate)<span class="question-mark">?</span>;
+    <span class="kw">match </span><span class="kw-2">&amp;mut </span>input {
+        Item::Struct(input) =&gt; {
+            <span class="kw">let </span>ident = <span class="kw-2">&amp;</span>input.ident;
+            <span class="kw">let </span>ty_generics = input.generics.split_for_impl().<span class="number">1</span>;
+            <span class="kw">let </span>self_ty = <span class="macro">parse_quote!</span>(#ident #ty_generics);
+            <span class="kw">let </span><span class="kw-2">mut </span>visitor = ReplaceReceiver(<span class="kw-2">&amp;</span>self_ty);
+            visitor.visit_item_struct_mut(input);
+            cx = Context::new(<span class="kw-2">&amp;</span>input.attrs, <span class="kw-2">&amp;</span>input.vis, <span class="kw-2">&amp;</span>input.ident, <span class="kw-2">&amp;mut </span>input.generics, Struct)<span class="question-mark">?</span>;
+            parse_struct(<span class="kw-2">&amp;mut </span>cx, <span class="kw-2">&amp;</span>input.fields, <span class="kw-2">&amp;mut </span>generate)<span class="question-mark">?</span>;
         }
-        Data::Enum(data) =&gt; {
-            cx = Context::new(<span class="kw-2">&amp;</span>input.attrs, <span class="kw-2">&amp;</span>input.vis, ident, <span class="kw-2">&amp;mut </span>input.generics, Enum)<span class="question-mark">?</span>;
-            parse_enum(<span class="kw-2">&amp;mut </span>cx, data, <span class="kw-2">&amp;mut </span>generate)<span class="question-mark">?</span>;
+        Item::Enum(input) =&gt; {
+            <span class="kw">let </span>ident = <span class="kw-2">&amp;</span>input.ident;
+            <span class="kw">let </span>ty_generics = input.generics.split_for_impl().<span class="number">1</span>;
+            <span class="kw">let </span>self_ty = <span class="macro">parse_quote!</span>(#ident #ty_generics);
+            <span class="kw">let </span><span class="kw-2">mut </span>visitor = ReplaceReceiver(<span class="kw-2">&amp;</span>self_ty);
+            visitor.visit_item_enum_mut(input);
+            cx = Context::new(<span class="kw-2">&amp;</span>input.attrs, <span class="kw-2">&amp;</span>input.vis, <span class="kw-2">&amp;</span>input.ident, <span class="kw-2">&amp;mut </span>input.generics, Enum)<span class="question-mark">?</span>;
+            parse_enum(<span class="kw-2">&amp;mut </span>cx, input.brace_token, <span class="kw-2">&amp;</span>input.variants, <span class="kw-2">&amp;mut </span>generate)<span class="question-mark">?</span>;
         }
-        Data::Union(<span class="kw">_</span>) =&gt; {
-            <span class="macro">bail!</span>(input, <span class="string">"#[pin_project] attribute may only be used on structs or enums"</span>);
-        }
+        <span class="kw">_ </span>=&gt; <span class="macro">bail!</span>(input, <span class="string">"#[pin_project] attribute may only be used on structs or enums"</span>),
     }
 
     <span class="prelude-val">Ok</span>(generate.into_tokens(<span class="kw-2">&amp;</span>cx))
@@ -1215,11 +1227,14 @@
             // - https://github.com/rust-lang/rust/issues/63281
             // - https://github.com/taiki-e/pin-project/pull/53#issuecomment-525906867
             // - https://github.com/taiki-e/pin-project/pull/70
-            </span>#allowed_lints
-            <span class="attr">#[allow(unused_qualifications)]
-            #[allow(clippy::semicolon_if_nothing_returned)]
-            #[allow(clippy::use_self)]
-            #[allow(clippy::used_underscore_binding)]
+            </span><span class="attr">#[allow(
+                unused_qualifications,
+                #allowed_lints
+                clippy::needless_lifetimes,
+                clippy::semicolon_if_nothing_returned,
+                clippy::use_self,
+                clippy::used_underscore_binding
+            )]
             </span><span class="kw">const _</span>: () = {
                 <span class="attr">#[allow(unused_extern_crates)]
                 </span><span class="kw">extern crate </span>pin_project <span class="kw">as </span>_pin_project;
@@ -1235,54 +1250,60 @@
 <span class="doccomment">/// Returns attributes that should be applied to all generated code.
 </span><span class="kw">fn </span>global_allowed_lints() -&gt; TokenStream {
     <span class="macro">quote!</span> {
-        <span class="attr">#[allow(box_pointers)] </span><span class="comment">// This lint warns use of the `Box` type.
-        </span><span class="attr">#[allow(deprecated)]
-        #[allow(explicit_outlives_requirements)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/60993
-        </span><span class="attr">#[allow(single_use_lifetimes)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/55058
-        </span><span class="attr">#[allow(unreachable_pub)] </span><span class="comment">// This lint warns `pub` field in private struct.
-        </span><span class="attr">#[allow(unused_tuple_struct_fields)]
-        </span><span class="comment">// This lint warns of `clippy::*` generated by external macros.
+        deprecated,
+        explicit_outlives_requirements, <span class="comment">// https://github.com/rust-lang/rust/issues/60993
+        </span>single_use_lifetimes, <span class="comment">// https://github.com/rust-lang/rust/issues/55058
+        </span>unreachable_pub, <span class="comment">// This lint warns `pub` field in private struct.
+        </span>unused_tuple_struct_fields,
+        <span class="comment">// This lint warns of `clippy::*` generated by external macros.
         // We allow this lint for compatibility with older compilers.
-        </span><span class="attr">#[allow(clippy::unknown_clippy_lints)]
-        #[allow(clippy::pattern_type_mismatch)]
-        #[allow(clippy::redundant_pub_crate)] </span><span class="comment">// This lint warns `pub(crate)` field in private struct.
-        </span><span class="attr">#[allow(clippy::type_repetition_in_bounds)] </span><span class="comment">// https://github.com/rust-lang/rust-clippy/issues/4326
+        </span>clippy::unknown_clippy_lints,
+        clippy::absolute_paths,
+        clippy::min_ident_chars,
+        clippy::pattern_type_mismatch,
+        clippy::pub_with_shorthand,
+        clippy::redundant_pub_crate, <span class="comment">// This lint warns `pub(crate)` field in private struct.
+        </span>clippy::single_char_lifetime_names,
+        clippy::type_repetition_in_bounds, <span class="comment">// https://github.com/rust-lang/rust-clippy/issues/4326
     </span>}
 }
 
 <span class="doccomment">/// Returns attributes used on projected types.
 </span><span class="kw">fn </span>proj_allowed_lints(cx: <span class="kw-2">&amp;</span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; (TokenStream, TokenStream, TokenStream) {
-    <span class="kw">let </span>large_enum_variant = <span class="kw">if </span>cx.kind == Enum {
-        <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
-            <span class="attr">#[allow(variant_size_differences)]
-            #[allow(clippy::large_enum_variant)]
-        </span>})
-    } <span class="kw">else </span>{
-        <span class="prelude-val">None
-    </span>};
     <span class="kw">let </span>global_allowed_lints = global_allowed_lints();
     <span class="kw">let </span>proj_mut_allowed_lints = <span class="kw">if </span>cx.project { <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>global_allowed_lints) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
     <span class="kw">let </span>proj_mut = <span class="macro">quote!</span> {
-        #proj_mut_allowed_lints
-        <span class="attr">#[allow(dead_code)] </span><span class="comment">// This lint warns unused fields/variants.
-        </span><span class="attr">#[allow(clippy::mut_mut)] </span><span class="comment">// This lint warns `&amp;mut &amp;mut &lt;ty&gt;`.
-        </span><span class="attr">#[allow(clippy::missing_docs_in_private_items)]
+        <span class="attr">#[allow(
+            dead_code, <span class="comment">// This lint warns unused fields/variants.
+            </span>#proj_mut_allowed_lints
+            clippy::missing_docs_in_private_items,
+            clippy::mut_mut <span class="comment">// This lint warns `&amp;mut &amp;mut &lt;ty&gt;`.
+        </span>)]
     </span>};
     <span class="kw">let </span>proj_ref_allowed_lints = <span class="kw">if </span>cx.project_ref { <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>global_allowed_lints) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
     <span class="kw">let </span>proj_ref = <span class="macro">quote!</span> {
-        #proj_ref_allowed_lints
-        <span class="attr">#[allow(dead_code)] </span><span class="comment">// This lint warns unused fields/variants.
-        </span><span class="attr">#[allow(clippy::ref_option_ref)] </span><span class="comment">// This lint warns `&amp;Option&lt;&amp;&lt;ty&gt;&gt;`.
-        </span><span class="attr">#[allow(clippy::missing_docs_in_private_items)]
+        <span class="attr">#[allow(
+            dead_code, <span class="comment">// This lint warns unused fields/variants.
+            </span>#proj_ref_allowed_lints
+            clippy::missing_docs_in_private_items,
+            clippy::ref_option_ref <span class="comment">// This lint warns `&amp;Option&lt;&amp;&lt;ty&gt;&gt;`.
+        </span>)]
     </span>};
     <span class="kw">let </span>proj_own_allowed_lints =
         <span class="kw">if </span>cx.project_replace.ident().is_some() { <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>global_allowed_lints) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
+    <span class="kw">let </span>variant_size_differences = <span class="kw">if </span>cx.kind == Enum {
+        <span class="prelude-val">Some</span>(<span class="macro">quote!</span> { variant_size_differences, clippy::large_enum_variant, })
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>};
     <span class="kw">let </span>proj_own = <span class="macro">quote!</span> {
-        #proj_own_allowed_lints
-        <span class="attr">#[allow(dead_code)] </span><span class="comment">// This lint warns unused fields/variants.
-        </span><span class="attr">#[allow(clippy::missing_docs_in_private_items)]
-        </span>#large_enum_variant
-    };
+        <span class="attr">#[allow(
+            dead_code, <span class="comment">// This lint warns unused fields/variants.
+            </span>#proj_own_allowed_lints
+            #variant_size_differences
+            clippy::missing_docs_in_private_items
+        )]
+    </span>};
     (proj_mut, proj_ref, proj_own)
 }
 
@@ -1375,8 +1396,7 @@
     Enum,
     Struct,
 }
-
-<span class="kw">use </span>TypeKind::{Enum, Struct};
+<span class="kw">use </span><span class="self">self</span>::TypeKind::{Enum, Struct};
 
 <span class="kw">struct </span>OriginalType&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Attributes of the original type.
@@ -1546,7 +1566,8 @@
 
 <span class="kw">fn </span>parse_enum&lt;<span class="lifetime">'a</span>&gt;(
     cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'a</span>&gt;,
-    DataEnum { brace_token, variants, .. }: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>DataEnum,
+    brace_token: token::Brace,
+    variants: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Punctuated&lt;Variant, <span class="macro">Token!</span>[,]&gt;,
     generate: <span class="kw-2">&amp;mut </span>GenerateTokens,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">if let </span>ProjReplace::Unnamed { span } = <span class="kw-2">&amp;</span>cx.project_replace {
@@ -1563,7 +1584,7 @@
     // Do this first for a better error message.
     </span>ensure_not_packed(<span class="kw-2">&amp;</span>cx.orig, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
-    validate_enum(<span class="kw-2">*</span>brace_token, variants)<span class="question-mark">?</span>;
+    validate_enum(brace_token, variants)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>ProjectedVariants {
         proj_variants,
@@ -1820,7 +1841,9 @@
 
             <span class="comment">// Make the error message highlight `UnsafeUnpin` argument.
             </span>proj_generics.make_where_clause().predicates.push(<span class="macro">parse_quote_spanned!</span> { span =&gt;
-                _pin_project::__private::Wrapper&lt;#lifetime, <span class="self">Self</span>&gt;: _pin_project::UnsafeUnpin
+                _pin_project::__private::PinnedFieldsOf&lt;
+                    _pin_project::__private::Wrapper&lt;#lifetime, <span class="self">Self</span>&gt;
+                &gt;: _pin_project::UnsafeUnpin
             });
 
             <span class="kw">let </span>(impl_generics, <span class="kw">_</span>, where_clause) = proj_generics.split_for_impl();
@@ -1838,13 +1861,15 @@
             <span class="kw">let </span>orig_ident = cx.orig.ident;
             <span class="kw">let </span>lifetime = <span class="kw-2">&amp;</span>cx.proj.lifetime;
 
-            proj_generics.make_where_clause().predicates.push(<span class="macro">parse_quote!</span> {
-                _pin_project::__private::Wrapper&lt;
+            <span class="comment">// TODO: Using `&lt;unsized type&gt;: Sized` here allow emulating real negative_impls...
+            // https://github.com/taiki-e/pin-project/issues/340#issuecomment-2428002670
+            </span>proj_generics.make_where_clause().predicates.push(<span class="macro">parse_quote!</span> {
+                _pin_project::__private::PinnedFieldsOf&lt;_pin_project::__private::Wrapper&lt;
                     #lifetime, _pin_project::__private::PhantomPinned
-                &gt;: _pin_project::__private::Unpin
+                &gt;&gt;: _pin_project::__private::Unpin
             });
 
-            <span class="kw">let </span>(proj_impl_generics, <span class="kw">_</span>, proj_where_clause) = proj_generics.split_for_impl();
+            <span class="kw">let </span>(impl_generics, <span class="kw">_</span>, where_clause) = proj_generics.split_for_impl();
             <span class="kw">let </span>ty_generics = cx.orig.generics.split_for_impl().<span class="number">1</span>;
 
             <span class="comment">// For interoperability with `forbid(unsafe_code)`, `unsafe` token should be
@@ -1852,9 +1877,8 @@
             </span><span class="kw">let </span>unsafety = &lt;<span class="macro">Token!</span>[<span class="kw">unsafe</span>]&gt;::default();
             <span class="macro">quote_spanned!</span> { span =&gt;
                 <span class="attr">#[doc(hidden)]
-                </span><span class="kw">impl </span>#proj_impl_generics _pin_project::__private::Unpin
-                    <span class="kw">for </span>#orig_ident #ty_generics
-                #proj_where_clause
+                </span><span class="kw">impl </span>#impl_generics _pin_project::__private::Unpin <span class="kw">for </span>#orig_ident #ty_generics
+                #where_clause
                 {
                 }
 
@@ -1865,15 +1889,14 @@
                 // impl, they'll get a "conflicting implementations of trait" error when
                 // coherence checks are run.
                 </span><span class="attr">#[doc(hidden)]
-                </span>#unsafety <span class="kw">impl </span>#proj_impl_generics _pin_project::UnsafeUnpin
-                    <span class="kw">for </span>#orig_ident #ty_generics
-                #proj_where_clause
+                </span>#unsafety <span class="kw">impl </span>#impl_generics _pin_project::UnsafeUnpin <span class="kw">for </span>#orig_ident #ty_generics
+                #where_clause
                 {
                 }
             }
         }
         UnpinImpl::Default =&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>full_where_clause = cx.orig.generics.where_clause.clone().unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>impl_where_clause = cx.orig.generics.where_clause.clone().unwrap();
 
             <span class="comment">// Generate a field in our new struct for every
             // pinned field in the original type.
@@ -1916,11 +1939,12 @@
             <span class="kw">let </span>lifetime = <span class="kw-2">&amp;</span>cx.proj.lifetime;
             <span class="kw">let </span>type_params = cx.orig.generics.type_params().map(|t| <span class="kw-2">&amp;</span>t.ident);
             <span class="kw">let </span>proj_generics = <span class="kw-2">&amp;</span>cx.proj.generics;
-            <span class="kw">let </span>(proj_impl_generics, proj_ty_generics, <span class="kw">_</span>) = proj_generics.split_for_impl();
-            <span class="kw">let </span>(<span class="kw">_</span>, ty_generics, where_clause) = cx.orig.generics.split_for_impl();
+            <span class="kw">let </span>(impl_generics, proj_ty_generics, <span class="kw">_</span>) = proj_generics.split_for_impl();
+            <span class="kw">let </span>(<span class="kw">_</span>, ty_generics, ty_where_clause) = cx.orig.generics.split_for_impl();
 
-            full_where_clause.predicates.push(<span class="macro">parse_quote!</span> {
-                #struct_ident #proj_ty_generics: _pin_project::__private::Unpin
+            impl_where_clause.predicates.push(<span class="macro">parse_quote!</span> {
+                _pin_project::__private::PinnedFieldsOf&lt;#struct_ident #proj_ty_generics&gt;:
+                    _pin_project::__private::Unpin
             });
 
             <span class="macro">quote!</span> {
@@ -1934,8 +1958,8 @@
                 // `__UnpinStruct` type must also be public.
                 // However, we ensure that the user can never actually reference
                 // this 'public' type by creating this type in the inside of `const`.
-                </span><span class="attr">#[allow(missing_debug_implementations)]
-                </span>#vis <span class="kw">struct </span>#struct_ident #proj_generics #where_clause {
+                </span><span class="attr">#[allow(missing_debug_implementations, unnameable_types)]
+                </span>#vis <span class="kw">struct </span>#struct_ident #proj_generics #ty_where_clause {
                     __pin_project_use_generics: _pin_project::__private::AlwaysUnpin&lt;
                         #lifetime, (#(_pin_project::__private::PhantomData&lt;#type_params&gt;),<span class="kw-2">*</span>)
                     &gt;,
@@ -1944,9 +1968,8 @@
                     #(#lifetime_fields,)*
                 }
 
-                <span class="kw">impl </span>#proj_impl_generics _pin_project::__private::Unpin
-                    <span class="kw">for </span>#orig_ident #ty_generics
-                #full_where_clause
+                <span class="kw">impl </span>#impl_generics _pin_project::__private::Unpin <span class="kw">for </span>#orig_ident #ty_generics
+                #impl_where_clause
                 {
                 }
 
@@ -1957,9 +1980,8 @@
                 // impl, they'll get a "conflicting implementations of trait" error when
                 // coherence checks are run.
                 </span><span class="attr">#[doc(hidden)]
-                </span><span class="kw">unsafe impl </span>#proj_impl_generics _pin_project::UnsafeUnpin
-                    <span class="kw">for </span>#orig_ident #ty_generics
-                #full_where_clause
+                </span><span class="kw">unsafe impl </span>#impl_generics _pin_project::UnsafeUnpin <span class="kw">for </span>#orig_ident #ty_generics
+                #impl_where_clause
                 {
                 }
             }
@@ -2019,7 +2041,7 @@
         <span class="macro">quote!</span> {
             <span class="comment">// There are two possible cases:
             // 1. The user type does not implement Drop. In this case,
-            // the first blanked impl will not apply to it. This code
+            // the first blanket impl will not apply to it. This code
             // will compile, as there is only one impl of MustNotImplDrop for the user type
             // 2. The user type does impl Drop. This will make the blanket impl applicable,
             // which will then conflict with the explicit MustNotImplDrop impl below.
@@ -2103,15 +2125,15 @@
     <span class="kw">let </span><span class="kw-2">mut </span>project_replace = cx.project_replace.span().map(|span| {
         <span class="comment">// It is enough to only set the span of the signature.
         </span><span class="kw">let </span>sig = <span class="macro">quote_spanned!</span> { span =&gt;
-            #allow_dead_code
-            <span class="attr">#[inline]
-            </span>#vis <span class="kw">fn </span>project_replace(
+            #vis <span class="kw">fn </span>project_replace(
                 <span class="self">self</span>: _pin_project::__private::Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
                 __replacement: <span class="self">Self</span>,
             ) -&gt; #proj_own_ident #orig_ty_generics
         };
         <span class="macro">quote!</span> {
-            #sig {
+            #allow_dead_code
+            <span class="attr">#[inline]
+            </span>#sig {
                 <span class="kw">unsafe </span>{
                     <span class="kw">let </span>__self_ptr: <span class="kw-2">*mut </span><span class="self">Self </span>= <span class="self">self</span>.get_unchecked_mut();
 

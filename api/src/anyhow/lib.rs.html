@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anyhow-1.0.89/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anyhow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">anyhow/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/anyhow-1.0.95/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anyhow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">anyhow/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -729,7 +729,8 @@
 <a href="#728" id="728">728</a>
 <a href="#729" id="729">729</a>
 <a href="#730" id="730">730</a>
-<a href="#731" id="731">731</a></pre></div><pre class="rust"><code><span class="doccomment">//! [![github]](https://github.com/dtolnay/anyhow)&amp;ensp;[![crates-io]](https://crates.io/crates/anyhow)&amp;ensp;[![docs-rs]](https://docs.rs/anyhow)
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a></pre></div><pre class="rust"><code><span class="doccomment">//! [![github]](https://github.com/dtolnay/anyhow)&amp;ensp;[![crates-io]](https://crates.io/crates/anyhow)&amp;ensp;[![docs-rs]](https://docs.rs/anyhow)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&amp;labelColor=555555&amp;logo=github
 //! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&amp;labelColor=555555&amp;logo=rust
@@ -937,7 +938,7 @@
 //! function that returns Anyhow's error type, as the trait that `?`-based error
 //! conversions are defined by is only available in std in those old versions.
 
-</span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/anyhow/1.0.89"</span>)]
+</span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/anyhow/1.0.95"</span>)]
 #![cfg_attr(error_generic_member_access, feature(error_generic_member_access))]
 #![no_std]
 #![deny(dead_code, unused_imports, unused_mut)]
@@ -958,6 +959,7 @@
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
     clippy::needless_doctest_main,
+    clippy::needless_lifetimes,
     clippy::new_ret_no_self,
     clippy::redundant_else,
     clippy::return_self_not_must_use,
@@ -1357,11 +1359,11 @@
         F: FnOnce() -&gt; C;
 }
 
-<span class="doccomment">/// Equivalent to Ok::&lt;_, anyhow::Error&gt;(value).
+<span class="doccomment">/// Equivalent to `Ok::&lt;_, anyhow::Error&gt;(value)`.
 ///
-/// This simplifies creation of an anyhow::Result in places where type inference
-/// cannot deduce the `E` type of the result &amp;mdash; without needing to write
-/// `Ok::&lt;_, anyhow::Error&gt;(value)`.
+/// This simplifies creation of an `anyhow::Result` in places where type
+/// inference cannot deduce the `E` type of the result &amp;mdash; without needing
+/// to write`Ok::&lt;_, anyhow::Error&gt;(value)`.
 ///
 /// One might think that `anyhow::Result::Ok(value)` would work in such cases
 /// but it does not.
@@ -1376,8 +1378,8 @@
 ///    |         consider giving this pattern the explicit type `std::result::Result&lt;i32, E&gt;`, where the type parameter `E` is specified
 /// ```
 </span><span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub fn </span><span class="prelude-val">Ok</span>&lt;T&gt;(t: T) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
-    Result::Ok(t)
+</span><span class="kw">pub fn </span><span class="prelude-val">Ok</span>&lt;T&gt;(value: T) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
+    Result::Ok(value)
 }
 
 <span class="comment">// Not public API. Referenced by macro-generated code.

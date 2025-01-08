@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-5.1.2/src/helpers/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/helpers/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-6.3.0/src/helpers/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/helpers/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -284,15 +284,12 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::context::Context;
+<a href="#286" id="286">286</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::context::Context;
 <span class="kw">use </span><span class="kw">crate</span>::error::{RenderError, RenderErrorReason};
 <span class="kw">use </span><span class="kw">crate</span>::json::value::ScopedJson;
 <span class="kw">use </span><span class="kw">crate</span>::output::Output;
 <span class="kw">use </span><span class="kw">crate</span>::registry::Registry;
-<span class="kw">use </span><span class="kw">crate</span>::render::{do_escape, Helper, RenderContext};
+<span class="kw">use </span><span class="kw">crate</span>::render::{do_escape, indent_aware_write, Helper, RenderContext};
 
 <span class="kw">pub use </span><span class="self">self</span>::helper_each::EACH_HELPER;
 <span class="kw">pub use </span><span class="self">self</span>::helper_if::{IF_HELPER, UNLESS_HELPER};
@@ -314,7 +311,8 @@
 /// * `&amp;mut RenderContext`: you can access data or modify variables (starts with @)/partials in render context, for example, @index of #each. See its document for detail.
 /// * `&amp;mut dyn Output`: where you write output to
 ///
-/// By default, you can use a bare function as a helper definition because we have supported unboxed_closure. If you have stateful or configurable helper, you can create a struct to implement `HelperDef`.
+/// By default, you can use a bare function as a helper definition because we have supported `unboxed_closure`.
+/// If you have stateful or configurable helper, you can create a struct to implement `HelperDef`.
 ///
 /// ## Define an inline helper
 ///
@@ -415,7 +413,9 @@
                 } <span class="kw">else </span>{
                     <span class="comment">// auto escape according to settings
                     </span><span class="kw">let </span>output = do_escape(r, rc, result.render());
-                    out.write(output.as_ref())<span class="question-mark">?</span>;
+
+                    indent_aware_write(<span class="kw-2">&amp;</span>output, rc, out)<span class="question-mark">?</span>;
+
                     <span class="prelude-val">Ok</span>(())
                 }
             }
@@ -431,7 +431,7 @@
     }
 }
 
-<span class="doccomment">/// implement HelperDef for bare function so we can use function as helper
+<span class="doccomment">/// implement `HelperDef` for bare function so we can use function as helper
 </span><span class="kw">impl</span>&lt;
         F: <span class="kw">for</span>&lt;<span class="lifetime">'reg</span>, <span class="lifetime">'rc</span>&gt; Fn(
             <span class="kw-2">&amp;</span>Helper&lt;<span class="lifetime">'rc</span>&gt;,
@@ -468,13 +468,7 @@
 <span class="attr">#[cfg(feature = <span class="string">"string_helpers"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>string_helpers;
 
-<span class="comment">// pub type HelperDef = for &lt;'a, 'b, 'c&gt; Fn&lt;(&amp;'a Context, &amp;'b Helper, &amp;'b Registry, &amp;'c mut RenderContext), Result&lt;String, RenderError&gt;&gt;;
-//
-// pub fn helper_dummy (ctx: &amp;Context, h: &amp;Helper, r: &amp;Registry, rc: &amp;mut RenderContext) -&gt; Result&lt;String, RenderError&gt; {
-// h.template().unwrap().render(ctx, r, rc).unwrap()
-// }
-//
-</span><span class="attr">#[cfg(test)]
+<span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use </span>std::collections::BTreeMap;
 

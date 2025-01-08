@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mdbook-0.4.40/src/utils/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mdbook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">mdbook/utils/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mdbook-0.4.43/src/utils/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mdbook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">mdbook/utils/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -508,7 +508,41 @@
 <a href="#507" id="507">507</a>
 <a href="#508" id="508">508</a>
 <a href="#509" id="509">509</a>
-<a href="#510" id="510">510</a></pre></div><pre class="rust"><code><span class="attr">#![allow(missing_docs)] </span><span class="comment">// FIXME: Document this
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a></pre></div><pre class="rust"><code><span class="attr">#![allow(missing_docs)] </span><span class="comment">// FIXME: Document this
 
 </span><span class="kw">pub mod </span>fs;
 <span class="kw">mod </span>string;
@@ -587,7 +621,7 @@
     </span><span class="kw">let </span>id_count = id_counter.entry(id.clone()).or_insert(<span class="number">0</span>);
     <span class="kw">let </span>unique_id = <span class="kw">match </span><span class="kw-2">*</span>id_count {
         <span class="number">0 </span>=&gt; id,
-        id_count =&gt; <span class="macro">format!</span>(<span class="string">"{}-{}"</span>, id, id_count),
+        id_count =&gt; <span class="macro">format!</span>(<span class="string">"{id}-{id_count}"</span>),
     };
     <span class="kw-2">*</span>id_count += <span class="number">1</span>;
     unique_id
@@ -615,7 +649,7 @@
                 <span class="kw">if </span>base.ends_with(<span class="string">".md"</span>) {
                     base.replace_range(base.len() - <span class="number">3</span>.., <span class="string">".html"</span>);
                 }
-                <span class="kw">return </span><span class="macro">format!</span>(<span class="string">"{}{}"</span>, base, dest).into();
+                <span class="kw">return </span><span class="macro">format!</span>(<span class="string">"{base}{dest}"</span>).into();
             } <span class="kw">else </span>{
                 <span class="kw">return </span>dest;
             }
@@ -631,7 +665,7 @@
                     .to_str()
                     .expect(<span class="string">"utf-8 paths only"</span>);
                 <span class="kw">if </span>!base.is_empty() {
-                    <span class="macro">write!</span>(fixed_link, <span class="string">"{}/"</span>, base).unwrap();
+                    <span class="macro">write!</span>(fixed_link, <span class="string">"{base}/"</span>).unwrap();
                 }
             }
 
@@ -775,6 +809,25 @@
     }
 }
 
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>special_escape(<span class="kw-2">mut </span>s: <span class="kw-2">&amp;</span>str) -&gt; String {
+    <span class="kw">let </span><span class="kw-2">mut </span>escaped = String::with_capacity(s.len());
+    <span class="kw">let </span>needs_escape: <span class="kw-2">&amp;</span>[char] = <span class="kw-2">&amp;</span>[<span class="string">'&lt;'</span>, <span class="string">'&gt;'</span>, <span class="string">'\''</span>, <span class="string">'\\'</span>, <span class="string">'&amp;'</span>];
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(next) = s.find(needs_escape) {
+        escaped.push_str(<span class="kw-2">&amp;</span>s[..next]);
+        <span class="kw">match </span>s.as_bytes()[next] {
+            <span class="string">b'&lt;' </span>=&gt; escaped.push_str(<span class="string">"&amp;lt;"</span>),
+            <span class="string">b'&gt;' </span>=&gt; escaped.push_str(<span class="string">"&amp;gt;"</span>),
+            <span class="string">b'\'' </span>=&gt; escaped.push_str(<span class="string">"&amp;#39;"</span>),
+            <span class="string">b'\\' </span>=&gt; escaped.push_str(<span class="string">"&amp;#92;"</span>),
+            <span class="string">b'&amp;' </span>=&gt; escaped.push_str(<span class="string">"&amp;amp;"</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+        }
+        s = <span class="kw-2">&amp;</span>s[next + <span class="number">1</span>..];
+    }
+    escaped.push_str(s);
+    escaped
+}
+
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bracket_escape(<span class="kw-2">mut </span>s: <span class="kw-2">&amp;</span>str) -&gt; String {
     <span class="kw">let </span><span class="kw-2">mut </span>escaped = String::with_capacity(s.len());
     <span class="kw">let </span>needs_escape: <span class="kw-2">&amp;</span>[char] = <span class="kw-2">&amp;</span>[<span class="string">'&lt;'</span>, <span class="string">'&gt;'</span>];
@@ -793,7 +846,7 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use </span><span class="kw">super</span>::bracket_escape;
+    <span class="kw">use super</span>::{bracket_escape, special_escape};
 
     <span class="kw">mod </span>render_markdown {
         <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::render_markdown;
@@ -1016,6 +1069,21 @@ more text with spaces
         <span class="macro">assert_eq!</span>(bracket_escape(<span class="string">"&lt;&gt;"</span>), <span class="string">"&amp;lt;&amp;gt;"</span>);
         <span class="macro">assert_eq!</span>(bracket_escape(<span class="string">"&lt;test&gt;"</span>), <span class="string">"&amp;lt;test&amp;gt;"</span>);
         <span class="macro">assert_eq!</span>(bracket_escape(<span class="string">"a&lt;test&gt;b"</span>), <span class="string">"a&amp;lt;test&amp;gt;b"</span>);
+        <span class="macro">assert_eq!</span>(bracket_escape(<span class="string">"'"</span>), <span class="string">"'"</span>);
+        <span class="macro">assert_eq!</span>(bracket_escape(<span class="string">"\\"</span>), <span class="string">"\\"</span>);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>escaped_special() {
+        <span class="macro">assert_eq!</span>(special_escape(<span class="string">""</span>), <span class="string">""</span>);
+        <span class="macro">assert_eq!</span>(special_escape(<span class="string">"&lt;"</span>), <span class="string">"&amp;lt;"</span>);
+        <span class="macro">assert_eq!</span>(special_escape(<span class="string">"&gt;"</span>), <span class="string">"&amp;gt;"</span>);
+        <span class="macro">assert_eq!</span>(special_escape(<span class="string">"&lt;&gt;"</span>), <span class="string">"&amp;lt;&amp;gt;"</span>);
+        <span class="macro">assert_eq!</span>(special_escape(<span class="string">"&lt;test&gt;"</span>), <span class="string">"&amp;lt;test&amp;gt;"</span>);
+        <span class="macro">assert_eq!</span>(special_escape(<span class="string">"a&lt;test&gt;b"</span>), <span class="string">"a&amp;lt;test&amp;gt;b"</span>);
+        <span class="macro">assert_eq!</span>(special_escape(<span class="string">"'"</span>), <span class="string">"&amp;#39;"</span>);
+        <span class="macro">assert_eq!</span>(special_escape(<span class="string">"\\"</span>), <span class="string">"&amp;#92;"</span>);
+        <span class="macro">assert_eq!</span>(special_escape(<span class="string">"&amp;"</span>), <span class="string">"&amp;amp;"</span>);
     }
 }
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-5.1.2/src/registry.rs`."><title>registry.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>registry.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-6.3.0/src/registry.rs`."><title>registry.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>registry.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1435,8 +1435,63 @@
 <a href="#1434" id="1434">1434</a>
 <a href="#1435" id="1435">1435</a>
 <a href="#1436" id="1436">1436</a>
-<a href="#1437" id="1437">1437</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
-<span class="kw">use </span>std::collections::HashMap;
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::collections::{BTreeMap, HashMap};
+<span class="kw">use </span>std::convert::AsRef;
 <span class="kw">use </span>std::fmt::{<span class="self">self</span>, Debug, Formatter};
 <span class="kw">use </span>std::io::{Error <span class="kw">as </span>IoError, Write};
 <span class="kw">use </span>std::path::Path;
@@ -1458,6 +1513,9 @@
 
 <span class="attr">#[cfg(feature = <span class="string">"dir_source"</span>)]
 </span><span class="kw">use </span>walkdir::WalkDir;
+
+<span class="attr">#[cfg(feature = <span class="string">"dir_source"</span>)]
+</span><span class="kw">use </span>derive_builder::Builder;
 
 <span class="attr">#[cfg(feature = <span class="string">"script_helper"</span>)]
 </span><span class="kw">use </span>rhai::Engine;
@@ -1513,7 +1571,7 @@
         HashMap&lt;String, Arc&lt;<span class="kw">dyn </span>Source&lt;Item = String, Error = IoError&gt; + Send + Sync + <span class="lifetime">'reg</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'reg</span>&gt; Debug <span class="kw">for </span>Registry&lt;<span class="lifetime">'reg</span>&gt; {
+<span class="kw">impl </span>Debug <span class="kw">for </span>Registry&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), fmt::Error&gt; {
         f.debug_struct(<span class="string">"Handlebars"</span>)
             .field(<span class="string">"templates"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.templates)
@@ -1525,7 +1583,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'reg</span>&gt; Default <span class="kw">for </span>Registry&lt;<span class="lifetime">'reg</span>&gt; {
+<span class="kw">impl </span>Default <span class="kw">for </span>Registry&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
@@ -1537,9 +1595,12 @@
 }
 
 <span class="doccomment">/// Options for importing template files from a directory.
-</span><span class="attr">#[cfg(feature = <span class="string">"dir_source"</span>)]
+</span><span class="attr">#[non_exhaustive]
+#[derive(Builder)]
+#[cfg(feature = <span class="string">"dir_source"</span>)]
 </span><span class="kw">pub struct </span>DirectorySourceOptions {
     <span class="doccomment">/// The name extension for template files
+    </span><span class="attr">#[builder(setter(into))]
     </span><span class="kw">pub </span>tpl_extension: String,
     <span class="doccomment">/// Whether to include hidden files (file name that starts with `.`)
     </span><span class="kw">pub </span>hidden: bool,
@@ -1708,6 +1769,7 @@
             tpl_str.as_ref(),
             TemplateOptions {
                 name: <span class="prelude-val">Some</span>(name.to_owned()),
+                is_partial: <span class="bool-val">false</span>,
                 prevent_indent: <span class="self">self</span>.prevent_indent,
             },
         )<span class="question-mark">?</span>;
@@ -2029,6 +2091,7 @@
                         TemplateOptions {
                             name: <span class="prelude-val">Some</span>(name.to_owned()),
                             prevent_indent: <span class="self">self</span>.prevent_indent,
+                            is_partial: <span class="bool-val">false</span>,
                         },
                     )
                 })
@@ -2086,7 +2149,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>DecoratorDef + Send + Sync + <span class="lifetime">'reg</span>)&gt; {
-        <span class="self">self</span>.decorators.get(name).map(|v| v.as_ref())
+        <span class="self">self</span>.decorators.get(name).map(AsRef::as_ref)
     }
 
     <span class="doccomment">/// Return all templates registered
@@ -2104,6 +2167,52 @@
         <span class="self">self</span>.template_sources.clear();
     }
 
+    <span class="kw">fn </span>gather_dev_mode_templates(
+        <span class="kw-2">&amp;</span><span class="lifetime">'reg </span><span class="self">self</span>,
+        prebound: <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>str, Cow&lt;<span class="lifetime">'reg</span>, Template&gt;)&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeMap&lt;String, Cow&lt;<span class="lifetime">'reg</span>, Template&gt;&gt;, RenderError&gt; {
+        <span class="kw">let </span>prebound_name = prebound.as_ref().map(|(name, <span class="kw">_</span>)| <span class="kw-2">*</span>name);
+        <span class="kw">let </span><span class="kw-2">mut </span>res = BTreeMap::new();
+        <span class="kw">for </span>name <span class="kw">in </span><span class="self">self</span>.template_sources.keys() {
+            <span class="kw">if </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;**</span>name) == prebound_name {
+                <span class="kw">continue</span>;
+            }
+            res.insert(name.clone(), <span class="self">self</span>.get_or_load_template(name)<span class="question-mark">?</span>);
+        }
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((name, prebound)) = prebound {
+            res.insert(name.to_owned(), prebound);
+        }
+        <span class="prelude-val">Ok</span>(res)
+    }
+
+    <span class="kw">fn </span>render_resolved_template_to_output(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+        template: Cow&lt;<span class="lifetime">'_</span>, Template&gt;,
+        ctx: <span class="kw-2">&amp;</span>Context,
+        output: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Output,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), RenderError&gt; {
+        <span class="kw">if </span>!<span class="self">self</span>.dev_mode {
+            <span class="kw">let </span><span class="kw-2">mut </span>render_context = RenderContext::new(template.name.as_ref());
+            <span class="kw">return </span>template.render(<span class="self">self</span>, ctx, <span class="kw-2">&amp;mut </span>render_context, output);
+        }
+
+        <span class="kw">let </span>dev_mode_templates;
+        <span class="kw">let </span>template = <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
+            dev_mode_templates = <span class="self">self</span>.gather_dev_mode_templates(<span class="prelude-val">Some</span>((name, template)))<span class="question-mark">?</span>;
+            <span class="kw-2">&amp;</span>dev_mode_templates[name]
+        } <span class="kw">else </span>{
+            dev_mode_templates = <span class="self">self</span>.gather_dev_mode_templates(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+            <span class="kw-2">&amp;</span>template
+        };
+
+        <span class="kw">let </span><span class="kw-2">mut </span>render_context = RenderContext::new(template.name.as_ref());
+
+        render_context.set_dev_mode_templates(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>dev_mode_templates));
+
+        template.render(<span class="self">self</span>, ctx, <span class="kw-2">&amp;mut </span>render_context, output)
+    }
+
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>render_to_output&lt;O&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2114,10 +2223,12 @@
     <span class="kw">where
         </span>O: Output,
     {
-        <span class="self">self</span>.get_or_load_template(name).and_then(|t| {
-            <span class="kw">let </span><span class="kw-2">mut </span>render_context = RenderContext::new(t.name.as_ref());
-            t.render(<span class="self">self</span>, ctx, <span class="kw-2">&amp;mut </span>render_context, output)
-        })
+        <span class="self">self</span>.render_resolved_template_to_output(
+            <span class="prelude-val">Some</span>(name),
+            <span class="self">self</span>.get_or_load_template(name)<span class="question-mark">?</span>,
+            ctx,
+            output,
+        )
     }
 
     <span class="doccomment">/// Render a registered template with some data into a string
@@ -2195,10 +2306,7 @@
         .map_err(RenderError::from)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>out = StringOutput::new();
-        {
-            <span class="kw">let </span><span class="kw-2">mut </span>render_context = RenderContext::new(<span class="prelude-val">None</span>);
-            tpl.render(<span class="self">self</span>, ctx, <span class="kw-2">&amp;mut </span>render_context, <span class="kw-2">&amp;mut </span>out)<span class="question-mark">?</span>;
-        }
+        <span class="self">self</span>.render_resolved_template_to_output(<span class="prelude-val">None</span>, Cow::Owned(tpl), ctx, <span class="kw-2">&amp;mut </span>out)<span class="question-mark">?</span>;
 
         out.into_string().map_err(RenderError::from)
     }
@@ -2222,9 +2330,9 @@
             },
         )
         .map_err(RenderError::from)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>render_context = RenderContext::new(<span class="prelude-val">None</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>out = WriteOutput::new(writer);
-        tpl.render(<span class="self">self</span>, ctx, <span class="kw-2">&amp;mut </span>render_context, <span class="kw-2">&amp;mut </span>out)
+
+        <span class="self">self</span>.render_resolved_template_to_output(<span class="prelude-val">None</span>, Cow::Owned(tpl), ctx, <span class="kw-2">&amp;mut </span>out)
     }
 
     <span class="doccomment">/// Render a template string using current registry without registering it
@@ -2340,29 +2448,29 @@
             <span class="macro">assert_eq!</span>(r.templates.len(), <span class="number">0</span>);
 
             <span class="kw">let </span>file1_path = dir.path().join(<span class="string">"t1.hbs"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(<span class="kw-2">&amp;</span>file1_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(file1_path).unwrap();
             <span class="macro">writeln!</span>(file1, <span class="string">"&lt;h1&gt;Hello {{world}}!&lt;/h1&gt;"</span>).unwrap();
 
             <span class="kw">let </span>file2_path = dir.path().join(<span class="string">"t2.hbs"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file2: File = File::create(<span class="kw-2">&amp;</span>file2_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file2: File = File::create(file2_path).unwrap();
             <span class="macro">writeln!</span>(file2, <span class="string">"&lt;h1&gt;Hola {{world}}!&lt;/h1&gt;"</span>).unwrap();
 
             <span class="kw">let </span>file3_path = dir.path().join(<span class="string">"t3.hbs"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file3: File = File::create(<span class="kw-2">&amp;</span>file3_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file3: File = File::create(file3_path).unwrap();
             <span class="macro">writeln!</span>(file3, <span class="string">"&lt;h1&gt;Hallo {{world}}!&lt;/h1&gt;"</span>).unwrap();
 
             <span class="kw">let </span>file4_path = dir.path().join(<span class="string">".t4.hbs"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file4: File = File::create(<span class="kw-2">&amp;</span>file4_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file4: File = File::create(file4_path).unwrap();
             <span class="macro">writeln!</span>(file4, <span class="string">"&lt;h1&gt;Hallo {{world}}!&lt;/h1&gt;"</span>).unwrap();
 
             r.register_templates_directory(dir.path(), DirectorySourceOptions::default())
                 .unwrap();
 
             <span class="macro">assert_eq!</span>(r.templates.len(), <span class="number">3</span>);
-            <span class="macro">assert_eq!</span>(r.templates.contains_key(<span class="string">"t1"</span>), <span class="bool-val">true</span>);
-            <span class="macro">assert_eq!</span>(r.templates.contains_key(<span class="string">"t2"</span>), <span class="bool-val">true</span>);
-            <span class="macro">assert_eq!</span>(r.templates.contains_key(<span class="string">"t3"</span>), <span class="bool-val">true</span>);
-            <span class="macro">assert_eq!</span>(r.templates.contains_key(<span class="string">"t4"</span>), <span class="bool-val">false</span>);
+            <span class="macro">assert!</span>(r.templates.contains_key(<span class="string">"t1"</span>));
+            <span class="macro">assert!</span>(r.templates.contains_key(<span class="string">"t2"</span>));
+            <span class="macro">assert!</span>(r.templates.contains_key(<span class="string">"t3"</span>));
+            <span class="macro">assert!</span>(!r.templates.contains_key(<span class="string">"t4"</span>));
 
             drop(file1);
             drop(file2);
@@ -2375,22 +2483,22 @@
             <span class="kw">let </span>dir = tempdir().unwrap();
 
             <span class="kw">let </span>file1_path = dir.path().join(<span class="string">"t4.hbs"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(<span class="kw-2">&amp;</span>file1_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(file1_path).unwrap();
             <span class="macro">writeln!</span>(file1, <span class="string">"&lt;h1&gt;Hello {{world}}!&lt;/h1&gt;"</span>).unwrap();
 
             <span class="kw">let </span>file2_path = dir.path().join(<span class="string">"t5.erb"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file2: File = File::create(<span class="kw-2">&amp;</span>file2_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file2: File = File::create(file2_path).unwrap();
             <span class="macro">writeln!</span>(file2, <span class="string">"&lt;h1&gt;Hello {{% world %}}!&lt;/h1&gt;"</span>).unwrap();
 
             <span class="kw">let </span>file3_path = dir.path().join(<span class="string">"t6.html"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file3: File = File::create(<span class="kw-2">&amp;</span>file3_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file3: File = File::create(file3_path).unwrap();
             <span class="macro">writeln!</span>(file3, <span class="string">"&lt;h1&gt;Hello world!&lt;/h1&gt;"</span>).unwrap();
 
             r.register_templates_directory(dir.path(), DirectorySourceOptions::default())
                 .unwrap();
 
             <span class="macro">assert_eq!</span>(r.templates.len(), <span class="number">4</span>);
-            <span class="macro">assert_eq!</span>(r.templates.contains_key(<span class="string">"t4"</span>), <span class="bool-val">true</span>);
+            <span class="macro">assert!</span>(r.templates.contains_key(<span class="string">"t4"</span>));
 
             drop(file1);
             drop(file2);
@@ -2402,33 +2510,33 @@
         {
             <span class="kw">let </span>dir = tempdir().unwrap();
 
-            <span class="kw">let _ </span>= DirBuilder::new().create(dir.path().join(<span class="string">"french"</span>)).unwrap();
-            <span class="kw">let _ </span>= DirBuilder::new()
+            DirBuilder::new().create(dir.path().join(<span class="string">"french"</span>)).unwrap();
+            DirBuilder::new()
                 .create(dir.path().join(<span class="string">"portugese"</span>))
                 .unwrap();
-            <span class="kw">let _ </span>= DirBuilder::new()
+            DirBuilder::new()
                 .create(dir.path().join(<span class="string">"italian"</span>))
                 .unwrap();
 
             <span class="kw">let </span>file1_path = dir.path().join(<span class="string">"french/t7.hbs"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(<span class="kw-2">&amp;</span>file1_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(file1_path).unwrap();
             <span class="macro">writeln!</span>(file1, <span class="string">"&lt;h1&gt;Bonjour {{world}}!&lt;/h1&gt;"</span>).unwrap();
 
             <span class="kw">let </span>file2_path = dir.path().join(<span class="string">"portugese/t8.hbs"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file2: File = File::create(<span class="kw-2">&amp;</span>file2_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file2: File = File::create(file2_path).unwrap();
             <span class="macro">writeln!</span>(file2, <span class="string">"&lt;h1&gt;Ola {{world}}!&lt;/h1&gt;"</span>).unwrap();
 
             <span class="kw">let </span>file3_path = dir.path().join(<span class="string">"italian/t9.hbs"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file3: File = File::create(<span class="kw-2">&amp;</span>file3_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file3: File = File::create(file3_path).unwrap();
             <span class="macro">writeln!</span>(file3, <span class="string">"&lt;h1&gt;Ciao {{world}}!&lt;/h1&gt;"</span>).unwrap();
 
             r.register_templates_directory(dir.path(), DirectorySourceOptions::default())
                 .unwrap();
 
             <span class="macro">assert_eq!</span>(r.templates.len(), <span class="number">7</span>);
-            <span class="macro">assert_eq!</span>(r.templates.contains_key(<span class="string">"french/t7"</span>), <span class="bool-val">true</span>);
-            <span class="macro">assert_eq!</span>(r.templates.contains_key(<span class="string">"portugese/t8"</span>), <span class="bool-val">true</span>);
-            <span class="macro">assert_eq!</span>(r.templates.contains_key(<span class="string">"italian/t9"</span>), <span class="bool-val">true</span>);
+            <span class="macro">assert!</span>(r.templates.contains_key(<span class="string">"french/t7"</span>));
+            <span class="macro">assert!</span>(r.templates.contains_key(<span class="string">"portugese/t8"</span>));
+            <span class="macro">assert!</span>(r.templates.contains_key(<span class="string">"italian/t9"</span>));
 
             drop(file1);
             drop(file2);
@@ -2441,21 +2549,21 @@
             <span class="kw">let </span>dir = tempdir().unwrap();
 
             <span class="kw">let </span>file1_path = dir.path().join(<span class="string">"t10.hbs"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(<span class="kw-2">&amp;</span>file1_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(file1_path).unwrap();
             <span class="macro">writeln!</span>(file1, <span class="string">"&lt;h1&gt;Bonjour {{world}}!&lt;/h1&gt;"</span>).unwrap();
 
             <span class="kw">let </span><span class="kw-2">mut </span>dir_path = dir
                 .path()
                 .to_string_lossy()
                 .replace(std::path::MAIN_SEPARATOR, <span class="string">"/"</span>);
-            <span class="kw">if </span>!dir_path.ends_with(<span class="string">"/"</span>) {
+            <span class="kw">if </span>!dir_path.ends_with(<span class="string">'/'</span>) {
                 dir_path.push(<span class="string">'/'</span>);
             }
             r.register_templates_directory(dir_path, DirectorySourceOptions::default())
                 .unwrap();
 
             <span class="macro">assert_eq!</span>(r.templates.len(), <span class="number">8</span>);
-            <span class="macro">assert_eq!</span>(r.templates.contains_key(<span class="string">"t10"</span>), <span class="bool-val">true</span>);
+            <span class="macro">assert!</span>(r.templates.contains_key(<span class="string">"t10"</span>));
 
             drop(file1);
             dir.close().unwrap();
@@ -2466,14 +2574,14 @@
             <span class="kw">let </span><span class="kw-2">mut </span>r = Registry::new();
 
             <span class="kw">let </span>file1_path = dir.path().join(<span class="string">"t11.hbs.html"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(<span class="kw-2">&amp;</span>file1_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(file1_path).unwrap();
             <span class="macro">writeln!</span>(file1, <span class="string">"&lt;h1&gt;Bonjour {{world}}!&lt;/h1&gt;"</span>).unwrap();
 
             <span class="kw">let </span><span class="kw-2">mut </span>dir_path = dir
                 .path()
                 .to_string_lossy()
                 .replace(std::path::MAIN_SEPARATOR, <span class="string">"/"</span>);
-            <span class="kw">if </span>!dir_path.ends_with(<span class="string">"/"</span>) {
+            <span class="kw">if </span>!dir_path.ends_with(<span class="string">'/'</span>) {
                 dir_path.push(<span class="string">'/'</span>);
             }
             r.register_templates_directory(
@@ -2486,7 +2594,7 @@
             .unwrap();
 
             <span class="macro">assert_eq!</span>(r.templates.len(), <span class="number">1</span>);
-            <span class="macro">assert_eq!</span>(r.templates.contains_key(<span class="string">"t11"</span>), <span class="bool-val">true</span>);
+            <span class="macro">assert!</span>(r.templates.contains_key(<span class="string">"t11"</span>));
 
             drop(file1);
             dir.close().unwrap();
@@ -2499,7 +2607,7 @@
             <span class="macro">assert_eq!</span>(r.templates.len(), <span class="number">0</span>);
 
             <span class="kw">let </span>file1_path = dir.path().join(<span class="string">".t12.hbs"</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(<span class="kw-2">&amp;</span>file1_path).unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>file1: File = File::create(file1_path).unwrap();
             <span class="macro">writeln!</span>(file1, <span class="string">"&lt;h1&gt;Hello {{world}}!&lt;/h1&gt;"</span>).unwrap();
 
             r.register_templates_directory(
@@ -2512,7 +2620,7 @@
             .unwrap();
 
             <span class="macro">assert_eq!</span>(r.templates.len(), <span class="number">1</span>);
-            <span class="macro">assert_eq!</span>(r.templates.contains_key(<span class="string">".t12"</span>), <span class="bool-val">true</span>);
+            <span class="macro">assert!</span>(r.templates.contains_key(<span class="string">".t12"</span>));
 
             drop(file1);
 
@@ -2620,7 +2728,7 @@
                 <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             },
             <span class="string">"this.[3]"
-        </span>)
+        </span>);
     }
 
     <span class="kw">use </span><span class="kw">crate</span>::json::value::ScopedJson;

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/url-2.5.2/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="url" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">url/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/url-2.5.4/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="url" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">url/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -3070,7 +3070,121 @@
 <a href="#3069" id="3069">3069</a>
 <a href="#3070" id="3070">3070</a>
 <a href="#3071" id="3071">3071</a>
-<a href="#3072" id="3072">3072</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2013-2015 The rust-url developers.
+<a href="#3072" id="3072">3072</a>
+<a href="#3073" id="3073">3073</a>
+<a href="#3074" id="3074">3074</a>
+<a href="#3075" id="3075">3075</a>
+<a href="#3076" id="3076">3076</a>
+<a href="#3077" id="3077">3077</a>
+<a href="#3078" id="3078">3078</a>
+<a href="#3079" id="3079">3079</a>
+<a href="#3080" id="3080">3080</a>
+<a href="#3081" id="3081">3081</a>
+<a href="#3082" id="3082">3082</a>
+<a href="#3083" id="3083">3083</a>
+<a href="#3084" id="3084">3084</a>
+<a href="#3085" id="3085">3085</a>
+<a href="#3086" id="3086">3086</a>
+<a href="#3087" id="3087">3087</a>
+<a href="#3088" id="3088">3088</a>
+<a href="#3089" id="3089">3089</a>
+<a href="#3090" id="3090">3090</a>
+<a href="#3091" id="3091">3091</a>
+<a href="#3092" id="3092">3092</a>
+<a href="#3093" id="3093">3093</a>
+<a href="#3094" id="3094">3094</a>
+<a href="#3095" id="3095">3095</a>
+<a href="#3096" id="3096">3096</a>
+<a href="#3097" id="3097">3097</a>
+<a href="#3098" id="3098">3098</a>
+<a href="#3099" id="3099">3099</a>
+<a href="#3100" id="3100">3100</a>
+<a href="#3101" id="3101">3101</a>
+<a href="#3102" id="3102">3102</a>
+<a href="#3103" id="3103">3103</a>
+<a href="#3104" id="3104">3104</a>
+<a href="#3105" id="3105">3105</a>
+<a href="#3106" id="3106">3106</a>
+<a href="#3107" id="3107">3107</a>
+<a href="#3108" id="3108">3108</a>
+<a href="#3109" id="3109">3109</a>
+<a href="#3110" id="3110">3110</a>
+<a href="#3111" id="3111">3111</a>
+<a href="#3112" id="3112">3112</a>
+<a href="#3113" id="3113">3113</a>
+<a href="#3114" id="3114">3114</a>
+<a href="#3115" id="3115">3115</a>
+<a href="#3116" id="3116">3116</a>
+<a href="#3117" id="3117">3117</a>
+<a href="#3118" id="3118">3118</a>
+<a href="#3119" id="3119">3119</a>
+<a href="#3120" id="3120">3120</a>
+<a href="#3121" id="3121">3121</a>
+<a href="#3122" id="3122">3122</a>
+<a href="#3123" id="3123">3123</a>
+<a href="#3124" id="3124">3124</a>
+<a href="#3125" id="3125">3125</a>
+<a href="#3126" id="3126">3126</a>
+<a href="#3127" id="3127">3127</a>
+<a href="#3128" id="3128">3128</a>
+<a href="#3129" id="3129">3129</a>
+<a href="#3130" id="3130">3130</a>
+<a href="#3131" id="3131">3131</a>
+<a href="#3132" id="3132">3132</a>
+<a href="#3133" id="3133">3133</a>
+<a href="#3134" id="3134">3134</a>
+<a href="#3135" id="3135">3135</a>
+<a href="#3136" id="3136">3136</a>
+<a href="#3137" id="3137">3137</a>
+<a href="#3138" id="3138">3138</a>
+<a href="#3139" id="3139">3139</a>
+<a href="#3140" id="3140">3140</a>
+<a href="#3141" id="3141">3141</a>
+<a href="#3142" id="3142">3142</a>
+<a href="#3143" id="3143">3143</a>
+<a href="#3144" id="3144">3144</a>
+<a href="#3145" id="3145">3145</a>
+<a href="#3146" id="3146">3146</a>
+<a href="#3147" id="3147">3147</a>
+<a href="#3148" id="3148">3148</a>
+<a href="#3149" id="3149">3149</a>
+<a href="#3150" id="3150">3150</a>
+<a href="#3151" id="3151">3151</a>
+<a href="#3152" id="3152">3152</a>
+<a href="#3153" id="3153">3153</a>
+<a href="#3154" id="3154">3154</a>
+<a href="#3155" id="3155">3155</a>
+<a href="#3156" id="3156">3156</a>
+<a href="#3157" id="3157">3157</a>
+<a href="#3158" id="3158">3158</a>
+<a href="#3159" id="3159">3159</a>
+<a href="#3160" id="3160">3160</a>
+<a href="#3161" id="3161">3161</a>
+<a href="#3162" id="3162">3162</a>
+<a href="#3163" id="3163">3163</a>
+<a href="#3164" id="3164">3164</a>
+<a href="#3165" id="3165">3165</a>
+<a href="#3166" id="3166">3166</a>
+<a href="#3167" id="3167">3167</a>
+<a href="#3168" id="3168">3168</a>
+<a href="#3169" id="3169">3169</a>
+<a href="#3170" id="3170">3170</a>
+<a href="#3171" id="3171">3171</a>
+<a href="#3172" id="3172">3172</a>
+<a href="#3173" id="3173">3173</a>
+<a href="#3174" id="3174">3174</a>
+<a href="#3175" id="3175">3175</a>
+<a href="#3176" id="3176">3176</a>
+<a href="#3177" id="3177">3177</a>
+<a href="#3178" id="3178">3178</a>
+<a href="#3179" id="3179">3179</a>
+<a href="#3180" id="3180">3180</a>
+<a href="#3181" id="3181">3181</a>
+<a href="#3182" id="3182">3182</a>
+<a href="#3183" id="3183">3183</a>
+<a href="#3184" id="3184">3184</a>
+<a href="#3185" id="3185">3185</a>
+<a href="#3186" id="3186">3186</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2013-2015 The rust-url developers.
 //
 // Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license
@@ -3145,6 +3259,14 @@ assert!(data_url.fragment() == Some(""));
 # run().unwrap();
 ```
 
+## Default Features
+
+Versions `&lt;= 2.5.2` of the crate have no default features. Versions `&gt; 2.5.2` have the default feature 'std'.
+If you are upgrading across this boundary and you have specified `default-features = false`, then
+you will need to add the 'std' feature or the 'alloc' feature to your dependency.
+The 'std' feature has the same behavior as the previous versions. The 'alloc' feature
+provides no_std support.
+
 ## Serde
 
 Enable the `serde` feature to include `Deserialize` and `Serialize` implementations for `url::Url`.
@@ -3206,7 +3328,8 @@ url = { version = "2", features = ["debugger_visualizer"] }
 
 */
 
-</span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/url/2.5.2"</span>)]
+</span><span class="attr">#![no_std]
+#![doc(html_root_url = <span class="string">"https://docs.rs/url/2.5.4"</span>)]
 #![cfg_attr(
     feature = <span class="string">"debugger_visualizer"</span>,
     debugger_visualizer(natvis_file = <span class="string">"../../debug_metadata/url.natvis"</span>)
@@ -3214,29 +3337,60 @@ url = { version = "2", features = ["debugger_visualizer"] }
 
 </span><span class="kw">pub use </span>form_urlencoded;
 
+<span class="comment">// For forwards compatibility
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+</span><span class="kw">extern crate </span>std;
+
+<span class="attr">#[macro_use]
+</span><span class="kw">extern crate </span>alloc;
+
 <span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">extern crate </span>serde;
 
 <span class="kw">use </span><span class="kw">crate</span>::host::HostInternal;
-<span class="kw">use </span><span class="kw">crate</span>::parser::{
-    to_u32, Context, Parser, SchemeType, PATH_SEGMENT, SPECIAL_PATH_SEGMENT, USERINFO,
-};
-<span class="kw">use </span>percent_encoding::{percent_decode, percent_encode, utf8_percent_encode};
-<span class="kw">use </span>std::borrow::Borrow;
-<span class="kw">use </span>std::cmp;
-<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Write};
-<span class="kw">use </span>std::hash;
-<span class="attr">#[cfg(any(unix, windows, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>))]
-</span><span class="kw">use </span>std::io;
-<span class="kw">use </span>std::mem;
-<span class="kw">use </span>std::net::IpAddr;
-<span class="attr">#[cfg(any(unix, windows, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>))]
-</span><span class="kw">use </span>std::net::{SocketAddr, ToSocketAddrs};
-<span class="kw">use </span>std::ops::{Range, RangeFrom, RangeTo};
-<span class="kw">use </span>std::path::{Path, PathBuf};
-<span class="kw">use </span>std::str;
 
-<span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span><span class="kw">crate</span>::net::IpAddr;
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+#[cfg(any(
+    unix,
+    windows,
+    target_os = <span class="string">"redox"</span>,
+    target_os = <span class="string">"wasi"</span>,
+    target_os = <span class="string">"hermit"
+</span>))]
+</span><span class="kw">use </span><span class="kw">crate</span>::net::{SocketAddr, ToSocketAddrs};
+<span class="kw">use </span><span class="kw">crate</span>::parser::{to_u32, Context, Parser, SchemeType, USERINFO};
+<span class="kw">use </span>alloc::borrow::ToOwned;
+<span class="kw">use </span>alloc::str;
+<span class="kw">use </span>alloc::string::{String, ToString};
+<span class="kw">use </span>core::borrow::Borrow;
+<span class="kw">use </span>core::convert::TryFrom;
+<span class="kw">use </span>core::fmt::Write;
+<span class="kw">use </span>core::ops::{Range, RangeFrom, RangeTo};
+<span class="kw">use </span>core::{cmp, fmt, hash, mem};
+<span class="kw">use </span>percent_encoding::utf8_percent_encode;
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+#[cfg(any(
+    unix,
+    windows,
+    target_os = <span class="string">"redox"</span>,
+    target_os = <span class="string">"wasi"</span>,
+    target_os = <span class="string">"hermit"
+</span>))]
+</span><span class="kw">use </span>std::io;
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+</span><span class="kw">use </span>std::path::{Path, PathBuf};
+
+<span class="doccomment">/// `std` version of `net`
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>net {
+    <span class="kw">pub use </span>std::net::<span class="kw-2">*</span>;
+}
+<span class="doccomment">/// `no_std` nightly version of `net`
+</span><span class="attr">#[cfg(not(feature = <span class="string">"std"</span>))]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>net {
+    <span class="kw">pub use </span>core::net::<span class="kw-2">*</span>;
+}
 
 <span class="kw">pub use </span><span class="kw">crate</span>::host::Host;
 <span class="kw">pub use </span><span class="kw">crate</span>::origin::{OpaqueOrigin, Origin};
@@ -3448,10 +3602,10 @@ url = { version = "2", features = ["debugger_visualizer"] }
     /// # Notes
     ///
     /// - A trailing slash is significant.
-    /// Without it, the last path component is considered to be a “file” name
-    /// to be removed to get at the “directory” that is used as the base.
+    ///   Without it, the last path component is considered to be a “file” name
+    ///   to be removed to get at the “directory” that is used as the base.
     /// - A [scheme relative special URL](https://url.spec.whatwg.org/#scheme-relative-special-url-string)
-    /// as input replaces everything in the base URL after the scheme.
+    ///   as input replaces everything in the base URL after the scheme.
     /// - An absolute URL (with a scheme) as input replaces the whole base URL (even the scheme).
     ///
     /// # Examples
@@ -4348,11 +4502,18 @@ url = { version = "2", features = ["debugger_visualizer"] }
     ///     })
     /// }
     /// ```
-    </span><span class="attr">#[cfg(any(unix, windows, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+    #[cfg(any(
+        unix,
+        windows,
+        target_os = <span class="string">"redox"</span>,
+        target_os = <span class="string">"wasi"</span>,
+        target_os = <span class="string">"hermit"
+    </span>))]
     </span><span class="kw">pub fn </span>socket_addrs(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         default_port_number: <span class="kw">impl </span>Fn() -&gt; <span class="prelude-ty">Option</span>&lt;u16&gt;,
-    ) -&gt; io::Result&lt;Vec&lt;SocketAddr&gt;&gt; {
+    ) -&gt; io::Result&lt;alloc::vec::Vec&lt;SocketAddr&gt;&gt; {
         <span class="comment">// Note: trying to avoid the Vec allocation by returning `impl AsRef&lt;[SocketAddr]&gt;`
         // causes borrowck issues because the return value borrows `default_port_number`:
         //
@@ -4422,7 +4583,11 @@ url = { version = "2", features = ["debugger_visualizer"] }
     ///
     /// ```
     /// use url::Url;
+    ///
+    /// # #[cfg(feature = "std")]
     /// # use std::error::Error;
+    /// # #[cfg(not(feature = "std"))]
+    /// # use core::error::Error;
     ///
     /// # fn run() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     /// let url = Url::parse("https://example.com/foo/bar")?;
@@ -4836,7 +5001,11 @@ url = { version = "2", features = ["debugger_visualizer"] }
     ///
     /// ```
     /// use url::Url;
+    ///
+    /// # #[cfg(feature = "std")]
     /// # use std::error::Error;
+    /// # #[cfg(not(feature = "std"))]
+    /// # use core::error::Error;
     ///
     /// # fn run() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     /// let mut url = Url::parse("ssh://example.net:2048/")?;
@@ -4855,7 +5024,11 @@ url = { version = "2", features = ["debugger_visualizer"] }
     ///
     /// ```rust
     /// use url::Url;
+    ///
+    /// # #[cfg(feature = "std")]
     /// # use std::error::Error;
+    /// # #[cfg(not(feature = "std"))]
+    /// # use core::error::Error;
     ///
     /// # fn run() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
     /// let mut url = Url::parse("https://example.org/")?;
@@ -5538,9 +5711,20 @@ url = { version = "2", features = ["debugger_visualizer"] }
     /// # run().unwrap();
     /// # }
     /// ```
-    </span><span class="attr">#[cfg(any(unix, windows, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>))]
+    ///
+    /// This method is only available if the `std` Cargo feature is enabled.
+    </span><span class="attr">#[cfg(all(
+        feature = <span class="string">"std"</span>,
+        any(
+            unix,
+            windows,
+            target_os = <span class="string">"redox"</span>,
+            target_os = <span class="string">"wasi"</span>,
+            target_os = <span class="string">"hermit"
+        </span>)
+    ))]
     #[allow(clippy::result_unit_err)]
-    </span><span class="kw">pub fn </span>from_file_path&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;Url, ()&gt; {
+    </span><span class="kw">pub fn </span>from_file_path&lt;P: AsRef&lt;std::path::Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;Url, ()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>serialization = <span class="string">"file://"</span>.to_owned();
         <span class="kw">let </span>host_start = serialization.len() <span class="kw">as </span>u32;
         <span class="kw">let </span>(host_end, host) = path_to_file_url_segments(path.as_ref(), <span class="kw-2">&amp;mut </span>serialization)<span class="question-mark">?</span>;
@@ -5575,9 +5759,20 @@ url = { version = "2", features = ["debugger_visualizer"] }
     ///
     /// Note that `std::path` does not consider trailing slashes significant
     /// and usually does not include them (e.g. in `Path::parent()`).
-    </span><span class="attr">#[cfg(any(unix, windows, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>))]
+    ///
+    /// This method is only available if the `std` Cargo feature is enabled.
+    </span><span class="attr">#[cfg(all(
+        feature = <span class="string">"std"</span>,
+        any(
+            unix,
+            windows,
+            target_os = <span class="string">"redox"</span>,
+            target_os = <span class="string">"wasi"</span>,
+            target_os = <span class="string">"hermit"
+        </span>)
+    ))]
     #[allow(clippy::result_unit_err)]
-    </span><span class="kw">pub fn </span>from_directory_path&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;Url, ()&gt; {
+    </span><span class="kw">pub fn </span>from_directory_path&lt;P: AsRef&lt;std::path::Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;Url, ()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>url = Url::from_file_path(path)<span class="question-mark">?</span>;
         <span class="kw">if </span>!url.serialization.ends_with(<span class="string">'/'</span>) {
             url.serialization.push(<span class="string">'/'</span>)
@@ -5639,7 +5834,7 @@ url = { version = "2", features = ["debugger_visualizer"] }
     <span class="kw">where
         </span>D: serde::Deserializer&lt;<span class="lifetime">'de</span>&gt;,
     {
-        <span class="kw">use </span>serde::de::{Deserialize, Error, Unexpected};
+        <span class="kw">use </span>serde::de::{Deserialize, Error};
         <span class="kw">let </span>(
             serialization,
             scheme_end,
@@ -5665,10 +5860,8 @@ url = { version = "2", features = ["debugger_visualizer"] }
             fragment_start,
         };
         <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
-            url.check_invariants().map_err(|reason| {
-                <span class="kw">let </span>reason: <span class="kw-2">&amp;</span>str = <span class="kw-2">&amp;</span>reason;
-                Error::invalid_value(Unexpected::Other(<span class="string">"value"</span>), <span class="kw-2">&amp;</span>reason)
-            })<span class="question-mark">?
+            url.check_invariants()
+                .map_err(|reason| Error::custom(reason))<span class="question-mark">?
         </span>}
         <span class="prelude-val">Ok</span>(url)
     }
@@ -5691,8 +5884,19 @@ url = { version = "2", features = ["debugger_visualizer"] }
     /// or if `Path::new_opt()` returns `None`.
     /// (That is, if the percent-decoded path contains a NUL byte or,
     /// for a Windows path, is not UTF-8.)
+    ///
+    /// This method is only available if the `std` Cargo feature is enabled.
     </span><span class="attr">#[inline]
-    #[cfg(any(unix, windows, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>))]
+    #[cfg(all(
+        feature = <span class="string">"std"</span>,
+        any(
+            unix,
+            windows,
+            target_os = <span class="string">"redox"</span>,
+            target_os = <span class="string">"wasi"</span>,
+            target_os = <span class="string">"hermit"
+        </span>)
+    ))]
     #[allow(clippy::result_unit_err)]
     </span><span class="kw">pub fn </span>to_file_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, ()&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(segments) = <span class="self">self</span>.path_segments() {
@@ -5870,7 +6074,7 @@ url = { version = "2", features = ["debugger_visualizer"] }
     <span class="kw">where
         </span>D: serde::Deserializer&lt;<span class="lifetime">'de</span>&gt;,
     {
-        <span class="kw">use </span>serde::de::{Error, Unexpected, Visitor};
+        <span class="kw">use </span>serde::de::{Error, Visitor};
 
         <span class="kw">struct </span>UrlVisitor;
 
@@ -5885,10 +6089,7 @@ url = { version = "2", features = ["debugger_visualizer"] }
             <span class="kw">where
                 </span>E: Error,
             {
-                Url::parse(s).map_err(|err| {
-                    <span class="kw">let </span>err_s = <span class="macro">format!</span>(<span class="string">"{}"</span>, err);
-                    Error::invalid_value(Unexpected::Str(s), <span class="kw-2">&amp;</span>err_s.as_str())
-                })
+                Url::parse(s).map_err(|err| Error::custom(<span class="macro">format!</span>(<span class="string">"{}: {:?}"</span>, err, s)))
             }
         }
 
@@ -5896,15 +6097,20 @@ url = { version = "2", features = ["debugger_visualizer"] }
     }
 }
 
-<span class="attr">#[cfg(any(unix, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>))]
+<span class="attr">#[cfg(all(
+    feature = <span class="string">"std"</span>,
+    any(unix, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>, target_os = <span class="string">"hermit"</span>)
+))]
 </span><span class="kw">fn </span>path_to_file_url_segments(
     path: <span class="kw-2">&amp;</span>Path,
     serialization: <span class="kw-2">&amp;mut </span>String,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(u32, HostInternal), ()&gt; {
+    <span class="kw">use </span>parser::SPECIAL_PATH_SEGMENT;
+    <span class="kw">use </span>percent_encoding::percent_encode;
+    <span class="attr">#[cfg(target_os = <span class="string">"hermit"</span>)]
+    </span><span class="kw">use </span>std::os::hermit::ffi::OsStrExt;
     <span class="attr">#[cfg(any(unix, target_os = <span class="string">"redox"</span>))]
     </span><span class="kw">use </span>std::os::unix::prelude::OsStrExt;
-    <span class="attr">#[cfg(target_os = <span class="string">"wasi"</span>)]
-    </span><span class="kw">use </span>std::os::wasi::prelude::OsStrExt;
     <span class="kw">if </span>!path.is_absolute() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(());
     }
@@ -5914,8 +6120,14 @@ url = { version = "2", features = ["debugger_visualizer"] }
     </span><span class="kw">for </span>component <span class="kw">in </span>path.components().skip(<span class="number">1</span>) {
         empty = <span class="bool-val">false</span>;
         serialization.push(<span class="string">'/'</span>);
-        serialization.extend(percent_encode(
+        <span class="attr">#[cfg(not(target_os = <span class="string">"wasi"</span>))]
+        </span>serialization.extend(percent_encode(
             component.as_os_str().as_bytes(),
+            SPECIAL_PATH_SEGMENT,
+        ));
+        <span class="attr">#[cfg(target_os = <span class="string">"wasi"</span>)]
+        </span>serialization.extend(percent_encode(
+            component.as_os_str().to_string_lossy().as_bytes(),
             SPECIAL_PATH_SEGMENT,
         ));
     }
@@ -5926,7 +6138,7 @@ url = { version = "2", features = ["debugger_visualizer"] }
     <span class="prelude-val">Ok</span>((host_end, HostInternal::None))
 }
 
-<span class="attr">#[cfg(windows)]
+<span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, windows))]
 </span><span class="kw">fn </span>path_to_file_url_segments(
     path: <span class="kw-2">&amp;</span>Path,
     serialization: <span class="kw-2">&amp;mut </span>String,
@@ -5935,11 +6147,14 @@ url = { version = "2", features = ["debugger_visualizer"] }
 }
 
 <span class="comment">// Build this unconditionally to alleviate https://github.com/servo/rust-url/issues/102
-</span><span class="attr">#[cfg_attr(not(windows), allow(dead_code))]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+#[cfg_attr(not(windows), allow(dead_code))]
 </span><span class="kw">fn </span>path_to_file_url_segments_windows(
     path: <span class="kw-2">&amp;</span>Path,
     serialization: <span class="kw-2">&amp;mut </span>String,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(u32, HostInternal), ()&gt; {
+    <span class="kw">use </span><span class="kw">crate</span>::parser::PATH_SEGMENT;
+    <span class="kw">use </span>percent_encoding::percent_encode;
     <span class="kw">use </span>std::path::{Component, Prefix};
     <span class="kw">if </span>!path.is_absolute() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(());
@@ -5998,16 +6213,23 @@ url = { version = "2", features = ["debugger_visualizer"] }
     <span class="prelude-val">Ok</span>((host_end, host_internal))
 }
 
-<span class="attr">#[cfg(any(unix, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>))]
+<span class="attr">#[cfg(all(
+    feature = <span class="string">"std"</span>,
+    any(unix, target_os = <span class="string">"redox"</span>, target_os = <span class="string">"wasi"</span>, target_os = <span class="string">"hermit"</span>)
+))]
 </span><span class="kw">fn </span>file_url_segments_to_pathbuf(
     host: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     segments: str::Split&lt;<span class="lifetime">'_</span>, char&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, ()&gt; {
-    <span class="kw">use </span>std::ffi::OsStr;
+    <span class="kw">use </span>alloc::vec::Vec;
+    <span class="kw">use </span>percent_encoding::percent_decode;
+    <span class="attr">#[cfg(not(target_os = <span class="string">"wasi"</span>))]
+    </span><span class="kw">use </span>std::ffi::OsStr;
+    <span class="attr">#[cfg(target_os = <span class="string">"hermit"</span>)]
+    </span><span class="kw">use </span>std::os::hermit::ffi::OsStrExt;
     <span class="attr">#[cfg(any(unix, target_os = <span class="string">"redox"</span>))]
     </span><span class="kw">use </span>std::os::unix::prelude::OsStrExt;
-    <span class="attr">#[cfg(target_os = <span class="string">"wasi"</span>)]
-    </span><span class="kw">use </span>std::os::wasi::prelude::OsStrExt;
+    <span class="kw">use </span>std::path::PathBuf;
 
     <span class="kw">if </span>host.is_some() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(());
@@ -6032,8 +6254,12 @@ url = { version = "2", features = ["debugger_visualizer"] }
         bytes.push(<span class="string">b'/'</span>);
     }
 
-    <span class="kw">let </span>os_str = OsStr::from_bytes(<span class="kw-2">&amp;</span>bytes);
-    <span class="kw">let </span>path = PathBuf::from(os_str);
+    <span class="attr">#[cfg(not(target_os = <span class="string">"wasi"</span>))]
+    </span><span class="kw">let </span>path = PathBuf::from(OsStr::from_bytes(<span class="kw-2">&amp;</span>bytes));
+    <span class="attr">#[cfg(target_os = <span class="string">"wasi"</span>)]
+    </span><span class="kw">let </span>path = String::from_utf8(bytes)
+        .map(|path| PathBuf::from(path))
+        .map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
 
     <span class="macro">debug_assert!</span>(
         path.is_absolute(),
@@ -6043,7 +6269,7 @@ url = { version = "2", features = ["debugger_visualizer"] }
     <span class="prelude-val">Ok</span>(path)
 }
 
-<span class="attr">#[cfg(windows)]
+<span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, windows))]
 </span><span class="kw">fn </span>file_url_segments_to_pathbuf(
     host: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     segments: str::Split&lt;char&gt;,
@@ -6052,11 +6278,13 @@ url = { version = "2", features = ["debugger_visualizer"] }
 }
 
 <span class="comment">// Build this unconditionally to alleviate https://github.com/servo/rust-url/issues/102
-</span><span class="attr">#[cfg_attr(not(windows), allow(dead_code))]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+#[cfg_attr(not(windows), allow(dead_code))]
 </span><span class="kw">fn </span>file_url_segments_to_pathbuf_windows(
     host: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     <span class="kw-2">mut </span>segments: str::Split&lt;<span class="lifetime">'_</span>, char&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, ()&gt; {
+    <span class="kw">use </span>percent_encoding::percent_decode;
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="kw">if let </span><span class="prelude-val">Some</span>(host) = host {
         <span class="string">r"\\"</span>.to_owned() + host
     } <span class="kw">else </span>{

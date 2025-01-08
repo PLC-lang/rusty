@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.3.4/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">async_io/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/async-io-2.4.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_io" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">async_io/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -2227,22 +2227,7 @@
 <a href="#2226" id="2226">2226</a>
 <a href="#2227" id="2227">2227</a>
 <a href="#2228" id="2228">2228</a>
-<a href="#2229" id="2229">2229</a>
-<a href="#2230" id="2230">2230</a>
-<a href="#2231" id="2231">2231</a>
-<a href="#2232" id="2232">2232</a>
-<a href="#2233" id="2233">2233</a>
-<a href="#2234" id="2234">2234</a>
-<a href="#2235" id="2235">2235</a>
-<a href="#2236" id="2236">2236</a>
-<a href="#2237" id="2237">2237</a>
-<a href="#2238" id="2238">2238</a>
-<a href="#2239" id="2239">2239</a>
-<a href="#2240" id="2240">2240</a>
-<a href="#2241" id="2241">2241</a>
-<a href="#2242" id="2242">2242</a>
-<a href="#2243" id="2243">2243</a>
-<a href="#2244" id="2244">2244</a></pre></div><pre class="rust"><code><span class="doccomment">//! Async I/O and timers.
+<a href="#2229" id="2229">2229</a></pre></div><pre class="rust"><code><span class="doccomment">//! Async I/O and timers.
 //!
 //! This crate provides two tools:
 //!
@@ -2562,7 +2547,7 @@
         <span class="self">self</span>.when.is_some()
     }
 
-    <span class="doccomment">/// Sets the timer to emit an en event once after the given duration of time.
+    <span class="doccomment">/// Sets the timer to emit an event once after the given duration of time.
     ///
     /// Note that resetting a timer is different from creating a new timer because
     /// [`set_after()`][`Timer::set_after()`] does not remove the waker associated with the task
@@ -3500,7 +3485,7 @@
 <span class="kw">unsafe impl</span>&lt;T: IoSafe + Write&gt; IoSafe <span class="kw">for </span>std::io::LineWriter&lt;T&gt; {}
 <span class="kw">unsafe impl</span>&lt;T: IoSafe + <span class="question-mark">?</span>Sized&gt; IoSafe <span class="kw">for </span><span class="kw-2">&amp;mut </span>T {}
 <span class="kw">unsafe impl</span>&lt;T: IoSafe + <span class="question-mark">?</span>Sized&gt; IoSafe <span class="kw">for </span>Box&lt;T&gt; {}
-<span class="kw">unsafe impl</span>&lt;T: Clone + IoSafe + <span class="question-mark">?</span>Sized&gt; IoSafe <span class="kw">for </span>std::borrow::Cow&lt;<span class="lifetime">'_</span>, T&gt; {}
+<span class="kw">unsafe impl</span>&lt;T: Clone + IoSafe&gt; IoSafe <span class="kw">for </span>std::borrow::Cow&lt;<span class="lifetime">'_</span>, T&gt; {}
 
 <span class="kw">impl</span>&lt;T: IoSafe + Read&gt; AsyncRead <span class="kw">for </span>Async&lt;T&gt; {
     <span class="kw">fn </span>poll_read(
@@ -3883,7 +3868,7 @@
 
     <span class="doccomment">/// Sends data to the specified address.
     ///
-    /// Returns the number of bytes writen.
+    /// Returns the number of bytes written.
     ///
     /// # Examples
     ///
@@ -4345,20 +4330,14 @@
     </span><span class="kw">let </span>socket = {
         <span class="attr">#[cfg(not(any(
             target_os = <span class="string">"aix"</span>,
-            target_os = <span class="string">"macos"</span>,
-            target_os = <span class="string">"ios"</span>,
-            target_os = <span class="string">"tvos"</span>,
-            target_os = <span class="string">"watchos"</span>,
+            target_vendor = <span class="string">"apple"</span>,
             target_os = <span class="string">"espidf"</span>,
             windows,
         )))]
         </span><span class="kw">let </span>flags = rn::SocketFlags::CLOEXEC;
         <span class="attr">#[cfg(any(
             target_os = <span class="string">"aix"</span>,
-            target_os = <span class="string">"macos"</span>,
-            target_os = <span class="string">"ios"</span>,
-            target_os = <span class="string">"tvos"</span>,
-            target_os = <span class="string">"watchos"</span>,
+            target_vendor = <span class="string">"apple"</span>,
             target_os = <span class="string">"espidf"</span>,
             windows,
         ))]
@@ -4368,13 +4347,7 @@
         </span><span class="kw">let </span>socket = rn::socket_with(domain, rn::SocketType::STREAM, flags, protocol)<span class="question-mark">?</span>;
 
         <span class="comment">// Set cloexec if necessary.
-        </span><span class="attr">#[cfg(any(
-            target_os = <span class="string">"aix"</span>,
-            target_os = <span class="string">"macos"</span>,
-            target_os = <span class="string">"ios"</span>,
-            target_os = <span class="string">"tvos"</span>,
-            target_os = <span class="string">"watchos"</span>,
-        ))]
+        </span><span class="attr">#[cfg(any(target_os = <span class="string">"aix"</span>, target_vendor = <span class="string">"apple"</span>))]
         </span>rio::fcntl_setfd(<span class="kw-2">&amp;</span>socket, rio::fcntl_getfd(<span class="kw-2">&amp;</span>socket)<span class="question-mark">? </span>| rio::FdFlags::CLOEXEC)<span class="question-mark">?</span>;
 
         <span class="comment">// Set non-blocking mode.
@@ -4385,10 +4358,7 @@
 
     <span class="comment">// Set nosigpipe if necessary.
     </span><span class="attr">#[cfg(any(
-        target_os = <span class="string">"macos"</span>,
-        target_os = <span class="string">"ios"</span>,
-        target_os = <span class="string">"tvos"</span>,
-        target_os = <span class="string">"watchos"</span>,
+        target_vendor = <span class="string">"apple"</span>,
         target_os = <span class="string">"freebsd"</span>,
         target_os = <span class="string">"netbsd"</span>,
         target_os = <span class="string">"dragonfly"</span>,

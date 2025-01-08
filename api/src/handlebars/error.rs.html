@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-5.1.2/src/error.rs`."><title>error.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>error.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-6.3.0/src/error.rs`."><title>error.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>error.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -348,7 +348,19 @@
 <a href="#347" id="347">347</a>
 <a href="#348" id="348">348</a>
 <a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::ToOwned;
+<span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
 <span class="kw">use </span>std::fmt::{<span class="self">self</span>, Write};
 <span class="kw">use </span>std::io::Error <span class="kw">as </span>IOError;
 <span class="kw">use </span>std::string::FromUtf8Error;
@@ -363,7 +375,8 @@
 </span><span class="kw">use </span>rhai::{EvalAltResult, ParseError};
 
 <span class="doccomment">/// Error when rendering data on template.
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[non_exhaustive]
+#[derive(Debug)]
 </span><span class="kw">pub struct </span>RenderError {
     <span class="kw">pub </span>template_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="kw">pub </span>line_no: <span class="prelude-ty">Option</span>&lt;usize&gt;,
@@ -386,7 +399,7 @@
                 col,
                 desc
             ),
-            <span class="kw">_ </span>=&gt; <span class="macro">write!</span>(f, <span class="string">"{}"</span>, desc),
+            <span class="kw">_ </span>=&gt; <span class="macro">write!</span>(f, <span class="string">"{desc}"</span>),
         }
     }
 }
@@ -410,7 +423,8 @@
 }
 
 <span class="doccomment">/// Template rendering error
-</span><span class="attr">#[derive(Debug, Error)]
+</span><span class="attr">#[non_exhaustive]
+#[derive(Debug, Error)]
 </span><span class="kw">pub enum </span>RenderErrorReason {
     <span class="attr">#[error(<span class="string">"Template not found {0}"</span>)]
     </span>TemplateNotFound(String),
@@ -500,6 +514,12 @@
     }
 }
 
+<span class="kw">impl </span>From&lt;RenderError&gt; <span class="kw">for </span>RenderErrorReason {
+    <span class="kw">fn </span>from(e: RenderError) -&gt; <span class="self">Self </span>{
+        <span class="kw-2">*</span>e.reason
+    }
+}
+
 <span class="kw">impl </span>RenderError {
     <span class="attr">#[deprecated(since = <span class="string">"5.0.0"</span>, note = <span class="string">"Use RenderErrorReason instead"</span>)]
     </span><span class="kw">pub fn </span>new&lt;T: AsRef&lt;str&gt;&gt;(desc: T) -&gt; RenderError {
@@ -507,7 +527,7 @@
     }
 
     <span class="kw">pub fn </span>strict_error(path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>String&gt;) -&gt; RenderError {
-        RenderErrorReason::MissingVariable(path.map(|p| p.to_owned())).into()
+        RenderErrorReason::MissingVariable(path.map(ToOwned::to_owned)).into()
     }
 
     <span class="attr">#[deprecated(since = <span class="string">"5.0.0"</span>, note = <span class="string">"Use RenderErrorReason::NestedError instead"</span>)]
@@ -536,7 +556,8 @@
 }
 
 <span class="doccomment">/// Template parsing error
-</span><span class="attr">#[derive(Debug, Error)]
+</span><span class="attr">#[non_exhaustive]
+#[derive(Debug, Error)]
 </span><span class="kw">pub enum </span>TemplateErrorReason {
     <span class="attr">#[error(<span class="string">"helper {0:?} was opened, but {1:?} is closing"</span>)]
     </span>MismatchingClosedHelper(String, String),
@@ -628,7 +649,7 @@
 
 <span class="kw">fn </span>template_segment(template_str: <span class="kw-2">&amp;</span>str, line: usize, col: usize) -&gt; String {
     <span class="kw">let </span>range = <span class="number">3</span>;
-    <span class="kw">let </span>line_start = <span class="kw">if </span>line &gt;= range { line - range } <span class="kw">else </span>{ <span class="number">0 </span>};
+    <span class="kw">let </span>line_start = line.saturating_sub(range);
     <span class="kw">let </span>line_end = line + range;
 
     <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
@@ -673,6 +694,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"script_helper"</span>)]
+#[non_exhaustive]
 #[derive(Debug, Error)]
 </span><span class="kw">pub enum </span>ScriptError {
     <span class="attr">#[error(transparent)]

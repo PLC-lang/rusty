@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tempfile-3.13.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tempfile" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tempfile/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tempfile-3.15.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tempfile" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tempfile/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -690,7 +690,16 @@
 <a href="#689" id="689">689</a>
 <a href="#690" id="690">690</a>
 <a href="#691" id="691">691</a>
-<a href="#692" id="692">692</a></pre></div><pre class="rust"><code><span class="doccomment">//! Temporary files and directories.
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a></pre></div><pre class="rust"><code><span class="doccomment">//! Temporary files and directories.
 //!
 //! - Use the [`tempfile()`] function for temporary files
 //! - Use the [`tempdir()`] function for temporary directories.
@@ -721,6 +730,9 @@
 //! `tempfile` doesn't rely on file paths so this isn't an issue. However, `NamedTempFile` does
 //! rely on file paths for _some_ operations. See the security documentation on
 //! the `NamedTempFile` type for more information.
+//!
+//! The OWASP Foundation provides a resource on vulnerabilities concerning insecure
+//! temporary files: https://owasp.org/www-community/vulnerabilities/Insecure_Temporary_File
 //!
 //! ## Early drop pitfall
 //!
@@ -828,12 +840,18 @@
 #![cfg_attr(test, deny(warnings))]
 #![deny(rust_2018_idioms)]
 #![allow(clippy::redundant_field_names)]
+</span><span class="comment">// wasip2 conditionally gates stdlib APIs.
+// https://github.com/rust-lang/rust/issues/130323
+</span><span class="attr">#![cfg_attr(
+    all(feature = <span class="string">"nightly"</span>, target_os = <span class="string">"wasi"</span>, target_env = <span class="string">"p2"</span>),
+    feature(wasip2)
+)]
 #![cfg_attr(all(feature = <span class="string">"nightly"</span>, target_os = <span class="string">"wasi"</span>), feature(wasi_ext))]
 
 #[cfg(doctest)]
 </span><span class="macro">doc_comment::doctest!</span>(<span class="string">"../README.md"</span>);
 
-<span class="kw">const </span>NUM_RETRIES: u32 = <span class="number">1 </span>&lt;&lt; <span class="number">31</span>;
+<span class="kw">const </span>NUM_RETRIES: u32 = <span class="number">65536</span>;
 <span class="kw">const </span>NUM_RAND_CHARS: usize = <span class="number">6</span>;
 
 <span class="kw">use </span>std::ffi::OsStr;
@@ -853,7 +871,7 @@
 <span class="kw">pub use </span><span class="kw">crate</span>::file::{
     tempfile, tempfile_in, NamedTempFile, PathPersistError, PersistError, TempPath,
 };
-<span class="kw">pub use </span><span class="kw">crate</span>::spooled::{spooled_tempfile, SpooledTempFile};
+<span class="kw">pub use </span><span class="kw">crate</span>::spooled::{spooled_tempfile, SpooledData, SpooledTempFile};
 
 <span class="doccomment">/// Create a new temporary file or directory with custom parameters.
 </span><span class="attr">#[derive(Debug, Clone, Eq, PartialEq)]

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-5.1.2/src/context.rs`."><title>context.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>context.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-6.3.0/src/context.rs`."><title>context.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>context.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -453,11 +453,7 @@
 <a href="#452" id="452">452</a>
 <a href="#453" id="453">453</a>
 <a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
-<a href="#459" id="459">459</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::{HashMap, VecDeque};
+<a href="#455" id="455">455</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::{HashMap, VecDeque};
 
 <span class="kw">use </span>serde::Serialize;
 <span class="kw">use </span>serde_json::value::{to_value, Map, Value <span class="kw">as </span>Json};
@@ -465,7 +461,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::block::{BlockContext, BlockParamHolder};
 <span class="kw">use </span><span class="kw">crate</span>::error::{RenderError, RenderErrorReason};
 <span class="kw">use </span><span class="kw">crate</span>::grammar::Rule;
-<span class="kw">use </span><span class="kw">crate</span>::json::path::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::json::path::{merge_json_path, PathSeg};
 <span class="kw">use </span><span class="kw">crate</span>::json::value::ScopedJson;
 <span class="kw">use </span><span class="kw">crate</span>::util::extend;
 
@@ -496,7 +492,7 @@
     block_contexts: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>VecDeque&lt;BlockContext&lt;<span class="lifetime">'_</span>&gt;&gt;,
     always_for_absolute_path: bool,
 ) -&gt; ResolvedPath&lt;<span class="lifetime">'a</span>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>path_context_depth: i64 = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>path_context_depth: usize = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>with_block_param = <span class="prelude-val">None</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>from_root = <span class="bool-val">false</span>;
 
@@ -523,7 +519,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>path_stack = Vec::with_capacity(relative_path.len() + <span class="number">5</span>);
     <span class="kw">match </span>with_block_param {
         <span class="prelude-val">Some</span>((BlockParamHolder::Value(<span class="kw-2">ref </span>value), <span class="kw">_</span>)) =&gt; {
-            merge_json_path(<span class="kw-2">&amp;mut </span>path_stack, <span class="kw-2">&amp;</span>relative_path[<span class="number">1</span>..]);
+            merge_json_path(<span class="kw-2">&amp;mut </span>path_stack, <span class="kw-2">&amp;</span>relative_path[(path_context_depth + <span class="number">1</span>)..]);
             ResolvedPath::BlockParamValue(path_stack, value)
         }
         <span class="prelude-val">Some</span>((BlockParamHolder::Path(<span class="kw-2">ref </span>paths), base_path)) =&gt; {
@@ -531,21 +527,21 @@
             <span class="kw">if </span>!paths.is_empty() {
                 extend(<span class="kw-2">&amp;mut </span>path_stack, paths);
             }
-            merge_json_path(<span class="kw-2">&amp;mut </span>path_stack, <span class="kw-2">&amp;</span>relative_path[<span class="number">1</span>..]);
+            merge_json_path(<span class="kw-2">&amp;mut </span>path_stack, <span class="kw-2">&amp;</span>relative_path[(path_context_depth + <span class="number">1</span>)..]);
 
             ResolvedPath::AbsolutePath(path_stack)
         }
         <span class="prelude-val">None </span>=&gt; {
             <span class="kw">if </span>path_context_depth &gt; <span class="number">0 </span>{
                 <span class="kw">let </span>blk = block_contexts
-                    .get(path_context_depth <span class="kw">as </span>usize)
+                    .get(path_context_depth)
                     .or_else(|| block_contexts.front());
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(base_value) = blk.and_then(|blk| blk.base_value()) {
                     merge_json_path(<span class="kw-2">&amp;mut </span>path_stack, relative_path);
                     ResolvedPath::LocalValue(path_stack, base_value)
                 } <span class="kw">else </span>{
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(base_path) = blk.map(|blk| blk.base_path()) {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(base_path) = blk.map(BlockContext::base_path) {
                         extend(<span class="kw-2">&amp;mut </span>path_stack, base_path);
                     }
                     merge_json_path(<span class="kw-2">&amp;mut </span>path_stack, relative_path);
@@ -559,7 +555,7 @@
                     merge_json_path(<span class="kw-2">&amp;mut </span>path_stack, relative_path);
                     ResolvedPath::LocalValue(path_stack, base_value)
                 } <span class="kw">else </span>{
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(base_path) = block_contexts.front().map(|blk| blk.base_path()) {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(base_path) = block_contexts.front().map(BlockContext::base_path) {
                         extend(<span class="kw-2">&amp;mut </span>path_stack, base_path);
                     }
                     merge_json_path(<span class="kw-2">&amp;mut </span>path_stack, relative_path);
@@ -606,8 +602,8 @@
         <span class="kw">_ </span>=&gt; Map::new(),
     };
 
-    <span class="kw">for </span>(k, v) <span class="kw">in </span>addition.iter() {
-        base_map.insert(k.to_string(), (<span class="kw-2">*</span>v).clone());
+    <span class="kw">for </span>(k, v) <span class="kw">in </span>addition {
+        base_map.insert((<span class="kw-2">*</span>k).to_string(), (<span class="kw-2">*</span>v).clone());
     }
 
     Json::Object(base_map)
@@ -638,13 +634,11 @@
         <span class="kw">match </span>resolved_visitor {
             ResolvedPath::AbsolutePath(paths) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>ptr = <span class="prelude-val">Some</span>(<span class="self">self</span>.data());
-                <span class="kw">for </span>p <span class="kw">in </span>paths.iter() {
+                <span class="kw">for </span>p <span class="kw">in </span><span class="kw-2">&amp;</span>paths {
                     ptr = get_data(ptr, p)<span class="question-mark">?</span>;
                 }
 
-                <span class="prelude-val">Ok</span>(ptr
-                    .map(|v| ScopedJson::Context(v, paths))
-                    .unwrap_or_else(|| ScopedJson::Missing))
+                <span class="prelude-val">Ok</span>(ptr.map_or_else(|| ScopedJson::Missing, |v| ScopedJson::Context(v, paths)))
             }
             ResolvedPath::RelativePath(_paths) =&gt; {
                 <span class="comment">// relative path is disabled for now
@@ -661,12 +655,10 @@
             ResolvedPath::BlockParamValue(paths, value)
             | ResolvedPath::LocalValue(paths, value) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>ptr = <span class="prelude-val">Some</span>(value);
-                <span class="kw">for </span>p <span class="kw">in </span>paths.iter() {
+                <span class="kw">for </span>p <span class="kw">in </span><span class="kw-2">&amp;</span>paths {
                     ptr = get_data(ptr, p)<span class="question-mark">?</span>;
                 }
-                <span class="prelude-val">Ok</span>(ptr
-                    .map(|v| ScopedJson::Derived(v.clone()))
-                    .unwrap_or_else(|| ScopedJson::Missing))
+                <span class="prelude-val">Ok</span>(ptr.map_or_else(|| ScopedJson::Missing, |v| ScopedJson::Derived(v.clone())))
             }
         }
     }
@@ -698,7 +690,7 @@
     <span class="kw">use </span>serde_json::value::Map;
     <span class="kw">use </span>std::collections::{HashMap, VecDeque};
 
-    <span class="kw">fn </span>navigate_from_root&lt;<span class="lifetime">'reg</span>, <span class="lifetime">'rc</span>&gt;(
+    <span class="kw">fn </span>navigate_from_root&lt;<span class="lifetime">'rc</span>&gt;(
         ctx: <span class="kw-2">&amp;</span><span class="lifetime">'rc </span>Context,
         path: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ScopedJson&lt;<span class="lifetime">'rc</span>&gt;, RenderError&gt; {
@@ -723,7 +715,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_render() {
         <span class="kw">let </span>v = <span class="string">"hello"</span>;
-        <span class="kw">let </span>ctx = Context::wraps(<span class="kw-2">&amp;</span>v.to_string()).unwrap();
+        <span class="kw">let </span>ctx = Context::wraps(v.to_string()).unwrap();
         <span class="macro">assert_eq!</span>(
             navigate_from_root(<span class="kw-2">&amp;</span>ctx, <span class="string">"this"</span>).unwrap().render(),
             v.to_string()
@@ -744,7 +736,7 @@
             titles: <span class="macro">vec!</span>[<span class="string">"programmer"</span>.to_string(), <span class="string">"cartographer"</span>.to_string()],
         };
 
-        <span class="kw">let </span>ctx = Context::wraps(<span class="kw-2">&amp;</span>person).unwrap();
+        <span class="kw">let </span>ctx = Context::wraps(person).unwrap();
         <span class="macro">assert_eq!</span>(
             navigate_from_root(<span class="kw-2">&amp;</span>ctx, <span class="string">"./addr/country"</span>).unwrap().render(),
             <span class="string">"China"</span>.to_string()
@@ -755,7 +747,7 @@
         );
 
         <span class="kw">let </span>v = <span class="bool-val">true</span>;
-        <span class="kw">let </span>ctx2 = Context::wraps(<span class="kw-2">&amp;</span>v).unwrap();
+        <span class="kw">let </span>ctx2 = Context::wraps(v).unwrap();
         <span class="macro">assert_eq!</span>(
             navigate_from_root(<span class="kw-2">&amp;</span>ctx2, <span class="string">"this"</span>).unwrap().render(),
             <span class="string">"true"</span>.to_string()
@@ -801,7 +793,7 @@
         <span class="kw">let </span>v = value::to_json(<span class="string">"h1"</span>);
         hash.insert(<span class="string">"tag"</span>, <span class="kw-2">&amp;</span>v);
 
-        <span class="kw">let </span>ctx_a1 = Context::wraps(<span class="kw-2">&amp;</span>context::merge_json(<span class="kw-2">&amp;</span>map, <span class="kw-2">&amp;</span>hash)).unwrap();
+        <span class="kw">let </span>ctx_a1 = Context::wraps(context::merge_json(<span class="kw-2">&amp;</span>map, <span class="kw-2">&amp;</span>hash)).unwrap();
         <span class="macro">assert_eq!</span>(
             navigate_from_root(<span class="kw-2">&amp;</span>ctx_a1, <span class="string">"age"</span>).unwrap().render(),
             <span class="string">"4"</span>.to_owned()
@@ -811,7 +803,7 @@
             <span class="string">"h1"</span>.to_owned()
         );
 
-        <span class="kw">let </span>ctx_a2 = Context::wraps(<span class="kw-2">&amp;</span>context::merge_json(<span class="kw-2">&amp;</span>value::to_json(s), <span class="kw-2">&amp;</span>hash)).unwrap();
+        <span class="kw">let </span>ctx_a2 = Context::wraps(context::merge_json(<span class="kw-2">&amp;</span>value::to_json(s), <span class="kw-2">&amp;</span>hash)).unwrap();
         <span class="macro">assert_eq!</span>(
             navigate_from_root(<span class="kw-2">&amp;</span>ctx_a2, <span class="string">"this"</span>).unwrap().render(),
             <span class="string">"[object]"</span>.to_owned()
@@ -827,7 +819,7 @@
         <span class="kw">let </span>m = <span class="macro">json!</span>({
             <span class="string">"this_name"</span>: <span class="string">"the_value"
         </span>});
-        <span class="kw">let </span>ctx = Context::wraps(<span class="kw-2">&amp;</span>m).unwrap();
+        <span class="kw">let </span>ctx = Context::wraps(m).unwrap();
         <span class="macro">assert_eq!</span>(
             navigate_from_root(<span class="kw-2">&amp;</span>ctx, <span class="string">"this_name"</span>).unwrap().render(),
             <span class="string">"the_value"</span>.to_string()
@@ -851,7 +843,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_serialize_error() {
         <span class="kw">let </span>d = UnserializableType {};
-        <span class="macro">assert!</span>(Context::wraps(<span class="kw-2">&amp;</span>d).is_err());
+        <span class="macro">assert!</span>(Context::wraps(d).is_err());
     }
 
     <span class="attr">#[test]
@@ -866,7 +858,7 @@
             },
             <span class="string">"b"</span>: <span class="number">2
         </span>});
-        <span class="kw">let </span>ctx = Context::wraps(<span class="kw-2">&amp;</span>m).unwrap();
+        <span class="kw">let </span>ctx = Context::wraps(m).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>block = BlockContext::new();
         <span class="kw-2">*</span>block.base_path_mut() = [<span class="string">"a"</span>.to_owned(), <span class="string">"b"</span>.to_owned()].to_vec();
 
@@ -874,7 +866,7 @@
         blocks.push_front(block);
 
         <span class="macro">assert_eq!</span>(
-            ctx.navigate(<span class="kw-2">&amp;</span>Path::parse(<span class="string">"@root/b"</span>).unwrap().segs().unwrap(), <span class="kw-2">&amp;</span>blocks)
+            ctx.navigate(Path::parse(<span class="string">"@root/b"</span>).unwrap().segs().unwrap(), <span class="kw-2">&amp;</span>blocks)
                 .unwrap()
                 .render(),
             <span class="string">"2"</span>.to_string()
@@ -889,7 +881,7 @@
             <span class="string">"b"</span>: [<span class="number">2</span>, <span class="number">3</span>]
         }]);
 
-        <span class="kw">let </span>ctx = Context::wraps(<span class="kw-2">&amp;</span>m).unwrap();
+        <span class="kw">let </span>ctx = Context::wraps(m).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>block_params = BlockParams::new();
         block_params
             .add_path(<span class="string">"z"</span>, [<span class="string">"0"</span>.to_owned(), <span class="string">"a"</span>.to_owned()].to_vec())
@@ -903,13 +895,13 @@
         blocks.push_front(block);
 
         <span class="macro">assert_eq!</span>(
-            ctx.navigate(<span class="kw-2">&amp;</span>Path::parse(<span class="string">"z.[1]"</span>).unwrap().segs().unwrap(), <span class="kw-2">&amp;</span>blocks)
+            ctx.navigate(Path::parse(<span class="string">"z.[1]"</span>).unwrap().segs().unwrap(), <span class="kw-2">&amp;</span>blocks)
                 .unwrap()
                 .render(),
             <span class="string">"2"</span>.to_string()
         );
         <span class="macro">assert_eq!</span>(
-            ctx.navigate(<span class="kw-2">&amp;</span>Path::parse(<span class="string">"t"</span>).unwrap().segs().unwrap(), <span class="kw-2">&amp;</span>blocks)
+            ctx.navigate(Path::parse(<span class="string">"t"</span>).unwrap().segs().unwrap(), <span class="kw-2">&amp;</span>blocks)
                 .unwrap()
                 .render(),
             <span class="string">"good"</span>.to_string()

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/unicase-2.7.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unicase" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">unicase/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/unicase-2.8.1/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unicase" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">unicase/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -435,31 +435,10 @@
 <a href="#434" id="434">434</a>
 <a href="#435" id="435">435</a>
 <a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a>
-<a href="#445" id="445">445</a>
-<a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
-<a href="#449" id="449">449</a>
-<a href="#450" id="450">450</a>
-<a href="#451" id="451">451</a>
-<a href="#452" id="452">452</a>
-<a href="#453" id="453">453</a>
-<a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a></pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(test, deny(missing_docs))]
+<a href="#437" id="437">437</a></pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(test, deny(missing_docs))]
 #![cfg_attr(test, deny(warnings))]
-#![doc(html_root_url = <span class="string">"https://docs.rs/unicase/2.7.0"</span>)]
 #![cfg_attr(feature = <span class="string">"nightly"</span>, feature(test))]
-#![cfg_attr(all(__unicase__core_and_alloc, not(test),), no_std)]
+#![no_std]
 
 </span><span class="doccomment">//! # UniCase
 //!
@@ -500,22 +479,16 @@
 //! assert_eq!(a, b);
 //! ```
 
-</span><span class="attr">#[cfg(feature = <span class="string">"nightly"</span>)]
+</span><span class="attr">#[cfg(test)]
+</span><span class="kw">extern crate </span>std;
+<span class="attr">#[cfg(feature = <span class="string">"nightly"</span>)]
 </span><span class="kw">extern crate </span>test;
 
-<span class="attr">#[cfg(all(__unicase__core_and_alloc, not(test)))]
-</span><span class="kw">extern crate </span>alloc;
-<span class="attr">#[cfg(all(__unicase__core_and_alloc, not(test)))]
-</span><span class="kw">use </span>alloc::string::String;
-
-<span class="attr">#[cfg(not(all(__unicase__core_and_alloc, not(test))))]
-</span><span class="kw">extern crate </span>std <span class="kw">as </span>alloc;
-<span class="attr">#[cfg(not(all(__unicase__core_and_alloc, not(test))))]
-</span><span class="kw">extern crate </span>std <span class="kw">as </span>core;
+<span class="kw">extern crate </span>alloc;
+<span class="kw">use </span>alloc::string::String;
 
 <span class="kw">use </span>alloc::borrow::Cow;
-<span class="attr">#[cfg(__unicase__iter_cmp)]
-</span><span class="kw">use </span>core::cmp::Ordering;
+<span class="kw">use </span>core::cmp::Ordering;
 <span class="kw">use </span>core::fmt;
 <span class="kw">use </span>core::hash::{Hash, Hasher};
 <span class="kw">use </span>core::ops::{Deref, DerefMut};
@@ -585,44 +558,36 @@
     ///
     /// Note: This scans the text to determine if it is all ASCII or not.
     </span><span class="kw">pub fn </span>new(s: S) -&gt; UniCase&lt;S&gt; {
-        <span class="attr">#[cfg(not(__unicase__core_and_alloc))]
-        #[allow(deprecated, unused)]
-        </span><span class="kw">use </span>std::ascii::AsciiExt;
-
         <span class="kw">if </span>s.as_ref().is_ascii() {
             UniCase(Encoding::Ascii(Ascii(s)))
         } <span class="kw">else </span>{
             UniCase(Encoding::Unicode(Unicode(s)))
         }
     }
+
+    <span class="doccomment">/// Returns a copy of this string where each character is mapped to its
+    /// Unicode CaseFolding equivalent.
+    ///
+    /// # Note
+    ///
+    /// Unicode Case Folding is meant for string storage and matching, not for
+    /// display.
+    </span><span class="kw">pub fn </span>to_folded_case(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">match </span><span class="self">self</span>.<span class="number">0 </span>{
+            Encoding::Ascii(<span class="kw-2">ref </span>s) =&gt; s.<span class="number">0</span>.as_ref().to_ascii_lowercase(),
+            Encoding::Unicode(<span class="kw-2">ref </span>s) =&gt; s.to_folded_case(),
+        }
+    }
 }
 
 <span class="kw">impl</span>&lt;S&gt; UniCase&lt;S&gt; {
     <span class="doccomment">/// Creates a new `UniCase`, skipping the ASCII check.
-    </span><span class="attr">#[cfg(__unicase__const_fns)]
     </span><span class="kw">pub const fn </span>unicode(s: S) -&gt; UniCase&lt;S&gt; {
         UniCase(Encoding::Unicode(Unicode(s)))
     }
 
-    <span class="doccomment">/// Creates a new `UniCase`, skipping the ASCII check.
-    ///
-    /// For Rust versions &gt;= 1.31, this is a `const fn`.
-    </span><span class="attr">#[cfg(not(__unicase__const_fns))]
-    </span><span class="kw">pub fn </span>unicode(s: S) -&gt; UniCase&lt;S&gt; {
-        UniCase(Encoding::Unicode(Unicode(s)))
-    }
-
     <span class="doccomment">/// Creates a new `UniCase` which performs only ASCII case folding.
-    </span><span class="attr">#[cfg(__unicase__const_fns)]
     </span><span class="kw">pub const fn </span>ascii(s: S) -&gt; UniCase&lt;S&gt; {
-        UniCase(Encoding::Ascii(Ascii(s)))
-    }
-
-    <span class="doccomment">/// Creates a new `UniCase` which performs only ASCII case folding.
-    ///
-    /// For Rust versions &gt;= 1.31, this is a `const fn`.
-    </span><span class="attr">#[cfg(not(__unicase__const_fns))]
-    </span><span class="kw">pub fn </span>ascii(s: S) -&gt; UniCase&lt;S&gt; {
         UniCase(Encoding::Ascii(Ascii(s)))
     }
 
@@ -747,16 +712,14 @@
 <span class="macro">into_impl!</span>(String);
 <span class="macro">into_impl!</span>(Cow&lt;<span class="lifetime">'a</span>, str&gt;);
 
-<span class="attr">#[cfg(__unicase__iter_cmp)]
-</span><span class="kw">impl</span>&lt;T: AsRef&lt;str&gt;&gt; PartialOrd <span class="kw">for </span>UniCase&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;str&gt;&gt; PartialOrd <span class="kw">for </span>UniCase&lt;T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
         <span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
     }
 }
 
-<span class="attr">#[cfg(__unicase__iter_cmp)]
-</span><span class="kw">impl</span>&lt;T: AsRef&lt;str&gt;&gt; Ord <span class="kw">for </span>UniCase&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: AsRef&lt;str&gt;&gt; Ord <span class="kw">for </span>UniCase&lt;T&gt; {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
         <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;</span>other.<span class="number">0</span>) {
@@ -782,11 +745,10 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span><span class="kw">super</span>::UniCase;
-    <span class="attr">#[cfg(__unicase__default_hasher)]
-    </span><span class="kw">use </span>std::collections::hash_map::DefaultHasher;
-    <span class="attr">#[cfg(not(__unicase__default_hasher))]
-    </span><span class="kw">use </span>std::hash::SipHasher <span class="kw">as </span>DefaultHasher;
+    <span class="kw">use </span>std::borrow::ToOwned;
+    <span class="kw">use </span>std::collections::hash_map::DefaultHasher;
     <span class="kw">use </span>std::hash::{Hash, Hasher};
+    <span class="kw">use </span>std::string::String;
 
     <span class="kw">fn </span>hash&lt;T: Hash&gt;(t: <span class="kw-2">&amp;</span>T) -&gt; u64 {
         <span class="kw">let </span><span class="kw-2">mut </span>s = DefaultHasher::new();
@@ -871,8 +833,7 @@
         b.iter(|| <span class="macro">assert!</span>(::std::str::from_utf8(SUBJECT).is_ok()));
     }
 
-    <span class="attr">#[cfg(__unicase__iter_cmp)]
-    #[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>test_case_cmp() {
         <span class="macro">assert!</span>(UniCase::new(<span class="string">"a"</span>) &lt; UniCase::new(<span class="string">"B"</span>));
 
@@ -906,8 +867,7 @@
         <span class="kw">let _</span>: <span class="kw-2">&amp;</span>str = owned.as_ref();
     }
 
-    <span class="attr">#[cfg(__unicase__const_fns)]
-    #[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>test_unicase_unicode_const() {
         <span class="kw">const </span>_UNICASE: UniCase&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; = UniCase::unicode(<span class="string">""</span>);
     }

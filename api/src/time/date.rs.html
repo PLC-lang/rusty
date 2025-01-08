@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.36/src/date.rs`."><title>date.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/</div>date.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.37/src/date.rs`."><title>date.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/</div>date.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1462,36 +1462,7 @@
 <a href="#1461" id="1461">1461</a>
 <a href="#1462" id="1462">1462</a>
 <a href="#1463" id="1463">1463</a>
-<a href="#1464" id="1464">1464</a>
-<a href="#1465" id="1465">1465</a>
-<a href="#1466" id="1466">1466</a>
-<a href="#1467" id="1467">1467</a>
-<a href="#1468" id="1468">1468</a>
-<a href="#1469" id="1469">1469</a>
-<a href="#1470" id="1470">1470</a>
-<a href="#1471" id="1471">1471</a>
-<a href="#1472" id="1472">1472</a>
-<a href="#1473" id="1473">1473</a>
-<a href="#1474" id="1474">1474</a>
-<a href="#1475" id="1475">1475</a>
-<a href="#1476" id="1476">1476</a>
-<a href="#1477" id="1477">1477</a>
-<a href="#1478" id="1478">1478</a>
-<a href="#1479" id="1479">1479</a>
-<a href="#1480" id="1480">1480</a>
-<a href="#1481" id="1481">1481</a>
-<a href="#1482" id="1482">1482</a>
-<a href="#1483" id="1483">1483</a>
-<a href="#1484" id="1484">1484</a>
-<a href="#1485" id="1485">1485</a>
-<a href="#1486" id="1486">1486</a>
-<a href="#1487" id="1487">1487</a>
-<a href="#1488" id="1488">1488</a>
-<a href="#1489" id="1489">1489</a>
-<a href="#1490" id="1490">1490</a>
-<a href="#1491" id="1491">1491</a>
-<a href="#1492" id="1492">1492</a>
-<a href="#1493" id="1493">1493</a></pre></div><pre class="rust"><code><span class="doccomment">//! The [`Date`] struct and its associated `impl`s.
+<a href="#1464" id="1464">1464</a></pre></div><pre class="rust"><code><span class="doccomment">//! The [`Date`] struct and its associated `impl`s.
 
 </span><span class="attr">#[cfg(feature = <span class="string">"formatting"</span>)]
 </span><span class="kw">use </span>alloc::string::String;
@@ -1517,7 +1488,7 @@
 };
 <span class="attr">#[cfg(feature = <span class="string">"parsing"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::parsing::Parsable;
-<span class="kw">use </span><span class="kw">crate</span>::util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year};
+<span class="kw">use </span><span class="kw">crate</span>::util::{days_in_year, is_leap_year, weeks_in_year};
 <span class="kw">use crate</span>::{error, Duration, Month, PrimitiveDateTime, Time, Weekday};
 
 <span class="kw">type </span>Year = RangedI32&lt;MIN_YEAR, MAX_YEAR&gt;;
@@ -1613,12 +1584,12 @@
         <span class="macro">ensure_ranged!</span>(Year: year);
         <span class="kw">match </span>day {
             <span class="number">1</span>..=<span class="number">28 </span>=&gt; {}
-            <span class="number">29</span>..=<span class="number">31 </span><span class="kw">if </span>day &lt;= days_in_year_month(year, month) =&gt; {}
+            <span class="number">29</span>..=<span class="number">31 </span><span class="kw">if </span>day &lt;= month.length(year) =&gt; {}
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(error::ComponentRange {
                     name: <span class="string">"day"</span>,
                     minimum: <span class="number">1</span>,
-                    maximum: days_in_year_month(year, month) <span class="kw">as _</span>,
+                    maximum: month.length(year) <span class="kw">as _</span>,
                     value: day <span class="kw">as _</span>,
                     conditional_range: <span class="bool-val">true</span>,
                 });
@@ -1742,9 +1713,9 @@
     /// # use time::Date;
     /// # use time_macros::date;
     /// assert_eq!(Date::from_julian_day(0), Ok(date!(-4713 - 11 - 24)));
-    /// assert_eq!(Date::from_julian_day(2_451_545), Ok(date!(2000 - 01 - 01)));
-    /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!(2019 - 01 - 01)));
-    /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!(2019 - 12 - 31)));
+    /// assert_eq!(Date::from_julian_day(2_451_545), Ok(date!(2000-01-01)));
+    /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!(2019-01-01)));
+    /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!(2019-12-31)));
     /// ```
     </span><span class="attr">#[doc(alias = <span class="string">"from_julian_date"</span>)]
     </span><span class="kw">pub const fn </span>from_julian_day(julian_day: i32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
@@ -1799,9 +1770,9 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).year(), 2019);
-    /// assert_eq!(date!(2019 - 12 - 31).year(), 2019);
-    /// assert_eq!(date!(2020 - 01 - 01).year(), 2020);
+    /// assert_eq!(date!(2019-01-01).year(), 2019);
+    /// assert_eq!(date!(2019-12-31).year(), 2019);
+    /// assert_eq!(date!(2020-01-01).year(), 2020);
     /// ```
     </span><span class="kw">pub const fn </span>year(<span class="self">self</span>) -&gt; i32 {
         <span class="self">self</span>.value.get() &gt;&gt; <span class="number">9
@@ -1812,8 +1783,8 @@
     /// ```rust
     /// # use time::Month;
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).month(), Month::January);
-    /// assert_eq!(date!(2019 - 12 - 31).month(), Month::December);
+    /// assert_eq!(date!(2019-01-01).month(), Month::January);
+    /// assert_eq!(date!(2019-12-31).month(), Month::December);
     /// ```
     </span><span class="kw">pub const fn </span>month(<span class="self">self</span>) -&gt; Month {
         <span class="self">self</span>.month_day().<span class="number">0
@@ -1825,8 +1796,8 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).day(), 1);
-    /// assert_eq!(date!(2019 - 12 - 31).day(), 31);
+    /// assert_eq!(date!(2019-01-01).day(), 1);
+    /// assert_eq!(date!(2019-12-31).day(), 31);
     /// ```
     </span><span class="kw">pub const fn </span>day(<span class="self">self</span>) -&gt; u8 {
         <span class="self">self</span>.month_day().<span class="number">1
@@ -1879,8 +1850,8 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).ordinal(), 1);
-    /// assert_eq!(date!(2019 - 12 - 31).ordinal(), 365);
+    /// assert_eq!(date!(2019-01-01).ordinal(), 1);
+    /// assert_eq!(date!(2019-12-31).ordinal(), 365);
     /// ```
     </span><span class="kw">pub const fn </span>ordinal(<span class="self">self</span>) -&gt; u16 {
         (<span class="self">self</span>.value.get() &amp; <span class="number">0x1FF</span>) <span class="kw">as _
@@ -1903,11 +1874,11 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).iso_week(), 1);
-    /// assert_eq!(date!(2019 - 10 - 04).iso_week(), 40);
-    /// assert_eq!(date!(2020 - 01 - 01).iso_week(), 1);
-    /// assert_eq!(date!(2020 - 12 - 31).iso_week(), 53);
-    /// assert_eq!(date!(2021 - 01 - 01).iso_week(), 53);
+    /// assert_eq!(date!(2019-01-01).iso_week(), 1);
+    /// assert_eq!(date!(2019-10-04).iso_week(), 40);
+    /// assert_eq!(date!(2020-01-01).iso_week(), 1);
+    /// assert_eq!(date!(2020-12-31).iso_week(), 53);
+    /// assert_eq!(date!(2021-01-01).iso_week(), 53);
     /// ```
     </span><span class="kw">pub const fn </span>iso_week(<span class="self">self</span>) -&gt; u8 {
         <span class="self">self</span>.iso_year_week().<span class="number">1
@@ -1919,10 +1890,10 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).sunday_based_week(), 0);
-    /// assert_eq!(date!(2020 - 01 - 01).sunday_based_week(), 0);
-    /// assert_eq!(date!(2020 - 12 - 31).sunday_based_week(), 52);
-    /// assert_eq!(date!(2021 - 01 - 01).sunday_based_week(), 0);
+    /// assert_eq!(date!(2019-01-01).sunday_based_week(), 0);
+    /// assert_eq!(date!(2020-01-01).sunday_based_week(), 0);
+    /// assert_eq!(date!(2020-12-31).sunday_based_week(), 52);
+    /// assert_eq!(date!(2021-01-01).sunday_based_week(), 0);
     /// ```
     </span><span class="kw">pub const fn </span>sunday_based_week(<span class="self">self</span>) -&gt; u8 {
         ((<span class="self">self</span>.ordinal() <span class="kw">as </span>i16 - <span class="self">self</span>.weekday().number_days_from_sunday() <span class="kw">as </span>i16 + <span class="number">6</span>) / <span class="number">7</span>) <span class="kw">as _
@@ -1934,10 +1905,10 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).monday_based_week(), 0);
-    /// assert_eq!(date!(2020 - 01 - 01).monday_based_week(), 0);
-    /// assert_eq!(date!(2020 - 12 - 31).monday_based_week(), 52);
-    /// assert_eq!(date!(2021 - 01 - 01).monday_based_week(), 0);
+    /// assert_eq!(date!(2019-01-01).monday_based_week(), 0);
+    /// assert_eq!(date!(2020-01-01).monday_based_week(), 0);
+    /// assert_eq!(date!(2020-12-31).monday_based_week(), 52);
+    /// assert_eq!(date!(2021-01-01).monday_based_week(), 0);
     /// ```
     </span><span class="kw">pub const fn </span>monday_based_week(<span class="self">self</span>) -&gt; u8 {
         ((<span class="self">self</span>.ordinal() <span class="kw">as </span>i16 - <span class="self">self</span>.weekday().number_days_from_monday() <span class="kw">as </span>i16 + <span class="number">6</span>) / <span class="number">7</span>) <span class="kw">as _
@@ -1949,7 +1920,7 @@
     /// # use time::Month;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2019 - 01 - 01).to_calendar_date(),
+    ///     date!(2019-01-01).to_calendar_date(),
     ///     (2019, Month::January, 1)
     /// );
     /// ```
@@ -1962,7 +1933,7 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).to_ordinal_date(), (2019, 1));
+    /// assert_eq!(date!(2019-01-01).to_ordinal_date(), (2019, 1));
     /// ```
     </span><span class="kw">pub const fn </span>to_ordinal_date(<span class="self">self</span>) -&gt; (i32, u16) {
         (<span class="self">self</span>.year(), <span class="self">self</span>.ordinal())
@@ -1973,17 +1944,11 @@
     /// ```rust
     /// # use time::Weekday::*;
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).to_iso_week_date(), (2019, 1, Tuesday));
-    /// assert_eq!(date!(2019 - 10 - 04).to_iso_week_date(), (2019, 40, Friday));
-    /// assert_eq!(
-    ///     date!(2020 - 01 - 01).to_iso_week_date(),
-    ///     (2020, 1, Wednesday)
-    /// );
-    /// assert_eq!(
-    ///     date!(2020 - 12 - 31).to_iso_week_date(),
-    ///     (2020, 53, Thursday)
-    /// );
-    /// assert_eq!(date!(2021 - 01 - 01).to_iso_week_date(), (2020, 53, Friday));
+    /// assert_eq!(date!(2019-01-01).to_iso_week_date(), (2019, 1, Tuesday));
+    /// assert_eq!(date!(2019-10-04).to_iso_week_date(), (2019, 40, Friday));
+    /// assert_eq!(date!(2020-01-01).to_iso_week_date(), (2020, 1, Wednesday));
+    /// assert_eq!(date!(2020-12-31).to_iso_week_date(), (2020, 53, Thursday));
+    /// assert_eq!(date!(2021-01-01).to_iso_week_date(), (2020, 53, Friday));
     /// ```
     </span><span class="kw">pub const fn </span>to_iso_week_date(<span class="self">self</span>) -&gt; (i32, u8, Weekday) {
         <span class="kw">let </span>(year, ordinal) = <span class="self">self</span>.to_ordinal_date();
@@ -2001,18 +1966,18 @@
     /// ```rust
     /// # use time::Weekday::*;
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).weekday(), Tuesday);
-    /// assert_eq!(date!(2019 - 02 - 01).weekday(), Friday);
-    /// assert_eq!(date!(2019 - 03 - 01).weekday(), Friday);
-    /// assert_eq!(date!(2019 - 04 - 01).weekday(), Monday);
-    /// assert_eq!(date!(2019 - 05 - 01).weekday(), Wednesday);
-    /// assert_eq!(date!(2019 - 06 - 01).weekday(), Saturday);
-    /// assert_eq!(date!(2019 - 07 - 01).weekday(), Monday);
-    /// assert_eq!(date!(2019 - 08 - 01).weekday(), Thursday);
-    /// assert_eq!(date!(2019 - 09 - 01).weekday(), Sunday);
-    /// assert_eq!(date!(2019 - 10 - 01).weekday(), Tuesday);
-    /// assert_eq!(date!(2019 - 11 - 01).weekday(), Friday);
-    /// assert_eq!(date!(2019 - 12 - 01).weekday(), Sunday);
+    /// assert_eq!(date!(2019-01-01).weekday(), Tuesday);
+    /// assert_eq!(date!(2019-02-01).weekday(), Friday);
+    /// assert_eq!(date!(2019-03-01).weekday(), Friday);
+    /// assert_eq!(date!(2019-04-01).weekday(), Monday);
+    /// assert_eq!(date!(2019-05-01).weekday(), Wednesday);
+    /// assert_eq!(date!(2019-06-01).weekday(), Saturday);
+    /// assert_eq!(date!(2019-07-01).weekday(), Monday);
+    /// assert_eq!(date!(2019-08-01).weekday(), Thursday);
+    /// assert_eq!(date!(2019-09-01).weekday(), Sunday);
+    /// assert_eq!(date!(2019-10-01).weekday(), Tuesday);
+    /// assert_eq!(date!(2019-11-01).weekday(), Friday);
+    /// assert_eq!(date!(2019-12-01).weekday(), Sunday);
     /// ```
     </span><span class="kw">pub const fn </span>weekday(<span class="self">self</span>) -&gt; Weekday {
         <span class="kw">match </span><span class="self">self</span>.to_julian_day() % <span class="number">7 </span>{
@@ -2034,18 +1999,9 @@
     /// ```rust
     /// # use time::Date;
     /// # use time_macros::date;
-    /// assert_eq!(
-    ///     date!(2019 - 01 - 01).next_day(),
-    ///     Some(date!(2019 - 01 - 02))
-    /// );
-    /// assert_eq!(
-    ///     date!(2019 - 01 - 31).next_day(),
-    ///     Some(date!(2019 - 02 - 01))
-    /// );
-    /// assert_eq!(
-    ///     date!(2019 - 12 - 31).next_day(),
-    ///     Some(date!(2020 - 01 - 01))
-    /// );
+    /// assert_eq!(date!(2019-01-01).next_day(), Some(date!(2019-01-02)));
+    /// assert_eq!(date!(2019-01-31).next_day(), Some(date!(2019-02-01)));
+    /// assert_eq!(date!(2019-12-31).next_day(), Some(date!(2020-01-01)));
     /// assert_eq!(Date::MAX.next_day(), None);
     /// ```
     </span><span class="kw">pub const fn </span>next_day(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
@@ -2069,18 +2025,9 @@
     /// ```rust
     /// # use time::Date;
     /// # use time_macros::date;
-    /// assert_eq!(
-    ///     date!(2019 - 01 - 02).previous_day(),
-    ///     Some(date!(2019 - 01 - 01))
-    /// );
-    /// assert_eq!(
-    ///     date!(2019 - 02 - 01).previous_day(),
-    ///     Some(date!(2019 - 01 - 31))
-    /// );
-    /// assert_eq!(
-    ///     date!(2020 - 01 - 01).previous_day(),
-    ///     Some(date!(2019 - 12 - 31))
-    /// );
+    /// assert_eq!(date!(2019-01-02).previous_day(), Some(date!(2019-01-01)));
+    /// assert_eq!(date!(2019-02-01).previous_day(), Some(date!(2019-01-31)));
+    /// assert_eq!(date!(2020-01-01).previous_day(), Some(date!(2019-12-31)));
     /// assert_eq!(Date::MIN.previous_day(), None);
     /// ```
     </span><span class="kw">pub const fn </span>previous_day(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
@@ -2109,12 +2056,12 @@
     /// # use time::Weekday;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2023 - 06 - 28).next_occurrence(Weekday::Monday),
-    ///     date!(2023 - 07 - 03)
+    ///     date!(2023-06-28).next_occurrence(Weekday::Monday),
+    ///     date!(2023-07-03)
     /// );
     /// assert_eq!(
-    ///     date!(2023 - 06 - 19).next_occurrence(Weekday::Monday),
-    ///     date!(2023 - 06 - 26)
+    ///     date!(2023-06-19).next_occurrence(Weekday::Monday),
+    ///     date!(2023-06-26)
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>next_occurrence(<span class="self">self</span>, weekday: Weekday) -&gt; <span class="self">Self </span>{
@@ -2134,12 +2081,12 @@
     /// # use time::Weekday;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2023 - 06 - 28).prev_occurrence(Weekday::Monday),
-    ///     date!(2023 - 06 - 26)
+    ///     date!(2023-06-28).prev_occurrence(Weekday::Monday),
+    ///     date!(2023-06-26)
     /// );
     /// assert_eq!(
-    ///     date!(2023 - 06 - 19).prev_occurrence(Weekday::Monday),
-    ///     date!(2023 - 06 - 12)
+    ///     date!(2023-06-19).prev_occurrence(Weekday::Monday),
+    ///     date!(2023-06-12)
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>prev_occurrence(<span class="self">self</span>, weekday: Weekday) -&gt; <span class="self">Self </span>{
@@ -2159,12 +2106,12 @@
     /// # use time::Weekday;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2023 - 06 - 25).nth_next_occurrence(Weekday::Monday, 5),
-    ///     date!(2023 - 07 - 24)
+    ///     date!(2023-06-25).nth_next_occurrence(Weekday::Monday, 5),
+    ///     date!(2023-07-24)
     /// );
     /// assert_eq!(
-    ///     date!(2023 - 06 - 26).nth_next_occurrence(Weekday::Monday, 5),
-    ///     date!(2023 - 07 - 31)
+    ///     date!(2023-06-26).nth_next_occurrence(Weekday::Monday, 5),
+    ///     date!(2023-07-31)
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>nth_next_occurrence(<span class="self">self</span>, weekday: Weekday, n: u8) -&gt; <span class="self">Self </span>{
@@ -2184,12 +2131,12 @@
     /// # use time::Weekday;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2023 - 06 - 27).nth_prev_occurrence(Weekday::Monday, 3),
-    ///     date!(2023 - 06 - 12)
+    ///     date!(2023-06-27).nth_prev_occurrence(Weekday::Monday, 3),
+    ///     date!(2023-06-12)
     /// );
     /// assert_eq!(
-    ///     date!(2023 - 06 - 26).nth_prev_occurrence(Weekday::Monday, 3),
-    ///     date!(2023 - 06 - 05)
+    ///     date!(2023-06-26).nth_prev_occurrence(Weekday::Monday, 3),
+    ///     date!(2023-06-05)
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>nth_prev_occurrence(<span class="self">self</span>, weekday: Weekday, n: u8) -&gt; <span class="self">Self </span>{
@@ -2207,9 +2154,9 @@
     /// ```rust
     /// # use time_macros::date;
     /// assert_eq!(date!(-4713 - 11 - 24).to_julian_day(), 0);
-    /// assert_eq!(date!(2000 - 01 - 01).to_julian_day(), 2_451_545);
-    /// assert_eq!(date!(2019 - 01 - 01).to_julian_day(), 2_458_485);
-    /// assert_eq!(date!(2019 - 12 - 31).to_julian_day(), 2_458_849);
+    /// assert_eq!(date!(2000-01-01).to_julian_day(), 2_451_545);
+    /// assert_eq!(date!(2019-01-01).to_julian_day(), 2_458_485);
+    /// assert_eq!(date!(2019-12-31).to_julian_day(), 2_458_849);
     /// ```
     </span><span class="kw">pub const fn </span>to_julian_day(<span class="self">self</span>) -&gt; i32 {
         <span class="kw">let </span>year = <span class="self">self</span>.year() - <span class="number">1</span>;
@@ -2230,8 +2177,8 @@
     /// assert_eq!(Date::MAX.checked_add(1.days()), None);
     /// assert_eq!(Date::MIN.checked_add((-2).days()), None);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add(2.days()),
-    ///     Some(date!(2021 - 01 - 02))
+    ///     date!(2020-12-31).checked_add(2.days()),
+    ///     Some(date!(2021-01-02))
     /// );
     /// ```
     ///
@@ -2245,12 +2192,12 @@
     /// assert_eq!(Date::MAX.checked_add(23.hours()), Some(Date::MAX));
     /// assert_eq!(Date::MIN.checked_add((-23).hours()), Some(Date::MIN));
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add(23.hours()),
-    ///     Some(date!(2020 - 12 - 31))
+    ///     date!(2020-12-31).checked_add(23.hours()),
+    ///     Some(date!(2020-12-31))
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add(47.hours()),
-    ///     Some(date!(2021 - 01 - 01))
+    ///     date!(2020-12-31).checked_add(47.hours()),
+    ///     Some(date!(2021-01-01))
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>checked_add(<span class="self">self</span>, duration: Duration) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
@@ -2274,8 +2221,8 @@
     /// # use time_macros::date;
     /// assert_eq!(Date::MAX.checked_add_std(1.std_days()), None);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add_std(2.std_days()),
-    ///     Some(date!(2021 - 01 - 02))
+    ///     date!(2020-12-31).checked_add_std(2.std_days()),
+    ///     Some(date!(2021-01-02))
     /// );
     /// ```
     ///
@@ -2288,12 +2235,12 @@
     /// # use time_macros::date;
     /// assert_eq!(Date::MAX.checked_add_std(23.std_hours()), Some(Date::MAX));
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add_std(23.std_hours()),
-    ///     Some(date!(2020 - 12 - 31))
+    ///     date!(2020-12-31).checked_add_std(23.std_hours()),
+    ///     Some(date!(2020-12-31))
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add_std(47.std_hours()),
-    ///     Some(date!(2021 - 01 - 01))
+    ///     date!(2020-12-31).checked_add_std(47.std_hours()),
+    ///     Some(date!(2021-01-01))
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>checked_add_std(<span class="self">self</span>, duration: StdDuration) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
@@ -2318,8 +2265,8 @@
     /// assert_eq!(Date::MAX.checked_sub((-2).days()), None);
     /// assert_eq!(Date::MIN.checked_sub(1.days()), None);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub(2.days()),
-    ///     Some(date!(2020 - 12 - 29))
+    ///     date!(2020-12-31).checked_sub(2.days()),
+    ///     Some(date!(2020-12-29))
     /// );
     /// ```
     ///
@@ -2333,12 +2280,12 @@
     /// assert_eq!(Date::MAX.checked_sub((-23).hours()), Some(Date::MAX));
     /// assert_eq!(Date::MIN.checked_sub(23.hours()), Some(Date::MIN));
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub(23.hours()),
-    ///     Some(date!(2020 - 12 - 31))
+    ///     date!(2020-12-31).checked_sub(23.hours()),
+    ///     Some(date!(2020-12-31))
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub(47.hours()),
-    ///     Some(date!(2020 - 12 - 30))
+    ///     date!(2020-12-31).checked_sub(47.hours()),
+    ///     Some(date!(2020-12-30))
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>checked_sub(<span class="self">self</span>, duration: Duration) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
@@ -2362,8 +2309,8 @@
     /// # use time_macros::date;
     /// assert_eq!(Date::MIN.checked_sub_std(1.std_days()), None);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub_std(2.std_days()),
-    ///     Some(date!(2020 - 12 - 29))
+    ///     date!(2020-12-31).checked_sub_std(2.std_days()),
+    ///     Some(date!(2020-12-29))
     /// );
     /// ```
     ///
@@ -2376,12 +2323,12 @@
     /// # use time_macros::date;
     /// assert_eq!(Date::MIN.checked_sub_std(23.std_hours()), Some(Date::MIN));
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub_std(23.std_hours()),
-    ///     Some(date!(2020 - 12 - 31))
+    ///     date!(2020-12-31).checked_sub_std(23.std_hours()),
+    ///     Some(date!(2020-12-31))
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub_std(47.std_hours()),
-    ///     Some(date!(2020 - 12 - 30))
+    ///     date!(2020-12-31).checked_sub_std(47.std_hours()),
+    ///     Some(date!(2020-12-30))
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>checked_sub_std(<span class="self">self</span>, duration: StdDuration) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
@@ -2468,8 +2415,8 @@
     /// assert_eq!(Date::MAX.saturating_add(1.days()), Date::MAX);
     /// assert_eq!(Date::MIN.saturating_add((-2).days()), Date::MIN);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_add(2.days()),
-    ///     date!(2021 - 01 - 02)
+    ///     date!(2020-12-31).saturating_add(2.days()),
+    ///     date!(2021-01-02)
     /// );
     /// ```
     ///
@@ -2481,12 +2428,12 @@
     /// # use time::ext::NumericalDuration;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_add(23.hours()),
-    ///     date!(2020 - 12 - 31)
+    ///     date!(2020-12-31).saturating_add(23.hours()),
+    ///     date!(2020-12-31)
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_add(47.hours()),
-    ///     date!(2021 - 01 - 01)
+    ///     date!(2020-12-31).saturating_add(47.hours()),
+    ///     date!(2021-01-01)
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>saturating_add(<span class="self">self</span>, duration: Duration) -&gt; <span class="self">Self </span>{
@@ -2508,8 +2455,8 @@
     /// assert_eq!(Date::MAX.saturating_sub((-2).days()), Date::MAX);
     /// assert_eq!(Date::MIN.saturating_sub(1.days()), Date::MIN);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_sub(2.days()),
-    ///     date!(2020 - 12 - 29)
+    ///     date!(2020-12-31).saturating_sub(2.days()),
+    ///     date!(2020-12-29)
     /// );
     /// ```
     ///
@@ -2521,12 +2468,12 @@
     /// # use time::ext::NumericalDuration;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_sub(23.hours()),
-    ///     date!(2020 - 12 - 31)
+    ///     date!(2020-12-31).saturating_sub(23.hours()),
+    ///     date!(2020-12-31)
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_sub(47.hours()),
-    ///     date!(2020 - 12 - 30)
+    ///     date!(2020-12-31).saturating_sub(47.hours()),
+    ///     date!(2020-12-30)
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>saturating_sub(<span class="self">self</span>, duration: Duration) -&gt; <span class="self">Self </span>{
@@ -2547,11 +2494,11 @@
     /// ```rust
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2022 - 02 - 18).replace_year(2019),
-    ///     Ok(date!(2019 - 02 - 18))
+    ///     date!(2022-02-18).replace_year(2019),
+    ///     Ok(date!(2019-02-18))
     /// );
-    /// assert!(date!(2022 - 02 - 18).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
-    /// assert!(date!(2022 - 02 - 18).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
+    /// assert!(date!(2022-02-18).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
+    /// assert!(date!(2022-02-18).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `Date`."</span>]
     </span><span class="kw">pub const fn </span>replace_year(<span class="self">self</span>, year: i32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
@@ -2595,14 +2542,12 @@
     /// # use time_macros::date;
     /// # use time::Month;
     /// assert_eq!(
-    ///     date!(2022 - 02 - 18).replace_month(Month::January),
-    ///     Ok(date!(2022 - 01 - 18))
+    ///     date!(2022-02-18).replace_month(Month::January),
+    ///     Ok(date!(2022-01-18))
     /// );
-    /// assert!(
-    ///     date!(2022 - 01 - 30)
-    ///         .replace_month(Month::February)
-    ///         .is_err()
-    /// ); // 30 isn't a valid day in February
+    /// assert!(date!(2022-01-30)
+    ///     .replace_month(Month::February)
+    ///     .is_err()); // 30 isn't a valid day in February
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `Date`."</span>]
     </span><span class="kw">pub const fn </span>replace_month(<span class="self">self</span>, month: Month) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
@@ -2614,23 +2559,20 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(
-    ///     date!(2022 - 02 - 18).replace_day(1),
-    ///     Ok(date!(2022 - 02 - 01))
-    /// );
-    /// assert!(date!(2022 - 02 - 18).replace_day(0).is_err()); // 0 isn't a valid day
-    /// assert!(date!(2022 - 02 - 18).replace_day(30).is_err()); // 30 isn't a valid day in February
+    /// assert_eq!(date!(2022-02-18).replace_day(1), Ok(date!(2022-02-01)));
+    /// assert!(date!(2022-02-18).replace_day(0).is_err()); // 0 isn't a valid day
+    /// assert!(date!(2022-02-18).replace_day(30).is_err()); // 30 isn't a valid day in February
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `Date`."</span>]
     </span><span class="kw">pub const fn </span>replace_day(<span class="self">self</span>, day: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
         <span class="kw">match </span>day {
             <span class="number">1</span>..=<span class="number">28 </span>=&gt; {}
-            <span class="number">29</span>..=<span class="number">31 </span><span class="kw">if </span>day &lt;= days_in_year_month(<span class="self">self</span>.year(), <span class="self">self</span>.month()) =&gt; {}
+            <span class="number">29</span>..=<span class="number">31 </span><span class="kw">if </span>day &lt;= <span class="self">self</span>.month().length(<span class="self">self</span>.year()) =&gt; {}
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(error::ComponentRange {
                     name: <span class="string">"day"</span>,
                     minimum: <span class="number">1</span>,
-                    maximum: days_in_year_month(<span class="self">self</span>.year(), <span class="self">self</span>.month()) <span class="kw">as _</span>,
+                    maximum: <span class="self">self</span>.month().length(<span class="self">self</span>.year()) <span class="kw">as _</span>,
                     value: day <span class="kw">as _</span>,
                     conditional_range: <span class="bool-val">true</span>,
                 });
@@ -2650,9 +2592,9 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2022 - 049).replace_ordinal(1), Ok(date!(2022 - 001)));
-    /// assert!(date!(2022 - 049).replace_ordinal(0).is_err()); // 0 isn't a valid ordinal
-    /// assert!(date!(2022 - 049).replace_ordinal(366).is_err()); // 2022 isn't a leap year
+    /// assert_eq!(date!(2022-049).replace_ordinal(1), Ok(date!(2022-001)));
+    /// assert!(date!(2022-049).replace_ordinal(0).is_err()); // 0 isn't a valid ordinal
+    /// assert!(date!(2022-049).replace_ordinal(366).is_err()); // 2022 isn't a leap year
     /// ````
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `Date`."</span>]
     </span><span class="kw">pub const fn </span>replace_ordinal(<span class="self">self</span>, ordinal: u16) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
@@ -2707,8 +2649,8 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970 - 01 - 01).with_hms(0, 0, 0).is_ok());
-    /// assert!(date!(1970 - 01 - 01).with_hms(24, 0, 0).is_err());
+    /// assert!(date!(1970-01-01).with_hms(0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).with_hms(24, 0, 0).is_err());
     /// ```
     </span><span class="kw">pub const fn </span>with_hms(
         <span class="self">self</span>,
@@ -2726,8 +2668,8 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970 - 01 - 01).with_hms_milli(0, 0, 0, 0).is_ok());
-    /// assert!(date!(1970 - 01 - 01).with_hms_milli(24, 0, 0, 0).is_err());
+    /// assert!(date!(1970-01-01).with_hms_milli(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).with_hms_milli(24, 0, 0, 0).is_err());
     /// ```
     </span><span class="kw">pub const fn </span>with_hms_milli(
         <span class="self">self</span>,
@@ -2746,8 +2688,8 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970 - 01 - 01).with_hms_micro(0, 0, 0, 0).is_ok());
-    /// assert!(date!(1970 - 01 - 01).with_hms_micro(24, 0, 0, 0).is_err());
+    /// assert!(date!(1970-01-01).with_hms_micro(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).with_hms_micro(24, 0, 0, 0).is_err());
     /// ```
     </span><span class="kw">pub const fn </span>with_hms_micro(
         <span class="self">self</span>,
@@ -2766,8 +2708,8 @@
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970 - 01 - 01).with_hms_nano(0, 0, 0, 0).is_ok());
-    /// assert!(date!(1970 - 01 - 01).with_hms_nano(24, 0, 0, 0).is_err());
+    /// assert!(date!(1970-01-01).with_hms_nano(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).with_hms_nano(24, 0, 0, 0).is_err());
     /// ```
     </span><span class="kw">pub const fn </span>with_hms_nano(
         <span class="self">self</span>,
@@ -2802,7 +2744,7 @@
     /// # use time::{format_description};
     /// # use time_macros::date;
     /// let format = format_description::parse("[year]-[month]-[day]")?;
-    /// assert_eq!(date!(2020 - 01 - 02).format(&amp;format)?, "2020-01-02");
+    /// assert_eq!(date!(2020-01-02).format(&amp;format)?, "2020-01-02");
     /// # Ok::&lt;_, time::Error&gt;(())
     /// ```
     </span><span class="kw">pub fn </span>format(<span class="self">self</span>, format: <span class="kw-2">&amp;</span>(<span class="kw">impl </span>Formattable + <span class="question-mark">?</span>Sized)) -&gt; <span class="prelude-ty">Result</span>&lt;String, error::Format&gt; {
@@ -2819,7 +2761,7 @@
     /// # use time::Date;
     /// # use time_macros::{date, format_description};
     /// let format = format_description!("[year]-[month]-[day]");
-    /// assert_eq!(Date::parse("2020-01-02", &amp;format)?, date!(2020 - 01 - 02));
+    /// assert_eq!(Date::parse("2020-01-02", &amp;format)?, date!(2020-01-02));
     /// # Ok::&lt;_, time::Error&gt;(())
     /// ```
     </span><span class="kw">pub fn </span>parse(

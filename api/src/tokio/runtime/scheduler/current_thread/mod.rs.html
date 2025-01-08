@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.40.0/src/runtime/scheduler/current_thread/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/runtime/scheduler/current_thread/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.42.0/src/runtime/scheduler/current_thread/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/runtime/scheduler/current_thread/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -793,8 +793,40 @@
 <a href="#792" id="792">792</a>
 <a href="#793" id="793">793</a>
 <a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::future::poll_fn;
-<span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::AtomicBool;
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::AtomicBool;
 <span class="kw">use </span><span class="kw">crate</span>::loom::sync::Arc;
 <span class="kw">use </span><span class="kw">crate</span>::runtime::driver::{<span class="self">self</span>, Driver};
 <span class="kw">use </span><span class="kw">crate</span>::runtime::scheduler::{<span class="self">self</span>, Defer, Inject};
@@ -810,10 +842,11 @@
 
 <span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::collections::VecDeque;
-<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::future::{poll_fn, Future};
 <span class="kw">use </span>std::sync::atomic::Ordering::{AcqRel, Release};
 <span class="kw">use </span>std::task::Poll::{Pending, Ready};
 <span class="kw">use </span>std::task::Waker;
+<span class="kw">use </span>std::thread::ThreadId;
 <span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>std::{fmt, thread};
 
@@ -843,6 +876,9 @@
 
     <span class="doccomment">/// User-supplied hooks to invoke for things
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) task_hooks: TaskHooks,
+
+    <span class="doccomment">/// If this is a `LocalRuntime`, flags the owning thread ID.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) local_tid: <span class="prelude-ty">Option</span>&lt;ThreadId&gt;,
 }
 
 <span class="doccomment">/// Data required for executing the scheduler. The struct is passed around to
@@ -923,6 +959,7 @@
         blocking_spawner: blocking::Spawner,
         seed_generator: RngSeedGenerator,
         config: Config,
+        local_tid: <span class="prelude-ty">Option</span>&lt;ThreadId&gt;,
     ) -&gt; (CurrentThread, Arc&lt;Handle&gt;) {
         <span class="kw">let </span>worker_metrics = WorkerMetrics::from_config(<span class="kw-2">&amp;</span>config);
         worker_metrics.set_thread_id(thread::current().id());
@@ -948,6 +985,7 @@
             driver: driver_handle,
             blocking_spawner,
             seed_generator,
+            local_tid,
         });
 
         <span class="kw">let </span>core = AtomicCell::new(<span class="prelude-val">Some</span>(Box::new(Core {
@@ -1243,8 +1281,36 @@
         <span class="kw">let </span>(handle, notified) = me.shared.owned.bind(future, me.clone(), id);
 
         me.task_hooks.spawn(<span class="kw-2">&amp;</span>TaskMeta {
-            <span class="attr">#[cfg(tokio_unstable)]
-            </span>id,
+            id,
+            _phantom: Default::default(),
+        });
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(notified) = notified {
+            me.schedule(notified);
+        }
+
+        handle
+    }
+
+    <span class="doccomment">/// Spawn a task which isn't safe to send across thread boundaries onto the runtime.
+    ///
+    /// # Safety
+    /// This should only be used when this is a `LocalRuntime` or in another case where the runtime
+    /// provably cannot be driven from or moved to different threads from the one on which the task
+    /// is spawned.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>spawn_local&lt;F&gt;(
+        me: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
+        future: F,
+        id: <span class="kw">crate</span>::runtime::task::Id,
+    ) -&gt; JoinHandle&lt;F::Output&gt;
+    <span class="kw">where
+        </span>F: <span class="kw">crate</span>::future::Future + <span class="lifetime">'static</span>,
+        F::Output: <span class="lifetime">'static</span>,
+    {
+        <span class="kw">let </span>(handle, notified) = me.shared.owned.bind_local(future, me.clone(), id);
+
+        me.task_hooks.spawn(<span class="kw-2">&amp;</span>TaskMeta {
+            id,
             _phantom: Default::default(),
         });
 
@@ -1324,16 +1390,16 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>num_alive_tasks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.shared.owned.num_alive_tasks()
     }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>injection_queue_depth(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.shared.inject.len()
+    }
 }
 
 <span class="macro">cfg_unstable_metrics!</span> {
     <span class="kw">impl </span>Handle {
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>scheduler_metrics(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SchedulerMetrics {
             <span class="kw-2">&amp;</span><span class="self">self</span>.shared.scheduler_metrics
-        }
-
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>injection_queue_depth(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-            <span class="self">self</span>.shared.inject.len()
         }
 
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>worker_metrics(<span class="kw-2">&amp;</span><span class="self">self</span>, worker: usize) -&gt; <span class="kw-2">&amp;</span>WorkerMetrics {

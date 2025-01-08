@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.40.0/src/runtime/builder.rs`."><title>builder.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/runtime/</div>builder.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.42.0/src/runtime/builder.rs`."><title>builder.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/runtime/</div>builder.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1454,16 +1454,186 @@
 <a href="#1453" id="1453">1453</a>
 <a href="#1454" id="1454">1454</a>
 <a href="#1455" id="1455">1455</a>
-<a href="#1456" id="1456">1456</a></pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(loom, allow(unused_imports))]
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
+<a href="#1550" id="1550">1550</a>
+<a href="#1551" id="1551">1551</a>
+<a href="#1552" id="1552">1552</a>
+<a href="#1553" id="1553">1553</a>
+<a href="#1554" id="1554">1554</a>
+<a href="#1555" id="1555">1555</a>
+<a href="#1556" id="1556">1556</a>
+<a href="#1557" id="1557">1557</a>
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
+<a href="#1574" id="1574">1574</a>
+<a href="#1575" id="1575">1575</a>
+<a href="#1576" id="1576">1576</a>
+<a href="#1577" id="1577">1577</a>
+<a href="#1578" id="1578">1578</a>
+<a href="#1579" id="1579">1579</a>
+<a href="#1580" id="1580">1580</a>
+<a href="#1581" id="1581">1581</a>
+<a href="#1582" id="1582">1582</a>
+<a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
+<a href="#1590" id="1590">1590</a>
+<a href="#1591" id="1591">1591</a>
+<a href="#1592" id="1592">1592</a>
+<a href="#1593" id="1593">1593</a>
+<a href="#1594" id="1594">1594</a>
+<a href="#1595" id="1595">1595</a>
+<a href="#1596" id="1596">1596</a>
+<a href="#1597" id="1597">1597</a>
+<a href="#1598" id="1598">1598</a>
+<a href="#1599" id="1599">1599</a>
+<a href="#1600" id="1600">1600</a>
+<a href="#1601" id="1601">1601</a>
+<a href="#1602" id="1602">1602</a>
+<a href="#1603" id="1603">1603</a>
+<a href="#1604" id="1604">1604</a>
+<a href="#1605" id="1605">1605</a>
+<a href="#1606" id="1606">1606</a>
+<a href="#1607" id="1607">1607</a>
+<a href="#1608" id="1608">1608</a>
+<a href="#1609" id="1609">1609</a>
+<a href="#1610" id="1610">1610</a>
+<a href="#1611" id="1611">1611</a>
+<a href="#1612" id="1612">1612</a>
+<a href="#1613" id="1613">1613</a>
+<a href="#1614" id="1614">1614</a>
+<a href="#1615" id="1615">1615</a>
+<a href="#1616" id="1616">1616</a>
+<a href="#1617" id="1617">1617</a>
+<a href="#1618" id="1618">1618</a>
+<a href="#1619" id="1619">1619</a>
+<a href="#1620" id="1620">1620</a>
+<a href="#1621" id="1621">1621</a>
+<a href="#1622" id="1622">1622</a>
+<a href="#1623" id="1623">1623</a></pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(loom, allow(unused_imports))]
 
 </span><span class="kw">use </span><span class="kw">crate</span>::runtime::handle::Handle;
-<span class="attr">#[cfg(tokio_unstable)]
-</span><span class="kw">use </span><span class="kw">crate</span>::runtime::TaskMeta;
 <span class="kw">use </span><span class="kw">crate</span>::runtime::{blocking, driver, Callback, HistogramBuilder, Runtime, TaskCallback};
+<span class="attr">#[cfg(tokio_unstable)]
+</span><span class="kw">use </span><span class="kw">crate</span>::runtime::{metrics::HistogramConfiguration, LocalOptions, LocalRuntime, TaskMeta};
 <span class="kw">use </span><span class="kw">crate</span>::util::rand::{RngSeed, RngSeedGenerator};
 
+<span class="kw">use </span><span class="kw">crate</span>::runtime::blocking::BlockingPool;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::scheduler::CurrentThread;
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::io;
+<span class="kw">use </span>std::thread::ThreadId;
 <span class="kw">use </span>std::time::Duration;
 
 <span class="doccomment">/// Builds Tokio Runtime with custom configuration values.
@@ -2159,6 +2329,12 @@
     ///
     /// This *does not* support [`LocalSet`](crate::task::LocalSet) at this time.
     ///
+    /// **Note**: This is an [unstable API][unstable]. The public API of this type  
+    /// may break in 1.x releases. See [the documentation on unstable  
+    /// features][unstable] for details.  
+    ///  
+    /// [unstable]: crate#unstable-features  
+    ///
     /// # Examples
     ///
     /// ```
@@ -2181,6 +2357,7 @@
     /// # }
     /// ```
     </span><span class="attr">#[cfg(all(not(loom), tokio_unstable))]
+    #[cfg_attr(docsrs, doc(cfg(tokio_unstable)))]
     </span><span class="kw">pub fn </span>on_task_spawn&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>F: Fn(<span class="kw-2">&amp;</span>TaskMeta&lt;<span class="lifetime">'_</span>&gt;) + Send + Sync + <span class="lifetime">'static</span>,
@@ -2200,6 +2377,12 @@
     /// function more than once replaces the last callback defined, rather than adding to it.
     ///
     /// This *does not* support [`LocalSet`](crate::task::LocalSet) at this time.
+    ///
+    /// **Note**: This is an [unstable API][unstable]. The public API of this type  
+    /// may break in 1.x releases. See [the documentation on unstable  
+    /// features][unstable] for details.  
+    ///  
+    /// [unstable]: crate#unstable-features  
     ///
     /// # Examples
     ///
@@ -2223,6 +2406,7 @@
     /// # }
     /// ```
     </span><span class="attr">#[cfg(all(not(loom), tokio_unstable))]
+    #[cfg_attr(docsrs, doc(cfg(tokio_unstable)))]
     </span><span class="kw">pub fn </span>on_task_terminate&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>F: Fn(<span class="kw-2">&amp;</span>TaskMeta&lt;<span class="lifetime">'_</span>&gt;) + Send + Sync + <span class="lifetime">'static</span>,
@@ -2253,6 +2437,37 @@
             </span>Kind::MultiThread =&gt; <span class="self">self</span>.build_threaded_runtime(),
             <span class="attr">#[cfg(all(tokio_unstable, feature = <span class="string">"rt-multi-thread"</span>))]
             </span>Kind::MultiThreadAlt =&gt; <span class="self">self</span>.build_alt_threaded_runtime(),
+        }
+    }
+
+    <span class="doccomment">/// Creates the configured `LocalRuntime`.
+    ///
+    /// The returned `LocalRuntime` instance is ready to spawn tasks.
+    ///
+    /// # Panics
+    /// This will panic if `current_thread` is not the selected runtime flavor.
+    /// All other runtime flavors are unsupported by [`LocalRuntime`].
+    ///
+    /// [`LocalRuntime`]: [crate::runtime::LocalRuntime]
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::runtime::Builder;
+    ///
+    /// let rt  = Builder::new_current_thread().build_local(&amp;mut Default::default()).unwrap();
+    ///
+    /// rt.block_on(async {
+    ///     println!("Hello from the Tokio runtime");
+    /// });
+    /// ```
+    </span><span class="attr">#[allow(unused_variables, unreachable_patterns)]
+    #[cfg(tokio_unstable)]
+    #[cfg_attr(docsrs, doc(cfg(tokio_unstable)))]
+    </span><span class="kw">pub fn </span>build_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, options: <span class="kw-2">&amp;</span>LocalOptions) -&gt; io::Result&lt;LocalRuntime&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            Kind::CurrentThread =&gt; <span class="self">self</span>.build_current_thread_local_runtime(),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Only current_thread is supported when building a local runtime"</span>),
         }
     }
 
@@ -2521,8 +2736,13 @@
         ///
         /// The histogram uses fixed bucket sizes. In other words, the histogram
         /// buckets are not dynamic based on input values. Use the
-        /// `metrics_poll_count_histogram_` builder methods to configure the
+        /// `metrics_poll_time_histogram` builder methods to configure the
         /// histogram details.
+        ///
+        /// By default, a linear histogram with 10 buckets each 100 microseconds wide will be used.
+        /// This has an extremely low memory footprint, but may not provide enough granularity. For
+        /// better granularity with low memory usage, use [`metrics_poll_time_histogram_configuration()`]
+        /// to select [`LogHistogram`] instead.
         ///
         /// # Examples
         ///
@@ -2530,23 +2750,34 @@
         /// use tokio::runtime;
         ///
         /// let rt = runtime::Builder::new_multi_thread()
-        ///     .enable_metrics_poll_count_histogram()
+        ///     .enable_metrics_poll_time_histogram()
         ///     .build()
         ///     .unwrap();
         /// # // Test default values here
         /// # fn us(n: u64) -&gt; std::time::Duration { std::time::Duration::from_micros(n) }
         /// # let m = rt.handle().metrics();
-        /// # assert_eq!(m.poll_count_histogram_num_buckets(), 10);
-        /// # assert_eq!(m.poll_count_histogram_bucket_range(0), us(0)..us(100));
-        /// # assert_eq!(m.poll_count_histogram_bucket_range(1), us(100)..us(200));
+        /// # assert_eq!(m.poll_time_histogram_num_buckets(), 10);
+        /// # assert_eq!(m.poll_time_histogram_bucket_range(0), us(0)..us(100));
+        /// # assert_eq!(m.poll_time_histogram_bucket_range(1), us(100)..us(200));
         /// ```
         ///
         /// [`Handle::metrics()`]: crate::runtime::Handle::metrics
         /// [`Instant::now()`]: std::time::Instant::now
-        </span><span class="kw">pub fn </span>enable_metrics_poll_count_histogram(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        /// [`LogHistogram`]: crate::runtime::LogHistogram
+        /// [`metrics_poll_time_histogram_configuration()`]: Builder::metrics_poll_time_histogram_configuration
+        </span><span class="kw">pub fn </span>enable_metrics_poll_time_histogram(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
             <span class="self">self</span>.metrics_poll_count_histogram_enable = <span class="bool-val">true</span>;
             <span class="self">self
         </span>}
+
+        <span class="doccomment">/// Deprecated. Use [`enable_metrics_poll_time_histogram()`] instead.
+        ///
+        /// [`enable_metrics_poll_time_histogram()`]: Builder::enable_metrics_poll_time_histogram
+        </span><span class="attr">#[deprecated(note = <span class="string">"`poll_count_histogram` related methods have been renamed `poll_time_histogram` to better reflect their functionality."</span>)]
+        #[doc(hidden)]
+        </span><span class="kw">pub fn </span>enable_metrics_poll_count_histogram(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+            <span class="self">self</span>.enable_metrics_poll_time_histogram()
+        }
 
         <span class="doccomment">/// Sets the histogram scale for tracking the distribution of task poll
         /// times.
@@ -2564,14 +2795,83 @@
         /// ```
         /// use tokio::runtime::{self, HistogramScale};
         ///
+        /// # #[allow(deprecated)]
         /// let rt = runtime::Builder::new_multi_thread()
-        ///     .enable_metrics_poll_count_histogram()
+        ///     .enable_metrics_poll_time_histogram()
         ///     .metrics_poll_count_histogram_scale(HistogramScale::Log)
         ///     .build()
         ///     .unwrap();
         /// ```
+        </span><span class="attr">#[deprecated(note = <span class="string">"use `metrics_poll_time_histogram_configuration`"</span>)]
         </span><span class="kw">pub fn </span>metrics_poll_count_histogram_scale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, histogram_scale: <span class="kw">crate</span>::runtime::HistogramScale) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-            <span class="self">self</span>.metrics_poll_count_histogram.scale = histogram_scale;
+            <span class="self">self</span>.metrics_poll_count_histogram.legacy_mut(|b|b.scale = histogram_scale);
+            <span class="self">self
+        </span>}
+
+        <span class="doccomment">/// Configure the histogram for tracking poll times
+        ///
+        /// By default, a linear histogram with 10 buckets each 100 microseconds wide will be used.
+        /// This has an extremely low memory footprint, but may not provide enough granularity. For
+        /// better granularity with low memory usage, use [`LogHistogram`] instead.
+        ///
+        /// # Examples
+        /// Configure a [`LogHistogram`] with [default configuration]:
+        /// ```
+        /// use tokio::runtime;
+        /// use tokio::runtime::{HistogramConfiguration, LogHistogram};
+        ///
+        /// let rt = runtime::Builder::new_multi_thread()
+        ///     .enable_metrics_poll_time_histogram()
+        ///     .metrics_poll_time_histogram_configuration(
+        ///         HistogramConfiguration::log(LogHistogram::default())
+        ///     )
+        ///     .build()
+        ///     .unwrap();
+        /// ```
+        ///
+        /// Configure a linear histogram with 100 buckets, each 10μs wide
+        /// ```
+        /// use tokio::runtime;
+        /// use std::time::Duration;
+        /// use tokio::runtime::HistogramConfiguration;
+        ///
+        /// let rt = runtime::Builder::new_multi_thread()
+        ///     .enable_metrics_poll_time_histogram()
+        ///     .metrics_poll_time_histogram_configuration(
+        ///         HistogramConfiguration::linear(Duration::from_micros(10), 100)
+        ///     )
+        ///     .build()
+        ///     .unwrap();
+        /// ```
+        ///
+        /// Configure a [`LogHistogram`] with the following settings:
+        /// - Measure times from 100ns to 120s
+        /// - Max error of 0.1
+        /// - No more than 1024 buckets
+        /// ```
+        /// use std::time::Duration;
+        /// use tokio::runtime;
+        /// use tokio::runtime::{HistogramConfiguration, LogHistogram};
+        ///
+        /// let rt = runtime::Builder::new_multi_thread()
+        ///     .enable_metrics_poll_time_histogram()
+        ///     .metrics_poll_time_histogram_configuration(
+        ///         HistogramConfiguration::log(LogHistogram::builder()
+        ///             .max_value(Duration::from_secs(120))
+        ///             .min_value(Duration::from_nanos(100))
+        ///             .max_error(0.1)
+        ///             .max_buckets(1024)
+        ///             .expect("configuration uses 488 buckets")
+        ///         )
+        ///     )
+        ///     .build()
+        ///     .unwrap();
+        /// ```
+        ///
+        /// [`LogHistogram`]: crate::runtime::LogHistogram
+        /// [default configuration]: crate::runtime::LogHistogramBuilder
+        </span><span class="kw">pub fn </span>metrics_poll_time_histogram_configuration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, configuration: HistogramConfiguration) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+            <span class="self">self</span>.metrics_poll_count_histogram.histogram_type = configuration.inner;
             <span class="self">self
         </span>}
 
@@ -2595,19 +2895,22 @@
         /// use tokio::runtime;
         /// use std::time::Duration;
         ///
+        /// # #[allow(deprecated)]
         /// let rt = runtime::Builder::new_multi_thread()
-        ///     .enable_metrics_poll_count_histogram()
+        ///     .enable_metrics_poll_time_histogram()
         ///     .metrics_poll_count_histogram_resolution(Duration::from_micros(100))
         ///     .build()
         ///     .unwrap();
         /// ```
+        </span><span class="attr">#[deprecated(note = <span class="string">"use `metrics_poll_time_histogram_configuration`"</span>)]
         </span><span class="kw">pub fn </span>metrics_poll_count_histogram_resolution(<span class="kw-2">&amp;mut </span><span class="self">self</span>, resolution: Duration) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
             <span class="macro">assert!</span>(resolution &gt; Duration::from_secs(<span class="number">0</span>));
             <span class="comment">// Sanity check the argument and also make the cast below safe.
             </span><span class="macro">assert!</span>(resolution &lt;= Duration::from_secs(<span class="number">1</span>));
 
             <span class="kw">let </span>resolution = resolution.as_nanos() <span class="kw">as </span>u64;
-            <span class="self">self</span>.metrics_poll_count_histogram.resolution = resolution;
+
+            <span class="self">self</span>.metrics_poll_count_histogram.legacy_mut(|b|b.resolution = resolution);
             <span class="self">self
         </span>}
 
@@ -2626,14 +2929,16 @@
         /// ```
         /// use tokio::runtime;
         ///
+        /// # #[allow(deprecated)]
         /// let rt = runtime::Builder::new_multi_thread()
-        ///     .enable_metrics_poll_count_histogram()
+        ///     .enable_metrics_poll_time_histogram()
         ///     .metrics_poll_count_histogram_buckets(15)
         ///     .build()
         ///     .unwrap();
         /// ```
+        </span><span class="attr">#[deprecated(note = <span class="string">"use `metrics_poll_time_histogram_configuration`"</span>)]
         </span><span class="kw">pub fn </span>metrics_poll_count_histogram_buckets(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buckets: usize) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-            <span class="self">self</span>.metrics_poll_count_histogram.num_buckets = buckets;
+            <span class="self">self</span>.metrics_poll_count_histogram.legacy_mut(|b|b.num_buckets = buckets);
             <span class="self">self
         </span>}
     }
@@ -2647,8 +2952,40 @@
     }
 
     <span class="kw">fn </span>build_current_thread_runtime(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;Runtime&gt; {
-        <span class="kw">use </span><span class="kw">crate</span>::runtime::scheduler::{<span class="self">self</span>, CurrentThread};
-        <span class="kw">use </span><span class="kw">crate</span>::runtime::{runtime::Scheduler, Config};
+        <span class="kw">use </span><span class="kw">crate</span>::runtime::runtime::Scheduler;
+
+        <span class="kw">let </span>(scheduler, handle, blocking_pool) =
+            <span class="self">self</span>.build_current_thread_runtime_components(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(Runtime::from_parts(
+            Scheduler::CurrentThread(scheduler),
+            handle,
+            blocking_pool,
+        ))
+    }
+
+    <span class="attr">#[cfg(tokio_unstable)]
+    </span><span class="kw">fn </span>build_current_thread_local_runtime(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;LocalRuntime&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::runtime::local_runtime::LocalRuntimeScheduler;
+
+        <span class="kw">let </span>tid = std::thread::current().id();
+
+        <span class="kw">let </span>(scheduler, handle, blocking_pool) =
+            <span class="self">self</span>.build_current_thread_runtime_components(<span class="prelude-val">Some</span>(tid))<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(LocalRuntime::from_parts(
+            LocalRuntimeScheduler::CurrentThread(scheduler),
+            handle,
+            blocking_pool,
+        ))
+    }
+
+    <span class="kw">fn </span>build_current_thread_runtime_components(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        local_tid: <span class="prelude-ty">Option</span>&lt;ThreadId&gt;,
+    ) -&gt; io::Result&lt;(CurrentThread, Handle, BlockingPool)&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::runtime::scheduler;
+        <span class="kw">use </span><span class="kw">crate</span>::runtime::Config;
 
         <span class="kw">let </span>(driver, driver_handle) = driver::Driver::new(<span class="self">self</span>.get_cfg(<span class="number">1</span>))<span class="question-mark">?</span>;
 
@@ -2683,17 +3020,14 @@
                 seed_generator: seed_generator_1,
                 metrics_poll_count_histogram: <span class="self">self</span>.metrics_poll_count_histogram_builder(),
             },
+            local_tid,
         );
 
         <span class="kw">let </span>handle = Handle {
             inner: scheduler::Handle::CurrentThread(handle),
         };
 
-        <span class="prelude-val">Ok</span>(Runtime::from_parts(
-            Scheduler::CurrentThread(scheduler),
-            handle,
-            blocking_pool,
-        ))
+        <span class="prelude-val">Ok</span>((scheduler, handle, blocking_pool))
     }
 
     <span class="kw">fn </span>metrics_poll_count_histogram_builder(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;HistogramBuilder&gt; {

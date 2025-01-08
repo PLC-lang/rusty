@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/unicase-2.7.0/src/unicode/map.rs`."><title>map.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="unicase" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">unicase/unicode/</div>map.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/unicase-2.8.1/src/unicode/map.rs`."><title>map.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="unicase" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">unicase/unicode/</div>map.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1963,8 +1963,41 @@
 <a href="#1962" id="1962">1962</a>
 <a href="#1963" id="1963">1963</a>
 <a href="#1964" id="1964">1964</a>
-<a href="#1965" id="1965">1965</a></pre></div><pre class="rust"><code><span class="comment">// Generated by scripts/mapgen.py
-// 2023-08-14
+<a href="#1965" id="1965">1965</a>
+<a href="#1966" id="1966">1966</a>
+<a href="#1967" id="1967">1967</a>
+<a href="#1968" id="1968">1968</a>
+<a href="#1969" id="1969">1969</a>
+<a href="#1970" id="1970">1970</a>
+<a href="#1971" id="1971">1971</a>
+<a href="#1972" id="1972">1972</a>
+<a href="#1973" id="1973">1973</a>
+<a href="#1974" id="1974">1974</a>
+<a href="#1975" id="1975">1975</a>
+<a href="#1976" id="1976">1976</a>
+<a href="#1977" id="1977">1977</a>
+<a href="#1978" id="1978">1978</a>
+<a href="#1979" id="1979">1979</a>
+<a href="#1980" id="1980">1980</a>
+<a href="#1981" id="1981">1981</a>
+<a href="#1982" id="1982">1982</a>
+<a href="#1983" id="1983">1983</a>
+<a href="#1984" id="1984">1984</a>
+<a href="#1985" id="1985">1985</a>
+<a href="#1986" id="1986">1986</a>
+<a href="#1987" id="1987">1987</a>
+<a href="#1988" id="1988">1988</a>
+<a href="#1989" id="1989">1989</a>
+<a href="#1990" id="1990">1990</a>
+<a href="#1991" id="1991">1991</a>
+<a href="#1992" id="1992">1992</a>
+<a href="#1993" id="1993">1993</a>
+<a href="#1994" id="1994">1994</a>
+<a href="#1995" id="1995">1995</a>
+<a href="#1996" id="1996">1996</a>
+<a href="#1997" id="1997">1997</a>
+<a href="#1998" id="1998">1998</a></pre></div><pre class="rust"><code><span class="comment">// Generated by scripts/mapgen.py
+// 2024-10-18
 
 </span><span class="kw">use </span><span class="kw">super</span>::fold::Fold;
 
@@ -2147,6 +2180,7 @@
                 <span class="number">0x86 </span>=&gt; <span class="number">0x044a</span>,
                 <span class="number">0x87 </span>=&gt; <span class="number">0x0463</span>,
                 <span class="number">0x88 </span>=&gt; <span class="number">0xa64b</span>,
+                <span class="number">0x89 </span>=&gt; <span class="number">0x1c8a</span>,
                 x @ <span class="kw">_ if </span><span class="number">0x90 </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0xba </span>=&gt; from.wrapping_sub(<span class="number">0x0bc0</span>),
                 x @ <span class="kw">_ if </span><span class="number">0xbd </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0xbf </span>=&gt; from.wrapping_sub(<span class="number">0x0bc0</span>),
                 <span class="kw">_ </span>=&gt; from,
@@ -2342,8 +2376,11 @@
             <span class="number">0xa7c5 </span>=&gt; <span class="number">0x0282</span>,
             <span class="number">0xa7c6 </span>=&gt; <span class="number">0x1d8e</span>,
             x @ <span class="kw">_ if </span><span class="number">0xa7c7 </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0xa7c9 </span>=&gt; (from + <span class="number">1</span>) &amp; !<span class="number">1</span>,
+            <span class="number">0xa7cb </span>=&gt; <span class="number">0x0264</span>,
+            <span class="number">0xa7cc </span>=&gt; <span class="number">0xa7cd</span>,
             <span class="number">0xa7d0 </span>=&gt; <span class="number">0xa7d1</span>,
-            x @ <span class="kw">_ if </span><span class="number">0xa7d6 </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0xa7d8 </span>=&gt; from | <span class="number">1</span>,
+            x @ <span class="kw">_ if </span><span class="number">0xa7d6 </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0xa7da </span>=&gt; from | <span class="number">1</span>,
+            <span class="number">0xa7dc </span>=&gt; <span class="number">0x019b</span>,
             <span class="number">0xa7f5 </span>=&gt; <span class="number">0xa7f6</span>,
             x @ <span class="kw">_ if </span><span class="number">0xab70 </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0xabbf </span>=&gt; from.wrapping_sub(<span class="number">0x97d0</span>),
             <span class="number">0xfb00 </span>=&gt; <span class="kw">return </span>Fold::Two(<span class="string">'\u{0066}'</span>, <span class="string">'\u{0066}'</span>),
@@ -2366,6 +2403,7 @@
             x @ <span class="kw">_ if </span><span class="number">0x1058c </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0x10592 </span>=&gt; from.wrapping_add(<span class="number">0x0027</span>),
             x @ <span class="kw">_ if </span><span class="number">0x10594 </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0x10595 </span>=&gt; from.wrapping_add(<span class="number">0x0027</span>),
             x @ <span class="kw">_ if </span><span class="number">0x10c80 </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0x10cb2 </span>=&gt; from.wrapping_add(<span class="number">0x0040</span>),
+            x @ <span class="kw">_ if </span><span class="number">0x10d50 </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0x10d65 </span>=&gt; from.wrapping_add(<span class="number">0x0020</span>),
             x @ <span class="kw">_ if </span><span class="number">0x118a0 </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0x118bf </span>=&gt; from.wrapping_add(<span class="number">0x0020</span>),
             x @ <span class="kw">_ if </span><span class="number">0x16e40 </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0x16e5f </span>=&gt; from.wrapping_add(<span class="number">0x0020</span>),
             x @ <span class="kw">_ if </span><span class="number">0x1e900 </span>&lt;= x &amp;&amp; x &lt;= <span class="number">0x1e921 </span>=&gt; from.wrapping_add(<span class="number">0x0022</span>),
@@ -2377,6 +2415,7 @@
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>lookup_consistency() {
+    <span class="kw">use </span>std::vec::Vec;
     <span class="kw">fn </span>lookup_naive(orig: char) -&gt; Fold {
         <span class="kw">let </span>single_char = <span class="kw">match </span>orig <span class="kw">as </span>u32 {
             <span class="number">0x0041 </span>=&gt; <span class="number">0x0061</span>,
@@ -2920,6 +2959,7 @@
             <span class="number">0x1c86 </span>=&gt; <span class="number">0x044a</span>,
             <span class="number">0x1c87 </span>=&gt; <span class="number">0x0463</span>,
             <span class="number">0x1c88 </span>=&gt; <span class="number">0xa64b</span>,
+            <span class="number">0x1c89 </span>=&gt; <span class="number">0x1c8a</span>,
             <span class="number">0x1c90 </span>=&gt; <span class="number">0x10d0</span>,
             <span class="number">0x1c91 </span>=&gt; <span class="number">0x10d1</span>,
             <span class="number">0x1c92 </span>=&gt; <span class="number">0x10d2</span>,
@@ -3527,9 +3567,13 @@
             <span class="number">0xa7c6 </span>=&gt; <span class="number">0x1d8e</span>,
             <span class="number">0xa7c7 </span>=&gt; <span class="number">0xa7c8</span>,
             <span class="number">0xa7c9 </span>=&gt; <span class="number">0xa7ca</span>,
+            <span class="number">0xa7cb </span>=&gt; <span class="number">0x0264</span>,
+            <span class="number">0xa7cc </span>=&gt; <span class="number">0xa7cd</span>,
             <span class="number">0xa7d0 </span>=&gt; <span class="number">0xa7d1</span>,
             <span class="number">0xa7d6 </span>=&gt; <span class="number">0xa7d7</span>,
             <span class="number">0xa7d8 </span>=&gt; <span class="number">0xa7d9</span>,
+            <span class="number">0xa7da </span>=&gt; <span class="number">0xa7db</span>,
+            <span class="number">0xa7dc </span>=&gt; <span class="number">0x019b</span>,
             <span class="number">0xa7f5 </span>=&gt; <span class="number">0xa7f6</span>,
             <span class="number">0xab70 </span>=&gt; <span class="number">0x13a0</span>,
             <span class="number">0xab71 </span>=&gt; <span class="number">0x13a1</span>,
@@ -3811,6 +3855,28 @@
             <span class="number">0x10cb0 </span>=&gt; <span class="number">0x10cf0</span>,
             <span class="number">0x10cb1 </span>=&gt; <span class="number">0x10cf1</span>,
             <span class="number">0x10cb2 </span>=&gt; <span class="number">0x10cf2</span>,
+            <span class="number">0x10d50 </span>=&gt; <span class="number">0x10d70</span>,
+            <span class="number">0x10d51 </span>=&gt; <span class="number">0x10d71</span>,
+            <span class="number">0x10d52 </span>=&gt; <span class="number">0x10d72</span>,
+            <span class="number">0x10d53 </span>=&gt; <span class="number">0x10d73</span>,
+            <span class="number">0x10d54 </span>=&gt; <span class="number">0x10d74</span>,
+            <span class="number">0x10d55 </span>=&gt; <span class="number">0x10d75</span>,
+            <span class="number">0x10d56 </span>=&gt; <span class="number">0x10d76</span>,
+            <span class="number">0x10d57 </span>=&gt; <span class="number">0x10d77</span>,
+            <span class="number">0x10d58 </span>=&gt; <span class="number">0x10d78</span>,
+            <span class="number">0x10d59 </span>=&gt; <span class="number">0x10d79</span>,
+            <span class="number">0x10d5a </span>=&gt; <span class="number">0x10d7a</span>,
+            <span class="number">0x10d5b </span>=&gt; <span class="number">0x10d7b</span>,
+            <span class="number">0x10d5c </span>=&gt; <span class="number">0x10d7c</span>,
+            <span class="number">0x10d5d </span>=&gt; <span class="number">0x10d7d</span>,
+            <span class="number">0x10d5e </span>=&gt; <span class="number">0x10d7e</span>,
+            <span class="number">0x10d5f </span>=&gt; <span class="number">0x10d7f</span>,
+            <span class="number">0x10d60 </span>=&gt; <span class="number">0x10d80</span>,
+            <span class="number">0x10d61 </span>=&gt; <span class="number">0x10d81</span>,
+            <span class="number">0x10d62 </span>=&gt; <span class="number">0x10d82</span>,
+            <span class="number">0x10d63 </span>=&gt; <span class="number">0x10d83</span>,
+            <span class="number">0x10d64 </span>=&gt; <span class="number">0x10d84</span>,
+            <span class="number">0x10d65 </span>=&gt; <span class="number">0x10d85</span>,
             <span class="number">0x118a0 </span>=&gt; <span class="number">0x118c0</span>,
             <span class="number">0x118a1 </span>=&gt; <span class="number">0x118c1</span>,
             <span class="number">0x118a2 </span>=&gt; <span class="number">0x118c2</span>,

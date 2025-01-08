@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.38/src/offset/local/tz_info/timezone.rs`."><title>timezone.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">chrono/offset/local/tz_info/</div>timezone.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/chrono-0.4.39/src/offset/local/tz_info/timezone.rs`."><title>timezone.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="chrono" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">chrono/offset/local/tz_info/</div>timezone.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -947,7 +947,68 @@
 <a href="#946" id="946">946</a>
 <a href="#947" id="947">947</a>
 <a href="#948" id="948">948</a>
-<a href="#949" id="949">949</a></pre></div><pre class="rust"><code><span class="doccomment">//! Types related to a time zone.
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a></pre></div><pre class="rust"><code><span class="doccomment">//! Types related to a time zone.
 
 </span><span class="kw">use </span>std::fs::{<span class="self">self</span>, File};
 <span class="kw">use </span>std::io::{<span class="self">self</span>, Read};
@@ -956,6 +1017,9 @@
 
 <span class="kw">use </span><span class="kw">super</span>::rule::{AlternateTime, TransitionRule};
 <span class="kw">use super</span>::{parser, Error, DAYS_PER_WEEK, SECONDS_PER_DAY};
+
+<span class="attr">#[cfg(target_env = <span class="string">"ohos"</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::offset::local::tz_info::parser::Cursor;
 
 <span class="doccomment">/// Time zone
 </span><span class="attr">#[derive(Debug, Clone, Eq, PartialEq)]
@@ -997,6 +1061,12 @@
             <span class="kw">if let </span><span class="prelude-val">Ok</span>(bytes) = android_tzdata::find_tz_data(tz_string) {
                 <span class="kw">return </span><span class="self">Self</span>::from_tz_data(<span class="kw-2">&amp;</span>bytes);
             }
+        }
+
+        <span class="comment">// ohos merge all file into tzdata since ver35
+        </span><span class="attr">#[cfg(target_env = <span class="string">"ohos"</span>)]
+        </span>{
+            <span class="kw">return </span><span class="self">Self</span>::from_tz_data(<span class="kw-2">&amp;</span>find_ohos_tz_data(tz_string)<span class="question-mark">?</span>);
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>chars = tz_string.chars();
@@ -1192,7 +1262,7 @@
 
                 <span class="kw">match </span>transition_start.cmp(<span class="kw-2">&amp;</span>transition_end) {
                     Ordering::Greater =&gt; {
-                        <span class="comment">// bakwards transition, eg from DST to regular
+                        <span class="comment">// backwards transition, eg from DST to regular
                         // this means a given local time could have one of two possible offsets
                         </span><span class="kw">if </span>local_leap_time &lt; transition_end {
                             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">crate</span>::MappedLocalTime::Single(prev));
@@ -1364,7 +1434,7 @@
 
     <span class="doccomment">/// Convert Unix leap time to Unix time, from the list of leap seconds in a time zone
     </span><span class="kw">fn </span>unix_leap_time_to_unix_time(<span class="kw-2">&amp;</span><span class="self">self</span>, unix_leap_time: i64) -&gt; <span class="prelude-ty">Result</span>&lt;i64, Error&gt; {
-        <span class="kw">if </span>unix_leap_time == i64::min_value() {
+        <span class="kw">if </span>unix_leap_time == i64::MIN {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::OutOfRange(<span class="string">"out of range operation"</span>));
         }
 
@@ -1521,7 +1591,7 @@
 <span class="kw">impl </span>LocalTimeType {
     <span class="doccomment">/// Construct a local time type
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(ut_offset: i32, is_dst: bool, name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
-        <span class="kw">if </span>ut_offset == i32::min_value() {
+        <span class="kw">if </span>ut_offset == i32::MIN {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::LocalTimeType(<span class="string">"invalid UTC offset"</span>));
         }
 
@@ -1535,7 +1605,7 @@
 
     <span class="doccomment">/// Construct a local time type with the specified UTC offset in seconds
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>with_offset(ut_offset: i32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
-        <span class="kw">if </span>ut_offset == i32::min_value() {
+        <span class="kw">if </span>ut_offset == i32::MIN {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::LocalTimeType(<span class="string">"invalid UTC offset"</span>));
         }
 
@@ -1575,6 +1645,58 @@
         }
 
         <span class="prelude-val">Err</span>(Error::Io(io::ErrorKind::NotFound.into()))
+    }
+}
+
+<span class="attr">#[cfg(target_env = <span class="string">"ohos"</span>)]
+</span><span class="kw">fn </span>from_tzdata_bytes(bytes: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;, tz_string: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, Error&gt; {
+    <span class="kw">const </span>VERSION_SIZE: usize = <span class="number">12</span>;
+    <span class="kw">const </span>OFFSET_SIZE: usize = <span class="number">4</span>;
+    <span class="kw">const </span>INDEX_CHUNK_SIZE: usize = <span class="number">48</span>;
+    <span class="kw">const </span>ZONENAME_SIZE: usize = <span class="number">40</span>;
+
+    <span class="kw">let </span><span class="kw-2">mut </span>cursor = Cursor::new(<span class="kw-2">&amp;</span>bytes);
+    <span class="comment">// version head
+    </span><span class="kw">let _ </span>= cursor.read_exact(VERSION_SIZE)<span class="question-mark">?</span>;
+    <span class="kw">let </span>index_offset_offset = cursor.read_be_u32()<span class="question-mark">?</span>;
+    <span class="kw">let </span>data_offset_offset = cursor.read_be_u32()<span class="question-mark">?</span>;
+    <span class="comment">// final offset
+    </span><span class="kw">let _ </span>= cursor.read_be_u32()<span class="question-mark">?</span>;
+
+    cursor.seek_after(index_offset_offset <span class="kw">as </span>usize)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>idx = index_offset_offset;
+    <span class="kw">while </span>idx &lt; data_offset_offset {
+        <span class="kw">let </span>index_buf = cursor.read_exact(ZONENAME_SIZE)<span class="question-mark">?</span>;
+        <span class="kw">let </span>offset = cursor.read_be_u32()<span class="question-mark">?</span>;
+        <span class="kw">let </span>length = cursor.read_be_u32()<span class="question-mark">?</span>;
+        <span class="kw">let </span>zone_name = str::from_utf8(index_buf)<span class="question-mark">?</span>.trim_end_matches(<span class="string">'\0'</span>);
+        <span class="kw">if </span>zone_name != tz_string {
+            idx += INDEX_CHUNK_SIZE <span class="kw">as </span>u32;
+            <span class="kw">continue</span>;
+        }
+        cursor.seek_after((data_offset_offset + offset) <span class="kw">as </span>usize)<span class="question-mark">?</span>;
+        <span class="kw">return match </span>cursor.read_exact(length <span class="kw">as </span>usize) {
+            <span class="prelude-val">Ok</span>(result) =&gt; <span class="prelude-val">Ok</span>(result.to_vec()),
+            <span class="prelude-val">Err</span>(_err) =&gt; <span class="prelude-val">Err</span>(Error::InvalidTzFile(<span class="string">"invalid ohos tzdata chunk"</span>)),
+        };
+    }
+
+    <span class="prelude-val">Err</span>(Error::InvalidTzString(<span class="string">"cannot find tz string within tzdata"</span>))
+}
+
+<span class="attr">#[cfg(target_env = <span class="string">"ohos"</span>)]
+</span><span class="kw">fn </span>from_tzdata_file(file: <span class="kw-2">&amp;mut </span>File, tz_string: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, Error&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>bytes = Vec::new();
+    file.read_to_end(<span class="kw-2">&amp;mut </span>bytes)<span class="question-mark">?</span>;
+    from_tzdata_bytes(<span class="kw-2">&amp;mut </span>bytes, tz_string)
+}
+
+<span class="attr">#[cfg(target_env = <span class="string">"ohos"</span>)]
+</span><span class="kw">fn </span>find_ohos_tz_data(tz_string: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, Error&gt; {
+    <span class="kw">const </span>TZDATA_PATH: <span class="kw-2">&amp;</span>str = <span class="string">"/system/etc/zoneinfo/tzdata"</span>;
+    <span class="kw">match </span>File::open(TZDATA_PATH) {
+        <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>file) =&gt; from_tzdata_file(<span class="kw-2">&amp;mut </span>file, tz_string),
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(err.into()),
     }
 }
 
@@ -1767,7 +1889,7 @@
         <span class="kw">let </span>time_zone_3 =
             TimeZone::new(<span class="macro">vec!</span>[Transition::new(<span class="number">0</span>, <span class="number">0</span>)], utc_local_time_types.clone(), <span class="macro">vec!</span>[], <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>time_zone_4 = TimeZone::new(
-            <span class="macro">vec!</span>[Transition::new(i32::min_value().into(), <span class="number">0</span>), Transition::new(<span class="number">0</span>, <span class="number">1</span>)],
+            <span class="macro">vec!</span>[Transition::new(i32::MIN.into(), <span class="number">0</span>), Transition::new(<span class="number">0</span>, <span class="number">1</span>)],
             <span class="macro">vec!</span>[utc, cet],
             Vec::new(),
             <span class="prelude-val">Some</span>(fixed_extra_rule),
@@ -1875,7 +1997,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_leap_seconds_overflow() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>time_zone_err = TimeZone::new(
-            <span class="macro">vec!</span>[Transition::new(i64::min_value(), <span class="number">0</span>)],
+            <span class="macro">vec!</span>[Transition::new(i64::MIN, <span class="number">0</span>)],
             <span class="macro">vec!</span>[LocalTimeType::UTC],
             <span class="macro">vec!</span>[LeapSecond::new(<span class="number">0</span>, <span class="number">1</span>)],
             <span class="prelude-val">Some</span>(TransitionRule::from(LocalTimeType::UTC)),
@@ -1883,13 +2005,13 @@
         <span class="macro">assert!</span>(time_zone_err.is_err());
 
         <span class="kw">let </span>time_zone = TimeZone::new(
-            <span class="macro">vec!</span>[Transition::new(i64::max_value(), <span class="number">0</span>)],
+            <span class="macro">vec!</span>[Transition::new(i64::MAX, <span class="number">0</span>)],
             <span class="macro">vec!</span>[LocalTimeType::UTC],
             <span class="macro">vec!</span>[LeapSecond::new(<span class="number">0</span>, <span class="number">1</span>)],
             <span class="prelude-val">None</span>,
         )<span class="question-mark">?</span>;
         <span class="macro">assert!</span>(<span class="macro">matches!</span>(
-            time_zone.find_local_time_type(i64::max_value()),
+            time_zone.find_local_time_type(i64::MAX),
             <span class="prelude-val">Err</span>(Error::FindLocalTimeType(<span class="kw">_</span>))
         ));
 

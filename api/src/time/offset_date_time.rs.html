@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.36/src/offset_date_time.rs`."><title>offset_date_time.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/</div>offset_date_time.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.37/src/offset_date_time.rs`."><title>offset_date_time.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/</div>offset_date_time.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1616,7 +1616,8 @@
 <a href="#1615" id="1615">1615</a>
 <a href="#1616" id="1616">1616</a>
 <a href="#1617" id="1617">1617</a>
-<a href="#1618" id="1618">1618</a></pre></div><pre class="rust"><code><span class="doccomment">//! The [`OffsetDateTime`] struct and its associated `impl`s.
+<a href="#1618" id="1618">1618</a>
+<a href="#1619" id="1619">1619</a></pre></div><pre class="rust"><code><span class="doccomment">//! The [`OffsetDateTime`] struct and its associated `impl`s.
 
 </span><span class="attr">#[cfg(feature = <span class="string">"formatting"</span>)]
 </span><span class="kw">use </span>alloc::string::String;
@@ -1692,7 +1693,7 @@
     /// ```rust
     /// # use time::OffsetDateTime;
     /// # use time_macros::datetime;
-    /// assert_eq!(OffsetDateTime::UNIX_EPOCH, datetime!(1970-01-01 0:00 UTC),);
+    /// assert_eq!(OffsetDateTime::UNIX_EPOCH, datetime!(1970-01-01 0:00 UTC));
     /// ```
     </span><span class="kw">pub const </span>UNIX_EPOCH: <span class="self">Self </span>= <span class="self">Self</span>::new_in_offset(
         <span class="comment">// Safety: `ordinal` is not zero.
@@ -2464,8 +2465,8 @@
     /// assert_eq!(datetime.checked_add(2.days()), None);
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10).checked_add(27.hours()),
-    ///     Some(datetime!(2019 - 11 - 26 18:30 +10))
+    ///     datetime!(2019-11-25 15:30 +10).checked_add(27.hours()),
+    ///     Some(datetime!(2019-11-26 18:30 +10))
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>checked_add(<span class="self">self</span>, duration: Duration) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
@@ -2484,8 +2485,8 @@
     /// assert_eq!(datetime.checked_sub((-2).days()), None);
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10).checked_sub(27.hours()),
-    ///     Some(datetime!(2019 - 11 - 24 12:30 +10))
+    ///     datetime!(2019-11-25 15:30 +10).checked_sub(27.hours()),
+    ///     Some(datetime!(2019-11-24 12:30 +10))
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>checked_sub(<span class="self">self</span>, duration: Duration) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
@@ -2535,8 +2536,8 @@
     </span><span class="doccomment">/// );
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10).saturating_add(27.hours()),
-    ///     datetime!(2019 - 11 - 26 18:30 +10)
+    ///     datetime!(2019-11-25 15:30 +10).saturating_add(27.hours()),
+    ///     datetime!(2019-11-26 18:30 +10)
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>saturating_add(<span class="self">self</span>, duration: Duration) -&gt; <span class="self">Self </span>{
@@ -2590,8 +2591,8 @@
     </span><span class="doccomment">/// );
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10).saturating_sub(27.hours()),
-    ///     datetime!(2019 - 11 - 24 12:30 +10)
+    ///     datetime!(2019-11-25 15:30 +10).saturating_sub(27.hours()),
+    ///     datetime!(2019-11-24 12:30 +10)
     /// );
     /// ```
     </span><span class="kw">pub const fn </span>saturating_sub(<span class="self">self</span>, duration: Duration) -&gt; <span class="self">Self </span>{
@@ -2689,11 +2690,11 @@
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 12:00 +01).replace_year(2019),
-    ///     Ok(datetime!(2019 - 02 - 18 12:00 +01))
+    ///     datetime!(2022-02-18 12:00 +01).replace_year(2019),
+    ///     Ok(datetime!(2019-02-18 12:00 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
-    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
+    /// assert!(datetime!(2022-02-18 12:00 +01).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
+    /// assert!(datetime!(2022-02-18 12:00 +01).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `OffsetDateTime`."</span>]
     </span><span class="kw">pub const fn </span>replace_year(<span class="self">self</span>, year: i32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
@@ -2706,10 +2707,10 @@
     /// # use time_macros::datetime;
     /// # use time::Month;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 12:00 +01).replace_month(Month::January),
-    ///     Ok(datetime!(2022 - 01 - 18 12:00 +01))
+    ///     datetime!(2022-02-18 12:00 +01).replace_month(Month::January),
+    ///     Ok(datetime!(2022-01-18 12:00 +01))
     /// );
-    /// assert!(datetime!(2022 - 01 - 30 12:00 +01).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
+    /// assert!(datetime!(2022-01-30 12:00 +01).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `OffsetDateTime`."</span>]
     </span><span class="kw">pub const fn </span>replace_month(<span class="self">self</span>, month: Month) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
@@ -2721,11 +2722,11 @@
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 12:00 +01).replace_day(1),
-    ///     Ok(datetime!(2022 - 02 - 01 12:00 +01))
+    ///     datetime!(2022-02-18 12:00 +01).replace_day(1),
+    ///     Ok(datetime!(2022-02-01 12:00 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_day(0).is_err()); // 00 isn't a valid day
-    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_day(30).is_err()); // 30 isn't a valid day in February
+    /// assert!(datetime!(2022-02-18 12:00 +01).replace_day(0).is_err()); // 00 isn't a valid day
+    /// assert!(datetime!(2022-02-18 12:00 +01).replace_day(30).is_err()); // 30 isn't a valid day in February
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `OffsetDateTime`."</span>]
     </span><span class="kw">pub const fn </span>replace_day(<span class="self">self</span>, day: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
@@ -2750,10 +2751,10 @@
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_hour(7),
-    ///     Ok(datetime!(2022 - 02 - 18 07:02:03.004_005_006 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_hour(7),
+    ///     Ok(datetime!(2022-02-18 07:02:03.004_005_006 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_hour(24).is_err()); // 24 isn't a valid hour
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_hour(24).is_err()); // 24 isn't a valid hour
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `OffsetDateTime`."</span>]
     </span><span class="kw">pub const fn </span>replace_hour(<span class="self">self</span>, hour: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
@@ -2765,10 +2766,10 @@
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_minute(7),
-    ///     Ok(datetime!(2022 - 02 - 18 01:07:03.004_005_006 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_minute(7),
+    ///     Ok(datetime!(2022-02-18 01:07:03.004_005_006 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_minute(60).is_err()); // 60 isn't a valid minute
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_minute(60).is_err()); // 60 isn't a valid minute
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `OffsetDateTime`."</span>]
     </span><span class="kw">pub const fn </span>replace_minute(<span class="self">self</span>, minute: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
@@ -2780,10 +2781,10 @@
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_second(7),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:07.004_005_006 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_second(7),
+    ///     Ok(datetime!(2022-02-18 01:02:07.004_005_006 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_second(60).is_err()); // 60 isn't a valid second
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_second(60).is_err()); // 60 isn't a valid second
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `OffsetDateTime`."</span>]
     </span><span class="kw">pub const fn </span>replace_second(<span class="self">self</span>, second: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
@@ -2795,10 +2796,10 @@
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_millisecond(7),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_millisecond(7),
+    ///     Ok(datetime!(2022-02-18 01:02:03.007 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `OffsetDateTime`."</span>]
     </span><span class="kw">pub const fn </span>replace_millisecond(
@@ -2816,10 +2817,10 @@
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_microsecond(7_008),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007_008 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_microsecond(7_008),
+    ///     Ok(datetime!(2022-02-18 01:02:03.007_008 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `OffsetDateTime`."</span>]
     </span><span class="kw">pub const fn </span>replace_microsecond(
@@ -2837,10 +2838,10 @@
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_nanosecond(7_008_009),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007_008_009 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_nanosecond(7_008_009),
+    ///     Ok(datetime!(2022-02-18 01:02:03.007_008_009 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
     /// ```
     </span><span class="attr">#[must_use = <span class="string">"This method does not mutate the original `OffsetDateTime`."</span>]
     </span><span class="kw">pub const fn </span>replace_nanosecond(<span class="self">self</span>, nanosecond: u32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, error::ComponentRange&gt; {
@@ -2935,7 +2936,7 @@
         time.hour() == <span class="number">23
             </span>&amp;&amp; time.minute() == <span class="number">59
             </span>&amp;&amp; time.second() == <span class="number">59
-            </span>&amp;&amp; date.day() == util::days_in_year_month(year, date.month())
+            </span>&amp;&amp; date.day() == date.month().length(year)
     }
 }
 
@@ -3213,7 +3214,8 @@
     /// This may panic if the timestamp can not be represented.
     </span><span class="kw">fn </span>from(js_date: js_sys::Date) -&gt; <span class="self">Self </span>{
         <span class="comment">// get_time() returns milliseconds
-        </span><span class="kw">let </span>timestamp_nanos = (js_date.get_time() * Nanosecond::per(Millisecond) <span class="kw">as </span>f64) <span class="kw">as </span>i128;
+        </span><span class="kw">let </span>timestamp_nanos = js_date.get_time() <span class="kw">as </span>i128
+            * Nanosecond::per(Millisecond).cast_signed().extend::&lt;i128&gt;();
         <span class="self">Self</span>::from_unix_timestamp_nanos(timestamp_nanos)
             .expect(<span class="string">"invalid timestamp: Timestamp cannot fit in range"</span>)
     }

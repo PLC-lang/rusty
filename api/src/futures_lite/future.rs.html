@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.3.0/src/future.rs`."><title>future.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">futures_lite/</div>future.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-lite-2.5.0/src/future.rs`."><title>future.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">futures_lite/</div>future.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -763,7 +763,75 @@
 <a href="#762" id="762">762</a>
 <a href="#763" id="763">763</a>
 <a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a></pre></div><pre class="rust"><code><span class="doccomment">//! Combinators for the [`Future`] trait.
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a></pre></div><pre class="rust"><code><span class="doccomment">//! Combinators for the [`Future`] trait.
 //!
 //! # Examples
 //!
@@ -1024,8 +1092,8 @@
     F2: Future,
 {
     Zip {
-        future1,
-        future2,
+        future1: <span class="prelude-val">Some</span>(future1),
+        future2: <span class="prelude-val">Some</span>(future2),
         output1: <span class="prelude-val">None</span>,
         output2: <span class="prelude-val">None</span>,
     }
@@ -1041,10 +1109,10 @@
         F2: Future,
     {
         <span class="attr">#[pin]
-        </span>future1: F1,
+        </span>future1: <span class="prelude-ty">Option</span>&lt;F1&gt;,
         output1: <span class="prelude-ty">Option</span>&lt;F1::Output&gt;,
         <span class="attr">#[pin]
-        </span>future2: F2,
+        </span>future2: <span class="prelude-ty">Option</span>&lt;F2&gt;,
         output2: <span class="prelude-ty">Option</span>&lt;F2::Output&gt;,
     }
 }
@@ -1069,17 +1137,19 @@
     <span class="kw">type </span>Output = (F1::Output, F2::Output);
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
-        <span class="kw">if </span>this.output1.is_none() {
-            <span class="kw">if let </span>Poll::Ready(out) = this.future1.poll(cx) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(future) = this.future1.as_mut().as_pin_mut() {
+            <span class="kw">if let </span>Poll::Ready(out) = future.poll(cx) {
                 <span class="kw-2">*</span>this.output1 = <span class="prelude-val">Some</span>(out);
+                this.future1.set(<span class="prelude-val">None</span>);
             }
         }
 
-        <span class="kw">if </span>this.output2.is_none() {
-            <span class="kw">if let </span>Poll::Ready(out) = this.future2.poll(cx) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(future) = this.future2.as_mut().as_pin_mut() {
+            <span class="kw">if let </span>Poll::Ready(out) = future.poll(cx) {
                 <span class="kw-2">*</span>this.output2 = <span class="prelude-val">Some</span>(out);
+                this.future2.set(<span class="prelude-val">None</span>);
             }
         }
 
@@ -1107,8 +1177,8 @@
     F2: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T2, E&gt;&gt;,
 {
     TryZip {
-        future1,
-        future2,
+        future1: <span class="prelude-val">Some</span>(future1),
+        future2: <span class="prelude-val">Some</span>(future2),
         output1: <span class="prelude-val">None</span>,
         output2: <span class="prelude-val">None</span>,
     }
@@ -1120,10 +1190,10 @@
     #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
     </span><span class="kw">pub struct </span>TryZip&lt;F1, T1, F2, T2&gt; {
         <span class="attr">#[pin]
-        </span>future1: F1,
+        </span>future1: <span class="prelude-ty">Option</span>&lt;F1&gt;,
         output1: <span class="prelude-ty">Option</span>&lt;T1&gt;,
         <span class="attr">#[pin]
-        </span>future2: F2,
+        </span>future2: <span class="prelude-ty">Option</span>&lt;F2&gt;,
         output2: <span class="prelude-ty">Option</span>&lt;T2&gt;,
     }
 }
@@ -1136,21 +1206,27 @@
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(T1, T2), E&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>this = <span class="self">self</span>.project();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <span class="self">self</span>.project();
 
-        <span class="kw">if </span>this.output1.is_none() {
-            <span class="kw">if let </span>Poll::Ready(out) = this.future1.poll(cx) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(future) = this.future1.as_mut().as_pin_mut() {
+            <span class="kw">if let </span>Poll::Ready(out) = future.poll(cx) {
                 <span class="kw">match </span>out {
-                    <span class="prelude-val">Ok</span>(t) =&gt; <span class="kw-2">*</span>this.output1 = <span class="prelude-val">Some</span>(t),
+                    <span class="prelude-val">Ok</span>(t) =&gt; {
+                        <span class="kw-2">*</span>this.output1 = <span class="prelude-val">Some</span>(t);
+                        this.future1.set(<span class="prelude-val">None</span>);
+                    }
                     <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(err)),
                 }
             }
         }
 
-        <span class="kw">if </span>this.output2.is_none() {
-            <span class="kw">if let </span>Poll::Ready(out) = this.future2.poll(cx) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(future) = this.future2.as_mut().as_pin_mut() {
+            <span class="kw">if let </span>Poll::Ready(out) = future.poll(cx) {
                 <span class="kw">match </span>out {
-                    <span class="prelude-val">Ok</span>(t) =&gt; <span class="kw-2">*</span>this.output2 = <span class="prelude-val">Some</span>(t),
+                    <span class="prelude-val">Ok</span>(t) =&gt; {
+                        <span class="kw-2">*</span>this.output2 = <span class="prelude-val">Some</span>(t);
+                        this.future2.set(<span class="prelude-val">None</span>);
+                    }
                     <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(err)),
                 }
             }
@@ -1215,6 +1291,66 @@
             <span class="kw">return </span>Poll::Ready(t);
         }
         Poll::Pending
+    }
+}
+
+<span class="doccomment">/// Fuse a future such that `poll` will never again be called once it has
+/// completed. This method can be used to turn any `Future` into a
+/// `FusedFuture`.
+///
+/// Normally, once a future has returned `Poll::Ready` from `poll`,
+/// any further calls could exhibit bad behavior such as blocking
+/// forever, panicking, never returning, etc. If it is known that `poll`
+/// may be called too often then this method can be used to ensure that it
+/// has defined semantics.
+///
+/// If a `fuse`d future is `poll`ed after having returned `Poll::Ready`
+/// previously, it will return `Poll::Pending`, from `poll` again (and will
+/// continue to do so for all future calls to `poll`).
+///
+/// This combinator will drop the underlying future as soon as it has been
+/// completed to ensure resources are reclaimed as soon as possible.
+</span><span class="kw">pub fn </span>fuse&lt;F&gt;(future: F) -&gt; Fuse&lt;F&gt;
+<span class="kw">where
+    </span>F: Future + Sized,
+{
+    Fuse::new(future)
+}
+
+<span class="macro">pin_project!</span> {
+    <span class="doccomment">/// [`Future`] for the [`fuse`] method.
+    </span><span class="attr">#[derive(Debug)]
+    #[must_use = <span class="string">"futures do nothing unless you `.await` or poll them"</span>]
+    </span><span class="kw">pub struct </span>Fuse&lt;Fut&gt; {
+        <span class="attr">#[pin]
+        </span>inner: <span class="prelude-ty">Option</span>&lt;Fut&gt;,
+    }
+}
+
+<span class="kw">impl</span>&lt;Fut&gt; Fuse&lt;Fut&gt; {
+    <span class="kw">fn </span>new(f: Fut) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ inner: <span class="prelude-val">Some</span>(f) }
+    }
+}
+
+<span class="kw">impl</span>&lt;Fut: Future&gt; Future <span class="kw">for </span>Fuse&lt;Fut&gt; {
+    <span class="kw">type </span>Output = Fut::Output;
+
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;Fut::Output&gt; {
+        <span class="kw">match </span><span class="self">self
+            </span>.as_mut()
+            .project()
+            .inner
+            .as_pin_mut()
+            .map(|f| f.poll(cx))
+        {
+            <span class="prelude-val">Some</span>(Poll::Ready(output)) =&gt; {
+                <span class="self">self</span>.project().inner.set(<span class="prelude-val">None</span>);
+                Poll::Ready(output)
+            }
+
+            <span class="prelude-val">Some</span>(Poll::Pending) | <span class="prelude-val">None </span>=&gt; Poll::Pending,
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-5.1.2/src/helpers/helper_each.rs`."><title>helper_each.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/helpers/</div>helper_each.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-6.3.0/src/helpers/helper_each.rs`."><title>helper_each.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/helpers/</div>helper_each.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -608,7 +608,8 @@
 <a href="#607" id="607">607</a>
 <a href="#608" id="608">608</a>
 <a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a></pre></div><pre class="rust"><code><span class="kw">use </span>serde_json::value::Value <span class="kw">as </span>Json;
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a></pre></div><pre class="rust"><code><span class="kw">use </span>serde_json::value::Value <span class="kw">as </span>Json;
 
 <span class="kw">use </span><span class="kw">super</span>::block_util::create_block;
 <span class="kw">use </span><span class="kw">crate</span>::block::{BlockContext, BlockParams};
@@ -740,6 +741,7 @@
                             block.set_local_var(<span class="string">"first"</span>, to_json(is_first));
                             block.set_local_var(<span class="string">"last"</span>, to_json(is_last));
                             block.set_local_var(<span class="string">"key"</span>, key.clone());
+                            block.set_local_var(<span class="string">"index"</span>, to_json(i));
 
                             update_block_context(block, obj_path, k.to_string(), is_first, v);
                             set_block_param(block, h, obj_path, <span class="kw-2">&amp;</span>key, v)<span class="question-mark">?</span>;
@@ -800,7 +802,7 @@
         <span class="macro">assert!</span>(handlebars
             .register_template_string(
                 <span class="string">"t1"</span>,
-                <span class="string">"{{#each this}}{{@first}}|{{@last}}|{{@key}}:{{this}}|{{/each}}"</span>,
+                <span class="string">"{{#each this}}{{@first}}|{{@last}}|{{@key}}:{{this}}|{{@index}}|{{/each}}"</span>,
             )
             .is_ok());
 
@@ -817,7 +819,7 @@
         <span class="kw">let </span>r1 = handlebars.render(<span class="string">"t1"</span>, <span class="kw-2">&amp;</span>m);
         <span class="macro">assert_eq!</span>(
             r1.ok().unwrap(),
-            <span class="string">"true|false|ftp:21|false|false|gopher:70|false|true|http:80|"</span>.to_string()
+            <span class="string">"true|false|ftp:21|0|false|false|gopher:70|1|false|true|http:80|2|"</span>.to_string()
         );
     }
 
@@ -909,7 +911,7 @@
             .unwrap();
 
         <span class="kw">let </span><span class="kw-2">mut </span>r0_sp: Vec&lt;<span class="kw">_</span>&gt; = r0.split(<span class="string">'\n'</span>).collect();
-        r0_sp.sort();
+        r0_sp.sort_unstable();
 
         <span class="macro">assert_eq!</span>(r0_sp, <span class="macro">vec!</span>[<span class="string">""</span>, <span class="string">"-baz"</span>, <span class="string">"foo-bar"</span>]);
     }
@@ -1203,17 +1205,17 @@
     </span><span class="kw">fn </span>newline_stripping_for_each() {
         <span class="kw">let </span>reg = Registry::new();
 
-        <span class="kw">let </span>tpl = <span class="string">r#"&lt;ul&gt;
+        <span class="kw">let </span>tpl = <span class="string">r"&lt;ul&gt;
   {{#each a}}
     {{!-- comment --}}
     &lt;li&gt;{{this}}&lt;/li&gt;
   {{/each}}
-&lt;/ul&gt;"#</span>;
+&lt;/ul&gt;"</span>;
         <span class="macro">assert_eq!</span>(
-            <span class="string">r#"&lt;ul&gt;
+            <span class="string">r"&lt;ul&gt;
     &lt;li&gt;0&lt;/li&gt;
     &lt;li&gt;1&lt;/li&gt;
-&lt;/ul&gt;"#</span>,
+&lt;/ul&gt;"</span>,
             reg.render_template(tpl, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"a"</span>: [<span class="number">0</span>, <span class="number">1</span>]})).unwrap()
         );
     }

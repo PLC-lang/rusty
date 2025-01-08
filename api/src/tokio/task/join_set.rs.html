@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.40.0/src/task/join_set.rs`."><title>join_set.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/task/</div>join_set.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.42.0/src/task/join_set.rs`."><title>join_set.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/task/</div>join_set.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -789,14 +789,7 @@
 <a href="#788" id="788">788</a>
 <a href="#789" id="789">789</a>
 <a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a></pre></div><pre class="rust"><code><span class="doccomment">//! A collection of tasks spawned on a Tokio runtime.
+<a href="#791" id="791">791</a></pre></div><pre class="rust"><code><span class="doccomment">//! A collection of tasks spawned on a Tokio runtime.
 //!
 //! This module provides the [`JoinSet`] type, a collection which stores a set
 //! of spawned tasks and allows asynchronously awaiting the output of those
@@ -808,8 +801,7 @@
 <span class="kw">use </span>std::{fmt, panic};
 
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Handle;
-<span class="attr">#[cfg(tokio_unstable)]
-</span><span class="kw">use </span><span class="kw">crate</span>::task::Id;
+<span class="kw">use </span><span class="kw">crate</span>::task::Id;
 <span class="kw">use </span><span class="kw">crate</span>::task::{unconstrained, AbortHandle, JoinError, JoinHandle, LocalSet};
 <span class="kw">use </span><span class="kw">crate</span>::util::IdleNotifiedSet;
 
@@ -1079,7 +1071,7 @@
     /// statement and some other branch completes first, it is guaranteed that no tasks were
     /// removed from this `JoinSet`.
     </span><span class="kw">pub async fn </span>join_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;T, JoinError&gt;&gt; {
-        <span class="kw">crate</span>::future::poll_fn(|cx| <span class="self">self</span>.poll_join_next(cx)).<span class="kw">await
+        std::future::poll_fn(|cx| <span class="self">self</span>.poll_join_next(cx)).<span class="kw">await
     </span>}
 
     <span class="doccomment">/// Waits until one of the tasks in the set completes and returns its
@@ -1098,10 +1090,8 @@
     ///
     /// [task ID]: crate::task::Id
     /// [`JoinError::id`]: fn@crate::task::JoinError::id
-    </span><span class="attr">#[cfg(tokio_unstable)]
-    #[cfg_attr(docsrs, doc(cfg(tokio_unstable)))]
     </span><span class="kw">pub async fn </span>join_next_with_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(Id, T), JoinError&gt;&gt; {
-        <span class="kw">crate</span>::future::poll_fn(|cx| <span class="self">self</span>.poll_join_next_with_id(cx)).<span class="kw">await
+        std::future::poll_fn(|cx| <span class="self">self</span>.poll_join_next_with_id(cx)).<span class="kw">await
     </span>}
 
     <span class="doccomment">/// Tries to join one of the tasks in the set that has completed and return its output.
@@ -1136,8 +1126,6 @@
     ///
     /// [task ID]: crate::task::Id
     /// [`JoinError::id`]: fn@crate::task::JoinError::id
-    </span><span class="attr">#[cfg(tokio_unstable)]
-    #[cfg_attr(docsrs, doc(cfg(tokio_unstable)))]
     </span><span class="kw">pub fn </span>try_join_next_with_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(Id, T), JoinError&gt;&gt; {
         <span class="comment">// Loop over all notified `JoinHandle`s to find one that's ready, or until none are left.
         </span><span class="kw">loop </span>{
@@ -1342,8 +1330,6 @@
     ///
     /// [coop budget]: crate::task#cooperative-scheduling
     /// [task ID]: crate::task::Id
-    </span><span class="attr">#[cfg(tokio_unstable)]
-    #[cfg_attr(docsrs, doc(cfg(tokio_unstable)))]
     </span><span class="kw">pub fn </span>poll_join_next_with_id(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,

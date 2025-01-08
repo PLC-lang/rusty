@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-automata-0.4.8/src/dfa/dense.rs`."><title>dense.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">regex_automata/dfa/</div>dense.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-automata-0.4.9/src/dfa/dense.rs`."><title>dense.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">regex_automata/dfa/</div>dense.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -5151,7 +5151,75 @@
 <a href="#5150" id="5150">5150</a>
 <a href="#5151" id="5151">5151</a>
 <a href="#5152" id="5152">5152</a>
-<a href="#5153" id="5153">5153</a></pre></div><pre class="rust"><code><span class="doccomment">/*!
+<a href="#5153" id="5153">5153</a>
+<a href="#5154" id="5154">5154</a>
+<a href="#5155" id="5155">5155</a>
+<a href="#5156" id="5156">5156</a>
+<a href="#5157" id="5157">5157</a>
+<a href="#5158" id="5158">5158</a>
+<a href="#5159" id="5159">5159</a>
+<a href="#5160" id="5160">5160</a>
+<a href="#5161" id="5161">5161</a>
+<a href="#5162" id="5162">5162</a>
+<a href="#5163" id="5163">5163</a>
+<a href="#5164" id="5164">5164</a>
+<a href="#5165" id="5165">5165</a>
+<a href="#5166" id="5166">5166</a>
+<a href="#5167" id="5167">5167</a>
+<a href="#5168" id="5168">5168</a>
+<a href="#5169" id="5169">5169</a>
+<a href="#5170" id="5170">5170</a>
+<a href="#5171" id="5171">5171</a>
+<a href="#5172" id="5172">5172</a>
+<a href="#5173" id="5173">5173</a>
+<a href="#5174" id="5174">5174</a>
+<a href="#5175" id="5175">5175</a>
+<a href="#5176" id="5176">5176</a>
+<a href="#5177" id="5177">5177</a>
+<a href="#5178" id="5178">5178</a>
+<a href="#5179" id="5179">5179</a>
+<a href="#5180" id="5180">5180</a>
+<a href="#5181" id="5181">5181</a>
+<a href="#5182" id="5182">5182</a>
+<a href="#5183" id="5183">5183</a>
+<a href="#5184" id="5184">5184</a>
+<a href="#5185" id="5185">5185</a>
+<a href="#5186" id="5186">5186</a>
+<a href="#5187" id="5187">5187</a>
+<a href="#5188" id="5188">5188</a>
+<a href="#5189" id="5189">5189</a>
+<a href="#5190" id="5190">5190</a>
+<a href="#5191" id="5191">5191</a>
+<a href="#5192" id="5192">5192</a>
+<a href="#5193" id="5193">5193</a>
+<a href="#5194" id="5194">5194</a>
+<a href="#5195" id="5195">5195</a>
+<a href="#5196" id="5196">5196</a>
+<a href="#5197" id="5197">5197</a>
+<a href="#5198" id="5198">5198</a>
+<a href="#5199" id="5199">5199</a>
+<a href="#5200" id="5200">5200</a>
+<a href="#5201" id="5201">5201</a>
+<a href="#5202" id="5202">5202</a>
+<a href="#5203" id="5203">5203</a>
+<a href="#5204" id="5204">5204</a>
+<a href="#5205" id="5205">5205</a>
+<a href="#5206" id="5206">5206</a>
+<a href="#5207" id="5207">5207</a>
+<a href="#5208" id="5208">5208</a>
+<a href="#5209" id="5209">5209</a>
+<a href="#5210" id="5210">5210</a>
+<a href="#5211" id="5211">5211</a>
+<a href="#5212" id="5212">5212</a>
+<a href="#5213" id="5213">5213</a>
+<a href="#5214" id="5214">5214</a>
+<a href="#5215" id="5215">5215</a>
+<a href="#5216" id="5216">5216</a>
+<a href="#5217" id="5217">5217</a>
+<a href="#5218" id="5218">5218</a>
+<a href="#5219" id="5219">5219</a>
+<a href="#5220" id="5220">5220</a>
+<a href="#5221" id="5221">5221</a></pre></div><pre class="rust"><code><span class="doccomment">/*!
 Types and routines specific to dense DFAs.
 
 This module is the home of [`dense::DFA`](DFA).
@@ -10109,6 +10177,74 @@ This module also contains a [`dense::Builder`](Builder) and a
 #[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>BuildError {
     kind: BuildErrorKind,
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"dfa-build"</span>)]
+</span><span class="kw">impl </span>BuildError {
+    <span class="doccomment">/// Returns true if and only if this error corresponds to an error with DFA
+    /// construction that occurred because of exceeding a size limit.
+    ///
+    /// While this can occur when size limits like [`Config::dfa_size_limit`]
+    /// or [`Config::determinize_size_limit`] are exceeded, this can also occur
+    /// when the number of states or patterns exceeds a hard-coded maximum.
+    /// (Where these maximums are derived based on the values representable by
+    /// [`StateID`] and [`PatternID`].)
+    ///
+    /// This predicate is useful in contexts where you want to distinguish
+    /// between errors related to something provided by an end user (for
+    /// example, an invalid regex pattern) and errors related to configured
+    /// heuristics. For example, building a DFA might be an optimization that
+    /// you want to skip if construction fails because of an exceeded size
+    /// limit, but where you want to bubble up an error if it fails for some
+    /// other reason.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # if cfg!(miri) { return Ok(()); } // miri takes too long
+    /// # if !cfg!(target_pointer_width = "64") { return Ok(()); } // see #1039
+    /// use regex_automata::{dfa::{dense, Automaton}, Input};
+    ///
+    /// let err = dense::Builder::new()
+    ///     .configure(dense::Config::new()
+    ///         .determinize_size_limit(Some(100_000))
+    ///     )
+    ///     .build(r"\w{20}")
+    ///     .unwrap_err();
+    /// // This error occurs because a size limit was exceeded.
+    /// // But things are otherwise valid.
+    /// assert!(err.is_size_limit_exceeded());
+    ///
+    /// let err = dense::Builder::new()
+    ///     .build(r"\bxyz\b")
+    ///     .unwrap_err();
+    /// // This error occurs because a Unicode word boundary
+    /// // was used without enabling heuristic support for it.
+    /// // So... not related to size limits.
+    /// assert!(!err.is_size_limit_exceeded());
+    ///
+    /// let err = dense::Builder::new()
+    ///     .build(r"(xyz")
+    ///     .unwrap_err();
+    /// // This error occurs because the pattern is invalid.
+    /// // So... not related to size limits.
+    /// assert!(!err.is_size_limit_exceeded());
+    ///
+    /// # Ok::&lt;(), Box&lt;dyn std::error::Error&gt;&gt;(())
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>is_size_limit_exceeded(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">use </span><span class="self">self</span>::BuildErrorKind::<span class="kw-2">*</span>;
+
+        <span class="kw">match </span><span class="self">self</span>.kind {
+            NFA(<span class="kw">_</span>) | Unsupported(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            TooManyStates
+            | TooManyStartStates
+            | TooManyMatchPatternIDs
+            | DFAExceededSizeLimit { .. }
+            | DeterminizeExceededSizeLimit { .. } =&gt; <span class="bool-val">true</span>,
+        }
+    }
 }
 
 <span class="doccomment">/// The kind of error that occurred during the construction of a DFA.

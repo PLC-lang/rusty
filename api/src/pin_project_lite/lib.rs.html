@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-project-lite-0.2.14/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pin_project_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">pin_project_lite/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-project-lite-0.2.16/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pin_project_lite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">pin_project_lite/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1727,7 +1727,44 @@
 <a href="#1726" id="1726">1726</a>
 <a href="#1727" id="1727">1727</a>
 <a href="#1728" id="1728">1728</a>
-<a href="#1729" id="1729">1729</a></pre></div><pre class="rust"><code><span class="comment">// SPDX-License-Identifier: Apache-2.0 OR MIT
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
+<a href="#1735" id="1735">1735</a>
+<a href="#1736" id="1736">1736</a>
+<a href="#1737" id="1737">1737</a>
+<a href="#1738" id="1738">1738</a>
+<a href="#1739" id="1739">1739</a>
+<a href="#1740" id="1740">1740</a>
+<a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
+<a href="#1745" id="1745">1745</a>
+<a href="#1746" id="1746">1746</a>
+<a href="#1747" id="1747">1747</a>
+<a href="#1748" id="1748">1748</a>
+<a href="#1749" id="1749">1749</a>
+<a href="#1750" id="1750">1750</a>
+<a href="#1751" id="1751">1751</a>
+<a href="#1752" id="1752">1752</a>
+<a href="#1753" id="1753">1753</a>
+<a href="#1754" id="1754">1754</a>
+<a href="#1755" id="1755">1755</a>
+<a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
+<a href="#1763" id="1763">1763</a>
+<a href="#1764" id="1764">1764</a>
+<a href="#1765" id="1765">1765</a>
+<a href="#1766" id="1766">1766</a></pre></div><pre class="rust"><code><span class="comment">// SPDX-License-Identifier: Apache-2.0 OR MIT
 
 </span><span class="doccomment">/*!
 &lt;!-- tidy:crate-doc:start --&gt;
@@ -1741,8 +1778,6 @@ Add this to your `Cargo.toml`:
 [dependencies]
 pin-project-lite = "0.2"
 ```
-
-*Compiler support: requires rustc 1.37+*
 
 ## Examples
 
@@ -1835,12 +1870,13 @@ pin-project supports this by [`UnsafeUnpin`][unsafe-unpin]. (`!Unpin` is support
 
 pin-project supports this.
 
-[not-unpin]: https://docs.rs/pin-project/1/pin_project/attr.pin_project.html#unpin
-[not-unpin-lite]: https://docs.rs/pin-project-lite/0.2/pin_project_lite/macro.pin_project.html#unpin
+[not-unpin]: https://docs.rs/pin-project/latest/pin_project/attr.pin_project.html#unpin
 [pin-project]: https://github.com/taiki-e/pin-project
-[unsafe-unpin]: https://docs.rs/pin-project/1/pin_project/attr.pin_project.html#unsafeunpin
+[unsafe-unpin]: https://docs.rs/pin-project/latest/pin_project/attr.pin_project.html#unsafeunpin
 
 &lt;!-- tidy:crate-doc:end --&gt;
+
+[not-unpin-lite]: pin_project#unpin
 */
 
 </span><span class="attr">#![no_std]
@@ -2214,13 +2250,18 @@ pin-project supports this.
         </span>}
         $($(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>:meta]</span>)* <span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?
     </span>) =&gt; {
-        <span class="attr">#[allow(explicit_outlives_requirements)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/60993
-        </span><span class="attr">#[allow(single_use_lifetimes)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/55058
-        // This lint warns of `clippy::*` generated by external macros.
-        // We allow this lint for compatibility with older compilers.
-        </span><span class="attr">#[allow(clippy::unknown_clippy_lints)]
-        #[allow(clippy::redundant_pub_crate)] </span><span class="comment">// This lint warns `pub(crate)` field in private struct.
-        </span><span class="attr">#[allow(clippy::used_underscore_binding)]
+        <span class="attr">#[allow(
+            explicit_outlives_requirements, <span class="comment">// https://github.com/rust-lang/rust/issues/60993
+            </span>single_use_lifetimes, <span class="comment">// https://github.com/rust-lang/rust/issues/55058
+            // This lint warns of `clippy::*` generated by external macros.
+            // We allow this lint for compatibility with older compilers.
+            </span>clippy::unknown_clippy_lints,
+            clippy::absolute_paths,
+            clippy::min_ident_chars,
+            clippy::redundant_pub_crate, <span class="comment">// This lint warns `pub(crate)` field in private struct.
+            </span>clippy::single_char_lifetime_names,
+            clippy::used_underscore_binding
+        )]
         </span><span class="kw">const _</span>: () = {
             <span class="macro-nonterminal">$</span><span class="macro">crate::__pin_project_make_proj_ty!</span> {
                 [$(<span class="macro-nonterminal">$proj_mut_ident</span>)<span class="question-mark">? </span>Projection]
@@ -2247,7 +2288,7 @@ pin-project supports this.
                 }
             }
 
-            <span class="kw">impl </span>&lt;$(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt; <span class="macro-nonterminal">$ident </span>&lt;$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;
+            <span class="kw">impl</span>&lt;$(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt; <span class="macro-nonterminal">$ident </span>&lt;$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;
             $(<span class="kw">where
                 </span>$(<span class="macro-nonterminal">$where_clause</span>)<span class="kw-2">*</span>)<span class="question-mark">?
             </span>{
@@ -2357,13 +2398,18 @@ pin-project supports this.
         </span>}
         $($(<span class="attr">#[<span class="macro-nonterminal">$drop_impl_attrs</span>:meta]</span>)* <span class="kw">impl </span>$(<span class="macro-nonterminal">$pinned_drop</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?
     </span>) =&gt; {
-        <span class="attr">#[allow(single_use_lifetimes)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/55058
-        // This lint warns of `clippy::*` generated by external macros.
-        // We allow this lint for compatibility with older compilers.
-        </span><span class="attr">#[allow(clippy::unknown_clippy_lints)]
-        #[allow(clippy::used_underscore_binding)]
+        <span class="attr">#[allow(
+            single_use_lifetimes, <span class="comment">// https://github.com/rust-lang/rust/issues/55058
+            // This lint warns of `clippy::*` generated by external macros.
+            // We allow this lint for compatibility with older compilers.
+            </span>clippy::unknown_clippy_lints,
+            clippy::absolute_paths,
+            clippy::min_ident_chars,
+            clippy::single_char_lifetime_names,
+            clippy::used_underscore_binding
+        )]
         </span><span class="kw">const _</span>: () = {
-            <span class="kw">impl </span>&lt;$(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt; <span class="macro-nonterminal">$ident </span>&lt;$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;
+            <span class="kw">impl</span>&lt;$(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt; <span class="macro-nonterminal">$ident </span>&lt;$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;
             $(<span class="kw">where
                 </span>$(<span class="macro-nonterminal">$where_clause</span>)<span class="kw-2">*</span>)<span class="question-mark">?
             </span>{
@@ -2580,15 +2626,20 @@ pin-project supports this.
         [$(<span class="macro-nonterminal">$body_data</span>:tt)+]
     ) =&gt; {
         <span class="attr">#[doc(hidden)] </span><span class="comment">// Workaround for rustc bug: see https://github.com/taiki-e/pin-project-lite/issues/77#issuecomment-1671540180 for more.
-        </span><span class="attr">#[allow(dead_code)] </span><span class="comment">// This lint warns unused fields/variants.
-        </span><span class="attr">#[allow(single_use_lifetimes)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/55058
-        // This lint warns of `clippy::*` generated by external macros.
-        // We allow this lint for compatibility with older compilers.
-        </span><span class="attr">#[allow(clippy::unknown_clippy_lints)]
-        #[allow(clippy::mut_mut)] </span><span class="comment">// This lint warns `&amp;mut &amp;mut &lt;ty&gt;`. (only needed for project)
-        </span><span class="attr">#[allow(clippy::redundant_pub_crate)] </span><span class="comment">// This lint warns `pub(crate)` field in private struct.
-        </span><span class="attr">#[allow(clippy::ref_option_ref)] </span><span class="comment">// This lint warns `&amp;Option&lt;&amp;&lt;ty&gt;&gt;`. (only needed for project_ref)
-        </span><span class="attr">#[allow(clippy::type_repetition_in_bounds)] </span><span class="comment">// https://github.com/rust-lang/rust-clippy/issues/4326
+        </span><span class="attr">#[allow(
+            dead_code, <span class="comment">// This lint warns unused fields/variants.
+            </span>single_use_lifetimes, <span class="comment">// https://github.com/rust-lang/rust/issues/55058
+            // This lint warns of `clippy::*` generated by external macros.
+            // We allow this lint for compatibility with older compilers.
+            </span>clippy::unknown_clippy_lints,
+            clippy::absolute_paths,
+            clippy::min_ident_chars,
+            clippy::mut_mut, <span class="comment">// This lint warns `&amp;mut &amp;mut &lt;ty&gt;`. (only needed for project)
+            </span>clippy::redundant_pub_crate, <span class="comment">// This lint warns `pub(crate)` field in private struct.
+            </span>clippy::ref_option_ref, <span class="comment">// This lint warns `&amp;Option&lt;&amp;&lt;ty&gt;&gt;`. (only needed for project_ref)
+            </span>clippy::single_char_lifetime_names,
+            clippy::type_repetition_in_bounds <span class="comment">// https://github.com/rust-lang/rust-clippy/issues/4326
+        </span>)]
         </span><span class="macro-nonterminal">$proj_vis $struct_ty_ident $proj_ty_ident </span>&lt;<span class="lifetime">'__pin</span>, $(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt;
         <span class="kw">where
             </span><span class="macro-nonterminal">$ident </span>&lt;$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;: <span class="lifetime">'__pin
@@ -2674,11 +2725,19 @@ pin-project supports this.
         [$(<span class="macro-nonterminal">$body_data</span>:tt)+]
     ) =&gt; {
         <span class="attr">#[doc(hidden)] </span><span class="comment">// Workaround for rustc bug: see https://github.com/taiki-e/pin-project-lite/issues/77#issuecomment-1671540180 for more.
-        </span><span class="attr">#[allow(dead_code)] </span><span class="comment">// This lint warns unused fields/variants.
-        </span><span class="attr">#[allow(single_use_lifetimes)] </span><span class="comment">// https://github.com/rust-lang/rust/issues/55058
-        </span><span class="attr">#[allow(clippy::mut_mut)] </span><span class="comment">// This lint warns `&amp;mut &amp;mut &lt;ty&gt;`. (only needed for project)
-        </span><span class="attr">#[allow(clippy::redundant_pub_crate)] </span><span class="comment">// This lint warns `pub(crate)` field in private struct.
-        </span><span class="attr">#[allow(clippy::type_repetition_in_bounds)] </span><span class="comment">// https://github.com/rust-lang/rust-clippy/issues/4326
+        </span><span class="attr">#[allow(
+            dead_code, <span class="comment">// This lint warns unused fields/variants.
+            </span>single_use_lifetimes, <span class="comment">// https://github.com/rust-lang/rust/issues/55058
+            // This lint warns of `clippy::*` generated by external macros.
+            // We allow this lint for compatibility with older compilers.
+            </span>clippy::unknown_clippy_lints,
+            clippy::absolute_paths,
+            clippy::min_ident_chars,
+            clippy::mut_mut, <span class="comment">// This lint warns `&amp;mut &amp;mut &lt;ty&gt;`. (only needed for project)
+            </span>clippy::redundant_pub_crate, <span class="comment">// This lint warns `pub(crate)` field in private struct.
+            </span>clippy::single_char_lifetime_names,
+            clippy::type_repetition_in_bounds <span class="comment">// https://github.com/rust-lang/rust-clippy/issues/4326
+        </span>)]
         </span><span class="macro-nonterminal">$proj_vis $struct_ty_ident $proj_ty_ident </span>&lt;$(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt;
         <span class="kw">where
             </span>$($(<span class="macro-nonterminal">$where_clause</span>)<span class="kw-2">*</span>)<span class="question-mark">?
@@ -2936,7 +2995,7 @@ pin-project supports this.
         // this would cause an E0446 (private type in public interface).
         //
         // When RFC 2145 is implemented (rust-lang/rust#48054),
-        // this will become a lint, rather then a hard error.
+        // this will become a lint, rather than a hard error.
         //
         // As a workaround for this, we generate a new struct, containing all of the pinned
         // fields from our #[pin_project] type. This struct is declared within
@@ -2951,16 +3010,17 @@ pin-project supports this.
         //
         // See also https://github.com/taiki-e/pin-project/pull/53.
         </span><span class="attr">#[allow(non_snake_case)]
-        </span><span class="macro-nonterminal">$vis </span><span class="kw">struct </span>__Origin &lt;<span class="lifetime">'__pin</span>, $(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt;
+        </span><span class="macro-nonterminal">$vis </span><span class="kw">struct </span>__Origin&lt;<span class="lifetime">'__pin</span>, $(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt;
         $(<span class="kw">where
             </span>$(<span class="macro-nonterminal">$where_clause</span>)<span class="kw-2">*</span>)<span class="question-mark">?
         </span>{
             __dummy_lifetime: <span class="macro-nonterminal">$crate::__private::PhantomData</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'__pin </span>()&gt;,
             $(<span class="macro-nonterminal">$field</span>)*
         }
-        <span class="kw">impl </span>&lt;<span class="lifetime">'__pin</span>, $(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt; <span class="macro-nonterminal">$crate::__private::Unpin </span><span class="kw">for </span><span class="macro-nonterminal">$ident </span>&lt;$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;
+        <span class="kw">impl</span>&lt;<span class="lifetime">'__pin</span>, $(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt; <span class="macro-nonterminal">$crate::__private::Unpin </span><span class="kw">for </span><span class="macro-nonterminal">$ident </span>&lt;$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;
         <span class="kw">where
-            </span>__Origin &lt;<span class="lifetime">'__pin</span>, $(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;: <span class="macro-nonterminal">$crate::__private::Unpin
+            </span><span class="macro-nonterminal">$crate::__private::PinnedFieldsOf</span>&lt;__Origin&lt;<span class="lifetime">'__pin</span>, $(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;&gt;:
+                <span class="macro-nonterminal">$crate::__private::Unpin
             </span>$(, $(<span class="macro-nonterminal">$where_clause</span>)<span class="kw-2">*</span>)<span class="question-mark">?
         </span>{
         }
@@ -2971,12 +3031,14 @@ pin-project supports this.
         [$(<span class="macro-nonterminal">$impl_generics</span>:tt)<span class="kw-2">*</span>] [$(<span class="macro-nonterminal">$ty_generics</span>:tt)<span class="kw-2">*</span>] [$(<span class="kw">where </span>$(<span class="macro-nonterminal">$where_clause</span>:tt)<span class="kw-2">*</span>)<span class="question-mark">?</span>]
         $(<span class="macro-nonterminal">$field</span>:tt)*
     ) =&gt; {
-        <span class="attr">#[doc(hidden)]
-        </span><span class="kw">impl </span>&lt;<span class="lifetime">'__pin</span>, $(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt; <span class="macro-nonterminal">$crate::__private::Unpin </span><span class="kw">for </span><span class="macro-nonterminal">$ident </span>&lt;$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;
+        <span class="comment">// TODO: Using `&lt;unsized type&gt;: Sized` here allow emulating real negative_impls...
+        // https://github.com/taiki-e/pin-project/issues/340#issuecomment-2428002670
+        </span><span class="attr">#[doc(hidden)]
+        </span><span class="kw">impl</span>&lt;<span class="lifetime">'__pin</span>, $(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt; <span class="macro-nonterminal">$crate::__private::Unpin </span><span class="kw">for </span><span class="macro-nonterminal">$ident </span>&lt;$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;
         <span class="kw">where
             </span>(
-                ::core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'__pin </span>()&gt;,
-                ::core::marker::PhantomPinned,
+                <span class="macro-nonterminal">$crate::__private::PhantomData</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'__pin </span>()&gt;,
+                <span class="macro-nonterminal">$crate::__private::PhantomPinned</span>,
             ): <span class="macro-nonterminal">$crate::__private::Unpin
             </span>$(, $(<span class="macro-nonterminal">$where_clause</span>)<span class="kw-2">*</span>)<span class="question-mark">?
         </span>{
@@ -3083,7 +3145,7 @@ pin-project supports this.
         //
         // There are two possible cases:
         // 1. The user type does not implement Drop. In this case,
-        // the first blanked impl will not apply to it. This code
+        // the first blanket impl will not apply to it. This code
         // will compile, as there is only one impl of MustNotImplDrop for the user type
         // 2. The user type does impl Drop. This will make the blanket impl applicable,
         // which will then conflict with the explicit MustNotImplDrop impl below.
@@ -3091,7 +3153,7 @@ pin-project supports this.
         </span><span class="kw">trait </span>MustNotImplDrop {}
         <span class="attr">#[allow(clippy::drop_bounds, drop_bounds)]
         </span><span class="kw">impl</span>&lt;T: <span class="macro-nonterminal">$crate::__private::Drop</span>&gt; MustNotImplDrop <span class="kw">for </span>T {}
-        <span class="kw">impl </span>&lt;$(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt; MustNotImplDrop <span class="kw">for </span><span class="macro-nonterminal">$ident </span>&lt;$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;
+        <span class="kw">impl</span>&lt;$(<span class="macro-nonterminal">$impl_generics</span>)<span class="kw-2">*</span>&gt; MustNotImplDrop <span class="kw">for </span><span class="macro-nonterminal">$ident </span>&lt;$(<span class="macro-nonterminal">$ty_generics</span>)<span class="kw-2">*</span>&gt;
         $(<span class="kw">where
             </span>$(<span class="macro-nonterminal">$where_clause</span>)<span class="kw-2">*</span>)<span class="question-mark">?
         </span>{
@@ -3398,29 +3460,43 @@ pin-project supports this.
     <span class="kw">use </span>core::mem::ManuallyDrop;
     <span class="attr">#[doc(hidden)]
     </span><span class="kw">pub use </span>core::{
-        marker::{PhantomData, Unpin},
+        marker::{PhantomData, PhantomPinned, Unpin},
         ops::Drop,
         pin::Pin,
         ptr,
     };
 
+    <span class="comment">// Workaround for issue on unstable negative_impls feature that allows unsound overlapping Unpin
+    // implementations and rustc bug that leaks unstable negative_impls into stable.
+    // See https://github.com/taiki-e/pin-project/issues/340#issuecomment-2432146009 for details.
+    </span><span class="attr">#[doc(hidden)]
+    </span><span class="kw">pub type </span>PinnedFieldsOf&lt;T&gt; =
+        &lt;PinnedFieldsOfHelperStruct&lt;T&gt; <span class="kw">as </span>PinnedFieldsOfHelperTrait&gt;::Actual;
+    <span class="comment">// We cannot use &lt;Option&lt;T&gt; as IntoIterator&gt;::Item or similar since we should allow ?Sized in T.
+    </span><span class="attr">#[doc(hidden)]
+    </span><span class="kw">pub trait </span>PinnedFieldsOfHelperTrait {
+        <span class="kw">type </span>Actual: <span class="question-mark">?</span>Sized;
+    }
+    <span class="attr">#[doc(hidden)]
+    </span><span class="kw">pub struct </span>PinnedFieldsOfHelperStruct&lt;T: <span class="question-mark">?</span>Sized&gt;(T);
+    <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; PinnedFieldsOfHelperTrait <span class="kw">for </span>PinnedFieldsOfHelperStruct&lt;T&gt; {
+        <span class="kw">type </span>Actual = T;
+    }
+
     <span class="comment">// This is an internal helper struct used by `pin_project!`.
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">pub struct </span>AlwaysUnpin&lt;T: <span class="question-mark">?</span>Sized&gt;(PhantomData&lt;T&gt;);
-
     <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Unpin <span class="kw">for </span>AlwaysUnpin&lt;T&gt; {}
 
     <span class="comment">// This is an internal helper used to ensure a value is dropped.
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">pub struct </span>UnsafeDropInPlaceGuard&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">*mut </span>T);
-
     <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; UnsafeDropInPlaceGuard&lt;T&gt; {
         <span class="attr">#[doc(hidden)]
         </span><span class="kw">pub unsafe fn </span>new(ptr: <span class="kw-2">*mut </span>T) -&gt; <span class="self">Self </span>{
             <span class="self">Self</span>(ptr)
         }
     }
-
     <span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>UnsafeDropInPlaceGuard&lt;T&gt; {
         <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
             <span class="comment">// SAFETY: the caller of `UnsafeDropInPlaceGuard::new` must guarantee
@@ -3438,14 +3514,12 @@ pin-project supports this.
         target: <span class="kw-2">*mut </span>T,
         value: ManuallyDrop&lt;T&gt;,
     }
-
     <span class="kw">impl</span>&lt;T&gt; UnsafeOverwriteGuard&lt;T&gt; {
         <span class="attr">#[doc(hidden)]
         </span><span class="kw">pub unsafe fn </span>new(target: <span class="kw-2">*mut </span>T, value: T) -&gt; <span class="self">Self </span>{
             <span class="self">Self </span>{ target, value: ManuallyDrop::new(value) }
         }
     }
-
     <span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>UnsafeOverwriteGuard&lt;T&gt; {
         <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
             <span class="comment">// SAFETY: the caller of `UnsafeOverwriteGuard::new` must guarantee

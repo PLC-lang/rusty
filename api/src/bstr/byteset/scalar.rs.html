@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/bstr-1.10.0/src/byteset/scalar.rs`."><title>scalar.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">bstr/byteset/</div>scalar.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/bstr-1.11.3/src/byteset/scalar.rs`."><title>scalar.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bstr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">bstr/byteset/</div>scalar.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -304,14 +304,14 @@
 <a href="#303" id="303">303</a>
 <a href="#304" id="304">304</a>
 <a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a></pre></div><pre class="rust"><code><span class="comment">// This is adapted from `fallback.rs` from rust-memchr. It's modified to return
+<a href="#306" id="306">306</a></pre></div><pre class="rust"><code><span class="comment">// This is adapted from `fallback.rs` from rust-memchr. It's modified to return
 // the 'inverse' query of memchr, e.g. finding the first byte not in the
 // provided set. This is simple for the 1-byte case.
 
 </span><span class="kw">use </span>core::{cmp, usize};
 
 <span class="kw">const </span>USIZE_BYTES: usize = core::mem::size_of::&lt;usize&gt;();
+<span class="kw">const </span>ALIGN_MASK: usize = core::mem::align_of::&lt;usize&gt;() - <span class="number">1</span>;
 
 <span class="comment">// The number of bytes to loop at in one iteration of memchr/memrchr.
 </span><span class="kw">const </span>LOOP_SIZE: usize = <span class="number">2 </span>* USIZE_BYTES;
@@ -329,7 +329,6 @@
     <span class="kw">let </span>vn1 = repeat_byte(n1);
     <span class="kw">let </span>confirm = |byte| byte != n1;
     <span class="kw">let </span>loop_size = cmp::min(LOOP_SIZE, haystack.len());
-    <span class="kw">let </span>align = USIZE_BYTES - <span class="number">1</span>;
     <span class="kw">let </span>start_ptr = haystack.as_ptr();
 
     <span class="kw">unsafe </span>{
@@ -345,7 +344,7 @@
             <span class="kw">return </span>forward_search(start_ptr, end_ptr, ptr, confirm);
         }
 
-        ptr = ptr.add(USIZE_BYTES - (start_ptr <span class="kw">as </span>usize &amp; align));
+        ptr = ptr.add(USIZE_BYTES - (start_ptr <span class="kw">as </span>usize &amp; ALIGN_MASK));
         <span class="macro">debug_assert!</span>(ptr &gt; start_ptr);
         <span class="macro">debug_assert!</span>(end_ptr.sub(USIZE_BYTES) &gt;= start_ptr);
         <span class="kw">while </span>loop_size == LOOP_SIZE &amp;&amp; ptr &lt;= end_ptr.sub(loop_size) {
@@ -369,7 +368,6 @@
     <span class="kw">let </span>vn1 = repeat_byte(n1);
     <span class="kw">let </span>confirm = |byte| byte != n1;
     <span class="kw">let </span>loop_size = cmp::min(LOOP_SIZE, haystack.len());
-    <span class="kw">let </span>align = USIZE_BYTES - <span class="number">1</span>;
     <span class="kw">let </span>start_ptr = haystack.as_ptr();
 
     <span class="kw">unsafe </span>{
@@ -385,7 +383,7 @@
             <span class="kw">return </span>reverse_search(start_ptr, end_ptr, ptr, confirm);
         }
 
-        ptr = ptr.sub(end_ptr <span class="kw">as </span>usize &amp; align);
+        ptr = ptr.sub(end_ptr <span class="kw">as </span>usize &amp; ALIGN_MASK);
         <span class="macro">debug_assert!</span>(start_ptr &lt;= ptr &amp;&amp; ptr &lt;= end_ptr);
         <span class="kw">while </span>loop_size == LOOP_SIZE &amp;&amp; ptr &gt;= start_ptr.add(loop_size) {
             <span class="macro">debug_assert_eq!</span>(<span class="number">0</span>, (ptr <span class="kw">as </span>usize) % USIZE_BYTES);

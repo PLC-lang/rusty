@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-5.1.2/src/partial.rs`."><title>partial.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>partial.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-6.3.0/src/partial.rs`."><title>partial.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>partial.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -691,8 +691,48 @@
 <a href="#690" id="690">690</a>
 <a href="#691" id="691">691</a>
 <a href="#692" id="692">692</a>
-<a href="#693" id="693">693</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
-<span class="kw">use </span>std::collections::HashMap;
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use </span>serde_json::value::Value <span class="kw">as </span>Json;
 
@@ -708,22 +748,26 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>PARTIAL_BLOCK: <span class="kw-2">&amp;</span>str = <span class="string">"@partial-block"</span>;
 
-<span class="kw">fn </span>find_partial&lt;<span class="lifetime">'reg</span>: <span class="lifetime">'rc</span>, <span class="lifetime">'rc</span>: <span class="lifetime">'a</span>, <span class="lifetime">'a</span>&gt;(
-    rc: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>RenderContext&lt;<span class="lifetime">'reg</span>, <span class="lifetime">'rc</span>&gt;,
+<span class="kw">fn </span>find_partial&lt;<span class="lifetime">'reg</span>: <span class="lifetime">'rc</span>, <span class="lifetime">'rc</span>&gt;(
+    rc: <span class="kw-2">&amp;</span>RenderContext&lt;<span class="lifetime">'reg</span>, <span class="lifetime">'rc</span>&gt;,
     r: <span class="kw-2">&amp;</span><span class="lifetime">'reg </span>Registry&lt;<span class="lifetime">'reg</span>&gt;,
     d: <span class="kw-2">&amp;</span>Decorator&lt;<span class="lifetime">'rc</span>&gt;,
     name: <span class="kw-2">&amp;</span>str,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'a</span>, Template&gt;&gt;, RenderError&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'rc </span>Template&gt;, RenderError&gt; {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(partial) = rc.get_partial(name) {
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Cow::Borrowed(partial)));
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(partial));
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(tpl) = r.get_or_load_template_optional(name) {
-        <span class="kw">return </span>tpl.map(Option::Some);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = rc.get_dev_mode_template(name) {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(t));
+    }
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = r.get_template(name) {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(t));
     }
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(tpl) = d.template() {
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Cow::Borrowed(tpl)));
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(tpl));
     }
 
     <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
@@ -742,107 +786,103 @@
     }
 
     <span class="kw">let </span>tname = d.name();
+
+    <span class="kw">let </span>current_template_before = rc.get_current_template_name();
+    <span class="kw">let </span>indent_before = rc.get_indent_string().cloned();
+
     <span class="kw">if </span>rc.is_current_template(tname) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(RenderErrorReason::CannotIncludeSelf.into());
     }
 
     <span class="kw">let </span>partial = find_partial(rc, r, d, tname)<span class="question-mark">?</span>;
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = partial {
-        <span class="comment">// clone to avoid lifetime issue
-        // FIXME refactor this to avoid
-        </span><span class="kw">let </span><span class="kw-2">mut </span>local_rc = rc.clone();
+    <span class="kw">let </span><span class="prelude-val">Some</span>(partial) = partial <span class="kw">else </span>{
+        <span class="kw">return </span><span class="prelude-val">Err</span>(RenderErrorReason::PartialNotFound(tname.to_owned()).into());
+    };
 
-        <span class="comment">// if tname == PARTIAL_BLOCK
-        </span><span class="kw">let </span>is_partial_block = tname == PARTIAL_BLOCK;
+    <span class="kw">let </span>is_partial_block = tname == PARTIAL_BLOCK;
 
-        <span class="comment">// add partial block depth there are consecutive partial
-        // blocks in the stack.
-        </span><span class="kw">if </span>is_partial_block {
-            local_rc.inc_partial_block_depth();
-        } <span class="kw">else </span>{
-            <span class="comment">// depth cannot be lower than 0, which is guaranted in the
-            // `dec_partial_block_depth` method
-            </span>local_rc.dec_partial_block_depth();
-        }
-
-        <span class="kw">let </span><span class="kw-2">mut </span>block_created = <span class="bool-val">false</span>;
-
-        <span class="comment">// create context if param given
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(base_path) = d.param(<span class="number">0</span>).and_then(|p| p.context_path()) {
-            <span class="comment">// path given, update base_path
-            </span><span class="kw">let </span><span class="kw-2">mut </span>block_inner = BlockContext::new();
-            <span class="kw-2">*</span>block_inner.base_path_mut() = base_path.to_vec();
-
-            <span class="comment">// because block is moved here, we need another bool variable to track
-            // its status for later cleanup
-            </span>block_created = <span class="bool-val">true</span>;
-            <span class="comment">// clear blocks to prevent block params from parent
-            // template to be leaked into partials
-            // see `test_partial_context_issue_495` for the case.
-            </span>local_rc.clear_blocks();
-            local_rc.push_block(block_inner);
-        }
-
-        <span class="kw">if </span>!d.hash().is_empty() {
-            <span class="comment">// hash given, update base_value
-            </span><span class="kw">let </span>hash_ctx = d
-                .hash()
-                .iter()
-                .map(|(k, v)| (<span class="kw-2">*</span>k, v.value()))
-                .collect::&lt;HashMap&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>Json&gt;&gt;();
-
-            <span class="comment">// create block if we didn't (no param provided for partial expression)
-            </span><span class="kw">if </span>!block_created {
-                <span class="kw">let </span>block_inner = <span class="kw">if let </span><span class="prelude-val">Some</span>(block) = local_rc.block() {
-                    <span class="comment">// reuse current block information, including base_path and
-                    // base_value if any
-                    </span>block.clone()
-                } <span class="kw">else </span>{
-                    BlockContext::new()
-                };
-
-                local_rc.clear_blocks();
-                local_rc.push_block(block_inner);
-            }
-
-            <span class="comment">// evaluate context within current block, this includes block
-            // context provided by partial expression parameter
-            </span><span class="kw">let </span>merged_context = merge_json(
-                local_rc.evaluate2(ctx, <span class="kw-2">&amp;</span>Path::current())<span class="question-mark">?</span>.as_json(),
-                <span class="kw-2">&amp;</span>hash_ctx,
-            );
-
-            <span class="comment">// update the base value, there must be a block for this so it's
-            // also safe to unwrap.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(block) = local_rc.block_mut() {
-                block.set_base_value(merged_context);
-            }
-        }
-
-        <span class="comment">// @partial-block
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(pb) = d.template() {
-            local_rc.push_partial_block(pb);
-        }
-
-        <span class="comment">// indent
-        </span>local_rc.set_indent_string(d.indent());
-
-        <span class="kw">let </span>result = t.render(r, ctx, <span class="kw-2">&amp;mut </span>local_rc, out);
-
-        <span class="comment">// cleanup
-        </span><span class="kw">if </span>block_created {
-            local_rc.pop_block();
-        }
-
-        <span class="kw">if </span>d.template().is_some() {
-            local_rc.pop_partial_block();
-        }
-
-        result
+    <span class="comment">// add partial block depth there are consecutive partial
+    // blocks in the stack.
+    </span><span class="kw">if </span>is_partial_block {
+        rc.inc_partial_block_depth();
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(RenderErrorReason::PartialNotFound(tname.to_owned()).into())
+        <span class="comment">// depth cannot be lower than 0, which is guaranted in the
+        // `dec_partial_block_depth` method
+        </span>rc.dec_partial_block_depth();
     }
+
+    <span class="kw">let </span><span class="kw-2">mut </span>block_created = <span class="bool-val">false</span>;
+
+    <span class="comment">// create context if param given
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(base_path) = d.param(<span class="number">0</span>).and_then(|p| p.context_path()) {
+        <span class="comment">// path given, update base_path
+        </span><span class="kw">let </span><span class="kw-2">mut </span>block_inner = BlockContext::new();
+        <span class="kw-2">*</span>block_inner.base_path_mut() = base_path.to_vec();
+
+        block_created = <span class="bool-val">true</span>;
+        rc.push_block(block_inner);
+    }
+
+    <span class="kw">if </span>!d.hash().is_empty() {
+        <span class="comment">// hash given, update base_value
+        </span><span class="kw">let </span>hash_ctx = d
+            .hash()
+            .iter()
+            .map(|(k, v)| (<span class="kw-2">*</span>k, v.value()))
+            .collect::&lt;HashMap&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>Json&gt;&gt;();
+
+        <span class="comment">// create block if we didn't (no param provided for partial expression)
+        </span><span class="kw">if </span>!block_created {
+            <span class="kw">let </span>block_inner = <span class="kw">if let </span><span class="prelude-val">Some</span>(block) = rc.block() {
+                <span class="comment">// reuse current block information, including base_path and
+                // base_value if any
+                </span>block.clone()
+            } <span class="kw">else </span>{
+                BlockContext::new()
+            };
+
+            block_created = <span class="bool-val">true</span>;
+            rc.push_block(block_inner);
+        }
+
+        <span class="comment">// evaluate context within current block, this includes block
+        // context provided by partial expression parameter
+        </span><span class="kw">let </span>merged_context = merge_json(rc.evaluate2(ctx, <span class="kw-2">&amp;</span>Path::current())<span class="question-mark">?</span>.as_json(), <span class="kw-2">&amp;</span>hash_ctx);
+
+        <span class="comment">// update the base value, there must be a block for this so it's
+        // also safe to unwrap.
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(block) = rc.block_mut() {
+            block.set_base_value(merged_context);
+        }
+    }
+
+    <span class="comment">// @partial-block
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(pb) = d.template() {
+        rc.push_partial_block(pb);
+    }
+
+    <span class="comment">// indent
+    </span>rc.set_indent_string(d.indent().cloned());
+
+    <span class="kw">let </span>result = partial.render(r, ctx, rc, out);
+
+    <span class="comment">// cleanup
+    </span><span class="kw">let </span>trailing_newline = rc.get_trailine_newline();
+
+    <span class="kw">if </span>d.template().is_some() {
+        rc.pop_partial_block();
+    }
+
+    <span class="kw">if </span>block_created {
+        rc.pop_block();
+    }
+
+    rc.set_trailing_newline(trailing_newline);
+    rc.set_current_template_name(current_template_before);
+    rc.set_indent_string(indent_before);
+
+    result
 }
 
 <span class="attr">#[cfg(test)]
@@ -1042,13 +1082,13 @@
         <span class="kw">let </span>template3 = <span class="string">"{{#&gt; t2 }}Hello{{/ t2 }}"</span>;
 
         handlebars
-            .register_template_string(<span class="string">"t1"</span>, <span class="kw-2">&amp;</span>template1)
+            .register_template_string(<span class="string">"t1"</span>, template1)
             .unwrap();
         handlebars
-            .register_template_string(<span class="string">"t2"</span>, <span class="kw-2">&amp;</span>template2)
+            .register_template_string(<span class="string">"t2"</span>, template2)
             .unwrap();
 
-        <span class="kw">let </span>page = handlebars.render_template(<span class="kw-2">&amp;</span>template3, <span class="kw-2">&amp;</span><span class="macro">json!</span>({})).unwrap();
+        <span class="kw">let </span>page = handlebars.render_template(template3, <span class="kw-2">&amp;</span><span class="macro">json!</span>({})).unwrap();
         <span class="macro">assert_eq!</span>(<span class="string">"&lt;outer&gt;&lt;inner&gt;Hello&lt;/inner&gt;&lt;/outer&gt;"</span>, page);
     }
 
@@ -1083,22 +1123,22 @@
 
         <span class="kw">let </span>hbs = Registry::new();
         <span class="macro">assert_eq!</span>(
-            <span class="string">r#"foo
+            <span class="string">r"foo
 foo
 foo
-"#</span>,
+"</span>,
             hbs.render_template(tpl0, <span class="kw-2">&amp;</span><span class="macro">json!</span>({})).unwrap()
         );
         <span class="macro">assert_eq!</span>(
-            <span class="string">r#"
-foofoofoo"#</span>,
+            <span class="string">r"
+foofoofoo"</span>,
             hbs.render_template(tpl1, <span class="kw-2">&amp;</span><span class="macro">json!</span>({})).unwrap()
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_partial_indent() {
-        <span class="kw">let </span>outer = <span class="string">r#"                {{&gt; inner inner_solo}}
+        <span class="kw">let </span>outer = <span class="string">r"                {{&gt; inner inner_solo}}
 
 {{#each inners}}
                 {{&gt; inner}}
@@ -1107,9 +1147,9 @@ foofoofoo"#</span>,
         {{#each inners}}
         {{&gt; inner}}
         {{/each}}
-"#</span>;
-        <span class="kw">let </span>inner = <span class="string">r#"name: {{name}}
-"#</span>;
+"</span>;
+        <span class="kw">let </span>inner = <span class="string">r"name: {{name}}
+"</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>hbs = Registry::new();
 
@@ -1131,21 +1171,21 @@ foofoofoo"#</span>,
 
         <span class="macro">assert_eq!</span>(
             result,
-            <span class="string">r#"                name: inner_solo
+            <span class="string">r"                name: inner_solo
 
                 name: hello
                 name: there
 
         name: hello
         name: there
-"#
+"
         </span>);
     }
     <span class="comment">// Rule::partial_expression should not trim leading indent  by default
 
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>test_partial_prevent_indent() {
-        <span class="kw">let </span>outer = <span class="string">r#"                {{&gt; inner inner_solo}}
+        <span class="kw">let </span>outer = <span class="string">r"                {{&gt; inner inner_solo}}
 
 {{#each inners}}
                 {{&gt; inner}}
@@ -1154,9 +1194,9 @@ foofoofoo"#</span>,
         {{#each inners}}
         {{&gt; inner}}
         {{/each}}
-"#</span>;
-        <span class="kw">let </span>inner = <span class="string">r#"name: {{name}}
-"#</span>;
+"</span>;
+        <span class="kw">let </span>inner = <span class="string">r"name: {{name}}
+"</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>hbs = Registry::new();
         hbs.set_prevent_indent(<span class="bool-val">true</span>);
@@ -1179,14 +1219,14 @@ foofoofoo"#</span>,
 
         <span class="macro">assert_eq!</span>(
             result,
-            <span class="string">r#"                name: inner_solo
+            <span class="string">r"                name: inner_solo
 
                 name: hello
                 name: there
 
         name: hello
         name: there
-"#
+"
         </span>);
     }
 
@@ -1197,18 +1237,18 @@ foofoofoo"#</span>,
             .unwrap();
         hb.register_template_string(
             <span class="string">"index"</span>,
-            <span class="string">r#"{{#&gt;partial}}
+            <span class="string">r"{{#&gt;partial}}
     Yo
     {{#&gt;partial}}
     Yo 2
     {{/partial}}
-{{/partial}}"#</span>,
+{{/partial}}"</span>,
         )
         .unwrap();
         <span class="macro">assert_eq!</span>(
-            <span class="string">r#"    Yo
+            <span class="string">r"    Yo
     Yo 2
-"#</span>,
+"</span>,
             hb.render(<span class="string">"index"</span>, <span class="kw-2">&amp;</span>()).unwrap()
         );
 
@@ -1216,11 +1256,11 @@ foofoofoo"#</span>,
             .unwrap();
         <span class="kw">let </span>r2 = hb
             .render_template(
-                <span class="string">r#"{{#&gt; partial}}
+                <span class="string">r"{{#&gt; partial}}
 {{#&gt; partial2}}
 :(
 {{/partial2}}
-{{/partial}}"#</span>,
+{{/partial}}"</span>,
                 <span class="kw-2">&amp;</span>(),
             )
             .unwrap();
@@ -1259,11 +1299,11 @@ Name:{{name}}
         });
 
         <span class="macro">assert_eq!</span>(
-            <span class="string">r#"Name:hudel
+            <span class="string">r"Name:hudel
 Template:hudel
 Name:test
 Template:test
-"#</span>,
+"</span>,
             hb.render(<span class="string">"t1"</span>, <span class="kw-2">&amp;</span>data).unwrap()
         );
     }
@@ -1283,9 +1323,9 @@ outer third line"#</span>,
         )
         .unwrap();
         <span class="macro">assert_eq!</span>(
-            <span class="string">r#"    inner first line
+            <span class="string">r"    inner first line
     inner second line
-outer third line"#</span>,
+outer third line"</span>,
             hb.render(<span class="string">"t1"</span>, <span class="kw-2">&amp;</span>()).unwrap()
         );
 
@@ -1299,9 +1339,9 @@ outer third line"#</span>,
         )
         .unwrap();
         <span class="macro">assert_eq!</span>(
-            <span class="string">r#"  inner first line
+            <span class="string">r"  inner first line
   inner second line
-outer third line"#</span>,
+outer third line"</span>,
             hb.render(<span class="string">"t2"</span>, <span class="kw-2">&amp;</span>()).unwrap()
         );
 
@@ -1313,9 +1353,9 @@ outer third line"#</span>,
         )
         .unwrap();
         <span class="macro">assert_eq!</span>(
-            <span class="string">r#"
+            <span class="string">r"
   inner first line
-  inner second lineouter third line"#</span>,
+  inner second lineouter third line"</span>,
             hb.render(<span class="string">"t3"</span>, <span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"a"</span>: <span class="string">"inner first line\ninner second line"</span>}))
                 .unwrap()
         );
@@ -1331,9 +1371,9 @@ outer third line"#</span>,
         )
         .unwrap();
         <span class="macro">assert_eq!</span>(
-            <span class="string">r#"  inner first line
+            <span class="string">r"  inner first line
   inner second line
-outer third line"#</span>,
+outer third line"</span>,
             hb.render(<span class="string">"t4"</span>, <span class="kw-2">&amp;</span>()).unwrap()
         );
 
@@ -1351,11 +1391,53 @@ outer third line"#</span>,
         )
         .unwrap();
         <span class="macro">assert_eq!</span>(
-            <span class="string">r#"    inner first line
+            <span class="string">r"    inner first line
   inner second line
-outer third line"#</span>,
+outer third line"</span>,
             hb2.render(<span class="string">"t1"</span>, <span class="kw-2">&amp;</span>()).unwrap()
-        )
+        );
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_indent_level_on_nested_partials() {
+        <span class="kw">let </span>nested_partial = <span class="string">"
+&lt;div&gt;
+    content
+&lt;/div&gt;
+"</span>;
+        <span class="kw">let </span>partial = <span class="string">"
+&lt;div&gt;
+    {{&gt;nested_partial}}
+&lt;/div&gt;
+"</span>;
+
+        <span class="kw">let </span>partial_indented = <span class="string">"
+&lt;div&gt;
+    {{&gt;partial}}
+&lt;/div&gt;
+"</span>;
+
+        <span class="kw">let </span>result = <span class="string">"
+&lt;div&gt;
+    &lt;div&gt;
+        &lt;div&gt;
+            content
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+"</span>;
+
+        <span class="kw">let </span><span class="kw-2">mut </span>hb = Registry::new();
+        hb.register_template_string(<span class="string">"nested_partial"</span>, nested_partial.trim_start())
+            .unwrap();
+        hb.register_template_string(<span class="string">"partial"</span>, partial.trim_start())
+            .unwrap();
+        hb.register_template_string(<span class="string">"partial_indented"</span>, partial_indented.trim_start())
+            .unwrap();
+
+        <span class="kw">let </span>s = hb.render(<span class="string">"partial_indented"</span>, <span class="kw-2">&amp;</span>()).unwrap();
+
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>s, result.trim_start());
     }
 
     <span class="attr">#[test]
@@ -1381,7 +1463,7 @@ outer third line"#</span>,
     </span><span class="kw">fn </span>test_partial_not_found() {
         <span class="kw">let </span>t1 = <span class="string">"{{&gt; bar}}"</span>;
         <span class="kw">let </span>hbs = Registry::new();
-        <span class="macro">assert!</span>(hbs.render_template(<span class="kw-2">&amp;</span>t1, <span class="kw-2">&amp;</span>()).is_err());
+        <span class="macro">assert!</span>(hbs.render_template(t1, <span class="kw-2">&amp;</span>()).is_err());
     }
 }
 </code></pre></div></section></main></body></html>

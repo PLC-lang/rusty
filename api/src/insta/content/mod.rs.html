@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.40.0/src/content/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/content/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/insta-1.42.0/src/content/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/content/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -402,11 +402,7 @@
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
 <a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module implements a generic `Content` type that can hold
+<a href="#404" id="404">404</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module implements a generic `Content` type that can hold
 //! runtime typed data.
 //!
 //! It's modelled after serde's data format but it's in fact possible to use
@@ -430,10 +426,8 @@
 </span><span class="kw">pub enum </span>Error {
     FailedParsingYaml(std::path::PathBuf),
     UnexpectedDataType,
-    <span class="attr">#[cfg(feature = <span class="string">"_cargo_insta_internal"</span>)]
-    </span>MissingField,
-    <span class="attr">#[cfg(feature = <span class="string">"_cargo_insta_internal"</span>)]
-    </span>FileIo(std::io::Error, std::path::PathBuf),
+    MissingField,
+    FileIo(std::io::Error, std::path::PathBuf),
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
@@ -445,10 +439,8 @@
             Error::UnexpectedDataType =&gt; {
                 f.write_str(<span class="string">"The present data type wasn't what was expected"</span>)
             }
-            <span class="attr">#[cfg(feature = <span class="string">"_cargo_insta_internal"</span>)]
-            </span>Error::MissingField =&gt; f.write_str(<span class="string">"A required field was missing"</span>),
-            <span class="attr">#[cfg(feature = <span class="string">"_cargo_insta_internal"</span>)]
-            </span>Error::FileIo(e, p) =&gt; {
+            Error::MissingField =&gt; f.write_str(<span class="string">"A required field was missing"</span>),
+            Error::FileIo(e, p) =&gt; {
                 f.write_str(<span class="macro">format!</span>(<span class="string">"File error for {:?}: {}"</span>, p.display(), e).as_str())
             }
         }
@@ -465,7 +457,7 @@
 ///
 /// Some enum variants are intentionally not exposed to user code.
 /// It's generally recommended to construct content objects by
-/// using the [`From`](std::convert::From) trait and by using the
+/// using the [`From`] trait and by using the
 /// accessor methods to assert on it.
 ///
 /// While matching on the content is possible in theory it is
@@ -473,12 +465,12 @@
 /// enum holds variants that can "wrap" values where it's not
 /// expected.  For instance if a field holds an `Option&lt;String&gt;`
 /// you cannot use pattern matching to extract the string as it
-/// will be contained in an internal `Some` variant that is not
-/// exposed.  On the other hand the `as_str` method will
+/// will be contained in an internal [`Some`] variant that is not
+/// exposed.  On the other hand the [`Content::as_str`] method will
 /// automatically resolve such internal wrappers.
 ///
 /// If you do need to pattern match you should use the
-/// `resolve_inner` method to resolve such internal wrappers.
+/// [`Content::resolve_inner`] method to resolve such internal wrappers.
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, PartialOrd)]
 </span><span class="kw">pub enum </span>Content {
     Bool(bool),
@@ -604,7 +596,7 @@
         }
     }
 
-    <span class="doccomment">/// Mutable version of [`resolve_inner`](Self::resolve_inner).
+    <span class="doccomment">/// Mutable version of [`Self::resolve_inner`].
     </span><span class="kw">pub fn </span>resolve_inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Content {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             Content::Some(<span class="kw-2">ref mut </span>v)

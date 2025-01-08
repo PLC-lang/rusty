@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/http-1.1.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">http/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/http-1.2.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">http/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -208,35 +208,29 @@
 <a href="#207" id="207">207</a>
 <a href="#208" id="208">208</a>
 <a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a></pre></div><pre class="rust"><code><span class="doccomment">//! A general purpose library of common HTTP types
+<a href="#210" id="210">210</a></pre></div><pre class="rust"><code><span class="doccomment">//! A general purpose library of common HTTP types
 //!
 //! This crate is a general purpose library for common types found when working
-//! with the HTTP protocol. You'll find `Request` and `Response` types for
+//! with the HTTP protocol. You'll find [`Request`] and [`Response`] types for
 //! working as either a client or a server as well as all of their components.
-//! Notably you'll find `Uri` for what a `Request` is requesting, a `Method`
-//! for how it's being requested, a `StatusCode` for what sort of response came
-//! back, a `Version` for how this was communicated, and
-//! `HeaderName`/`HeaderValue` definitions to get grouped in a `HeaderMap` to
+//! Notably you'll find `Uri` for what a [`Request`] is requesting, a [`Method`]
+//! for how it's being requested, a [`StatusCode`] for what sort of response came
+//! back, a [`Version`] for how this was communicated, and
+//! [`HeaderName`]/[`HeaderValue`] definitions to get grouped in a [`HeaderMap`] to
 //! work with request/response headers.
 //!
 //! You will notably *not* find an implementation of sending requests or
 //! spinning up a server in this crate. It's intended that this crate is the
 //! "standard library" for HTTP clients and servers without dictating any
-//! particular implementation. Note that this crate is still early on in its
-//! lifecycle so the support libraries that integrate with the `http` crate are
-//! a work in progress! Stay tuned and we'll be sure to highlight crates here
-//! in the future.
+//! particular implementation.
 //!
 //! ## Requests and Responses
 //!
-//! Perhaps the main two types in this crate are the `Request` and `Response`
-//! types. A `Request` could either be constructed to get sent off as a client
-//! or it can also be received to generate a `Response` for a server. Similarly
-//! as a client a `Response` is what you get after sending a `Request`, whereas
-//! on a server you'll be manufacturing a `Response` to send back to the client.
+//! Perhaps the main two types in this crate are the [`Request`] and [`Response`]
+//! types. A [`Request`] could either be constructed to get sent off as a client
+//! or it can also be received to generate a [`Response`] for a server. Similarly
+//! as a client a [`Response`] is what you get after sending a [`Request`], whereas
+//! on a server you'll be manufacturing a [`Response`] to send back to the client.
 //!
 //! Each type has a number of accessors for the component fields. For as a
 //! server you might want to inspect a requests URI to dispatch it:
@@ -258,8 +252,8 @@
 //! # fn not_found(_req: Request&lt;()&gt;) -&gt; http::Result&lt;Response&lt;()&gt;&gt; { panic!() }
 //! ```
 //!
-//! On a `Request` you'll also find accessors like `method` to return a
-//! `Method` and `headers` to inspect the various headers. A `Response`
+//! On a [`Request`] you'll also find accessors like [`method`][Request::method] to return a
+//! [`Method`] and [`headers`][Request::method] to inspect the various headers. A [`Response`]
 //! has similar methods for headers, the status code, etc.
 //!
 //! In addition to getters, request/response types also have mutable accessors
@@ -277,7 +271,7 @@
 //! ```
 //!
 //! And finally, one of the most important aspects of requests/responses, the
-//! body! The `Request` and `Response` types in this crate are *generic* in
+//! body! The [`Request`] and [`Response`] types in this crate are *generic* in
 //! what their body is. This allows downstream libraries to use different
 //! representations such as `Request&lt;Vec&lt;u8&gt;&gt;`, `Response&lt;impl Read&gt;`,
 //! `Request&lt;impl Stream&lt;Item = Vec&lt;u8&gt;, Error = _&gt;&gt;`, or even
@@ -300,14 +294,14 @@
 //! Accept: text/html
 //! ```
 //!
-//! Then `"Accept"` is a `HeaderName` while `"text/html"` is a `HeaderValue`.
+//! Then `"Accept"` is a [`HeaderName`] while `"text/html"` is a [`HeaderValue`].
 //! Each of these is a dedicated type to allow for a number of interesting
 //! optimizations and to also encode the static guarantees of each type. For
-//! example a `HeaderName` is always a valid `&amp;str`, but a `HeaderValue` may
+//! example a [`HeaderName`] is always a valid `&amp;str`, but a [`HeaderValue`] may
 //! not be valid UTF-8.
 //!
 //! The most common header names are already defined for you as constant values
-//! in the `header` module of this crate. For example:
+//! in the [`header`] module of this crate. For example:
 //!
 //! ```
 //! use http::header::{self, HeaderName};
@@ -325,7 +319,7 @@
 //! assert_eq!(name, header::ACCEPT);
 //! ```
 //!
-//! Header values can be created from string literals through the `from_static`
+//! Header values can be created from string literals through the [`from_static`][header::HeaderValue::from_static]
 //! function:
 //!
 //! ```
@@ -346,15 +340,15 @@
 //!
 //! Most HTTP requests and responses tend to come with more than one header, so
 //! it's not too useful to just work with names and values only! This crate also
-//! provides a `HeaderMap` type which is a specialized hash map for keys as
-//! `HeaderName` and generic values. This type, like header names, is optimized
+//! provides a [`HeaderMap`] type which is a specialized hash map for keys as
+//! [`HeaderName`] and generic values. This type, like header names, is optimized
 //! for common usage but should continue to scale with your needs over time.
 //!
 //! # URIs
 //!
-//! Each HTTP `Request` has an associated URI with it. This may just be a path
+//! Each HTTP [`Request`] has an associated URI with it. This may just be a path
 //! like `/index.html` but it could also be an absolute URL such as
-//! `https://www.rust-lang.org/index.html`. A `URI` has a number of accessors to
+//! `https://www.rust-lang.org/index.html`. A [`URI`][uri::Uri] has a number of accessors to
 //! interpret it:
 //!
 //! ```

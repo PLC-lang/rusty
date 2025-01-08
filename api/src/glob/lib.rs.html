@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/glob-0.3.1/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="glob" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">glob/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/glob-0.3.2/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="glob" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">glob/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1432,7 +1432,74 @@
 <a href="#1431" id="1431">1431</a>
 <a href="#1432" id="1432">1432</a>
 <a href="#1433" id="1433">1433</a>
-<a href="#1434" id="1434">1434</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2014 The Rust Project Developers. See the COPYRIGHT
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2014 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
 // http://rust-lang.org/COPYRIGHT.
 //
@@ -1507,7 +1574,9 @@
 <span class="kw">use </span>std::error::Error;
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::fs;
+<span class="kw">use </span>std::fs::DirEntry;
 <span class="kw">use </span>std::io;
+<span class="kw">use </span>std::ops::Deref;
 <span class="kw">use </span>std::path::{<span class="self">self</span>, Component, Path, PathBuf};
 <span class="kw">use </span>std::str::FromStr;
 
@@ -1530,8 +1599,8 @@
     dir_patterns: Vec&lt;Pattern&gt;,
     require_dir: bool,
     options: MatchOptions,
-    todo: Vec&lt;<span class="prelude-ty">Result</span>&lt;(PathBuf, usize), GlobError&gt;&gt;,
-    scope: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+    todo: Vec&lt;<span class="prelude-ty">Result</span>&lt;(PathWrapper, usize), GlobError&gt;&gt;,
+    scope: <span class="prelude-ty">Option</span>&lt;PathWrapper&gt;,
 }
 
 <span class="doccomment">/// Return an iterator that produces all the `Path`s that match the given
@@ -1612,7 +1681,15 @@
     <span class="attr">#[cfg(windows)]
     </span><span class="kw">fn </span>check_windows_verbatim(p: <span class="kw-2">&amp;</span>Path) -&gt; bool {
         <span class="kw">match </span>p.components().next() {
-            <span class="prelude-val">Some</span>(Component::Prefix(<span class="kw-2">ref </span>p)) =&gt; p.kind().is_verbatim(),
+            <span class="prelude-val">Some</span>(Component::Prefix(<span class="kw-2">ref </span>p)) =&gt; {
+                <span class="comment">// Allow VerbatimDisk paths. std canonicalize() generates them, and they work fine
+                </span>p.kind().is_verbatim()
+                    &amp;&amp; <span class="kw">if let </span>std::path::Prefix::VerbatimDisk(<span class="kw">_</span>) = p.kind() {
+                        <span class="bool-val">false
+                    </span>} <span class="kw">else </span>{
+                        <span class="bool-val">true
+                    </span>}
+            }
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }
     }
@@ -1668,6 +1745,7 @@
     }
 
     <span class="kw">let </span>scope = root.map_or_else(|| PathBuf::from(<span class="string">"."</span>), to_scope);
+    <span class="kw">let </span>scope = PathWrapper::from_path(scope);
 
     <span class="kw">let </span><span class="kw-2">mut </span>dir_patterns = Vec::new();
     <span class="kw">let </span>components =
@@ -1749,8 +1827,52 @@
     }
 }
 
-<span class="kw">fn </span>is_dir(p: <span class="kw-2">&amp;</span>Path) -&gt; bool {
-    fs::metadata(p).map(|m| m.is_dir()).unwrap_or(<span class="bool-val">false</span>)
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">struct </span>PathWrapper {
+    path: PathBuf,
+    is_directory: bool,
+}
+
+<span class="kw">impl </span>PathWrapper {
+    <span class="kw">fn </span>from_dir_entry(path: PathBuf, e: DirEntry) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>is_directory = e
+            .file_type()
+            .ok()
+            .and_then(|file_type| {
+                <span class="comment">// We need to use fs::metadata to resolve the actual path
+                // if it's a symlink.
+                </span><span class="kw">if </span>file_type.is_symlink() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(file_type.is_dir())
+                }
+            })
+            .or_else(|| fs::metadata(<span class="kw-2">&amp;</span>path).map(|m| m.is_dir()).ok())
+            .unwrap_or(<span class="bool-val">false</span>);
+        <span class="self">Self </span>{ path, is_directory }
+    }
+    <span class="kw">fn </span>from_path(path: PathBuf) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>is_directory = fs::metadata(<span class="kw-2">&amp;</span>path).map(|m| m.is_dir()).unwrap_or(<span class="bool-val">false</span>);
+        <span class="self">Self </span>{ path, is_directory }
+    }
+
+    <span class="kw">fn </span>into_path(<span class="self">self</span>) -&gt; PathBuf {
+        <span class="self">self</span>.path
+    }
+}
+
+<span class="kw">impl </span>Deref <span class="kw">for </span>PathWrapper {
+    <span class="kw">type </span>Target = Path;
+
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="self">self</span>.path.deref()
+    }
+}
+
+<span class="kw">impl </span>AsRef&lt;Path&gt; <span class="kw">for </span>PathWrapper {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        <span class="self">self</span>.path.as_ref()
+    }
 }
 
 <span class="doccomment">/// An alias for a glob iteration result.
@@ -1789,10 +1911,10 @@
             <span class="comment">// idx -1: was already checked by fill_todo, maybe path was '.' or
             // '..' that we can't match here because of normalization.
             </span><span class="kw">if </span>idx == !<span class="number">0 </span><span class="kw">as </span>usize {
-                <span class="kw">if </span><span class="self">self</span>.require_dir &amp;&amp; !is_dir(<span class="kw-2">&amp;</span>path) {
+                <span class="kw">if </span><span class="self">self</span>.require_dir &amp;&amp; !path.is_directory {
                     <span class="kw">continue</span>;
                 }
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(path));
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(path.into_path()));
             }
 
             <span class="kw">if </span><span class="self">self</span>.dir_patterns[idx].is_recursive {
@@ -1805,7 +1927,7 @@
                     next += <span class="number">1</span>;
                 }
 
-                <span class="kw">if </span>is_dir(<span class="kw-2">&amp;</span>path) {
+                <span class="kw">if </span>path.is_directory {
                     <span class="comment">// the path is a directory, so it's a match
 
                     // push this directory's contents
@@ -1820,7 +1942,7 @@
                     <span class="kw">if </span>next == <span class="self">self</span>.dir_patterns.len() - <span class="number">1 </span>{
                         <span class="comment">// pattern ends in recursive pattern, so return this
                         // directory as a result
-                        </span><span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(path));
+                        </span><span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(path.into_path()));
                     } <span class="kw">else </span>{
                         <span class="comment">// advanced to the next pattern for this path
                         </span>idx = next + <span class="number">1</span>;
@@ -1853,8 +1975,8 @@
                     // *AND* its children so we don't need to check the
                     // children
 
-                    </span><span class="kw">if </span>!<span class="self">self</span>.require_dir || is_dir(<span class="kw-2">&amp;</span>path) {
-                        <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(path));
+                    </span><span class="kw">if </span>!<span class="self">self</span>.require_dir || path.is_directory {
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(path.into_path()));
                     }
                 } <span class="kw">else </span>{
                     fill_todo(
@@ -1903,10 +2025,14 @@
 ///
 /// - `*` matches any (possibly empty) sequence of characters.
 ///
-/// - `**` matches the current directory and arbitrary subdirectories. This
-///   sequence **must** form a single path component, so both `**a` and `b**`
-///   are invalid and will result in an error.  A sequence of more than two
-///   consecutive `*` characters is also invalid.
+/// - `**` matches the current directory and arbitrary
+///   subdirectories. To match files in arbitrary subdiretories, use
+///   `**/*`.
+///
+///   This sequence **must** form a single path component, so both
+///   `**a` and `b**` are invalid and will result in an error.  A
+///   sequence of more than two consecutive `*` characters is also
+///   invalid.
 ///
 /// - `[...]` matches any character inside the brackets.  Character sequences
 ///   can also specify ranges of characters, as ordered by Unicode, so e.g.
@@ -2243,10 +2369,10 @@
 // special-casing patterns to match `.` and `..`, and avoiding `readdir()`
 // calls when there are no metacharacters in the pattern.
 </span><span class="kw">fn </span>fill_todo(
-    todo: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="prelude-ty">Result</span>&lt;(PathBuf, usize), GlobError&gt;&gt;,
+    todo: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="prelude-ty">Result</span>&lt;(PathWrapper, usize), GlobError&gt;&gt;,
     patterns: <span class="kw-2">&amp;</span>[Pattern],
     idx: usize,
-    path: <span class="kw-2">&amp;</span>Path,
+    path: <span class="kw-2">&amp;</span>PathWrapper,
     options: MatchOptions,
 ) {
     <span class="comment">// convert a pattern that's just many Char(_) to a string
@@ -2262,7 +2388,7 @@
         <span class="prelude-val">Some</span>(s)
     }
 
-    <span class="kw">let </span>add = |todo: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="kw">_</span>&gt;, next_path: PathBuf| {
+    <span class="kw">let </span>add = |todo: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="kw">_</span>&gt;, next_path: PathWrapper| {
         <span class="kw">if </span>idx + <span class="number">1 </span>== patterns.len() {
             <span class="comment">// We know it's good, so don't make the iterator match this path
             // against the pattern again. In particular, it can't match
@@ -2274,8 +2400,8 @@
     };
 
     <span class="kw">let </span>pattern = <span class="kw-2">&amp;</span>patterns[idx];
-    <span class="kw">let </span>is_dir = is_dir(path);
-    <span class="kw">let </span>curdir = path == Path::new(<span class="string">"."</span>);
+    <span class="kw">let </span>is_dir = path.is_directory;
+    <span class="kw">let </span>curdir = path.as_ref() == Path::new(<span class="string">"."</span>);
     <span class="kw">match </span>pattern_as_str(pattern) {
         <span class="prelude-val">Some</span>(s) =&gt; {
             <span class="comment">// This pattern component doesn't have any metacharacters, so we
@@ -2289,7 +2415,12 @@
             } <span class="kw">else </span>{
                 path.join(<span class="kw-2">&amp;</span>s)
             };
-            <span class="kw">if </span>(special &amp;&amp; is_dir) || (!special &amp;&amp; fs::metadata(<span class="kw-2">&amp;</span>next_path).is_ok()) {
+            <span class="kw">let </span>next_path = PathWrapper::from_path(next_path);
+            <span class="kw">if </span>(special &amp;&amp; is_dir)
+                || (!special
+                    &amp;&amp; (fs::metadata(<span class="kw-2">&amp;</span>next_path).is_ok()
+                        || fs::symlink_metadata(<span class="kw-2">&amp;</span>next_path).is_ok()))
+            {
                 add(todo, next_path);
             }
         }
@@ -2297,17 +2428,22 @@
             <span class="kw">let </span>dirs = fs::read_dir(path).and_then(|d| {
                 d.map(|e| {
                     e.map(|e| {
-                        <span class="kw">if </span>curdir {
+                        <span class="kw">let </span>path = <span class="kw">if </span>curdir {
                             PathBuf::from(e.path().file_name().unwrap())
                         } <span class="kw">else </span>{
                             e.path()
-                        }
+                        };
+                        PathWrapper::from_dir_entry(path, e)
                     })
                 })
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()
             });
             <span class="kw">match </span>dirs {
                 <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>children) =&gt; {
+                    <span class="kw">if </span>options.require_literal_leading_dot {
+                        children
+                            .retain(|x| !x.file_name().unwrap().to_str().unwrap().starts_with(<span class="string">"."</span>));
+                    }
                     children.sort_by(|p1, p2| p2.file_name().cmp(<span class="kw-2">&amp;</span>p1.file_name()));
                     todo.extend(children.into_iter().map(|x| <span class="prelude-val">Ok</span>((x, idx))));
 
@@ -2319,7 +2455,7 @@
                     </span><span class="kw">if </span>!pattern.tokens.is_empty() &amp;&amp; pattern.tokens[<span class="number">0</span>] == Char(<span class="string">'.'</span>) {
                         <span class="kw">for </span><span class="kw-2">&amp;</span>special <span class="kw">in </span><span class="kw-2">&amp;</span>[<span class="string">"."</span>, <span class="string">".."</span>] {
                             <span class="kw">if </span>pattern.matches_with(special, options) {
-                                add(todo, path.join(special));
+                                add(todo, PathWrapper::from_path(path.join(special)));
                             }
                         }
                     }
@@ -2531,15 +2667,13 @@
             <span class="comment">// check windows absolute paths with host/device components
             </span><span class="kw">let </span>root_with_device = current_dir()
                 .ok()
-                .and_then(|p| {
-                    <span class="kw">match </span>p.components().next().unwrap() {
-                        Component::Prefix(prefix_component) =&gt; {
-                            <span class="kw">let </span>path = Path::new(prefix_component.as_os_str());
-                            path.join(<span class="string">"*"</span>);
-                            <span class="prelude-val">Some</span>(path.to_path_buf())
-                        }
-                        <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"no prefix in this path"</span>),
+                .and_then(|p| <span class="kw">match </span>p.components().next().unwrap() {
+                    Component::Prefix(prefix_component) =&gt; {
+                        <span class="kw">let </span>path = Path::new(prefix_component.as_os_str());
+                        path.join(<span class="string">"*"</span>);
+                        <span class="prelude-val">Some</span>(path.to_path_buf())
                     }
+                    <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"no prefix in this path"</span>),
                 })
                 .unwrap();
             <span class="comment">// FIXME (#9639): This needs to handle non-utf8 paths

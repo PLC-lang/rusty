@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mdbook-0.4.40/src/book/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mdbook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">mdbook/book/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/mdbook-0.4.43/src/book/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mdbook" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">mdbook/book/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -894,10 +894,7 @@
 <a href="#893" id="893">893</a>
 <a href="#894" id="894">894</a>
 <a href="#895" id="895">895</a>
-<a href="#896" id="896">896</a>
-<a href="#897" id="897">897</a>
-<a href="#898" id="898">898</a>
-<a href="#899" id="899">899</a></pre></div><pre class="rust"><code><span class="doccomment">//! The internal representation of a book and infrastructure for loading it from
+<a href="#896" id="896">896</a></pre></div><pre class="rust"><code><span class="doccomment">//! The internal representation of a book and infrastructure for loading it from
 //! disk and building it.
 //!
 //! For examples on using `MDBook`, consult the [top-level documentation][1].
@@ -991,7 +988,7 @@
         }
 
         <span class="kw">if </span><span class="macro">log_enabled!</span>(log::Level::Trace) {
-            <span class="kw">for </span>line <span class="kw">in </span><span class="macro">format!</span>(<span class="string">"Config: {:#?}"</span>, config).lines() {
+            <span class="kw">for </span>line <span class="kw">in </span><span class="macro">format!</span>(<span class="string">"Config: {config:#?}"</span>).lines() {
                 <span class="macro">trace!</span>(<span class="string">"{}"</span>, line);
             }
         }
@@ -1244,6 +1241,9 @@
                         RustEdition::E2021 =&gt; {
                             cmd.args([<span class="string">"--edition"</span>, <span class="string">"2021"</span>]);
                         }
+                        RustEdition::E2024 =&gt; {
+                            cmd.args([<span class="string">"--edition"</span>, <span class="string">"2024"</span>]);
+                        }
                     }
                 }
 
@@ -1379,16 +1379,14 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(before) = table.get(<span class="string">"before"</span>) {
                 <span class="kw">let </span>before = before.as_array().ok_or_else(|| {
                     Error::msg(<span class="macro">format!</span>(
-                        <span class="string">"Expected preprocessor.{}.before to be an array"</span>,
-                        name
-                    ))
+                        <span class="string">"Expected preprocessor.{name}.before to be an array"
+                    </span>))
                 })<span class="question-mark">?</span>;
                 <span class="kw">for </span>after <span class="kw">in </span>before {
                     <span class="kw">let </span>after = after.as_str().ok_or_else(|| {
                         Error::msg(<span class="macro">format!</span>(
-                            <span class="string">"Expected preprocessor.{}.before to contain strings"</span>,
-                            name
-                        ))
+                            <span class="string">"Expected preprocessor.{name}.before to contain strings"
+                        </span>))
                     })<span class="question-mark">?</span>;
 
                     <span class="kw">if </span>!exists(after) {
@@ -1406,17 +1404,13 @@
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(after) = table.get(<span class="string">"after"</span>) {
                 <span class="kw">let </span>after = after.as_array().ok_or_else(|| {
-                    Error::msg(<span class="macro">format!</span>(
-                        <span class="string">"Expected preprocessor.{}.after to be an array"</span>,
-                        name
-                    ))
+                    Error::msg(<span class="macro">format!</span>(<span class="string">"Expected preprocessor.{name}.after to be an array"</span>))
                 })<span class="question-mark">?</span>;
                 <span class="kw">for </span>before <span class="kw">in </span>after {
                     <span class="kw">let </span>before = before.as_str().ok_or_else(|| {
                         Error::msg(<span class="macro">format!</span>(
-                            <span class="string">"Expected preprocessor.{}.after to contain strings"</span>,
-                            name
-                        ))
+                            <span class="string">"Expected preprocessor.{name}.after to contain strings"
+                        </span>))
                     })<span class="question-mark">?</span>;
 
                     <span class="kw">if </span>!exists(before) {
@@ -1477,7 +1471,7 @@
         .get(<span class="string">"command"</span>)
         .and_then(Value::as_str)
         .map(ToString::to_string)
-        .unwrap_or_else(|| <span class="macro">format!</span>(<span class="string">"mdbook-{}"</span>, key))
+        .unwrap_or_else(|| <span class="macro">format!</span>(<span class="string">"mdbook-{key}"</span>))
 }
 
 <span class="kw">fn </span>interpret_custom_renderer(key: <span class="kw-2">&amp;</span>str, table: <span class="kw-2">&amp;</span>Value) -&gt; Box&lt;CmdRenderer&gt; {
@@ -1488,7 +1482,7 @@
         .and_then(Value::as_str)
         .map(ToString::to_string);
 
-    <span class="kw">let </span>command = table_dot_command.unwrap_or_else(|| <span class="macro">format!</span>(<span class="string">"mdbook-{}"</span>, key));
+    <span class="kw">let </span>command = table_dot_command.unwrap_or_else(|| <span class="macro">format!</span>(<span class="string">"mdbook-{key}"</span>));
 
     Box::new(CmdRenderer::new(key.to_string(), command))
 }
@@ -1682,7 +1676,7 @@
                 <span class="kw">for </span>preprocessor <span class="kw">in </span><span class="kw-2">&amp;</span>preprocessors {
                     <span class="macro">eprintln!</span>(<span class="string">"  {}"</span>, preprocessor.name());
                 }
-                <span class="macro">panic!</span>(<span class="string">"{} should come before {}"</span>, before, after);
+                <span class="macro">panic!</span>(<span class="string">"{before} should come before {after}"</span>);
             }
         };
 

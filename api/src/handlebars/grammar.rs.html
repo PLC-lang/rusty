@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-5.1.2/src/grammar.rs`."><title>grammar.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>grammar.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/handlebars-6.3.0/src/grammar.rs`."><title>grammar.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="handlebars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">handlebars/</div>grammar.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -408,18 +408,18 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_raw_text() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[
+        <span class="kw">let </span>s = [
             <span class="string">"&lt;h1&gt; helloworld &lt;/h1&gt;    "</span>,
             <span class="string">r"hello\{{world}}"</span>,
             <span class="string">r"hello\{{#if world}}nice\{{/if}}"</span>,
             <span class="string">r"hello \{{{{raw}}}}hello\{{{{/raw}}}}"</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::raw_text, i);
         }
 
-        <span class="kw">let </span>s_not_escape = <span class="macro">vec!</span>[<span class="string">r"\\{{hello}}"</span>];
-        <span class="kw">for </span>i <span class="kw">in </span>s_not_escape.iter() {
+        <span class="kw">let </span>s_not_escape = [<span class="string">r"\\{{hello}}"</span>];
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s_not_escape {
             <span class="macro">assert_not_rule!</span>(Rule::raw_text, i);
         }
     }
@@ -448,43 +448,43 @@
             <span class="string">"$id"</span>,
             <span class="string">"this.[null]"</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::reference, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_name() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[<span class="string">"if"</span>, <span class="string">"(abc)"</span>];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">let </span>s = [<span class="string">"if"</span>, <span class="string">"(abc)"</span>];
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::name, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_param() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[<span class="string">"hello"</span>, <span class="string">"\"json literal\""</span>, <span class="string">"nullable"</span>, <span class="string">"truestory"</span>];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">let </span>s = [<span class="string">"hello"</span>, <span class="string">"\"json literal\""</span>, <span class="string">"nullable"</span>, <span class="string">"truestory"</span>];
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::helper_parameter, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_hash() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[
+        <span class="kw">let </span>s = [
             <span class="string">"hello=world"</span>,
             <span class="string">"hello=\"world\""</span>,
             <span class="string">"hello=(world)"</span>,
             <span class="string">"hello=(world 0)"</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::hash, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_json_literal() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[
+        <span class="kw">let </span>s = [
             <span class="string">"\"json string\""</span>,
             <span class="string">"\"quot: \\\"\""</span>,
             <span class="string">"[]"</span>,
@@ -495,31 +495,31 @@
             <span class="string">"{\"a\":1, \"b\":2 }"</span>,
             <span class="string">"\"nullable\""</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::literal, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_comment() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[<span class="string">"{{!-- &lt;hello {{ a-b c-d}} {{d-c}} ok --}}"</span>,
+        <span class="kw">let </span>s = [<span class="string">"{{!-- &lt;hello {{ a-b c-d}} {{d-c}} ok --}}"</span>,
                  <span class="string">"{{!--
                     &lt;li&gt;&lt;a href=\"{{up-dir nest-count}}{{base-url}}index.html\"&gt;{{this.title}}&lt;/a&gt;&lt;/li&gt;
                 --}}"</span>,
                      <span class="string">"{{!    -- good  --}}"</span>];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::hbs_comment, i);
         }
-        <span class="kw">let </span>s2 = <span class="macro">vec!</span>[<span class="string">"{{! hello }}"</span>, <span class="string">"{{! test me }}"</span>];
-        <span class="kw">for </span>i <span class="kw">in </span>s2.iter() {
+        <span class="kw">let </span>s2 = [<span class="string">"{{! hello }}"</span>, <span class="string">"{{! test me }}"</span>];
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s2 {
             <span class="macro">assert_rule!</span>(Rule::hbs_comment_compact, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_subexpression() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[<span class="string">"(sub)"</span>, <span class="string">"(sub 0)"</span>, <span class="string">"(sub a=1)"</span>];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">let </span>s = [<span class="string">"(sub)"</span>, <span class="string">"(sub 0)"</span>, <span class="string">"(sub a=1)"</span>];
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::subexpression, i);
         }
     }
@@ -548,22 +548,22 @@
             <span class="string">"{{exp key=(sub 0)}}"</span>,
             <span class="string">"{{exp key=(sub 0 key=1)}}"</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::expression, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_identifier_with_dash() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[<span class="string">"{{exp-foo}}"</span>];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">let </span>s = [<span class="string">"{{exp-foo}}"</span>];
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::expression, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_html_expression() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[
+        <span class="kw">let </span>s = [
             <span class="string">"{{{html}}}"</span>,
             <span class="string">"{{{(html)}}}"</span>,
             <span class="string">"{{{(html)}}}"</span>,
@@ -577,14 +577,14 @@
             <span class="string">"{{~{ html }}}"</span>,
             <span class="string">"{{{ html }~}}"</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::html_expression, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_helper_start() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[
+        <span class="kw">let </span>s = [
             <span class="string">"{{#if hello}}"</span>,
             <span class="string">"{{#if (hello)}}"</span>,
             <span class="string">"{{#if hello=world}}"</span>,
@@ -597,22 +597,22 @@
             <span class="string">"{{#each-obj obj as |val key|}}"</span>,
             <span class="string">"{{#each assets}}"</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::helper_block_start, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_helper_end() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[<span class="string">"{{/if}}"</span>, <span class="string">"{{~/if}}"</span>, <span class="string">"{{~/if ~}}"</span>, <span class="string">"{{/if   ~}}"</span>];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">let </span>s = [<span class="string">"{{/if}}"</span>, <span class="string">"{{~/if}}"</span>, <span class="string">"{{~/if ~}}"</span>, <span class="string">"{{/if   ~}}"</span>];
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::helper_block_end, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_helper_block() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[
+        <span class="kw">let </span>s = [
             <span class="string">"{{#if hello}}hello{{/if}}"</span>,
             <span class="string">"{{#if true}}hello{{/if}}"</span>,
             <span class="string">"{{#if nice ok=1}}hello{{/if}}"</span>,
@@ -625,26 +625,26 @@
             <span class="string">"{{#if}}{{/if}}"</span>,
             <span class="string">"{{#if}}hello{{else if}}world{{else}}test{{/if}}"</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::helper_block, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_raw_block() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[
+        <span class="kw">let </span>s = [
             <span class="string">"{{{{if hello}}}}good {{hello}}{{{{/if}}}}"</span>,
             <span class="string">"{{{{if hello}}}}{{#if nice}}{{/if}}{{{{/if}}}}"</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::raw_block, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_block_param() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[<span class="string">"as |person|"</span>, <span class="string">"as |val key|"</span>];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">let </span>s = [<span class="string">"as |person|"</span>, <span class="string">"as |val key|"</span>];
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::block_param, i);
         }
     }
@@ -672,34 +672,34 @@
             <span class="string">"@root/a/b"</span>,
             <span class="string">"nullable"</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule_match!</span>(Rule::path, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_decorator_expression() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[<span class="string">"{{* ssh}}"</span>, <span class="string">"{{~* ssh}}"</span>];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">let </span>s = [<span class="string">"{{* ssh}}"</span>, <span class="string">"{{~* ssh}}"</span>];
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::decorator_expression, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_decorator_block() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[
+        <span class="kw">let </span>s = [
             <span class="string">"{{#* inline}}something{{/inline}}"</span>,
             <span class="string">"{{~#* inline}}hello{{/inline}}"</span>,
             <span class="string">"{{#* inline \"partialname\"}}something{{/inline}}"</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::decorator_block, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_partial_expression() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[
+        <span class="kw">let </span>s = [
             <span class="string">"{{&gt; hello}}"</span>,
             <span class="string">"{{&gt; (hello)}}"</span>,
             <span class="string">"{{~&gt; hello a}}"</span>,
@@ -709,15 +709,15 @@
             <span class="string">"{{&gt; [a83?f4+.3]}}"</span>,
             <span class="string">"{{&gt; 'anif?.bar'}}"</span>,
         ];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::partial_expression, i);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_partial_block() {
-        <span class="kw">let </span>s = <span class="macro">vec!</span>[<span class="string">"{{#&gt; hello}}nice{{/hello}}"</span>];
-        <span class="kw">for </span>i <span class="kw">in </span>s.iter() {
+        <span class="kw">let </span>s = [<span class="string">"{{#&gt; hello}}nice{{/hello}}"</span>];
+        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;</span>s {
             <span class="macro">assert_rule!</span>(Rule::partial_block, i);
         }
     }

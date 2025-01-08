@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/http-1.1.0/src/status.rs`."><title>status.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">http/</div>status.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/http-1.2.0/src/status.rs`."><title>status.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">http/</div>status.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -588,7 +588,11 @@
 <a href="#587" id="587">587</a>
 <a href="#588" id="588">588</a>
 <a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a></pre></div><pre class="rust"><code><span class="doccomment">//! HTTP status codes
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a></pre></div><pre class="rust"><code><span class="doccomment">//! HTTP status codes
 //!
 //! This module contains HTTP-status code related structs an errors. The main
 //! type in this module is `StatusCode` which is not intended to be used through
@@ -610,7 +614,7 @@
 <span class="kw">use </span>std::num::NonZeroU16;
 <span class="kw">use </span>std::str::FromStr;
 
-<span class="doccomment">/// An HTTP status code (`status-code` in RFC 7230 et al.).
+<span class="doccomment">/// An HTTP status code (`status-code` in RFC 9110 et al.).
 ///
 /// Constants are provided for known status codes, including those in the IANA
 /// [HTTP Status Code Registry](
@@ -706,8 +710,8 @@
     /// assert_eq!(status.as_u16(), 200);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>as_u16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u16 {
-        (<span class="kw-2">*</span><span class="self">self</span>).into()
+    </span><span class="kw">pub const fn </span>as_u16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u16 {
+        (<span class="kw-2">*</span><span class="self">self</span>).<span class="number">0</span>.get()
     }
 
     <span class="doccomment">/// Returns a &amp;str representation of the `StatusCode`
@@ -916,195 +920,199 @@
 
 <span class="macro">status_codes!</span> {
     <span class="doccomment">/// 100 Continue
-    /// [[RFC7231, Section 6.2.1](https://tools.ietf.org/html/rfc7231#section-6.2.1)]
+    /// [[RFC9110, Section 15.2.1](https://datatracker.ietf.org/doc/html/rfc9110#section-15.2.1)]
     </span>(<span class="number">100</span>, CONTINUE, <span class="string">"Continue"</span>);
     <span class="doccomment">/// 101 Switching Protocols
-    /// [[RFC7231, Section 6.2.2](https://tools.ietf.org/html/rfc7231#section-6.2.2)]
+    /// [[RFC9110, Section 15.2.2](https://datatracker.ietf.org/doc/html/rfc9110#section-15.2.2)]
     </span>(<span class="number">101</span>, SWITCHING_PROTOCOLS, <span class="string">"Switching Protocols"</span>);
     <span class="doccomment">/// 102 Processing
-    /// [[RFC2518](https://tools.ietf.org/html/rfc2518)]
+    /// [[RFC2518, Section 10.1](https://datatracker.ietf.org/doc/html/rfc2518#section-10.1)]
     </span>(<span class="number">102</span>, PROCESSING, <span class="string">"Processing"</span>);
 
     <span class="doccomment">/// 200 OK
-    /// [[RFC7231, Section 6.3.1](https://tools.ietf.org/html/rfc7231#section-6.3.1)]
+    /// [[RFC9110, Section 15.3.1](https://datatracker.ietf.org/doc/html/rfc9110#section-15.3.1)]
     </span>(<span class="number">200</span>, OK, <span class="string">"OK"</span>);
     <span class="doccomment">/// 201 Created
-    /// [[RFC7231, Section 6.3.2](https://tools.ietf.org/html/rfc7231#section-6.3.2)]
+    /// [[RFC9110, Section 15.3.2](https://datatracker.ietf.org/doc/html/rfc9110#section-15.3.2)]
     </span>(<span class="number">201</span>, CREATED, <span class="string">"Created"</span>);
     <span class="doccomment">/// 202 Accepted
-    /// [[RFC7231, Section 6.3.3](https://tools.ietf.org/html/rfc7231#section-6.3.3)]
+    /// [[RFC9110, Section 15.3.3](https://datatracker.ietf.org/doc/html/rfc9110#section-15.3.3)]
     </span>(<span class="number">202</span>, ACCEPTED, <span class="string">"Accepted"</span>);
     <span class="doccomment">/// 203 Non-Authoritative Information
-    /// [[RFC7231, Section 6.3.4](https://tools.ietf.org/html/rfc7231#section-6.3.4)]
+    /// [[RFC9110, Section 15.3.4](https://datatracker.ietf.org/doc/html/rfc9110#section-15.3.4)]
     </span>(<span class="number">203</span>, NON_AUTHORITATIVE_INFORMATION, <span class="string">"Non Authoritative Information"</span>);
     <span class="doccomment">/// 204 No Content
-    /// [[RFC7231, Section 6.3.5](https://tools.ietf.org/html/rfc7231#section-6.3.5)]
+    /// [[RFC9110, Section 15.3.5](https://datatracker.ietf.org/doc/html/rfc9110#section-15.3.5)]
     </span>(<span class="number">204</span>, NO_CONTENT, <span class="string">"No Content"</span>);
     <span class="doccomment">/// 205 Reset Content
-    /// [[RFC7231, Section 6.3.6](https://tools.ietf.org/html/rfc7231#section-6.3.6)]
+    /// [[RFC9110, Section 15.3.6](https://datatracker.ietf.org/doc/html/rfc9110#section-15.3.6)]
     </span>(<span class="number">205</span>, RESET_CONTENT, <span class="string">"Reset Content"</span>);
     <span class="doccomment">/// 206 Partial Content
-    /// [[RFC7233, Section 4.1](https://tools.ietf.org/html/rfc7233#section-4.1)]
+    /// [[RFC9110, Section 15.3.7](https://datatracker.ietf.org/doc/html/rfc9110#section-15.3.7)]
     </span>(<span class="number">206</span>, PARTIAL_CONTENT, <span class="string">"Partial Content"</span>);
     <span class="doccomment">/// 207 Multi-Status
-    /// [[RFC4918](https://tools.ietf.org/html/rfc4918)]
+    /// [[RFC4918, Section 11.1](https://datatracker.ietf.org/doc/html/rfc4918#section-11.1)]
     </span>(<span class="number">207</span>, MULTI_STATUS, <span class="string">"Multi-Status"</span>);
     <span class="doccomment">/// 208 Already Reported
-    /// [[RFC5842](https://tools.ietf.org/html/rfc5842)]
+    /// [[RFC5842, Section 7.1](https://datatracker.ietf.org/doc/html/rfc5842#section-7.1)]
     </span>(<span class="number">208</span>, ALREADY_REPORTED, <span class="string">"Already Reported"</span>);
 
     <span class="doccomment">/// 226 IM Used
-    /// [[RFC3229](https://tools.ietf.org/html/rfc3229)]
+    /// [[RFC3229, Section 10.4.1](https://datatracker.ietf.org/doc/html/rfc3229#section-10.4.1)]
     </span>(<span class="number">226</span>, IM_USED, <span class="string">"IM Used"</span>);
 
     <span class="doccomment">/// 300 Multiple Choices
-    /// [[RFC7231, Section 6.4.1](https://tools.ietf.org/html/rfc7231#section-6.4.1)]
+    /// [[RFC9110, Section 15.4.1](https://datatracker.ietf.org/doc/html/rfc9110#section-15.4.1)]
     </span>(<span class="number">300</span>, MULTIPLE_CHOICES, <span class="string">"Multiple Choices"</span>);
     <span class="doccomment">/// 301 Moved Permanently
-    /// [[RFC7231, Section 6.4.2](https://tools.ietf.org/html/rfc7231#section-6.4.2)]
+    /// [[RFC9110, Section 15.4.2](https://datatracker.ietf.org/doc/html/rfc9110#section-15.4.2)]
     </span>(<span class="number">301</span>, MOVED_PERMANENTLY, <span class="string">"Moved Permanently"</span>);
     <span class="doccomment">/// 302 Found
-    /// [[RFC7231, Section 6.4.3](https://tools.ietf.org/html/rfc7231#section-6.4.3)]
+    /// [[RFC9110, Section 15.4.3](https://datatracker.ietf.org/doc/html/rfc9110#section-15.4.3)]
     </span>(<span class="number">302</span>, FOUND, <span class="string">"Found"</span>);
     <span class="doccomment">/// 303 See Other
-    /// [[RFC7231, Section 6.4.4](https://tools.ietf.org/html/rfc7231#section-6.4.4)]
+    /// [[RFC9110, Section 15.4.4](https://datatracker.ietf.org/doc/html/rfc9110#section-15.4.4)]
     </span>(<span class="number">303</span>, SEE_OTHER, <span class="string">"See Other"</span>);
     <span class="doccomment">/// 304 Not Modified
-    /// [[RFC7232, Section 4.1](https://tools.ietf.org/html/rfc7232#section-4.1)]
+    /// [[RFC9110, Section 15.4.5](https://datatracker.ietf.org/doc/html/rfc9110#section-15.4.5)]
     </span>(<span class="number">304</span>, NOT_MODIFIED, <span class="string">"Not Modified"</span>);
     <span class="doccomment">/// 305 Use Proxy
-    /// [[RFC7231, Section 6.4.5](https://tools.ietf.org/html/rfc7231#section-6.4.5)]
+    /// [[RFC9110, Section 15.4.6](https://datatracker.ietf.org/doc/html/rfc9110#section-15.4.6)]
     </span>(<span class="number">305</span>, USE_PROXY, <span class="string">"Use Proxy"</span>);
     <span class="doccomment">/// 307 Temporary Redirect
-    /// [[RFC7231, Section 6.4.7](https://tools.ietf.org/html/rfc7231#section-6.4.7)]
+    /// [[RFC9110, Section 15.4.7](https://datatracker.ietf.org/doc/html/rfc9110#section-15.4.7)]
     </span>(<span class="number">307</span>, TEMPORARY_REDIRECT, <span class="string">"Temporary Redirect"</span>);
     <span class="doccomment">/// 308 Permanent Redirect
-    /// [[RFC7238](https://tools.ietf.org/html/rfc7238)]
+    /// [[RFC9110, Section 15.4.8](https://datatracker.ietf.org/doc/html/rfc9110#section-15.4.8)]
     </span>(<span class="number">308</span>, PERMANENT_REDIRECT, <span class="string">"Permanent Redirect"</span>);
 
     <span class="doccomment">/// 400 Bad Request
-    /// [[RFC7231, Section 6.5.1](https://tools.ietf.org/html/rfc7231#section-6.5.1)]
+    /// [[RFC9110, Section 15.5.1](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.1)]
     </span>(<span class="number">400</span>, BAD_REQUEST, <span class="string">"Bad Request"</span>);
     <span class="doccomment">/// 401 Unauthorized
-    /// [[RFC7235, Section 3.1](https://tools.ietf.org/html/rfc7235#section-3.1)]
+    /// [[RFC9110, Section 15.5.2](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.2)]
     </span>(<span class="number">401</span>, UNAUTHORIZED, <span class="string">"Unauthorized"</span>);
     <span class="doccomment">/// 402 Payment Required
-    /// [[RFC7231, Section 6.5.2](https://tools.ietf.org/html/rfc7231#section-6.5.2)]
+    /// [[RFC9110, Section 15.5.3](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.3)]
     </span>(<span class="number">402</span>, PAYMENT_REQUIRED, <span class="string">"Payment Required"</span>);
     <span class="doccomment">/// 403 Forbidden
-    /// [[RFC7231, Section 6.5.3](https://tools.ietf.org/html/rfc7231#section-6.5.3)]
+    /// [[RFC9110, Section 15.5.4](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.4)]
     </span>(<span class="number">403</span>, FORBIDDEN, <span class="string">"Forbidden"</span>);
     <span class="doccomment">/// 404 Not Found
-    /// [[RFC7231, Section 6.5.4](https://tools.ietf.org/html/rfc7231#section-6.5.4)]
+    /// [[RFC9110, Section 15.5.5](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.5)]
     </span>(<span class="number">404</span>, NOT_FOUND, <span class="string">"Not Found"</span>);
     <span class="doccomment">/// 405 Method Not Allowed
-    /// [[RFC7231, Section 6.5.5](https://tools.ietf.org/html/rfc7231#section-6.5.5)]
+    /// [[RFC9110, Section 15.5.6](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.6)]
     </span>(<span class="number">405</span>, METHOD_NOT_ALLOWED, <span class="string">"Method Not Allowed"</span>);
     <span class="doccomment">/// 406 Not Acceptable
-    /// [[RFC7231, Section 6.5.6](https://tools.ietf.org/html/rfc7231#section-6.5.6)]
+    /// [[RFC9110, Section 15.5.7](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.7)]
     </span>(<span class="number">406</span>, NOT_ACCEPTABLE, <span class="string">"Not Acceptable"</span>);
     <span class="doccomment">/// 407 Proxy Authentication Required
-    /// [[RFC7235, Section 3.2](https://tools.ietf.org/html/rfc7235#section-3.2)]
+    /// [[RFC9110, Section 15.5.8](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.8)]
     </span>(<span class="number">407</span>, PROXY_AUTHENTICATION_REQUIRED, <span class="string">"Proxy Authentication Required"</span>);
     <span class="doccomment">/// 408 Request Timeout
-    /// [[RFC7231, Section 6.5.7](https://tools.ietf.org/html/rfc7231#section-6.5.7)]
+    /// [[RFC9110, Section 15.5.9](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.9)]
     </span>(<span class="number">408</span>, REQUEST_TIMEOUT, <span class="string">"Request Timeout"</span>);
     <span class="doccomment">/// 409 Conflict
-    /// [[RFC7231, Section 6.5.8](https://tools.ietf.org/html/rfc7231#section-6.5.8)]
+    /// [[RFC9110, Section 15.5.10](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.10)]
     </span>(<span class="number">409</span>, CONFLICT, <span class="string">"Conflict"</span>);
     <span class="doccomment">/// 410 Gone
-    /// [[RFC7231, Section 6.5.9](https://tools.ietf.org/html/rfc7231#section-6.5.9)]
+    /// [[RFC9110, Section 15.5.11](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.11)]
     </span>(<span class="number">410</span>, GONE, <span class="string">"Gone"</span>);
     <span class="doccomment">/// 411 Length Required
-    /// [[RFC7231, Section 6.5.10](https://tools.ietf.org/html/rfc7231#section-6.5.10)]
+    /// [[RFC9110, Section 15.5.12](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.12)]
     </span>(<span class="number">411</span>, LENGTH_REQUIRED, <span class="string">"Length Required"</span>);
     <span class="doccomment">/// 412 Precondition Failed
-    /// [[RFC7232, Section 4.2](https://tools.ietf.org/html/rfc7232#section-4.2)]
+    /// [[RFC9110, Section 15.5.13](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.13)]
     </span>(<span class="number">412</span>, PRECONDITION_FAILED, <span class="string">"Precondition Failed"</span>);
     <span class="doccomment">/// 413 Payload Too Large
-    /// [[RFC7231, Section 6.5.11](https://tools.ietf.org/html/rfc7231#section-6.5.11)]
+    /// [[RFC9110, Section 15.5.14](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.14)]
     </span>(<span class="number">413</span>, PAYLOAD_TOO_LARGE, <span class="string">"Payload Too Large"</span>);
     <span class="doccomment">/// 414 URI Too Long
-    /// [[RFC7231, Section 6.5.12](https://tools.ietf.org/html/rfc7231#section-6.5.12)]
+    /// [[RFC9110, Section 15.5.15](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.15)]
     </span>(<span class="number">414</span>, URI_TOO_LONG, <span class="string">"URI Too Long"</span>);
     <span class="doccomment">/// 415 Unsupported Media Type
-    /// [[RFC7231, Section 6.5.13](https://tools.ietf.org/html/rfc7231#section-6.5.13)]
+    /// [[RFC9110, Section 15.5.16](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.16)]
     </span>(<span class="number">415</span>, UNSUPPORTED_MEDIA_TYPE, <span class="string">"Unsupported Media Type"</span>);
     <span class="doccomment">/// 416 Range Not Satisfiable
-    /// [[RFC7233, Section 4.4](https://tools.ietf.org/html/rfc7233#section-4.4)]
+    /// [[RFC9110, Section 15.5.17](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.17)]
     </span>(<span class="number">416</span>, RANGE_NOT_SATISFIABLE, <span class="string">"Range Not Satisfiable"</span>);
     <span class="doccomment">/// 417 Expectation Failed
-    /// [[RFC7231, Section 6.5.14](https://tools.ietf.org/html/rfc7231#section-6.5.14)]
+    /// [[RFC9110, Section 15.5.18](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.18)]
     </span>(<span class="number">417</span>, EXPECTATION_FAILED, <span class="string">"Expectation Failed"</span>);
     <span class="doccomment">/// 418 I'm a teapot
-    /// [curiously not registered by IANA but [RFC2324](https://tools.ietf.org/html/rfc2324)]
+    /// [curiously not registered by IANA but [RFC2324, Section 2.3.2](https://datatracker.ietf.org/doc/html/rfc2324#section-2.3.2)]
     </span>(<span class="number">418</span>, IM_A_TEAPOT, <span class="string">"I'm a teapot"</span>);
 
     <span class="doccomment">/// 421 Misdirected Request
-    /// [RFC7540, Section 9.1.2](https://tools.ietf.org/html/rfc7540#section-9.1.2)
+    /// [[RFC9110, Section 15.5.20](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.20)]
     </span>(<span class="number">421</span>, MISDIRECTED_REQUEST, <span class="string">"Misdirected Request"</span>);
     <span class="doccomment">/// 422 Unprocessable Entity
-    /// [[RFC4918](https://tools.ietf.org/html/rfc4918)]
+    /// [[RFC9110, Section 15.5.21](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.21)]
     </span>(<span class="number">422</span>, UNPROCESSABLE_ENTITY, <span class="string">"Unprocessable Entity"</span>);
     <span class="doccomment">/// 423 Locked
-    /// [[RFC4918](https://tools.ietf.org/html/rfc4918)]
+    /// [[RFC4918, Section 11.3](https://datatracker.ietf.org/doc/html/rfc4918#section-11.3)]
     </span>(<span class="number">423</span>, LOCKED, <span class="string">"Locked"</span>);
     <span class="doccomment">/// 424 Failed Dependency
-    /// [[RFC4918](https://tools.ietf.org/html/rfc4918)]
+    /// [[RFC4918, Section 11.4](https://tools.ietf.org/html/rfc4918#section-11.4)]
     </span>(<span class="number">424</span>, FAILED_DEPENDENCY, <span class="string">"Failed Dependency"</span>);
 
+    <span class="doccomment">/// 425 Too early
+    /// [[RFC8470, Section 5.2](https://httpwg.org/specs/rfc8470.html#status)]
+    </span>(<span class="number">425</span>, TOO_EARLY, <span class="string">"Too Early"</span>);
+
     <span class="doccomment">/// 426 Upgrade Required
-    /// [[RFC7231, Section 6.5.15](https://tools.ietf.org/html/rfc7231#section-6.5.15)]
+    /// [[RFC9110, Section 15.5.22](https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.22)]
     </span>(<span class="number">426</span>, UPGRADE_REQUIRED, <span class="string">"Upgrade Required"</span>);
 
     <span class="doccomment">/// 428 Precondition Required
-    /// [[RFC6585](https://tools.ietf.org/html/rfc6585)]
+    /// [[RFC6585, Section 3](https://datatracker.ietf.org/doc/html/rfc6585#section-3)]
     </span>(<span class="number">428</span>, PRECONDITION_REQUIRED, <span class="string">"Precondition Required"</span>);
     <span class="doccomment">/// 429 Too Many Requests
-    /// [[RFC6585](https://tools.ietf.org/html/rfc6585)]
+    /// [[RFC6585, Section 4](https://datatracker.ietf.org/doc/html/rfc6585#section-4)]
     </span>(<span class="number">429</span>, TOO_MANY_REQUESTS, <span class="string">"Too Many Requests"</span>);
 
     <span class="doccomment">/// 431 Request Header Fields Too Large
-    /// [[RFC6585](https://tools.ietf.org/html/rfc6585)]
+    /// [[RFC6585, Section 5](https://datatracker.ietf.org/doc/html/rfc6585#section-5)]
     </span>(<span class="number">431</span>, REQUEST_HEADER_FIELDS_TOO_LARGE, <span class="string">"Request Header Fields Too Large"</span>);
 
     <span class="doccomment">/// 451 Unavailable For Legal Reasons
-    /// [[RFC7725](https://tools.ietf.org/html/rfc7725)]
+    /// [[RFC7725, Section 3](https://tools.ietf.org/html/rfc7725#section-3)]
     </span>(<span class="number">451</span>, UNAVAILABLE_FOR_LEGAL_REASONS, <span class="string">"Unavailable For Legal Reasons"</span>);
 
     <span class="doccomment">/// 500 Internal Server Error
-    /// [[RFC7231, Section 6.6.1](https://tools.ietf.org/html/rfc7231#section-6.6.1)]
+    /// [[RFC9110, Section 15.6.1](https://datatracker.ietf.org/doc/html/rfc9110#section-15.6.1)]
     </span>(<span class="number">500</span>, INTERNAL_SERVER_ERROR, <span class="string">"Internal Server Error"</span>);
     <span class="doccomment">/// 501 Not Implemented
-    /// [[RFC7231, Section 6.6.2](https://tools.ietf.org/html/rfc7231#section-6.6.2)]
+    /// [[RFC9110, Section 15.6.2](https://datatracker.ietf.org/doc/html/rfc9110#section-15.6.2)]
     </span>(<span class="number">501</span>, NOT_IMPLEMENTED, <span class="string">"Not Implemented"</span>);
     <span class="doccomment">/// 502 Bad Gateway
-    /// [[RFC7231, Section 6.6.3](https://tools.ietf.org/html/rfc7231#section-6.6.3)]
+    /// [[RFC9110, Section 15.6.3](https://datatracker.ietf.org/doc/html/rfc9110#section-15.6.3)]
     </span>(<span class="number">502</span>, BAD_GATEWAY, <span class="string">"Bad Gateway"</span>);
     <span class="doccomment">/// 503 Service Unavailable
-    /// [[RFC7231, Section 6.6.4](https://tools.ietf.org/html/rfc7231#section-6.6.4)]
+    /// [[RFC9110, Section 15.6.4](https://datatracker.ietf.org/doc/html/rfc9110#section-15.6.4)]
     </span>(<span class="number">503</span>, SERVICE_UNAVAILABLE, <span class="string">"Service Unavailable"</span>);
     <span class="doccomment">/// 504 Gateway Timeout
-    /// [[RFC7231, Section 6.6.5](https://tools.ietf.org/html/rfc7231#section-6.6.5)]
+    /// [[RFC9110, Section 15.6.5](https://datatracker.ietf.org/doc/html/rfc9110#section-15.6.5)]
     </span>(<span class="number">504</span>, GATEWAY_TIMEOUT, <span class="string">"Gateway Timeout"</span>);
     <span class="doccomment">/// 505 HTTP Version Not Supported
-    /// [[RFC7231, Section 6.6.6](https://tools.ietf.org/html/rfc7231#section-6.6.6)]
+    /// [[RFC9110, Section 15.6.6](https://datatracker.ietf.org/doc/html/rfc9110#section-15.6.6)]
     </span>(<span class="number">505</span>, HTTP_VERSION_NOT_SUPPORTED, <span class="string">"HTTP Version Not Supported"</span>);
     <span class="doccomment">/// 506 Variant Also Negotiates
-    /// [[RFC2295](https://tools.ietf.org/html/rfc2295)]
+    /// [[RFC2295, Section 8.1](https://datatracker.ietf.org/doc/html/rfc2295#section-8.1)]
     </span>(<span class="number">506</span>, VARIANT_ALSO_NEGOTIATES, <span class="string">"Variant Also Negotiates"</span>);
     <span class="doccomment">/// 507 Insufficient Storage
-    /// [[RFC4918](https://tools.ietf.org/html/rfc4918)]
+    /// [[RFC4918, Section 11.5](https://datatracker.ietf.org/doc/html/rfc4918#section-11.5)]
     </span>(<span class="number">507</span>, INSUFFICIENT_STORAGE, <span class="string">"Insufficient Storage"</span>);
     <span class="doccomment">/// 508 Loop Detected
-    /// [[RFC5842](https://tools.ietf.org/html/rfc5842)]
+    /// [[RFC5842, Section 7.2](https://datatracker.ietf.org/doc/html/rfc5842#section-7.2)]
     </span>(<span class="number">508</span>, LOOP_DETECTED, <span class="string">"Loop Detected"</span>);
 
     <span class="doccomment">/// 510 Not Extended
-    /// [[RFC2774](https://tools.ietf.org/html/rfc2774)]
+    /// [[RFC2774, Section 7](https://datatracker.ietf.org/doc/html/rfc2774#section-7)]
     </span>(<span class="number">510</span>, NOT_EXTENDED, <span class="string">"Not Extended"</span>);
     <span class="doccomment">/// 511 Network Authentication Required
-    /// [[RFC6585](https://tools.ietf.org/html/rfc6585)]
+    /// [[RFC6585, Section 6](https://datatracker.ietf.org/doc/html/rfc6585#section-6)]
     </span>(<span class="number">511</span>, NETWORK_AUTHENTICATION_REQUIRED, <span class="string">"Network Authentication Required"</span>);
 }
 

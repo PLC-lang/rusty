@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_json-1.0.128/src/read.rs`."><title>read.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_json" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">serde_json/</div>read.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_json-1.0.135/src/read.rs`."><title>read.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_json" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">serde_json/</div>read.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1074,7 +1074,14 @@
 <a href="#1073" id="1073">1073</a>
 <a href="#1074" id="1074">1074</a>
 <a href="#1075" id="1075">1075</a>
-<a href="#1076" id="1076">1076</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::error::{Error, ErrorCode, <span class="prelude-ty">Result</span>};
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::error::{Error, ErrorCode, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>core::cmp;
 <span class="kw">use </span>core::mem;
@@ -1827,9 +1834,9 @@
 
 <span class="comment">//////////////////////////////////////////////////////////////////////////////
 
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'de</span>, R&gt; private::Sealed <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R <span class="kw">where </span>R: Read&lt;<span class="lifetime">'de</span>&gt; {}
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, R&gt; private::Sealed <span class="kw">for </span><span class="kw-2">&amp;mut </span>R <span class="kw">where </span>R: Read&lt;<span class="lifetime">'de</span>&gt; {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'de</span>, R&gt; Read&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, R&gt; Read&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;mut </span>R
 <span class="kw">where
     </span>R: Read&lt;<span class="lifetime">'de</span>&gt;,
 {
@@ -2036,7 +2043,7 @@
 
         <span class="comment">// This value is in range U+10000..=U+10FFFF, which is always a valid
         // codepoint.
-        </span><span class="kw">let </span>n = (((n1 - <span class="number">0xD800</span>) <span class="kw">as </span>u32) &lt;&lt; <span class="number">10 </span>| (n2 - <span class="number">0xDC00</span>) <span class="kw">as </span>u32) + <span class="number">0x1_0000</span>;
+        </span><span class="kw">let </span>n = ((((n1 - <span class="number">0xD800</span>) <span class="kw">as </span>u32) &lt;&lt; <span class="number">10</span>) | (n2 - <span class="number">0xDC00</span>) <span class="kw">as </span>u32) + <span class="number">0x1_0000</span>;
         push_wtf8_codepoint(n, scratch);
         <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
@@ -2053,25 +2060,32 @@
 
     scratch.reserve(<span class="number">4</span>);
 
-    <span class="kw">unsafe </span>{
+    <span class="comment">// SAFETY: After the `reserve` call, `scratch` has at least 4 bytes of
+    // allocated but unintialized memory after its last initialized byte, which
+    // is where `ptr` points. All reachable match arms write `encoded_len` bytes
+    // to that region and update the length accordingly, and `encoded_len` is
+    // always &lt;= 4.
+    </span><span class="kw">unsafe </span>{
         <span class="kw">let </span>ptr = scratch.as_mut_ptr().add(scratch.len());
 
         <span class="kw">let </span>encoded_len = <span class="kw">match </span>n {
             <span class="number">0</span>..=<span class="number">0x7F </span>=&gt; <span class="macro">unreachable!</span>(),
             <span class="number">0x80</span>..=<span class="number">0x7FF </span>=&gt; {
-                ptr.write((n &gt;&gt; <span class="number">6 </span>&amp; <span class="number">0b0001_1111</span>) <span class="kw">as </span>u8 | <span class="number">0b1100_0000</span>);
+                ptr.write(((n &gt;&gt; <span class="number">6</span>) &amp; <span class="number">0b0001_1111</span>) <span class="kw">as </span>u8 | <span class="number">0b1100_0000</span>);
                 <span class="number">2
             </span>}
             <span class="number">0x800</span>..=<span class="number">0xFFFF </span>=&gt; {
-                ptr.write((n &gt;&gt; <span class="number">12 </span>&amp; <span class="number">0b0000_1111</span>) <span class="kw">as </span>u8 | <span class="number">0b1110_0000</span>);
-                ptr.add(<span class="number">1</span>).write((n &gt;&gt; <span class="number">6 </span>&amp; <span class="number">0b0011_1111</span>) <span class="kw">as </span>u8 | <span class="number">0b1000_0000</span>);
+                ptr.write(((n &gt;&gt; <span class="number">12</span>) &amp; <span class="number">0b0000_1111</span>) <span class="kw">as </span>u8 | <span class="number">0b1110_0000</span>);
+                ptr.add(<span class="number">1</span>)
+                    .write(((n &gt;&gt; <span class="number">6</span>) &amp; <span class="number">0b0011_1111</span>) <span class="kw">as </span>u8 | <span class="number">0b1000_0000</span>);
                 <span class="number">3
             </span>}
             <span class="number">0x1_0000</span>..=<span class="number">0x10_FFFF </span>=&gt; {
-                ptr.write((n &gt;&gt; <span class="number">18 </span>&amp; <span class="number">0b0000_0111</span>) <span class="kw">as </span>u8 | <span class="number">0b1111_0000</span>);
+                ptr.write(((n &gt;&gt; <span class="number">18</span>) &amp; <span class="number">0b0000_0111</span>) <span class="kw">as </span>u8 | <span class="number">0b1111_0000</span>);
                 ptr.add(<span class="number">1</span>)
-                    .write((n &gt;&gt; <span class="number">12 </span>&amp; <span class="number">0b0011_1111</span>) <span class="kw">as </span>u8 | <span class="number">0b1000_0000</span>);
-                ptr.add(<span class="number">2</span>).write((n &gt;&gt; <span class="number">6 </span>&amp; <span class="number">0b0011_1111</span>) <span class="kw">as </span>u8 | <span class="number">0b1000_0000</span>);
+                    .write(((n &gt;&gt; <span class="number">12</span>) &amp; <span class="number">0b0011_1111</span>) <span class="kw">as </span>u8 | <span class="number">0b1000_0000</span>);
+                ptr.add(<span class="number">2</span>)
+                    .write(((n &gt;&gt; <span class="number">6</span>) &amp; <span class="number">0b0011_1111</span>) <span class="kw">as </span>u8 | <span class="number">0b1000_0000</span>);
                 <span class="number">4
             </span>}
             <span class="number">0x11_0000</span>.. =&gt; <span class="macro">unreachable!</span>(),
