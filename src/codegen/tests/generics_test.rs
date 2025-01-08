@@ -50,7 +50,6 @@ fn generic_codegen_with_aggregate_return() {
         );
     END_FUNCTION
 
-    {external}
     FUNCTION MID < T: ANY_STRING >: T
     VAR_INPUT {ref}
         IN: T;
@@ -60,6 +59,18 @@ fn generic_codegen_with_aggregate_return() {
         P: DINT;
     END_VAR
     END_FUNCTION
+
+    {external}
+    FUNCTION MID__STRING : STRING
+    VAR_INPUT {ref}
+        IN: STRING;
+    END_VAR
+    VAR_INPUT
+        L: DINT;
+        P: DINT;
+    END_VAR
+    END_FUNCTION
+
         ",
     );
     insta::assert_snapshot!(prg);
