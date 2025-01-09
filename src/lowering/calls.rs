@@ -8,11 +8,7 @@ use plc_ast::{
     ast::{
         steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory, AstNode, AstStatement,
         CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock, VariableBlockType,
-    },
-    control_statements::{AstControlStatement, ConditionalBlock},
-    mut_visitor::{AstVisitorMut, WalkerMut},
-    provider::IdProvider,
-    try_from_mut,
+    }, control_statements::{AstControlStatement, ConditionalBlock}, mut_visitor::{AstVisitorMut, WalkerMut}, provider::IdProvider, try_from, try_from_mut
 };
 use plc_source::source_location::SourceLocation;
 
@@ -26,6 +22,8 @@ pub struct AggregateTypeLowerer {
     pub id_provider: IdProvider,
     // New statements to be added during visit, should always be drained when read
     new_stmts: Vec<AstNode>,
+    // New statements to be added to the outer scope, i.e. when lowering a conditional block
+    outer_scope_stmts: Vec<AstNode>,
     counter: AtomicI32,
 }
 
@@ -52,7 +50,16 @@ impl AggregateTypeLowerer {
 
     fn walk_conditional_blocks(&mut self, blocks: &mut Vec<ConditionalBlock>) {
         for b in blocks {
-            b.condition.walk(self);
+            let condition = std::mem::take(b.condition.as_mut());
+            let mut processed_nodes = Box::new(self.map(condition));
+            // fixme: this breaks SWITCH statements?
+            if let Some(expressions) = try_from_mut!(processed_nodes, Vec<AstNode>) {
+                b.condition = Box::new(expressions.pop().expect("Should have at least one expression"));
+                let expressions = std::mem::take(expressions);
+                self.outer_scope_stmts.extend(expressions);
+            } else {
+                b.condition = processed_nodes;
+            }
             self.steal_and_walk_list(&mut b.body);
         }
     }
@@ -137,7 +144,6 @@ impl AstVisitorMut for AggregateTypeLowerer {
 
     fn visit_call_statement(&mut self, node: &mut AstNode) {
         let original_location = node.get_location();
-        // self.steal_and_walk_call_statement(node);
         let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
         stmt.walk(self);
         let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
@@ -226,6 +232,13 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 self.steal_and_walk_list(&mut stmt.else_block);
             }
         }
+            
+        if !self.outer_scope_stmts.is_empty() {
+            let mut new_stmts = std::mem::take(&mut self.outer_scope_stmts);
+            let location = node.get_location();
+            new_stmts.push(std::mem::take(node));
+            *node = AstFactory::create_expression_list(new_stmts, location, self.id_provider.next_id());
+        }
     }
 }
 
@@ -270,9 +283,7 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
-            id_provider: IdProvider::default(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(indexer::index(&unit));
@@ -298,9 +309,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
@@ -325,9 +335,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
 
         lowerer.visit_compilation_unit(&mut unit);
@@ -381,9 +390,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         //re-index the new unit
@@ -433,9 +441,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
@@ -474,9 +481,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
 
         lowerer.visit_compilation_unit(&mut unit);
@@ -514,9 +520,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
@@ -555,9 +560,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
@@ -596,9 +600,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
@@ -637,9 +640,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
@@ -681,9 +683,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
@@ -720,9 +721,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
@@ -756,12 +756,11 @@ mod tests {
             id_provider.clone(),
         );
 
-        let mut lowerer = AggregateTypeLowerer {
+         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
@@ -800,9 +799,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
@@ -839,9 +837,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
@@ -867,9 +864,8 @@ mod tests {
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
-            new_stmts: Default::default(),
             id_provider: id_provider.clone(),
-            counter: Default::default(),
+            ..Default::default()
         };
 
         lowerer.visit_compilation_unit(&mut unit);
