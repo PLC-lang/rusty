@@ -9,7 +9,7 @@ use plc_ast::{
         steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory, AstNode, AstStatement,
         CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock, VariableBlockType,
     },
-    control_statements::{AstControlStatement, ConditionalBlock},
+    control_statements::{AstControlStatement, ConditionalBlock, LoopStatement},
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     try_from_mut,
@@ -21,11 +21,16 @@ use crate::{index::Index, resolver::AnnotationMap};
 #[derive(Default, Debug, Clone)]
 struct VisitorContext {
     is_switch_case: bool,
+    is_do_while: bool,
 }
 
 impl VisitorContext {
     fn switch_case() -> Self {
-        Self { is_switch_case: true }
+        Self { is_switch_case: true, ..Default::default() }
+    }
+
+    fn do_while_loop() -> Self {
+        Self { is_do_while: true, ..Default::default() }
     }
 }
 
@@ -80,6 +85,49 @@ impl AggregateTypeLowerer {
                 }
             }
             self.steal_and_walk_list(&mut b.body);
+        }
+    }
+
+    fn visit_loop_statement(&mut self, stmt: &mut LoopStatement) {
+        let location = stmt.condition.get_location();
+        let condition = std::mem::take(stmt.condition.as_mut());
+        let mut processed_nodes = self.map(condition);
+        self.steal_and_walk_list(&mut stmt.body);
+        let mut new_stmts = vec![];
+        let condition = if let Some(expressions) = try_from_mut!(processed_nodes, Vec<AstNode>) {
+            let condition = expressions.pop().expect("Should have at least one expression");
+            let expressions = std::mem::take(expressions);
+            new_stmts.extend(expressions);
+            condition
+        } else {
+            processed_nodes
+        };
+        stmt.condition = Box::new(AstFactory::create_literal(
+            plc_ast::literals::AstLiteral::Bool(true),
+            location.clone(),
+            self.id_provider.next_id(),
+        ));
+        let break_stmt = AstFactory::create_exit_statement(location.clone(), self.id_provider.next_id());
+        let exit_condition = AstFactory::create_if_statement(
+            vec![ConditionalBlock {
+                condition: Box::new(AstFactory::create_not_expression(
+                    condition,
+                    location.clone(),
+                    self.id_provider.next_id(),
+                )),
+                body: vec![break_stmt],
+            }],
+            vec![],
+            location.clone(),
+            self.id_provider.next_id(),
+        );
+        new_stmts.push(exit_condition);
+        let new_stmts = AstFactory::create_expression_list(new_stmts, location, self.id_provider.next_id());
+
+        if self.ctx.is_do_while {
+            stmt.body.push(new_stmts);
+        } else {
+            stmt.body.insert(0, new_stmts);
         }
     }
 
@@ -242,9 +290,14 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 self.walk_conditional_blocks(&mut stmt.blocks);
                 self.steal_and_walk_list(&mut stmt.else_block);
             }
-            AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
-                stmt.condition.walk(self);
-                self.steal_and_walk_list(&mut stmt.body);
+            AstControlStatement::WhileLoop(stmt) => {
+                self.visit_loop_statement(stmt);
+            }
+            AstControlStatement::RepeatLoop(stmt) => {
+                let ctx = self.ctx.clone();
+                self.ctx = VisitorContext::do_while_loop();
+                self.visit_loop_statement(stmt);
+                self.ctx = ctx;
             }
             AstControlStatement::ForLoop(stmt) => {
                 stmt.counter.walk(self);
