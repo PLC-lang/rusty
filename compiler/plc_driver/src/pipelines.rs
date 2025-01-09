@@ -274,6 +274,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         let annotated_project = self.annotate(indexed_project)?;
         //TODO : this is post lowering, we might want to control this
         if let Some(CompileParameters { output_ast: true, .. }) = self.compile_parameters {
+            println!("{:#?}", annotated_project.units);
             return Ok(());
         }
 
