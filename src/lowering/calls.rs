@@ -8,11 +8,26 @@ use plc_ast::{
     ast::{
         steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory, AstNode, AstStatement,
         CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock, VariableBlockType,
-    }, control_statements::{AstControlStatement, ConditionalBlock}, mut_visitor::{AstVisitorMut, WalkerMut}, provider::IdProvider, try_from, try_from_mut
+    },
+    control_statements::{AstControlStatement, ConditionalBlock},
+    mut_visitor::{AstVisitorMut, WalkerMut},
+    provider::IdProvider,
+    try_from_mut,
 };
 use plc_source::source_location::SourceLocation;
 
 use crate::{index::Index, resolver::AnnotationMap};
+
+#[derive(Default, Debug, Clone)]
+struct VisitorContext {
+    is_switch_case: bool,
+}
+
+impl VisitorContext {
+    fn switch_case() -> Self {
+        Self { is_switch_case: true }
+    }
+}
 
 // Performs lowering for aggregate types defined in functions
 #[derive(Default)]
@@ -25,6 +40,7 @@ pub struct AggregateTypeLowerer {
     // New statements to be added to the outer scope, i.e. when lowering a conditional block
     outer_scope_stmts: Vec<AstNode>,
     counter: AtomicI32,
+    ctx: VisitorContext,
 }
 
 impl AggregateTypeLowerer {
@@ -50,18 +66,31 @@ impl AggregateTypeLowerer {
 
     fn walk_conditional_blocks(&mut self, blocks: &mut Vec<ConditionalBlock>) {
         for b in blocks {
-            let condition = std::mem::take(b.condition.as_mut());
-            let mut processed_nodes = Box::new(self.map(condition));
-            // fixme: this breaks SWITCH statements?
-            if let Some(expressions) = try_from_mut!(processed_nodes, Vec<AstNode>) {
-                b.condition = Box::new(expressions.pop().expect("Should have at least one expression"));
-                let expressions = std::mem::take(expressions);
-                self.outer_scope_stmts.extend(expressions);
+            if self.ctx.is_switch_case {
+                b.condition.walk(self);
             } else {
-                b.condition = processed_nodes;
+                let condition = std::mem::take(b.condition.as_mut());
+                let mut processed_nodes = Box::new(self.map(condition));
+                if let Some(expressions) = try_from_mut!(processed_nodes, Vec<AstNode>) {
+                    b.condition = Box::new(expressions.pop().expect("Should have at least one expression"));
+                    let expressions = std::mem::take(expressions);
+                    self.outer_scope_stmts.extend(expressions);
+                } else {
+                    b.condition = processed_nodes;
+                }
             }
             self.steal_and_walk_list(&mut b.body);
         }
+    }
+
+    fn walk_with_context<T>(&mut self, t: &mut T, ctx: VisitorContext, f: impl Fn(&mut Self, &mut T))
+    where
+        T: WalkerMut,
+    {
+        let old = self.ctx.clone();
+        self.ctx = ctx;
+        f(self, t);
+        self.ctx = old;
     }
 }
 
@@ -228,11 +257,15 @@ impl AstVisitorMut for AggregateTypeLowerer {
             }
             AstControlStatement::Case(stmt) => {
                 stmt.selector.walk(self);
-                self.walk_conditional_blocks(&mut stmt.case_blocks);
+                self.walk_with_context(
+                    &mut stmt.case_blocks,
+                    VisitorContext::switch_case(),
+                    Self::walk_conditional_blocks,
+                );
                 self.steal_and_walk_list(&mut stmt.else_block);
             }
         }
-            
+
         if !self.outer_scope_stmts.is_empty() {
             let mut new_stmts = std::mem::take(&mut self.outer_scope_stmts);
             let location = node.get_location();
@@ -280,11 +313,7 @@ mod tests {
         "#,
         );
 
-        let mut lowerer = AggregateTypeLowerer {
-            index: Some(index),
-            annotation: None,
-            ..Default::default()
-        };
+        let mut lowerer = AggregateTypeLowerer { index: Some(index), annotation: None, ..Default::default() };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(indexer::index(&unit));
         assert_eq!(unit, original_unit);
@@ -756,7 +785,7 @@ mod tests {
             id_provider.clone(),
         );
 
-         let mut lowerer = AggregateTypeLowerer {
+        let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
             annotation: None,
             id_provider: id_provider.clone(),
@@ -932,5 +961,60 @@ mod tests {
         let (_, index, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
         assert_debug_snapshot!(index.find_pou_type("MID__STRING").unwrap());
         assert_debug_snapshot!(units[0].0.implementations[1]);
+    }
+
+    #[test]
+    fn nested_complex_calls_in_if_condition() {
+        let id_provider = IdProvider::default();
+        let src = r#"
+            FUNCTION CLEAN : STRING
+            VAR_INPUT
+                CX : STRING;
+            END_VAR
+            VAR
+                pos: INT := 1;
+            END_VAR
+                IF FIND(CX, MID(CLEAN, 1, pos)) > 0 THEN
+                    pos := pos + 1;
+                END_IF;
+            END_FUNCTION
+
+            FUNCTION FIND<T: ANY_STRING> : INT
+            VAR_INPUT
+                needle: T;
+                haystack: T;
+            END_VAR
+            END_FUNCTION
+
+            {external}
+            FUNCTION FIND__STRING : INT 
+            VAR_INPUT
+                needle: STRING;
+                haystack: STRING;
+            END_VAR
+            END_FUNCTION
+
+            FUNCTION MID<T: ANY_STRING> : T 
+            VAR_INPUT
+                str: T;
+                len: INT;
+                start: INT;
+            END_VAR
+            END_FUNCTION
+
+            {external}
+            FUNCTION MID__STRING : STRING 
+            VAR_INPUT
+                str: STRING;
+                len: INT;
+                start: INT;
+            END_VAR
+            END_FUNCTION
+        "#;
+
+        let (unit, index, ..) = index_and_lower(src, id_provider.clone());
+        let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
+        let unit = &units[0].0;
+        assert_debug_snapshot!(unit.implementations[0]);
     }
 }

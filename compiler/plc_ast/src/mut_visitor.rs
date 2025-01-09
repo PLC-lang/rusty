@@ -208,17 +208,6 @@ pub trait AstVisitorMut: Sized {
     fn visit_allocation(&mut self, _node: &mut AstNode) {}
 }
 
-/// Helper method that walks through a slice of `ConditionalBlock` and applies the visitor's `walk` method to each node.
-fn walk_conditional_blocks<V>(visitor: &mut V, blocks: &mut [ConditionalBlock])
-where
-    V: AstVisitorMut,
-{
-    for b in blocks {
-        visit_nodes!(visitor, &mut b.condition);
-        visit_all_nodes_mut!(visitor, &mut b.body);
-    }
-}
-
 impl WalkerMut for AstLiteral {
     fn walk<V>(&mut self, _visitor: &mut V)
     where
@@ -321,6 +310,18 @@ impl WalkerMut for CallStatement {
     }
 }
 
+impl WalkerMut for Vec<ConditionalBlock> {
+    fn walk<V>(&mut self, visitor: &mut V)
+    where
+        V: AstVisitorMut,
+    {
+        for b in self {
+            visit_nodes!(visitor, &mut b.condition);
+            visit_all_nodes_mut!(visitor, &mut b.body);
+        }
+    }
+}
+
 impl WalkerMut for AstControlStatement {
     fn walk<V>(&mut self, visitor: &mut V)
     where
@@ -328,7 +329,7 @@ impl WalkerMut for AstControlStatement {
     {
         match self {
             AstControlStatement::If(stmt) => {
-                walk_conditional_blocks(visitor, &mut stmt.blocks);
+                stmt.blocks.walk(visitor);
                 visit_all_nodes_mut!(visitor, &mut stmt.else_block);
             }
             AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
@@ -342,7 +343,7 @@ impl WalkerMut for AstControlStatement {
             }
             AstControlStatement::Case(stmt) => {
                 visit_nodes!(visitor, &mut stmt.selector);
-                walk_conditional_blocks(visitor, &mut stmt.case_blocks);
+                stmt.case_blocks.walk(visitor);
                 visit_all_nodes_mut!(visitor, &mut stmt.else_block);
             }
         }

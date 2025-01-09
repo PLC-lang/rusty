@@ -7,9 +7,9 @@ use plc_ast::{
         CallStatement, DataType, DirectAccess, MultipliedStatement, Pou, RangeStatement, ReferenceAccess,
         ReferenceExpr, UnaryExpression, UserTypeDeclaration,
     },
-    control_statements::{AstControlStatement, CaseStatement, ConditionalBlock, IfStatement},
+    control_statements::{AstControlStatement, CaseStatement, IfStatement},
     literals::{Array, AstLiteral},
-    provider::IdProvider, try_from,
+    provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::assert_eq;
@@ -17,7 +17,7 @@ use pretty_assertions::assert_eq;
 use crate::{
     index::{ArgumentType, Index, VariableType},
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation, TypeAnnotator},
-    test_utils::tests::{annotate_and_lower_with_ids, annotate_with_ids, index_and_lower, index_with_ids},
+    test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, Dimension, TypeSize, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE,
         LINT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
@@ -5775,68 +5775,4 @@ fn reference_to_alloca_nested_resolved() {
     } else {
         unreachable!("Must be an assignment");
     }
-}
-
-#[test]
-fn aggregate_function_return_type_resolves() {
-    let src = r#"
-FUNCTION CLEAN : STRING
-VAR_INPUT
-	IN : STRING;
-	CX : STRING;
-END_VAR
-VAR
-	pos: INT := 1;
-    tmp: STRING;
-END_VAR
-    CLEAN := IN;
-    // tmp := MID(CLEAN, 1, pos);
-    // IF FIND(CX, mtp) > 0 THEN
-    //     pos := pos + 1;
-    // END_IF;
-	IF FIND(CX, MID(CLEAN, 1, pos)) > 0 THEN
-		pos := pos + 1;
-	END_IF;
-END_FUNCTION
-
-{external}
-FUNCTION FIND : INT 
-VAR_INPUT
-    needle: STRING;
-    haystack: STRING;
-END_VAR
-END_FUNCTION
-
-{external}
-FUNCTION MID : STRING 
-VAR_INPUT
-    str: STRING;
-    len: INT;
-    start: INT;
-END_VAR
-END_FUNCTION
-
-    "#;
-    // problem: alloca was placed in if-body, therefore could not be resolved during call
-    // solution: place alloca in outer scope
-    // follow-up problem: if-condition is now an expression list: alloca, inner call-stmt, binary-expr
-    // todo: move everything but the binary expr out of the condition into the outer scope
-    let id_provider = IdProvider::default();
-    let (unit, index, _) = index_and_lower(src, id_provider.clone());
-
-    let (annotations, index, units) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let unit = &units[0].0;
-    dbg!(&unit.implementations[0]);
-    let AstControlStatement::If(IfStatement { blocks, .. }) = try_from!(unit.implementations[0].statements[1], AstControlStatement).unwrap() else {
-        unreachable!();
-    };
-    let ConditionalBlock {condition, ..} = &blocks[0];
-    let expressions = try_from!(condition, Vec<AstNode>).unwrap();
-    let stmt = dbg!(&expressions[1]);
-    dbg!(&expressions[2]);
-    let annotation = annotations.get(stmt).unwrap();
-    dbg!(annotation);
-    let hint = annotations.get_type_hint(stmt, &index);
-    dbg!(hint);
-    // dbg!(&unit.implementations[0].statements[1]);
 }
