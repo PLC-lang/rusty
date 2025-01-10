@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
@@ -203,6 +204,7 @@ impl TypeAnnotator<'_> {
                         }
                         entry
                     })
+                    .sorted_by(|a, b| a.location_in_parent.cmp(&b.location_in_parent))
                     .collect::<Vec<_>>();
                 DataTypeInformation::Struct { name: new_name.to_string(), source: source.clone(), members }
             } else {

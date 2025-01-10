@@ -1131,3 +1131,39 @@ fn generic_external_function_having_same_name_as_local_variable() {
         &StatementAnnotation::Value { resulting_type: "INT".to_string() }
     );
 }
+
+#[test]
+fn generic_call_parameters_annotated() {
+    let id_provider = IdProvider::default();
+    let (unit, index, _) = index_and_lower(
+        "
+FUNCTION CLEAN : STRING
+VAR
+	pos: INT := 1;
+END_VAR
+        MID(CLEAN, 1, pos);
+        // MID(s := CLEAN, pos := 1, len := pos);
+END_FUNCTION
+
+FUNCTION MID <T: ANY_STRING> : T
+VAR_INPUT
+    s: T;
+    pos: DINT;
+    len: DINT;
+END_VAR
+END_FUNCTION
+
+        ",
+        id_provider.clone(),
+    );
+
+    let (annotations , index, units)= annotate_and_lower_with_ids(unit, index, id_provider);
+    let call_statement =  flatten_expression_list(&units[0].0.implementations[0].statements[0])[1];
+    if let AstStatement::CallStatement(CallStatement{parameters, ..}) = call_statement.get_stmt() {
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, parameters[2], DINT_TYPE, Some(DINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, parameters[3], INT_TYPE, Some(DINT_TYPE));
+    } else {
+        unreachable!("This should always be a call statement.")
+    }
+}

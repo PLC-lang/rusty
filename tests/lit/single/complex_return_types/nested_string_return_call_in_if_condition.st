@@ -13,14 +13,14 @@ END_VAR
     WHILE pos <= stop DO
         IF FIND(CX, MID(CLEAN, 1, pos)) > 0 THEN
             pos := pos + 1;
-        ELSE 
+        ELSE
             CLEAN := DELETE(CLEAN, 1, pos);
             stop := stop - 1;
         END_IF;
     END_WHILE;
 END_FUNCTION
 
-FUNCTION main : DINT 
+FUNCTION main : DINT
 VAR
     needle: STRING := 'aeiou ,?';
     haystack: STRING := 'hello world, how are you?';

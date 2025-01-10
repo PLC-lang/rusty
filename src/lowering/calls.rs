@@ -16,7 +16,10 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-use crate::{index::Index, resolver::AnnotationMap};
+use crate::{
+    index::Index,
+    resolver::{AnnotationMap, StatementAnnotation},
+};
 
 #[derive(Default, Debug, Clone)]
 struct VisitorContext {
@@ -153,7 +156,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
     // Change the signature for functions/methods with aggregate returns
     fn visit_pou(&mut self, pou: &mut Pou) {
         if pou.is_aggregate() {
-            //Skip types that have already been made aggregates
+            //Skip types that have already been made aggregate
             return;
         }
         let index = self.index.as_ref().expect("Can't get here without an index");
@@ -231,11 +234,13 @@ impl AstVisitorMut for AggregateTypeLowerer {
         let Some(crate::resolver::StatementAnnotation::Function {
             qualified_name,
             return_type: return_type_name,
-            ..
+            call_name,
         }) = annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator))
         else {
             return;
         };
+        //If there's a call name in the function, it is a generic and needs to be replaced.
+        //HACK: this is because we don't lower generics
         let function_entry = index.find_pou(qualified_name).expect("Function not found");
         let return_type = index.get_effective_type_or_void_by_name(return_type_name);
         //TODO: needs to be on the function
@@ -270,6 +275,18 @@ impl AstVisitorMut for AggregateTypeLowerer {
 
             parameters.insert(0, reference);
 
+            if let Some(call_name) = call_name {
+                //If there's a call name, we need to replace the operator with a member reference
+                stmt.operator = Box::new(AstFactory::create_member_reference(
+                    AstFactory::create_identifier(
+                        call_name,
+                        stmt.operator.get_location(),
+                        self.id_provider.next_id(),
+                    ),
+                    None,
+                    self.id_provider.next_id(),
+                ))
+            };
             stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
             //steal parameters, add one to the start, return parameters
             let mut reference = super::create_member_reference_with_location(
@@ -1017,6 +1034,28 @@ mod tests {
     }
 
     #[test]
+    fn generic_call_statement_with_aggregate_return() {
+        let id_provider = IdProvider::default();
+        let src = r#"
+        FUNCTION main : STRING
+            main := MID('hello');
+        END_FUNCTION
+
+        {external}
+        FUNCTION MID < T: ANY_STRING >: STRING
+        VAR_INPUT
+            IN: T;
+        END_VAR
+        END_FUNCTION
+        "#;
+
+        let (unit, index, ..) = index_and_lower(src, id_provider.clone());
+        let (_, index, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
+        assert_debug_snapshot!(index.find_pou_type("MID__STRING").unwrap());
+        assert_debug_snapshot!(units[0].0.implementations[1]);
+    }
+
+    #[test]
     fn nested_complex_calls_in_if_condition() {
         let id_provider = IdProvider::default();
         let src = r#"
@@ -1040,14 +1079,14 @@ mod tests {
             END_FUNCTION
 
             {external}
-            FUNCTION FIND__STRING : INT 
+            FUNCTION FIND__STRING : INT
             VAR_INPUT
                 needle: STRING;
                 haystack: STRING;
             END_VAR
             END_FUNCTION
 
-            FUNCTION MID<T: ANY_STRING> : T 
+            FUNCTION MID<T: ANY_STRING> : T
             VAR_INPUT
                 str: T;
                 len: INT;
@@ -1056,7 +1095,7 @@ mod tests {
             END_FUNCTION
 
             {external}
-            FUNCTION MID__STRING : STRING 
+            FUNCTION MID__STRING : STRING
             VAR_INPUT
                 str: STRING;
                 len: INT;

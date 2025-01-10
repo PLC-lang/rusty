@@ -1,0 +1,92 @@
+---
+source: src/lowering/calls.rs
+assertion_line: 585
+expression: "unit.implementations[2]"
+---
+Implementation {
+    name: "main",
+    type_name: "main",
+    linkage: Internal,
+    pou_type: Function,
+    statements: [
+        ExpressionList {
+            expressions: [
+                Allocation {
+                    name: "__fb.complexMethod0",
+                    reference_type: "STRING",
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "fb.complexMethod",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__fb.complexMethod0",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ],
+                        },
+                    ),
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__fb.complexMethod0",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ],
+        },
+    ],
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 16,
+                column: 12,
+                offset: 418,
+            }..TextLocation {
+                line: 16,
+                column: 38,
+                offset: 444,
+            },
+        ),
+    },
+    name_location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 7,
+                column: 17,
+                offset: 167,
+            }..TextLocation {
+                line: 7,
+                column: 21,
+                offset: 171,
+            },
+        ),
+    },
+    overriding: false,
+    generic: false,
+    access: None,
+}

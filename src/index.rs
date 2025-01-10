@@ -817,6 +817,13 @@ impl PouIndexEntry {
         }
     }
 
+    pub fn get_return_type(&self) -> Option<&str> {
+        match self {
+            PouIndexEntry::Function { return_type, .. } | PouIndexEntry::Method { return_type, .. } => Some(return_type),
+            _ => None,
+        }
+    }
+
     /// returns true if this pou has a variadic (last) parameter
     pub fn is_variadic(&self) -> bool {
         if let PouIndexEntry::Function { is_variadic, .. } = self {
@@ -934,8 +941,9 @@ impl TypeIndex {
     }
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
-        self.find_type(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
+        self.find_type(type_name).ok_or_else(|| {
+            Diagnostic::unknown_type(type_name, SourceLocation::undefined())
+        })
     }
 
     /// Retrieves the "Effective" type behind this datatype

@@ -1,5 +1,6 @@
 ---
 source: src/lowering/calls.rs
+assertion_line: 1041
 expression: "index.find_pou_type(\"MID__STRING\").unwrap()"
 ---
 DataType {
@@ -9,16 +10,16 @@ DataType {
         name: "MID__STRING",
         members: [
             VariableIndexEntry {
-                name: "MID__STRING",
-                qualified_name: "MID__STRING.MID__STRING",
+                name: "MID",
+                qualified_name: "MID__STRING.MID",
                 initial_value: None,
                 argument_type: ByRef(
                     InOut,
                 ),
                 is_constant: false,
                 is_var_external: false,
-                data_type_name: "__auto_pointer_to_STRING",
-                location_in_parent: 0,
+                data_type_name: "__auto_pointer_to_STRING__STRING",
+                location_in_parent: 1,
                 linkage: Internal,
                 binding: None,
                 source_location: SourceLocation {
@@ -46,7 +47,7 @@ DataType {
                 is_constant: false,
                 is_var_external: false,
                 data_type_name: "STRING",
-                location_in_parent: 1,
+                location_in_parent: 2,
                 linkage: Internal,
                 binding: None,
                 source_location: SourceLocation {
@@ -54,11 +55,11 @@ DataType {
                         TextLocation {
                             line: 8,
                             column: 12,
-                            offset: 179,
+                            offset: 184,
                         }..TextLocation {
                             line: 8,
                             column: 14,
-                            offset: 181,
+                            offset: 186,
                         },
                     ),
                 },

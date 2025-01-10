@@ -1,7 +1,6 @@
 ---
 source: src/lowering/calls.rs
 expression: "unit.implementations[0]"
-snapshot_kind: text
 ---
 Implementation {
     name: "CLEAN",
@@ -12,14 +11,14 @@ Implementation {
         ExpressionList {
             expressions: [
                 Allocation {
-                    name: "__MID0",
+                    name: "__MID__STRING0",
                     reference_type: "STRING",
                 },
                 CallStatement {
                     operator: ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "MID",
+                                name: "MID__STRING",
                             },
                         ),
                         base: None,
@@ -30,7 +29,7 @@ Implementation {
                                 ReferenceExpr {
                                     kind: Member(
                                         Identifier {
-                                            name: "__MID0",
+                                            name: "__MID__STRING0",
                                         },
                                     ),
                                     base: None,
@@ -86,7 +85,7 @@ Implementation {
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__MID0",
+                                                            name: "__MID__STRING0",
                                                         },
                                                     ),
                                                     base: None,

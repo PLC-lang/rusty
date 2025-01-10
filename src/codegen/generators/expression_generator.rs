@@ -547,7 +547,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // First get the function type so our function pointer can have the correct type.
         let qualified_name = self
             .annotations
-            .get_qualified_name(operator)
+            .get_qualified_name(dbg!(operator))
             .expect("Shouldn't have got this far without a name for the function");
         let function_type = function.get_type();
         let call = self
