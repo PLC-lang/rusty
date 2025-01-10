@@ -1,7 +1,7 @@
 PROGRAM main
 VAR
     a,b : DINT;
-END_VAr
+END_VAR
 
 action1();
 action2();

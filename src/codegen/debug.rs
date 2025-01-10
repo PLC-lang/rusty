@@ -19,7 +19,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     datalayout::{Bytes, DataLayout, MemoryLocation},
-    index::{ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
@@ -532,16 +532,14 @@ impl<'ink> DebugBuilder<'ink> {
                 self.register_local_variable(variable, alignment, func);
             }
         }
+
         let implementation = pou.find_implementation(index).expect("A POU will have an impl at this stage");
         if !implementation.get_implementation_type().is_function_or_init() {
-            if implementation.get_implementation_type() == &ImplementationType::Method {
-                //Methods ignored for now
-            } else {
-                self.register_struct_parameter(pou, func);
-            }
+            self.register_struct_parameter(pou, func);
         } else {
             let declared_params = index.get_declared_parameters(implementation.get_call_name());
-            //Register all parameters for debugging
+
+            // Register all parameters for debugging
             for (index, variable) in declared_params.iter().enumerate() {
                 self.register_parameter(variable, index + param_offset, func);
             }
@@ -827,6 +825,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
+
         let location = self.debug_info.create_debug_location(
             self.context,
             (line + 1) as u32,
