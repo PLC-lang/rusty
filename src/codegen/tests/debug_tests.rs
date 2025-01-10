@@ -396,7 +396,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, align: 64, flags: DIFlagPublic, elements: !4, identifier: "fb")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, flags: DIFlagPublic, elements: !4, identifier: "fb")
     !4 = !{}
     !5 = !{i32 2, !"Dwarf Version", i32 4}
     !6 = !{i32 2, !"Debug Info Version", i32 3}
@@ -411,7 +411,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !15 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !2, file: !2, line: 3, type: !11, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
     !16 = !DILocation(line: 4, column: 8, scope: !15)
     !17 = !DILocalVariable(name: "fb.foo", scope: !15, file: !2, line: 3, type: !18)
-    !18 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb.foo", scope: !2, file: !2, line: 3, align: 64, flags: DIFlagPublic, elements: !4, identifier: "fb.foo")
+    !18 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb.foo", scope: !2, file: !2, line: 3, flags: DIFlagPublic, elements: !4, identifier: "fb.foo")
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
 
@@ -440,7 +440,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, align: 64, flags: DIFlagPublic, elements: !4, identifier: "fb")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, flags: DIFlagPublic, elements: !4, identifier: "fb")
     !4 = !{}
     !5 = !{i32 2, !"Dwarf Version", i32 4}
     !6 = !{i32 2, !"Debug Info Version", i32 3}
