@@ -189,7 +189,7 @@ fn test_dwarf_version_override() {
 
 #[test]
 fn switch_case_debug_info() {
-    let codegen = codegen_with_debug_version(
+    let codegen = codegen(
         r#"
         FUNCTION main : DINT
             VAR
@@ -215,10 +215,9 @@ fn switch_case_debug_info() {
 
         END_FUNCTION
         "#,
-        4,
     );
 
-    assert_snapshot!(codegen, @r###"
+    assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -288,7 +287,7 @@ fn switch_case_debug_info() {
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}
 
-    !0 = !{i32 2, !"Dwarf Version", i32 4}
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "src")
@@ -330,7 +329,7 @@ fn switch_case_debug_info() {
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}
 
-    !0 = !{i32 2, !"Dwarf Version", i32 4}
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "__init___testproject", directory: "src")
@@ -340,30 +339,27 @@ fn switch_case_debug_info() {
     !7 = !{null}
     !8 = !{}
     !9 = !DILocation(line: 0, scope: !4)
-    "###);
+    "#);
 }
 
 #[test]
 fn dbg_declare_has_valid_metadata_references_for_methods() {
-    let codegen = codegen_with_debug_version(
+    let codegen = codegen(
         r"
         FUNCTION_BLOCK fb
         METHOD foo
         END_METHOD
         END_FUNCTION_BLOCK
         ",
-        4,
     );
 
     // We want to make sure the `dbg.declare` for the method `foo` references a non-empty metadata field, i.e.
-    // `!<number>`
+    // `!<number>` should not be `!<number> = {}`. Concretely, `!17` should be non-empty
     assert!(codegen.contains(r#"call void @llvm.dbg.declare(metadata %fb.foo* %1, metadata !17, metadata !DIExpression()), !dbg !16"#));
     assert!(codegen
         .contains(r#"!17 = !DILocalVariable(name: "fb.foo", scope: !15, file: !2, line: 3, type: !18)"#));
 
-    // ...for reference, it would previously point to `!4` which is empty (`!4 = {}`). `!4` shouldn't exist in
-    // the first place anyways; on that note: TODO :^)
-    assert_snapshot!(codegen, @r###"
+    assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -398,7 +394,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, flags: DIFlagPublic, elements: !4, identifier: "fb")
     !4 = !{}
-    !5 = !{i32 2, !"Dwarf Version", i32 4}
+    !5 = !{i32 2, !"Dwarf Version", i32 5}
     !6 = !{i32 2, !"Debug Info Version", i32 3}
     !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !8, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !9, splitDebugInlining: false)
     !8 = !DIFile(filename: "<internal>", directory: "src")
@@ -442,7 +438,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, flags: DIFlagPublic, elements: !4, identifier: "fb")
     !4 = !{}
-    !5 = !{i32 2, !"Dwarf Version", i32 4}
+    !5 = !{i32 2, !"Dwarf Version", i32 5}
     !6 = !{i32 2, !"Debug Info Version", i32 3}
     !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !8, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !9, splitDebugInlining: false)
     !8 = !DIFile(filename: "__initializers", directory: "src")
@@ -469,7 +465,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}
 
-    !0 = !{i32 2, !"Dwarf Version", i32 4}
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "__init___testproject", directory: "src")
@@ -479,5 +475,5 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !7 = !{null}
     !8 = !{}
     !9 = !DILocation(line: 0, scope: !4)
-    "###);
+    "#);
 }
