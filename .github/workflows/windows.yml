@@ -14,7 +14,7 @@ jobs:
     name: Windows Build
     runs-on: windows-2022
     env:
-      toolchain-version: 1.77.0
+      toolchain-version: 1.83.0
       llvm-version: 14.0.6
     steps:
 
