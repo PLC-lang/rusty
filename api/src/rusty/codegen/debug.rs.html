@@ -952,8 +952,7 @@
 <a href="#951" id="951">951</a>
 <a href="#952" id="952">952</a>
 <a href="#953" id="953">953</a>
-<a href="#954" id="954">954</a>
-<a href="#955" id="955">955</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
+<a href="#954" id="954">954</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
@@ -974,7 +973,7 @@
 
 <span class="kw">use crate</span>::{
     datalayout::{Bytes, DataLayout, MemoryLocation},
-    index::{ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
@@ -1487,16 +1486,14 @@
                 <span class="self">self</span>.register_local_variable(variable, alignment, func);
             }
         }
+
         <span class="kw">let </span>implementation = pou.find_implementation(index).expect(<span class="string">"A POU will have an impl at this stage"</span>);
         <span class="kw">if </span>!implementation.get_implementation_type().is_function_or_init() {
-            <span class="kw">if </span>implementation.get_implementation_type() == <span class="kw-2">&amp;</span>ImplementationType::Method {
-                <span class="comment">//Methods ignored for now
-            </span>} <span class="kw">else </span>{
-                <span class="self">self</span>.register_struct_parameter(pou, func);
-            }
+            <span class="self">self</span>.register_struct_parameter(pou, func);
         } <span class="kw">else </span>{
             <span class="kw">let </span>declared_params = index.get_declared_parameters(implementation.get_call_name());
-            <span class="comment">//Register all parameters for debugging
+
+            <span class="comment">// Register all parameters for debugging
             </span><span class="kw">for </span>(index, variable) <span class="kw">in </span>declared_params.iter().enumerate() {
                 <span class="self">self</span>.register_parameter(variable, index + param_offset, func);
             }
@@ -1782,6 +1779,7 @@
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.as_debug_info_scope());
+
         <span class="kw">let </span>location = <span class="self">self</span>.debug_info.create_debug_location(
             <span class="self">self</span>.context,
             (line + <span class="number">1</span>) <span class="kw">as </span>u32,
