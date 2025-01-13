@@ -340,6 +340,12 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             log::debug!("No compile options provided");
             return Ok(());
         };
+        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            read_got_layout(file_name, *format)?
+        } else {
+            HashMap::default()
+        };
+        let got_layout = Mutex::new(got_layout);
         if compile_options.single_module || matches!(compile_options.output_format, FormatOption::Object) {
             log::info!("Using single module mode");
             let context = CodegenContext::create();
@@ -350,13 +356,6 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                 })
                 .unwrap_or(Ok(()))?;
         } else {
-            let got_layout =
-                if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-                    read_got_layout(file_name, *format)?
-                } else {
-                    HashMap::default()
-                };
-            let got_layout = Mutex::new(got_layout);
             let _ = project
                 .units
                 .par_iter()
@@ -373,6 +372,9 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                     self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
                 })
                 .collect::<Result<Vec<_>, Diagnostic>>()?;
+        }
+        if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            write_got_layout(got_layout.into_inner().unwrap(), file_name, *format)?;
         }
         self.participants
             .iter()
@@ -749,96 +751,6 @@ impl AnnotatedProject {
                 self.generate_module(context, compile_options, unit, dependencies, literals, &got_layout)
             })
             .collect()
-    }
-
-    pub fn codegen<'ctx>(
-        &'ctx self,
-        compile_options: &CompileOptions,
-        targets: &'ctx [Target],
-    ) -> Result<Vec<GeneratedProject>, Diagnostic> {
-        let compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
-            let tempdir = tempfile::tempdir().unwrap();
-            tempdir.into_path()
-        });
-        ensure_compile_dirs(targets, &compile_directory)?;
-        let targets = if targets.is_empty() { &[Target::System] } else { targets };
-
-        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-            read_got_layout(file_name, *format)?
-        } else {
-            HashMap::default()
-        };
-        let got_layout = Mutex::new(got_layout);
-
-        let res = targets
-            .par_iter()
-            .map(|target| {
-                let objects = self
-                    .units
-                    .par_iter()
-                    .map(|AnnotatedUnit { unit, dependencies, literals }| {
-                        let current_dir = env::current_dir()?;
-                        let current_dir = compile_options.root.as_deref().unwrap_or(&current_dir);
-                        let unit_location = PathBuf::from(&unit.file_name);
-                        let unit_location = if unit_location.exists() {
-                            fs::canonicalize(unit_location)?
-                        } else {
-                            unit_location
-                        };
-                        let output_name = if unit_location.starts_with(current_dir) {
-                            unit_location.strip_prefix(current_dir).map_err(|it| {
-                                Diagnostic::new(format!(
-                                    "Could not strip prefix for {}",
-                                    current_dir.to_string_lossy()
-                                ))
-                                .with_internal_error(it.into())
-                            })?
-                        } else if unit_location.has_root() {
-                            let root = unit_location.ancestors().last().expect("Should exist?");
-                            unit_location.strip_prefix(root).expect("The root directory should exist")
-                        } else {
-                            unit_location.as_path()
-                        };
-
-                        let output_name = match compile_options.output_format {
-                            FormatOption::IR => format!("{}.ll", output_name.to_string_lossy()),
-                            FormatOption::Bitcode => format!("{}.bc", output_name.to_string_lossy()),
-                            _ => format!("{}.o", output_name.to_string_lossy()),
-                        };
-
-                        let context = CodegenContext::create(); //Create a build location for the generated object files
-                        let module = self.generate_module(
-                            &context,
-                            compile_options,
-                            unit,
-                            dependencies,
-                            literals,
-                            &got_layout,
-                        )?;
-
-                        module
-                            .persist(
-                                Some(&compile_directory),
-                                &output_name,
-                                compile_options.output_format,
-                                target,
-                                compile_options.optimization,
-                            )
-                            .map(Into::into)
-                            // Not needed here but might be a good idea for consistency
-                            .map(|it: Object| it.with_target(target))
-                    })
-                    .collect::<Result<Vec<_>, Diagnostic>>()?;
-
-                Ok(GeneratedProject { target: target.clone(), objects })
-            })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
-
-        if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-            write_got_layout(got_layout.into_inner().unwrap(), file_name, *format)?;
-        }
-
-        Ok(res)
     }
 
     pub fn generate_hardware_information(
