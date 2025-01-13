@@ -138,9 +138,7 @@ pub struct CompileParameters {
     Supported formats : json, toml",
         default_value = DEFAULT_GOT_LAYOUT_FILE,
         parse(try_from_str = validate_config),
-        // FIXME: For some reason, this does not work at the moment but it really should
-        // The binary behaves as expected but the tests fail
-        // requires = "online-change"
+        requires = "online-change"
     ) ]
     pub got_layout_file: String,
 
@@ -239,7 +237,8 @@ pub struct CompileParameters {
 
     #[clap(
         long,
-        help = "Emit a binary with specific compilation information, suitable for online changes when ran under a conforming runtime"
+        help = "Emit a binary with specific compilation information, suitable for online changes when ran under a conforming runtime",
+        global = true
     )]
     pub online_change: bool,
 
