@@ -78,3 +78,28 @@ fn stdlib_string_function_headers_compile_to_ir() {
         "Expected file to compile without errors"
     )
 }
+
+#[test]
+fn generate_got_file() {
+    let file = get_test_file("command_line.st");
+
+    let temp_file = tempfile::NamedTempFile::new().unwrap();
+    let path = temp_file.path().to_string_lossy();
+    let name = "got.json";
+
+    compile(&["plc", file.as_str(), "-o", &path, "--online-change", "--got-layout-file", name]).unwrap();
+
+    //Verify file content
+    let mut content = String::new();
+    let mut data_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    data_path.push(name);
+    assert!(data_path.exists());
+    let mut f = File::open(&data_path).expect("file named 'got.json' should have been generated");
+    let _ = f.read_to_string(&mut content).unwrap();
+
+    // Testing to see if the file contains the function name. Snapshots are not used here because the ordering changes upon each compilation
+    assert!(content.contains("myfunc"));
+
+    // clean up
+    let _foo = fs::remove_file(data_path);
+}

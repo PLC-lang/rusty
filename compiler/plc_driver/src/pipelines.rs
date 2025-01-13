@@ -297,7 +297,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             let context = CodegenContext::create();
             self.generate(&context, annotated_project)?;
         }
-        
+
         Ok(())
     }
 
@@ -340,6 +340,12 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             log::debug!("No compile options provided");
             return Ok(());
         };
+        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            read_got_layout(file_name, *format)?
+        } else {
+            HashMap::default()
+        };
+        let got_layout = Mutex::new(got_layout);
         if compile_options.single_module || matches!(compile_options.output_format, FormatOption::Object) {
             log::info!("Using single module mode");
             let context = CodegenContext::create();
@@ -350,13 +356,6 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                 })
                 .unwrap_or(Ok(()))?;
         } else {
-            let got_layout =
-                if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-                    read_got_layout(file_name, *format)?
-                } else {
-                    HashMap::default()
-                };
-            let got_layout = Mutex::new(got_layout);
             let _ = project
                 .units
                 .par_iter()
@@ -373,9 +372,9 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                     self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
                 })
                 .collect::<Result<Vec<_>, Diagnostic>>()?;
-                if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-                    write_got_layout(got_layout.into_inner().unwrap(), file_name, *format)?;
-                }
+        }
+        if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
+            write_got_layout(got_layout.into_inner().unwrap(), file_name, *format)?;
         }
         self.participants
             .iter()
