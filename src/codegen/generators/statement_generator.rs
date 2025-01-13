@@ -263,11 +263,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 &for_stmt.by_step,
                 &for_stmt.body,
             ),
-            AstControlStatement::WhileLoop(stmt) => {
-                self.generate_while_statement(llvm_index, &stmt.condition, &stmt.body)
-            }
-            AstControlStatement::RepeatLoop(stmt) => {
-                self.generate_repeat_statement(llvm_index, &stmt.condition, &stmt.body)
+            AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt)=> {
+                self.generate_loop_statement(llvm_index, &stmt.condition, &stmt.body)
             }
             AstControlStatement::Case(stmt) => {
                 self.generate_case_statement(llvm_index, &stmt.selector, &stmt.case_blocks, &stmt.else_block)
@@ -644,7 +641,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ///
     /// - `condition` the while's condition
     /// - `body` the while's body statements
-    fn generate_while_statement(
+    fn generate_loop_statement(
         &self,
         llvm_index: &'a LlvmTypedIndex<'b>,
         condition: &AstNode,
@@ -658,41 +655,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         builder.position_at_end(basic_block);
         builder.build_unconditional_branch(condition_block);
-
-        builder.position_at_end(continue_block);
-        Ok(())
-    }
-
-    /// generates a repeat statement
-    ///
-    ///
-    /// REPEAT
-    ///     body
-    /// UNTIL condition END_REPEAT;
-    ///
-    /// - `condition` the repeat's condition
-    /// - `body` the repeat's body statements
-    fn generate_repeat_statement(
-        &self,
-        llvm_index: &'a LlvmTypedIndex<'b>,
-        condition: &AstNode,
-        body: &[AstNode],
-    ) -> Result<(), Diagnostic> {
-        let builder = &self.llvm.builder;
-        let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-
-        // for REPEAT .. UNTIL blocks, the abort condition logic needs to be inverted to be correct
-        let condition = AstFactory::create_not_expression(
-            condition.clone(),
-            condition.get_location(),
-            condition.get_id(),
-        );
-        let (_, while_block) = self.generate_base_while_statement(llvm_index, &condition, body)?;
-
-        let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-
-        builder.position_at_end(basic_block);
-        builder.build_unconditional_branch(while_block);
 
         builder.position_at_end(continue_block);
         Ok(())

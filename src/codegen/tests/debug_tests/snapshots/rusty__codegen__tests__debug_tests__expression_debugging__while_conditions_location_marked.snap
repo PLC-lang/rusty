@@ -12,21 +12,31 @@ entry:
   store i32 0, i32* %myFunc, align 4, !dbg !9
   br label %condition_check, !dbg !13
 
-condition_check:                                  ; preds = %entry, %while_body
+condition_check:                                  ; preds = %entry, %continue1
+  br i1 true, label %while_body, label %continue, !dbg !14
+
+while_body:                                       ; preds = %condition_check
   %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !14
   %tmpVar = icmp sgt i32 %load_myFunc, 1, !dbg !14
   %0 = zext i1 %tmpVar to i8, !dbg !14
   %1 = icmp ne i8 %0, 0, !dbg !14
-  br i1 %1, label %while_body, label %continue, !dbg !14
+  %tmpVar2 = xor i1 %1, true, !dbg !14
+  br i1 %tmpVar2, label %condition_body, label %continue1, !dbg !14
 
-while_body:                                       ; preds = %condition_check
-  store i32 1, i32* %myFunc, align 4, !dbg !13
-  br label %condition_check, !dbg !13
-
-continue:                                         ; preds = %condition_check
+continue:                                         ; preds = %condition_body, %condition_check
   store i32 1, i32* %myFunc, align 4, !dbg !15
   %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !15
   ret i32 %myFunc_ret, !dbg !15
+
+condition_body:                                   ; preds = %while_body
+  br label %continue, !dbg !14
+
+buffer_block:                                     ; No predecessors!
+  br label %continue1, !dbg !14
+
+continue1:                                        ; preds = %buffer_block, %while_body
+  store i32 1, i32* %myFunc, align 4, !dbg !13
+  br label %condition_check, !dbg !13
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn

@@ -1,6 +1,5 @@
 ---
 source: src/lowering/calls.rs
-assertion_line: 1041
 expression: "index.find_pou_type(\"MID__STRING\").unwrap()"
 ---
 DataType {

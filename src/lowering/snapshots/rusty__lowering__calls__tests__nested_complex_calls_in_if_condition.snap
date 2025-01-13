@@ -11,14 +11,14 @@ Implementation {
         ExpressionList {
             expressions: [
                 Allocation {
-                    name: "__MID__STRING0",
+                    name: "__MID0",
                     reference_type: "STRING",
                 },
                 CallStatement {
                     operator: ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "MID__STRING",
+                                name: "MID",
                             },
                         ),
                         base: None,
@@ -29,7 +29,7 @@ Implementation {
                                 ReferenceExpr {
                                     kind: Member(
                                         Identifier {
-                                            name: "__MID__STRING0",
+                                            name: "__MID0",
                                         },
                                     ),
                                     base: None,
@@ -85,7 +85,7 @@ Implementation {
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__MID__STRING0",
+                                                            name: "__MID0",
                                                         },
                                                     ),
                                                     base: None,

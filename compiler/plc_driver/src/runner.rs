@@ -54,6 +54,7 @@ pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> Ge
     let project = pipeline.parse().unwrap();
     let project = pipeline.index(project).unwrap();
     let project = pipeline.annotate(project).unwrap();
+    dbg!(&project.units);
 
     // let parsed_project = ParsedProject::parse(&ctxt, &project, &mut diagnostician).unwrap();
     // let indexed_project = parsed_project

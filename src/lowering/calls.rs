@@ -2,7 +2,7 @@
 //! to make them VAR_IN_OUT calls, allowing them
 //! to be called from C_APIs and simplifying code generation
 
-use std::{borrow::BorrowMut, sync::atomic::AtomicI32};
+use std::{borrow::BorrowMut, collections::VecDeque, sync::atomic::AtomicI32};
 
 use plc_ast::{
     ast::{
@@ -44,9 +44,7 @@ pub struct AggregateTypeLowerer {
     pub annotation: Option<Box<dyn AnnotationMap>>,
     pub id_provider: IdProvider,
     // New statements to be added during visit, should always be drained when read
-    new_stmts: Vec<AstNode>,
-    // New statements to be added to the outer scope, i.e. when lowering a conditional block
-    outer_scope_stmts: Vec<AstNode>,
+    new_stmts: Vec<Vec<AstNode>>,
     counter: AtomicI32,
     ctx: VisitorContext,
 }
@@ -65,6 +63,7 @@ impl AggregateTypeLowerer {
     }
 
     fn steal_and_walk_list(&mut self, list: &mut Vec<AstNode>) {
+        //Enter new scope
         let mut new_stmts = vec![];
         for stmt in list.drain(..) {
             new_stmts.push(self.map(stmt));
@@ -74,64 +73,59 @@ impl AggregateTypeLowerer {
 
     fn walk_conditional_blocks(&mut self, blocks: &mut Vec<ConditionalBlock>) {
         for b in blocks {
-            if self.ctx.is_switch_case {
-                b.condition.walk(self);
-            } else {
-                let condition = std::mem::take(b.condition.as_mut());
-                let mut processed_nodes = Box::new(self.map(condition));
-                if let Some(expressions) = try_from_mut!(processed_nodes, Vec<AstNode>) {
-                    b.condition = Box::new(expressions.pop().expect("Should have at least one expression"));
-                    let expressions = std::mem::take(expressions);
-                    self.outer_scope_stmts.extend(expressions);
-                } else {
-                    b.condition = processed_nodes;
-                }
-            }
+            b.condition.walk(self);
+            // if self.ctx.is_switch_case {
+            //     b.condition.walk(self);
+            // } else {
+            //     let condition = std::mem::take(b.condition.as_mut());
+            //     let mut processed_nodes = Box::new(self.map(condition));
+            //     if let Some(expressions) = try_from_mut!(processed_nodes, Vec<AstNode>) {
+            //         b.condition = Box::new(expressions.pop().expect("Should have at least one expression"));
+            //         let expressions = std::mem::take(expressions);
+            //         self.outer_scope_stmts.extend(expressions);
+            //     } else {
+            //         b.condition = processed_nodes;
+            //     }
+            // }
             self.steal_and_walk_list(&mut b.body);
         }
     }
 
+
     fn visit_loop_statement(&mut self, stmt: &mut LoopStatement) {
         let location = stmt.condition.get_location();
-        let condition = std::mem::take(stmt.condition.as_mut());
-        let mut processed_nodes = self.map(condition);
-        self.steal_and_walk_list(&mut stmt.body);
-        let mut new_stmts = vec![];
-        let condition = if let Some(expressions) = try_from_mut!(processed_nodes, Vec<AstNode>) {
-            let condition = expressions.pop().expect("Should have at least one expression");
-            let expressions = std::mem::take(expressions);
-            new_stmts.extend(expressions);
-            condition
-        } else {
-            processed_nodes
-        };
-        stmt.condition = Box::new(AstFactory::create_literal(
-            plc_ast::literals::AstLiteral::Bool(true),
-            location.clone(),
-            self.id_provider.next_id(),
-        ));
-        let break_stmt = AstFactory::create_exit_statement(location.clone(), self.id_provider.next_id());
-        let exit_condition = AstFactory::create_if_statement(
-            vec![ConditionalBlock {
-                condition: Box::new(AstFactory::create_not_expression(
-                    condition,
+        let mut condition = std::mem::replace(stmt.condition.as_mut(),
+        AstFactory::create_literal(
+                    plc_ast::literals::AstLiteral::Bool(true),
                     location.clone(),
                     self.id_provider.next_id(),
-                )),
+        ));
+        if !self.ctx.is_do_while {
+            condition = AstFactory::create_not_expression(
+                        condition,
+                        location.clone(),
+                        self.id_provider.next_id(),
+                    );
+        }
+        //wrap in if statement
+        let break_stmt = AstFactory::create_exit_statement(location.clone(), self.id_provider.next_id());
+        let if_condition = AstFactory::create_if_statement(
+            vec![ConditionalBlock {
+                condition: Box::new(condition),
                 body: vec![break_stmt],
             }],
             vec![],
             location.clone(),
             self.id_provider.next_id(),
         );
-        new_stmts.push(exit_condition);
-        let new_stmts = AstFactory::create_expression_list(new_stmts, location, self.id_provider.next_id());
-
+        //Insert the if statement at the start or end of the body
         if self.ctx.is_do_while {
-            stmt.body.push(new_stmts);
+            stmt.body.push(if_condition);
         } else {
-            stmt.body.insert(0, new_stmts);
+            stmt.body.insert(0, if_condition);
         }
+
+        self.steal_and_walk_list(&mut stmt.body);
     }
 
     fn walk_with_context<T>(&mut self, t: &mut T, ctx: VisitorContext, f: impl Fn(&mut Self, &mut T))
@@ -142,6 +136,26 @@ impl AggregateTypeLowerer {
         self.ctx = ctx;
         f(self, t);
         self.ctx = old;
+    }
+
+    fn push_statement(&mut self, stmt: AstNode) {
+        if let Some(stmts) = self.new_stmts.last_mut() {
+            stmts.push(stmt);
+        } else {
+            unreachable!("Statement lists should exist at this point");
+        }
+    }
+
+    fn peek(&mut self) -> &[AstNode] {
+        self.new_stmts.last().map(|it| it.as_slice()).unwrap_or(&[])
+    }
+
+    fn enter_scope(&mut self) {
+        self.new_stmts.push(vec![]);
+    }
+
+    fn exit_scope(&mut self) -> Option<Vec<AstNode>> {
+        self.new_stmts.pop()
     }
 }
 
@@ -206,8 +220,9 @@ impl AstVisitorMut for AggregateTypeLowerer {
     }
 
     fn map(&mut self, mut node: AstNode) -> AstNode {
+        self.enter_scope();
         node.borrow_mut().walk(self);
-        let mut new_stmts = std::mem::take(&mut self.new_stmts);
+        let mut new_stmts = self.exit_scope().unwrap_or_default();
         if new_stmts.is_empty() {
             node
         } else {
@@ -235,14 +250,14 @@ impl AstVisitorMut for AggregateTypeLowerer {
             qualified_name,
             return_type: return_type_name,
             call_name,
-        }) = annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator))
+        }) = annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator)).cloned()
         else {
             return;
         };
         //If there's a call name in the function, it is a generic and needs to be replaced.
         //HACK: this is because we don't lower generics
-        let function_entry = index.find_pou(qualified_name).expect("Function not found");
-        let return_type = index.get_effective_type_or_void_by_name(return_type_name);
+        let function_entry = index.find_pou(&qualified_name).expect("Function not found");
+        let return_type = index.get_effective_type_or_void_by_name(&return_type_name);
         //TODO: needs to be on the function
         if return_type.is_aggregate_type() && !function_entry.is_buitin() {
             //TODO: use qualified name
@@ -260,7 +275,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 id: self.id_provider.next_id(),
                 location: original_location.clone(),
             };
-            self.new_stmts.push(alloca);
+            self.push_statement(alloca);
             let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
             let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
             let reference = super::create_member_reference_with_location(
@@ -275,7 +290,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
 
             parameters.insert(0, reference);
 
-            if let Some(call_name) = call_name {
+            if let Some(call_name) = &call_name {
                 //If there's a call name, we need to replace the operator with a member reference
                 stmt.operator = Box::new(AstFactory::create_member_reference(
                     AstFactory::create_identifier(
@@ -296,7 +311,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 original_location,
             );
             std::mem::swap(node.get_stmt_mut(), reference.get_stmt_mut());
-            self.new_stmts.push(reference);
+            self.push_statement(reference);
         }
     }
 
@@ -336,12 +351,13 @@ impl AstVisitorMut for AggregateTypeLowerer {
             }
         }
 
-        if !self.outer_scope_stmts.is_empty() {
-            let mut new_stmts = std::mem::take(&mut self.outer_scope_stmts);
-            let location = node.get_location();
-            new_stmts.push(std::mem::take(node));
-            *node = AstFactory::create_expression_list(new_stmts, location, self.id_provider.next_id());
-        }
+        //TOOD: add new statements to the end of the block
+        // if !self.outer_scope_stmts.is_empty() {
+        //     let mut new_stmts = std::mem::take(&mut self.outer_scope_stmts);
+        //     let location = node.get_location();
+        //     new_stmts.push(std::mem::take(node));
+        //     *node = AstFactory::create_expression_list(new_stmts, location, self.id_provider.next_id());
+        // }
     }
 }
 

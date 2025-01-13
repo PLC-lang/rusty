@@ -12,16 +12,25 @@ entry:
   store i32 0, i32* %myFunc, align 4, !dbg !9
   br label %condition_check, !dbg !13
 
-condition_check:                                  ; preds = %entry, %while_body
+condition_check:                                  ; preds = %entry, %continue1
   br i1 true, label %while_body, label %continue, !dbg !13
 
 while_body:                                       ; preds = %condition_check
-  br label %condition_check, !dbg !13
+  br i1 false, label %condition_body, label %continue1, !dbg !13
 
-continue:                                         ; preds = %condition_check
+continue:                                         ; preds = %condition_body, %condition_check
   store i32 1, i32* %myFunc, align 4, !dbg !14
   %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !14
   ret i32 %myFunc_ret, !dbg !14
+
+condition_body:                                   ; preds = %while_body
+  br label %continue, !dbg !13
+
+buffer_block:                                     ; No predecessors!
+  br label %continue1, !dbg !13
+
+continue1:                                        ; preds = %buffer_block, %while_body
+  br label %condition_check, !dbg !13
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
