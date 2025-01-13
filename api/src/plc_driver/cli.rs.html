@@ -959,8 +959,7 @@
 <a href="#958" id="958">958</a>
 <a href="#959" id="959">959</a>
 <a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
-<a href="#962" id="962">962</a></pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
+<a href="#961" id="961">961</a></pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>clap::{ArgGroup, Parser, Subcommand};
 <span class="kw">use </span>encoding_rs::Encoding;
@@ -1100,9 +1099,7 @@
     Supported formats : json, toml"</span>,
         default_value = DEFAULT_GOT_LAYOUT_FILE,
         parse(try_from_str = validate_config),
-        <span class="comment">// FIXME: For some reason, this does not work at the moment but it really should
-        // The binary behaves as expected but the tests fail
-        // requires = "online-change"
+        requires = <span class="string">"online-change"
     </span>) ]
     </span><span class="kw">pub </span>got_layout_file: String,
 
@@ -1201,7 +1198,8 @@
 
     <span class="attr">#[clap(
         long,
-        help = <span class="string">"Emit a binary with specific compilation information, suitable for online changes when ran under a conforming runtime"
+        help = <span class="string">"Emit a binary with specific compilation information, suitable for online changes when ran under a conforming runtime"</span>,
+        global = <span class="bool-val">true
     </span>)]
     </span><span class="kw">pub </span>online_change: bool,
 
