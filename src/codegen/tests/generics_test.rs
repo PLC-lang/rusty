@@ -165,3 +165,37 @@ fn any_real_function_called_with_ints() {
     //Expecting to REAL/LREAL conversion for every call
     insta::assert_snapshot!(codegen(src));
 }
+
+#[test]
+fn generic_function_with_aggregate_return() {
+    let src = r#"
+    FUNCTION TO_STRING <T: ANY_STRING> : STRING[1024]
+        VAR_INPUT {ref}
+            in : T;
+        END_VAR
+    END_VAR
+
+    FUNCTION TO_STRING__WSTRING : STRING[1024]
+        VAR_INPUT {ref}
+            in : WSTRING;
+        END_VAR
+
+        WSTRING_TO_STRING_EXT(in, TO_STRING__WSTRING);
+    END_FUNCTION
+
+    FUNCTION WSTRING_TO_STRING_EXT : STRING[1024]
+        VAR_INPUT {ref}
+            in : WSTRING;
+        END_VAR
+        VAR_IN_OUT
+            out : STRING[1024];
+        END_VAR
+    END_FUNCTION
+
+    FUNCTION main
+        TO_STRING(WSTRING#"Hello");
+    END_FUNCTION
+
+    "#;
+    insta::assert_snapshot!(codegen(src));
+}

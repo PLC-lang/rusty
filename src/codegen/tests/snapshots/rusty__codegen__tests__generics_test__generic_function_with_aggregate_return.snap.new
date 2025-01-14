@@ -1,0 +1,47 @@
+---
+source: src/codegen/tests/generics_test.rs
+assertion_line: 200
+expression: codegen(src)
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+
+@utf16_literal_0 = private unnamed_addr constant [6 x i16] [i16 72, i16 101, i16 108, i16 108, i16 111, i16 0]
+
+define void @WSTRING_TO_STRING_EXT(i8* %0, i16* %1, i8* %2) {
+entry:
+  %WSTRING_TO_STRING_EXT = alloca i8*, align 8
+  store i8* %0, i8** %WSTRING_TO_STRING_EXT, align 8
+  %in = alloca i16*, align 8
+  store i16* %1, i16** %in, align 8
+  %out = alloca i8*, align 8
+  store i8* %2, i8** %out, align 8
+  ret void
+}
+
+define void @main() {
+entry:
+  %__TO_STRING0 = alloca [1025 x i8], align 1
+  %0 = bitcast [1025 x i8]* %__TO_STRING0 to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([1025 x i8]* getelementptr ([1025 x i8], [1025 x i8]* null, i32 1) to i64), i1 false)
+  %1 = bitcast [1025 x i8]* %__TO_STRING0 to i8*
+  call void @TO_STRING__WSTRING(i8* %1, i16* getelementptr inbounds ([6 x i16], [6 x i16]* @utf16_literal_0, i32 0, i32 0))
+  %load___TO_STRING0 = load [1025 x i8], [1025 x i8]* %__TO_STRING0, align 1
+  ret void
+}
+
+declare void @TO_STRING__WSTRING(i8*, i16*)
+
+; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+; ModuleID = '__init___testproject'
+source_filename = "__init___testproject"
+
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+define void @__init___testproject() {
+entry:
+  ret void
+}
