@@ -173,8 +173,9 @@ fn generic_function_with_aggregate_return() {
         VAR_INPUT {ref}
             in : T;
         END_VAR
-    END_VAR
+    END_FUNCTION
 
+    {external}
     FUNCTION TO_STRING__WSTRING : STRING[1024]
         VAR_INPUT {ref}
             in : WSTRING;
@@ -183,7 +184,8 @@ fn generic_function_with_aggregate_return() {
         WSTRING_TO_STRING_EXT(in, TO_STRING__WSTRING);
     END_FUNCTION
 
-    FUNCTION WSTRING_TO_STRING_EXT : STRING[1024]
+    {external}
+    FUNCTION WSTRING_TO_STRING_EXT : DINT
         VAR_INPUT {ref}
             in : WSTRING;
         END_VAR
