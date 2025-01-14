@@ -1134,6 +1134,7 @@ fn pou_expressions_resolve_types() {
         Some(&StatementAnnotation::Function {
             qualified_name: "OtherFunc".into(),
             return_type: "INT".into(),
+            generic_name: None,
             call_name: None,
         }),
         annotations.get(&statements[1])
@@ -1295,6 +1296,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
         Some(&StatementAnnotation::Function {
             qualified_name: "foo".into(),
             return_type: "INT".into(),
+            generic_name: None,
             call_name: None,
         }),
         foo_annotation
@@ -1354,6 +1356,7 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
         Some(&StatementAnnotation::Function {
             return_type: "INT".into(),
             qualified_name: "foo".into(),
+            generic_name: None,
             call_name: None
         }),
         annotations.get(operator)
@@ -1616,6 +1619,7 @@ fn function_parameter_assignments_resolve_types() {
             Some(&StatementAnnotation::Function {
                 qualified_name: "foo".into(),
                 return_type: "MyType".into(),
+            generic_name: None,
                 call_name: None,
             })
         );
@@ -1823,6 +1827,7 @@ fn method_references_are_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".into(),
                 qualified_name: "cls.foo".into(),
+            generic_name: None,
                 call_name: None,
             }),
             annotations.get(operator)
@@ -3614,6 +3619,7 @@ fn resolve_recursive_function_call() {
         Some(&StatementAnnotation::Function {
             return_type: "DINT".into(),
             qualified_name: "foo".into(),
+            generic_name: None,
             call_name: None
         }),
         type_map.get(&data.operator.get_id())
@@ -5027,6 +5033,7 @@ fn override_is_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".to_string(),
                 qualified_name: "cls2.foo".to_string(),
+            generic_name: None,
                 call_name: None,
             }),
             annotations.get(operator)
@@ -5038,6 +5045,7 @@ fn override_is_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".to_string(),
                 qualified_name: "cls.bar".to_string(),
+            generic_name: None,
                 call_name: None,
             }),
             annotations.get(operator)
@@ -5086,6 +5094,7 @@ fn override_in_grandparent_is_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".to_string(),
                 qualified_name: "cls2.foo".to_string(),
+            generic_name: None,
                 call_name: None,
             }),
             annotations.get(operator)
@@ -5097,6 +5106,7 @@ fn override_in_grandparent_is_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".to_string(),
                 qualified_name: "cls.bar".to_string(),
+            generic_name: None,
                 call_name: None,
             }),
             annotations.get(operator)

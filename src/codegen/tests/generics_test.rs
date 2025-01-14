@@ -180,18 +180,6 @@ fn generic_function_with_aggregate_return() {
         VAR_INPUT {ref}
             in : WSTRING;
         END_VAR
-
-        WSTRING_TO_STRING_EXT(in, TO_STRING__WSTRING);
-    END_FUNCTION
-
-    {external}
-    FUNCTION WSTRING_TO_STRING_EXT : DINT
-        VAR_INPUT {ref}
-            in : WSTRING;
-        END_VAR
-        VAR_IN_OUT
-            out : STRING[1024];
-        END_VAR
     END_FUNCTION
 
     FUNCTION main

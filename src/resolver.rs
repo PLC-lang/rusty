@@ -157,7 +157,7 @@ pub struct TypeAnnotator<'i> {
 impl TypeAnnotator<'_> {
     pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         match &annotation {
-            StatementAnnotation::Function { return_type, qualified_name, call_name } => {
+            StatementAnnotation::Function { return_type, qualified_name, call_name, .. } => {
                 let name = call_name.as_ref().unwrap_or(qualified_name);
                 self.dependencies.insert(Dependency::Call(name.to_string()));
                 self.dependencies.extend(self.get_datatype_dependencies(name, FxIndexSet::default()));
@@ -296,25 +296,7 @@ impl TypeAnnotator<'_> {
         let implementation = self.index.find_implementation_by_name(operator_qualifier);
         let operator_qualifier =
             implementation.map(|it| it.get_type_name()).unwrap_or(operator_qualifier);
-        //hack: if target function is generic, and its return is aggegate skip the first declared parameter
-        let skip = if implementation.is_some_and(|it| it.is_generic()) {
-            if let Some(pou) = self.index.find_pou(operator_qualifier) {
-                if let Some(return_type) = pou.get_return_type() {
-                    if self.index.get_type_information_or_void(return_type).is_aggregate() {
-                        1
-                    } else {
-                        0
-                    }
-                } else {
-                    0
-                }
-            } else {
-                0
-            }
-        } else {
-            0
-        };
-        for m in self.index.get_declared_parameters(operator_qualifier).into_iter().skip(skip) {
+        for m in self.index.get_declared_parameters(operator_qualifier).into_iter() {
             if let Some(p) = parameters.next() {
                 let type_name = m.get_type_name();
                 if let Some((key, candidate)) =
@@ -456,6 +438,8 @@ pub enum StatementAnnotation {
         return_type: String,
         /// The defined qualified name of the function
         qualified_name: String,
+        /// Original name before generic resolution
+        generic_name: Option<String>,
         /// The call name of the function iff it differs from the qualified name (generics)
         call_name: Option<String>,
     },
@@ -520,6 +504,7 @@ impl From<&PouIndexEntry> for StatementAnnotation {
             PouIndexEntry::Function { name, return_type, .. } => StatementAnnotation::Function {
                 return_type: return_type.to_string(),
                 qualified_name: name.to_string(),
+                generic_name: None,
                 call_name: None,
             },
             PouIndexEntry::Class { name, .. } => {
@@ -528,6 +513,7 @@ impl From<&PouIndexEntry> for StatementAnnotation {
             PouIndexEntry::Method { name, return_type, .. } => StatementAnnotation::Function {
                 return_type: return_type.to_string(),
                 qualified_name: name.to_string(),
+                generic_name: None,
                 call_name: None,
             },
             PouIndexEntry::Action { name, .. } => {
@@ -2028,6 +2014,7 @@ fn to_pou_annotation(p: &PouIndexEntry, index: &Index) -> Option<StatementAnnota
         PouIndexEntry::Function { name, return_type, .. } => Some(StatementAnnotation::Function {
             return_type: return_type.into(),
             qualified_name: name.into(),
+            generic_name: None,
             call_name: None,
         }),
         PouIndexEntry::FunctionBlock { name, .. } => {

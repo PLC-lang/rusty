@@ -169,8 +169,8 @@ impl AstVisitorMut for AggregateTypeLowerer {
     }
     // Change the signature for functions/methods with aggregate returns
     fn visit_pou(&mut self, pou: &mut Pou) {
-        if pou.is_aggregate() {
-            //Skip types that have already been made aggregate
+        if pou.is_aggregate() || pou.is_generic() {
+            //Skip types that have already been made aggregate or are generics
             return;
         }
         let index = self.index.as_ref().expect("Can't get here without an index");
@@ -249,7 +249,8 @@ impl AstVisitorMut for AggregateTypeLowerer {
         let Some(crate::resolver::StatementAnnotation::Function {
             qualified_name,
             return_type: return_type_name,
-            call_name,
+            generic_name,
+            ..
         }) = annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator)).cloned()
         else {
             return;
@@ -258,6 +259,9 @@ impl AstVisitorMut for AggregateTypeLowerer {
         //HACK: this is because we don't lower generics
         let function_entry = index.find_pou(&qualified_name).expect("Function not found");
         let return_type = index.get_effective_type_or_void_by_name(&return_type_name);
+
+        let generic_function = generic_name.as_deref().and_then(|it| index.find_pou(it));
+        let is_generic_function = generic_function.is_some_and(|it| it.is_generic());
         //TODO: needs to be on the function
         if return_type.is_aggregate_type() && !function_entry.is_buitin() {
             //TODO: use qualified name
@@ -290,11 +294,11 @@ impl AstVisitorMut for AggregateTypeLowerer {
 
             parameters.insert(0, reference);
 
-            if let Some(call_name) = &call_name {
-                //If there's a call name, we need to replace the operator with a member reference
+            if is_generic_function {
+                //For generic functions, we need to replace the generic name with the function name
                 stmt.operator = Box::new(AstFactory::create_member_reference(
                     AstFactory::create_identifier(
-                        call_name,
+                        &qualified_name,
                         stmt.operator.get_location(),
                         self.id_provider.next_id(),
                     ),

@@ -16,6 +16,7 @@ use crate::{
 
 use super::{AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext};
 
+#[derive(Debug)]
 pub struct GenericType {
     // this is the derived type used for the generic call
     derived_type: String,
@@ -123,15 +124,10 @@ impl TypeAnnotator<'_> {
                 // Adjust annotations on the inner statement
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(&ctx, s);
-                    let is_aggr_return =
-                        return_type_name.is_some_and(|it| {
-                            self.index.get_effective_type_or_void_by_name(&it).is_aggregate_type()
-                        }) && self.index.find_pou(implementation_name).is_some_and(|it| !it.is_buitin());
                     self.update_generic_function_parameters(
                         s,
                         implementation_name,
                         generic_map,
-                        is_aggr_return,
                     );
                 }
             }
@@ -272,7 +268,6 @@ impl TypeAnnotator<'_> {
         s: &AstNode,
         function_name: &str,
         generic_map: &FxHashMap<String, GenericType>,
-        is_aggregrate_return: bool, // FIXME: 🤮 (this is a bandaid fix for generics with aggregate returns until we introduce monomorphization)
     ) {
         /// An internal struct used to hold the type and nature of a generic parameter
         struct TypeAndNature<'a> {
@@ -284,12 +279,11 @@ impl TypeAnnotator<'_> {
         // separate variadic and non variadic parameters
         let mut passed_parameters = Vec::new();
         let mut variadic_parameters = Vec::new();
-        let skip = if is_aggregrate_return { 1 } else { 0 };
-        for (i, p) in flatten_expression_list(s).iter().enumerate().skip(skip) {
+        for (i, p) in flatten_expression_list(s).iter().enumerate() {
             if let Ok((location_in_parent, passed_parameter, ..)) =
                 get_implicit_call_parameter(p, &declared_parameters, i)
             {
-                if let Some(declared_parameter) = declared_parameters.get(location_in_parent - skip) {
+                if let Some(declared_parameter) = declared_parameters.get(location_in_parent) {
                     passed_parameters.push((*p, passed_parameter, *declared_parameter));
                 } else {
                     // variadic parameters are not included in declared_parameters
@@ -370,6 +364,18 @@ impl TypeAnnotator<'_> {
             .find_pou(&call_name)
             .filter(|it| !it.is_generic())
             .map(StatementAnnotation::from)
+            .map(|it| {
+                if let StatementAnnotation::Function { return_type, qualified_name, call_name  , ..} = it {
+                    StatementAnnotation::Function {
+                        return_type,
+                        qualified_name,
+                        generic_name: Some(generic_qualified_name.to_string()),
+                        call_name,
+                    }
+                } else {
+                    it
+                }
+            })
             .unwrap_or_else(|| {
                 let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
                     self.index.get_type_information_or_void(generic_return_type)
@@ -385,6 +391,7 @@ impl TypeAnnotator<'_> {
                 StatementAnnotation::Function {
                     qualified_name: generic_qualified_name.to_string(),
                     return_type,
+                    generic_name: Some(generic_qualified_name.to_string()),
                     call_name: Some(call_name.clone()),
                 }
             });

@@ -18,7 +18,7 @@ Implementation {
                     operator: ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "MID",
+                                name: "MID__STRING",
                             },
                         ),
                         base: None,

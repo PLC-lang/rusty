@@ -9,7 +9,7 @@ use crate::{
     resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate_and_lower_with_ids, annotate_with_ids, index_and_lower, index_with_ids},
     typesystem::{
-        DataTypeInformation, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE,
+        DataTypeInformation, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, WSTRING_TYPE,
     },
 };
 
@@ -868,6 +868,7 @@ fn generic_string_functions_are_annotated_correctly() {
         &StatementAnnotation::Function {
             return_type: "STRING".to_string(),
             qualified_name: "foo__STRING".to_string(),
+            generic_name: Some("foo".to_string()),
             call_name: None,
         }
     );
@@ -912,6 +913,7 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
                 &StatementAnnotation::Function {
                     return_type: "DINT".to_string(),
                     qualified_name: "LEN".to_string(),
+                    generic_name: Some("LEN".to_string()),
                     call_name: Some("LEN__STRING".to_owned(),),
                 }
             );
@@ -987,6 +989,7 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
         &StatementAnnotation::Function {
             return_type: "__foo__STRING_return".to_string(),
             qualified_name: "foo__STRING".to_string(),
+            generic_name: Some("foo".to_string()),
             call_name: None,
         }
     );
@@ -1026,6 +1029,7 @@ fn generic_return_type_name_resolved_correctly() {
         &StatementAnnotation::Function {
             return_type: "DINT".to_string(),
             qualified_name: "foo".to_string(),
+            generic_name: Some("foo".to_string()),
             call_name: Some("foo__DINT".to_string()),
         }
     );
@@ -1059,11 +1063,14 @@ fn literal_string_as_parameter_resolves_correctly() {
     } = statement
     {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-        assert_type_and_hint!(&annotations, &index, parameters[1], "__STRING_54", Some(STRING_TYPE));
+        assert_type_and_hint!(&annotations, &index, parameters[1], "__STRING_54", None);
         insta::assert_debug_snapshot!(annotations.get(operator).unwrap(), @r#"
         Function {
             return_type: "STRING",
             qualified_name: "foo__STRING",
+            generic_name: Some(
+                "foo",
+            ),
             call_name: None,
         }
         "#);
@@ -1142,7 +1149,6 @@ VAR
 	pos: INT := 1;
 END_VAR
         MID(CLEAN, 1, pos);
-        // MID(s := CLEAN, pos := 1, len := pos);
 END_FUNCTION
 
 FUNCTION MID <T: ANY_STRING> : T
@@ -1163,6 +1169,45 @@ END_FUNCTION
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, parameters[2], DINT_TYPE, Some(DINT_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[3], INT_TYPE, Some(DINT_TYPE));
+    } else {
+        unreachable!("This should always be a call statement.")
+    }
+}
+
+#[test]
+fn generic_function_with_aggregate_return() {
+    let id_provider = IdProvider::default();
+    let (unit, index, _) = index_and_lower(
+        r#"
+    FUNCTION TO_STRING <T: ANY_STRING> : STRING[1024]
+        VAR_INPUT {ref}
+            in : T;
+        END_VAR
+    END_FUNCTION
+
+    {external}
+    FUNCTION TO_STRING__WSTRING : STRING[1024]
+        VAR_INPUT {ref}
+            in : WSTRING;
+        END_VAR
+    END_FUNCTION
+
+    FUNCTION main
+        TO_STRING(WSTRING#"Hello");
+    END_FUNCTION
+
+    "#,
+        id_provider.clone(),
+    );
+
+    let (annotations , index, units)= annotate_and_lower_with_ids(unit, index, id_provider);
+    let call_statement =  flatten_expression_list(&units[0].0.implementations.last().unwrap().statements[0])[1];
+    if let AstStatement::CallStatement(CallStatement{operator, parameters, ..}) = call_statement.get_stmt() {
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, parameters[0], "__TO_STRING__WSTRING_return", Some("__auto_pointer_to___TO_STRING__WSTRING_return"));
+        assert_type_and_hint!(&annotations, &index, parameters[1], WSTRING_TYPE, Some("__auto_pointer_to_WSTRING"));
+        assert_eq!(annotations.get_call_name(operator).unwrap(), "TO_STRING__WSTRING");
+        assert_debug_snapshot!(annotations.get(operator).unwrap());
     } else {
         unreachable!("This should always be a call statement.")
     }

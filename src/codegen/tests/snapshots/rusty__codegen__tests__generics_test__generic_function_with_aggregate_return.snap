@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/generics_test.rs
-assertion_line: 200
 expression: codegen(src)
 ---
 ; ModuleID = '<internal>'
@@ -8,16 +7,7 @@ source_filename = "<internal>"
 
 @utf16_literal_0 = private unnamed_addr constant [6 x i16] [i16 72, i16 101, i16 108, i16 108, i16 111, i16 0]
 
-define void @WSTRING_TO_STRING_EXT(i8* %0, i16* %1, i8* %2) {
-entry:
-  %WSTRING_TO_STRING_EXT = alloca i8*, align 8
-  store i8* %0, i8** %WSTRING_TO_STRING_EXT, align 8
-  %in = alloca i16*, align 8
-  store i16* %1, i16** %in, align 8
-  %out = alloca i8*, align 8
-  store i8* %2, i8** %out, align 8
-  ret void
-}
+declare void @TO_STRING__WSTRING(i8*, i16*)
 
 define void @main() {
 entry:
@@ -29,8 +19,6 @@ entry:
   %load___TO_STRING0 = load [1025 x i8], [1025 x i8]* %__TO_STRING0, align 1
   ret void
 }
-
-declare void @TO_STRING__WSTRING(i8*, i16*)
 
 ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0

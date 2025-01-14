@@ -242,6 +242,10 @@ impl Pou {
     pub fn is_aggregate(&self) -> bool {
         matches!(self.return_type, Some(DataTypeDeclaration::Aggregate { .. }))
     }
+
+    pub fn is_generic(&self) -> bool {
+        !self.generics.is_empty()
+    }
 }
 
 #[derive(Debug, PartialEq)]

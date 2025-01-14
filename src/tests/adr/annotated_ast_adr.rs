@@ -117,6 +117,7 @@ fn different_types_of_annotations() {
         Some(&StatementAnnotation::Function {
             return_type: "DINT".into(),
             qualified_name: "foo".into(),
+            generic_name: None,
             call_name: None
         })
     );

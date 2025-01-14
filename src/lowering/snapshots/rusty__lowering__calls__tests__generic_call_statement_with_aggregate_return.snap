@@ -9,16 +9,16 @@ DataType {
         name: "MID__STRING",
         members: [
             VariableIndexEntry {
-                name: "MID",
-                qualified_name: "MID__STRING.MID",
+                name: "MID__STRING",
+                qualified_name: "MID__STRING.MID__STRING",
                 initial_value: None,
                 argument_type: ByRef(
                     InOut,
                 ),
                 is_constant: false,
                 is_var_external: false,
-                data_type_name: "__auto_pointer_to_STRING__STRING",
-                location_in_parent: 1,
+                data_type_name: "__auto_pointer_to_STRING",
+                location_in_parent: 0,
                 linkage: Internal,
                 binding: None,
                 source_location: SourceLocation {
@@ -46,7 +46,7 @@ DataType {
                 is_constant: false,
                 is_var_external: false,
                 data_type_name: "STRING",
-                location_in_parent: 2,
+                location_in_parent: 1,
                 linkage: Internal,
                 binding: None,
                 source_location: SourceLocation {
