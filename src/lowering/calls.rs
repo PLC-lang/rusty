@@ -233,7 +233,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
         let generic_function = generic_name.as_deref().and_then(|it| index.find_pou(it));
         let is_generic_function = generic_function.is_some_and(|it| it.is_generic());
         //TODO: needs to be on the function
-        if return_type.is_aggregate_type() && !function_entry.is_buitin() {
+        if return_type.is_aggregate_type() && !function_entry.is_builtin() {
             //TODO: use qualified name
             let name = format!(
                 "__{}{}",

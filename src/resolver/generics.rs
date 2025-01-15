@@ -112,7 +112,7 @@ impl TypeAnnotator<'_> {
                     }
                     // annotate the call-statement so it points to the new implementation
                     self.annotate(operator, annotation);
-                };
+                }
                 // Adjust annotations on the inner statement
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(&ctx, s);
@@ -172,20 +172,23 @@ impl TypeAnnotator<'_> {
                         //register the member under the new container (old: foo__T, new: foo__INT)
                         //with its new type-name (old: T, new: INT)
                         let mut entry = member.into_typed(new_name, &new_type_name);
-                        if return_type.is_aggregate_type() && !generic_function.is_buitin() {
-                            if member.is_return() {
-                                let data_type_name =
-                                    crate::index::indexer::pou_indexer::register_byref_pointer_type_for(
-                                        &mut self.annotation_map.new_index,
-                                        entry.get_type_name(),
-                                    );
-                                entry = member.into_typed(new_name, &data_type_name);
-                                entry.location_in_parent = 0;
-                                entry.argument_type = ArgumentType::ByRef(VariableType::InOut);
-                            } else {
-                                entry.location_in_parent += 1;
-                            }
+                        if !return_type.is_aggregate_type() {
+                            return entry;
                         }
+
+                        if member.is_return() && !generic_function.is_builtin() {
+                            let data_type_name =
+                                crate::index::indexer::pou_indexer::register_byref_pointer_type_for(
+                                    &mut self.annotation_map.new_index,
+                                    entry.get_type_name(),
+                                );
+                            entry = member.into_typed(new_name, &data_type_name);
+                            entry.location_in_parent = 0;
+                            entry.argument_type = ArgumentType::ByRef(VariableType::InOut);
+                        } else {
+                            entry.location_in_parent += 1;
+                        }
+
                         entry
                     })
                     .sorted_by(|a, b| a.location_in_parent.cmp(&b.location_in_parent))
@@ -352,18 +355,7 @@ impl TypeAnnotator<'_> {
             .find_pou(&call_name)
             .filter(|it| !it.is_generic())
             .map(StatementAnnotation::from)
-            .map(|it| {
-                if let StatementAnnotation::Function { return_type, qualified_name, call_name, .. } = it {
-                    StatementAnnotation::Function {
-                        return_type,
-                        qualified_name,
-                        generic_name: Some(generic_qualified_name.to_string()),
-                        call_name,
-                    }
-                } else {
-                    it
-                }
-            })
+            .map(|it| it.with_generic_name(generic_qualified_name)) 
             .unwrap_or_else(|| {
                 let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
                     self.index.get_type_information_or_void(generic_return_type)

@@ -54,9 +54,6 @@ mod tests;
 /// A wrapper around the LLVM context to allow passing it without exposing the inkwell dependencies
 pub struct CodegenContext(Context);
 
-unsafe impl Send for CodegenContext {}
-unsafe impl Sync for CodegenContext {}
-
 impl CodegenContext {
     pub fn create() -> Self {
         CodegenContext(Context::create())
@@ -88,12 +85,6 @@ pub struct GeneratedModule<'ink> {
     module: Module<'ink>,
     location: PathBuf,
     engine: RefCell<Option<ExecutionEngine<'ink>>>,
-}
-
-impl<'a> AsRef<GeneratedModule<'a>> for GeneratedModule<'a> {
-    fn as_ref(&self) -> &GeneratedModule<'a> {
-        self
-    }
 }
 
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;

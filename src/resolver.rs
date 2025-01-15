@@ -6,7 +6,7 @@
 //! records all resulting types associated with the statement's id.
 
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::{any::Any, collections::VecDeque, fmt::Debug, hash::Hash};
+use std::{any::Any, fmt::Debug, hash::Hash};
 
 use plc_ast::{
     ast::{
@@ -469,6 +469,23 @@ impl StatementAnnotation {
         StatementAnnotation::Value { resulting_type: type_name.into() }
     }
 
+    pub fn with_generic_name(self, generic_name: &str) -> Self {
+        match self {
+            StatementAnnotation::Function {
+                return_type,
+                qualified_name,
+                call_name,
+                ..
+            } => StatementAnnotation::Function {
+                return_type,
+                qualified_name,
+                generic_name: Some(generic_name.to_string()),
+                call_name,
+            },
+            _ => self,
+        }
+    }
+
     pub fn is_const(&self) -> bool {
         match self {
             StatementAnnotation::Variable { constant, .. } => *constant,
@@ -634,12 +651,6 @@ impl<T: AnnotationMap> ToAny for T {
         self
     }
 }
-
-// impl<T: 'static> ToAny for T {
-//     fn as_any(&mut self) -> &mut dyn Any {
-//         self
-//     }
-// }
 
 impl AstAnnotations {
     pub fn from_dyn(mut annotation_map: Box<dyn AnnotationMap>, bool_id: AstId) -> Self {
@@ -2087,7 +2098,7 @@ fn get_real_type_name_for(value: &str) -> &'static str {
 }
 
 #[derive(Clone, Debug)]
-struct Scopes(VecDeque<Scope>);
+struct Scopes(Vec<Scope>);
 
 impl Scopes {
     pub fn find_member<'idx>(
@@ -2100,25 +2111,25 @@ impl Scopes {
     }
 
     pub fn enter(&mut self, scope: Scope) {
-        self.0.push_back(scope)
+        self.0.push(scope)
     }
 
     //TODO: this is not accurate, we need to pop much more than the the top scope
     #[allow(dead_code)]
     pub fn exit(&mut self) -> Option<Scope> {
-        self.0.pop_back()
+        self.0.pop()
     }
 
     fn global() -> Scopes {
-        Scopes(VecDeque::from([Scope::Global]))
+        Scopes(vec![Scope::Global])
     }
 }
 
 #[derive(Clone, Debug)]
 enum Scope {
-    //Global scope relying on an index to find elements
+    // Global scope relying on an index to find elements
     Global,
-    //Local scope declared inline (alloca)
+    // Local scope declared inline (alloca)
     Local(Box<VariableIndexEntry>),
     // A block scope like the body of an if or for
     #[allow(dead_code)]

@@ -55,11 +55,6 @@ pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> Ge
     let project = pipeline.index(project).unwrap();
     let project = pipeline.annotate(project).unwrap();
 
-    // let parsed_project = ParsedProject::parse(&ctxt, &project, &mut diagnostician).unwrap();
-    // let indexed_project = parsed_project
-    //     .index(ctxt.provider())
-    //     .extend_with_init_units(&project.get_init_symbol_name(), ctxt.provider());
-    // let annotated_project = indexed_project.annotate(ctxt.provider());
     let compile_options = CompileOptions {
         optimization: plc::OptimizationLevel::None,
         debug_level: plc::DebugLevel::None,
@@ -78,7 +73,7 @@ pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> Ge
 pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
     let context: CodegenContext = CodegenContext::create();
     let module = compile(&context, source);
-    // module.print_to_stderr();
+    module.print_to_stderr();
     module.run::<T, U>("main", params)
 }
 
@@ -89,6 +84,6 @@ pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
 pub fn compile_and_run_no_params<U, S: Compilable>(source: S) -> U {
     let context: CodegenContext = CodegenContext::create();
     let module = compile(&context, source);
-    // module.print_to_stderr();
+    module.print_to_stderr();
     module.run_no_param::<U>("main")
 }

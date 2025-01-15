@@ -873,7 +873,7 @@ impl PouIndexEntry {
         )
     }
 
-    pub fn is_buitin(&self) -> bool {
+    pub fn is_builtin(&self) -> bool {
         self.get_linkage() == &LinkageType::BuiltIn
     }
 

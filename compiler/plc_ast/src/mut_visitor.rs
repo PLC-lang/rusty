@@ -28,7 +28,7 @@ macro_rules! visit_all_nodes_mut {
 }
 
 /// Macro that calls the visitor's `visit` method for every AstNode in the passed sequence of nodes.
-macro_rules! visit_nodes {
+macro_rules! visit_nodes_mut {
     ($visitor:expr, $($node:expr),*) => {
         $(
             $visitor.visit($node);
@@ -249,7 +249,7 @@ impl WalkerMut for DirectAccess {
     where
         V: AstVisitorMut,
     {
-        visit_nodes!(visitor, &mut self.index);
+        visit_nodes_mut!(visitor, &mut self.index);
     }
 }
 
@@ -267,7 +267,7 @@ impl WalkerMut for BinaryExpression {
     where
         V: AstVisitorMut,
     {
-        visit_nodes!(visitor, &mut self.left, &mut self.right);
+        visit_nodes_mut!(visitor, &mut self.left, &mut self.right);
     }
 }
 
@@ -276,7 +276,7 @@ impl WalkerMut for UnaryExpression {
     where
         V: AstVisitorMut,
     {
-        visit_nodes!(visitor, &mut self.value);
+        visit_nodes_mut!(visitor, &mut self.value);
     }
 }
 
@@ -285,7 +285,7 @@ impl WalkerMut for Assignment {
     where
         V: AstVisitorMut,
     {
-        visit_nodes!(visitor, &mut self.left, &mut self.right);
+        visit_nodes_mut!(visitor, &mut self.left, &mut self.right);
     }
 }
 
@@ -294,7 +294,7 @@ impl WalkerMut for RangeStatement {
     where
         V: AstVisitorMut,
     {
-        visit_nodes!(visitor, &mut self.start, &mut self.end);
+        visit_nodes_mut!(visitor, &mut self.start, &mut self.end);
     }
 }
 
@@ -303,9 +303,9 @@ impl WalkerMut for CallStatement {
     where
         V: AstVisitorMut,
     {
-        visit_nodes!(visitor, &mut self.operator);
+        visit_nodes_mut!(visitor, &mut self.operator);
         if let Some(params) = &mut self.parameters {
-            visit_nodes!(visitor, params);
+            visit_nodes_mut!(visitor, params);
         }
     }
 }
@@ -316,7 +316,7 @@ impl WalkerMut for Vec<ConditionalBlock> {
         V: AstVisitorMut,
     {
         for b in self {
-            visit_nodes!(visitor, &mut b.condition);
+            visit_nodes_mut!(visitor, &mut b.condition);
             visit_all_nodes_mut!(visitor, &mut b.body);
         }
     }
@@ -333,16 +333,16 @@ impl WalkerMut for AstControlStatement {
                 visit_all_nodes_mut!(visitor, &mut stmt.else_block);
             }
             AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
-                visit_nodes!(visitor, &mut stmt.condition);
+                visit_nodes_mut!(visitor, &mut stmt.condition);
                 visit_all_nodes_mut!(visitor, &mut stmt.body);
             }
             AstControlStatement::ForLoop(stmt) => {
-                visit_nodes!(visitor, &mut stmt.counter, &mut stmt.start, &mut stmt.end);
+                visit_nodes_mut!(visitor, &mut stmt.counter, &mut stmt.start, &mut stmt.end);
                 visit_all_nodes_mut!(visitor, &mut stmt.by_step);
                 visit_all_nodes_mut!(visitor, &mut stmt.body);
             }
             AstControlStatement::Case(stmt) => {
-                visit_nodes!(visitor, &mut stmt.selector);
+                visit_nodes_mut!(visitor, &mut stmt.selector);
                 stmt.case_blocks.walk(visitor);
                 visit_all_nodes_mut!(visitor, &mut stmt.else_block);
             }
@@ -364,7 +364,7 @@ impl WalkerMut for JumpStatement {
     where
         V: AstVisitorMut,
     {
-        visit_nodes!(visitor, &mut self.condition, &mut self.target);
+        visit_nodes_mut!(visitor, &mut self.condition, &mut self.target);
     }
 }
 
@@ -373,7 +373,6 @@ impl WalkerMut for AstNode {
     where
         V: AstVisitorMut,
     {
-        //TODO: Since this is cloned it should neither be by ref nor mutable
         match self.stmt {
             AstStatement::EmptyStatement(_) => visitor.visit_empty_statement(self),
             AstStatement::DefaultValue(_) => visitor.visit_default_value(self),

@@ -570,7 +570,7 @@ impl DataTypeDeclaration {
 
                 None
             }
-            Self::Aggregate { .. } => todo!(),
+            Self::Aggregate { .. } => None,
         }
     }
 

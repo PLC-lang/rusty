@@ -541,8 +541,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // assign all parameters into the struct values
 
         // so grab either:
-        // - the out-pointer if we generated one in by_ref_func_out
-        // - or the call's return value
+        // - the call's return value
         // - or a null-ptr
         let value = call
             .try_as_basic_value()
