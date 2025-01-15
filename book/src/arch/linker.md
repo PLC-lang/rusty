@@ -146,7 +146,7 @@ Since a Program has no return-value it also offers no return-type information.
         └─────────────────────────┘
 ```
 
-So the example expression from above `a + 3* will be annotated like this:
+So the example expression from above `a + 3` will be annotated like this:
 (Note that the resulting type of the Binary-Operation must be calculated by the linker by determining the bigger of both types.)
 
 ```ignore
