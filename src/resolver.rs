@@ -471,17 +471,14 @@ impl StatementAnnotation {
 
     pub fn with_generic_name(self, generic_name: &str) -> Self {
         match self {
-            StatementAnnotation::Function {
-                return_type,
-                qualified_name,
-                call_name,
-                ..
-            } => StatementAnnotation::Function {
-                return_type,
-                qualified_name,
-                generic_name: Some(generic_name.to_string()),
-                call_name,
-            },
+            StatementAnnotation::Function { return_type, qualified_name, call_name, .. } => {
+                StatementAnnotation::Function {
+                    return_type,
+                    qualified_name,
+                    generic_name: Some(generic_name.to_string()),
+                    call_name,
+                }
+            }
             _ => self,
         }
     }

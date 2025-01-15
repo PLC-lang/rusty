@@ -355,7 +355,7 @@ impl TypeAnnotator<'_> {
             .find_pou(&call_name)
             .filter(|it| !it.is_generic())
             .map(StatementAnnotation::from)
-            .map(|it| it.with_generic_name(generic_qualified_name)) 
+            .map(|it| it.with_generic_name(generic_qualified_name))
             .unwrap_or_else(|| {
                 let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
                     self.index.get_type_information_or_void(generic_return_type)
