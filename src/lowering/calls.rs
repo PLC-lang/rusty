@@ -2,7 +2,7 @@
 //! to make them VAR_IN_OUT calls, allowing them
 //! to be called from C_APIs and simplifying code generation
 
-use std::{borrow::BorrowMut, collections::VecDeque, sync::atomic::AtomicI32};
+use std::{borrow::BorrowMut, sync::atomic::AtomicI32};
 
 use plc_ast::{
     ast::{
@@ -16,24 +16,16 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-use crate::{
-    index::Index,
-    resolver::{AnnotationMap, StatementAnnotation},
-};
+use crate::{index::Index, resolver::AnnotationMap};
 
 #[derive(Default, Debug, Clone)]
 struct VisitorContext {
-    is_switch_case: bool,
     is_do_while: bool,
 }
 
 impl VisitorContext {
-    fn switch_case() -> Self {
-        Self { is_switch_case: true, ..Default::default() }
-    }
-
     fn do_while_loop() -> Self {
-        Self { is_do_while: true, ..Default::default() }
+        Self { is_do_while: true }
     }
 }
 
@@ -91,29 +83,24 @@ impl AggregateTypeLowerer {
         }
     }
 
-
     fn visit_loop_statement(&mut self, stmt: &mut LoopStatement) {
         let location = stmt.condition.get_location();
-        let mut condition = std::mem::replace(stmt.condition.as_mut(),
-        AstFactory::create_literal(
-                    plc_ast::literals::AstLiteral::Bool(true),
-                    location.clone(),
-                    self.id_provider.next_id(),
-        ));
+        let mut condition = std::mem::replace(
+            stmt.condition.as_mut(),
+            AstFactory::create_literal(
+                plc_ast::literals::AstLiteral::Bool(true),
+                location.clone(),
+                self.id_provider.next_id(),
+            ),
+        );
         if !self.ctx.is_do_while {
-            condition = AstFactory::create_not_expression(
-                        condition,
-                        location.clone(),
-                        self.id_provider.next_id(),
-                    );
+            condition =
+                AstFactory::create_not_expression(condition, location.clone(), self.id_provider.next_id());
         }
         //wrap in if statement
         let break_stmt = AstFactory::create_exit_statement(location.clone(), self.id_provider.next_id());
         let if_condition = AstFactory::create_if_statement(
-            vec![ConditionalBlock {
-                condition: Box::new(condition),
-                body: vec![break_stmt],
-            }],
+            vec![ConditionalBlock { condition: Box::new(condition), body: vec![break_stmt] }],
             vec![],
             location.clone(),
             self.id_provider.next_id(),
@@ -144,10 +131,6 @@ impl AggregateTypeLowerer {
         } else {
             unreachable!("Statement lists should exist at this point");
         }
-    }
-
-    fn peek(&mut self) -> &[AstNode] {
-        self.new_stmts.last().map(|it| it.as_slice()).unwrap_or(&[])
     }
 
     fn enter_scope(&mut self) {
@@ -348,7 +331,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 stmt.selector.walk(self);
                 self.walk_with_context(
                     &mut stmt.case_blocks,
-                    VisitorContext::switch_case(),
+                    VisitorContext::default(),
                     Self::walk_conditional_blocks,
                 );
                 self.steal_and_walk_list(&mut stmt.else_block);

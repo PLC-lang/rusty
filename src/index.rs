@@ -819,7 +819,9 @@ impl PouIndexEntry {
 
     pub fn get_return_type(&self) -> Option<&str> {
         match self {
-            PouIndexEntry::Function { return_type, .. } | PouIndexEntry::Method { return_type, .. } => Some(return_type),
+            PouIndexEntry::Function { return_type, .. } | PouIndexEntry::Method { return_type, .. } => {
+                Some(return_type)
+            }
             _ => None,
         }
     }
@@ -941,9 +943,8 @@ impl TypeIndex {
     }
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
-        self.find_type(type_name).ok_or_else(|| {
-            Diagnostic::unknown_type(type_name, SourceLocation::undefined())
-        })
+        self.find_type(type_name)
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 
     /// Retrieves the "Effective" type behind this datatype

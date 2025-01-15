@@ -1619,7 +1619,7 @@ fn function_parameter_assignments_resolve_types() {
             Some(&StatementAnnotation::Function {
                 qualified_name: "foo".into(),
                 return_type: "MyType".into(),
-            generic_name: None,
+                generic_name: None,
                 call_name: None,
             })
         );
@@ -1827,7 +1827,7 @@ fn method_references_are_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".into(),
                 qualified_name: "cls.foo".into(),
-            generic_name: None,
+                generic_name: None,
                 call_name: None,
             }),
             annotations.get(operator)
@@ -5033,7 +5033,7 @@ fn override_is_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".to_string(),
                 qualified_name: "cls2.foo".to_string(),
-            generic_name: None,
+                generic_name: None,
                 call_name: None,
             }),
             annotations.get(operator)
@@ -5045,7 +5045,7 @@ fn override_is_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".to_string(),
                 qualified_name: "cls.bar".to_string(),
-            generic_name: None,
+                generic_name: None,
                 call_name: None,
             }),
             annotations.get(operator)
@@ -5094,7 +5094,7 @@ fn override_in_grandparent_is_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".to_string(),
                 qualified_name: "cls2.foo".to_string(),
-            generic_name: None,
+                generic_name: None,
                 call_name: None,
             }),
             annotations.get(operator)
@@ -5106,7 +5106,7 @@ fn override_in_grandparent_is_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".to_string(),
                 qualified_name: "cls.bar".to_string(),
-            generic_name: None,
+                generic_name: None,
                 call_name: None,
             }),
             annotations.get(operator)

@@ -73,62 +73,50 @@ impl TypeAnnotator<'_> {
             if !generics.is_empty() {
                 let generic_map = &self.derive_generic_types(generics, generics_candidates);
                 // Annotate the statement with the new function call
-                let return_type_name =
-                    if let Some(StatementAnnotation::Function { qualified_name, return_type, .. }) =
-                        self.annotation_map.get(operator)
-                    {
-                        // Find the generic resolver
-                        let generic_name_resolver = builtins::get_builtin(qualified_name)
-                            .map(|it| it.get_generic_name_resolver())
-                            .unwrap_or_else(|| generic_name_resolver);
-                        // get information about the generic function name and annotation
-                        let (new_name, annotation) = self.get_specific_function_annotation(
-                            generics,
-                            qualified_name,
-                            return_type,
-                            generic_map,
-                            generic_name_resolver,
-                        );
+                if let Some(StatementAnnotation::Function { qualified_name, return_type, .. }) =
+                    self.annotation_map.get(operator)
+                {
+                    // Find the generic resolver
+                    let generic_name_resolver = builtins::get_builtin(qualified_name)
+                        .map(|it| it.get_generic_name_resolver())
+                        .unwrap_or_else(|| generic_name_resolver);
+                    // get information about the generic function name and annotation
+                    let (new_name, annotation) = self.get_specific_function_annotation(
+                        generics,
+                        qualified_name,
+                        return_type,
+                        generic_map,
+                        generic_name_resolver,
+                    );
 
-                        // Create a new pou and implementation for the function
-                        if let Some(pou) = self.index.find_pou(qualified_name) {
-                            // only register concrete typed function if it was not indexed yet
-                            if self.index.find_pou(new_name.as_str()).is_none() &&
+                    // Create a new pou and implementation for the function
+                    if let Some(pou) = self.index.find_pou(qualified_name) {
+                        // only register concrete typed function if it was not indexed yet
+                        if self.index.find_pou(new_name.as_str()).is_none() &&
                             //only register typed function if we did not register it yet
                             self.annotation_map.new_index.find_pou(new_name.as_str()).is_none()
-                            {
-                                if let StatementAnnotation::Function { return_type, .. } = &annotation {
-                                    // register the pou-entry, implementation and member-variables for the requested (typed) implementation
-                                    // e.g. call to generic_foo(aInt)
-                                    self.register_generic_pou_entries(
-                                        pou,
-                                        return_type.as_str(),
-                                        new_name.as_str(),
-                                        generic_map,
-                                    );
-                                } else {
-                                    unreachable!("Annotation must be a function but was {:?}", &annotation)
-                                }
+                        {
+                            if let StatementAnnotation::Function { return_type, .. } = &annotation {
+                                // register the pou-entry, implementation and member-variables for the requested (typed) implementation
+                                // e.g. call to generic_foo(aInt)
+                                self.register_generic_pou_entries(
+                                    pou,
+                                    return_type.as_str(),
+                                    new_name.as_str(),
+                                    generic_map,
+                                );
+                            } else {
+                                unreachable!("Annotation must be a function but was {:?}", &annotation)
                             }
                         }
-                        let StatementAnnotation::Function { return_type, .. } = &annotation else {
-                            unreachable!();
-                        };
-                        let return_type_name = Some(return_type.clone());
-                        // annotate the call-statement so it points to the new implementation
-                        self.annotate(operator, annotation);
-                        return_type_name
-                    } else {
-                        None
-                    };
+                    }
+                    // annotate the call-statement so it points to the new implementation
+                    self.annotate(operator, annotation);
+                };
                 // Adjust annotations on the inner statement
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(&ctx, s);
-                    self.update_generic_function_parameters(
-                        s,
-                        implementation_name,
-                        generic_map,
-                    );
+                    self.update_generic_function_parameters(s, implementation_name, generic_map);
                 }
             }
         }
@@ -365,7 +353,7 @@ impl TypeAnnotator<'_> {
             .filter(|it| !it.is_generic())
             .map(StatementAnnotation::from)
             .map(|it| {
-                if let StatementAnnotation::Function { return_type, qualified_name, call_name  , ..} = it {
+                if let StatementAnnotation::Function { return_type, qualified_name, call_name, .. } = it {
                     StatementAnnotation::Function {
                         return_type,
                         qualified_name,

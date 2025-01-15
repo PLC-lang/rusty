@@ -9,7 +9,8 @@ use crate::{
     resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate_and_lower_with_ids, annotate_with_ids, index_and_lower, index_with_ids},
     typesystem::{
-        DataTypeInformation, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, WSTRING_TYPE,
+        DataTypeInformation, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE,
+        WSTRING_TYPE,
     },
 };
 
@@ -1163,9 +1164,9 @@ END_FUNCTION
         id_provider.clone(),
     );
 
-    let (annotations , index, units)= annotate_and_lower_with_ids(unit, index, id_provider);
-    let call_statement =  flatten_expression_list(&units[0].0.implementations[0].statements[0])[1];
-    if let AstStatement::CallStatement(CallStatement{parameters, ..}) = call_statement.get_stmt() {
+    let (annotations, index, units) = annotate_and_lower_with_ids(unit, index, id_provider);
+    let call_statement = flatten_expression_list(&units[0].0.implementations[0].statements[0])[1];
+    if let AstStatement::CallStatement(CallStatement { parameters, .. }) = call_statement.get_stmt() {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, parameters[2], DINT_TYPE, Some(DINT_TYPE));
         //TODO: Shouldn the hint be DINT_TYPE?
@@ -1201,12 +1202,26 @@ fn generic_function_with_aggregate_return() {
         id_provider.clone(),
     );
 
-    let (annotations , index, units)= annotate_and_lower_with_ids(unit, index, id_provider);
-    let call_statement =  flatten_expression_list(&units[0].0.implementations.last().unwrap().statements[0])[1];
-    if let AstStatement::CallStatement(CallStatement{operator, parameters, ..}) = call_statement.get_stmt() {
+    let (annotations, index, units) = annotate_and_lower_with_ids(unit, index, id_provider);
+    let call_statement =
+        flatten_expression_list(&units[0].0.implementations.last().unwrap().statements[0])[1];
+    if let AstStatement::CallStatement(CallStatement { operator, parameters, .. }) = call_statement.get_stmt()
+    {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-        assert_type_and_hint!(&annotations, &index, parameters[0], "__TO_STRING__WSTRING_return", Some("__auto_pointer_to___TO_STRING__WSTRING_return"));
-        assert_type_and_hint!(&annotations, &index, parameters[1], WSTRING_TYPE, Some("__auto_pointer_to_WSTRING"));
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[0],
+            "__TO_STRING__WSTRING_return",
+            Some("__auto_pointer_to___TO_STRING__WSTRING_return")
+        );
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[1],
+            WSTRING_TYPE,
+            Some("__auto_pointer_to_WSTRING")
+        );
         assert_eq!(annotations.get_call_name(operator).unwrap(), "TO_STRING__WSTRING");
         assert_debug_snapshot!(annotations.get(operator).unwrap());
     } else {

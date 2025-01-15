@@ -21,8 +21,8 @@ use inkwell::{
 };
 use plc_ast::{
     ast::{
-        flatten_expression_list, Allocation, AstFactory, AstNode, AstStatement, JumpStatement,
-        LabelStatement, Operator, ReferenceAccess, ReferenceExpr,
+        flatten_expression_list, Allocation, AstNode, AstStatement, JumpStatement, LabelStatement, Operator,
+        ReferenceAccess, ReferenceExpr,
     },
     control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement},
 };
@@ -263,7 +263,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 &for_stmt.by_step,
                 &for_stmt.body,
             ),
-            AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt)=> {
+            AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
                 self.generate_loop_statement(llvm_index, &stmt.condition, &stmt.body)
             }
             AstControlStatement::Case(stmt) => {

@@ -10,7 +10,9 @@ use std::{any::Any, collections::VecDeque, fmt::Debug, hash::Hash};
 
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement, BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Implementation, JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable
+        self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
+        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
+        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -294,8 +296,7 @@ impl TypeAnnotator<'_> {
         // If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
         // to annotate them with the correct type hint.
         let implementation = self.index.find_implementation_by_name(operator_qualifier);
-        let operator_qualifier =
-            implementation.map(|it| it.get_type_name()).unwrap_or(operator_qualifier);
+        let operator_qualifier = implementation.map(|it| it.get_type_name()).unwrap_or(operator_qualifier);
         for m in self.index.get_declared_parameters(operator_qualifier).into_iter() {
             if let Some(p) = parameters.next() {
                 let type_name = m.get_type_name();
