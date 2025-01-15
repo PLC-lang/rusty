@@ -22,29 +22,6 @@ impl<K, V> Default for SymbolMap<K, V> {
 impl<K, V> SymbolMap<K, V>
 where
     K: Hash + Eq,
-    V: PartialEq + Eq,
-{
-    /// Removes a key, value pair from the multimap if it exists
-    pub fn remove(&mut self, key: &K, value: &V) {
-        if let Some(entries) = self.inner_map.get_mut(key) {
-            if let Some(index) = entries.iter().position(|x| x == value) {
-                entries.remove(index);
-            }
-        }
-    }
-
-    pub fn remove_if<F: Fn(&V) -> bool>(&mut self, key: &K, value: F) {
-        if let Some(entries) = self.inner_map.get_mut(key) {
-            if let Some(index) = entries.iter().position(value) {
-                entries.remove(index);
-            }
-        }
-    }
-}
-
-impl<K, V> SymbolMap<K, V>
-where
-    K: Hash + Eq,
 {
     /// returns the first element associated with the given key or None if
     /// this key was never associated with an element
