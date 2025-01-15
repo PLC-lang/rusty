@@ -49,13 +49,6 @@ pub enum Token {
     #[token("ENDINTERFACE", ignore(case))]
     KeywordEndInterface,
 
-    #[token("PROPERTY", ignore(case))]
-    KeywordProperty,
-
-    #[token("END_PROPERTY", ignore(case))]
-    #[token("ENDPROPERTY", ignore(case))]
-    KeywordEndProperty,
-
     #[token("VAR_INPUT", ignore(case))]
     #[token("VARINPUT", ignore(case))]
     KeywordVarInput,
@@ -96,6 +89,27 @@ pub enum Token {
     #[token("END_METHOD", ignore(case))]
     #[token("ENDMETHOD", ignore(case))]
     KeywordEndMethod,
+
+    #[token("PROPERTY", ignore(case))]
+    KeywordProperty,
+
+    #[token("END_PROPERTY", ignore(case))]
+    #[token("ENDPROPERTY", ignore(case))]
+    KeywordEndProperty,
+
+    #[token("GET", ignore(case))]
+    KeywordGet,
+
+    #[token("END_GET", ignore(case))]
+    #[token("ENDGET", ignore(case))]
+    KeywordEndGet,
+
+    #[token("SET", ignore(case))]
+    KeywordSet,
+
+    #[token("END_SET", ignore(case))]
+    #[token("ENDSET", ignore(case))]
+    KeywordEndSet,
 
     #[token("PUBLIC", ignore(case))]
     KeywordAccessPublic,
