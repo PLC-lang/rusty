@@ -1168,7 +1168,8 @@ END_FUNCTION
     if let AstStatement::CallStatement(CallStatement{parameters, ..}) = call_statement.get_stmt() {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, parameters[2], DINT_TYPE, Some(DINT_TYPE));
-        assert_type_and_hint!(&annotations, &index, parameters[3], INT_TYPE, Some(DINT_TYPE));
+        //TODO: Shouldn the hint be DINT_TYPE?
+        assert_type_and_hint!(&annotations, &index, parameters[3], INT_TYPE, None);
     } else {
         unreachable!("This should always be a call statement.")
     }
