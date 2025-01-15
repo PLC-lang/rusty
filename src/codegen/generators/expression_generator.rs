@@ -833,52 +833,51 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &AstNode,
         function_context: &'b FunctionContext<'ink, 'b>,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
-        let arguments_list = if matches!(pou, PouIndexEntry::Function { .. }) {
-            // we're calling a function
-            let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
-            self.generate_function_arguments(pou, passed_parameters, declared_parameters)?
-        } else {
-            // no function
-            let (class_ptr, call_ptr) = match pou {
-                PouIndexEntry::Method { .. } => {
-                    let class_ptr = self.generate_lvalue(operator).or_else(|_| {
-                        // this might be a local method
-                        function_context
-                            .function
-                            .get_first_param()
-                            .map(|class_ptr| class_ptr.into_pointer_value())
-                            .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))
-                    })?;
-                    let call_ptr =
-                        self.allocate_function_struct_instance(implementation.get_call_name(), operator)?;
-                    (Some(class_ptr), call_ptr)
-                }
-                // TODO: find a more reliable way to make sure if this is a call into a local action!!
-                PouIndexEntry::Action { .. }
-                    if try_from!(operator, ReferenceExpr).is_some_and(|it| it.base.is_none()) =>
-                {
-                    // special handling for local actions, get the parameter from the function context
+        match pou {
+            PouIndexEntry::Function { .. } => {
+                // we're calling a function
+                let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
+                self.generate_function_arguments(pou, passed_parameters, declared_parameters)
+            },
+            PouIndexEntry::Method { .. } => {
+                let class_ptr = self.generate_lvalue(operator).or_else(|_| {
+                    // this might be a local method
                     function_context
                         .function
                         .get_first_param()
-                        .map(|call_ptr| (None, call_ptr.into_pointer_value()))
-                        .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?
-                }
-                _ => {
-                    let call_ptr = self.generate_lvalue(operator)?;
-                    (None, call_ptr)
-                }
-            };
+                        .map(|class_ptr| class_ptr.into_pointer_value())
+                        .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))
+                })?;
+                let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
+                let mut parameters = self.generate_function_arguments(pou, passed_parameters, declared_parameters)?;
+                parameters.insert(0, class_ptr.into());
+                Ok(parameters)
+            },
+            PouIndexEntry::Action { .. } if try_from!(operator, ReferenceExpr).is_some_and(|it| it.base.is_none()) =>{
+                // special handling for local actions, get the parameter from the function context
+                let call_ptr = function_context
+                    .function
+                    .get_first_param()
+                    .map(|call_ptr| call_ptr.into_pointer_value())
+                    .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?;
 
-            // generate the pou call assignments
-            self.generate_stateful_pou_arguments(
-                implementation.get_call_name(),
-                class_ptr,
-                call_ptr,
-                passed_parameters,
-            )?
-        };
-        Ok(arguments_list)
+                self.generate_stateful_pou_arguments(
+                    implementation.get_call_name(),
+                    None,
+                    call_ptr,
+                    passed_parameters,
+                )
+            },
+            _ =>  {
+                let call_ptr = self.generate_lvalue(operator)?;
+                self.generate_stateful_pou_arguments(
+                    implementation.get_call_name(),
+                    None,
+                    call_ptr,
+                    passed_parameters,
+                )
+            }
+        }
     }
 
     fn generate_function_arguments(
@@ -1140,27 +1139,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         } else {
             unreachable!("Function must be variadic")
         }
-    }
-
-    // TODO: will be deleted once methods work properly (like functions)
-    /// generates a new instance of a function called `function_name` and returns a PointerValue to it
-    ///
-    /// - `function_name` the name of the function as registered in the index
-    /// - `context` the statement used to report a possible Diagnostic on
-    fn allocate_function_struct_instance(
-        &self,
-        function_name: &str,
-        context: &AstNode,
-    ) -> Result<PointerValue<'ink>, Diagnostic> {
-        let instance_name = format!("{function_name}_instance"); // TODO: Naming convention (see plc_util/src/convention.rs)
-        let function_type = self
-            .llvm_index
-            .find_associated_pou_type(function_name) //Using find instead of get to control the compile error
-            .ok_or_else(|| {
-                Diagnostic::codegen_error(format!("No type associated with '{instance_name:}'"), context)
-            })?;
-
-        Ok(self.llvm.create_local_variable(&instance_name, &function_type))
     }
 
     /// generates the assignments of a pou-call's parameters

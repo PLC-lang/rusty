@@ -318,7 +318,7 @@ impl PouType {
     }
 
     pub fn is_function_or_init(&self) -> bool {
-        matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit)
+        matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit | PouType::Method {..})
     }
 }
 

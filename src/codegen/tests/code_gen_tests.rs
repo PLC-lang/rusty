@@ -952,6 +952,131 @@ fn fb_method_in_pou() {
 }
 
 #[test]
+fn fb_method_with_var_in_out() {
+    let prg = codegen(
+        r"
+    FUNCTION_BLOCK MyClass
+        VAR
+            x, y : INT;
+        END_VAR
+
+        METHOD testMethod
+        VAR_IN_OUT myMethodArg : INT; END_VAR
+            myMethodArg := x;
+        END_METHOD
+    END_FUNCTION_BLOCK
+
+    PROGRAM prg
+    VAR
+    cl : MyClass;
+    x : INT;
+    END_VAR
+        cl.testMethod(x);
+    END_PROGRAM
+        ",
+    );
+    insta::assert_snapshot!(prg);
+}
+
+#[test]
+fn fb_method_with_var_input_defaults() {
+    let prg = codegen(
+        r"
+    FUNCTION_BLOCK MyClass
+        VAR
+            x, y : INT;
+        END_VAR
+
+        METHOD testMethod
+        VAR_INPUT 
+            myMethodArg : INT := 3;
+        END_VAR
+            x := myMethodArg;
+        END_METHOD
+    END_FUNCTION_BLOCK
+
+    PROGRAM prg
+    VAR
+    cl : MyClass;
+    END_VAR
+        cl.testMethod();
+    END_PROGRAM
+        ",
+    );
+    insta::assert_snapshot!(prg);
+}
+
+//A test for a method with an initialized input variable
+#[test]
+fn method_codegen_with_initialized_input() {
+    let prg = codegen(
+        r#"
+        FUNCTION_BLOCK fb
+        METHOD meth : DINT
+        VAR_INPUT
+            a : DINT := 5;
+        END_VAR
+        END_METHOD
+        meth();
+        meth(4);
+        END_FUNCTION_BLOCK
+
+        FUNCTION foo : DINT END_FUNCTION 
+        "#,
+    );
+    insta::assert_snapshot!(prg);
+}
+
+//A test for a method with multiple input variables
+#[test]
+fn method_codegen_with_multiple_input() {
+    let prg = codegen(
+        r#"
+        FUNCTION_BLOCK fb
+        METHOD meth : DINT
+        VAR_INPUT
+            a : DINT := 6;
+            b : DINT;
+            c : DINT := 10;
+        END_VAR
+        END_METHOD
+        meth(1,2,3);
+        meth(5,7); //skip the last parameter it should have value 10
+        meth(a := 3, b := 4); //skip the last parameter it should have value 10
+        meth(b := 4); //skip the first and last parameter they should have value 6 and 10
+        END_FUNCTION_BLOCK
+        "#,
+    );
+    insta::assert_snapshot!(prg);
+}
+
+#[test]
+fn fb_method_called_as_function() {
+    let prg = codegen(
+        r"
+    FUNCTION_BLOCK MyClass
+    VAR
+        x, y : INT;
+    END_VAR
+
+    METHOD testMethod : INT
+        VAR_INPUT myMethodArg : INT; END_VAR
+        VAR myMethodLocalVar : INT; END_VAR
+
+        x := myMethodArg;
+        y := x + 1;
+        myMethodLocalVar := y + 1;
+        testMethod := myMethodLocalVar + 1;
+    END_METHOD
+
+    testMethod(1);
+    testMethod(myMethodArg:= 3);
+    END_FUNCTION_BLOCK");
+
+    insta::assert_snapshot!(prg);
+}
+
+#[test]
 fn fb_method_called_locally() {
     let result = codegen(
         "
