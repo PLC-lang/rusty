@@ -525,23 +525,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // generate the debug statetment for a call
         self.register_debug_location(operator);
 
-        // // if this is a function that returns an aggregate type we need to allocate an out.pointer
-        // let by_ref_func_out: Option<PointerValue> = if let PouIndexEntry::Function { return_type, .. } = pou {
-        //     let data_type = self.index.get_effective_type_or_void_by_name(return_type);
-        //     if data_type.is_aggregate_type() {
-        //         // this is a function call with a return variable fed as an out-pointer
-        //         let llvm_type = self.llvm_index.get_associated_type(data_type.get_name())?;
-        //         let out_pointer = self.llvm.create_local_variable("", &llvm_type);
-        //         // add the out-ptr as its first parameter
-        //         arguments_list.insert(0, out_pointer.into());
-        //         Some(out_pointer)
-        //     } else {
-        //         None
-        //     }
-        // } else {
-        //     None
-        // };
-
         // Check for the function within the GOT. If it's there, we need to generate an indirect
         // call to its location within the GOT, which should contain a function pointer.
         // First get the function type so our function pointer can have the correct type.
@@ -561,18 +544,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // - the out-pointer if we generated one in by_ref_func_out
         // - or the call's return value
         // - or a null-ptr
-        let value = //by_ref_func_out.map(|it| Ok(ExpressionValue::LValue(it))).unwrap_or_else(||
-        {
-            let v = call.try_as_basic_value().either(Ok, |_| {
+        let value = call
+            .try_as_basic_value()
+            .either(Ok, |_| {
                 // we return an uninitialized int pointer for void methods :-/
                 // dont deref it!!
                 Ok(get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
                     .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
                     .const_null()
                     .as_basic_value_enum())
-            });
-            v.map(ExpressionValue::RValue)
-        }; //);
+            })
+            .map(ExpressionValue::RValue);
 
         // after the call we need to copy the values for assigned outputs
         // this is only necessary for outputs defined as `rusty::index::ArgumentType::ByVal` (PROGRAM, FUNCTION_BLOCK)

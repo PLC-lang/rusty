@@ -66,19 +66,6 @@ impl AggregateTypeLowerer {
     fn walk_conditional_blocks(&mut self, blocks: &mut Vec<ConditionalBlock>) {
         for b in blocks {
             b.condition.walk(self);
-            // if self.ctx.is_switch_case {
-            //     b.condition.walk(self);
-            // } else {
-            //     let condition = std::mem::take(b.condition.as_mut());
-            //     let mut processed_nodes = Box::new(self.map(condition));
-            //     if let Some(expressions) = try_from_mut!(processed_nodes, Vec<AstNode>) {
-            //         b.condition = Box::new(expressions.pop().expect("Should have at least one expression"));
-            //         let expressions = std::mem::take(expressions);
-            //         self.outer_scope_stmts.extend(expressions);
-            //     } else {
-            //         b.condition = processed_nodes;
-            //     }
-            // }
             self.steal_and_walk_list(&mut b.body);
         }
     }
@@ -337,14 +324,6 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 self.steal_and_walk_list(&mut stmt.else_block);
             }
         }
-
-        //TOOD: add new statements to the end of the block
-        // if !self.outer_scope_stmts.is_empty() {
-        //     let mut new_stmts = std::mem::take(&mut self.outer_scope_stmts);
-        //     let location = node.get_location();
-        //     new_stmts.push(std::mem::take(node));
-        //     *node = AstFactory::create_expression_list(new_stmts, location, self.id_provider.next_id());
-        // }
     }
 }
 

@@ -265,21 +265,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         // see if we need to adapt the parameters list
         let (return_type_llvm, parameters) = match return_type {
-            // // function with a aggrate-return type
-            // Some(r_type) if r_type.is_aggregate_type() => {
-            //     let mut params_with_inout = Vec::with_capacity(parameters.len() + 1);
-
-            //     // add the out pointer as an extra parameter in the beginning
-            //     let return_llvm_type = self.llvm_index.get_associated_type(r_type.get_name())?;
-            //     params_with_inout
-            //         .push(return_llvm_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into()); //TODO: what is the correct address space?
-
-            //     // add the remaining parameters
-            //     params_with_inout.extend(parameters.iter().cloned());
-
-            //     // no return, adapted parameters
-            //     (None, params_with_inout)
-            // }
             // function with an intrinsic return-type
             Some(r_type) => (Some(self.llvm_index.get_associated_type(r_type.get_name())?), parameters),
             // no return
@@ -568,30 +553,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let mut params_iter = function_context.function.get_param_iter();
         if let Some(ret_v) = members.iter().find(|it| it.is_return()) {
             let return_type = index.get_associated_type(ret_v.get_type_name())?;
-            let return_variable =
-                // if self
-                // .index
-                // .find_effective_type_by_name(ret_v.get_type_name())
-                // .filter(|it| it.is_aggregate_type())
-                // .is_some()
-            // {
-                // // function return is handled by an out-pointer
-                // let parameter = params_iter
-                //     .next()
-                //     .ok_or_else(|| Diagnostic::missing_function(ret_v.source_location.clone()))?;
-
-                // // remove the out-param so the loop below will not see it again
-                // // generate special accessor for aggrate function output (out-ptr)
-                // let accessor = self.llvm.create_local_variable(
-                //     ret_v.get_name(),
-                //     &return_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).as_basic_type_enum(),
-                // );
-                // self.llvm.builder.build_store(accessor, parameter);
-                // accessor
-            // } else {
-                // function return is a real return
-                self.llvm.create_local_variable(type_name, &return_type);
-            // };
+            let return_variable = self.llvm.create_local_variable(type_name, &return_type);
             index.associate_loaded_local_variable(type_name, ret_v.get_name(), return_variable)?;
         }
 
