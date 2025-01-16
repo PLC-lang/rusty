@@ -5,17 +5,17 @@ FUNCTION_BLOCK MyClass
     END_VAR
 
     METHOD testMethod
-    VAR_INPUT 
+    VAR_INPUT
         myMethodArg : INT := 3;
     END_VAR
         x := myMethodArg;
     END_METHOD
-    printf('%d$N', x); // CHECK: 3
 END_FUNCTION_BLOCK
 
-PROGRAM prg
+FUNCTION main
 VAR
 cl : MyClass;
 END_VAR
-    // cl.testMethod(); // FIXME: validation checks for input params which need not be there
-END_PROGRAM
+    cl.testMethod();
+    printf('%d$N', cl.x); // CHECK: 3
+END_FUNCTION

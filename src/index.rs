@@ -441,6 +441,10 @@ impl ImplementationIndexEntry {
     pub(crate) fn is_init(&self) -> bool {
         matches!(self.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
     }
+
+    pub fn is_method(&self) -> bool {
+        matches!(self.get_implementation_type(), ImplementationType::Method)
+    }
 }
 
 impl From<&PouType> for ImplementationType {

@@ -205,8 +205,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         new_llvm_index: &mut LlvmTypedIndex<'ink>,
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
         let declared_parameters = self.index.get_declared_parameters(implementation.get_call_name());
-        let parameters = self
-            .collect_parameters_for_implementation(implementation)?
+        let mut parameters = self.collect_parameters_for_implementation(implementation)?;
+        // if we are handling a method, take the first parameter as the instance
+        let instance = if implementation.is_method() { Some(parameters.remove(0)) } else { None };
+        let mut parameters = parameters
             .iter()
             .enumerate()
             .map(|(i, p)| {
@@ -257,6 +259,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 }
             })
             .collect::<Vec<BasicMetadataTypeEnum>>();
+        // insert the instance as the first parameter
+        if let Some(instance) = instance {
+            parameters.insert(0, instance);
+        }
 
         let return_type = self
             .index

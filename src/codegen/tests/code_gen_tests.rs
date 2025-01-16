@@ -988,7 +988,7 @@ fn fb_method_with_var_input_defaults() {
         END_VAR
 
         METHOD testMethod
-        VAR_INPUT 
+        VAR_INPUT
             myMethodArg : INT := 3;
         END_VAR
             x := myMethodArg;
@@ -1021,7 +1021,7 @@ fn method_codegen_with_initialized_input() {
         meth(4);
         END_FUNCTION_BLOCK
 
-        FUNCTION foo : DINT END_FUNCTION 
+        FUNCTION foo : DINT END_FUNCTION
         "#,
     );
     insta::assert_snapshot!(prg);
@@ -1071,7 +1071,8 @@ fn fb_method_called_as_function() {
 
     testMethod(1);
     testMethod(myMethodArg:= 3);
-    END_FUNCTION_BLOCK");
+    END_FUNCTION_BLOCK",
+    );
 
     insta::assert_snapshot!(prg);
 }
@@ -1091,10 +1092,10 @@ fn fb_method_called_locally() {
                 bar := in + bar;
                 addToBar := bar;
             END_METHOD
-            
+
             addToBar(42);
         END_FUNCTION_BLOCK
-            
+
         FUNCTION main
         VAR
             fb: foo;
@@ -1323,10 +1324,10 @@ fn prog_method_called_locally() {
                 bar := in + bar;
                 addToBar := bar;
             END_METHOD
-            
+
             addToBar(42);
         END_PROGRAM
-            
+
         FUNCTION main
         VAR
             x: DINT;
@@ -4103,8 +4104,8 @@ fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initi
 fn variables_in_var_external_block_are_not_generated() {
     let res = codegen(
         "
-        VAR_GLOBAL 
-            arr: ARRAY [0..100] OF INT; 
+        VAR_GLOBAL
+            arr: ARRAY [0..100] OF INT;
         END_VAR
 
         FUNCTION foo
@@ -4220,4 +4221,27 @@ fn variables_in_var_external_block_are_not_generated() {
 
     declare void @baz(%baz*)
     "###);
+}
+
+#[test]
+fn method_with_aggregate_return_type() {
+    let res = codegen(
+        "
+        FUNCTION_BLOCK fb_with_method
+        VAR_TEMP
+            ret : STRING;
+        END_VAR
+            METHOD method_with_aggregagte_return: STRING
+            VAR_INPUT
+                in: STRING;
+            END_VAR
+                method_with_aggregagte_return := in;
+            END_METHOD
+
+            ret := method_with_aggregagte_return('Hello');
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(res);
 }
