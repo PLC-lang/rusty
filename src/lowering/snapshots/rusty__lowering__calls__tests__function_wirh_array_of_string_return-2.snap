@@ -1,0 +1,42 @@
+---
+source: src/lowering/calls.rs
+expression: res_type
+---
+DataType {
+    name: "__foo_return",
+    initial_value: None,
+    information: Array {
+        name: "__foo_return",
+        inner_type_name: "STRING",
+        dimensions: [
+            Dimension {
+                start_offset: ConstExpression(
+                    Index {
+                        index: 0,
+                        generation: 0,
+                    },
+                ),
+                end_offset: ConstExpression(
+                    Index {
+                        index: 1,
+                        generation: 0,
+                    },
+                ),
+            },
+        ],
+    },
+    nature: Any,
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 1,
+                column: 23,
+                offset: 24,
+            }..TextLocation {
+                line: 1,
+                column: 44,
+                offset: 45,
+            },
+        ),
+    },
+}

@@ -1091,4 +1091,29 @@ mod tests {
         let unit = &units[0].0;
         assert_debug_snapshot!(unit.implementations[0]);
     }
+
+    #[test]
+    fn function_wirh_array_of_string_return() {
+        let id_provider = IdProvider::default();
+        let (unit, index, ..) = index_and_lower(
+            r#"
+        FUNCTION foo : ARRAY[0..1] OF STRING
+            foo[0] := 'hello';
+            foo[1] := 'world';
+        END_FUNCTION
+
+        FUNCTION main
+            foo();
+        END_FUNCTION
+        "#,
+            id_provider.clone(),
+        );
+
+        assert_debug_snapshot!(index.find_pou_type("foo").unwrap());
+        let res_type = index.find_type("__foo_return").unwrap();
+        assert_debug_snapshot!(res_type);
+        let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
+        let unit = &units[0].0;
+        assert_debug_snapshot!(unit);
+    }
 }
