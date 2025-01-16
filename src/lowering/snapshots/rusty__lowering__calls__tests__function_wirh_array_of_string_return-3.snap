@@ -1,0 +1,234 @@
+---
+source: src/lowering/calls.rs
+expression: unit
+---
+CompilationUnit {
+    global_vars: [
+        VariableBlock {
+            variables: [],
+            variable_block_type: Global,
+        },
+    ],
+    var_config: [],
+    units: [
+        POU {
+            name: "foo",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "foo",
+                            data_type: DataTypeReference {
+                                referenced_type: "__foo_return",
+                            },
+                        },
+                    ],
+                    variable_block_type: InOut,
+                },
+            ],
+            pou_type: Function,
+            return_type: Some(
+                Aggregate {
+                    referenced_type: "__foo_return",
+                },
+            ),
+            interfaces: [],
+        },
+        POU {
+            name: "main",
+            variable_blocks: [],
+            pou_type: Function,
+            return_type: None,
+            interfaces: [],
+        },
+    ],
+    implementations: [
+        Implementation {
+            name: "foo",
+            type_name: "foo",
+            linkage: Internal,
+            pou_type: Function,
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Index(
+                            LiteralInteger {
+                                value: 0,
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "foo",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    right: LiteralString {
+                        value: "hello",
+                        is_wide: false,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Index(
+                            LiteralInteger {
+                                value: 1,
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "foo",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    right: LiteralString {
+                        value: "world",
+                        is_wide: false,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 12,
+                        offset: 58,
+                    }..TextLocation {
+                        line: 3,
+                        column: 30,
+                        offset: 107,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 17,
+                        offset: 18,
+                    }..TextLocation {
+                        line: 1,
+                        column: 20,
+                        offset: 21,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+        Implementation {
+            name: "main",
+            type_name: "main",
+            linkage: Internal,
+            pou_type: Function,
+            statements: [
+                ExpressionList {
+                    expressions: [
+                        Allocation {
+                            name: "__foo0",
+                            reference_type: "__foo_return",
+                        },
+                        CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "foo",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: Some(
+                                ExpressionList {
+                                    expressions: [
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__foo0",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ],
+                                },
+                            ),
+                        },
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__foo0",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ],
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 7,
+                        column: 12,
+                        offset: 164,
+                    }..TextLocation {
+                        line: 7,
+                        column: 18,
+                        offset: 170,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 17,
+                        offset: 147,
+                    }..TextLocation {
+                        line: 6,
+                        column: 21,
+                        offset: 151,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+    ],
+    interfaces: [],
+    user_types: [
+        UserTypeDeclaration {
+            data_type: ArrayType {
+                name: Some(
+                    "__foo_return",
+                ),
+                bounds: RangeStatement {
+                    start: LiteralInteger {
+                        value: 0,
+                    },
+                    end: LiteralInteger {
+                        value: 1,
+                    },
+                },
+                referenced_type: DataTypeReference {
+                    referenced_type: "STRING",
+                },
+                is_variable_length: false,
+            },
+            initializer: None,
+            scope: Some(
+                "foo",
+            ),
+        },
+    ],
+    file_name: "<internal>",
+}
