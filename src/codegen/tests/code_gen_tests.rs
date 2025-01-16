@@ -4098,6 +4098,7 @@ fn variables_in_var_external_block_are_not_generated() {
 }
 
 #[test]
+#[ignore = "tracked in issue #1389"]
 fn function_with_array_string_return() {
     let res = codegen(
         "

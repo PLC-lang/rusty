@@ -1095,7 +1095,7 @@ mod tests {
     #[test]
     fn function_wirh_array_of_string_return() {
         let id_provider = IdProvider::default();
-        let (mut unit, index, ..) = index_and_lower(
+        let (unit, index, ..) = index_and_lower(
             r#"
         FUNCTION foo : ARRAY[0..1] OF STRING
             foo[0] := 'hello';
