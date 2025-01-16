@@ -558,7 +558,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // after the call we need to copy the values for assigned outputs
         // this is only necessary for outputs defined as `rusty::index::ArgumentType::ByVal` (PROGRAM, FUNCTION_BLOCK)
         // FUNCTION outputs are defined as `rusty::index::ArgumentType::ByRef` // FIXME(mhasel): for standard-compliance functions also need to support VAR_OUTPUT
-        if !pou.is_function() {
+        if !(pou.is_function() || pou.is_method()) {
             let parameter_struct = match arguments_list.first() {
                 Some(v) => v.into_pointer_value(),
                 None => self.generate_lvalue(operator)?,
