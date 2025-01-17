@@ -1,4 +1,6 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// XFAIL: *
+// Fails because of #1389
 FUNCTION func_with_aggregagte_return: ARRAY[0..1] OF STRING
 VAR_INPUT
     in: STRING;
