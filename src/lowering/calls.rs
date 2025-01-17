@@ -6,8 +6,9 @@ use std::{borrow::BorrowMut, sync::atomic::AtomicI32};
 
 use plc_ast::{
     ast::{
-        steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory, AstNode, AstStatement,
-        CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock, VariableBlockType,
+        flatten_expression_list, steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory,
+        AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock,
+        VariableBlockType,
     },
     control_statements::{AstControlStatement, ConditionalBlock, LoopStatement},
     mut_visitor::{AstVisitorMut, WalkerMut},
@@ -228,9 +229,11 @@ impl AstVisitorMut for AggregateTypeLowerer {
         //If there's a call name in the function, it is a generic and needs to be replaced.
         //HACK: this is because we don't lower generics
         let function_entry = index.find_pou(&qualified_name).expect("Function not found");
+        let return_name = Pou::calc_return_name(function_entry.get_name()).to_string();
         let return_type = index.get_effective_type_or_void_by_name(&return_type_name);
 
-        let generic_function = generic_name.as_deref().and_then(|it| index.find_pou(it));
+        let generic_function: Option<&crate::index::PouIndexEntry> =
+            generic_name.as_deref().and_then(|it| index.find_pou(it));
         let is_generic_function = generic_function.is_some_and(|it| it.is_generic());
         //TODO: needs to be on the function
         if return_type.is_aggregate_type() && !function_entry.is_builtin() {
@@ -258,6 +261,26 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 None,
                 original_location.clone(),
             );
+            //If the function has an implicit call (foo(x := 1)), we need to add an assignment to the reference
+            let reference = if stmt
+                .parameters
+                .as_ref()
+                .map(|it| flatten_expression_list(it))
+                .is_some_and(|it| it.iter().any(|it| it.is_assignment()))
+            {
+                let left = AstFactory::create_member_reference(
+                    AstFactory::create_identifier(
+                        &return_name,
+                        original_location.clone(),
+                        self.id_provider.next_id(),
+                    ),
+                    None,
+                    self.id_provider.next_id(),
+                );
+                AstFactory::create_assignment(left, reference, self.id_provider.next_id())
+            } else {
+                reference
+            };
             //TODO : we are creating th expression list twice in case of no params
             let mut parameters =
                 stmt.parameters.as_mut().map(|it| steal_expression_list(it.borrow_mut())).unwrap_or_default();
@@ -1115,5 +1138,30 @@ mod tests {
         let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
         let unit = &units[0].0;
         assert_debug_snapshot!(unit);
+    }
+
+    #[test]
+    fn function_with_explicit_call_statement_has_explicit_return() {
+        let id_provider = IdProvider::default();
+        let (unit, index, ..) = index_and_lower(
+            r#"
+        FUNCTION foo : STRING
+        VAR_INPUT
+            x : DINT;
+        END_VAR
+            foo := 'hello';
+        END_FUNCTION
+
+        FUNCTION main
+            foo(x := 1);
+        END_FUNCTION
+        "#,
+            id_provider.clone(),
+        );
+
+        assert_debug_snapshot!(index.find_pou_type("foo").unwrap());
+        let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
+        let unit = &units[0].0;
+        assert_debug_snapshot!(unit.implementations[1]);
     }
 }

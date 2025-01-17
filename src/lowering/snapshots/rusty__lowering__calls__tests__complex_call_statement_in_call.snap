@@ -1,7 +1,6 @@
 ---
 source: src/lowering/calls.rs
 expression: "unit.implementations[1]"
-snapshot_kind: text
 ---
 Implementation {
     name: "main",
@@ -27,13 +26,23 @@ Implementation {
                     parameters: Some(
                         ExpressionList {
                             expressions: [
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__complexFunc0",
-                                        },
-                                    ),
-                                    base: None,
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "complexFunc",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__complexFunc0",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
                                 },
                                 Assignment {
                                     left: ReferenceExpr {
@@ -69,13 +78,23 @@ Implementation {
                     parameters: Some(
                         ExpressionList {
                             expressions: [
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__complexFunc1",
-                                        },
-                                    ),
-                                    base: None,
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "complexFunc",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__complexFunc1",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
                                 },
                                 Assignment {
                                     left: ReferenceExpr {

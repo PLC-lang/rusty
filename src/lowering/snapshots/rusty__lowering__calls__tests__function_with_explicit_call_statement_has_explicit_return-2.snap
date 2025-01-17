@@ -11,46 +11,14 @@ Implementation {
         ExpressionList {
             expressions: [
                 Allocation {
-                    name: "__complexFunc0",
+                    name: "__foo0",
                     reference_type: "STRING",
                 },
                 CallStatement {
                     operator: ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "complexFunc",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ExpressionList {
-                            expressions: [
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__complexFunc0",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                LiteralString {
-                                    value: "hello",
-                                    is_wide: false,
-                                },
-                            ],
-                        },
-                    ),
-                },
-                Allocation {
-                    name: "__complexFunc1",
-                    reference_type: "STRING",
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "complexFunc",
+                                name: "foo",
                             },
                         ),
                         base: None,
@@ -62,7 +30,7 @@ Implementation {
                                     left: ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "complexFunc",
+                                                name: "foo",
                                             },
                                         ),
                                         base: None,
@@ -70,7 +38,7 @@ Implementation {
                                     right: ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__complexFunc1",
+                                                name: "__foo0",
                                             },
                                         ),
                                         base: None,
@@ -85,36 +53,21 @@ Implementation {
                                         ),
                                         base: None,
                                     },
-                                    right: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__complexFunc0",
-                                            },
-                                        ),
-                                        base: None,
+                                    right: LiteralInteger {
+                                        value: 1,
                                     },
                                 },
                             ],
                         },
                     ),
                 },
-                Assignment {
-                    left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "a",
-                            },
-                        ),
-                        base: None,
-                    },
-                    right: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__complexFunc1",
-                            },
-                        ),
-                        base: None,
-                    },
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__foo0",
+                        },
+                    ),
+                    base: None,
                 },
             ],
         },
@@ -122,13 +75,13 @@ Implementation {
     location: SourceLocation {
         span: Range(
             TextLocation {
-                line: 16,
+                line: 9,
                 column: 12,
-                offset: 481,
+                offset: 171,
             }..TextLocation {
-                line: 16,
-                column: 56,
-                offset: 525,
+                line: 9,
+                column: 24,
+                offset: 183,
             },
         ),
     },
@@ -137,11 +90,11 @@ Implementation {
             TextLocation {
                 line: 8,
                 column: 17,
-                offset: 168,
+                offset: 154,
             }..TextLocation {
                 line: 8,
                 column: 21,
-                offset: 172,
+                offset: 158,
             },
         ),
     },
