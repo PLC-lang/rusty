@@ -250,7 +250,9 @@ fn get_declaration_type_for(block: &VariableBlock, pou_type: &PouType) -> Argume
     } else if block.variable_block_type == VariableBlockType::Output {
         // outputs differ depending on pou type
         match pou_type {
-            PouType::Function | PouType::Method { .. } => ArgumentType::ByRef(get_variable_type_from_block(block)),
+            PouType::Function | PouType::Method { .. } => {
+                ArgumentType::ByRef(get_variable_type_from_block(block))
+            }
             _ => ArgumentType::ByVal(get_variable_type_from_block(block)),
         }
     } else {

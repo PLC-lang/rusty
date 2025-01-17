@@ -975,7 +975,7 @@ fn fb_method_with_var_in_out() {
     END_PROGRAM
         ",
     );
-   insta::assert_snapshot!(prg);
+    insta::assert_snapshot!(prg);
 }
 
 #[test]

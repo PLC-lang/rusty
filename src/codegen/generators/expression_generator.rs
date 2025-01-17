@@ -838,7 +838,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 // we're calling a function
                 let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
                 self.generate_function_arguments(pou, passed_parameters, declared_parameters)
-            },
+            }
             PouIndexEntry::Method { .. } => {
                 let class_ptr = self.generate_lvalue(operator).or_else(|_| {
                     // this might be a local method
@@ -849,11 +849,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))
                 })?;
                 let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
-                let mut parameters = self.generate_function_arguments(pou, passed_parameters, declared_parameters)?;
+                let mut parameters =
+                    self.generate_function_arguments(pou, passed_parameters, declared_parameters)?;
                 parameters.insert(0, class_ptr.into());
                 Ok(parameters)
-            },
-            PouIndexEntry::Action { .. } if try_from!(operator, ReferenceExpr).is_some_and(|it| it.base.is_none()) =>{
+            }
+            PouIndexEntry::Action { .. }
+                if try_from!(operator, ReferenceExpr).is_some_and(|it| it.base.is_none()) =>
+            {
                 // special handling for local actions, get the parameter from the function context
                 let call_ptr = function_context
                     .function
@@ -867,8 +870,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     call_ptr,
                     passed_parameters,
                 )
-            },
-            _ =>  {
+            }
+            _ => {
                 let call_ptr = self.generate_lvalue(operator)?;
                 self.generate_stateful_pou_arguments(
                     implementation.get_call_name(),
