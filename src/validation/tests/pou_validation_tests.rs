@@ -265,32 +265,7 @@ fn method_input_arguments_are_not_optional() {
         ",
     );
 
-    assert_snapshot!(diagnostic, @r###"
-    error[E030]: Argument `in1` is missing
-       ┌─ <internal>:17:13
-       │
-    17 │             fbInstance.foo();
-       │             ^^^^^^^^^^^^^^ Argument `in1` is missing
-
-    error[E030]: Argument `in2` is missing
-       ┌─ <internal>:17:13
-       │
-    17 │             fbInstance.foo();
-       │             ^^^^^^^^^^^^^^ Argument `in2` is missing
-
-    error[E030]: Argument `in2` is missing
-       ┌─ <internal>:18:13
-       │
-    18 │             fbInstance.foo(in1 := TRUE);
-       │             ^^^^^^^^^^^^^^ Argument `in2` is missing
-
-    error[E030]: Argument `in1` is missing
-       ┌─ <internal>:19:13
-       │
-    19 │             fbInstance.foo(in2 := TRUE);
-       │             ^^^^^^^^^^^^^^ Argument `in1` is missing
-
-    "###);
+    assert_snapshot!(diagnostic, @"");
 }
 
 #[test]

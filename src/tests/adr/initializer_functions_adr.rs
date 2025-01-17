@@ -807,7 +807,6 @@ fn initializing_method_variables() {
     source_filename = "<internal>"
 
     %foo = type {}
-    %foo.bar = type { i32, i32* }
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
 
@@ -816,10 +815,10 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    define void @foo.bar(%foo* %0) {
     entry:
-      %x = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 1
+      %x = alloca i32, align 4
+      %px = alloca i32*, align 8
       store i32 10, i32* %x, align 4
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
@@ -882,8 +881,6 @@ fn initializing_method_variables() {
     source_filename = "<internal>"
 
     %foo = type { i32 }
-    %foo.bar = type { i32* }
-    %foo.baz = type { i32* }
 
     @y = global i32 0
     @__foo__init = unnamed_addr constant %foo { i32 5 }
@@ -894,19 +891,19 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    define void @foo.bar(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
+      %px = alloca i32*, align 8
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
       ret void
     }
 
-    define void @foo.baz(%foo* %0, %foo.baz* %1) {
+    define void @foo.baz(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %px = getelementptr inbounds %foo.baz, %foo.baz* %1, i32 0, i32 0
+      %px = alloca i32*, align 8
       store i32* @y, i32** %px, align 8
       store i32* @y, i32** %px, align 8
       ret void
@@ -958,7 +955,6 @@ fn initializing_method_variables() {
     source_filename = "<internal>"
 
     %foo = type { i32 }
-    %foo.bar = type { i32, i32* }
 
     @__foo__init = unnamed_addr constant %foo { i32 5 }
 
@@ -968,11 +964,11 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    define void @foo.bar(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %x1 = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 1
+      %x1 = alloca i32, align 4
+      %px = alloca i32*, align 8
       store i32 10, i32* %x1, align 4
       store i32* %x1, i32** %px, align 8
       store i32* %x1, i32** %px, align 8

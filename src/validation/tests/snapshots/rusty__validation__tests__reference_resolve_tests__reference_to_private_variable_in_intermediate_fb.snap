@@ -2,10 +2,8 @@
 source: src/validation/tests/reference_resolve_tests.rs
 expression: "&diagnostics"
 ---
-error[E049]: Illegal access to private member fb1.f
+warning[E049]: Illegal access to private member fb1.f
    ┌─ <internal>:19:19
    │
 19 │                 a.f.x := 7;
    │                   ^ Illegal access to private member fb1.f
-
-

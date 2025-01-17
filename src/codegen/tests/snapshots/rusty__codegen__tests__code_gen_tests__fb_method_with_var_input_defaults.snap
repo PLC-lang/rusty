@@ -1,13 +1,12 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 978
 expression: prg
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
 %MyClass = type { i16, i16 }
-%prg = type { %MyClass, i16 }
+%prg = type { %MyClass }
 
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 @prg_instance = global %prg zeroinitializer
@@ -19,30 +18,28 @@ entry:
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, i16* %1) {
+define void @MyClass.testMethod(%MyClass* %0, i16 %1) {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
-  %myMethodArg = alloca i16*, align 8
-  store i16* %1, i16** %myMethodArg, align 8
-  %deref = load i16*, i16** %myMethodArg, align 8
-  %load_x = load i16, i16* %x, align 2
-  store i16 %load_x, i16* %deref, align 2
+  %myMethodArg = alloca i16, align 2
+  store i16 %1, i16* %myMethodArg, align 2
+  %load_myMethodArg = load i16, i16* %myMethodArg, align 2
+  store i16 %load_myMethodArg, i16* %x, align 2
   ret void
 }
 
 define void @prg(%prg* %0) {
 entry:
   %cl = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  call void @MyClass.testMethod(%MyClass* %cl, i16* %x)
+  call void @MyClass.testMethod(%MyClass* %cl, i16 3)
   ret void
 }
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
 
 %MyClass = type { i16, i16 }
-%prg = type { %MyClass, i16 }
+%prg = type { %MyClass }
 
 @__MyClass__init = external global %MyClass
 @prg_instance = external global %prg
@@ -70,7 +67,7 @@ declare void @prg(%prg*)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
-%prg = type { %MyClass, i16 }
+%prg = type { %MyClass }
 %MyClass = type { i16, i16 }
 
 @prg_instance = external global %prg

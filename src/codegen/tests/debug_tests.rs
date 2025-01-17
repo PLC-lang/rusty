@@ -197,7 +197,7 @@ fn switch_case_debug_info() {
                 x2 : INT;
                 x3 : INT;
             END_VAR
-            
+
             WHILE TRUE DO
             x1 := x1 + 1;
 
