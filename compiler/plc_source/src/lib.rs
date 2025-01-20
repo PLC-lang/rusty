@@ -23,7 +23,7 @@ pub enum SourceType {
 
 /// SourceContainers offer source-code to be compiled via the load_source function.
 /// Furthermore it offers a location-String used when reporting diagnostics.
-pub trait SourceContainer: Sync {
+pub trait SourceContainer: Sync + Send {
     /// loads and returns the SourceEntry that contains the SourceCode and the path it was loaded from
     fn load_source(&self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String>;
     /// returns the location of this source-container. Used when reporting diagnostics.
@@ -88,7 +88,7 @@ impl SourceCodeFactory for &str {
     }
 }
 
-impl<T: AsRef<Path> + Sync> SourceContainer for T {
+impl<T: AsRef<Path> + Sync + Send> SourceContainer for T {
     fn load_source(&self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
         let source_type = self.get_type();
         if matches!(source_type, SourceType::Text | SourceType::Xml) {
