@@ -1697,11 +1697,11 @@
             parse_identifier(lexer).unwrap_or_else(|| (<span class="string">""</span>.to_string(), SourceLocation::undefined())); <span class="comment">// parse POU name
 
         </span><span class="kw">let </span>generics = parse_generics(lexer);
-        <span class="kw">let </span>interfaces = parse_interface_declarations(lexer);
 
         with_scope(lexer, name.clone(), |lexer| {
             <span class="comment">// TODO: Parse USING directives
             </span><span class="kw">let </span>super_class = parse_super_class(lexer);
+            <span class="kw">let </span>interfaces = parse_interface_declarations(lexer);
 
             <span class="comment">// parse an optional return type
             // classes do not have a return type (check in validator)
