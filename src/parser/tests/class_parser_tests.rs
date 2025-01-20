@@ -513,3 +513,66 @@ fn method_variable_blocks_can_be_parsed() {
     let with_initializer = variables.iter().filter(|it| it.initializer.is_some());
     assert_eq!(with_initializer.count(), 4);
 }
+
+#[test]
+fn fb_extends_can_be_parsed() {
+    let src = r#"
+    FUNCTION_BLOCK MyFb
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK MyFb2 EXTENDS MyFb
+    END_FUNCTION_BLOCK
+    "#;
+    let unit = parse(src).0;
+
+    assert_eq!(&unit.units[1].super_class.clone().unwrap(), "MyFb");
+}
+#[test]
+fn class_with_extends_and_implements_can_be_parsed() {
+    let src = r#"
+    INTERFACE MyInterface
+    END_INTERFACE
+
+    CLASS MyClass IMPLEMENTS MyInterface
+    END_CLASS
+
+    CLASS MyClass2 EXTENDS MyClass IMPLEMENTS MyInterface
+    END_CLASS
+    "#;
+    let unit = parse(src).0;
+    let class1 = &unit.units[0];
+    assert_eq!(class1.kind, PouType::Class);
+    assert_eq!(class1.name, "MyClass");
+    assert_eq!(class1.interfaces[0].name, "MyInterface");
+    let class2 = &unit.units[1];
+    assert_eq!(class2.kind, PouType::Class);
+    assert_eq!(class2.name, "MyClass2");
+    assert_eq!(class2.super_class.as_ref().unwrap(), "MyClass");
+    assert_eq!(class2.interfaces[0].name, "MyInterface");
+}
+
+#[test]
+fn function_block_with_extends_and_implements_can_be_parsed() {
+    let src = r#"
+    INTERFACE MyInterface
+    END_INTERFACE
+
+    FUNCTION_BLOCK MyFb IMPLEMENTS MyInterface
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK MyFb2 EXTENDS MyFb IMPLEMENTS MyInterface
+    END_FUNCTION_BLOCK
+    "#;
+    let unit = parse(src).0;
+
+    let fb1 = &unit.units[0];
+    assert_eq!(fb1.kind, PouType::FunctionBlock);
+    assert_eq!(fb1.name, "MyFb");
+    assert_eq!(fb1.interfaces[0].name, "MyInterface");
+
+    let fb2 = &unit.units[1];
+    assert_eq!(fb2.kind, PouType::FunctionBlock);
+    assert_eq!(fb2.name, "MyFb2");
+    assert_eq!(fb2.super_class.as_ref().unwrap(), "MyFb");
+    assert_eq!(fb2.interfaces[0].name, "MyInterface");
+}
