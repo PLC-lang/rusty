@@ -388,6 +388,7 @@ pub enum VariableBlockType {
     Global,
     InOut,
     External,
+    Base,
 }
 
 impl Display for VariableBlockType {
@@ -400,6 +401,7 @@ impl Display for VariableBlockType {
             VariableBlockType::Global => write!(f, "Global"),
             VariableBlockType::InOut => write!(f, "InOut"),
             VariableBlockType::External => write!(f, "External"),
+            VariableBlockType::Base => write!(f, "Base"),
         }
     }
 }

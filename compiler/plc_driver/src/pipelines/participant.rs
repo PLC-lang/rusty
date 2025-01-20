@@ -223,11 +223,13 @@ impl PipelineParticipantMut for InitParticipant {
 }
 
 impl PipelineParticipantMut for InheritanceLowerer {
-    fn pre_index(&self, parsed_project: ParsedProject) -> ParsedProject {
-        todo!()
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+        let ParsedProject { mut units } = parsed_project;
+        units.iter_mut().for_each(|unit| self.visit_unit(unit));
+        ParsedProject { units }
     }
 
-    fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        todo!()
+    fn post_annotate(&mut self, _annotated_project: AnnotatedProject) -> AnnotatedProject {
+        _annotated_project
     }
 }

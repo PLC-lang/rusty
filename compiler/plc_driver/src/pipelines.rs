@@ -39,6 +39,7 @@ use plc_diagnostics::{
     diagnostics::{Diagnostic, Severity},
 };
 use plc_index::GlobalContext;
+use plc_lowering::inheritance::InheritanceLowerer;
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -249,10 +250,18 @@ impl<T: SourceContainer> BuildPipeline<T> {
     pub fn register_default_participants(&mut self) {
         use participant::InitParticipant;
         // XXX: should we use a static array of participants?
+        let participants: Vec<Box<dyn PipelineParticipant>> = vec![];
+        let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
+            Box::new(InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider())),
+            Box::new(InheritanceLowerer),
+        ];
 
-        let init_participant =
-            InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider());
-        self.register_mut_participant(Box::new(init_participant));
+        for participant in participants {
+            self.register_participant(participant)
+        }
+        for participant in mut_participants {
+            self.register_mut_participant(participant)
+        }
     }
 }
 

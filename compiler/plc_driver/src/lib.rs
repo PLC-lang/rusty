@@ -12,7 +12,6 @@ use anyhow::{anyhow, Result};
 use pipelines::{
     participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
 };
-use plc_lowering::inheritance::InheritanceLowerer;
 use std::{
     ffi::OsStr,
     fmt::{Debug, Display},
