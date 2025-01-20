@@ -274,11 +274,11 @@ fn parse_pou(
             parse_identifier(lexer).unwrap_or_else(|| ("".to_string(), SourceLocation::undefined())); // parse POU name
 
         let generics = parse_generics(lexer);
-        let interfaces = parse_interface_declarations(lexer);
 
         with_scope(lexer, name.clone(), |lexer| {
             // TODO: Parse USING directives
             let super_class = parse_super_class(lexer);
+            let interfaces = parse_interface_declarations(lexer);
 
             // parse an optional return type
             // classes do not have a return type (check in validator)
