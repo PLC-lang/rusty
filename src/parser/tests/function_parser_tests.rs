@@ -1,4 +1,6 @@
-use crate::test_utils::tests::{parse, parse_and_validate_buffered, parse_buffered};
+use crate::test_utils::tests::{
+    parse, parse_and_validate_buffered, parse_buffered, temp_rename_me_parse_buffered,
+};
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
     AccessModifier, ArgumentProperty, DataType, DataTypeDeclaration, LinkageType, Pou, PouType, Variable,
@@ -581,4 +583,430 @@ fn constant_pragma_can_be_parsed_but_errs() {
        │ ╰────────────────^ Pragma {constant} is not allowed in POU declarations
 
     "###);
+}
+
+#[test]
+fn function_block_with_property_pre_desugar() {
+    let source = r"
+    FUNCTION_BLOCK fb
+        VAR
+            localPrivateVariable : DINT;
+        END_VAR
+
+        PROPERTY prop : DINT
+            GET
+                VAR
+                    helper : DINT;
+                END_VAR
+
+                prop := localPrivateVariable;
+            END_GET
+
+            SET
+                VAR
+                    helper : DINT;
+                END_VAR
+
+                localPrivateVariable := prop;
+            END_SET
+        END_PROPERTY
+    END_FUNCTION_BLOCK
+    ";
+
+    let (result, diagnostics) = parse_buffered(source);
+
+    assert_eq!(diagnostics, "");
+    insta::assert_debug_snapshot!(result.properties, @r#"
+    [
+        Property {
+            name: "prop",
+            name_parent: "fb",
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 17,
+                        offset: 110,
+                    }..TextLocation {
+                        line: 6,
+                        column: 21,
+                        offset: 114,
+                    },
+                ),
+            },
+            return_type: DataTypeReference {
+                referenced_type: "DINT",
+            },
+            implementations: [
+                Get {
+                    variables: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "helper",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "DINT",
+                                    },
+                                },
+                            ],
+                            variable_block_type: Local,
+                        },
+                    ],
+                    statements: [
+                        Assignment {
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "prop",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            right: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "localPrivateVariable",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        },
+                    ],
+                },
+                Set {
+                    variables: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "helper",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "DINT",
+                                    },
+                                },
+                            ],
+                            variable_block_type: Local,
+                        },
+                    ],
+                    statements: [
+                        Assignment {
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "localPrivateVariable",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            right: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "prop",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
+    "#);
+}
+
+#[test]
+fn function_block_with_property_post_desugar() {
+    let source = r"
+    FUNCTION_BLOCK fb
+        VAR
+            localPrivateVariable : DINT;
+        END_VAR
+
+        PROPERTY prop : DINT
+            GET
+                VAR
+                    helper : DINT;
+                END_VAR
+
+                prop := localPrivateVariable;
+            END_GET
+
+            SET
+                VAR
+                    helper : DINT;
+                END_VAR
+
+                localPrivateVariable := prop;
+            END_SET
+        END_PROPERTY
+    END_FUNCTION_BLOCK
+    ";
+
+    let (result, diagnostics) = temp_rename_me_parse_buffered(source);
+
+    assert_eq!(diagnostics, "");
+    insta::assert_debug_snapshot!(result.units, @r#"
+    [
+        POU {
+            name: "fb",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "localPrivateVariable",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "prop",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Property,
+                },
+            ],
+            pou_type: FunctionBlock,
+            return_type: None,
+            interfaces: [],
+        },
+        POU {
+            name: "fb.get_prop",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "helper",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+            ],
+            pou_type: Method {
+                parent: "fb",
+            },
+            return_type: Some(
+                DataTypeReference {
+                    referenced_type: "DINT",
+                },
+            ),
+            interfaces: [],
+        },
+        POU {
+            name: "fb.set_prop",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "helper",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "__in",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Input(
+                        ByVal,
+                    ),
+                },
+            ],
+            pou_type: Method {
+                parent: "fb",
+            },
+            return_type: None,
+            interfaces: [],
+        },
+    ]
+    "#);
+
+    insta::assert_debug_snapshot!(result.implementations, @r#"
+    [
+        Implementation {
+            name: "fb",
+            type_name: "fb",
+            linkage: Internal,
+            pou_type: FunctionBlock,
+            statements: [],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 23,
+                        column: 4,
+                        offset: 472,
+                    }..TextLocation {
+                        line: 22,
+                        column: 20,
+                        offset: 467,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 19,
+                        offset: 20,
+                    }..TextLocation {
+                        line: 1,
+                        column: 21,
+                        offset: 22,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+        Implementation {
+            name: "fb.get_prop",
+            type_name: "fb.get_prop",
+            linkage: Internal,
+            pou_type: Method {
+                parent: "fb",
+            },
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "prop",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "localPrivateVariable",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "get_prop",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "prop",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: None,
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 17,
+                        offset: 110,
+                    }..TextLocation {
+                        line: 6,
+                        column: 21,
+                        offset: 114,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+        Implementation {
+            name: "fb.set_prop",
+            type_name: "fb.set_prop",
+            linkage: Internal,
+            pou_type: Method {
+                parent: "fb",
+            },
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "prop",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__in",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "localPrivateVariable",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "prop",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: None,
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 17,
+                        offset: 110,
+                    }..TextLocation {
+                        line: 6,
+                        column: 21,
+                        offset: 114,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+    ]
+    "#);
 }

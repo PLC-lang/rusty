@@ -1,5 +1,7 @@
-use crate::test_utils::tests::parse_and_validate_buffered;
-use insta::assert_snapshot;
+use crate::test_utils::tests::{
+    parse_and_validate_buffered, temp_make_me_generic_but_for_now_validate_property,
+};
+use insta::{assert_debug_snapshot, assert_snapshot};
 
 #[test]
 fn actions_container_no_name() {
@@ -352,3 +354,38 @@ fn method_inout_arguments_are_not_optional() {
 
     "###);
 }
+
+#[test]
+fn property() {
+    let diagnostics = temp_make_me_generic_but_for_now_validate_property(
+        r"
+        FUNCTION_BLOCK fb
+            PROPERTY prop : DINT
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+        END_FUNCTION
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E001]: Property has neither a GET nor SET block
+      ┌─ <internal>:3:22
+      │
+    3 │             PROPERTY prop : DINT
+      │                      ^^^^ Property has neither a GET nor SET block
+    ");
+}
+
+#[test]
+fn property_with_more_than_one_get_block() {}
+
+#[test]
+fn property_with_more_than_one_set_block() {}
+
+#[test]
+fn property_with_unsupported_variable_type_blocks() {}
+
+#[test]
+fn property_defined_in_unsupported_pou_type() {}

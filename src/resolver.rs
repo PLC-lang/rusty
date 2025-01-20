@@ -489,6 +489,13 @@ impl StatementAnnotation {
     pub fn data_type(type_name: &str) -> Self {
         StatementAnnotation::Type { type_name: type_name.into() }
     }
+
+    pub fn is_property(&self) -> bool {
+        matches!(
+            self,
+            StatementAnnotation::Variable { argument_type: ArgumentType::ByVal(VariableType::Property), .. }
+        )
+    }
 }
 
 impl From<&PouIndexEntry> for StatementAnnotation {
@@ -1495,6 +1502,35 @@ impl<'i> TypeAnnotator<'i> {
 
                 // give a type hint that we want the right side to be stored in the left's type
                 self.update_right_hand_side_expected_type(ctx, &data.left, &data.right);
+
+                // if ctx.pou.is_some_and(|pou| pou == "main") {
+                //     if let Some(StatementAnnotation::Variable {
+                //         argument_type: ArgumentType::ByVal(VariableType::Property),
+                //         ..
+                //     }) = self.annotation_map.get(&data.right)
+                //     {
+                //         self.annotate(
+                //             statement,
+                //             StatementAnnotation::ReplacementAst {
+                //                 statement: AstFactory::create_call_statement(
+                //                     AstFactory::create_member_reference(
+                //                         AstFactory::create_identifier(
+                //                             "fb.get_prop",
+                //                             SourceLocation::undefined(),
+                //                             1234,
+                //                         ),
+                //                         None,
+                //                         1235,
+                //                     ),
+                //                     Some(data.right.as_ref().clone()),
+                //                     1236,
+                //                     SourceLocation::undefined(),
+                //                 ),
+                //             },
+                //         );
+                //     }
+                //     dbg!(self.annotation_map.get(&data.left));
+                // }
             }
             AstStatement::OutputAssignment(data, ..) => {
                 visit_all_statements!(self, ctx, &data.left, &data.right);

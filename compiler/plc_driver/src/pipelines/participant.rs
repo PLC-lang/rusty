@@ -5,17 +5,36 @@
 //!
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     env, fs,
     path::{Path, PathBuf},
     sync::{Arc, Mutex, RwLock},
 };
 
-use ast::provider::IdProvider;
-use plc::{codegen::GeneratedModule, output::FormatOption, ConfigFormat, OnlineChange, Target};
-use plc_diagnostics::diagnostics::Diagnostic;
+use ast::{
+    ast::{
+        Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, Implementation,
+        LinkageType, Pou, PouType, Property, PropertyKind, ReferenceAccess, ReferenceExpr, VariableBlock,
+        VariableBlockType,
+    },
+    mut_visitor::AstVisitorMut,
+    provider::IdProvider,
+};
+use plc::{
+    codegen::GeneratedModule,
+    index::{ArgumentType, VariableType},
+    lowering::property::PropertyDesugar,
+    output::FormatOption,
+    resolver::{AnnotationMap, StatementAnnotation},
+    ConfigFormat, OnlineChange, Target,
+};
+use plc_diagnostics::{
+    diagnostician::{self, Diagnostician},
+    diagnostics::Diagnostic,
+};
+use plc_index::GlobalContext;
 use project::{object::Object, project::LibraryInformation};
-use source_code::SourceContainer;
+use source_code::{source_location::SourceLocation, SourceContainer};
 
 use super::{AnnotatedProject, GeneratedProject, IndexedProject, ParsedProject};
 
@@ -25,7 +44,7 @@ use super::{AnnotatedProject, GeneratedProject, IndexedProject, ParsedProject};
 pub trait PipelineParticipant: Sync + Send {
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
-    fn pre_index(&self, _parsed_project: &ParsedProject) {}
+    fn pre_index(&self, _parsed_project: &ParsedProject, diagnostician: &mut Diagnostician) {}
     /// Implement this to access the project after it got indexed
     /// This happens directly after the index returns
     fn post_index(&self, _indexed_project: &IndexedProject) {}
@@ -60,22 +79,31 @@ pub trait PipelineParticipant: Sync + Send {
 pub trait PipelineParticipantMut {
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
-    fn pre_index(&self, parsed_project: ParsedProject) -> ParsedProject {
+    fn pre_index(
+        &mut self,
+        parsed_project: ParsedProject,
+        _diagnostician: &mut Diagnostician,
+    ) -> ParsedProject {
         parsed_project
     }
+
+    fn pre_index_validation(&mut self, _project: &ParsedProject) -> Vec<Diagnostic> {
+        Vec::new()
+    }
+
     /// Implement this to access the project after it got indexed
     /// This happens directly after the index returns
-    fn post_index(&self, indexed_project: IndexedProject) -> IndexedProject {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project
     }
     /// Implement this to access the project before it gets annotated
     /// This happens directly after the constants are evaluated
-    fn pre_annotate(&self, indexed_project: IndexedProject) -> IndexedProject {
+    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project
     }
     /// Implement this to access the project after it got annotated
     /// This happens directly after annotations
-    fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         annotated_project
     }
 }
@@ -207,15 +235,19 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
 pub struct LoweringParticipant;
 
 impl PipelineParticipantMut for LoweringParticipant {
-    fn pre_index(&self, parsed_project: ParsedProject) -> ParsedProject {
+    fn pre_index(
+        &mut self,
+        parsed_project: ParsedProject,
+        diagnostician: &mut Diagnostician,
+    ) -> ParsedProject {
         parsed_project
     }
 
-    fn post_index(&self, indexed_project: IndexedProject) -> IndexedProject {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project
     }
 
-    fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         annotated_project
     }
 }
@@ -232,7 +264,121 @@ impl InitParticipant {
 }
 
 impl PipelineParticipantMut for InitParticipant {
-    fn pre_annotate(&self, indexed_project: IndexedProject) -> IndexedProject {
+    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project.extend_with_init_units(&self.symbol_name, self.id_provider.clone())
     }
 }
+
+impl PipelineParticipantMut for PropertyDesugar {
+    fn pre_index(
+        &mut self,
+        parsed_project: ParsedProject,
+        diagnostician: &mut Diagnostician,
+    ) -> ParsedProject {
+        let ParsedProject { mut units, .. } = parsed_project;
+        // desugar
+        for unit in &mut units {
+            self.visit_compilation_unit(unit);
+        }
+
+        PropertyDesugar::validate_units(&units);
+
+        ParsedProject { units }
+    }
+
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { mut units, index, annotations } = annotated_project;
+        for unit in &mut units {
+            for implementation in &mut unit.unit.implementations {
+                // TODO: Find a way to not update statements when we're inside the parent POU where the property
+                // has been defined
+                if implementation.name == "fb.get_prop" || implementation.name == "fb.set_prop" {
+                    continue;
+                }
+
+                for node in &mut implementation.statements.iter_mut().filter(|it| it.is_assignment()) {
+                    let mut replace_me = &mut node.stmt;
+                    let AstStatement::Assignment(Assignment { ref mut left, ref mut right, .. }) =
+                        &mut replace_me
+                    else {
+                        unreachable!()
+                    };
+
+                    // dbg!(annotations.get(&left));
+                    // dbg!(annotations.get(&right));
+
+                    if annotations.get(&right).is_some_and(StatementAnnotation::is_property) {
+                        insert_get_prefix("get_", right);
+
+                        let mut call = AstFactory::create_call_statement(
+                            right.as_ref().clone(),
+                            None,
+                            self.id_provider.next_id(),
+                            SourceLocation::undefined(),
+                        );
+
+                        std::mem::swap(right.as_mut(), &mut call);
+                    } else if annotations.get(&left).is_some_and(StatementAnnotation::is_property) {
+                        insert_get_prefix("set_", left);
+                        let mut call = AstFactory::create_call_statement(
+                            left.as_ref().clone(),
+                            Some(right.as_ref().clone()),
+                            self.id_provider.next_id(),
+                            SourceLocation::undefined(),
+                        );
+
+                        dbg!(&call);
+
+                        std::mem::swap(node, &mut call);
+                    }
+                }
+            }
+        }
+
+        let project = AnnotatedProject { units, index, annotations };
+        // TODO: Re-annotate, copy from PR
+        project.redo(self.id_provider.clone())
+    }
+}
+
+fn insert_get_prefix(prefix: &str, node: &mut AstNode) {
+    let AstStatement::ReferenceExpr(ReferenceExpr { access, .. }) = &mut node.stmt else { unreachable!() };
+    let ReferenceAccess::Member(ref mut name) = access else { unreachable!() };
+    let AstStatement::Identifier(name) = &mut name.stmt else { unreachable!() };
+
+    name.insert_str(0, prefix);
+}
+
+impl PipelineParticipant for PropertyDesugar {
+    fn pre_index(&self, parsed_project: &ParsedProject, diagnostician: &mut Diagnostician) {
+        let ParsedProject { units } = parsed_project;
+
+        for unit in units {
+            for property in &unit.properties {
+                dbg!(&property);
+                if property.implementations.is_empty() {
+                    let diagnostic = Diagnostic::new("test")
+                        .with_location(property.name_location.clone())
+                        .with_error_code("E001");
+
+                    dbg!(&diagnostic);
+
+                    diagnostician.handle(&[diagnostic]);
+                }
+            }
+        }
+    }
+}
+
+pub struct Validator2 {
+    context: Arc<GlobalContext>,
+    diagnostics: Vec<Diagnostic>,
+}
+
+impl Validator2 {
+    pub fn new(context: Arc<GlobalContext>) -> Validator2 {
+        Validator2 { context, diagnostics: Vec::new() }
+    }
+}
+
+impl PipelineParticipantMut for Validator2 {}

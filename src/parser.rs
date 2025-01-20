@@ -7,8 +7,8 @@ use plc_ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
         Implementation, Interface, InterfaceIdentifier, LinkageType, PolymorphismMode, Pou, PouType,
-        ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock,
-        VariableBlockType,
+        Property, PropertyKind, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
+        VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -100,11 +100,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
                     _ => (PouType::FunctionBlock, KeywordEndFunctionBlock),
                 };
 
-                let (mut pou, mut implementation) =
-                    parse_pou(&mut lexer, params.0, linkage, params.1, constant);
-
-                unit.units.append(&mut pou);
-                unit.implementations.append(&mut implementation);
+                parse_pou(&mut lexer, &mut unit, params.0, linkage, params.1, constant);
 
                 // reset const pragma
                 constant = false;
@@ -244,11 +240,12 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
 ///
 fn parse_pou(
     lexer: &mut ParseSession,
+    unit: &mut CompilationUnit,
     kind: PouType,
     linkage: LinkageType,
     expected_end_token: lexer::Token,
     constant: bool,
-) -> (Vec<Pou>, Vec<Implementation>) {
+) {
     if constant && !matches!(linkage, LinkageType::BuiltIn) {
         lexer.accept_diagnostic(Diagnostic::const_pragma_is_not_allowed(
             lexer.last_location().span(&lexer.location()),
@@ -308,7 +305,7 @@ fn parse_pou(
             // implementations. Note that function blocks have to start with the method
             // declarations before their implementation.
             // all other Pous need to be checked in the validator if they can have methods.
-            while matches!(lexer.token, KeywordMethod | PropertyConstant) {
+            while matches!(lexer.token, KeywordMethod | KeywordProperty | PropertyConstant) {
                 if !matches!(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
                     let location = lexer.source_range_factory.create_range(lexer.last_range.clone());
 
@@ -318,6 +315,12 @@ fn parse_pou(
                     );
                     break;
                 }
+
+                if lexer.token == KeywordProperty {
+                    unit.properties.push(parse_property(lexer, &name));
+                    continue;
+                }
+
                 let const_method = lexer.try_consume(PropertyConstant);
                 if let Some((pou, implementation)) = parse_method(lexer, &name, linkage, const_method) {
                     impl_pous.push(pou);
@@ -365,7 +368,9 @@ fn parse_pou(
             lexer.source_range_factory.create_range(lexer.last_range.clone()),
         ));
     }
-    pou
+
+    unit.units.extend(pou.0);
+    unit.implementations.extend(pou.1);
 }
 
 fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
@@ -576,12 +581,7 @@ fn parse_method(
         let return_type = parse_return_type(lexer, &kind);
 
         let mut variable_blocks = vec![];
-        while lexer.token == KeywordVar
-            || lexer.token == KeywordVarInput
-            || lexer.token == KeywordVarOutput
-            || lexer.token == KeywordVarInOut
-            || lexer.token == KeywordVarTemp
-        {
+        while lexer.token.is_var() {
             variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
@@ -619,6 +619,42 @@ fn parse_method(
             implementation,
         ))
     })
+}
+
+//
+fn parse_property(lexer: &mut ParseSession, name_parent: &str) -> Property {
+    lexer.advance(); // Move past `PROPERTY` keyword
+
+    let (name, name_location) = parse_identifier(lexer).expect("todo: error handle if not exists");
+    let return_type = parse_return_type(lexer, &PouType::Function).expect("todo: error handle if not exists");
+
+    let mut implementations = Vec::new();
+    while matches!(lexer.token, KeywordGet | KeywordSet) {
+        implementations.push(parse_property_kind(lexer));
+    }
+
+    lexer.try_consume_or_report(KeywordEndProperty);
+    Property { name, name_parent: name_parent.to_string(), name_location, return_type, implementations }
+}
+
+fn parse_property_kind(lexer: &mut ParseSession) -> PropertyKind {
+    let token = lexer.token;
+    lexer.advance(); // Move past `GET` or `SET` keyword
+
+    let mut variables = Vec::new();
+    while lexer.token.is_var() {
+        variables.push(parse_variable_block(lexer, LinkageType::Internal));
+    }
+
+    let statements = parse_body_in_region(lexer, vec![KeywordEndGet, KeywordEndSet]);
+
+    match token {
+        KeywordGet => PropertyKind::Get { variables, statements },
+        KeywordSet => PropertyKind::Set { variables, statements },
+
+        // This function is only called if the lexer encountered a `GET` or `SET` keyword
+        _ => unreachable!(),
+    }
 }
 
 fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {

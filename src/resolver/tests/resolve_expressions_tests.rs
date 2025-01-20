@@ -5612,3 +5612,52 @@ fn internal_var_config_global_resolves() {
         unreachable!("Must be assignment")
     }
 }
+
+#[test]
+fn temp() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            PROPERTY prop : DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance : fb;
+            END_VAR
+
+            instance.prop := 5;
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    // panic!("{:#?}", unit);
+    let AstNode { stmt: AstStatement::Assignment(Assignment { left, right, .. }), .. } =
+        &unit.implementations[1].statements[0]
+    else {
+        unreachable!()
+    };
+
+    insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r#"
+    Variable {
+        resulting_type: "DINT",
+        qualified_name: "fb.prop",
+        constant: false,
+        argument_type: ByVal(
+            Property,
+        ),
+        auto_deref: None,
+    }
+    "#);
+    insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
+    Value {
+        resulting_type: "DINT",
+    }
+    "#);
+}

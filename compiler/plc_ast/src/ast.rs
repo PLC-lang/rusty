@@ -49,6 +49,21 @@ pub struct Pou {
 }
 
 #[derive(Debug, PartialEq)]
+pub struct Property {
+    pub name: String,
+    pub name_parent: String,
+    pub name_location: SourceLocation,
+    pub return_type: DataTypeDeclaration,
+    pub implementations: Vec<PropertyKind>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum PropertyKind {
+    Get { variables: Vec<VariableBlock>, statements: Vec<AstNode> },
+    Set { variables: Vec<VariableBlock>, statements: Vec<AstNode> },
+}
+
+#[derive(Debug, PartialEq)]
 pub struct Interface {
     pub name: String,
     pub methods: Vec<Pou>,
@@ -262,7 +277,7 @@ pub enum LinkageType {
     BuiltIn,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AccessModifier {
     Private,
     Public,
@@ -345,6 +360,10 @@ pub struct CompilationUnit {
     pub interfaces: Vec<Interface>,
     pub user_types: Vec<UserTypeDeclaration>,
     pub file_name: String,
+
+    // TODO: These are not needed after desugaring, maybe introduce a ParsedCompilationUnit and a CompilationUnit
+    //       which converts itself when this field no longer is needed?
+    pub properties: Vec<Property>,
 }
 
 impl CompilationUnit {
@@ -357,6 +376,7 @@ impl CompilationUnit {
             interfaces: Vec::new(),
             user_types: Vec::new(),
             file_name: file_name.to_string(),
+            properties: Vec::new(),
         }
     }
 
@@ -388,6 +408,7 @@ pub enum VariableBlockType {
     Global,
     InOut,
     External,
+    Property,
 }
 
 impl Display for VariableBlockType {
@@ -400,6 +421,7 @@ impl Display for VariableBlockType {
             VariableBlockType::Global => write!(f, "Global"),
             VariableBlockType::InOut => write!(f, "InOut"),
             VariableBlockType::External => write!(f, "External"),
+            VariableBlockType::Property => write!(f, "Property"),
         }
     }
 }
@@ -410,7 +432,7 @@ pub enum ArgumentProperty {
     ByRef,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct VariableBlock {
     pub access: AccessModifier,
     pub constant: bool,

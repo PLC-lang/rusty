@@ -275,6 +275,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         let annotated_project = self.annotate(indexed_project)?;
         //TODO : this is post lowering, we might want to control this
         if let Some(CompileParameters { output_ast: true, .. }) = self.compile_parameters {
+            eprintln!("{:#?}", &annotated_project.units);
             return Ok(());
         }
 
@@ -308,15 +309,18 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
 
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
         self.participants.iter().for_each(|p| {
-            p.pre_index(&project);
+            p.pre_index(&project, &mut self.diagnostician);
         });
-        let project = self.mutable_participants.iter().fold(project, |project, p| p.pre_index(project));
+        let project = self
+            .mutable_participants
+            .iter_mut()
+            .fold(project, |project, p| p.pre_index(project, &mut self.diagnostician));
         let indexed_project = project.index(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_index(&indexed_project);
         });
         let indexed_project =
-            self.mutable_participants.iter().fold(indexed_project, |project, p| p.post_index(project));
+            self.mutable_participants.iter_mut().fold(indexed_project, |project, p| p.post_index(project));
         Ok(indexed_project)
     }
 
@@ -324,13 +328,16 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.participants.iter().for_each(|p| {
             p.pre_annotate(&project);
         });
-        let project = self.mutable_participants.iter().fold(project, |project, p| p.pre_annotate(project));
+        let project =
+            self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_annotate(project));
         let annotated_project = project.annotate(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_annotate(&annotated_project);
         });
-        let annotated_project =
-            self.mutable_participants.iter().fold(annotated_project, |project, p| p.post_annotate(project));
+        let annotated_project = self
+            .mutable_participants
+            .iter_mut()
+            .fold(annotated_project, |project, p| p.post_annotate(project));
         Ok(annotated_project)
     }
 
@@ -620,6 +627,33 @@ impl AnnotatedProject {
         } else {
             Ok(())
         }
+    }
+
+    pub fn redo(self, mut id_provider: IdProvider) -> AnnotatedProject {
+        //Create and call the annotator
+        let mut annotated_units = Vec::new();
+        let mut all_annotations = AnnotationMapImpl::default();
+        let result = self
+            .units
+            .into_par_iter()
+            .map(|unit| {
+                let (annotation, dependencies, literals) =
+                    TypeAnnotator::visit_unit(&self.index, &unit.unit, id_provider.clone());
+                (unit, annotation, dependencies, literals)
+            })
+            .collect::<Vec<_>>();
+
+        for (unit, annotation, dependencies, literals) in result {
+            annotated_units.push(AnnotatedUnit::new(unit.unit, dependencies, literals));
+            all_annotations.import(annotation);
+        }
+
+        let mut index = self.index;
+        index.import(std::mem::take(&mut all_annotations.new_index));
+
+        let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+
+        AnnotatedProject { units: annotated_units, index, annotations }
     }
 
     pub fn codegen_to_string(&self, compile_options: &CompileOptions) -> Result<Vec<String>, Diagnostic> {

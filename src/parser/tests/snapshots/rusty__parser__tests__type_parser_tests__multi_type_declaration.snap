@@ -63,4 +63,5 @@ CompilationUnit {
         },
     ],
     file_name: "test.st",
+    properties: [],
 }

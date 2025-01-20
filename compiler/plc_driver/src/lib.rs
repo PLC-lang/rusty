@@ -22,8 +22,8 @@ use std::{
 
 use cli::{CompileParameters, ParameterError};
 use plc::{
-    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
-    OptimizationLevel,
+    codegen::CodegenContext, linker::LinkerType, lowering::property::PropertyDesugar, output::FormatOption,
+    DebugLevel, ErrorFormat, OnlineChange, OptimizationLevel,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
@@ -166,6 +166,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     let init_participant =
         InitParticipant::new(&pipeline.project.get_init_symbol_name(), pipeline.context.provider());
     pipeline.register_mut_participant(Box::new(init_participant));
+    pipeline.register_mut_participant(Box::new(PropertyDesugar::new(pipeline.context.provider())));
     let format = pipeline.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default();
 
     pipeline.run().map_err(|err| {

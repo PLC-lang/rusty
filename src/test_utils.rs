@@ -5,6 +5,7 @@ pub mod tests {
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
+        mut_visitor::AstVisitorMut,
         provider::IdProvider,
     };
     use plc_diagnostics::{
@@ -18,7 +19,7 @@ pub mod tests {
         codegen::{CodegenContext, GeneratedModule},
         index::{self, FxIndexSet, Index},
         lexer,
-        lowering::InitVisitor,
+        lowering::{property::PropertyDesugar, InitVisitor},
         parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
@@ -92,6 +93,42 @@ pub mod tests {
         let id_provider = IdProvider::default();
         let (unit, index, _) = do_index(src, id_provider);
         (unit, index)
+    }
+
+    pub fn temp_rename_me_parse_buffered(src: &str) -> (CompilationUnit, String) {
+        let ids = IdProvider::default();
+        let mut reporter = Diagnostician::buffered();
+        reporter.register_file("<internal>".to_string(), src.to_string());
+
+        let (mut unit, diagnostics) = parser::parse(
+            lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
+            LinkageType::Internal,
+            "test.st",
+        );
+        // make this more generic, perhaps by taking a Vec<impl Participant + ...>
+        let mut temp = PropertyDesugar::new(ids.clone());
+        temp.visit_compilation_unit(&mut unit);
+        //
+        reporter.handle(&diagnostics);
+        (unit, reporter.buffer().unwrap_or_default())
+    }
+
+    pub fn temp_make_me_generic_but_for_now_validate_property(src: &str) -> String {
+        let ids = IdProvider::default();
+        let mut reporter = Diagnostician::buffered();
+        reporter.register_file("<internal>".to_string(), src.to_string());
+
+        let (mut unit, diagnostics) = parse(src);
+        assert!(diagnostics.is_empty(), "fixme, these should also be reported");
+
+        // desugar
+        let mut desugar = PropertyDesugar::new(ids.clone());
+        desugar.visit_compilation_unit(&mut unit);
+        let diagnostics = PropertyDesugar::validate_units(&vec![unit]);
+        assert!(diagnostics.len() > 0);
+
+        reporter.handle(&diagnostics);
+        reporter.buffer().unwrap_or_default()
     }
 
     pub fn index_with_ids<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
