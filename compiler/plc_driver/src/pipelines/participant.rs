@@ -14,6 +14,7 @@ use std::{
 use ast::provider::IdProvider;
 use plc::{codegen::GeneratedModule, output::FormatOption, ConfigFormat, OnlineChange, Target};
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_lowering::inheritance::InheritanceLowerer;
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
@@ -218,5 +219,15 @@ impl InitParticipant {
 impl PipelineParticipantMut for InitParticipant {
     fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project.extend_with_init_units(&self.symbol_name, self.id_provider.clone())
+    }
+}
+
+impl PipelineParticipantMut for InheritanceLowerer {
+    fn pre_index(&self, parsed_project: ParsedProject) -> ParsedProject {
+        todo!()
+    }
+
+    fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        todo!()
     }
 }

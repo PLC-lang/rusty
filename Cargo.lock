@@ -2789,6 +2789,7 @@ dependencies = [
  "plc_ast",
  "plc_diagnostics",
  "plc_index",
+ "plc_lowering",
  "plc_project",
  "plc_source",
  "plc_xml",
@@ -2810,6 +2811,17 @@ dependencies = [
  "plc_diagnostics",
  "plc_source",
  "rustc-hash",
+]
+
+[[package]]
+name = "plc_lowering"
+version = "0.1.0"
+dependencies = [
+ "insta",
+ "plc_ast",
+ "plc_driver",
+ "plc_source",
+ "rusty",
 ]
 
 [[package]]

@@ -398,6 +398,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         Ok(())
     }
 }
+
 pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
     if !Path::new(location).is_file() {
         // Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
