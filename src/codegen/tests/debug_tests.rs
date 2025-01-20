@@ -364,16 +364,15 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
 
     // We want to make sure the `dbg.declare` for the method `foo` references a non-empty metadata field, i.e.
     // `!<number>` should not be `!<number> = {}`. Concretely, `!17` should be non-empty
-    assert!(codegen.contains(r#"call void @llvm.dbg.declare(metadata %fb.foo* %1, metadata !17, metadata !DIExpression()), !dbg !16"#));
-    assert!(codegen
-        .contains(r#"!17 = !DILocalVariable(name: "fb.foo", scope: !15, file: !2, line: 3, type: !18)"#));
+    assert!(codegen.contains(
+        r#"call void @llvm.dbg.declare(metadata %fb* %0, metadata !13, metadata !DIExpression()), !dbg !16"#
+    ));
 
     assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %fb = type {}
-    %fb.foo = type {}
 
     @__fb__init = unnamed_addr constant %fb zeroinitializer, !dbg !0
 
@@ -383,10 +382,9 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       ret void, !dbg !14
     }
 
-    define void @fb.foo(%fb* %0, %fb.foo* %1) !dbg !15 {
+    define void @fb.foo(%fb* %0) !dbg !15 {
     entry:
       call void @llvm.dbg.declare(metadata %fb* %0, metadata !13, metadata !DIExpression()), !dbg !16
-      call void @llvm.dbg.declare(metadata %fb.foo* %1, metadata !17, metadata !DIExpression()), !dbg !16
       ret void, !dbg !16
     }
 
@@ -415,8 +413,6 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !14 = !DILocation(line: 5, column: 8, scope: !10)
     !15 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !2, file: !2, line: 3, type: !11, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
     !16 = !DILocation(line: 4, column: 8, scope: !15)
-    !17 = !DILocalVariable(name: "fb.foo", scope: !15, file: !2, line: 3, type: !18)
-    !18 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb.foo", scope: !2, file: !2, line: 3, flags: DIFlagPublic, elements: !4, identifier: "fb.foo")
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
 
