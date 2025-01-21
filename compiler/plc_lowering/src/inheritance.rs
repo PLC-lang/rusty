@@ -1,21 +1,44 @@
-use plc::{index::Index, resolver::AstAnnotations};
+use plc::{index::Index, resolver::{AnnotationMap, AstAnnotations}};
 use plc_ast::{
     ast::{
-        AstNode, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType, Variable, VariableBlock, VariableBlockType
+        AstNode, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType, ReferenceExpr, Variable, VariableBlock, VariableBlockType
     },
-    mut_visitor::{AstVisitorMut, WalkerMut},
+    mut_visitor::{AstVisitorMut, WalkerMut}, try_from_mut,
 };
 use plc_source::source_location::SourceLocation;
+
+#[derive(Debug, Default)]
+struct Context {
+    base_type_name: Option<String>,
+    pou: Option<String>,
+}
+
+impl Context {
+    fn with_base(&self, base_type_name: impl Into<String>) -> Self {
+        Self { base_type_name: Some(base_type_name.into()), pou: self.pou.clone() }
+    }
+
+    fn with_pou(&self, pou: impl Into<String>) -> Self {
+        Self { base_type_name: self.base_type_name.clone(), pou: Some(pou.into()) }
+    }
+}
 
 #[derive(Default)]
 pub struct InheritanceLowerer {
     pub index: Option<Index>,
     pub annotations: Option<AstAnnotations>,
+    ctx: Context,
 }
 
 impl InheritanceLowerer {
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
+    }
+
+    fn walk_with_context<T: WalkerMut>(&mut self, t: &mut T, ctx: Context) {
+        let old_ctx = std::mem::replace(&mut self.ctx, ctx);
+        t.walk(self);
+        self.ctx = old_ctx;
     }
 }
 
@@ -49,6 +72,7 @@ impl AstVisitorMut for InheritanceLowerer {
         };
 
         pou.variable_blocks.insert(0, block);
+        self.walk_with_context(pou, self.ctx.with_pou(&pou.name));
         pou.walk(self)
     }
 
@@ -64,17 +88,43 @@ impl AstVisitorMut for InheritanceLowerer {
         if self.index.is_none() || self.annotations.is_none() {
             return;
         }
-        implementation.walk(self);
+
+        let ctx = self.ctx.with_pou(&implementation.type_name);
+        let ctx = if let Some(base) = self.index.as_ref().and_then(|it| it.find_pou(&implementation.type_name).and_then(|it| it.get_super_class())) {
+            ctx.with_base(base)
+        } else {
+            ctx
+        };
+        self.walk_with_context(implementation, ctx);
     }
 
     fn visit_reference_expr(&mut self, node: &mut AstNode) {
         let index = self.index.as_ref().expect("Index not set");
         let annotations = self.annotations.as_ref().expect("Annotations not set");
-        let stmt = node.get_stmt_mut();
         // If the reference is to a member of the base class, we need to add a reference to the
         // base class
-        // let annotation = annotations.ann
-        node.walk(self)
+        let annotation = annotations.get(node);
+        
+        dbg!(&node, annotation);
+        
+        let ty = annotations.get_type_or_void(node, index);
+        dbg!(ty);
+
+        let pou = &self.ctx.pou;
+        dbg!(pou); 
+
+        
+
+        if let Some(ref base) = self.ctx.base_type_name {
+            dbg!(base);
+            if let Some(base_pou) = index.find_pou(base) {
+                
+            }
+        }
+        
+
+        let stmt = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
+        stmt.walk(self);
     }
 
 }
