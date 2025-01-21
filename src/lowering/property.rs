@@ -32,9 +32,18 @@ impl PropertyDesugar {
             let mut get_blocks = 0;
             let mut set_blocks = 0;
             for property in &unit.properties {
+                dbg!(&property);
+                if !matches!(property.parent_kind, PouType::FunctionBlock | PouType::Program) {
+                    diagnostics.push(
+                        Diagnostic::new("Property only allowed in FunctionBlock or Program")
+                            .with_location(property.name_location.clone())
+                            .with_error_code("E001"), // TODO: Update me
+                    );
+                }
+
                 if property.implementations.is_empty() {
                     diagnostics.push(
-                        Diagnostic::new("Property has neither a GET nor SET block")
+                        Diagnostic::new("Property has neither a GET nor a SET block")
                             .with_location(property.name_location.clone())
                             .with_error_code("E001"), // TODO: Update me
                     );
@@ -80,6 +89,11 @@ impl PropertyDesugar {
         variables: &Vec<VariableBlock>,
         location: &SourceLocation,
     ) {
+        if variables.is_empty() {
+            // Nothing to validate
+            return;
+        }
+
         if variables.iter().any(|block| block.variable_block_type != VariableBlockType::Local) {
             diagnostics.push(
                 Diagnostic::new("Invalid variable block type, only blocks of type VAR are allowed")
@@ -100,7 +114,7 @@ impl AstVisitorMut for PropertyDesugar {
                 }
             };
 
-            let Property { name, name_parent, name_location, return_type, ref mut implementations } =
+            let Property { name, name_parent, name_location, return_type, ref mut implementations, .. } =
                 property;
             for implementation in implementations {
                 let (kind, variable, statements, return_type) = match implementation {

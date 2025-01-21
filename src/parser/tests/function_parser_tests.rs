@@ -620,6 +620,7 @@ fn function_block_with_property_pre_desugar() {
     [
         Property {
             name: "prop",
+            parent_kind: FunctionBlock,
             name_parent: "fb",
             name_location: SourceLocation {
                 span: Range(

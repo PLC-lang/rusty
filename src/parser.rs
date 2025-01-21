@@ -306,6 +306,7 @@ fn parse_pou(
             // declarations before their implementation.
             // all other Pous need to be checked in the validator if they can have methods.
             while matches!(lexer.token, KeywordMethod | KeywordProperty | PropertyConstant) {
+                // TODO: Semantic error, move out
                 if !matches!(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
                     let location = lexer.source_range_factory.create_range(lexer.last_range.clone());
 
@@ -313,11 +314,10 @@ fn parse_pou(
                         Diagnostic::new(format!("Methods cannot be declared in a POU of type '{kind}'."))
                             .with_location(location),
                     );
-                    break;
                 }
 
                 if lexer.token == KeywordProperty {
-                    unit.properties.push(parse_property(lexer, &name));
+                    unit.properties.push(parse_property(lexer, &name, kind.clone()));
                     continue;
                 }
 
@@ -622,7 +622,7 @@ fn parse_method(
 }
 
 //
-fn parse_property(lexer: &mut ParseSession, name_parent: &str) -> Property {
+fn parse_property(lexer: &mut ParseSession, name_parent: &str, parent_kind: PouType) -> Property {
     lexer.advance(); // Move past `PROPERTY` keyword
 
     let (name, name_location) = parse_identifier(lexer).expect("todo: error handle if not exists");
@@ -634,7 +634,14 @@ fn parse_property(lexer: &mut ParseSession, name_parent: &str) -> Property {
     }
 
     lexer.try_consume_or_report(KeywordEndProperty);
-    Property { name, name_parent: name_parent.to_string(), name_location, return_type, implementations }
+    Property {
+        name,
+        parent_kind,
+        name_parent: name_parent.to_string(),
+        name_location,
+        return_type,
+        implementations,
+    }
 }
 
 fn parse_property_kind(lexer: &mut ParseSession) -> PropertyKind {

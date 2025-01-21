@@ -51,6 +51,7 @@ pub struct Pou {
 #[derive(Debug, PartialEq)]
 pub struct Property {
     pub name: String,
+    pub parent_kind: PouType,
     pub name_parent: String,
     pub name_location: SourceLocation,
     pub return_type: DataTypeDeclaration,

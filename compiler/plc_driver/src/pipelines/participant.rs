@@ -5,24 +5,19 @@
 //!
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
     sync::{Arc, Mutex, RwLock},
 };
 
 use ast::{
-    ast::{
-        Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, Implementation,
-        LinkageType, Pou, PouType, Property, PropertyKind, ReferenceAccess, ReferenceExpr, VariableBlock,
-        VariableBlockType,
-    },
+    ast::{Assignment, AstFactory, AstNode, AstStatement, ReferenceAccess, ReferenceExpr},
     mut_visitor::AstVisitorMut,
     provider::IdProvider,
 };
 use plc::{
     codegen::GeneratedModule,
-    index::{ArgumentType, VariableType},
     lowering::property::PropertyDesugar,
     output::FormatOption,
     resolver::{AnnotationMap, StatementAnnotation},
@@ -276,12 +271,12 @@ impl PipelineParticipantMut for PropertyDesugar {
         diagnostician: &mut Diagnostician,
     ) -> ParsedProject {
         let ParsedProject { mut units, .. } = parsed_project;
+        PropertyDesugar::validate_units(&units);
+
         // desugar
         for unit in &mut units {
             self.visit_compilation_unit(unit);
         }
-
-        PropertyDesugar::validate_units(&units);
 
         ParsedProject { units }
     }

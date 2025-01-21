@@ -370,22 +370,150 @@ fn property() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E001]: Property has neither a GET nor SET block
+    error[E001]: Property has neither a GET nor a SET block
       ┌─ <internal>:3:22
       │
     3 │             PROPERTY prop : DINT
-      │                      ^^^^ Property has neither a GET nor SET block
+      │                      ^^^^ Property has neither a GET nor a SET block
     ");
 }
 
 #[test]
-fn property_with_more_than_one_get_block() {}
+fn property_with_more_than_one_get_block() {
+    let diagnostics = temp_make_me_generic_but_for_now_validate_property(
+        r"
+        FUNCTION_BLOCK fb
+            PROPERTY prop : DINT
+                GET
+                END_GET
+
+                GET
+                END_GET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+        END_FUNCTION
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E001]: Property has more than one GET block
+      ┌─ <internal>:3:22
+      │
+    3 │             PROPERTY prop : DINT
+      │                      ^^^^ Property has more than one GET block
+    ");
+}
 
 #[test]
-fn property_with_more_than_one_set_block() {}
+fn property_with_more_than_one_set_block() {
+    let diagnostics = temp_make_me_generic_but_for_now_validate_property(
+        r"
+        FUNCTION_BLOCK fb
+            PROPERTY prop : DINT
+                SET
+                END_SET
+
+                SET
+                END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+        END_FUNCTION
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E001]: Property has more than one SET block
+      ┌─ <internal>:3:22
+      │
+    3 │             PROPERTY prop : DINT
+      │                      ^^^^ Property has more than one SET block
+    ");
+}
 
 #[test]
-fn property_with_unsupported_variable_type_blocks() {}
+fn property_with_unsupported_variable_type_blocks() {
+    let mut result = String::new();
+    for kind in vec!["VAR_INPUT", "VAR_OUTPUT", "VAR_IN_OUT"] {
+        let code = format!(
+            "
+            FUNCTION_BLOCK fb
+                PROPERTY prop : DINT
+                    GET
+                        {kind}
+                        END_VAR
+                    END_GET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+            END_FUNCTION
+            "
+        );
+
+        let diagnostics = temp_make_me_generic_but_for_now_validate_property(&code);
+        result = format!("{result}\n{diagnostics}");
+    }
+
+    assert_snapshot!(result, @r"
+    error[E001]: Invalid variable block type, only blocks of type VAR are allowed
+      ┌─ <internal>:3:26
+      │
+    3 │                 PROPERTY prop : DINT
+      │                          ^^^^ Invalid variable block type, only blocks of type VAR are allowed
+
+
+    error[E001]: Invalid variable block type, only blocks of type VAR are allowed
+      ┌─ <internal>:3:26
+      │
+    3 │                 PROPERTY prop : DINT
+      │                          ^^^^ Invalid variable block type, only blocks of type VAR are allowed
+
+
+    error[E001]: Invalid variable block type, only blocks of type VAR are allowed
+      ┌─ <internal>:3:26
+      │
+    3 │                 PROPERTY prop : DINT
+      │                          ^^^^ Invalid variable block type, only blocks of type VAR are allowed
+    ");
+}
 
 #[test]
-fn property_defined_in_unsupported_pou_type() {}
+fn property_defined_in_unsupported_pous_yields_an_error() {
+    let code = format!(
+        "
+        CLASS foo
+            PROPERTY prop : DINT
+                GET
+                END_GET
+            END_PROPERTY
+        END_CLASS
+
+        FUNCTION bar
+            PROPERTY prop : DINT
+                GET
+                END_GET
+            END_PROPERTY
+        END_CLASS
+        "
+    );
+
+    let diagnostics = temp_make_me_generic_but_for_now_validate_property(&code);
+
+    assert_snapshot!(diagnostics, @r"
+    error[E001]: Property only allowed in FunctionBlock or Program
+      ┌─ <internal>:3:22
+      │
+    3 │             PROPERTY prop : DINT
+      │                      ^^^^ Property only allowed in FunctionBlock or Program
+
+    error[E001]: Property only allowed in FunctionBlock or Program
+       ┌─ <internal>:10:22
+       │
+    10 │             PROPERTY prop : DINT
+       │                      ^^^^ Property only allowed in FunctionBlock or Program
+    ");
+}
