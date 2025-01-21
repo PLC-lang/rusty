@@ -1,7 +1,7 @@
 use plc::{index::Index, resolver::AstAnnotations};
 use plc_ast::{
     ast::{
-        AstNode, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType, ReferenceExpr, Variable, VariableBlock, VariableBlockType
+        AstNode, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType, Variable, VariableBlock, VariableBlockType
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
 };
@@ -49,6 +49,14 @@ impl AstVisitorMut for InheritanceLowerer {
         };
 
         pou.variable_blocks.insert(0, block);
+        pou.walk(self)
+    }
+
+
+    fn visit(&mut self, node: &mut AstNode) {
+        // TODO: update initializer nodes when visiting the variables. `visit_reference_expr` might suffice,
+        // this serves as a reminder to check that.
+        node.walk(self);
     }
 
     fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
@@ -59,13 +67,14 @@ impl AstVisitorMut for InheritanceLowerer {
         implementation.walk(self);
     }
 
-    fn visit_reference_expr(&mut self, stmt: &mut ReferenceExpr, _node: &mut AstNode) {
+    fn visit_reference_expr(&mut self, node: &mut AstNode) {
         let index = self.index.as_ref().expect("Index not set");
         let annotations = self.annotations.as_ref().expect("Annotations not set");
+        let stmt = node.get_stmt_mut();
         // If the reference is to a member of the base class, we need to add a reference to the
         // base class
-        let annotation = annotations.ann
-        stmt.walk(self)
+        // let annotation = annotations.ann
+        node.walk(self)
     }
 
 }
@@ -253,6 +262,98 @@ mod tests {
                     right: LiteralString {
                         value: "world",
                         is_wide: false,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 8,
+                        column: 16,
+                        offset: 189,
+                    }..TextLocation {
+                        line: 8,
+                        column: 29,
+                        offset: 202,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 7,
+                        column: 27,
+                        offset: 156,
+                    }..TextLocation {
+                        line: 7,
+                        column: 30,
+                        offset: 159,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "#);
+    }
+
+    #[test]
+    fn write_to_grandparent_variable_in_initializer() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK grandparent
+            VAR
+                z : INT;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK parent EXTENDS grandparent
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK child EXTENDS parent
+                z := 42;
+            END_FUNCTION_BLOCK
+        "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().implementations[2];
+        assert_debug_snapshot!(unit, @r#"
+        Implementation {
+            name: "child",
+            type_name: "child",
+            linkage: Internal,
+            pou_type: FunctionBlock,
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "z",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__BASE",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: None,
+                                    ),
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 42,
                     },
                 },
             ],
