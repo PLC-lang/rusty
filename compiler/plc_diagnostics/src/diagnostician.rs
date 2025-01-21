@@ -19,6 +19,9 @@ pub struct Diagnostician {
     filename_fileid_mapping: FxHashMap<String, usize>,
 }
 
+unsafe impl Send for Diagnostician {}
+unsafe impl Sync for Diagnostician {}
+
 impl Diagnostician {
     /// registers the given source-code at the diagnostician, so it can
     /// preview errors in the source

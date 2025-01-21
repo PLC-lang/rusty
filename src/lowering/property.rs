@@ -32,7 +32,6 @@ impl PropertyDesugar {
             let mut get_blocks = 0;
             let mut set_blocks = 0;
             for property in &unit.properties {
-                dbg!(&property);
                 if !matches!(property.parent_kind, PouType::FunctionBlock | PouType::Program) {
                     diagnostics.push(
                         Diagnostic::new("Property only allowed in FunctionBlock or Program")

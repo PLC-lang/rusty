@@ -5,7 +5,7 @@ use std::{
     fs::{self, File},
     io::Write,
     path::{Path, PathBuf},
-    sync::Mutex,
+    sync::{Arc, Mutex, RwLock},
 };
 
 use crate::{
@@ -54,7 +54,7 @@ pub mod participant;
 pub struct BuildPipeline<T: SourceContainer> {
     pub context: GlobalContext,
     pub project: Project<T>,
-    pub diagnostician: Diagnostician,
+    pub diagnostician: Arc<RwLock<Diagnostician>>,
     pub compile_parameters: Option<CompileParameters>,
     pub linker: LinkerType,
     pub mutable_participants: Vec<Box<dyn PipelineParticipantMut>>,
@@ -98,11 +98,14 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
             ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
             ErrorFormat::None => Diagnostician::null_diagnostician(),
         };
+
         let diagnostician = if let Some(configuration) = compile_parameters.get_error_configuration()? {
             diagnostician.with_configuration(configuration)
         } else {
             diagnostician
         };
+
+        let diagnostician = Arc::new(RwLock::new(diagnostician));
 
         // TODO: This can be improved quite a bit, e.g. `GlobalContext::new(project);`, to do that see the
         //       commented `project` method in the GlobalContext implementation block
@@ -220,7 +223,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 println!("{}", self.project.get_validation_schema().as_ref())
             }
             cli::ConfigOption::Diagnostics => {
-                println!("{}", self.diagnostician.get_diagnostic_configuration())
+                println!("{}", self.diagnostician.read().unwrap().get_diagnostic_configuration())
             }
         };
 
@@ -263,7 +266,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             &self.compile_parameters
         {
             //Explain the given error
-            println!("{}", self.diagnostician.explain(error));
+            println!("{}", self.diagnostician.read().unwrap().explain(error));
             return Ok(());
         }
 
@@ -281,7 +284,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
 
         // 5. Validate
         //TODO: this goes into a participant
-        annotated_project.validate(&self.context, &mut self.diagnostician)?;
+        annotated_project.validate(&self.context, self.diagnostician.clone())?;
 
         //TODO: probably not needed, should be a participant anyway
         if let Some((location, format)) = self
@@ -303,18 +306,15 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic> {
-        let project = ParsedProject::parse(&self.context, &self.project, &mut self.diagnostician)?;
+        let project = ParsedProject::parse(&self.context, &self.project, self.diagnostician.clone())?;
         Ok(project)
     }
 
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
         self.participants.iter().for_each(|p| {
-            p.pre_index(&project, &mut self.diagnostician);
+            p.pre_index(&project);
         });
-        let project = self
-            .mutable_participants
-            .iter_mut()
-            .fold(project, |project, p| p.pre_index(project, &mut self.diagnostician));
+        let project = self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_index(project));
         let indexed_project = project.index(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_index(&indexed_project);
@@ -435,7 +435,7 @@ impl ParsedProject {
     pub fn parse<T: SourceContainer + Sync>(
         ctxt: &GlobalContext,
         project: &Project<T>,
-        diagnostician: &mut Diagnostician,
+        diagnostician: Arc<RwLock<Diagnostician>>,
     ) -> Result<Self, Diagnostic> {
         //TODO in parallel
         //Parse the source files
@@ -453,7 +453,7 @@ impl ParsedProject {
                     source_code::SourceType::Unknown => unreachable!(),
                 };
 
-                parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician)
+                parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician.clone())
             })
             .collect::<Vec<_>>();
 
@@ -465,7 +465,7 @@ impl ParsedProject {
             .iter()
             .map(|it| {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
-                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
+                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician.clone())
             })
             .collect::<Vec<_>>();
         units.extend(includes);
@@ -477,7 +477,7 @@ impl ParsedProject {
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
-                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
+                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician.clone())
             })
             .collect::<Vec<_>>();
         units.extend(lib_includes);
@@ -606,13 +606,13 @@ impl AnnotatedProject {
     pub fn validate(
         &self,
         ctxt: &GlobalContext,
-        diagnostician: &mut Diagnostician,
+        diagnostician: Arc<RwLock<Diagnostician>>,
     ) -> Result<(), Diagnostic> {
         // perform global validation
         let mut validator = Validator::new(ctxt);
         validator.perform_global_validation(&self.index);
         let diagnostics = validator.diagnostics();
-        let mut severity = diagnostician.handle(&diagnostics);
+        let mut severity = diagnostician.write().unwrap().handle(&diagnostics);
 
         //Perform per unit validation
         self.units.iter().for_each(|AnnotatedUnit { unit, .. }| {
@@ -620,7 +620,7 @@ impl AnnotatedProject {
             validator.visit_unit(&self.annotations, &self.index, unit);
             // log errors
             let diagnostics = validator.diagnostics();
-            severity = severity.max(diagnostician.handle(&diagnostics));
+            severity = severity.max(diagnostician.write().unwrap().handle(&diagnostics));
         });
         if severity == Severity::Error {
             Err(Diagnostic::new("Compilation aborted due to critical errors"))

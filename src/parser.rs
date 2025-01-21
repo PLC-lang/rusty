@@ -1,6 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::ops::Range;
+use std::{
+    ops::Range,
+    sync::{Arc, RwLock},
+};
 
 use plc_ast::{
     ast::{
@@ -47,7 +50,7 @@ pub fn parse_file(
     source: &SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
-    diagnostician: &mut Diagnostician,
+    diagnostician: Arc<RwLock<Diagnostician>>,
 ) -> Result<CompilationUnit, Diagnostic> {
     let location_factory = SourceLocationFactory::for_source(source);
     let (unit, errors) = parse(
@@ -57,8 +60,11 @@ pub fn parse_file(
     );
     //Register the source file with the diagnostician
     //TODO: We should reduce the clone here
-    diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
-    if diagnostician.handle(&errors) == Severity::Error {
+    diagnostician
+        .write()
+        .unwrap()
+        .register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
+    if diagnostician.write().unwrap().handle(&errors) == Severity::Error {
         Err(Diagnostic::new("Compilation aborted due to critical parse errors").with_sub_diagnostics(errors))
     } else {
         Ok(unit)
@@ -308,12 +314,12 @@ fn parse_pou(
             while matches!(lexer.token, KeywordMethod | KeywordProperty | PropertyConstant) {
                 // TODO: Semantic error, move out
                 if !matches!(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
-                    let location = lexer.source_range_factory.create_range(lexer.last_range.clone());
+                    // let location = lexer.source_range_factory.create_range(lexer.last_range.clone());
 
-                    lexer.accept_diagnostic(
-                        Diagnostic::new(format!("Methods cannot be declared in a POU of type '{kind}'."))
-                            .with_location(location),
-                    );
+                    // lexer.accept_diagnostic(
+                    //     Diagnostic::new(format!("Methods cannot be declared in a POU of type '{kind}'."))
+                    //         .with_location(location),
+                    // );
                 }
 
                 if lexer.token == KeywordProperty {
@@ -1265,6 +1271,9 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
 
 fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
     let mut variables = vec![];
+    // FIXME: "get" and "set" are such common names that we shouldnt reserve them as keywords. Additionally
+    //        properties are not called with get and set.
+    // TODO: Improve error messages for reserved keywords, e.g. `VAR if : DINT END_VAR`
     while lexer.token == Identifier {
         let mut line_vars = parse_variable_line(lexer);
         variables.append(&mut line_vars);

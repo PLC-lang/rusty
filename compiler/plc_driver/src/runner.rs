@@ -1,3 +1,5 @@
+use std::sync::{Arc, RwLock};
+
 use crate::{pipelines::ParsedProject, CompileOptions};
 
 use plc::codegen::{CodegenContext, GeneratedModule};
@@ -27,8 +29,8 @@ pub fn compile<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedM
     let source = source.containers();
     let project = Project::new("TestProject".to_string()).with_sources(source);
     let ctxt = GlobalContext::new().with_source(project.get_sources(), None).unwrap();
-    let mut diagnostician = Diagnostician::null_diagnostician();
-    let parsed_project = ParsedProject::parse(&ctxt, &project, &mut diagnostician).unwrap();
+    let diagnostician = Arc::new(RwLock::new(Diagnostician::null_diagnostician()));
+    let parsed_project = ParsedProject::parse(&ctxt, &project, diagnostician.clone()).unwrap();
     let indexed_project = parsed_project
         .index(ctxt.provider())
         .extend_with_init_units(&project.get_init_symbol_name(), ctxt.provider());

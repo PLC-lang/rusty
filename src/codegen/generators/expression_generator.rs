@@ -172,7 +172,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // If the expression was replaced by the resolver, generate the replacement
         if let Some(StatementAnnotation::ReplacementAst { statement }) = self.annotations.get(expression) {
             // we trust that the validator only passed us valid parameters (so left & right should be same type)
-            dbg!(&statement);
             return self.generate_expression(statement);
         }
 
