@@ -7,15 +7,32 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
+struct Context {
+    base_type_name: String,
+}
+
+impl Context {
+    fn with_base(base_type_name: impl Into<String>) -> Self {
+        Self { base_type_name: base_type_name.into() }
+    }
+}
+
 #[derive(Default)]
 pub struct InheritanceLowerer {
     pub index: Option<Index>,
     pub annotations: Option<AstAnnotations>,
+    ctx: Option<Context>,
 }
 
 impl InheritanceLowerer {
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
+    }
+
+    fn walk_with_context<T: WalkerMut>(&mut self, t: &mut T, ctx: Context) {
+        let old_ctx = self.ctx.replace(ctx);
+        t.walk(self);
+        self.ctx = old_ctx;
     }
 }
 
@@ -64,7 +81,12 @@ impl AstVisitorMut for InheritanceLowerer {
         if self.index.is_none() || self.annotations.is_none() {
             return;
         }
-        implementation.walk(self);
+        // if the implementation does not have a base class, we don't need to go deeper (not sure if this is correct - double check)
+        let Some(base) = self.index.as_ref().and_then(|it| it.find_pou(&implementation.type_name).and_then(|it| it.get_super_class())) else {
+            return;
+        };
+
+        self.walk_with_context(implementation, Context::with_base(base));
     }
 
     fn visit_reference_expr(&mut self, node: &mut AstNode) {
@@ -74,6 +96,7 @@ impl AstVisitorMut for InheritanceLowerer {
         // If the reference is to a member of the base class, we need to add a reference to the
         // base class
         // let annotation = annotations.ann
+        
         node.walk(self)
     }
 
