@@ -1,13 +1,17 @@
+use plc::{index::Index, resolver::AstAnnotations};
 use plc_ast::{
     ast::{
-        CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType, Variable, VariableBlock,
-        VariableBlockType,
+        AstNode, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType, ReferenceExpr, Variable, VariableBlock, VariableBlockType
     },
-    mut_visitor::AstVisitorMut,
+    mut_visitor::{AstVisitorMut, WalkerMut},
 };
 use plc_source::source_location::SourceLocation;
 
-pub struct InheritanceLowerer;
+#[derive(Default)]
+pub struct InheritanceLowerer {
+    pub index: Option<Index>,
+    pub annotations: Option<AstAnnotations>,
+}
 
 impl InheritanceLowerer {
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
@@ -46,6 +50,24 @@ impl AstVisitorMut for InheritanceLowerer {
 
         pou.variable_blocks.insert(0, block);
     }
+
+    fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
+        //Only go through the implementation if we have the index and annotations
+        if self.index.is_none() || self.annotations.is_none() {
+            return;
+        }
+        implementation.walk(self);
+    }
+
+    fn visit_reference_expr(&mut self, stmt: &mut ReferenceExpr, _node: &mut AstNode) {
+        let index = self.index.as_ref().expect("Index not set");
+        let annotations = self.annotations.as_ref().expect("Annotations not set");
+        // If the reference is to a member of the base class, we need to add a reference to the
+        // base class
+        let annotation = annotations.ann
+        stmt.walk(self)
+    }
+
 }
 
 #[cfg(test)]
@@ -102,9 +124,9 @@ mod tests {
 
             FUNCTION_BLOCK fb2 EXTENDS fb
             END_FUNCTION_BLOCK
-            
+
             FUNCTION_BLOCK foo
-            VAR 
+            VAR
                 myFb : fb2;
             END_VAR
                 myFb.x := 1;
@@ -190,12 +212,12 @@ mod tests {
     fn write_to_parent_variable_in_instance() {
         let src: SourceCode = r#"
             FUNCTION_BLOCK foo
-            VAR 
+            VAR
                 s : STRING;
             END_VAR
             END_FUNCTION_BLOCK
 
-            FUNCTION_BLOCK bar EXTENDS foo 
+            FUNCTION_BLOCK bar EXTENDS foo
                 s := 'world';
             END_FUNCTION_BLOCK
         "#
