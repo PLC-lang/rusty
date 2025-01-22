@@ -10,6 +10,7 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 pub struct PropertyDesugar {
     pub parents: HashMap<String, Vec<String>>,
@@ -28,11 +29,25 @@ impl PropertyDesugar {
         // validate
         let mut diagnostics = Vec::new();
 
+        let mut present: FxHashMap<String, Vec<SourceLocation>> = FxHashMap::default();
+
         for unit in units {
             let mut get_blocks = 0;
             let mut set_blocks = 0;
             for property in &unit.properties {
-                dbg!(&property);
+                match present.get_mut(&format!("{}.{}", &property.name_parent, &property.name)) {
+                    Some(value) => {
+                        value.push(property.name_location.clone());
+                    }
+
+                    None => {
+                        present.insert(
+                            format!("{}.{}", &property.name_parent, &property.name),
+                            vec![property.name_location.clone()],
+                        );
+                    }
+                }
+
                 if !matches!(property.parent_kind, PouType::FunctionBlock | PouType::Program) {
                     diagnostics.push(
                         Diagnostic::new("Property only allowed in FunctionBlock or Program")
@@ -78,6 +93,16 @@ impl PropertyDesugar {
                             .with_error_code("E001"), // TODO: Update me
                     );
                 }
+            }
+
+            // TODO: Make this more efficient, too many clones
+            for (name, locations) in present.clone().into_iter().filter(|(_, value)| value.len() > 1) {
+                diagnostics.push(
+                    Diagnostic::new(format!("Duplicate symbol `{name}`",))
+                        .with_location(locations[0].clone())
+                        .with_secondary_locations(locations.into_iter().skip(1).collect())
+                        .with_error_code("E001"), // TODO: Update me
+                );
             }
         }
 

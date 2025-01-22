@@ -12,7 +12,7 @@ use crate::{
     index::{indexer, Index},
     lexer, parser,
     resolver::TypeAnnotator,
-    test_utils::tests::parse_and_validate_buffered,
+    test_utils::tests::{parse_and_validate_buffered, temp_make_me_generic_but_for_now_validate_property},
     typesystem,
     validation::Validator,
 };

@@ -503,7 +503,21 @@ fn property_defined_in_unsupported_pous_yields_an_error() {
 
     let diagnostics = temp_make_me_generic_but_for_now_validate_property(&code);
 
+    // TODO: Also pass parent location as secondary location in diagnostic
+    // TODO: Update parser error "Methods cannot be declared in a POU of type"
     assert_snapshot!(diagnostics, @r"
+    error[E001]: Methods cannot be declared in a POU of type 'Function'.
+      ┌─ <internal>:9:18
+      │
+    9 │         FUNCTION bar
+      │                  ^^^ Methods cannot be declared in a POU of type 'Function'.
+
+    error[E007]: Unexpected token: expected KeywordEndFunction but found END_CLASS
+       ┌─ <internal>:14:9
+       │
+    14 │         END_CLASS
+       │         ^^^^^^^^^ Unexpected token: expected KeywordEndFunction but found END_CLASS
+
     error[E001]: Property only allowed in FunctionBlock or Program
       ┌─ <internal>:3:22
       │
@@ -515,5 +529,132 @@ fn property_defined_in_unsupported_pous_yields_an_error() {
        │
     10 │             PROPERTY prop : DINT
        │                      ^^^^ Property only allowed in FunctionBlock or Program
+
+    error[E001]: Property has more than one GET block
+       ┌─ <internal>:10:22
+       │
+    10 │             PROPERTY prop : DINT
+       │                      ^^^^ Property has more than one GET block
     ");
+}
+
+#[test]
+fn duplicate_property_name() {
+    let code = r"
+        FUNCTION_BLOCK foo
+            PROPERTY bar : DINT
+            END_PROPERTY
+
+            PROPERTY bar : DINT
+            END_PROPERTY
+
+            PROPERTY bar : DINT
+            END_PROPERTY
+
+            PROPERTY bar : DINT
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+    ";
+
+    insta::assert_snapshot!(temp_make_me_generic_but_for_now_validate_property(code), @r"
+    error[E001]: Property has neither a GET nor a SET block
+      ┌─ <internal>:3:22
+      │
+    3 │             PROPERTY bar : DINT
+      │                      ^^^ Property has neither a GET nor a SET block
+
+    error[E001]: Property has neither a GET nor a SET block
+      ┌─ <internal>:6:22
+      │
+    6 │             PROPERTY bar : DINT
+      │                      ^^^ Property has neither a GET nor a SET block
+
+    error[E001]: Property has neither a GET nor a SET block
+      ┌─ <internal>:9:22
+      │
+    9 │             PROPERTY bar : DINT
+      │                      ^^^ Property has neither a GET nor a SET block
+
+    error[E001]: Property has neither a GET nor a SET block
+       ┌─ <internal>:12:22
+       │
+    12 │             PROPERTY bar : DINT
+       │                      ^^^ Property has neither a GET nor a SET block
+
+    error[E001]: Duplicate symbol `foo.bar`
+       ┌─ <internal>:3:22
+       │
+     3 │             PROPERTY bar : DINT
+       │                      ^^^ Duplicate symbol `foo.bar`
+       ·
+     6 │             PROPERTY bar : DINT
+       │                      --- see also
+       ·
+     9 │             PROPERTY bar : DINT
+       │                      --- see also
+       ·
+    12 │             PROPERTY bar : DINT
+       │                      --- see also
+    ");
+}
+
+#[test]
+fn duplicate_property_in_one_function_block_but_not_the_other() {
+    let code = r"
+        FUNCTION_BLOCK prop1
+            PROPERTY foo : DINT
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK prop2
+            PROPERTY foo : DINT
+            END_PROPERTY
+
+            PROPERTY foo : DINT
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+    ";
+
+    insta::assert_snapshot!(temp_make_me_generic_but_for_now_validate_property(code), @r"
+    error[E001]: Property has neither a GET nor a SET block
+      ┌─ <internal>:3:22
+      │
+    3 │             PROPERTY foo : DINT
+      │                      ^^^ Property has neither a GET nor a SET block
+
+    error[E001]: Property has neither a GET nor a SET block
+      ┌─ <internal>:8:22
+      │
+    8 │             PROPERTY foo : DINT
+      │                      ^^^ Property has neither a GET nor a SET block
+
+    error[E001]: Property has neither a GET nor a SET block
+       ┌─ <internal>:11:22
+       │
+    11 │             PROPERTY foo : DINT
+       │                      ^^^ Property has neither a GET nor a SET block
+
+    error[E001]: Duplicate symbol `prop2.foo`
+       ┌─ <internal>:8:22
+       │
+     8 │             PROPERTY foo : DINT
+       │                      ^^^ Duplicate symbol `prop2.foo`
+       ·
+    11 │             PROPERTY foo : DINT
+       │                      --- see also
+    ");
+}
+
+#[test]
+fn same_name_function_block_and_property() {
+    let code = r"
+        FUNCTION_BLOCK foo
+            PROPERTY foo : DINT
+            GET END_GET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+    ";
+
+    // TODO: Is this ok, should there be an error (from the compiler perspective theres no problem, obviously)?
+    insta::assert_snapshot!(temp_make_me_generic_but_for_now_validate_property(code), @r"");
 }

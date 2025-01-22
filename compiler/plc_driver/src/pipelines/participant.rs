@@ -23,10 +23,7 @@ use plc::{
     resolver::{AnnotationMap, StatementAnnotation},
     ConfigFormat, OnlineChange, Target,
 };
-use plc_diagnostics::{
-    diagnostician::{self, Diagnostician},
-    diagnostics::Diagnostic,
-};
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use plc_index::GlobalContext;
 use project::{object::Object, project::LibraryInformation};
 use source_code::{source_location::SourceLocation, SourceContainer};
