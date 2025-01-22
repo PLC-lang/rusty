@@ -23,8 +23,7 @@ use plc::{
     resolver::{AnnotationMap, StatementAnnotation},
     ConfigFormat, OnlineChange, Target,
 };
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
-use plc_index::GlobalContext;
+use plc_diagnostics::diagnostics::Diagnostic;
 use project::{object::Object, project::LibraryInformation};
 use source_code::{source_location::SourceLocation, SourceContainer};
 
@@ -36,7 +35,7 @@ use super::{AnnotatedProject, GeneratedProject, IndexedProject, ParsedProject};
 pub trait PipelineParticipant: Sync + Send {
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
-    fn pre_index(&self, _parsed_project: &ParsedProject, diagnostician: &mut Diagnostician) {}
+    fn pre_index(&self, _parsed_project: &ParsedProject) {}
     /// Implement this to access the project after it got indexed
     /// This happens directly after the index returns
     fn post_index(&self, _indexed_project: &IndexedProject) {}
@@ -71,11 +70,7 @@ pub trait PipelineParticipant: Sync + Send {
 pub trait PipelineParticipantMut {
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
-    fn pre_index(
-        &mut self,
-        parsed_project: ParsedProject,
-        _diagnostician: &mut Diagnostician,
-    ) -> ParsedProject {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         parsed_project
     }
 
@@ -227,11 +222,7 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
 pub struct LoweringParticipant;
 
 impl PipelineParticipantMut for LoweringParticipant {
-    fn pre_index(
-        &mut self,
-        parsed_project: ParsedProject,
-        diagnostician: &mut Diagnostician,
-    ) -> ParsedProject {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         parsed_project
     }
 
@@ -262,11 +253,7 @@ impl PipelineParticipantMut for InitParticipant {
 }
 
 impl PipelineParticipantMut for PropertyDesugar {
-    fn pre_index(
-        &mut self,
-        parsed_project: ParsedProject,
-        diagnostician: &mut Diagnostician,
-    ) -> ParsedProject {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         let ParsedProject { mut units, .. } = parsed_project;
         PropertyDesugar::validate_units(&units);
 
@@ -299,7 +286,7 @@ impl PipelineParticipantMut for PropertyDesugar {
                     // dbg!(annotations.get(&left));
                     // dbg!(annotations.get(&right));
 
-                    if annotations.get(&right).is_some_and(StatementAnnotation::is_property) {
+                    if annotations.get(right).is_some_and(StatementAnnotation::is_property) {
                         insert_get_prefix("get_", right);
 
                         let mut call = AstFactory::create_call_statement(
@@ -310,7 +297,7 @@ impl PipelineParticipantMut for PropertyDesugar {
                         );
 
                         std::mem::swap(right.as_mut(), &mut call);
-                    } else if annotations.get(&left).is_some_and(StatementAnnotation::is_property) {
+                    } else if annotations.get(left).is_some_and(StatementAnnotation::is_property) {
                         insert_get_prefix("set_", left);
                         let mut call = AstFactory::create_call_statement(
                             left.as_ref().clone(),
@@ -340,37 +327,3 @@ fn insert_get_prefix(prefix: &str, node: &mut AstNode) {
 
     name.insert_str(0, prefix);
 }
-
-impl PipelineParticipant for PropertyDesugar {
-    fn pre_index(&self, parsed_project: &ParsedProject, diagnostician: &mut Diagnostician) {
-        let ParsedProject { units } = parsed_project;
-
-        for unit in units {
-            for property in &unit.properties {
-                dbg!(&property);
-                if property.implementations.is_empty() {
-                    let diagnostic = Diagnostic::new("test")
-                        .with_location(property.name_location.clone())
-                        .with_error_code("E001");
-
-                    dbg!(&diagnostic);
-
-                    diagnostician.handle(&[diagnostic]);
-                }
-            }
-        }
-    }
-}
-
-pub struct Validator2 {
-    context: Arc<GlobalContext>,
-    diagnostics: Vec<Diagnostic>,
-}
-
-impl Validator2 {
-    pub fn new(context: Arc<GlobalContext>) -> Validator2 {
-        Validator2 { context, diagnostics: Vec::new() }
-    }
-}
-
-impl PipelineParticipantMut for Validator2 {}

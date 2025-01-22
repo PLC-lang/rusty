@@ -10,7 +10,7 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 
 pub struct PropertyDesugar {
     pub parents: HashMap<String, Vec<String>>,
@@ -111,7 +111,7 @@ impl PropertyDesugar {
 
     fn validate_block_type(
         diagnostics: &mut Vec<Diagnostic>,
-        variables: &Vec<VariableBlock>,
+        variables: &[VariableBlock],
         location: &SourceLocation,
     ) {
         if variables.is_empty() {
@@ -156,7 +156,7 @@ impl AstVisitorMut for PropertyDesugar {
                             ),
                             AstFactory::create_member_reference(
                                 AstFactory::create_identifier(
-                                    &name,
+                                    name,
                                     SourceLocation::undefined(),
                                     self.id_provider.next_id(),
                                 ),

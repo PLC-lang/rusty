@@ -309,12 +309,9 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
 
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
         self.participants.iter().for_each(|p| {
-            p.pre_index(&project, &mut self.diagnostician);
+            p.pre_index(&project);
         });
-        let project = self
-            .mutable_participants
-            .iter_mut()
-            .fold(project, |project, p| p.pre_index(project, &mut self.diagnostician));
+        let project = self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_index(project));
         let indexed_project = project.index(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_index(&indexed_project);

@@ -118,8 +118,7 @@ pub mod tests {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
 
-        let (mut unit, mut diagnostics) = parse(src);
-        // assert!(diagnostics.is_empty(), "fixme, these should also be reported");
+        let (unit, mut diagnostics) = parse(src);
 
         let mut units = vec![unit];
 
