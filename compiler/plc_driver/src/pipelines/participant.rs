@@ -12,7 +12,7 @@ use std::{
 };
 
 use ast::{
-    ast::{Assignment, AstFactory, AstNode, AstStatement, PouType, ReferenceAccess, ReferenceExpr},
+    ast::{Assignment, AstFactory, AstNode, AstStatement, ReferenceAccess, ReferenceExpr},
     mut_visitor::AstVisitorMut,
     provider::IdProvider,
 };
@@ -23,7 +23,11 @@ use plc::{
     resolver::{AnnotationMap, StatementAnnotation},
     ConfigFormat, OnlineChange, Target,
 };
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_diagnostics::{
+    diagnostician::{self, Diagnostician},
+    diagnostics::Diagnostic,
+};
+use plc_index::GlobalContext;
 use project::{object::Object, project::LibraryInformation};
 use source_code::{source_location::SourceLocation, SourceContainer};
 
@@ -35,7 +39,7 @@ use super::{AnnotatedProject, GeneratedProject, IndexedProject, ParsedProject};
 pub trait PipelineParticipant: Sync + Send {
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
-    fn pre_index(&self, _parsed_project: &ParsedProject) {}
+    fn pre_index(&self, _parsed_project: &ParsedProject, diagnostician: &mut Diagnostician) {}
     /// Implement this to access the project after it got indexed
     /// This happens directly after the index returns
     fn post_index(&self, _indexed_project: &IndexedProject) {}
@@ -70,7 +74,11 @@ pub trait PipelineParticipant: Sync + Send {
 pub trait PipelineParticipantMut {
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
-    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+    fn pre_index(
+        &mut self,
+        parsed_project: ParsedProject,
+        _diagnostician: &mut Diagnostician,
+    ) -> ParsedProject {
         parsed_project
     }
 
@@ -222,7 +230,11 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
 pub struct LoweringParticipant;
 
 impl PipelineParticipantMut for LoweringParticipant {
-    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+    fn pre_index(
+        &mut self,
+        parsed_project: ParsedProject,
+        diagnostician: &mut Diagnostician,
+    ) -> ParsedProject {
         parsed_project
     }
 
@@ -252,16 +264,14 @@ impl PipelineParticipantMut for InitParticipant {
     }
 }
 
-impl PipelineParticipant for PropertyDesugar {
-    fn pre_index(&self, parsed_project: &ParsedProject) {
-        let ParsedProject { units, .. } = parsed_project;
-        PropertyDesugar::validate_units(&units);
-    }
-}
-
 impl PipelineParticipantMut for PropertyDesugar {
-    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+    fn pre_index(
+        &mut self,
+        parsed_project: ParsedProject,
+        diagnostician: &mut Diagnostician,
+    ) -> ParsedProject {
         let ParsedProject { mut units, .. } = parsed_project;
+        PropertyDesugar::validate_units(&units);
 
         // desugar
         for unit in &mut units {
@@ -289,6 +299,9 @@ impl PipelineParticipantMut for PropertyDesugar {
                         unreachable!()
                     };
 
+                    // dbg!(annotations.get(&left));
+                    // dbg!(annotations.get(&right));
+
                     if annotations.get(&right).is_some_and(StatementAnnotation::is_property) {
                         insert_get_prefix("get_", right);
 
@@ -308,6 +321,8 @@ impl PipelineParticipantMut for PropertyDesugar {
                             self.id_provider.next_id(),
                             SourceLocation::undefined(),
                         );
+
+                        dbg!(&call);
 
                         std::mem::swap(node, &mut call);
                     }
@@ -329,33 +344,36 @@ fn insert_get_prefix(prefix: &str, node: &mut AstNode) {
     name.insert_str(0, prefix);
 }
 
-pub struct ValidationParticipant {
-    // TODO: global_context at some point
-    diagnostician: Arc<RwLock<Diagnostician>>,
-}
+impl PipelineParticipant for PropertyDesugar {
+    fn pre_index(&self, parsed_project: &ParsedProject, diagnostician: &mut Diagnostician) {
+        let ParsedProject { units } = parsed_project;
 
-impl ValidationParticipant {
-    pub fn new(diagnostician: Arc<RwLock<Diagnostician>>) -> ValidationParticipant {
-        ValidationParticipant { diagnostician }
-    }
-}
-
-impl PipelineParticipant for ValidationParticipant {
-    fn pre_index(&self, parsed_project: &ParsedProject) {
-        let mut diagnostics = Vec::new();
-        for unit in &parsed_project.units {
+        for unit in units {
             for property in &unit.properties {
-                if !matches!(property.parent_kind, PouType::FunctionBlock | PouType::Program) {
-                    diagnostics.push(
-                        // TODO: Support classes
-                        Diagnostic::new("Property only allowed in FunctionBlock or Program")
-                            .with_location(property.name_location.clone())
-                            .with_error_code("E001"), // TODO: Update me
-                    );
+                dbg!(&property);
+                if property.implementations.is_empty() {
+                    let diagnostic = Diagnostic::new("test")
+                        .with_location(property.name_location.clone())
+                        .with_error_code("E001");
+
+                    dbg!(&diagnostic);
+
+                    diagnostician.handle(&[diagnostic]);
                 }
             }
         }
-
-        self.diagnostician.write().unwrap().handle(&diagnostics);
     }
 }
+
+pub struct Validator2 {
+    context: Arc<GlobalContext>,
+    diagnostics: Vec<Diagnostic>,
+}
+
+impl Validator2 {
+    pub fn new(context: Arc<GlobalContext>) -> Validator2 {
+        Validator2 { context, diagnostics: Vec::new() }
+    }
+}
+
+impl PipelineParticipantMut for Validator2 {}

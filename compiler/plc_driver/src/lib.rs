@@ -10,7 +10,7 @@
 
 use anyhow::{anyhow, Result};
 use pipelines::{
-    participant::{CodegenParticipant, InitParticipant, ValidationParticipant},
+    participant::{CodegenParticipant, InitParticipant},
     AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
 };
 use std::{
@@ -163,7 +163,6 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
         libraries: pipeline.project.get_libraries().to_vec(),
     };
     pipeline.register_participant(Box::new(codegen_participant));
-    pipeline.register_participant(Box::new(ValidationParticipant::new(pipeline.diagnostician.clone())));
     let init_participant =
         InitParticipant::new(&pipeline.project.get_init_symbol_name(), pipeline.context.provider());
     pipeline.register_mut_participant(Box::new(init_participant));
@@ -194,7 +193,7 @@ pub fn parse_and_annotate<T: SourceContainer + Clone>(
     let mut pipeline = BuildPipeline {
         context,
         project,
-        diagnostician: Arc::new(RwLock::new(Diagnostician::default())),
+        diagnostician: Diagnostician::default(),
         compile_parameters: None,
         linker: LinkerType::Internal,
         mutable_participants: Vec::default(),
@@ -224,13 +223,14 @@ fn generate_to_string_internal<T: SourceContainer>(
     // plc src --ir --single-module
     let project = Project::new(name.to_string()).with_sources(src);
     let context = GlobalContext::new().with_source(project.get_sources(), None)?;
+    let diagnostician = Diagnostician::default();
     let mut params = cli::CompileParameters::parse(&["--ir", "--single-module", "-O", "none"])
         .map_err(|e| Diagnostic::new(e.to_string()))?;
     params.generate_debug = debug;
     let mut pipeline = BuildPipeline {
         context,
         project,
-        diagnostician: Arc::new(RwLock::new(Diagnostician::default())),
+        diagnostician,
         compile_parameters: Some(params),
         linker: LinkerType::Internal,
         mutable_participants: Vec::default(),
@@ -241,7 +241,7 @@ fn generate_to_string_internal<T: SourceContainer>(
     let project = pipeline.annotate(project)?;
     // Validate
     // TODO: move validation to participants, maybe refactor codegen to stop at generated modules and persist in dedicated step?
-    project.validate(&pipeline.context, pipeline.diagnostician.clone())?;
+    project.validate(&pipeline.context, &mut pipeline.diagnostician)?;
     let context = CodegenContext::create();
     let module =
         project.generate_single_module(&context, pipeline.get_compile_options().as_ref().unwrap())?;

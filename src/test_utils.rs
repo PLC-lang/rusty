@@ -118,17 +118,16 @@ pub mod tests {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
 
-        let (unit, parse_diagnostics) = parse(src);
+        let (mut unit, diagnostics) = parse(src);
         // assert!(diagnostics.is_empty(), "fixme, these should also be reported");
 
         let mut units = vec![unit];
 
         // desugar
         let mut desugar = PropertyDesugar::new(ids.clone());
-        let mut diagnostics = PropertyDesugar::validate_units(&units);
+        let diagnostics = PropertyDesugar::validate_units(&units);
         desugar.visit_compilation_unit(&mut units[0]);
 
-        diagnostics.extend(parse_diagnostics);
         reporter.handle(&diagnostics);
         reporter.buffer().unwrap_or_default()
     }

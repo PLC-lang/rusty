@@ -1,7 +1,7 @@
 use crate::test_utils::tests::{
     parse_and_validate_buffered, temp_make_me_generic_but_for_now_validate_property,
 };
-use insta::assert_snapshot;
+use insta::{assert_debug_snapshot, assert_snapshot};
 
 #[test]
 fn actions_container_no_name() {

@@ -1,8 +1,4 @@
-use std::{
-    fmt::Debug,
-    path::PathBuf,
-    sync::{Arc, RwLock},
-};
+use std::{fmt::Debug, path::PathBuf};
 
 use plc::DebugLevel;
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
@@ -39,7 +35,7 @@ where
     T: IntoIterator<Item = S>,
 {
     let path: Option<PathBuf> = root.map(|it| it.into());
-    let diagnostician = Arc::new(RwLock::new(Diagnostician::null_diagnostician()));
+    let mut diagnostician = Diagnostician::null_diagnostician();
     //Create a project
     let project = Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes);
     let ctxt = GlobalContext::new()
@@ -52,7 +48,7 @@ where
         optimization: plc::OptimizationLevel::None,
         ..Default::default()
     };
-    pipelines::ParsedProject::parse(&ctxt, &project, diagnostician)?
+    pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
         //Index
         .index(ctxt.provider())
         .extend_with_init_units(&project.get_init_symbol_name(), ctxt.provider())

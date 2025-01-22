@@ -8,7 +8,7 @@ pub mod null;
 
 /// the DiagnosticReporter decides on the format and where to report the diagnostic to.
 /// possible implementations could print to either std-out, std-err or a file, etc.
-pub trait DiagnosticReporter: Sync + Send {
+pub trait DiagnosticReporter {
     /// reports the given diagnostic
     fn report(&mut self, diagnostics: &[ResolvedDiagnostics]);
     /// register the given path & src and returns an ID to indicate

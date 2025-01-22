@@ -1,5 +1,3 @@
-use std::sync::{Arc, RwLock};
-
 use ast::{
     ast::{AstId, AstNode, CompilationUnit, Implementation, LinkageType, PouType as AstPouType},
     provider::IdProvider,
@@ -75,15 +73,12 @@ pub fn parse_file(
     source: &SourceCode,
     linkage: LinkageType,
     id_provider: IdProvider,
-    diagnostician: Arc<RwLock<Diagnostician>>,
+    diagnostician: &mut Diagnostician,
 ) -> Result<CompilationUnit, Diagnostic> {
     let (unit, errors) = parse(source, linkage, id_provider);
     //Register the source file with the diagnostician
-    diagnostician
-        .write()
-        .unwrap()
-        .register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
-    if diagnostician.write().unwrap().handle(&errors) == Severity::Error {
+    diagnostician.register_file(source.get_location_str().to_string(), source.source.clone()); // TODO: Remove clone here, generally passing the GlobalContext instead of the actual source here or in the handle method should be sufficient
+    if diagnostician.handle(&errors) == Severity::Error {
         Err(Diagnostic::new("Compilation aborted due to parse errors"))
     } else {
         Ok(unit)
