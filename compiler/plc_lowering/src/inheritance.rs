@@ -1,29 +1,36 @@
 use plc::{index::Index, resolver::{AnnotationMap, AstAnnotations}};
 use plc_ast::{
     ast::{
-        AstNode, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType, ReferenceExpr, Variable, VariableBlock, VariableBlockType
-    },
-    mut_visitor::{AstVisitorMut, WalkerMut}, try_from_mut,
+        AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType, ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType
+    }, mut_visitor::{AstVisitorMut, WalkerMut}, provider::IdProvider, try_from_mut
 };
 use plc_source::source_location::SourceLocation;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Context {
     base_type_name: Option<String>,
     pou: Option<String>,
+    id_provider: IdProvider,
 }
 
 impl Context {
+    fn new(id_provider: IdProvider) -> Self {
+       Self { base_type_name: None, pou: None, id_provider } 
+    }
+
     fn with_base(&self, base_type_name: impl Into<String>) -> Self {
-        Self { base_type_name: Some(base_type_name.into()), pou: self.pou.clone() }
+        Self { base_type_name: Some(base_type_name.into()), pou: self.pou.clone(), id_provider: self.id_provider.clone() }
     }
 
     fn with_pou(&self, pou: impl Into<String>) -> Self {
-        Self { base_type_name: self.base_type_name.clone(), pou: Some(pou.into()) }
+        Self { base_type_name: self.base_type_name.clone(), pou: Some(pou.into()), id_provider: self.id_provider.clone() }
+    }
+
+    fn provider(&self) -> IdProvider {
+        self.id_provider.clone()
     }
 }
 
-#[derive(Default)]
 pub struct InheritanceLowerer {
     pub index: Option<Index>,
     pub annotations: Option<AstAnnotations>,
@@ -31,7 +38,22 @@ pub struct InheritanceLowerer {
 }
 
 impl InheritanceLowerer {
+    pub fn new(id_provider: IdProvider) -> Self {
+        Self {
+            index: None,
+            annotations: None,
+            ctx: Context::new(id_provider),
+        }
+    }
+
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
+        // XXX: not sure if we need to visit global vars and user-data-types when walking the compilation unit here
+        // for pou in unit.units.iter_mut() {
+        //     pou.walk(self);
+        // }
+        // for implementation in unit.implementations.iter_mut() {
+        //     implementation.walk(self);
+        // }
         self.visit_compilation_unit(unit);
     }
 
@@ -40,10 +62,58 @@ impl InheritanceLowerer {
         t.walk(self);
         self.ctx = old_ctx;
     }
+     
+    fn check_heritage(&self, mut node: AstNode) -> AstNode {
+        let Some(index) = self.index.as_ref() else {
+            // TODO: this will skip visiting initializer nodes
+            return node;
+        };
+        let annotations = self.annotations.as_ref().expect("Annotations not set");
+        let ident = node.get_flat_reference_name().expect("Identifier").to_string();
+        let container = self.ctx.pou.as_ref().expect("Implementation must be in POU context").as_str();
+
+        let is_local = index.find_local_member(container, &ident).is_some();
+        if is_local {
+            return node;
+        }
+
+        let expr = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
+        // TODO: member-access only? do we need to consider arrays etc?
+        let ReferenceExpr { ref mut base, .. } = expr;
+        let mut qualifier = base.as_ref().map(|it| annotations.get_type_or_void(&*it, index).get_name()).unwrap_or_default();
+        // should we do this recursively instead? nobody is going to derive so many children that we risk overflowing the stack, right? ..right?
+        while let Some(parent) = index.find_local_member(qualifier,  "__BASE") {
+            // update the base of the visited `ReferenceExpr`
+            let original_base = std::mem::take(base);
+    
+            let new_base = AstFactory::create_member_reference(
+                AstFactory::create_identifier(
+                    "__BASE", 
+                    SourceLocation::internal(), 
+                    self.ctx.provider().next_id()
+                ), 
+                original_base.map(|it| *it), 
+                self.ctx.provider().next_id()
+            );     
+            *base = Some(Box::new(new_base));
+            
+            // check if our variable is a member of the currently checked generation. if so, we are done
+            qualifier = parent.get_type_name();
+            if index.find_local_member(qualifier, &ident).is_some() {
+                break;
+            }
+        }
+        
+        // AstFactory::create_member_reference(std::mem::take(member), base, self.ctx.provider().next_id())
+        dbg!(node)
+    }
 }
 
 impl AstVisitorMut for InheritanceLowerer {
     fn visit_pou(&mut self, pou: &mut Pou) {
+        if self.index.is_some() {
+            return self.walk_with_context(pou, self.ctx.with_pou(&pou.name));
+        }
         if !matches!(pou.kind, PouType::FunctionBlock | PouType::Class) {
             return;
         }
@@ -73,14 +143,6 @@ impl AstVisitorMut for InheritanceLowerer {
 
         pou.variable_blocks.insert(0, block);
         self.walk_with_context(pou, self.ctx.with_pou(&pou.name));
-        pou.walk(self)
-    }
-
-
-    fn visit(&mut self, node: &mut AstNode) {
-        // TODO: update initializer nodes when visiting the variables. `visit_reference_expr` might suffice,
-        // this serves as a reminder to check that.
-        node.walk(self);
     }
 
     fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
@@ -99,34 +161,15 @@ impl AstVisitorMut for InheritanceLowerer {
     }
 
     fn visit_reference_expr(&mut self, node: &mut AstNode) {
-        let index = self.index.as_ref().expect("Index not set");
-        let annotations = self.annotations.as_ref().expect("Annotations not set");
         // If the reference is to a member of the base class, we need to add a reference to the
         // base class
-        let annotation = annotations.get(node);
-        
-        dbg!(&node, annotation);
-        
-        let ty = annotations.get_type_or_void(node, index);
-        dbg!(ty);
-
-        let pou = &self.ctx.pou;
-        dbg!(pou); 
-
-        
-
-        if let Some(ref base) = self.ctx.base_type_name {
-            dbg!(base);
-            if let Some(base_pou) = index.find_pou(base) {
-                
-            }
-        }
-        
-
-        let stmt = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
-        stmt.walk(self);
-    }
-
+        dbg!("checking heritage");
+        let new_node = self.check_heritage(std::mem::take(node));
+        *node = new_node;
+        dbg!(&node);
+        let expr = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
+        expr.walk(self);
+    }   
 }
 
 #[cfg(test)]
@@ -189,6 +232,7 @@ mod tests {
                 myFb : fb2;
             END_VAR
                 myFb.x := 1;
+                // myFb.__BASE.x
             END_FUNCTION_BLOCK
         "
         .into();
@@ -213,14 +257,14 @@ mod tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "myFb",
+                                        name: "__BASE",
                                     },
                                 ),
                                 base: Some(
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "myFb",
                                             },
                                         ),
                                         base: None,

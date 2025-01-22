@@ -253,7 +253,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
         let participants: Vec<Box<dyn PipelineParticipant>> = vec![];
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
             Box::new(InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider())),
-            Box::new(InheritanceLowerer::default()),
+            Box::new(InheritanceLowerer::new(self.context.provider())),
         ];
 
         for participant in participants {
