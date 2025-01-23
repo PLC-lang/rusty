@@ -1,8 +1,15 @@
-use plc::{index::Index, resolver::{AnnotationMap, AstAnnotations}};
+use plc::{
+    index::{Index, PouIndexEntry},
+    resolver::{AnnotationMap, AstAnnotations},
+};
 use plc_ast::{
     ast::{
-        AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType, ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType
-    }, mut_visitor::{AstVisitorMut, WalkerMut}, provider::IdProvider, try_from_mut
+        AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType,
+        ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType,
+    },
+    mut_visitor::{AstVisitorMut, WalkerMut},
+    provider::IdProvider,
+    try_from_mut,
 };
 use plc_source::source_location::SourceLocation;
 
@@ -15,15 +22,23 @@ struct Context {
 
 impl Context {
     fn new(id_provider: IdProvider) -> Self {
-       Self { base_type_name: None, pou: None, id_provider } 
+        Self { base_type_name: None, pou: None, id_provider }
     }
 
     fn with_base(&self, base_type_name: impl Into<String>) -> Self {
-        Self { base_type_name: Some(base_type_name.into()), pou: self.pou.clone(), id_provider: self.id_provider.clone() }
+        Self {
+            base_type_name: Some(base_type_name.into()),
+            pou: self.pou.clone(),
+            id_provider: self.id_provider.clone(),
+        }
     }
 
     fn with_pou(&self, pou: impl Into<String>) -> Self {
-        Self { base_type_name: self.base_type_name.clone(), pou: Some(pou.into()), id_provider: self.id_provider.clone() }
+        Self {
+            base_type_name: self.base_type_name.clone(),
+            pou: Some(pou.into()),
+            id_provider: self.id_provider.clone(),
+        }
     }
 
     fn provider(&self) -> IdProvider {
@@ -39,11 +54,7 @@ pub struct InheritanceLowerer {
 
 impl InheritanceLowerer {
     pub fn new(id_provider: IdProvider) -> Self {
-        Self {
-            index: None,
-            annotations: None,
-            ctx: Context::new(id_provider),
-        }
+        Self { index: None, annotations: None, ctx: Context::new(id_provider) }
     }
 
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
@@ -62,50 +73,62 @@ impl InheritanceLowerer {
         t.walk(self);
         self.ctx = old_ctx;
     }
-     
-    fn check_heritage(&self, mut node: AstNode) -> AstNode {
+
+    fn update_inheritance_chain(&mut self, mut node: AstNode) -> AstNode {
         let Some(index) = self.index.as_ref() else {
             // TODO: this will skip visiting initializer nodes
             return node;
         };
         let annotations = self.annotations.as_ref().expect("Annotations not set");
         let ident = node.get_flat_reference_name().expect("Identifier").to_string();
-        let container = self.ctx.pou.as_ref().expect("Implementation must be in POU context").as_str();
+        let container = self.ctx.pou.as_ref().expect("Implementation must be in POU context").to_string();
 
-        let is_local = index.find_local_member(container, &ident).is_some();
-        if is_local {
+        if index.find_local_member(&container, &ident).is_some() {
+            // this is a local reference to the current container
             return node;
         }
 
         let expr = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
-        // TODO: member-access only? do we need to consider arrays etc?
-        let ReferenceExpr { ref mut base, .. } = expr;
-        let mut qualifier = base.as_ref().map(|it| annotations.get_type_or_void(&*it, index).get_name()).unwrap_or_default();
-        // should we do this recursively instead? nobody is going to derive so many children that we risk overflowing the stack, right? ..right?
-        while let Some(parent) = index.find_local_member(qualifier,  "__BASE") {
-            // update the base of the visited `ReferenceExpr`
-            let original_base = std::mem::take(base);
-    
-            let new_base = AstFactory::create_member_reference(
-                AstFactory::create_identifier(
-                    "__BASE", 
-                    SourceLocation::internal(), 
-                    self.ctx.provider().next_id()
-                ), 
-                original_base.map(|it| *it), 
-                self.ctx.provider().next_id()
-            );     
-            *base = Some(Box::new(new_base));
-            
-            // check if our variable is a member of the currently checked generation. if so, we are done
-            qualifier = parent.get_type_name();
-            if index.find_local_member(qualifier, &ident).is_some() {
-                break;
-            }
-        }
-        
-        // AstFactory::create_member_reference(std::mem::take(member), base, self.ctx.provider().next_id())
-        dbg!(node)
+        // TODO: member-access only? do we need to consider other cases (array-access, ...)?
+        let ReferenceExpr { ref mut base, access: ReferenceAccess::Member(access) } = expr else {
+            return node;
+        };
+
+        // if the member is not found in the current POU, we need to check the qualifier for a base class
+        let Some(super_) = base
+            .as_ref()
+            .and_then(|it| {
+                let qualifier = annotations.get_type_or_void(&*it, index).get_name();
+                index.find_pou(&qualifier).and_then(PouIndexEntry::get_super_class)
+            })
+            .or_else(||
+            // if we don't have a qualifier, check the current container for a base class
+            index.find_pou(&container).and_then(PouIndexEntry::get_super_class))
+        else {
+            // the reference is neither in our current container's family-tree, nor is it part of another family.
+            // nothing to do here
+            return node;
+        };
+
+        let access = std::mem::take(access);
+        let base = std::mem::take(base);
+        // update the base of the visited `ReferenceExpr`
+        let base = AstFactory::create_member_reference(
+            AstFactory::create_identifier(
+                "__BASE",
+                SourceLocation::internal(),
+                self.ctx.provider().next_id(),
+            ),
+            base.map(|it| *it),
+            self.ctx.provider().next_id(),
+        );
+        let node = AstFactory::create_member_reference(*access, Some(base), self.ctx.provider().next_id());
+        // traverse and update the reference's lineage recursively
+        self.ctx = self.ctx.with_pou(super_);
+        let node = self.update_inheritance_chain(node);
+        // reset the context to the original one
+        self.ctx = self.ctx.with_pou(container);
+        node
     }
 }
 
@@ -152,7 +175,11 @@ impl AstVisitorMut for InheritanceLowerer {
         }
 
         let ctx = self.ctx.with_pou(&implementation.type_name);
-        let ctx = if let Some(base) = self.index.as_ref().and_then(|it| it.find_pou(&implementation.type_name).and_then(|it| it.get_super_class())) {
+        let ctx = if let Some(base) = self
+            .index
+            .as_ref()
+            .and_then(|it| it.find_pou(&implementation.type_name).and_then(|it| it.get_super_class()))
+        {
             ctx.with_base(base)
         } else {
             ctx
@@ -161,15 +188,13 @@ impl AstVisitorMut for InheritanceLowerer {
     }
 
     fn visit_reference_expr(&mut self, node: &mut AstNode) {
-        // If the reference is to a member of the base class, we need to add a reference to the
-        // base class
-        dbg!("checking heritage");
-        let new_node = self.check_heritage(std::mem::take(node));
-        *node = new_node;
-        dbg!(&node);
         let expr = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
         expr.walk(self);
-    }   
+        // If the reference is to a member of the base class, we need to add a reference to the
+        // base class
+        let new_node = self.update_inheritance_chain(std::mem::take(node));
+        *node = new_node;
+    }
 }
 
 #[cfg(test)]
@@ -178,6 +203,7 @@ mod tests {
     use plc_driver::parse_and_annotate;
     use plc_source::SourceCode;
 
+    // FIXME: `cargo insta review` doesn't pick up these snapshots for review
     #[test]
     fn after_parsing_a_function_block_contains_ref_to_its_base() {
         let src: SourceCode = "
@@ -230,9 +256,9 @@ mod tests {
             FUNCTION_BLOCK foo
             VAR
                 myFb : fb2;
+                // x : DINT;
             END_VAR
                 myFb.x := 1;
-                // myFb.__BASE.x
             END_FUNCTION_BLOCK
         "
         .into();

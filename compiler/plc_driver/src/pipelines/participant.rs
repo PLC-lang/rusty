@@ -237,11 +237,6 @@ impl PipelineParticipantMut for InheritanceLowerer {
         let index = self.index.take().expect("Index should be present");
         let annotations = self.annotations.take().expect("Annotations should be present");
 
-        AnnotatedProject {
-            units,
-            index,
-            annotations,
-        }
+        AnnotatedProject { units, index, annotations }
     }
 }
-
