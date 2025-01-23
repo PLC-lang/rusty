@@ -362,7 +362,7 @@ fn try_inplace_getter(
         inner.right.location.clone(),
     );
 
-    let _ = std::mem::replace(node, call);
+    let _ = std::mem::replace(&mut inner.right, Box::new(call));
 }
 
 fn update_name(prefix: &'static str, node: &mut AstNode) {
