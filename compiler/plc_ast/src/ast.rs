@@ -329,6 +329,10 @@ impl PouType {
     pub fn is_function_or_init(&self) -> bool {
         matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit)
     }
+
+    pub fn is_method(&self) -> bool {
+        matches!(self, PouType::Method { .. })
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]

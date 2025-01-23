@@ -496,6 +496,16 @@ impl StatementAnnotation {
             StatementAnnotation::Variable { argument_type: ArgumentType::ByVal(VariableType::Property), .. }
         )
     }
+
+    pub fn get_qualified_name(&self) -> Option<&str> {
+        match self {
+            StatementAnnotation::Variable { qualified_name, .. }
+            | StatementAnnotation::Function { qualified_name, .. }
+            | StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
+
+            _ => None,
+        }
+    }
 }
 
 impl From<&PouIndexEntry> for StatementAnnotation {

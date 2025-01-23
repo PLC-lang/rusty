@@ -12,7 +12,7 @@ use std::{
 };
 
 use ast::{
-    ast::{Assignment, AstFactory, AstNode, AstStatement, ReferenceAccess, ReferenceExpr},
+    ast::{AstFactory, AstNode, AstStatement, PouType, ReferenceAccess, ReferenceExpr},
     mut_visitor::AstVisitorMut,
     provider::IdProvider,
 };
@@ -20,12 +20,12 @@ use plc::{
     codegen::GeneratedModule,
     lowering::property::PropertyDesugar,
     output::FormatOption,
-    resolver::{AnnotationMap, StatementAnnotation},
+    resolver::{AnnotationMap, AstAnnotations},
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use project::{object::Object, project::LibraryInformation};
-use source_code::{source_location::SourceLocation, SourceContainer};
+use source_code::SourceContainer;
 
 use super::{AnnotatedProject, GeneratedProject, IndexedProject, ParsedProject};
 
@@ -267,49 +267,13 @@ impl PipelineParticipantMut for PropertyDesugar {
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         let AnnotatedProject { mut units, index, annotations } = annotated_project;
-        for unit in &mut units {
-            for implementation in &mut unit.unit.implementations {
-                // TODO: Find a way to not update statements when we're inside the parent POU where the property
-                // has been defined
-                if implementation.name == "fb.get_prop" || implementation.name == "fb.set_prop" {
-                    continue;
-                }
 
-                for node in &mut implementation.statements.iter_mut().filter(|it| it.is_assignment()) {
-                    let mut replace_me = &mut node.stmt;
-                    let AstStatement::Assignment(Assignment { ref mut left, ref mut right, .. }) =
-                        &mut replace_me
-                    else {
-                        unreachable!()
-                    };
-
-                    // dbg!(annotations.get(&left));
-                    // dbg!(annotations.get(&right));
-
-                    if annotations.get(right).is_some_and(StatementAnnotation::is_property) {
-                        insert_get_prefix("get_", right);
-
-                        let mut call = AstFactory::create_call_statement(
-                            right.as_ref().clone(),
-                            None,
-                            self.id_provider.next_id(),
-                            SourceLocation::undefined(),
-                        );
-
-                        std::mem::swap(right.as_mut(), &mut call);
-                    } else if annotations.get(left).is_some_and(StatementAnnotation::is_property) {
-                        insert_get_prefix("set_", left);
-                        let mut call = AstFactory::create_call_statement(
-                            left.as_ref().clone(),
-                            Some(right.as_ref().clone()),
-                            self.id_provider.next_id(),
-                            SourceLocation::undefined(),
-                        );
-
-                        dbg!(&call);
-
-                        std::mem::swap(node, &mut call);
-                    }
+        for unit in units.iter_mut().map(|annotated| &mut annotated.unit) {
+            for implementation in unit.implementations.iter_mut() {
+                // for implementation in &mut unit.implementations {
+                for node in implementation.statements.iter_mut() {
+                    try_inplace_setter(&mut self.id_provider, &annotations, node, &implementation.pou_type);
+                    try_inplace_getter(&mut self.id_provider, &annotations, node, &implementation.pou_type);
                 }
             }
         }
@@ -320,10 +284,95 @@ impl PipelineParticipantMut for PropertyDesugar {
     }
 }
 
-fn insert_get_prefix(prefix: &str, node: &mut AstNode) {
-    let AstStatement::ReferenceExpr(ReferenceExpr { access, .. }) = &mut node.stmt else { unreachable!() };
-    let ReferenceAccess::Member(ref mut name) = access else { unreachable!() };
-    let AstStatement::Identifier(name) = &mut name.stmt else { unreachable!() };
+fn try_inplace_setter(
+    ids: &mut IdProvider,
+    annotations: &AstAnnotations,
+    node: &mut AstNode,
+    impl_type: &PouType,
+) {
+    let AstStatement::Assignment(inner) = &mut node.stmt else { return };
+    let Some(annotation) = annotations.get(&inner.left) else { return };
 
-    name.insert_str(0, prefix);
+    if !annotation.is_property() {
+        return;
+    }
+
+    // If we're inside a POU where the property has been defined, then do not create getter and setter calls
+    // because we have direct access to the underlying property variable
+    if let PouType::Method { parent } = impl_type {
+        if annotation.get_qualified_name().is_some_and(|name| &name[0..parent.len()] == parent) {
+            // TODO: This is an assumption, but basically since we're creating a an internal variable named after the
+            // property, any implementation with the same POU can access that variable directly without a getter or
+            // setter call. Is this OK? Or should the property be only directly accessible within the actual property
+            // block. Specifically this is currently ok:
+            // ```
+            // FUNCTION_BLOCK FB
+            // ...
+            // PROPERTY foo : DINT;
+            // END_PROPERTY
+            // ...
+            // foo := 5; // Should this be illegal since the property foo has been accessed outside of a get/set block?
+            // ...
+            // END_FUNCTION_BLOCK
+            // ```
+            return;
+        }
+    }
+
+    update_name("set_", &mut inner.left);
+
+    let call = AstFactory::create_call_statement(
+        inner.left.as_ref().clone(),
+        Some(inner.right.as_ref().clone()),
+        ids.next_id(),
+        node.location.clone(),
+    );
+
+    let _ = std::mem::replace(node, call);
+}
+
+fn try_inplace_getter(
+    ids: &mut IdProvider,
+    annotations: &AstAnnotations,
+    node: &mut AstNode,
+    impl_type: &PouType,
+) {
+    let AstStatement::Assignment(inner) = &mut node.stmt else { return };
+    let Some(annotation) = annotations.get(&inner.right) else { return };
+
+    if !annotation.is_property() {
+        return;
+    }
+
+    // TODO: We have to make sure the property variable isn't directly accesible other than the PROPERTY block
+    // If we're inside a POU where the property has been defined, then do not create getter and setter calls
+    // because we have direct access to the underlying property variable
+    if let PouType::Method { parent } = impl_type {
+        if annotation.get_qualified_name().is_some_and(|name| &name[0..parent.len()] == parent) {
+            return;
+        }
+    }
+
+    update_name("get_", &mut inner.right);
+
+    let call = AstFactory::create_call_statement(
+        inner.right.as_ref().clone(),
+        None,
+        ids.next_id(),
+        inner.right.location.clone(),
+    );
+
+    let _ = std::mem::replace(node, call);
+}
+
+fn update_name(prefix: &'static str, node: &mut AstNode) {
+    match &mut node.stmt {
+        AstStatement::Identifier(ref mut name) => name.insert_str(0, prefix),
+        AstStatement::ReferenceExpr(ReferenceExpr { ref mut access, .. }) => match access {
+            ReferenceAccess::Member(ref mut node) => update_name(prefix, node),
+            _ => todo!(),
+        },
+
+        _ => (),
+    };
 }
