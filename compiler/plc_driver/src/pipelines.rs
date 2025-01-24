@@ -244,6 +244,20 @@ impl<T: SourceContainer> BuildPipeline<T> {
             log::info!("{err}")
         }
     }
+
+    /// Register all default participants (excluding codegen/linking)
+    pub fn register_default_participants(&mut self) {
+        use participant::InitParticipant;
+        use plc::lowering::calls::AggregateTypeLowerer;
+
+        // XXX: should we use a static array of participants?
+        let init_participant =
+            InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider());
+        self.register_mut_participant(Box::new(init_participant));
+
+        let aggregate_return_participant = AggregateTypeLowerer::new(self.context.provider());
+        self.register_mut_participant(Box::new(aggregate_return_participant));
+    }
 }
 
 impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
