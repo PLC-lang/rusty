@@ -242,7 +242,7 @@
 
 <span class="doccomment">/// SourceContainers offer source-code to be compiled via the load_source function.
 /// Furthermore it offers a location-String used when reporting diagnostics.
-</span><span class="kw">pub trait </span>SourceContainer: Sync {
+</span><span class="kw">pub trait </span>SourceContainer: Sync + Send {
     <span class="doccomment">/// loads and returns the SourceEntry that contains the SourceCode and the path it was loaded from
     </span><span class="kw">fn </span>load_source(<span class="kw-2">&amp;</span><span class="self">self</span>, encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>Encoding&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;SourceCode, String&gt;;
     <span class="doccomment">/// returns the location of this source-container. Used when reporting diagnostics.
@@ -307,7 +307,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: AsRef&lt;Path&gt; + Sync&gt; SourceContainer <span class="kw">for </span>T {
+<span class="kw">impl</span>&lt;T: AsRef&lt;Path&gt; + Sync + Send&gt; SourceContainer <span class="kw">for </span>T {
     <span class="kw">fn </span>load_source(<span class="kw-2">&amp;</span><span class="self">self</span>, encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>Encoding&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;SourceCode, String&gt; {
         <span class="kw">let </span>source_type = <span class="self">self</span>.get_type();
         <span class="kw">if </span><span class="macro">matches!</span>(source_type, SourceType::Text | SourceType::Xml) {

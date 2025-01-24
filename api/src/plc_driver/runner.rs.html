@@ -64,7 +64,25 @@
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
 <a href="#65" id="65">65</a>
-<a href="#66" id="66">66</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{pipelines::ParsedProject, CompileOptions};
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    pipelines::{BuildPipeline, Pipeline},
+    CompileOptions,
+};
 
 <span class="kw">use </span>plc::codegen::{CodegenContext, GeneratedModule};
 <span class="kw">use </span>plc_diagnostics::diagnostician::Diagnostician;
@@ -89,23 +107,34 @@
 /// Sources must be `Compilable`, default implementations include `String` and `&amp;str`
 /// An implementation is also provided for `Vec&lt;SourceContainer&gt;`
 ///
-</span><span class="kw">pub fn </span>compile&lt;T: Compilable&gt;(context: <span class="kw-2">&amp;</span>CodegenContext, source: T) -&gt; GeneratedModule&lt;<span class="lifetime">'_</span>&gt; {
+</span><span class="kw">pub fn </span>compile&lt;T: Compilable&gt;(codegen_context: <span class="kw-2">&amp;</span>CodegenContext, source: T) -&gt; GeneratedModule&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">let </span>source = source.containers();
     <span class="kw">let </span>project = Project::new(<span class="string">"TestProject"</span>.to_string()).with_sources(source);
-    <span class="kw">let </span>ctxt = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>).unwrap();
-    <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::null_diagnostician();
-    <span class="kw">let </span>parsed_project = ParsedProject::parse(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;</span>project, <span class="kw-2">&amp;mut </span>diagnostician).unwrap();
-    <span class="kw">let </span>indexed_project = parsed_project
-        .index(ctxt.provider())
-        .extend_with_init_units(<span class="kw-2">&amp;</span>project.get_init_symbol_name(), ctxt.provider());
-    <span class="kw">let </span>annotated_project = indexed_project.annotate(ctxt.provider());
+    <span class="kw">let </span>context = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>).unwrap();
+    <span class="kw">let </span>diagnostician = Diagnostician::null_diagnostician();
+    <span class="kw">let </span><span class="kw-2">mut </span>pipeline = BuildPipeline {
+        context,
+        project,
+        diagnostician,
+        compile_parameters: <span class="prelude-val">None</span>,
+        linker: plc::linker::LinkerType::Internal,
+        mutable_participants: Default::default(),
+        participants: Default::default(),
+    };
+
+    pipeline.register_default_participants();
+
+    <span class="kw">let </span>project = pipeline.parse().unwrap();
+    <span class="kw">let </span>project = pipeline.index(project).unwrap();
+    <span class="kw">let </span>project = pipeline.annotate(project).unwrap();
+
     <span class="kw">let </span>compile_options = CompileOptions {
         optimization: plc::OptimizationLevel::None,
         debug_level: plc::DebugLevel::None,
         ..Default::default()
     };
 
-    <span class="kw">match </span>annotated_project.generate_single_module(context, <span class="kw-2">&amp;</span>compile_options) {
+    <span class="kw">match </span>project.generate_single_module(codegen_context, <span class="kw-2">&amp;</span>compile_options) {
         <span class="prelude-val">Ok</span>(res) =&gt; res.unwrap(),
         <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"{e}"</span>),
     }
@@ -117,6 +146,7 @@
 </span><span class="kw">pub fn </span>compile_and_run&lt;T, U, S: Compilable&gt;(source: S, params: <span class="kw-2">&amp;mut </span>T) -&gt; U {
     <span class="kw">let </span>context: CodegenContext = CodegenContext::create();
     <span class="kw">let </span>module = compile(<span class="kw-2">&amp;</span>context, source);
+    module.print_to_stderr();
     module.run::&lt;T, U&gt;(<span class="string">"main"</span>, params)
 }
 

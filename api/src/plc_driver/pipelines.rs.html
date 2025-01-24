@@ -919,7 +919,22 @@
 <a href="#918" id="918">918</a>
 <a href="#919" id="919">919</a>
 <a href="#920" id="920">920</a>
-<a href="#921" id="921">921</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     env,
     ffi::OsStr,
@@ -1061,7 +1076,9 @@
         <span class="kw">let </span>compile_parameters = CompileParameters::parse(args)<span class="question-mark">?</span>;
         compile_parameters.try_into()
     }
+}
 
+<span class="kw">impl</span>&lt;T: SourceContainer&gt; BuildPipeline&lt;T&gt; {
     <span class="kw">pub fn </span>register_mut_participant(<span class="kw-2">&amp;mut </span><span class="self">self</span>, participant: Box&lt;<span class="kw">dyn </span>PipelineParticipantMut&gt;) {
         <span class="self">self</span>.mutable_participants.push(participant)
     }
@@ -1069,9 +1086,6 @@
     <span class="kw">pub fn </span>register_participant(<span class="kw-2">&amp;mut </span><span class="self">self</span>, participant: Box&lt;<span class="kw">dyn </span>PipelineParticipant&gt;) {
         <span class="self">self</span>.participants.push(participant)
     }
-}
-
-<span class="kw">impl</span>&lt;T: SourceContainer&gt; BuildPipeline&lt;T&gt; {
     <span class="kw">pub fn </span>get_compile_options(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;CompileOptions&gt; {
         <span class="self">self</span>.compile_parameters.as_ref().map(|params| {
             <span class="kw">let </span>location = <span class="kw-2">&amp;</span><span class="self">self</span>.project.get_location().map(|it| it.to_path_buf());
@@ -1166,6 +1180,16 @@
             </span><span class="macro">log::info!</span>(<span class="string">"{err}"</span>)
         }
     }
+
+    <span class="doccomment">/// Register all default participants (excluding codegen/linking)
+    </span><span class="kw">pub fn </span>register_default_participants(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">use </span>participant::InitParticipant;
+        <span class="comment">// XXX: should we use a static array of participants?
+
+        </span><span class="kw">let </span>init_participant =
+            InitParticipant::new(<span class="kw-2">&amp;</span><span class="self">self</span>.project.get_init_symbol_name(), <span class="self">self</span>.context.provider());
+        <span class="self">self</span>.register_mut_participant(Box::new(init_participant));
+    }
 }
 
 <span class="kw">impl</span>&lt;T: SourceContainer&gt; Pipeline <span class="kw">for </span>BuildPipeline&lt;T&gt; {
@@ -1196,6 +1220,7 @@
         <span class="kw">let </span>annotated_project = <span class="self">self</span>.annotate(indexed_project)<span class="question-mark">?</span>;
         <span class="comment">//TODO : this is post lowering, we might want to control this
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(CompileParameters { output_ast: <span class="bool-val">true</span>, .. }) = <span class="self">self</span>.compile_parameters {
+            <span class="macro">println!</span>(<span class="string">"{:#?}"</span>, annotated_project.units);
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
@@ -1231,27 +1256,31 @@
         <span class="self">self</span>.participants.iter().for_each(|p| {
             p.pre_index(<span class="kw-2">&amp;</span>project);
         });
-        <span class="kw">let </span>project = <span class="self">self</span>.mutable_participants.iter().fold(project, |project, p| p.pre_index(project));
+        <span class="kw">let </span>project = <span class="self">self</span>.mutable_participants.iter_mut().fold(project, |project, p| p.pre_index(project));
         <span class="kw">let </span>indexed_project = project.index(<span class="self">self</span>.context.provider());
         <span class="self">self</span>.participants.iter().for_each(|p| {
             p.post_index(<span class="kw-2">&amp;</span>indexed_project);
         });
-        <span class="kw">let </span>indexed_project =
-            <span class="self">self</span>.mutable_participants.iter().fold(indexed_project, |project, p| p.post_index(project));
-        <span class="prelude-val">Ok</span>(indexed_project)
+        <span class="kw">let </span>project =
+            <span class="self">self</span>.mutable_participants.iter_mut().fold(indexed_project, |project, p| p.post_index(project));
+
+        <span class="prelude-val">Ok</span>(project)
     }
 
     <span class="kw">fn </span>annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, project: IndexedProject) -&gt; <span class="prelude-ty">Result</span>&lt;AnnotatedProject, Diagnostic&gt; {
         <span class="self">self</span>.participants.iter().for_each(|p| {
             p.pre_annotate(<span class="kw-2">&amp;</span>project);
         });
-        <span class="kw">let </span>project = <span class="self">self</span>.mutable_participants.iter().fold(project, |project, p| p.pre_annotate(project));
+        <span class="kw">let </span>project =
+            <span class="self">self</span>.mutable_participants.iter_mut().fold(project, |project, p| p.pre_annotate(project));
         <span class="kw">let </span>annotated_project = project.annotate(<span class="self">self</span>.context.provider());
         <span class="self">self</span>.participants.iter().for_each(|p| {
             p.post_annotate(<span class="kw-2">&amp;</span>annotated_project);
         });
-        <span class="kw">let </span>annotated_project =
-            <span class="self">self</span>.mutable_participants.iter().fold(annotated_project, |project, p| p.post_annotate(project));
+        <span class="kw">let </span>annotated_project = <span class="self">self
+            </span>.mutable_participants
+            .iter_mut()
+            .fold(annotated_project, |project, p| p.post_annotate(project));
         <span class="prelude-val">Ok</span>(annotated_project)
     }
 
@@ -1273,7 +1302,7 @@
             project
                 .generate_single_module(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>compile_options)<span class="question-mark">?
                 </span>.map(|module| {
-                    <span class="self">self</span>.participants.iter().try_fold((), |<span class="kw">_</span>, participant| participant.generate(<span class="kw-2">&amp;</span>module))
+                    <span class="self">self</span>.participants.iter_mut().try_fold((), |<span class="kw">_</span>, participant| participant.generate(<span class="kw-2">&amp;</span>module))
                 })
                 .unwrap_or(<span class="prelude-val">Ok</span>(()))<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
@@ -1434,8 +1463,9 @@
         </span><span class="kw">let </span>builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(indexer::index(<span class="kw-2">&amp;</span>builtins));
 
-        <span class="kw">let </span>(full_index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
-        IndexedProject { project: ParsedProject { units }, index: full_index, unresolvables }
+        <span class="comment">//TODO: evaluate constants should probably be a participant
+        </span><span class="kw">let </span>(index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
+        IndexedProject { project: ParsedProject { units }, index, unresolvables }
     }
 }
 
