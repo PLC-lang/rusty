@@ -74,63 +74,6 @@ impl InheritanceLowerer {
         self.ctx = old_ctx;
     }
 
-    fn old_update_inheritance_chain(&mut self, mut node: AstNode) -> AstNode {
-        let Some(index) = self.index.as_ref() else {
-            // TODO: this will skip visiting initializer nodes
-            return node;
-        };
-        let annotations = self.annotations.as_ref().expect("Annotations not set");
-        let ident = node.get_flat_reference_name().expect("Identifier").to_string();
-        let container = self.ctx.pou.as_ref().expect("Implementation must be in POU context").to_string();
-
-        if index.find_local_member(&container, &ident).is_some() {
-            // this is a local reference to the current container
-            return node;
-        }
-
-        let expr = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
-        // TODO: member-access only? do we need to consider other cases (array-access, ...)?
-        let ReferenceExpr { ref mut base, access: ReferenceAccess::Member(access) } = expr else {
-            return node;
-        };
-
-        // if the member is not found in the current POU, we need to check the qualifier for a base class
-        let Some(super_) = base
-            .as_ref()
-            .and_then(|it| {
-                let qualifier = annotations.get_type_or_void(&*it, index).get_name();
-                index.find_pou(&qualifier).and_then(PouIndexEntry::get_super_class)
-            })
-            .or_else(||
-            // if we don't have a qualifier, check the current container for a base class
-            index.find_pou(&container).and_then(PouIndexEntry::get_super_class))
-        else {
-            // the reference is neither in our current container's family-tree, nor is it part of another family.
-            // nothing to do here
-            return node;
-        };
-
-        let access = std::mem::take(access);
-        let base: Option<Box<AstNode>> = std::mem::take(base);
-        // update the base of the visited `ReferenceExpr`
-        let base = AstFactory::create_member_reference(
-            AstFactory::create_identifier(
-                "__BASE",
-                SourceLocation::internal(),
-                self.ctx.provider().next_id(),
-            ),
-            base.map(|it| *it),
-            self.ctx.provider().next_id(),
-        );
-        let node = AstFactory::create_member_reference(*access, Some(base), self.ctx.provider().next_id());
-        // traverse and update the reference's lineage recursively
-        self.ctx = self.ctx.with_pou(super_);
-        let node = self.old_update_inheritance_chain(node);
-        // reset the context to the original one
-        self.ctx = self.ctx.with_pou(container);
-        node
-    }
-
     fn update_inheritance_chain(&self, mut node: AstNode) -> AstNode {
         let Some(index) = self.index.as_ref() else {
             // TODO: this will skip visiting initializer nodes
@@ -142,10 +85,17 @@ impl InheritanceLowerer {
         //      b => am I a direct member of a?
         //      a => am I a direct member of local container?
 
-        // TODO: member-access only? do we need to consider other cases (array-access, ...)?
-        let expr = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
-        let ReferenceExpr { ref mut base, access: ReferenceAccess::Member(access) } = expr else {
+        let Some(ReferenceExpr { base, access }) = try_from_mut!(node, ReferenceExpr) else {
             return node;
+        };
+
+        let access = match access {
+            ReferenceAccess::Member(ast_node)
+            | ReferenceAccess::Index(ast_node)
+            | ReferenceAccess::Cast(ast_node) => self.update_inheritance_chain(*std::mem::take(ast_node)),
+            ReferenceAccess::Deref | ReferenceAccess::Address => {
+                return node;
+            }
         };
 
         let base = std::mem::take(base);
@@ -157,37 +107,30 @@ impl InheritanceLowerer {
             (base, self.ctx.pou.as_ref().and_then(|it| index.get_type(&it).ok()))
         };
 
-        let access = *std::mem::take(access);
-
         let qualified_name = annotations.get_qualified_name(&access).expect("QualifiedName"); // TODO: error handling/early exit
 
         let segment = qualified_name.split('.').next().expect("Must have a name");
 
         if ty.is_some_and(|it| it.get_name() == segment) {
             // reference was flat reference, just return access
-            dbg!("returning early: segment == qualified name");
-            dbg!(ty, segment);
-            return dbg!(access);
+            return AstFactory::create_member_reference(
+                access,
+                base.map(|it| *it),
+                self.ctx.provider().next_id(),
+            );
         }
 
         let inheritance_chain = index.find_ancestors(ty.map(|it| it.get_name()).unwrap_or_default(), segment);
         if inheritance_chain.len() <= 1 {
-            dbg!("returning early: inheritance_chain <= 1");
-            dbg!(&inheritance_chain, segment, ty);
-            return dbg!(access);
+            return AstFactory::create_member_reference(
+                access,
+                base.map(|it| *it),
+                self.ctx.provider().next_id(),
+            );
         }
 
         // add a `__BASE` qualifier for each element in the inheritance chain, exluding `self`
         let base = inheritance_chain.iter().skip(1).fold(base, |base, _| {
-            // update the base of the visited `ReferenceExpr`
-            // let Some(base) = base else {
-            //     return Some(Box::new(AstFactory::create_identifier(
-            //         "__BASE",
-            //         SourceLocation::internal(),
-            //         self.ctx.provider().next_id(),
-            //     )));
-            // };
-
             Some(Box::new(AstFactory::create_member_reference(
                 AstFactory::create_identifier(
                     "__BASE",
@@ -376,13 +319,13 @@ mod tests {
             location: SourceLocation {
                 span: Range(
                     TextLocation {
-                        line: 15,
+                        line: 16,
                         column: 16,
-                        offset: 347,
+                        offset: 363,
                     }..TextLocation {
-                        line: 15,
+                        line: 16,
                         column: 28,
-                        offset: 359,
+                        offset: 375,
                     },
                 ),
             },
@@ -391,11 +334,11 @@ mod tests {
                     TextLocation {
                         line: 11,
                         column: 27,
-                        offset: 262,
+                        offset: 250,
                     }..TextLocation {
                         line: 11,
                         column: 30,
-                        offset: 265,
+                        offset: 253,
                     },
                 ),
             },
@@ -459,11 +402,11 @@ mod tests {
                     TextLocation {
                         line: 8,
                         column: 16,
-                        offset: 189,
+                        offset: 187,
                     }..TextLocation {
                         line: 8,
                         column: 29,
-                        offset: 202,
+                        offset: 200,
                     },
                 ),
             },
@@ -472,11 +415,11 @@ mod tests {
                     TextLocation {
                         line: 7,
                         column: 27,
-                        offset: 156,
+                        offset: 155,
                     }..TextLocation {
                         line: 7,
                         column: 30,
-                        offset: 159,
+                        offset: 158,
                     },
                 ),
             },
@@ -511,7 +454,354 @@ mod tests {
     }
 
     #[test]
-    fn foo() {
+    fn test_array_access_in_nested_function_blocks_with_base_references() {
+        let src: SourceCode = r#"
+                FUNCTION_BLOCK grandparent
+                VAR
+                    y : ARRAY[0..5] OF INT;
+                    a : INT;
+                END_VAR
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK parent extends grandparent
+                    VAR
+                        x : ARRAY[0..10] OF INT;
+                        b : INT;
+                    END_VAR
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK child EXTENDS parent
+                    VAR
+                        z : ARRAY[0..10] OF INT;
+                    END_VAR
+                    x[0] := 42; //__BASE.x[0] := 42;
+                    y[2]:= 5; //__BASE.__BASE.y[2] := 5;
+                    z[3] := x[1] + y[2]; //z[3] := __BASE.x[1] + __BASE.__BASE.y[2];
+                    x[a] := 5; //__BASE.x[__BASE__.BASE__.a] := 5;
+                    y[b] := 6; //__BASE.__BASE.y[__BASE.b] := 6;
+                    z[a+b] := 10; //z[__BASE.__BASE.a + __BASE.b] := 10;
+                END_FUNCTION_BLOCK
+            "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().implementations[2];
+        assert_debug_snapshot!(unit, @r#"
+        Implementation {
+            name: "child",
+            type_name: "child",
+            linkage: Internal,
+            pou_type: FunctionBlock,
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            LiteralInteger {
+                                value: 0,
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "x",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 42,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            LiteralInteger {
+                                value: 2,
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "y",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__BASE",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 5,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            LiteralInteger {
+                                value: 3,
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "z",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    right: BinaryExpression {
+                        operator: Plus,
+                        left: ReferenceExpr {
+                            kind: Member(
+                                LiteralInteger {
+                                    value: 1,
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "x",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__BASE",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                LiteralInteger {
+                                    value: 2,
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "y",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__BASE",
+                                                },
+                                            ),
+                                            base: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "__BASE",
+                                                        },
+                                                    ),
+                                                    base: None,
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "a",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "x",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 5,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "b",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "y",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__BASE",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 6,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            BinaryExpression {
+                                operator: Plus,
+                                left: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "a",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                right: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "b",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "z",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 10,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 19,
+                        column: 20,
+                        offset: 598,
+                    }..TextLocation {
+                        line: 24,
+                        column: 33,
+                        offset: 868,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 15,
+                        column: 31,
+                        offset: 456,
+                    }..TextLocation {
+                        line: 15,
+                        column: 36,
+                        offset: 461,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "#);
+    }
+
+    #[test]
+    fn test_multi_level_reference_handling() {
         let src: SourceCode = "
             FUNCTION_BLOCK fb
             VAR
@@ -534,13 +824,91 @@ mod tests {
                 x : INT;
             END_VAR
                 myFb.x := 1;
-                // BASE__.myFb.__BASE.x
+                // __BASE.myFb.__BASE.x
             END_FUNCTION_BLOCK
         "
         .into();
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[3];
-        assert_debug_snapshot!(unit, @r#""#);
+        assert_debug_snapshot!(unit, @r#"
+        Implementation {
+            name: "foo",
+            type_name: "foo",
+            linkage: Internal,
+            pou_type: FunctionBlock,
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__BASE",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "myFb",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__BASE",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 1,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 21,
+                        column: 16,
+                        offset: 470,
+                    }..TextLocation {
+                        line: 21,
+                        column: 28,
+                        offset: 482,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 17,
+                        column: 27,
+                        offset: 377,
+                    }..TextLocation {
+                        line: 17,
+                        column: 30,
+                        offset: 380,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "#);
     }
 }
