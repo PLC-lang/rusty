@@ -26,7 +26,6 @@ use crate::test_utils::tests::{annotate_with_ids, codegen, index_with_ids};
 /// Programs are POUs with exactly one (static) instance. Programs have a persistent state for VAR, VAR_INPUT,
 /// VAR_OUTPUT and VAR_IN_OUT variables. The instance is statically available and behaves as if there is a callable
 /// global variable withe the program's name. When calling a program all parameters, except IN_OUT parameters, are optional.
-
 const DEFAULT_PRG: &str = r#"
     PROGRAM main_prg
         VAR_INPUT   i   : INT   END_VAR
@@ -378,7 +377,6 @@ fn calling_a_program() {
 /// that you can have mulitple instances of a FunctionBlock. Therefore a FunctionBlocks instance variable is not
 /// auto-generated as a global variable as it would be for a program. FB-instances can be declared as part of your
 /// code. A FunctionBlock acts automatically as a DataType.
-
 const DEFAULT_FB: &str = r#"
     FUNCTION_BLOCK main_fb
         VAR_INPUT   i    : INT := 6 END_VAR
@@ -554,7 +552,6 @@ fn calling_a_function_block() {
 ///
 /// Functions are stateless methods. They dont have an instance-struct or instance variables. Functions
 /// take all their parameters passed one by one to the function.
-
 const DEFAULT_FUNC: &str = r#"
     FUNCTION main_fun : DINT
         VAR_INPUT   i   : INT; END_VAR

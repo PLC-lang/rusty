@@ -1,12 +1,9 @@
 use crate::{
-    pipelines::{participant::InitParticipant, BuildPipeline, Pipeline},
+    pipelines::{BuildPipeline, Pipeline},
     CompileOptions,
 };
 
-use plc::{
-    codegen::{CodegenContext, GeneratedModule},
-    lowering::calls::AggregateTypeLowerer,
-};
+use plc::codegen::{CodegenContext, GeneratedModule};
 use plc_diagnostics::diagnostician::Diagnostician;
 use plc_index::GlobalContext;
 use project::project::Project;
@@ -44,12 +41,7 @@ pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> Ge
         participants: Default::default(),
     };
 
-    let init_participant =
-        InitParticipant::new(&pipeline.project.get_init_symbol_name(), pipeline.context.provider());
-    pipeline.register_mut_participant(Box::new(init_participant));
-
-    let aggregate_return_participant = AggregateTypeLowerer::new(pipeline.context.provider());
-    pipeline.register_mut_participant(Box::new(aggregate_return_participant));
+    pipeline.register_default_participants();
 
     let project = pipeline.parse().unwrap();
     let project = pipeline.index(project).unwrap();
