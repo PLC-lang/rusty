@@ -12,12 +12,15 @@ use std::{
 };
 
 use ast::provider::IdProvider;
-use plc::{codegen::GeneratedModule, output::FormatOption, ConfigFormat, OnlineChange, Target};
+use plc::{
+    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption, ConfigFormat,
+    OnlineChange, Target,
+};
 use plc_diagnostics::diagnostics::Diagnostic;
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
-use super::{AnnotatedProject, GeneratedProject, IndexedProject, ParsedProject};
+use super::{AnnotatedProject, AnnotatedUnit, GeneratedProject, IndexedProject, ParsedProject};
 
 /// A Build particitpant for different steps in the pipeline
 /// Implementors can decide parse the Ast and project information
@@ -218,5 +221,37 @@ impl InitParticipant {
 impl PipelineParticipantMut for InitParticipant {
     fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project.extend_with_init_units(&self.symbol_name, self.id_provider.clone())
+    }
+}
+
+impl PipelineParticipantMut for AggregateTypeLowerer {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { mut project, index, .. } = indexed_project;
+        self.index = Some(index);
+        self.visit(&mut project.units);
+
+        //Re-index
+        //TODO: it would be nice if we could unimport
+        project.index(self.id_provider.clone())
+    }
+
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { units, index, annotations } = annotated_project;
+        self.index = Some(index);
+        self.annotation = Some(Box::new(annotations));
+
+        let units = units
+            .into_iter()
+            .map(|AnnotatedUnit { mut unit, .. }| {
+                self.visit_unit(&mut unit);
+                unit
+            })
+            .collect();
+        let indexed_project = IndexedProject {
+            project: ParsedProject { units },
+            index: self.index.take().expect("Index"),
+            unresolvables: vec![],
+        };
+        indexed_project.annotate(self.id_provider.clone())
     }
 }

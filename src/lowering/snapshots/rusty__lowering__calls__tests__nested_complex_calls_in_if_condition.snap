@@ -1,0 +1,164 @@
+---
+source: src/lowering/calls.rs
+expression: "unit.implementations[0]"
+---
+Implementation {
+    name: "CLEAN",
+    type_name: "CLEAN",
+    linkage: Internal,
+    pou_type: Function,
+    statements: [
+        ExpressionList {
+            expressions: [
+                Allocation {
+                    name: "__MID0",
+                    reference_type: "STRING",
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "MID__STRING",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__MID0",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "CLEAN",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                LiteralInteger {
+                                    value: 1,
+                                },
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "pos",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ],
+                        },
+                    ),
+                },
+                IfStatement {
+                    blocks: [
+                        ConditionalBlock {
+                            condition: BinaryExpression {
+                                operator: Greater,
+                                left: CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "FIND",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ExpressionList {
+                                            expressions: [
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "CX",
+                                                        },
+                                                    ),
+                                                    base: None,
+                                                },
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "__MID0",
+                                                        },
+                                                    ),
+                                                    base: None,
+                                                },
+                                            ],
+                                        },
+                                    ),
+                                },
+                                right: LiteralInteger {
+                                    value: 0,
+                                },
+                            },
+                            body: [
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "pos",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: BinaryExpression {
+                                        operator: Plus,
+                                        left: ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "pos",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                        right: LiteralInteger {
+                                            value: 1,
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                    else_block: [],
+                },
+            ],
+        },
+        EmptyStatement,
+    ],
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 8,
+                column: 16,
+                offset: 191,
+            }..TextLocation {
+                line: 10,
+                column: 23,
+                offset: 291,
+            },
+        ),
+    },
+    name_location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 1,
+                column: 21,
+                offset: 22,
+            }..TextLocation {
+                line: 1,
+                column: 26,
+                offset: 27,
+            },
+        ),
+    },
+    overriding: false,
+    generic: false,
+    access: None,
+}

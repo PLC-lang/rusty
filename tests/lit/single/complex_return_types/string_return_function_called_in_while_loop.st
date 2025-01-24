@@ -1,0 +1,26 @@
+// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+FUNCTION TRIM : STRING
+VAR_INPUT
+	str : STRING;
+END_VAR
+
+TRIM := str;
+WHILE LEFT(TRIM, 1) = ' ' DO
+	TRIM := DELETE(TRIM, 1, 1);
+END_WHILE;
+
+IF RIGHT(TRIM, 1) = ' ' THEN
+REPEAT
+	TRIM := DELETE(TRIM, 1, LEN(TRIM));
+UNTIL RIGHT(TRIM, 1) <> ' '
+END_REPEAT;
+END_IF;
+
+END_FUNCTION
+
+FUNCTION main
+VAR
+    str : STRING := '  hello world  ';
+END_VAR
+    printf('%s$N', REF(TRIM(str))); // CHECK: hello world
+END_FUNCTION

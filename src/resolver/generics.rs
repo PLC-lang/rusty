@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
@@ -5,7 +6,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     builtins,
     codegen::generators::expression_generator::get_implicit_call_parameter,
-    index::{Index, PouIndexEntry},
+    index::{ArgumentType, Index, PouIndexEntry, VariableType},
     resolver::AnnotationMap,
     typesystem::{
         self, DataType, DataTypeInformation, StringEncoding, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE,
@@ -15,6 +16,7 @@ use crate::{
 
 use super::{AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext};
 
+#[derive(Debug)]
 pub struct GenericType {
     // this is the derived type used for the generic call
     derived_type: String,
@@ -125,7 +127,7 @@ impl TypeAnnotator<'_> {
     pub fn register_generic_pou_entries(
         &mut self,
         generic_function: &PouIndexEntry,
-        return_type: &str,
+        return_type_name: &str,
         new_name: &str,
         generics: &FxHashMap<String, GenericType>,
     ) {
@@ -141,10 +143,12 @@ impl TypeAnnotator<'_> {
                 generic_implementation.get_location().to_owned(),
             );
 
+            let return_type =
+                self.index.find_type(return_type_name).expect("Return type must be in the index");
             //register a copy of the pou under the new name
             self.annotation_map.new_index.register_pou(PouIndexEntry::create_generated_function_entry(
                 new_name,
-                return_type,
+                return_type_name,
                 &[],
                 LinkageType::External, //it has to be external, we should have already found this in the global index if it was internal
                 generic_function.is_variadic(),
@@ -165,11 +169,29 @@ impl TypeAnnotator<'_> {
                     .iter()
                     .map(|member| {
                         let new_type_name = self.find_or_create_datatype(member.get_type_name(), generics);
-
                         //register the member under the new container (old: foo__T, new: foo__INT)
                         //with its new type-name (old: T, new: INT)
-                        member.into_typed(new_name, &new_type_name)
+                        let mut entry = member.into_typed(new_name, &new_type_name);
+                        if !return_type.is_aggregate_type() {
+                            return entry;
+                        }
+
+                        if member.is_return() && !generic_function.is_builtin() {
+                            let data_type_name =
+                                crate::index::indexer::pou_indexer::register_byref_pointer_type_for(
+                                    &mut self.annotation_map.new_index,
+                                    entry.get_type_name(),
+                                );
+                            entry = member.into_typed(new_name, &data_type_name);
+                            entry.location_in_parent = 0;
+                            entry.argument_type = ArgumentType::ByRef(VariableType::InOut);
+                        } else {
+                            entry.location_in_parent += 1;
+                        }
+
+                        entry
                     })
+                    .sorted_by(|a, b| a.location_in_parent.cmp(&b.location_in_parent))
                     .collect::<Vec<_>>();
                 DataTypeInformation::Struct { name: new_name.to_string(), source: source.clone(), members }
             } else {
@@ -260,7 +282,6 @@ impl TypeAnnotator<'_> {
                 }
             }
         }
-
         for (parameter_stmt, passed_parameter, declared_parameter) in passed_parameters.iter() {
             // check if declared parameter is generic
             if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = self
@@ -334,6 +355,7 @@ impl TypeAnnotator<'_> {
             .find_pou(&call_name)
             .filter(|it| !it.is_generic())
             .map(StatementAnnotation::from)
+            .map(|it| it.with_generic_name(generic_qualified_name))
             .unwrap_or_else(|| {
                 let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
                     self.index.get_type_information_or_void(generic_return_type)
@@ -349,6 +371,7 @@ impl TypeAnnotator<'_> {
                 StatementAnnotation::Function {
                     qualified_name: generic_qualified_name.to_string(),
                     return_type,
+                    generic_name: Some(generic_qualified_name.to_string()),
                     call_name: Some(call_name.clone()),
                 }
             });

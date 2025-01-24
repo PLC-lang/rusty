@@ -966,10 +966,10 @@ fn fb_method_called_locally() {
                 bar := in + bar;
                 addToBar := bar;
             END_METHOD
-            
+
             addToBar(42);
         END_FUNCTION_BLOCK
-            
+
         FUNCTION main
         VAR
             fb: foo;
@@ -1198,10 +1198,10 @@ fn prog_method_called_locally() {
                 bar := in + bar;
                 addToBar := bar;
             END_METHOD
-            
+
             addToBar(42);
         END_PROGRAM
-            
+
         FUNCTION main
         VAR
             x: DINT;
@@ -3978,8 +3978,8 @@ fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initi
 fn variables_in_var_external_block_are_not_generated() {
     let res = codegen(
         "
-        VAR_GLOBAL 
-            arr: ARRAY [0..100] OF INT; 
+        VAR_GLOBAL
+            arr: ARRAY [0..100] OF INT;
         END_VAR
 
         FUNCTION foo
@@ -4095,4 +4095,24 @@ fn variables_in_var_external_block_are_not_generated() {
 
     declare void @baz(%baz*)
     "###);
+}
+
+#[test]
+#[ignore = "tracked in issue #1389"]
+fn function_with_array_string_return() {
+    let res = codegen(
+        "
+        FUNCTION foo : ARRAY[0..1] OF STRING
+            foo[0] := 'hello';
+            foo[1] := 'world';
+        END_FUNCTION
+
+        FUNCTION main
+            foo();
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(res, @r###"
+        "###);
 }

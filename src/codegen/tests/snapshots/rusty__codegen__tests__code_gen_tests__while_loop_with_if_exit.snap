@@ -14,33 +14,43 @@ entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   br label %condition_check
 
-condition_check:                                  ; preds = %entry, %continue3
+condition_check:                                  ; preds = %entry, %continue5
+  br i1 true, label %while_body, label %continue
+
+while_body:                                       ; preds = %condition_check
   %load_x = load i32, i32* %x, align 4
   %tmpVar = icmp slt i32 %load_x, 20
   %1 = zext i1 %tmpVar to i8
   %2 = icmp ne i8 %1, 0
-  br i1 %2, label %while_body, label %continue
+  %tmpVar2 = xor i1 %2, true
+  br i1 %tmpVar2, label %condition_body, label %continue1
 
-while_body:                                       ; preds = %condition_check
-  %load_x1 = load i32, i32* %x, align 4
-  %tmpVar2 = add i32 %load_x1, 1
-  store i32 %tmpVar2, i32* %x, align 4
-  %load_x4 = load i32, i32* %x, align 4
-  %tmpVar5 = icmp sge i32 %load_x4, 10
-  %3 = zext i1 %tmpVar5 to i8
-  %4 = icmp ne i8 %3, 0
-  br i1 %4, label %condition_body, label %continue3
-
-continue:                                         ; preds = %condition_body, %condition_check
+continue:                                         ; preds = %condition_body8, %condition_body, %condition_check
   ret void
 
 condition_body:                                   ; preds = %while_body
   br label %continue
 
 buffer_block:                                     ; No predecessors!
-  br label %continue3
+  br label %continue1
 
-continue3:                                        ; preds = %buffer_block, %while_body
+continue1:                                        ; preds = %buffer_block, %while_body
+  %load_x3 = load i32, i32* %x, align 4
+  %tmpVar4 = add i32 %load_x3, 1
+  store i32 %tmpVar4, i32* %x, align 4
+  %load_x6 = load i32, i32* %x, align 4
+  %tmpVar7 = icmp sge i32 %load_x6, 10
+  %3 = zext i1 %tmpVar7 to i8
+  %4 = icmp ne i8 %3, 0
+  br i1 %4, label %condition_body8, label %continue5
+
+condition_body8:                                  ; preds = %continue1
+  br label %continue
+
+buffer_block9:                                    ; No predecessors!
+  br label %continue5
+
+continue5:                                        ; preds = %buffer_block9, %continue1
   br label %condition_check
 }
 ; ModuleID = '__initializers'

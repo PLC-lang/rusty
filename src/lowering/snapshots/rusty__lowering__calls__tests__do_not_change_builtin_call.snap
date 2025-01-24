@@ -1,0 +1,75 @@
+---
+source: src/lowering/calls.rs
+expression: "unit.implementations[0]"
+---
+Implementation {
+    name: "main",
+    type_name: "main",
+    linkage: Internal,
+    pou_type: Function,
+    statements: [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "a",
+                    },
+                ),
+                base: None,
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "SEL",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ExpressionList {
+                        expressions: [
+                            LiteralString {
+                                value: "hello",
+                                is_wide: false,
+                            },
+                            LiteralString {
+                                value: "world",
+                                is_wide: false,
+                            },
+                        ],
+                    },
+                ),
+            },
+        },
+    ],
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 3,
+                column: 12,
+                offset: 67,
+            }..TextLocation {
+                line: 3,
+                column: 39,
+                offset: 94,
+            },
+        ),
+    },
+    name_location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 1,
+                column: 17,
+                offset: 18,
+            }..TextLocation {
+                line: 1,
+                column: 21,
+                offset: 22,
+            },
+        ),
+    },
+    overriding: false,
+    generic: false,
+    access: None,
+}

@@ -1,0 +1,86 @@
+---
+source: src/lowering/calls.rs
+expression: "lowerer.index.find_pou_type(\"complexType\").unwrap()"
+---
+DataType {
+    name: "complexType",
+    initial_value: None,
+    information: Struct {
+        name: "complexType",
+        members: [
+            VariableIndexEntry {
+                name: "complexType",
+                qualified_name: "complexType.complexType",
+                initial_value: None,
+                argument_type: ByRef(
+                    InOut,
+                ),
+                is_constant: false,
+                is_var_external: false,
+                data_type_name: "__auto_pointer_to_STRING",
+                location_in_parent: 0,
+                linkage: Internal,
+                binding: None,
+                source_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 1,
+                            column: 17,
+                            offset: 18,
+                        }..TextLocation {
+                            line: 1,
+                            column: 28,
+                            offset: 29,
+                        },
+                    ),
+                },
+                varargs: None,
+            },
+            VariableIndexEntry {
+                name: "x",
+                qualified_name: "complexType.x",
+                initial_value: None,
+                argument_type: ByVal(
+                    Input,
+                ),
+                is_constant: false,
+                is_var_external: false,
+                data_type_name: "DINT",
+                location_in_parent: 1,
+                linkage: Internal,
+                binding: None,
+                source_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 3,
+                            column: 12,
+                            offset: 69,
+                        }..TextLocation {
+                            line: 3,
+                            column: 13,
+                            offset: 70,
+                        },
+                    ),
+                },
+                varargs: None,
+            },
+        ],
+        source: Pou(
+            Function,
+        ),
+    },
+    nature: Any,
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 1,
+                column: 17,
+                offset: 18,
+            }..TextLocation {
+                line: 1,
+                column: 28,
+                offset: 29,
+            },
+        ),
+    },
+}

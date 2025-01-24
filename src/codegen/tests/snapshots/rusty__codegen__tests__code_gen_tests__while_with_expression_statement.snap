@@ -14,20 +14,30 @@ entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   br label %condition_check
 
-condition_check:                                  ; preds = %entry, %while_body
+condition_check:                                  ; preds = %entry, %continue1
+  br i1 true, label %while_body, label %continue
+
+while_body:                                       ; preds = %condition_check
   %load_x = load i8, i8* %x, align 1
   %1 = zext i8 %load_x to i32
   %tmpVar = icmp eq i32 %1, 0
   %2 = zext i1 %tmpVar to i8
   %3 = icmp ne i8 %2, 0
-  br i1 %3, label %while_body, label %continue
+  %tmpVar2 = xor i1 %3, true
+  br i1 %tmpVar2, label %condition_body, label %continue1
 
-while_body:                                       ; preds = %condition_check
-  %load_x1 = load i8, i8* %x, align 1
-  br label %condition_check
-
-continue:                                         ; preds = %condition_check
+continue:                                         ; preds = %condition_body, %condition_check
   ret void
+
+condition_body:                                   ; preds = %while_body
+  br label %continue
+
+buffer_block:                                     ; No predecessors!
+  br label %continue1
+
+continue1:                                        ; preds = %buffer_block, %while_body
+  %load_x3 = load i8, i8* %x, align 1
+  br label %condition_check
 }
 ; ModuleID = '__initializers'
 source_filename = "__initializers"

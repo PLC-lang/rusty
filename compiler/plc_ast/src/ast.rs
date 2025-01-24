@@ -238,6 +238,14 @@ impl Pou {
     pub fn calc_return_name(pou_name: &str) -> &str {
         pou_name.split('.').last().unwrap_or_default()
     }
+
+    pub fn is_aggregate(&self) -> bool {
+        matches!(self.return_type, Some(DataTypeDeclaration::Aggregate { .. }))
+    }
+
+    pub fn is_generic(&self) -> bool {
+        !self.generics.is_empty()
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -502,6 +510,7 @@ impl Variable {
 pub enum DataTypeDeclaration {
     DataTypeReference { referenced_type: String, location: SourceLocation },
     DataTypeDefinition { data_type: DataType, location: SourceLocation, scope: Option<String> },
+    Aggregate { referenced_type: String, location: SourceLocation },
 }
 
 impl Debug for DataTypeDeclaration {
@@ -512,6 +521,9 @@ impl Debug for DataTypeDeclaration {
             }
             DataTypeDeclaration::DataTypeDefinition { data_type, .. } => {
                 f.debug_struct("DataTypeDefinition").field("data_type", data_type).finish()
+            }
+            DataTypeDeclaration::Aggregate { referenced_type, .. } => {
+                f.debug_struct("Aggregate").field("referenced_type", referenced_type).finish()
             }
         }
     }
@@ -526,7 +538,10 @@ impl From<&DataTypeDeclaration> for SourceLocation {
 impl DataTypeDeclaration {
     pub fn get_name(&self) -> Option<&str> {
         match self {
-            DataTypeDeclaration::DataTypeReference { referenced_type, .. } => Some(referenced_type.as_str()),
+            Self::Aggregate { referenced_type, .. }
+            | DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
+                Some(referenced_type.as_str())
+            }
             DataTypeDeclaration::DataTypeDefinition { data_type, .. } => data_type.get_name(),
         }
     }
@@ -535,6 +550,7 @@ impl DataTypeDeclaration {
         match self {
             DataTypeDeclaration::DataTypeReference { location, .. } => location.clone(),
             DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
+            Self::Aggregate { location, .. } => location.clone(),
         }
     }
 
@@ -554,7 +570,12 @@ impl DataTypeDeclaration {
 
                 None
             }
+            Self::Aggregate { .. } => None,
         }
+    }
+
+    pub fn is_aggregate(&self) -> bool {
+        matches!(self, Self::Aggregate { .. })
     }
 }
 
@@ -772,6 +793,7 @@ pub enum AstStatement {
     ReturnStatement(ReturnStatement),
     JumpStatement(JumpStatement),
     LabelStatement(LabelStatement),
+    AllocationStatement(Allocation),
 }
 
 #[macro_export]
@@ -919,6 +941,11 @@ impl Debug for AstNode {
             AstStatement::LabelStatement(LabelStatement { name, .. }) => {
                 f.debug_struct("LabelStatement").field("name", name).finish()
             }
+            AstStatement::AllocationStatement(Allocation { name, reference_type }) => f
+                .debug_struct("Allocation")
+                .field("name", name)
+                .field("reference_type", reference_type)
+                .finish(),
         }
     }
 }
@@ -1230,6 +1257,17 @@ pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {
         }
         AstStatement::ParenExpression(expression) => flatten_expression_list(expression),
         _ => vec![list],
+    }
+}
+
+pub fn steal_expression_list(list: &mut AstNode) -> Vec<AstNode> {
+    match &mut list.stmt {
+        AstStatement::ExpressionList(expressions, ..) => std::mem::take(expressions),
+        AstStatement::ParenExpression(expression) => steal_expression_list(expression),
+        _ => {
+            let node = std::mem::take(list);
+            vec![node]
+        }
     }
 }
 
@@ -1813,6 +1851,12 @@ pub struct JumpStatement {
 #[derive(Debug, Clone, PartialEq)]
 pub struct LabelStatement {
     pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Allocation {
+    pub name: String,
+    pub reference_type: String,
 }
 
 impl HardwareAccess {

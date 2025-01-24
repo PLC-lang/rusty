@@ -25,6 +25,7 @@ enum Command {
         #[arg(value_enum, long, global = true, default_value_t = ReporterType::Sysout)]
         reporter: ReporterType,
     },
+    Lit,
 }
 
 #[derive(Subcommand, Clone)]
@@ -40,9 +41,19 @@ enum Action {
 
 fn main() -> anyhow::Result<()> {
     let params = Parameters::parse();
-    let Command::Metrics { action, reporter } = params.command;
-    run_metrics(action, reporter)?;
+    match params.command {
+        Command::Metrics { action, reporter } => run_metrics(action, reporter)?,
+        Command::Lit => run_lit()?,
+    };
 
+    Ok(())
+}
+
+fn run_lit() -> Result<()> {
+    let sh = Shell::new()?;
+
+    // Run compile
+    sh.cmd("scripts/build.sh").args(&["--lit"]).run()?;
     Ok(())
 }
 

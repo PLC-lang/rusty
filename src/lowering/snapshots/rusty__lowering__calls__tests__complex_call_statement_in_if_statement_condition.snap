@@ -1,0 +1,97 @@
+---
+source: src/lowering/calls.rs
+expression: "unit.implementations[1]"
+snapshot_kind: text
+---
+Implementation {
+    name: "main",
+    type_name: "main",
+    linkage: Internal,
+    pou_type: Function,
+    statements: [
+        ExpressionList {
+            expressions: [
+                Allocation {
+                    name: "__complexFunc0",
+                    reference_type: "STRING",
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "complexFunc",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__complexFunc0",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ],
+                        },
+                    ),
+                },
+                IfStatement {
+                    blocks: [
+                        ConditionalBlock {
+                            condition: BinaryExpression {
+                                operator: Equal,
+                                left: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__complexFunc0",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                right: LiteralString {
+                                    value: "hello",
+                                    is_wide: false,
+                                },
+                            },
+                            body: [],
+                        },
+                    ],
+                    else_block: [],
+                },
+            ],
+        },
+    ],
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 11,
+                column: 8,
+                offset: 321,
+            }..TextLocation {
+                line: 13,
+                column: 14,
+                offset: 393,
+            },
+        ),
+    },
+    name_location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 5,
+                column: 17,
+                offset: 110,
+            }..TextLocation {
+                line: 5,
+                column: 21,
+                offset: 114,
+            },
+        ),
+    },
+    overriding: false,
+    generic: false,
+    access: None,
+}

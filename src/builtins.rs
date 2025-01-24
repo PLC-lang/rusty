@@ -92,7 +92,7 @@ lazy_static! {
 
                     annotator.annotate(
                         operator, resolver::StatementAnnotation::Function {
-                            return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
+                            return_type: ptr_type, qualified_name: "REF".to_string(), generic_name: None, call_name: None
                         }
                     );
                 }),

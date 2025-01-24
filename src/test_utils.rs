@@ -18,7 +18,7 @@ pub mod tests {
         codegen::{CodegenContext, GeneratedModule},
         index::{self, FxIndexSet, Index},
         lexer,
-        lowering::InitVisitor,
+        lowering::{calls::AggregateTypeLowerer, InitVisitor},
         parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
@@ -88,6 +88,21 @@ pub mod tests {
         (unit, index, diagnostics)
     }
 
+    pub fn index_unit_with_id(unit: &CompilationUnit, id_provider: IdProvider) -> Index {
+        let mut index = Index::default();
+        //Import builtins
+        let builtins = builtins::parse_built_ins(id_provider.clone());
+
+        index.import(index::indexer::index(&builtins));
+        // import built-in types like INT, BOOL, etc.
+        for data_type in get_builtin_types() {
+            index.register_type(data_type);
+        }
+
+        index.import(index::indexer::index(unit));
+        index
+    }
+
     pub fn index(src: &str) -> (CompilationUnit, Index) {
         let id_provider = IdProvider::default();
         let (unit, index, _) = do_index(src, id_provider);
@@ -97,6 +112,15 @@ pub mod tests {
     pub fn index_with_ids<T: Into<SourceCode>>(src: T, id_provider: IdProvider) -> (CompilationUnit, Index) {
         let (unit, index, _) = do_index(src, id_provider);
         (unit, index)
+    }
+
+    pub fn index_and_lower(src: &str, id_provider: IdProvider) -> (CompilationUnit, Index, Vec<Diagnostic>) {
+        let (mut unit, index, diagnostics) = do_index(src, id_provider.clone());
+        let mut lowerer = AggregateTypeLowerer::new(id_provider.clone());
+        lowerer.index.replace(index);
+        lowerer.visit_unit(&mut unit);
+        let index = index_unit_with_id(&unit, id_provider);
+        (unit, index, diagnostics)
     }
 
     pub fn annotate_with_ids(
@@ -144,7 +168,24 @@ pub mod tests {
         let (mut full_index, _) = evaluate_constants(index);
 
         let mut all_annotations = AnnotationMapImpl::default();
-        let annotated_units = indexed_units
+        let mut units = indexed_units
+            .into_iter()
+            .inspect(|unit| {
+                let (mut annotations, ..) = TypeAnnotator::visit_unit(&full_index, unit, id_provider.clone());
+                full_index.import(std::mem::take(&mut annotations.new_index));
+                all_annotations.import(annotations);
+            })
+            .collect::<Vec<_>>();
+
+        let mut aggregate_lowerer = AggregateTypeLowerer::new(id_provider.clone());
+        aggregate_lowerer.index.replace(full_index);
+        aggregate_lowerer.annotation.replace(Box::new(all_annotations));
+        units.iter_mut().for_each(|unit| {
+            aggregate_lowerer.visit_unit(unit);
+        });
+        let mut full_index = aggregate_lowerer.index.take().unwrap();
+        let mut all_annotations = AnnotationMapImpl::default();
+        let annotated_units = units
             .into_iter()
             .map(|unit| {
                 let (mut annotations, dependencies, literals) =
@@ -218,7 +259,7 @@ pub mod tests {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
         let mut id_provider = IdProvider::default();
-        let (unit, index, diagnostics) = do_index(src, id_provider.clone());
+        let (unit, index, diagnostics) = index_and_lower(src, id_provider.clone());
         reporter.handle(&diagnostics);
 
         let (annotations, index, annotated_units) =

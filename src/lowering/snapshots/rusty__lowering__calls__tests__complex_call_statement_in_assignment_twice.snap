@@ -1,0 +1,142 @@
+---
+source: src/lowering/calls.rs
+expression: "unit.implementations[1]"
+snapshot_kind: text
+---
+Implementation {
+    name: "main",
+    type_name: "main",
+    linkage: Internal,
+    pou_type: Function,
+    statements: [
+        ExpressionList {
+            expressions: [
+                Allocation {
+                    name: "__complexFunc0",
+                    reference_type: "STRING",
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "complexFunc",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__complexFunc0",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ],
+                        },
+                    ),
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__complexFunc0",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ],
+        },
+        ExpressionList {
+            expressions: [
+                Allocation {
+                    name: "__complexFunc1",
+                    reference_type: "STRING",
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "complexFunc",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__complexFunc1",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ],
+                        },
+                    ),
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__complexFunc1",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ],
+        },
+    ],
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 14,
+                column: 12,
+                offset: 374,
+            }..TextLocation {
+                line: 19,
+                column: 31,
+                offset: 584,
+            },
+        ),
+    },
+    name_location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 8,
+                column: 17,
+                offset: 166,
+            }..TextLocation {
+                line: 8,
+                column: 21,
+                offset: 170,
+            },
+        ),
+    },
+    overriding: false,
+    generic: false,
+    access: None,
+}
