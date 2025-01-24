@@ -1815,11 +1815,33 @@
 <a href="#1814" id="1814">1814</a>
 <a href="#1815" id="1815">1815</a>
 <a href="#1816" id="1816">1816</a>
-<a href="#1817" id="1817">1817</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1817" id="1817">1817</a>
+<a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
-    hash::Hash,
     ops::Range,
 };
 
@@ -2539,8 +2561,14 @@
     <span class="kw">pub </span>location: SourceLocation,
 }
 
+<span class="kw">impl </span>Default <span class="kw">for </span>AstNode {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        AstFactory::create_empty_statement(SourceLocation::internal(), usize::MAX)
+    }
+}
+
 <span class="attr">#[derive(Debug, Clone, PartialEq, TryInto)]
-#[try_into(<span class="kw-2">ref</span>)]
+#[try_into(<span class="kw-2">ref</span>, ref_mut, owned)]
 </span><span class="kw">pub enum </span>AstStatement {
     EmptyStatement(EmptyStatement),
 
@@ -2597,6 +2625,20 @@
     };
     ($(<span class="macro-nonterminal">$ex</span>:tt)<span class="kw-2">*</span>, <span class="macro-nonterminal">$t</span>:ty) =&gt; {
         <span class="macro">try_from!</span>($(<span class="macro-nonterminal">$ex</span>)<span class="kw-2">*</span>, <span class="macro-nonterminal">$t</span>).ok()
+    };
+}
+
+<span class="attr">#[macro_export]
+</span><span class="doccomment">/// A `try_from` convenience wrapper for `AstNode`, passed as the `ex:expr` argument.
+/// Will try to return a reference to the variants inner type, specified via the `t:ty` parameter.
+/// Converts the `try_from`-`Result` into an `Option`
+</span><span class="macro">macro_rules!</span> try_from_mut {
+    () =&gt; { <span class="prelude-val">None </span>};
+    (<span class="macro-nonterminal">$ex</span>:expr, <span class="macro-nonterminal">$t</span>:ty) =&gt; {
+        &lt;<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$t</span>&gt;::try_from(<span class="macro-nonterminal">$ex</span>.get_stmt_mut()).ok()
+    };
+    ($(<span class="macro-nonterminal">$ex</span>:tt)<span class="kw-2">*</span>, <span class="macro-nonterminal">$t</span>:ty) =&gt; {
+        <span class="macro">try_from_mut!</span>($(<span class="macro-nonterminal">$ex</span>)<span class="kw-2">*</span>, <span class="macro-nonterminal">$t</span>).ok()
     };
 }
 
@@ -2747,6 +2789,10 @@
 
     <span class="kw">pub fn </span>get_stmt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>AstStatement {
         <span class="kw-2">&amp;</span><span class="self">self</span>.stmt
+    }
+
+    <span class="kw">pub fn </span>get_stmt_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>AstStatement {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.stmt
     }
 
     <span class="doccomment">/// Similar to [`AstNode::get_stmt`] with the exception of peeling parenthesized expressions.

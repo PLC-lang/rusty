@@ -508,17 +508,58 @@
 <a href="#507" id="507">507</a>
 <a href="#508" id="508">508</a>
 <a href="#509" id="509">509</a>
-<a href="#510" id="510">510</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitorMut` trait and its associated macros.
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitorMut` trait and its associated macros.
 //! The `AstVisitorMut` trait provides a set of methods for mutably traversing and visiting ASTs
 
-</span><span class="kw">use </span><span class="kw">crate</span>::ast::{
+</span><span class="kw">use </span>std::borrow::BorrowMut;
+
+<span class="kw">use </span><span class="kw">crate</span>::ast::{
     flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
-    CompilationUnit, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement,
-    HardwareAccess, Implementation, JumpStatement, LabelStatement, MultipliedStatement, Pou, RangeStatement,
-    ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
+    CompilationUnit, DataType, DataTypeDeclaration, DirectAccess, HardwareAccess, Implementation,
+    JumpStatement, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
+    UserTypeDeclaration, Variable, VariableBlock,
 };
 <span class="kw">use </span><span class="kw">crate</span>::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 <span class="kw">use </span><span class="kw">crate</span>::literals::AstLiteral;
+<span class="kw">use </span><span class="kw">crate</span>::try_from_mut;
 
 <span class="attr">#[macro_export]
 </span><span class="macro">macro_rules!</span> visit_all_nodes_mut {
@@ -535,7 +576,7 @@
 }
 
 <span class="doccomment">/// Macro that calls the visitor's `visit` method for every AstNode in the passed sequence of nodes.
-</span><span class="macro">macro_rules!</span> visit_nodes {
+</span><span class="macro">macro_rules!</span> visit_nodes_mut {
     (<span class="macro-nonterminal">$visitor</span>:expr, $(<span class="macro-nonterminal">$node</span>:expr),<span class="kw-2">*</span>) =&gt; {
         $(
             <span class="macro-nonterminal">$visitor</span>.visit(<span class="macro-nonterminal">$node</span>);
@@ -552,6 +593,12 @@
 <span class="kw">pub trait </span>AstVisitorMut: Sized {
     <span class="kw">fn </span>visit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
         node.walk(<span class="self">self</span>)
+    }
+
+    <span class="comment">//Takes ownership of the node, manipulates it and returns a new node
+    </span><span class="kw">fn </span>map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>node: AstNode) -&gt; AstNode {
+        node.borrow_mut().walk(<span class="self">self</span>);
+        node
     }
 
     <span class="kw">fn </span>visit_compilation_unit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unit: <span class="kw-2">&amp;mut </span>CompilationUnit) {
@@ -590,75 +637,95 @@
         pou.walk(<span class="self">self</span>);
     }
 
-    <span class="kw">fn </span>visit_empty_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _stmt: <span class="kw-2">&amp;mut </span>EmptyStatement, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
+    <span class="kw">fn </span>visit_empty_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
 
-    <span class="kw">fn </span>visit_default_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _stmt: <span class="kw-2">&amp;mut </span>DefaultValue, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
+    <span class="kw">fn </span>visit_default_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
 
-    <span class="kw">fn </span>visit_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>AstLiteral, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, AstLiteral).expect(<span class="string">"Is a literal"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_multiplied_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>MultipliedStatement, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_multiplied_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, MultipliedStatement).expect(<span class="string">"MultipliedStatement"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_reference_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>ReferenceExpr, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_reference_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, ReferenceExpr).expect(<span class="string">"ReferenceExpr"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _stmt: <span class="kw-2">&amp;mut </span>str, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
+    <span class="kw">fn </span>visit_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
 
-    <span class="kw">fn </span>visit_direct_access(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>DirectAccess, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_direct_access(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, DirectAccess).expect(<span class="string">"DirectAccess"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_hardware_access(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>HardwareAccess, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_hardware_access(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, HardwareAccess).expect(<span class="string">"HardwareAccess"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_binary_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>BinaryExpression, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_binary_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, BinaryExpression).expect(<span class="string">"BinaryExpression"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_unary_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>UnaryExpression, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_unary_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, UnaryExpression).expect(<span class="string">"UnaryExpression"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_expression_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>Vec&lt;AstNode&gt;, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_expression_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, Vec&lt;AstNode&gt;).expect(<span class="string">"Vec&lt;AstNode&gt;"</span>);
         <span class="macro">visit_all_nodes_mut!</span>(<span class="self">self</span>, stmt);
     }
 
-    <span class="kw">fn </span>visit_paren_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inner: <span class="kw-2">&amp;mut </span>AstNode, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_paren_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>AstStatement::ParenExpression(inner) = node.get_stmt_mut() <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>(<span class="string">"Must be ParenExpression"</span>);
+        };
         inner.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_range_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>RangeStatement, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_range_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, RangeStatement).expect(<span class="string">"RangeStatement"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>visit_vla_range_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
 
-    <span class="kw">fn </span>visit_assignment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>Assignment, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_assignment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, Assignment).expect(<span class="string">"Assignment"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_output_assignment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>Assignment, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_output_assignment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, Assignment).expect(<span class="string">"Assignment"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_ref_assignment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>Assignment, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_ref_assignment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, Assignment).expect(<span class="string">"Assignment"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_call_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>CallStatement, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_call_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, CallStatement).expect(<span class="string">"CallStatement"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_control_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>AstControlStatement, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_control_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, AstControlStatement).expect(<span class="string">"AstControlStatement"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_case_condition(<span class="kw-2">&amp;mut </span><span class="self">self</span>, child: <span class="kw-2">&amp;mut </span>AstNode, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_case_condition(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>AstStatement::CaseCondition(child) = node.get_stmt_mut() <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>(<span class="string">"CaseCondition"</span>);
+        };
         child.walk(<span class="self">self</span>)
     }
 
@@ -666,11 +733,13 @@
 
     <span class="kw">fn </span>visit_continue_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
 
-    <span class="kw">fn </span>visit_return_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>ReturnStatement, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_return_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, ReturnStatement).expect(<span class="string">"ReturnStatement"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
-    <span class="kw">fn </span>visit_jump_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;mut </span>JumpStatement, _node: <span class="kw-2">&amp;mut </span>AstNode) {
+    <span class="kw">fn </span>visit_jump_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;mut </span>AstNode) {
+        <span class="kw">let </span>stmt = <span class="macro">try_from_mut!</span>(node, JumpStatement).expect(<span class="string">"CallStatement"</span>);
         stmt.walk(<span class="self">self</span>)
     }
 
@@ -678,18 +747,13 @@
     /// # Arguments
     /// * `stmt` - The unwrapedyped `LabelStatement` node to visit.
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
-    </span><span class="kw">fn </span>visit_label_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _stmt: <span class="kw-2">&amp;mut </span>LabelStatement, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
-}
+    </span><span class="kw">fn </span>visit_label_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
 
-<span class="doccomment">/// Helper method that walks through a slice of `ConditionalBlock` and applies the visitor's `walk` method to each node.
-</span><span class="kw">fn </span>walk_conditional_blocks&lt;V&gt;(visitor: <span class="kw-2">&amp;mut </span>V, blocks: <span class="kw-2">&amp;mut </span>[ConditionalBlock])
-<span class="kw">where
-    </span>V: AstVisitorMut,
-{
-    <span class="kw">for </span>b <span class="kw">in </span>blocks {
-        <span class="macro">visit_nodes!</span>(visitor, <span class="kw-2">&amp;mut </span>b.condition);
-        <span class="macro">visit_all_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span>b.body);
-    }
+    <span class="doccomment">/// Visits a `Allocation` node.
+    /// # Arguments
+    /// * `stmt` - The unwrapedyped `Allocation` node to visit.
+    /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
+    </span><span class="kw">fn </span>visit_allocation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
 }
 
 <span class="kw">impl </span>WalkerMut <span class="kw">for </span>AstLiteral {
@@ -733,7 +797,7 @@
     <span class="kw">where
         </span>V: AstVisitorMut,
     {
-        <span class="macro">visit_nodes!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.index);
+        <span class="macro">visit_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.index);
     }
 }
 
@@ -751,7 +815,7 @@
     <span class="kw">where
         </span>V: AstVisitorMut,
     {
-        <span class="macro">visit_nodes!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.left, <span class="kw-2">&amp;mut </span><span class="self">self</span>.right);
+        <span class="macro">visit_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.left, <span class="kw-2">&amp;mut </span><span class="self">self</span>.right);
     }
 }
 
@@ -760,7 +824,7 @@
     <span class="kw">where
         </span>V: AstVisitorMut,
     {
-        <span class="macro">visit_nodes!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.value);
+        <span class="macro">visit_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.value);
     }
 }
 
@@ -769,7 +833,7 @@
     <span class="kw">where
         </span>V: AstVisitorMut,
     {
-        <span class="macro">visit_nodes!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.left, <span class="kw-2">&amp;mut </span><span class="self">self</span>.right);
+        <span class="macro">visit_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.left, <span class="kw-2">&amp;mut </span><span class="self">self</span>.right);
     }
 }
 
@@ -778,7 +842,7 @@
     <span class="kw">where
         </span>V: AstVisitorMut,
     {
-        <span class="macro">visit_nodes!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.start, <span class="kw-2">&amp;mut </span><span class="self">self</span>.end);
+        <span class="macro">visit_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.start, <span class="kw-2">&amp;mut </span><span class="self">self</span>.end);
     }
 }
 
@@ -787,9 +851,21 @@
     <span class="kw">where
         </span>V: AstVisitorMut,
     {
-        <span class="macro">visit_nodes!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.operator);
+        <span class="macro">visit_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.operator);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(params) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.parameters {
-            <span class="macro">visit_nodes!</span>(visitor, params);
+            <span class="macro">visit_nodes_mut!</span>(visitor, params);
+        }
+    }
+}
+
+<span class="kw">impl </span>WalkerMut <span class="kw">for </span>Vec&lt;ConditionalBlock&gt; {
+    <span class="kw">fn </span>walk&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V)
+    <span class="kw">where
+        </span>V: AstVisitorMut,
+    {
+        <span class="kw">for </span>b <span class="kw">in </span><span class="self">self </span>{
+            <span class="macro">visit_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span>b.condition);
+            <span class="macro">visit_all_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span>b.body);
         }
     }
 }
@@ -801,21 +877,21 @@
     {
         <span class="kw">match </span><span class="self">self </span>{
             AstControlStatement::If(stmt) =&gt; {
-                walk_conditional_blocks(visitor, <span class="kw-2">&amp;mut </span>stmt.blocks);
+                stmt.blocks.walk(visitor);
                 <span class="macro">visit_all_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span>stmt.else_block);
             }
             AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) =&gt; {
-                <span class="macro">visit_nodes!</span>(visitor, <span class="kw-2">&amp;mut </span>stmt.condition);
+                <span class="macro">visit_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span>stmt.condition);
                 <span class="macro">visit_all_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span>stmt.body);
             }
             AstControlStatement::ForLoop(stmt) =&gt; {
-                <span class="macro">visit_nodes!</span>(visitor, <span class="kw-2">&amp;mut </span>stmt.counter, <span class="kw-2">&amp;mut </span>stmt.start, <span class="kw-2">&amp;mut </span>stmt.end);
+                <span class="macro">visit_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span>stmt.counter, <span class="kw-2">&amp;mut </span>stmt.start, <span class="kw-2">&amp;mut </span>stmt.end);
                 <span class="macro">visit_all_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span>stmt.by_step);
                 <span class="macro">visit_all_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span>stmt.body);
             }
             AstControlStatement::Case(stmt) =&gt; {
-                <span class="macro">visit_nodes!</span>(visitor, <span class="kw-2">&amp;mut </span>stmt.selector);
-                walk_conditional_blocks(visitor, <span class="kw-2">&amp;mut </span>stmt.case_blocks);
+                <span class="macro">visit_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span>stmt.selector);
+                stmt.case_blocks.walk(visitor);
                 <span class="macro">visit_all_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span>stmt.else_block);
             }
         }
@@ -836,7 +912,7 @@
     <span class="kw">where
         </span>V: AstVisitorMut,
     {
-        <span class="macro">visit_nodes!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.condition, <span class="kw-2">&amp;mut </span><span class="self">self</span>.target);
+        <span class="macro">visit_nodes_mut!</span>(visitor, <span class="kw-2">&amp;mut </span><span class="self">self</span>.condition, <span class="kw-2">&amp;mut </span><span class="self">self</span>.target);
     }
 }
 
@@ -845,32 +921,32 @@
     <span class="kw">where
         </span>V: AstVisitorMut,
     {
-        <span class="kw">match </span><span class="self">self</span>.stmt.clone() {
-            AstStatement::EmptyStatement(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_empty_statement(stmt, <span class="self">self</span>),
-            AstStatement::DefaultValue(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_default_value(stmt, <span class="self">self</span>),
-            AstStatement::Literal(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_literal(stmt, <span class="self">self</span>),
-            AstStatement::MultipliedStatement(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_multiplied_statement(stmt, <span class="self">self</span>),
-            AstStatement::ReferenceExpr(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_reference_expr(stmt, <span class="self">self</span>),
-            AstStatement::Identifier(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_identifier(stmt, <span class="self">self</span>),
-            AstStatement::DirectAccess(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_direct_access(stmt, <span class="self">self</span>),
-            AstStatement::HardwareAccess(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_hardware_access(stmt, <span class="self">self</span>),
-            AstStatement::BinaryExpression(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_binary_expression(stmt, <span class="self">self</span>),
-            AstStatement::UnaryExpression(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_unary_expression(stmt, <span class="self">self</span>),
-            AstStatement::ExpressionList(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_expression_list(stmt, <span class="self">self</span>),
-            AstStatement::ParenExpression(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_paren_expression(stmt, <span class="self">self</span>),
-            AstStatement::RangeStatement(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_range_statement(stmt, <span class="self">self</span>),
+        <span class="kw">match </span><span class="self">self</span>.stmt {
+            AstStatement::EmptyStatement(<span class="kw">_</span>) =&gt; visitor.visit_empty_statement(<span class="self">self</span>),
+            AstStatement::DefaultValue(<span class="kw">_</span>) =&gt; visitor.visit_default_value(<span class="self">self</span>),
+            AstStatement::Literal(<span class="kw">_</span>) =&gt; visitor.visit_literal(<span class="self">self</span>),
+            AstStatement::MultipliedStatement(<span class="kw">_</span>) =&gt; visitor.visit_multiplied_statement(<span class="self">self</span>),
+            AstStatement::ReferenceExpr(<span class="kw">_</span>) =&gt; visitor.visit_reference_expr(<span class="self">self</span>),
+            AstStatement::Identifier(<span class="kw">_</span>) =&gt; visitor.visit_identifier(<span class="self">self</span>),
+            AstStatement::DirectAccess(<span class="kw">_</span>) =&gt; visitor.visit_direct_access(<span class="self">self</span>),
+            AstStatement::HardwareAccess(<span class="kw">_</span>) =&gt; visitor.visit_hardware_access(<span class="self">self</span>),
+            AstStatement::BinaryExpression(<span class="kw">_</span>) =&gt; visitor.visit_binary_expression(<span class="self">self</span>),
+            AstStatement::UnaryExpression(<span class="kw">_</span>) =&gt; visitor.visit_unary_expression(<span class="self">self</span>),
+            AstStatement::ExpressionList(<span class="kw">_</span>) =&gt; visitor.visit_expression_list(<span class="self">self</span>),
+            AstStatement::ParenExpression(<span class="kw">_</span>) =&gt; visitor.visit_paren_expression(<span class="self">self</span>),
+            AstStatement::RangeStatement(<span class="kw">_</span>) =&gt; visitor.visit_range_statement(<span class="self">self</span>),
             AstStatement::VlaRangeStatement =&gt; visitor.visit_vla_range_statement(<span class="self">self</span>),
-            AstStatement::Assignment(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_assignment(stmt, <span class="self">self</span>),
-            AstStatement::OutputAssignment(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_output_assignment(stmt, <span class="self">self</span>),
-            AstStatement::RefAssignment(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_ref_assignment(stmt, <span class="self">self</span>),
-            AstStatement::CallStatement(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_call_statement(stmt, <span class="self">self</span>),
-            AstStatement::ControlStatement(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_control_statement(stmt, <span class="self">self</span>),
-            AstStatement::CaseCondition(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_case_condition(stmt, <span class="self">self</span>),
-            AstStatement::ExitStatement(<span class="kw-2">ref mut </span>_stmt) =&gt; visitor.visit_exit_statement(<span class="self">self</span>),
-            AstStatement::ContinueStatement(<span class="kw-2">ref mut </span>_stmt) =&gt; visitor.visit_continue_statement(<span class="self">self</span>),
-            AstStatement::ReturnStatement(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_return_statement(stmt, <span class="self">self</span>),
-            AstStatement::JumpStatement(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_jump_statement(stmt, <span class="self">self</span>),
-            AstStatement::LabelStatement(<span class="kw-2">ref mut </span>stmt) =&gt; visitor.visit_label_statement(stmt, <span class="self">self</span>),
+            AstStatement::Assignment(<span class="kw">_</span>) =&gt; visitor.visit_assignment(<span class="self">self</span>),
+            AstStatement::OutputAssignment(<span class="kw">_</span>) =&gt; visitor.visit_output_assignment(<span class="self">self</span>),
+            AstStatement::RefAssignment(<span class="kw">_</span>) =&gt; visitor.visit_ref_assignment(<span class="self">self</span>),
+            AstStatement::CallStatement(<span class="kw">_</span>) =&gt; visitor.visit_call_statement(<span class="self">self</span>),
+            AstStatement::ControlStatement(<span class="kw">_</span>) =&gt; visitor.visit_control_statement(<span class="self">self</span>),
+            AstStatement::CaseCondition(<span class="kw">_</span>) =&gt; visitor.visit_case_condition(<span class="self">self</span>),
+            AstStatement::ExitStatement(<span class="kw">_</span>) =&gt; visitor.visit_exit_statement(<span class="self">self</span>),
+            AstStatement::ContinueStatement(<span class="kw">_</span>) =&gt; visitor.visit_continue_statement(<span class="self">self</span>),
+            AstStatement::ReturnStatement(<span class="kw">_</span>) =&gt; visitor.visit_return_statement(<span class="self">self</span>),
+            AstStatement::JumpStatement(<span class="kw">_</span>) =&gt; visitor.visit_jump_statement(<span class="self">self</span>),
+            AstStatement::LabelStatement(<span class="kw">_</span>) =&gt; visitor.visit_label_statement(<span class="self">self</span>),
         }
     }
 }
