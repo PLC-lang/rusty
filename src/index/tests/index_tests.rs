@@ -2188,3 +2188,39 @@ fn var_externals_constants_are_both_flagged_as_external_and_constant() {
     let external = &index.get_pou_members("foo")[0];
     assert!(external.is_var_external() && external.is_constant());
 }
+
+#[test]
+fn inheritance_chain_correctly_finds_parents() {
+    let (_, index) = index(
+        "
+        FUNCTION_BLOCK grandparent
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK parent EXTENDS grandparent
+        END_FUNCTION_BLOCK
+        
+        FUNCTION_BLOCK child EXTENDS parent
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let inheritance_chain = index.find_ancestors("child", "child");
+    assert_eq!(inheritance_chain, vec![index.find_pou("child").unwrap()]);
+    let inheritance_chain = index.find_ancestors("child", "parent");
+    assert_eq!(inheritance_chain, vec![index.find_pou("parent").unwrap(), index.find_pou("child").unwrap()]);
+    let inheritance_chain = index.find_ancestors("child", "grandparent");
+    assert_eq!(
+        inheritance_chain,
+        vec![
+            index.find_pou("grandparent").unwrap(),
+            index.find_pou("parent").unwrap(),
+            index.find_pou("child").unwrap()
+        ]
+    );
+    let inheritance_chain = index.find_ancestors("parent", "child");
+    assert_eq!(inheritance_chain, Vec::<&PouIndexEntry>::new());
+    let inheritance_chain = index.find_ancestors("grandparent", "parent");
+    assert_eq!(inheritance_chain, Vec::<&PouIndexEntry>::new());
+    let inheritance_chain = index.find_ancestors("grandparent", "child");
+    assert_eq!(inheritance_chain, Vec::<&PouIndexEntry>::new());
+}

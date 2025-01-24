@@ -10,7 +10,8 @@
 
 use anyhow::{anyhow, Result};
 use pipelines::{
-    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
+    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, IndexedProject,
+    Pipeline,
 };
 use std::{
     ffi::OsStr,

@@ -1804,6 +1804,24 @@ impl Index {
     pub fn get_config_variables(&self) -> &Vec<ConfigVariable> {
         &self.config_variables
     }
+
+    /// Recursively traverses the inheritance-chain of `current_gen` up until `target_gen`
+    pub fn find_ancestors<'idx>(&'idx self, current_gen: &str, target_gen: &str) -> Vec<&'idx PouIndexEntry> {
+        let Some(current_ty) = self.find_pou(current_gen) else {
+            return vec![];
+        };
+
+        if current_ty.get_name() == target_gen {
+            return vec![current_ty];
+        }
+
+        let mut res = self.find_ancestors(current_ty.get_super_class().unwrap_or_default(), target_gen);
+        if !res.is_empty() {
+            res.push(current_ty);
+        };
+
+        res
+    }
 }
 
 /// Returns a default initialization name for a variable or type

@@ -1,6 +1,6 @@
 use plc::{
     index::{Index, PouIndexEntry},
-    resolver::{AnnotationMap, AstAnnotations},
+    resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
 };
 use plc_ast::{
     ast::{
@@ -74,7 +74,7 @@ impl InheritanceLowerer {
         self.ctx = old_ctx;
     }
 
-    fn update_inheritance_chain(&mut self, mut node: AstNode) -> AstNode {
+    fn old_update_inheritance_chain(&mut self, mut node: AstNode) -> AstNode {
         let Some(index) = self.index.as_ref() else {
             // TODO: this will skip visiting initializer nodes
             return node;
@@ -111,7 +111,7 @@ impl InheritanceLowerer {
         };
 
         let access = std::mem::take(access);
-        let base = std::mem::take(base);
+        let base: Option<Box<AstNode>> = std::mem::take(base);
         // update the base of the visited `ReferenceExpr`
         let base = AstFactory::create_member_reference(
             AstFactory::create_identifier(
@@ -125,10 +125,81 @@ impl InheritanceLowerer {
         let node = AstFactory::create_member_reference(*access, Some(base), self.ctx.provider().next_id());
         // traverse and update the reference's lineage recursively
         self.ctx = self.ctx.with_pou(super_);
-        let node = self.update_inheritance_chain(node);
+        let node = self.old_update_inheritance_chain(node);
         // reset the context to the original one
         self.ctx = self.ctx.with_pou(container);
         node
+    }
+
+    fn update_inheritance_chain(&self, mut node: AstNode) -> AstNode {
+        let Some(index) = self.index.as_ref() else {
+            // TODO: this will skip visiting initializer nodes
+            return node;
+        };
+        let annotations = self.annotations.as_ref().expect("Annotations not set");
+        // disect the qualified name
+        // a.b.c -> am i a direct member of b?
+        //      b => am I a direct member of a?
+        //      a => am I a direct member of local container?
+
+        // TODO: member-access only? do we need to consider other cases (array-access, ...)?
+        let expr = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
+        let ReferenceExpr { ref mut base, access: ReferenceAccess::Member(access) } = expr else {
+            return node;
+        };
+
+        let base = std::mem::take(base);
+        let (base, ty) = if let Some(base) = base {
+            let ty = annotations.get_type(&*base, index);
+
+            (Some(Box::new(self.update_inheritance_chain(*base))), ty)
+        } else {
+            (base, self.ctx.pou.as_ref().and_then(|it| index.get_type(&it).ok()))
+        };
+
+        let access = *std::mem::take(access);
+
+        let qualified_name = annotations.get_qualified_name(&access).expect("QualifiedName"); // TODO: error handling/early exit
+
+        let segment = qualified_name.split('.').next().expect("Must have a name");
+
+        if ty.is_some_and(|it| it.get_name() == segment) {
+            // reference was flat reference, just return access
+            dbg!("returning early: segment == qualified name");
+            dbg!(ty, segment);
+            return dbg!(access);
+        }
+
+        let inheritance_chain = index.find_ancestors(ty.map(|it| it.get_name()).unwrap_or_default(), segment);
+        if inheritance_chain.len() <= 1 {
+            dbg!("returning early: inheritance_chain <= 1");
+            dbg!(&inheritance_chain, segment, ty);
+            return dbg!(access);
+        }
+
+        // add a `__BASE` qualifier for each element in the inheritance chain, exluding `self`
+        let base = inheritance_chain.iter().skip(1).fold(base, |base, _| {
+            // update the base of the visited `ReferenceExpr`
+            // let Some(base) = base else {
+            //     return Some(Box::new(AstFactory::create_identifier(
+            //         "__BASE",
+            //         SourceLocation::internal(),
+            //         self.ctx.provider().next_id(),
+            //     )));
+            // };
+
+            Some(Box::new(AstFactory::create_member_reference(
+                AstFactory::create_identifier(
+                    "__BASE",
+                    SourceLocation::internal(),
+                    self.ctx.provider().next_id(),
+                ),
+                base.map(|it| *it),
+                self.ctx.provider().next_id(),
+            )))
+        });
+
+        AstFactory::create_member_reference(access, base.map(|it| *it), self.ctx.provider().next_id())
     }
 }
 
@@ -188,8 +259,6 @@ impl AstVisitorMut for InheritanceLowerer {
     }
 
     fn visit_reference_expr(&mut self, node: &mut AstNode) {
-        let expr = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
-        expr.walk(self);
         // If the reference is to a member of the base class, we need to add a reference to the
         // base class
         let new_node = self.update_inheritance_chain(std::mem::take(node));
@@ -438,75 +507,40 @@ mod tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r#"
-        Implementation {
-            name: "child",
-            type_name: "child",
-            linkage: Internal,
-            pou_type: FunctionBlock,
-            statements: [
-                Assignment {
-                    left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "z",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__BASE",
-                                    },
-                                ),
-                                base: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__BASE",
-                                            },
-                                        ),
-                                        base: None,
-                                    ),
-                                ),
-                            },
-                        ),
-                    },
-                    right: LiteralInteger {
-                        value: 42,
-                    },
-                },
-            ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 8,
-                        column: 16,
-                        offset: 189,
-                    }..TextLocation {
-                        line: 8,
-                        column: 29,
-                        offset: 202,
-                    },
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 7,
-                        column: 27,
-                        offset: 156,
-                    }..TextLocation {
-                        line: 7,
-                        column: 30,
-                        offset: 159,
-                    },
-                ),
-            },
-            overriding: false,
-            generic: false,
-            access: None,
-        }
-        "#);
+        assert_debug_snapshot!(unit);
+    }
+
+    #[test]
+    fn foo() {
+        let src: SourceCode = "
+            FUNCTION_BLOCK fb
+            VAR
+                x : INT;
+                y : INT;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK fb2 EXTENDS fb
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK baz
+            VAR
+                myFb : fb2;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK foo EXTENDS baz
+            VAR
+                x : INT;
+            END_VAR
+                myFb.x := 1;
+                // BASE__.myFb.__BASE.x
+            END_FUNCTION_BLOCK
+        "
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().implementations[3];
+        assert_debug_snapshot!(unit, @r#""#);
     }
 }
