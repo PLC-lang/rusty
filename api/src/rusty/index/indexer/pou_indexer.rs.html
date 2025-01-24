@@ -324,7 +324,7 @@
 
         <span class="comment">//register a function's return type as a member variable
         </span><span class="kw">let </span>return_type_name = pou.return_type.as_ref().and_then(|it| it.get_name()).unwrap_or(VOID_TYPE);
-        <span class="kw">if </span>pou.return_type.is_some() {
+        <span class="kw">if </span>pou.return_type.is_some() &amp;&amp; !pou.is_aggregate() {
             <span class="kw">let </span>entry = <span class="self">self</span>.index.create_member_variable(
                 MemberInfo {
                     container_name: <span class="kw-2">&amp;</span>pou.name,
@@ -566,7 +566,7 @@
 }
 
 <span class="doccomment">/// registers an auto-deref pointer type for the inner_type_name if it does not already exist
-</span><span class="kw">fn </span>register_byref_pointer_type_for(index: <span class="kw-2">&amp;mut </span>Index, inner_type_name: <span class="kw-2">&amp;</span>str) -&gt; String {
+</span><span class="kw">pub fn </span>register_byref_pointer_type_for(index: <span class="kw-2">&amp;mut </span>Index, inner_type_name: <span class="kw-2">&amp;</span>str) -&gt; String {
     <span class="comment">//get unique name
     </span><span class="kw">let </span>type_name = internal_type_name(<span class="string">"auto_pointer_to_"</span>, inner_type_name);
 

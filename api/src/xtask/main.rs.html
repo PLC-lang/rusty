@@ -126,7 +126,18 @@
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::task::Task;
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::task::Task;
 <span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>clap::{Parser, Subcommand};
 <span class="kw">use </span>reporter::{BenchmarkReport, ReporterType};
@@ -153,6 +164,7 @@
         <span class="attr">#[arg(value_enum, long, global = <span class="bool-val">true</span>, default_value_t = ReporterType::Sysout)]
         </span>reporter: ReporterType,
     },
+    Lit,
 }
 
 <span class="attr">#[derive(Subcommand, Clone)]
@@ -168,9 +180,19 @@
 
 <span class="kw">fn </span>main() -&gt; anyhow::Result&lt;()&gt; {
     <span class="kw">let </span>params = Parameters::parse();
-    <span class="kw">let </span>Command::Metrics { action, reporter } = params.command;
-    run_metrics(action, reporter)<span class="question-mark">?</span>;
+    <span class="kw">match </span>params.command {
+        Command::Metrics { action, reporter } =&gt; run_metrics(action, reporter)<span class="question-mark">?</span>,
+        Command::Lit =&gt; run_lit()<span class="question-mark">?</span>,
+    };
 
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">fn </span>run_lit() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>sh = Shell::new()<span class="question-mark">?</span>;
+
+    <span class="comment">// Run compile
+    </span>sh.cmd(<span class="string">"scripts/build.sh"</span>).args(<span class="kw-2">&amp;</span>[<span class="string">"--lit"</span>]).run()<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 

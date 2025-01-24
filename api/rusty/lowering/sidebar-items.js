@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["InitVisitor"]};
+window.SIDEBAR_ITEMS = {"mod":["calls"],"struct":["InitVisitor"]};

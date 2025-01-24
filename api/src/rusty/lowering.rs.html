@@ -438,7 +438,17 @@
 <a href="#437" id="437">437</a>
 <a href="#438" id="438">438</a>
 <a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     index::{get_init_fn_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::const_evaluator::UnresolvableConstant,
 };
@@ -453,6 +463,7 @@
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
+<span class="kw">pub mod </span>calls;
 <span class="kw">mod </span>initializers;
 
 <span class="kw">pub struct </span>InitVisitor {
@@ -813,12 +824,21 @@
     }
 }
 
-<span class="kw">fn </span>create_member_reference(ident: <span class="kw-2">&amp;</span>str, <span class="kw-2">mut </span>id_provider: IdProvider, base: <span class="prelude-ty">Option</span>&lt;AstNode&gt;) -&gt; AstNode {
+<span class="kw">fn </span>create_member_reference_with_location(
+    ident: <span class="kw-2">&amp;</span>str,
+    <span class="kw-2">mut </span>id_provider: IdProvider,
+    base: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
+    location: SourceLocation,
+) -&gt; AstNode {
     AstFactory::create_member_reference(
-        AstFactory::create_identifier(ident, SourceLocation::internal(), id_provider.next_id()),
+        AstFactory::create_identifier(ident, location, id_provider.next_id()),
         base,
         id_provider.next_id(),
     )
+}
+
+<span class="kw">fn </span>create_member_reference(ident: <span class="kw-2">&amp;</span>str, id_provider: IdProvider, base: <span class="prelude-ty">Option</span>&lt;AstNode&gt;) -&gt; AstNode {
+    create_member_reference_with_location(ident, id_provider, base, SourceLocation::internal())
 }
 
 <span class="kw">fn </span>create_assignment_if_necessary(

@@ -2208,7 +2208,128 @@
 <a href="#2207" id="2207">2207</a>
 <a href="#2208" id="2208">2208</a>
 <a href="#2209" id="2209">2209</a>
-<a href="#2210" id="2210">2210</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2210" id="2210">2210</a>
+<a href="#2211" id="2211">2211</a>
+<a href="#2212" id="2212">2212</a>
+<a href="#2213" id="2213">2213</a>
+<a href="#2214" id="2214">2214</a>
+<a href="#2215" id="2215">2215</a>
+<a href="#2216" id="2216">2216</a>
+<a href="#2217" id="2217">2217</a>
+<a href="#2218" id="2218">2218</a>
+<a href="#2219" id="2219">2219</a>
+<a href="#2220" id="2220">2220</a>
+<a href="#2221" id="2221">2221</a>
+<a href="#2222" id="2222">2222</a>
+<a href="#2223" id="2223">2223</a>
+<a href="#2224" id="2224">2224</a>
+<a href="#2225" id="2225">2225</a>
+<a href="#2226" id="2226">2226</a>
+<a href="#2227" id="2227">2227</a>
+<a href="#2228" id="2228">2228</a>
+<a href="#2229" id="2229">2229</a>
+<a href="#2230" id="2230">2230</a>
+<a href="#2231" id="2231">2231</a>
+<a href="#2232" id="2232">2232</a>
+<a href="#2233" id="2233">2233</a>
+<a href="#2234" id="2234">2234</a>
+<a href="#2235" id="2235">2235</a>
+<a href="#2236" id="2236">2236</a>
+<a href="#2237" id="2237">2237</a>
+<a href="#2238" id="2238">2238</a>
+<a href="#2239" id="2239">2239</a>
+<a href="#2240" id="2240">2240</a>
+<a href="#2241" id="2241">2241</a>
+<a href="#2242" id="2242">2242</a>
+<a href="#2243" id="2243">2243</a>
+<a href="#2244" id="2244">2244</a>
+<a href="#2245" id="2245">2245</a>
+<a href="#2246" id="2246">2246</a>
+<a href="#2247" id="2247">2247</a>
+<a href="#2248" id="2248">2248</a>
+<a href="#2249" id="2249">2249</a>
+<a href="#2250" id="2250">2250</a>
+<a href="#2251" id="2251">2251</a>
+<a href="#2252" id="2252">2252</a>
+<a href="#2253" id="2253">2253</a>
+<a href="#2254" id="2254">2254</a>
+<a href="#2255" id="2255">2255</a>
+<a href="#2256" id="2256">2256</a>
+<a href="#2257" id="2257">2257</a>
+<a href="#2258" id="2258">2258</a>
+<a href="#2259" id="2259">2259</a>
+<a href="#2260" id="2260">2260</a>
+<a href="#2261" id="2261">2261</a>
+<a href="#2262" id="2262">2262</a>
+<a href="#2263" id="2263">2263</a>
+<a href="#2264" id="2264">2264</a>
+<a href="#2265" id="2265">2265</a>
+<a href="#2266" id="2266">2266</a>
+<a href="#2267" id="2267">2267</a>
+<a href="#2268" id="2268">2268</a>
+<a href="#2269" id="2269">2269</a>
+<a href="#2270" id="2270">2270</a>
+<a href="#2271" id="2271">2271</a>
+<a href="#2272" id="2272">2272</a>
+<a href="#2273" id="2273">2273</a>
+<a href="#2274" id="2274">2274</a>
+<a href="#2275" id="2275">2275</a>
+<a href="#2276" id="2276">2276</a>
+<a href="#2277" id="2277">2277</a>
+<a href="#2278" id="2278">2278</a>
+<a href="#2279" id="2279">2279</a>
+<a href="#2280" id="2280">2280</a>
+<a href="#2281" id="2281">2281</a>
+<a href="#2282" id="2282">2282</a>
+<a href="#2283" id="2283">2283</a>
+<a href="#2284" id="2284">2284</a>
+<a href="#2285" id="2285">2285</a>
+<a href="#2286" id="2286">2286</a>
+<a href="#2287" id="2287">2287</a>
+<a href="#2288" id="2288">2288</a>
+<a href="#2289" id="2289">2289</a>
+<a href="#2290" id="2290">2290</a>
+<a href="#2291" id="2291">2291</a>
+<a href="#2292" id="2292">2292</a>
+<a href="#2293" id="2293">2293</a>
+<a href="#2294" id="2294">2294</a>
+<a href="#2295" id="2295">2295</a>
+<a href="#2296" id="2296">2296</a>
+<a href="#2297" id="2297">2297</a>
+<a href="#2298" id="2298">2298</a>
+<a href="#2299" id="2299">2299</a>
+<a href="#2300" id="2300">2300</a>
+<a href="#2301" id="2301">2301</a>
+<a href="#2302" id="2302">2302</a>
+<a href="#2303" id="2303">2303</a>
+<a href="#2304" id="2304">2304</a>
+<a href="#2305" id="2305">2305</a>
+<a href="#2306" id="2306">2306</a>
+<a href="#2307" id="2307">2307</a>
+<a href="#2308" id="2308">2308</a>
+<a href="#2309" id="2309">2309</a>
+<a href="#2310" id="2310">2310</a>
+<a href="#2311" id="2311">2311</a>
+<a href="#2312" id="2312">2312</a>
+<a href="#2313" id="2313">2313</a>
+<a href="#2314" id="2314">2314</a>
+<a href="#2315" id="2315">2315</a>
+<a href="#2316" id="2316">2316</a>
+<a href="#2317" id="2317">2317</a>
+<a href="#2318" id="2318">2318</a>
+<a href="#2319" id="2319">2319</a>
+<a href="#2320" id="2320">2320</a>
+<a href="#2321" id="2321">2321</a>
+<a href="#2322" id="2322">2322</a>
+<a href="#2323" id="2323">2323</a>
+<a href="#2324" id="2324">2324</a>
+<a href="#2325" id="2325">2325</a>
+<a href="#2326" id="2326">2326</a>
+<a href="#2327" id="2327">2327</a>
+<a href="#2328" id="2328">2328</a>
+<a href="#2329" id="2329">2329</a>
+<a href="#2330" id="2330">2330</a>
+<a href="#2331" id="2331">2331</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -2216,11 +2337,11 @@
 //! records all resulting types associated with the statement's id.
 
 </span><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
-<span class="kw">use </span>std::hash::Hash;
+<span class="kw">use </span>std::{any::Any, fmt::Debug, hash::Hash};
 
 <span class="kw">use </span>plc_ast::{
     ast::{
-        <span class="self">self</span>, flatten_expression_list, Assignment, AstFactory, AstId, AstNode, AstStatement,
+        <span class="self">self</span>, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
         Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
@@ -2293,7 +2414,7 @@
     <span class="kw">pub </span>id_provider: IdProvider,
 
     <span class="comment">// what's the current strategy for resolving
-    </span>resolve_strategy: Vec&lt;ResolvingScope&gt;,
+    </span>resolve_strategy: Vec&lt;ResolvingStrategy&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; VisitorContext&lt;<span class="lifetime">'s</span>&gt; {
@@ -2342,7 +2463,7 @@
     }
 
     <span class="comment">// returns a copy of the current context and sets the resolve_strategy field to the given strategies
-    </span><span class="kw">fn </span>with_resolving_strategy(<span class="kw-2">&amp;</span><span class="self">self</span>, resolve_strategy: Vec&lt;ResolvingScope&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>with_resolving_strategy(<span class="kw-2">&amp;</span><span class="self">self</span>, resolve_strategy: Vec&lt;ResolvingStrategy&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = <span class="self">self</span>.clone();
         ctx.in_body = <span class="bool-val">true</span>;
         ctx.resolve_strategy = resolve_strategy;
@@ -2362,12 +2483,14 @@
     <span class="doccomment">/// A map containing every jump encountered in a file, and the label of where this jump should
     /// point. This is later used to annotate all jumps after the initial visit is done.
     </span>jumps_to_annotate: FxHashMap&lt;String, FxHashMap&lt;String, Vec&lt;AstId&gt;&gt;&gt;,
+    <span class="comment">// Scope to search for variables in
+    </span>scopes: Scopes,
 }
 
 <span class="kw">impl </span>TypeAnnotator&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">pub fn </span>annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, annotation: StatementAnnotation) {
         <span class="kw">match </span><span class="kw-2">&amp;</span>annotation {
-            StatementAnnotation::Function { return_type, qualified_name, call_name } =&gt; {
+            StatementAnnotation::Function { return_type, qualified_name, call_name, .. } =&gt; {
                 <span class="kw">let </span>name = call_name.as_ref().unwrap_or(qualified_name);
                 <span class="self">self</span>.dependencies.insert(Dependency::Call(name.to_string()));
                 <span class="self">self</span>.dependencies.extend(<span class="self">self</span>.get_datatype_dependencies(name, FxIndexSet::default()));
@@ -2503,12 +2626,8 @@
 
         <span class="comment">// If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
         // to annotate them with the correct type hint.
-        </span><span class="kw">let </span>operator_qualifier = <span class="self">self
-            </span>.index
-            .find_implementation_by_name(operator_qualifier)
-            .map(|it| it.get_type_name())
-            .unwrap_or(operator_qualifier);
-
+        </span><span class="kw">let </span>implementation = <span class="self">self</span>.index.find_implementation_by_name(operator_qualifier);
+        <span class="kw">let </span>operator_qualifier = implementation.map(|it| it.get_type_name()).unwrap_or(operator_qualifier);
         <span class="kw">for </span>m <span class="kw">in </span><span class="self">self</span>.index.get_declared_parameters(operator_qualifier).into_iter() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = parameters.next() {
                 <span class="kw">let </span>type_name = m.get_type_name();
@@ -2626,7 +2745,7 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq, Default)]
 </span><span class="kw">pub enum </span>StatementAnnotation {
     <span class="doccomment">/// an expression that resolves to a certain type (e.g. `a + b` --&gt; `INT`)
     </span>Value {
@@ -2651,7 +2770,9 @@
         </span>return_type: String,
         <span class="doccomment">/// The defined qualified name of the function
         </span>qualified_name: String,
-        <span class="doccomment">/// The call name of the function iff it defers from the qualified name (generics)
+        <span class="doccomment">/// Original name before generic resolution
+        </span>generic_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        <span class="doccomment">/// The call name of the function iff it differs from the qualified name (generics)
         </span>call_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
     },
     <span class="doccomment">/// a reference to a type (e.g. `INT`)
@@ -2669,12 +2790,28 @@
     </span>Label {
         name: String,
     },
+    <span class="attr">#[default]
+    </span><span class="prelude-val">None</span>,
 }
 
 <span class="kw">impl </span>StatementAnnotation {
     <span class="doccomment">/// Constructs a new [`StatementAnnotation::Value`] with the given type name
     </span><span class="kw">pub fn </span>value(type_name: <span class="kw">impl </span>Into&lt;String&gt;) -&gt; <span class="self">Self </span>{
         StatementAnnotation::Value { resulting_type: type_name.into() }
+    }
+
+    <span class="kw">pub fn </span>with_generic_name(<span class="self">self</span>, generic_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            StatementAnnotation::Function { return_type, qualified_name, call_name, .. } =&gt; {
+                StatementAnnotation::Function {
+                    return_type,
+                    qualified_name,
+                    generic_name: <span class="prelude-val">Some</span>(generic_name.to_string()),
+                    call_name,
+                }
+            }
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>,
+        }
     }
 
     <span class="kw">pub fn </span>is_const(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -2713,6 +2850,7 @@
             PouIndexEntry::Function { name, return_type, .. } =&gt; StatementAnnotation::Function {
                 return_type: return_type.to_string(),
                 qualified_name: name.to_string(),
+                generic_name: <span class="prelude-val">None</span>,
                 call_name: <span class="prelude-val">None</span>,
             },
             PouIndexEntry::Class { name, .. } =&gt; {
@@ -2721,6 +2859,7 @@
             PouIndexEntry::Method { name, return_type, .. } =&gt; StatementAnnotation::Function {
                 return_type: return_type.to_string(),
                 qualified_name: name.to_string(),
+                generic_name: <span class="prelude-val">None</span>,
                 call_name: <span class="prelude-val">None</span>,
             },
             PouIndexEntry::Action { name, .. } =&gt; {
@@ -2746,7 +2885,7 @@
     }
 }
 
-<span class="kw">pub trait </span>AnnotationMap {
+<span class="kw">pub trait </span>AnnotationMap: ToAny {
     <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
 
     <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
@@ -2787,7 +2926,9 @@
                 .and_then(|it| <span class="self">self</span>.get_type_name_for_annotation(it)),
             StatementAnnotation::Program { qualified_name } =&gt; <span class="prelude-val">Some</span>(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } =&gt; <span class="prelude-val">Some</span>(type_name),
-            StatementAnnotation::Function { .. } | StatementAnnotation::Label { .. } =&gt; <span class="prelude-val">None</span>,
+            StatementAnnotation::Function { .. }
+            | StatementAnnotation::Label { .. }
+            | StatementAnnotation::None =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -2821,12 +2962,35 @@
     <span class="kw">fn </span>get_generic_nature(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>TypeNature&gt;;
 }
 
-<span class="attr">#[derive(Debug)]
+<span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>AstAnnotations {
     annotation_map: AnnotationMapImpl,
     bool_id: AstId,
 
     bool_annotation: StatementAnnotation,
+}
+
+<span class="kw">pub trait </span>ToAny: <span class="lifetime">'static </span>{
+    <span class="kw">fn </span>as_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any;
+}
+
+<span class="kw">impl</span>&lt;T: AnnotationMap&gt; ToAny <span class="kw">for </span>T {
+    <span class="kw">fn </span>as_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any {
+        <span class="self">self
+    </span>}
+}
+
+<span class="kw">impl </span>AstAnnotations {
+    <span class="kw">pub fn </span>from_dyn(<span class="kw-2">mut </span>annotation_map: Box&lt;<span class="kw">dyn </span>AnnotationMap&gt;, bool_id: AstId) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>it: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any = annotation_map.as_any();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(map) = it.downcast_mut::&lt;AstAnnotations&gt;().map(std::mem::take) {
+            <span class="kw">return </span>map;
+        }
+        <span class="kw">let </span>annotation_map =
+            it.downcast_mut::&lt;AnnotationMapImpl&gt;().map(std::mem::take).expect(<span class="string">"AnnotationMapImpl"</span>);
+
+        <span class="self">Self</span>::new(annotation_map, bool_id)
+    }
 }
 
 <span class="kw">impl </span>AnnotationMap <span class="kw">for </span>AstAnnotations {
@@ -2984,6 +3148,7 @@
             dependencies: FxIndexSet::default(),
             string_literals: StringLiterals { utf08: FxHashSet::default(), utf16: FxHashSet::default() },
             jumps_to_annotate: FxHashMap::default(),
+            scopes: Scopes::global(),
         }
     }
 
@@ -3002,7 +3167,7 @@
             constant: <span class="bool-val">false</span>,
             in_body: <span class="bool-val">false</span>,
             id_provider,
-            resolve_strategy: ResolvingScope::default_scopes(),
+            resolve_strategy: ResolvingStrategy::default_scopes(),
             in_control: <span class="bool-val">false</span>,
         };
 
@@ -3740,6 +3905,18 @@
                     jumps.push(statement.get_id());
                 }
             }
+            AstStatement::AllocationStatement(Allocation { name, reference_type }) =&gt; {
+                <span class="kw">let </span>qualified_name =
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = ctx.pou { <span class="macro">format!</span>(<span class="string">"{}.{}"</span>, pou, name) } <span class="kw">else </span>{ name.to_string() };
+                <span class="self">self</span>.scopes.enter(Scope::Local(Box::new(VariableIndexEntry::new(
+                    name,
+                    <span class="kw-2">&amp;</span>qualified_name,
+                    reference_type,
+                    ArgumentType::ByVal(VariableType::Temp),
+                    u32::MAX,
+                    statement.get_location(),
+                ))))
+            }
             <span class="kw">_ </span>=&gt; {
                 <span class="self">self</span>.visit_statement_literals(ctx, statement);
             }
@@ -3794,7 +3971,7 @@
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(annotation) = <span class="self">self</span>.resolve_reference_expression(
                         target,
                         optional_enum_qualifier,
-                        <span class="kw-2">&amp;</span>ctx.with_resolving_strategy(<span class="macro">vec!</span>[ResolvingScope::Variable]),
+                        <span class="kw-2">&amp;</span>ctx.with_resolving_strategy(<span class="macro">vec!</span>[ResolvingStrategy::Variable]),
                     ) {
                         <span class="self">self</span>.annotate(target.as_ref(), annotation);
                         <span class="self">self</span>.annotate(stmt, StatementAnnotation::value(qualifier.as_str()));
@@ -3863,7 +4040,7 @@
             AstStatement::Identifier(name, ..) =&gt; ctx
                 .resolve_strategy
                 .iter()
-                .find_map(|scope| scope.resolve_name(name, qualifier, <span class="self">self</span>.index, ctx)),
+                .find_map(|scope| scope.resolve_name(name, qualifier, <span class="self">self</span>.index, ctx, <span class="kw-2">&amp;</span><span class="self">self</span>.scopes)),
 
             AstStatement::Literal(..) =&gt; {
                 <span class="self">self</span>.visit_statement_literals(ctx, reference);
@@ -3890,9 +4067,9 @@
             }
             AstStatement::HardwareAccess(data, ..) =&gt; {
                 <span class="kw">let </span>name = data.get_mangled_variable_name();
-                ctx.resolve_strategy
-                    .iter()
-                    .find_map(|scope| scope.resolve_name(<span class="kw-2">&amp;</span>name, qualifier, <span class="self">self</span>.index, ctx))
+                ctx.resolve_strategy.iter().find_map(|strategy| {
+                    strategy.resolve_name(<span class="kw-2">&amp;</span>name, qualifier, <span class="self">self</span>.index, ctx, <span class="kw-2">&amp;</span><span class="self">self</span>.scopes)
+                })
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
@@ -3958,7 +4135,10 @@
             <span class="macro">unreachable!</span>(<span class="string">"Always a call statement"</span>);
         };
         <span class="comment">// #604 needed for recursive function calls
-        </span><span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx.with_resolving_strategy(ResolvingScope::call_operator_scopes()), operator);
+        </span><span class="self">self</span>.visit_statement(
+            <span class="kw-2">&amp;</span>ctx.with_resolving_strategy(ResolvingStrategy::call_operator_scopes()),
+            operator,
+        );
         <span class="kw">let </span>operator_qualifier = <span class="self">self</span>.get_call_name(operator);
         <span class="comment">//Use the context without the is_call =true
         //TODO why do we start a lhs context here???
@@ -4174,6 +4354,7 @@
         PouIndexEntry::Function { name, return_type, .. } =&gt; <span class="prelude-val">Some</span>(StatementAnnotation::Function {
             return_type: return_type.into(),
             qualified_name: name.into(),
+            generic_name: <span class="prelude-val">None</span>,
             call_name: <span class="prelude-val">None</span>,
         }),
         PouIndexEntry::FunctionBlock { name, .. } =&gt; {
@@ -4244,8 +4425,68 @@
     REAL_TYPE
 }
 
-<span class="attr">#[derive(Clone)]
-</span><span class="kw">pub enum </span>ResolvingScope {
+<span class="attr">#[derive(Clone, Debug)]
+</span><span class="kw">struct </span>Scopes(Vec&lt;Scope&gt;);
+
+<span class="kw">impl </span>Scopes {
+    <span class="kw">pub fn </span>find_member&lt;<span class="lifetime">'idx</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
+        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+        container_name: <span class="kw-2">&amp;</span>str,
+        variable_name: <span class="kw-2">&amp;</span>str,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>VariableIndexEntry&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.iter().filter_map(|scope| scope.find_member(index, container_name, variable_name)).next()
+    }
+
+    <span class="kw">pub fn </span>enter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, scope: Scope) {
+        <span class="self">self</span>.<span class="number">0</span>.push(scope)
+    }
+
+    <span class="comment">//TODO: this is not accurate, we need to pop much more than the the top scope
+    </span><span class="attr">#[allow(dead_code)]
+    </span><span class="kw">pub fn </span>exit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Scope&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.pop()
+    }
+
+    <span class="kw">fn </span>global() -&gt; Scopes {
+        Scopes(<span class="macro">vec!</span>[Scope::Global])
+    }
+}
+
+<span class="attr">#[derive(Clone, Debug)]
+</span><span class="kw">enum </span>Scope {
+    <span class="comment">// Global scope relying on an index to find elements
+    </span>Global,
+    <span class="comment">// Local scope declared inline (alloca)
+    </span>Local(Box&lt;VariableIndexEntry&gt;),
+    <span class="comment">// A block scope like the body of an if or for
+    </span><span class="attr">#[allow(dead_code)]
+    </span>Block,
+}
+
+<span class="kw">impl </span>Scope {
+    <span class="kw">pub fn </span>find_member&lt;<span class="lifetime">'idx</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
+        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+        container_name: <span class="kw-2">&amp;</span>str,
+        variable_name: <span class="kw-2">&amp;</span>str,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>VariableIndexEntry&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Scope::Global =&gt; index.find_member(container_name, variable_name),
+            Scope::Local(entry) =&gt; {
+                <span class="kw">if </span>entry.get_name() == variable_name {
+                    <span class="prelude-val">Some</span>(entry)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
+            }
+            Scope::Block =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+}
+
+<span class="attr">#[derive(Clone, Copy)]
+</span><span class="kw">pub enum </span>ResolvingStrategy {
     Variable,      <span class="comment">//try to resolve a variable
     </span>POU,           <span class="comment">//try to resolve a POU
     </span>DataType,      <span class="comment">//try to resolve a DataType
@@ -4253,16 +4494,16 @@
     </span>FunctionsOnly, <span class="comment">//only consider functions
 </span>}
 
-<span class="kw">impl </span>ResolvingScope {
+<span class="kw">impl </span>ResolvingStrategy {
     <span class="doccomment">/// scopes that can be used for general references. Will resolve to local/global
     /// variables, Pous or datatypes
     </span><span class="kw">pub fn </span>default_scopes() -&gt; Vec&lt;<span class="self">Self</span>&gt; {
-        <span class="macro">vec!</span>[ResolvingScope::Variable, ResolvingScope::POU, ResolvingScope::DataType]
+        <span class="macro">vec!</span>[ResolvingStrategy::Variable, ResolvingStrategy::POU, ResolvingStrategy::DataType]
     }
 
     <span class="doccomment">/// scopes intended for call-statement-operators
-    </span><span class="kw">fn </span>call_operator_scopes() -&gt; Vec&lt;ResolvingScope&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>strategy = <span class="macro">vec!</span>[ResolvingScope::FunctionsOnly];
+    </span><span class="kw">fn </span>call_operator_scopes() -&gt; Vec&lt;ResolvingStrategy&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>strategy = <span class="macro">vec!</span>[ResolvingStrategy::FunctionsOnly];
         strategy.extend(<span class="self">Self</span>::default_scopes());
         strategy
     }
@@ -4278,27 +4519,28 @@
         qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
         index: <span class="kw-2">&amp;</span>Index,
         ctx: <span class="kw-2">&amp;</span>VisitorContext,
+        scopes: <span class="kw-2">&amp;</span>Scopes,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;StatementAnnotation&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="comment">// try to resolve the name as a variable
-            </span>ResolvingScope::Variable =&gt; {
+            </span>ResolvingStrategy::Variable =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(qualifier) = qualifier {
                     <span class="comment">// look for variable, enum with name "qualifier.name"
-                    </span>index
-                        .find_member(qualifier, name)
+                    </span>scopes
+                        .find_member(index, qualifier, name)
                         .or_else(|| index.find_enum_variant(qualifier, name))
                         .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
                 } <span class="kw">else </span>{
                     <span class="comment">// look for member variable with name "pou.name"
                     // then try fopr a global variable called "name"
                     </span>ctx.pou
-                        .and_then(|pou| index.find_member(pou, name))
+                        .and_then(|pou| scopes.find_member(index, pou, name))
                         .or_else(|| index.find_global_variable(name))
                         .map(|g| to_variable_annotation(g, index, g.is_constant()))
                 }
             }
             <span class="comment">// try to resolve the name as POU/Action/Method
-            </span>ResolvingScope::POU =&gt; {
+            </span>ResolvingStrategy::POU =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(qualifier) = qualifier {
                     <span class="comment">// look for Pou/Action with name "qualifier.name"
                     </span>index
@@ -4313,12 +4555,12 @@
                                 //Use the type name of the pou in case we are resolving a
                                 //neighboring action
                                 </span>index.find_pou(pou).map(|pou| pou.get_container())
-                                .and_then(|pou|ResolvingScope::POU.resolve_name(name, <span class="prelude-val">Some</span>(pou), index, ctx)))
+                                .and_then(|pou|ResolvingStrategy::POU.resolve_name(name, <span class="prelude-val">Some</span>(pou), index, ctx, scopes)))
                     })
                 }
             }
             <span class="comment">// try to resolve the name as a datatype
-            </span>ResolvingScope::DataType =&gt; {
+            </span>ResolvingStrategy::DataType =&gt; {
                 <span class="kw">if </span>qualifier.is_none() {
                     <span class="comment">// look for datatype with name "name"
                     </span>index
@@ -4330,7 +4572,7 @@
                 </span>}
             }
             <span class="comment">// try to resolve the name as an enum-type
-            </span>ResolvingScope::EnumTypeOnly =&gt; {
+            </span>ResolvingStrategy::EnumTypeOnly =&gt; {
                 <span class="kw">if </span>qualifier.is_none() {
                     <span class="comment">// look for enum-tyoe with name "name"
                     </span>index
@@ -4343,7 +4585,7 @@
                 </span>}
             }
             <span class="comment">// try to resolve this name as a function
-            </span>ResolvingScope::FunctionsOnly =&gt; {
+            </span>ResolvingStrategy::FunctionsOnly =&gt; {
                 <span class="kw">if </span>qualifier.is_none() {
                     <span class="comment">// look for function with name "name"
                     </span>index.find_pou(name).filter(|it| it.is_function()).map(|pou| pou.into())

@@ -546,7 +546,8 @@
 <a href="#545" id="545">545</a>
 <a href="#546" id="546">546</a>
 <a href="#547" id="547">547</a>
-<a href="#548" id="548">548</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitorMut` trait and its associated macros.
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitorMut` trait and its associated macros.
 //! The `AstVisitorMut` trait provides a set of methods for mutably traversing and visiting ASTs
 
 </span><span class="kw">use </span>std::borrow::BorrowMut;
@@ -947,6 +948,7 @@
             AstStatement::ReturnStatement(<span class="kw">_</span>) =&gt; visitor.visit_return_statement(<span class="self">self</span>),
             AstStatement::JumpStatement(<span class="kw">_</span>) =&gt; visitor.visit_jump_statement(<span class="self">self</span>),
             AstStatement::LabelStatement(<span class="kw">_</span>) =&gt; visitor.visit_label_statement(<span class="self">self</span>),
+            AstStatement::AllocationStatement(<span class="kw">_</span>) =&gt; visitor.visit_allocation(<span class="self">self</span>),
         }
     }
 }

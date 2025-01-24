@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["register_byref_pointer_type_for"],"struct":["PouIndexer"]};

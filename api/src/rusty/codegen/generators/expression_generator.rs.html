@@ -2877,25 +2877,7 @@
 <a href="#2876" id="2876">2876</a>
 <a href="#2877" id="2877">2877</a>
 <a href="#2878" id="2878">2878</a>
-<a href="#2879" id="2879">2879</a>
-<a href="#2880" id="2880">2880</a>
-<a href="#2881" id="2881">2881</a>
-<a href="#2882" id="2882">2882</a>
-<a href="#2883" id="2883">2883</a>
-<a href="#2884" id="2884">2884</a>
-<a href="#2885" id="2885">2885</a>
-<a href="#2886" id="2886">2886</a>
-<a href="#2887" id="2887">2887</a>
-<a href="#2888" id="2888">2888</a>
-<a href="#2889" id="2889">2889</a>
-<a href="#2890" id="2890">2890</a>
-<a href="#2891" id="2891">2891</a>
-<a href="#2892" id="2892">2892</a>
-<a href="#2893" id="2893">2893</a>
-<a href="#2894" id="2894">2894</a>
-<a href="#2895" id="2895">2895</a>
-<a href="#2896" id="2896">2896</a>
-<a href="#2897" id="2897">2897</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2879" id="2879">2879</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
     builder::Builder,
@@ -3401,7 +3383,7 @@
             </span><span class="kw">return </span>builtin.codegen(<span class="self">self</span>, parameters_list.as_slice(), operator.get_location());
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>arguments_list = <span class="self">self</span>.generate_pou_call_arguments_list(
+        <span class="kw">let </span>arguments_list = <span class="self">self</span>.generate_pou_call_arguments_list(
             pou,
             parameters_list.as_slice(),
             implementation,
@@ -3422,23 +3404,6 @@
         <span class="comment">// generate the debug statetment for a call
         </span><span class="self">self</span>.register_debug_location(operator);
 
-        <span class="comment">// if this is a function that returns an aggregate type we need to allocate an out.pointer
-        </span><span class="kw">let </span>by_ref_func_out: <span class="prelude-ty">Option</span>&lt;PointerValue&gt; = <span class="kw">if let </span>PouIndexEntry::Function { return_type, .. } = pou {
-            <span class="kw">let </span>data_type = <span class="self">self</span>.index.get_effective_type_or_void_by_name(return_type);
-            <span class="kw">if </span>data_type.is_aggregate_type() {
-                <span class="comment">// this is a function call with a return variable fed as an out-pointer
-                </span><span class="kw">let </span>llvm_type = <span class="self">self</span>.llvm_index.get_associated_type(data_type.get_name())<span class="question-mark">?</span>;
-                <span class="kw">let </span>out_pointer = <span class="self">self</span>.llvm.create_local_variable(<span class="string">""</span>, <span class="kw-2">&amp;</span>llvm_type);
-                <span class="comment">// add the out-ptr as its first parameter
-                </span>arguments_list.insert(<span class="number">0</span>, out_pointer.into());
-                <span class="prelude-val">Some</span>(out_pointer)
-            } <span class="kw">else </span>{
-                <span class="prelude-val">None
-            </span>}
-        } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>};
-
         <span class="comment">// Check for the function within the GOT. If it's there, we need to generate an indirect
         // call to its location within the GOT, which should contain a function pointer.
         // First get the function type so our function pointer can have the correct type.
@@ -3455,20 +3420,19 @@
         // assign all parameters into the struct values
 
         // so grab either:
-        // - the out-pointer if we generated one in by_ref_func_out
-        // - or the call's return value
+        // - the call's return value
         // - or a null-ptr
-        </span><span class="kw">let </span>value = by_ref_func_out.map(|it| <span class="prelude-val">Ok</span>(ExpressionValue::LValue(it))).unwrap_or_else(|| {
-            <span class="kw">let </span>v = call.try_as_basic_value().either(<span class="prelude-val">Ok</span>, |<span class="kw">_</span>| {
+        </span><span class="kw">let </span>value = call
+            .try_as_basic_value()
+            .either(<span class="prelude-val">Ok</span>, |<span class="kw">_</span>| {
                 <span class="comment">// we return an uninitialized int pointer for void methods :-/
                 // dont deref it!!
                 </span><span class="prelude-val">Ok</span>(get_llvm_int_type(<span class="self">self</span>.llvm.context, INT_SIZE, INT_TYPE)
                     .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
                     .const_null()
                     .as_basic_value_enum())
-            });
-            v.map(ExpressionValue::RValue)
-        });
+            })
+            .map(ExpressionValue::RValue);
 
         <span class="comment">// after the call we need to copy the values for assigned outputs
         // this is only necessary for outputs defined as `rusty::index::ArgumentType::ByVal` (PROGRAM, FUNCTION_BLOCK)

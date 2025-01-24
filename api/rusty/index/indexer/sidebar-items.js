@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["index"],"struct":["SymbolIndexer"]};
+window.SIDEBAR_ITEMS = {"fn":["index"],"mod":["pou_indexer"],"struct":["SymbolIndexer"]};
