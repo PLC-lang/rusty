@@ -10,8 +10,7 @@
 
 use anyhow::{anyhow, Result};
 use pipelines::{
-    participant::{CodegenParticipant, InitParticipant},
-    AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
+    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
 };
 use std::{
     ffi::OsStr,
@@ -149,6 +148,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     //Parse the arguments
     let mut pipeline = BuildPipeline::new(args)?;
     //register participants
+    pipeline.register_default_participants();
     let target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
     let codegen_participant = CodegenParticipant {
         compile_options: pipeline.get_compile_options().unwrap(),
@@ -163,9 +163,7 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
         libraries: pipeline.project.get_libraries().to_vec(),
     };
     pipeline.register_participant(Box::new(codegen_participant));
-    let init_participant =
-        InitParticipant::new(&pipeline.project.get_init_symbol_name(), pipeline.context.provider());
-    pipeline.register_mut_participant(Box::new(init_participant));
+
     let format = pipeline.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default();
 
     pipeline.run().map_err(|err| {
@@ -198,6 +196,7 @@ pub fn parse_and_annotate<T: SourceContainer + Clone>(
         mutable_participants: Vec::default(),
         participants: Vec::default(),
     };
+    pipeline.register_default_participants();
     let project = pipeline.parse()?;
     let project = pipeline.index(project)?;
     let project = pipeline.annotate(project)?;

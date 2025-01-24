@@ -60,22 +60,22 @@ pub trait PipelineParticipant: Sync + Send {
 pub trait PipelineParticipantMut {
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
-    fn pre_index(&self, parsed_project: ParsedProject) -> ParsedProject {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         parsed_project
     }
     /// Implement this to access the project after it got indexed
     /// This happens directly after the index returns
-    fn post_index(&self, indexed_project: IndexedProject) -> IndexedProject {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project
     }
     /// Implement this to access the project before it gets annotated
     /// This happens directly after the constants are evaluated
-    fn pre_annotate(&self, indexed_project: IndexedProject) -> IndexedProject {
+    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project
     }
     /// Implement this to access the project after it got annotated
     /// This happens directly after annotations
-    fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         annotated_project
     }
 }
@@ -204,22 +204,6 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
     }
 }
 
-pub struct LoweringParticipant;
-
-impl PipelineParticipantMut for LoweringParticipant {
-    fn pre_index(&self, parsed_project: ParsedProject) -> ParsedProject {
-        parsed_project
-    }
-
-    fn post_index(&self, indexed_project: IndexedProject) -> IndexedProject {
-        indexed_project
-    }
-
-    fn post_annotate(&self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        annotated_project
-    }
-}
-
 pub struct InitParticipant {
     symbol_name: String,
     id_provider: IdProvider,
@@ -232,7 +216,7 @@ impl InitParticipant {
 }
 
 impl PipelineParticipantMut for InitParticipant {
-    fn pre_annotate(&self, indexed_project: IndexedProject) -> IndexedProject {
+    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project.extend_with_init_units(&self.symbol_name, self.id_provider.clone())
     }
 }
