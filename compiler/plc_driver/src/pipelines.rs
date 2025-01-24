@@ -250,6 +250,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
         use participant::InitParticipant;
         use plc::lowering::calls::AggregateTypeLowerer;
 
+        // XXX: should we use a static array of participants?
         let init_participant =
             InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider());
         self.register_mut_participant(Box::new(init_participant));
