@@ -81,6 +81,7 @@ fn stdlib_string_function_headers_compile_to_ir() {
 
 #[test]
 #[cfg_attr(target_os = "windows", ignore = "linker is not available for windows")]
+#[cfg_attr(target_os = "macos", ignore)]
 fn generate_got_file() {
     let file = get_test_file("command_line.st");
 

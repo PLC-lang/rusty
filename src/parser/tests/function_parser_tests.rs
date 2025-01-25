@@ -531,12 +531,12 @@ fn constant_pragma_can_be_parsed_but_errs() {
         {constant}
         FUNCTION_BLOCK foo END_FUNCTION_BLOCK
         {constant}
-        PROGRAM bar END_PROGRAM 
+        PROGRAM bar END_PROGRAM
         {constant}
-        CLASS qux 
+        CLASS qux
             {constant}
-            METHOD quux : DINT END_METHOD 
-        END_CLASS 
+            METHOD quux : DINT END_METHOD
+        END_CLASS
         {constant}
         FUNCTION corge  : BOOL END_FUNCTION
         // {constant} pragma in comment does not cause validation
@@ -544,7 +544,7 @@ fn constant_pragma_can_be_parsed_but_errs() {
     "#;
     let (_, diagnostics) = parse_buffered(src);
 
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:2:9
       │  
@@ -556,21 +556,21 @@ fn constant_pragma_can_be_parsed_but_errs() {
       ┌─ <internal>:4:9
       │  
     4 │ ╭         {constant}
-    5 │ │         PROGRAM bar END_PROGRAM 
+    5 │ │         PROGRAM bar END_PROGRAM
       │ ╰───────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:6:9
       │  
     6 │ ╭         {constant}
-    7 │ │         CLASS qux 
+    7 │ │         CLASS qux
       │ ╰─────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:8:13
       │  
     8 │ ╭             {constant}
-    9 │ │             METHOD quux : DINT END_METHOD 
+    9 │ │             METHOD quux : DINT END_METHOD
       │ ╰──────────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
@@ -579,6 +579,193 @@ fn constant_pragma_can_be_parsed_but_errs() {
     11 │ ╭         {constant}
     12 │ │         FUNCTION corge  : BOOL END_FUNCTION
        │ ╰────────────────^ Pragma {constant} is not allowed in POU declarations
+    ");
+}
 
-    "###);
+#[test]
+#[ignore = "This is not a property related issue but more of a general issue with the parser"]
+fn some_defined_tokens_are_not_reserved_keywords() {
+    // TODO: Currently the parse_variable_line method checks if the line contains an Token::Identifier and if so parses
+    //       the line. However, an identifier called (for example) "retain" will not be parseable as a variable because "retain"
+    //       resolves to a `Token::Retain` by the lexer. Same goes for property related keywords.
+    //       One way to solve this would be to get the raw value of the token and check if it is a reserved keyword, e.g.
+    //       `if reserved_keywords.get(token.as_str_representation()) { /* parse... */ } else { /* return error */ }` in the parser
+    let source = r"
+        FUNCTION foo
+            VAR
+                retain : DINT;
+                public : DINT;
+                property : DINT;
+                get : DINT;
+                set : DINT;
+
+                end_property : DINT;
+                end_get : DINT;
+                end_set : DINT;
+            END_VAR
+        END_FUNCTION
+    ";
+
+    let (_, diagnostics) = parse_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn property_inside_function_block() {
+    let source = r"
+        FUNCTION_BLOCK foo
+            PROPERTY bar : DINT
+                GET
+                    VAR
+                        propertyLocalVariable : DINT;
+                    END_VAR
+
+                    propertyLocalVariable := 42;
+                END_GET
+
+                SET
+                    VAR
+                        propertyLocalVariable : DINT;
+                    END_VAR
+
+                    propertyLocalVariable := 42;
+                    functionblockLocalVariable := propertyLocalVariable;
+                END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+    ";
+
+    let (result, diagnostics) = parse_buffered(source);
+
+    insta::assert_snapshot!(diagnostics, @r"");
+    // We expect one POU
+    assert_eq!(result.units.len(), 1);
+    assert_eq!(result.units[0].name.as_str(), "foo");
+
+    // ...and one implementation
+    assert_eq!(result.implementations.len(), 1);
+    assert_eq!(result.implementations[0].name.as_str(), "foo");
+
+    // Other than that we expect a property named "bar" with a getter and setter, which later will be desugared into a method
+    insta::assert_debug_snapshot!(result.properties, @r#"
+    [
+        Property {
+            name: "bar",
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 21,
+                        offset: 49,
+                    }..TextLocation {
+                        line: 2,
+                        column: 24,
+                        offset: 52,
+                    },
+                ),
+            },
+            datatype: DataTypeReference {
+                referenced_type: "DINT",
+            },
+            implementations: [
+                PropertyImplementation {
+                    kind: Get,
+                    variables: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "propertyLocalVariable",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "DINT",
+                                    },
+                                },
+                            ],
+                            variable_block_type: Local,
+                        },
+                    ],
+                    statements: [
+                        Assignment {
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "propertyLocalVariable",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            right: LiteralInteger {
+                                value: 42,
+                            },
+                        },
+                    ],
+                },
+                PropertyImplementation {
+                    kind: Set,
+                    variables: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "propertyLocalVariable",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "DINT",
+                                    },
+                                },
+                            ],
+                            variable_block_type: Local,
+                        },
+                    ],
+                    statements: [
+                        Assignment {
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "propertyLocalVariable",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            right: LiteralInteger {
+                                value: 42,
+                            },
+                        },
+                        Assignment {
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "functionblockLocalVariable",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            right: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "propertyLocalVariable",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
+    "#);
+}
+
+#[test]
+#[ignore = "TODO: property parsing has no error handling currently"]
+fn property_with_missing_name_and_return_type() {
+    let source = r"
+        FUNCTION_BLOCK foo
+            PROPERTY
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+    ";
+
+    let (_, diagnostics) = parse_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"");
 }

@@ -432,3 +432,16 @@ pub enum Token {
     #[regex(r"[ \t\n\f]+", logos::skip)]
     End,
 }
+
+impl Token {
+    pub fn is_var(&self) -> bool {
+        matches!(
+            self,
+            Token::KeywordVar
+                | Token::KeywordVarInput
+                | Token::KeywordVarOutput
+                | Token::KeywordVarInOut
+                | Token::KeywordVarTemp
+        )
+    }
+}

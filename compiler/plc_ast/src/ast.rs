@@ -63,6 +63,27 @@ pub struct InterfaceIdentifier {
     pub location: SourceLocation,
 }
 
+#[derive(Debug, PartialEq)]
+pub struct Property {
+    pub name: String,
+    pub name_location: SourceLocation,
+    pub datatype: DataTypeDeclaration,
+    pub implementations: Vec<PropertyImplementation>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct PropertyImplementation {
+    pub kind: PropertyKind,
+    pub variables: Vec<VariableBlock>,
+    pub statements: Vec<AstNode>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum PropertyKind {
+    Get,
+    Set,
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum PolymorphismMode {
     None,
@@ -352,6 +373,7 @@ pub struct CompilationUnit {
     pub interfaces: Vec<Interface>,
     pub user_types: Vec<UserTypeDeclaration>,
     pub file_name: String,
+    pub properties: Vec<Property>,
 }
 
 impl CompilationUnit {
@@ -364,6 +386,7 @@ impl CompilationUnit {
             interfaces: Vec::new(),
             user_types: Vec::new(),
             file_name: file_name.to_string(),
+            properties: Vec::new(),
         }
     }
 
