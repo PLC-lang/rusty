@@ -318,7 +318,7 @@ fn parse_pou(
                 }
 
                 if lexer.token == KeywordProperty {
-                    properties.push(parse_property(lexer));
+                    properties.push(parse_property(lexer, &name, &name_location));
                 } else {
                     let is_const = lexer.try_consume(PropertyConstant);
                     if let Some((pou, implementation)) = parse_method(lexer, &name, linkage, is_const) {
@@ -628,7 +628,7 @@ fn parse_method(
     })
 }
 
-fn parse_property(lexer: &mut ParseSession) -> Property {
+fn parse_property(lexer: &mut ParseSession, parent_name: &str, parent_location: &SourceLocation) -> Property {
     let _location = lexer.location();
     lexer.advance(); // Move past `PROPERTY` keyword
 
@@ -651,7 +651,14 @@ fn parse_property(lexer: &mut ParseSession) -> Property {
     }
 
     lexer.try_consume_or_report(Token::KeywordEndProperty); // Move past `END_PROPERTY` keyword
-    Property { name, name_location, datatype, implementations }
+    Property {
+        name,
+        name_location,
+        name_parent: parent_name.to_string(),
+        name_parent_location: parent_location.clone(),
+        datatype,
+        implementations,
+    }
 }
 
 fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {

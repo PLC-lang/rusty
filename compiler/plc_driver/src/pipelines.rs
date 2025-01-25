@@ -49,7 +49,9 @@ use source_code::{source_location::SourceLocation, SourceContainer};
 use serde_json;
 use tempfile::NamedTempFile;
 use toml;
+
 pub mod participant;
+pub mod property;
 
 pub struct BuildPipeline<T: SourceContainer> {
     pub context: GlobalContext,
@@ -283,9 +285,9 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.initialize_thread_pool();
 
         let parsed_project = self.parse()?;
-        // 1. Parse, 2. Index and 3. Resolve / Annotate
         let indexed_project = self.index(parsed_project)?;
         let annotated_project = self.annotate(indexed_project)?;
+
         //TODO : this is post lowering, we might want to control this
         if let Some(CompileParameters { output_ast: true, .. }) = self.compile_parameters {
             println!("{:#?}", annotated_project.units);

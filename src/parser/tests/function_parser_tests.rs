@@ -664,6 +664,20 @@ fn property_inside_function_block() {
                     },
                 ),
             },
+            name_parent: "foo",
+            name_parent_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 23,
+                        offset: 24,
+                    }..TextLocation {
+                        line: 1,
+                        column: 26,
+                        offset: 27,
+                    },
+                ),
+            },
             datatype: DataTypeReference {
                 referenced_type: "DINT",
             },

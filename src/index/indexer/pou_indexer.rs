@@ -267,6 +267,7 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
         VariableBlockType::Global => VariableType::Global,
         VariableBlockType::InOut => VariableType::InOut,
         VariableBlockType::External => VariableType::External,
+        VariableBlockType::Property => VariableType::Property,
     }
 }
 

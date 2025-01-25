@@ -63,25 +63,36 @@ pub struct InterfaceIdentifier {
     pub location: SourceLocation,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Property {
     pub name: String,
     pub name_location: SourceLocation,
+    pub name_parent: String,
+    pub name_parent_location: SourceLocation,
     pub datatype: DataTypeDeclaration,
     pub implementations: Vec<PropertyImplementation>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct PropertyImplementation {
     pub kind: PropertyKind,
     pub variables: Vec<VariableBlock>,
     pub statements: Vec<AstNode>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum PropertyKind {
     Get,
     Set,
+}
+
+impl std::fmt::Display for PropertyKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PropertyKind::Get => write!(f, "get"),
+            PropertyKind::Set => write!(f, "set"),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -290,7 +301,7 @@ pub enum LinkageType {
     BuiltIn,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum AccessModifier {
     Private,
     Public,
@@ -418,6 +429,8 @@ pub enum VariableBlockType {
     Global,
     InOut,
     External,
+    /// Compiler internal
+    Property,
 }
 
 impl Display for VariableBlockType {
@@ -430,6 +443,7 @@ impl Display for VariableBlockType {
             VariableBlockType::Global => write!(f, "Global"),
             VariableBlockType::InOut => write!(f, "InOut"),
             VariableBlockType::External => write!(f, "External"),
+            VariableBlockType::Property => write!(f, "Property"),
         }
     }
 }
@@ -440,7 +454,7 @@ pub enum ArgumentProperty {
     ByRef,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct VariableBlock {
     pub access: AccessModifier,
     pub constant: bool,
@@ -460,6 +474,19 @@ impl VariableBlock {
     pub fn with_variables(mut self, variables: Vec<Variable>) -> Self {
         self.variables = variables;
         self
+    }
+
+    /// Creates a new VariableBlock with the block type set to [`Property`]
+    pub fn property(variables: Vec<Variable>) -> VariableBlock {
+        VariableBlock {
+            access: AccessModifier::Internal,
+            constant: false,
+            retain: false,
+            variables,
+            variable_block_type: VariableBlockType::Property,
+            linkage: LinkageType::Internal,
+            location: SourceLocation::internal(),
+        }
     }
 }
 
@@ -1521,11 +1548,12 @@ impl AstFactory {
     }
 
     /// creates a new Identifier
-    pub fn create_identifier<T>(name: &str, location: T, id: AstId) -> AstNode
+    pub fn create_identifier<T, U>(name: T, location: U, id: AstId) -> AstNode
     where
-        T: Into<SourceLocation>,
+        T: Into<String>,
+        U: Into<SourceLocation>,
     {
-        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.into())
+        AstNode::new(AstStatement::Identifier(name.into()), id, location.into())
     }
 
     pub fn create_unary_expression(
