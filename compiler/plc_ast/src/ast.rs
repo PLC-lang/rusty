@@ -319,6 +319,7 @@ pub enum PouType {
     Method {
         /// The parent of this method, i.e. a function block, class or an interface
         parent: String,
+        property: Option<String>,
     },
     Init,
     ProjectInit,
@@ -342,7 +343,7 @@ impl Display for PouType {
 impl PouType {
     /// returns Some(owner_class) if this is a `Method` or otherwhise `None`
     pub fn get_optional_owner_class(&self) -> Option<String> {
-        if let PouType::Method { parent } = self {
+        if let PouType::Method { parent, .. } = self {
             Some(parent.clone())
         } else {
             None
@@ -1352,7 +1353,7 @@ mod tests {
         assert_eq!(PouType::FunctionBlock.to_string(), "FunctionBlock");
         assert_eq!(PouType::Action.to_string(), "Action");
         assert_eq!(PouType::Class.to_string(), "Class");
-        assert_eq!(PouType::Method { parent: "...".to_string() }.to_string(), "Method");
+        assert_eq!(PouType::Method { parent: String::new(), property: None }.to_string(), "Method");
     }
 
     #[test]

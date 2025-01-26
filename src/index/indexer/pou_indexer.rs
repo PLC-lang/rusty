@@ -74,7 +74,7 @@ impl<'i> PouIndexer<'i> {
             PouType::Function | PouType::Init | PouType::ProjectInit => {
                 self.index_function(pou, return_type_name, member_varargs, pou_struct_type);
             }
-            PouType::Method { parent } => {
+            PouType::Method { parent, .. } => {
                 self.index_method(pou, return_type_name, parent, pou_struct_type);
             }
             _ => {}

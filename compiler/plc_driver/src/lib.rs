@@ -10,7 +10,8 @@
 
 use anyhow::{anyhow, Result};
 use pipelines::{
-    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
+    participant::CodegenParticipant, validator::ParticipantValidator, AnnotatedProject, BuildPipeline,
+    GeneratedProject, Pipeline,
 };
 use std::{
     ffi::OsStr,
@@ -163,6 +164,9 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
         libraries: pipeline.project.get_libraries().to_vec(),
     };
     pipeline.register_participant(Box::new(codegen_participant));
+
+    // TODO: The order is important here, PropertyLowerer drains the properties hence the validator wont see them when it runs before the validator
+    pipeline.register_mut_participant(Box::new(ParticipantValidator::new()));
     pipeline.register_mut_participant(Box::new(PropertyLowerer::new(pipeline.context.provider())));
 
     let format = pipeline.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default();

@@ -1271,6 +1271,7 @@ fn validate_call<T: AnnotationMap>(
     fn_args: Option<&AstNode>,
     context: &ValidationContext<T>,
 ) {
+    // dbg!(&fn_ident);
     visit_statement(validator, fn_ident, context);
 
     // Check if we're dealing with a builtin function and if so call its validation function

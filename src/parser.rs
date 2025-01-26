@@ -575,7 +575,7 @@ fn parse_method(
         lexer.advance(); // eat METHOD keyword
 
         let access = Some(parse_access_modifier(lexer));
-        let kind = PouType::Method { parent: parent.into() };
+        let kind = PouType::Method { parent: parent.into(), property: None };
         let poly_mode = parse_polymorphism_mode(lexer, &kind);
         let overriding = lexer.try_consume(KeywordOverride);
         let (name, name_location) = parse_identifier(lexer)?;
@@ -596,7 +596,7 @@ fn parse_method(
         let implementation = parse_implementation(
             lexer,
             linkage,
-            PouType::Method { parent: parent.into() },
+            PouType::Method { parent: parent.into(), property: None },
             &call_name,
             &call_name,
             !generics.is_empty(),

@@ -52,6 +52,7 @@ use toml;
 
 pub mod participant;
 pub mod property;
+pub mod validator;
 
 pub struct BuildPipeline<T: SourceContainer> {
     pub context: GlobalContext,
@@ -785,6 +786,34 @@ impl AnnotatedProject {
             Diagnostic::new(it.to_string()).with_internal_error(it.into()).with_error_code("E002")
         })?;
         Ok(())
+    }
+
+    // TODO: Find better way, this is hella expensive
+    pub fn redo(self, mut id_provider: IdProvider) -> AnnotatedProject {
+        //Create and call the annotator
+        let mut annotated_units = Vec::new();
+        let mut all_annotations = AnnotationMapImpl::default();
+        let result = self
+            .units
+            .into_par_iter()
+            .map(|unit| {
+                let (annotation, dependencies, literals) =
+                    TypeAnnotator::visit_unit(&self.index, &unit.unit, id_provider.clone());
+                (unit, annotation, dependencies, literals)
+            })
+            .collect::<Vec<_>>();
+
+        for (unit, annotation, dependencies, literals) in result {
+            annotated_units.push(AnnotatedUnit::new(unit.unit, dependencies, literals));
+            all_annotations.import(annotation);
+        }
+
+        let mut index = self.index;
+        index.import(std::mem::take(&mut all_annotations.new_index));
+
+        let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+
+        AnnotatedProject { units: annotated_units, index, annotations }
     }
 }
 

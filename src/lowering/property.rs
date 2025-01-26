@@ -5,31 +5,122 @@ use std::collections::HashMap;
 use helper::create_internal_assignment;
 use plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, CompilationUnit, Implementation, LinkageType, Pou, PouType,
-        Property, PropertyKind, Variable, VariableBlock, VariableBlockType,
+        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, Implementation,
+        LinkageType, Pou, PouType, Property, PropertyKind, ReferenceAccess, ReferenceExpr, Variable,
+        VariableBlock, VariableBlockType,
     },
     mut_visitor::AstVisitorMut,
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
+use plc_util::convention::qualified_name;
+
+use crate::resolver::{AnnotationMap, AstAnnotations};
 
 pub struct PropertyLowerer {
-    id_provider: IdProvider,
+    pub id_provider: IdProvider,
+    pub annotations: Option<AstAnnotations>,
+    context: Option<String>,
 }
 
 impl PropertyLowerer {
     pub fn new(id_provider: IdProvider) -> PropertyLowerer {
-        PropertyLowerer { id_provider }
+        PropertyLowerer { id_provider, annotations: None, context: None }
     }
-
-    pub fn lower_properties_to_methods(&mut self, unit: &mut CompilationUnit) {
+}
+impl PropertyLowerer {
+    pub fn lower_identifiers_to_calls(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
     }
 }
 
-// TODO: There are a lot of clone calls here, see if we can reduce them?
 impl AstVisitorMut for PropertyLowerer {
     fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
+        for implementation in &mut unit.implementations {
+            self.visit_implementation(implementation);
+        }
+    }
+
+    fn visit_implementation(&mut self, implementation: &mut Implementation) {
+        match &implementation.pou_type {
+            PouType::Method { property: Some(qualified_name), .. } => {
+                // TODO: Two things, first let's maybe introduce a `enter_method` and `exit_method` method and secondly
+                //       I'm not entirely happy with this solution but it seemed to be the easiest way to solve for now
+                self.context = Some(qualified_name.clone())
+            }
+
+            _ => (),
+        };
+
+        for statement in &mut implementation.statements {
+            self.visit(statement);
+        }
+
+        self.context = None;
+    }
+
+    fn visit_assignment(&mut self, node: &mut AstNode) {
+        let AstStatement::Assignment(data) = &mut node.stmt else {
+            unreachable!();
+        };
+
+        match self.annotations.as_ref().and_then(|map| map.get(&data.left)) {
+            Some(annotation) if annotation.is_property() => {
+                if self.context.as_deref() == annotation.get_qualified_name() {
+                    return;
+                }
+
+                patch_prefix_to_name("__set_", &mut data.left);
+                let call = AstFactory::create_call_statement(
+                    data.left.as_ref().clone(),
+                    Some(data.right.as_ref().clone()),
+                    self.id_provider.next_id(),
+                    node.location.clone(),
+                );
+
+                let _ = std::mem::replace(node, call);
+            }
+
+            _ => {
+                self.visit(&mut data.right);
+            }
+        }
+    }
+
+    fn visit_reference_expr(&mut self, node: &mut AstNode) {
+        if let Some(annotation) = self.annotations.as_ref().unwrap().get(&node) {
+            if !annotation.is_property() {
+                return;
+            }
+
+            if self.context.as_deref() == annotation.get_qualified_name() {
+                return;
+            }
+
+            patch_prefix_to_name("__get_", node);
+            let call = AstFactory::create_call_statement(
+                node.clone(),
+                None,
+                self.id_provider.next_id(),
+                node.location.clone(),
+            );
+
+            let _ = std::mem::replace(node, call);
+        }
+    }
+}
+
+fn patch_prefix_to_name(prefix: &str, node: &mut AstNode) {
+    let AstStatement::ReferenceExpr(ReferenceExpr { ref mut access, .. }) = &mut node.stmt else { return };
+    let ReferenceAccess::Member(member) = access else { return };
+    let AstStatement::Identifier(name) = &mut member.stmt else { return };
+
+    name.insert_str(0, prefix);
+}
+
+// TODO: There are a lot of clone calls here, see if we can reduce them?
+impl PropertyLowerer {
+    pub fn lower_to_methods(&mut self, unit: &mut CompilationUnit) {
         let mut parents: HashMap<String, Vec<Property>> = HashMap::new();
 
         for property in &mut unit.properties.drain(..) {
@@ -51,7 +142,10 @@ impl AstVisitorMut for PropertyLowerer {
 
                 let mut pou = Pou {
                     name,
-                    kind: PouType::Method { parent: property.name_parent.clone() },
+                    kind: PouType::Method {
+                        parent: property.name_parent.clone(),
+                        property: Some(qualified_name(&property.name_parent, &property.name)),
+                    },
                     variable_blocks: Vec::new(),
                     return_type: Some(property.datatype.clone()),
                     location: SourceLocation::undefined(), // TODO: Update me
@@ -188,7 +282,7 @@ mod helper {
 
 #[cfg(test)]
 mod tests {
-    use plc_ast::{mut_visitor::AstVisitorMut, provider::IdProvider};
+    use plc_ast::provider::IdProvider;
 
     use crate::{lowering::property::PropertyLowerer, test_utils::tests::parse};
 
@@ -226,7 +320,7 @@ mod tests {
         assert_eq!(diagnostics, Vec::new());
 
         let mut lowerer = PropertyLowerer::new(IdProvider::default());
-        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.lower_to_methods(&mut unit);
 
         insta::assert_debug_snapshot!(unit, @r#"
         CompilationUnit {
@@ -274,6 +368,9 @@ mod tests {
                     variable_blocks: [],
                     pou_type: Method {
                         parent: "fb",
+                        property: Some(
+                            "fb.foo",
+                        ),
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -301,6 +398,9 @@ mod tests {
                     ],
                     pou_type: Method {
                         parent: "fb",
+                        property: Some(
+                            "fb.foo",
+                        ),
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -314,6 +414,9 @@ mod tests {
                     variable_blocks: [],
                     pou_type: Method {
                         parent: "fb",
+                        property: Some(
+                            "fb.bar",
+                        ),
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -341,6 +444,9 @@ mod tests {
                     ],
                     pou_type: Method {
                         parent: "fb",
+                        property: Some(
+                            "fb.bar",
+                        ),
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -393,6 +499,9 @@ mod tests {
                     linkage: Internal,
                     pou_type: Method {
                         parent: "fb",
+                        property: Some(
+                            "fb.foo",
+                        ),
                     },
                     statements: [
                         Assignment {
@@ -455,6 +564,9 @@ mod tests {
                     linkage: Internal,
                     pou_type: Method {
                         parent: "fb",
+                        property: Some(
+                            "fb.foo",
+                        ),
                     },
                     statements: [
                         Assignment {
@@ -522,6 +634,9 @@ mod tests {
                     linkage: Internal,
                     pou_type: Method {
                         parent: "fb",
+                        property: Some(
+                            "fb.bar",
+                        ),
                     },
                     statements: [
                         Assignment {
@@ -584,6 +699,9 @@ mod tests {
                     linkage: Internal,
                     pou_type: Method {
                         parent: "fb",
+                        property: Some(
+                            "fb.bar",
+                        ),
                     },
                     statements: [
                         Assignment {
@@ -651,6 +769,6 @@ mod tests {
             file_name: "test.st",
             properties: [],
         }
-    "#);
+        "#);
     }
 }
