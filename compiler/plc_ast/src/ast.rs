@@ -67,6 +67,7 @@ pub struct InterfaceIdentifier {
 pub struct Property {
     pub name: String,
     pub name_location: SourceLocation,
+    pub kind_parent: PouType,
     pub name_parent: String,
     pub name_parent_location: SourceLocation,
     pub datatype: DataTypeDeclaration,
@@ -78,6 +79,7 @@ pub struct PropertyImplementation {
     pub kind: PropertyKind,
     pub variables: Vec<VariableBlock>,
     pub statements: Vec<AstNode>,
+    pub location: SourceLocation,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -352,6 +354,10 @@ impl PouType {
 
     pub fn is_function_or_init(&self) -> bool {
         matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit)
+    }
+
+    pub fn is_stateful_pou(&self) -> bool {
+        matches!(self, PouType::FunctionBlock | PouType::Program | PouType::Class)
     }
 }
 

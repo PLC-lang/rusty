@@ -314,11 +314,10 @@ fn parse_pou(
                         Diagnostic::new(format!("Methods cannot be declared in a POU of type '{kind}'."))
                             .with_location(location),
                     );
-                    break;
                 }
 
                 if lexer.token == KeywordProperty {
-                    properties.push(parse_property(lexer, &name, &name_location));
+                    properties.push(parse_property(lexer, &name, &name_location, &kind));
                 } else {
                     let is_const = lexer.try_consume(PropertyConstant);
                     if let Some((pou, implementation)) = parse_method(lexer, &name, linkage, is_const) {
@@ -628,7 +627,12 @@ fn parse_method(
     })
 }
 
-fn parse_property(lexer: &mut ParseSession, parent_name: &str, parent_location: &SourceLocation) -> Property {
+fn parse_property(
+    lexer: &mut ParseSession,
+    parent_name: &str,
+    parent_location: &SourceLocation,
+    kind: &PouType,
+) -> Property {
     let _location = lexer.location();
     lexer.advance(); // Move past `PROPERTY` keyword
 
@@ -638,6 +642,7 @@ fn parse_property(lexer: &mut ParseSession, parent_name: &str, parent_location: 
 
     let mut implementations = Vec::new();
     while matches!(lexer.token, KeywordGet | KeywordSet) {
+        let location = lexer.location();
         let kind = if lexer.token == KeywordGet { PropertyKind::Get } else { PropertyKind::Set };
         lexer.advance(); // Move past `GET` or `SET` keyword
 
@@ -647,7 +652,7 @@ fn parse_property(lexer: &mut ParseSession, parent_name: &str, parent_location: 
         }
 
         let statements = parse_body_in_region(lexer, vec![Token::KeywordEndGet, Token::KeywordEndSet]);
-        implementations.push(PropertyImplementation { kind, variables, statements });
+        implementations.push(PropertyImplementation { kind, variables, statements, location });
     }
 
     lexer.try_consume_or_report(Token::KeywordEndProperty); // Move past `END_PROPERTY` keyword
@@ -655,6 +660,7 @@ fn parse_property(lexer: &mut ParseSession, parent_name: &str, parent_location: 
         name,
         name_location,
         name_parent: parent_name.to_string(),
+        kind_parent: kind.clone(),
         name_parent_location: parent_location.clone(),
         datatype,
         implementations,

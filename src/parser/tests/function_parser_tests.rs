@@ -664,6 +664,7 @@ fn property_inside_function_block() {
                     },
                 ),
             },
+            kind_parent: FunctionBlock,
             name_parent: "foo",
             name_parent_location: SourceLocation {
                 span: Range(
@@ -712,6 +713,19 @@ fn property_inside_function_block() {
                             },
                         },
                     ],
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 3,
+                                column: 16,
+                                offset: 76,
+                            }..TextLocation {
+                                line: 3,
+                                column: 19,
+                                offset: 79,
+                            },
+                        ),
+                    },
                 },
                 PropertyImplementation {
                     kind: Set,
@@ -761,6 +775,19 @@ fn property_inside_function_block() {
                             },
                         },
                     ],
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 11,
+                                column: 16,
+                                offset: 277,
+                            }..TextLocation {
+                                line: 11,
+                                column: 19,
+                                offset: 280,
+                            },
+                        ),
+                    },
                 },
             ],
         },

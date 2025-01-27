@@ -10,8 +10,7 @@
 
 use anyhow::{anyhow, Result};
 use pipelines::{
-    participant::CodegenParticipant, validator::ParticipantValidator, AnnotatedProject, BuildPipeline,
-    GeneratedProject, Pipeline,
+    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
 };
 use std::{
     ffi::OsStr,
@@ -22,7 +21,10 @@ use std::{
 
 use cli::{CompileParameters, ParameterError};
 use plc::{
-    codegen::CodegenContext, linker::LinkerType, lowering::property::PropertyLowerer, output::FormatOption,
+    codegen::CodegenContext,
+    linker::LinkerType,
+    lowering::{property::PropertyLowerer, validator::ParticipantValidator},
+    output::FormatOption,
     DebugLevel, ErrorFormat, OnlineChange, OptimizationLevel,
 };
 

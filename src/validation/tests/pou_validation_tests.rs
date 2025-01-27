@@ -1,4 +1,6 @@
-use crate::test_utils::tests::parse_and_validate_buffered;
+use crate::test_utils::tests::{
+    parse_and_validate_buffered, temp_make_me_generic_but_for_now_validate_property,
+};
 use insta::assert_snapshot;
 
 #[test]
@@ -291,6 +293,80 @@ fn method_input_arguments_are_not_optional() {
        │             ^^^^^^^^^^^^^^ Argument `in1` is missing
 
     "###);
+}
+#[test]
+fn property_within_function_pou() {
+    let diagnostics = temp_make_me_generic_but_for_now_validate_property(
+        r"
+        FUNCTION foo : DINT
+            PROPERTY prop : DINT
+            END_PROPERTY
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn property_with_more_than_one_get_block() {
+    let diagnostics = temp_make_me_generic_but_for_now_validate_property(
+        r"
+        FUNCTION_BLOCK foo
+            PROPERTY prop : DINT
+                GET
+                END_Get
+                GET
+                END_Get
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+    assert_snapshot!(diagnostics, @r"
+    ");
+}
+
+#[test]
+fn property_TMP() {
+    let diagnostics = temp_make_me_generic_but_for_now_validate_property(
+        r"
+        FUNCTION_BLOCK foo
+            PROPERTY prop : DINT
+              SET
+                  1 + 2;
+                END_SET
+            END_PROPERTY
+            PROPERTY prop : DINT
+              SET
+                  1 + 2;
+                END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    ");
+}
+
+#[test]
+fn property_with_var_output_in_get_block() {
+    let diagnostics = temp_make_me_generic_but_for_now_validate_property(
+        r"
+        FUNCTION_BLOCK foo
+            PROPERTY prop : DINT
+              GET
+                  VAR_OUTPUT
+                    out : DINT;
+                  END_VAR
+              END_Get
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    ");
 }
 
 #[test]
