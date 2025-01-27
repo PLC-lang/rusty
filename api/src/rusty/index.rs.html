@@ -1827,7 +1827,15 @@
 <a href="#1826" id="1826">1826</a>
 <a href="#1827" id="1827">1827</a>
 <a href="#1828" id="1828">1828</a>
-<a href="#1829" id="1829">1829</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
 
@@ -2270,6 +2278,10 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
     }
+
+    <span class="kw">pub fn </span>is_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.get_implementation_type(), ImplementationType::Method)
+    }
 }
 
 <span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>PouType&gt; <span class="kw">for </span>ImplementationType {
@@ -2288,10 +2300,14 @@
 }
 
 <span class="kw">impl </span>ImplementationType {
-    <span class="kw">pub fn </span>is_function_or_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="comment">// TODO: this now also takes methods into accounts, find a better name
+    </span><span class="kw">pub fn </span>is_function_or_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
-            ImplementationType::Function | ImplementationType::Init | ImplementationType::ProjectInit,
+            ImplementationType::Function
+                | ImplementationType::Init
+                | ImplementationType::ProjectInit
+                | ImplementationType::Method,
         )
     }
 
@@ -2583,8 +2599,8 @@
         <span class="kw">match </span><span class="self">self </span>{
             PouIndexEntry::Program { instance_struct_name, .. }
             | PouIndexEntry::FunctionBlock { instance_struct_name, .. }
-            | PouIndexEntry::Method { instance_struct_name, .. }
-            | PouIndexEntry::Action { instance_struct_name, .. }
+            <span class="comment">// | PouIndexEntry::Method { instance_struct_name, .. }
+            </span>| PouIndexEntry::Action { instance_struct_name, .. }
             | PouIndexEntry::Class { instance_struct_name, .. } =&gt; <span class="prelude-val">Some</span>(instance_struct_name.as_str()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>, <span class="comment">//functions have no struct type
         </span>}

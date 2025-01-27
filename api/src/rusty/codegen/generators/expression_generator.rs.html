@@ -2858,26 +2858,7 @@
 <a href="#2857" id="2857">2857</a>
 <a href="#2858" id="2858">2858</a>
 <a href="#2859" id="2859">2859</a>
-<a href="#2860" id="2860">2860</a>
-<a href="#2861" id="2861">2861</a>
-<a href="#2862" id="2862">2862</a>
-<a href="#2863" id="2863">2863</a>
-<a href="#2864" id="2864">2864</a>
-<a href="#2865" id="2865">2865</a>
-<a href="#2866" id="2866">2866</a>
-<a href="#2867" id="2867">2867</a>
-<a href="#2868" id="2868">2868</a>
-<a href="#2869" id="2869">2869</a>
-<a href="#2870" id="2870">2870</a>
-<a href="#2871" id="2871">2871</a>
-<a href="#2872" id="2872">2872</a>
-<a href="#2873" id="2873">2873</a>
-<a href="#2874" id="2874">2874</a>
-<a href="#2875" id="2875">2875</a>
-<a href="#2876" id="2876">2876</a>
-<a href="#2877" id="2877">2877</a>
-<a href="#2878" id="2878">2878</a>
-<a href="#2879" id="2879">2879</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2860" id="2860">2860</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
     builder::Builder,
@@ -3437,7 +3418,7 @@
         <span class="comment">// after the call we need to copy the values for assigned outputs
         // this is only necessary for outputs defined as `rusty::index::ArgumentType::ByVal` (PROGRAM, FUNCTION_BLOCK)
         // FUNCTION outputs are defined as `rusty::index::ArgumentType::ByRef` // FIXME(mhasel): for standard-compliance functions also need to support VAR_OUTPUT
-        </span><span class="kw">if </span>!pou.is_function() {
+        </span><span class="kw">if </span>!(pou.is_function() || pou.is_method()) {
             <span class="kw">let </span>parameter_struct = <span class="kw">match </span>arguments_list.first() {
                 <span class="prelude-val">Some</span>(v) =&gt; v.into_pointer_value(),
                 <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.generate_lvalue(operator)<span class="question-mark">?</span>,
@@ -3712,52 +3693,54 @@
         operator: <span class="kw-2">&amp;</span>AstNode,
         function_context: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
-        <span class="kw">let </span>arguments_list = <span class="kw">if </span><span class="macro">matches!</span>(pou, PouIndexEntry::Function { .. }) {
-            <span class="comment">// we're calling a function
-            </span><span class="kw">let </span>declared_parameters = <span class="self">self</span>.index.get_declared_parameters(implementation.get_type_name());
-            <span class="self">self</span>.generate_function_arguments(pou, passed_parameters, declared_parameters)<span class="question-mark">?
-        </span>} <span class="kw">else </span>{
-            <span class="comment">// no function
-            </span><span class="kw">let </span>(class_ptr, call_ptr) = <span class="kw">match </span>pou {
-                PouIndexEntry::Method { .. } =&gt; {
-                    <span class="kw">let </span>class_ptr = <span class="self">self</span>.generate_lvalue(operator).or_else(|<span class="kw">_</span>| {
-                        <span class="comment">// this might be a local method
-                        </span>function_context
-                            .function
-                            .get_first_param()
-                            .map(|class_ptr| class_ptr.into_pointer_value())
-                            .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))
-                    })<span class="question-mark">?</span>;
-                    <span class="kw">let </span>call_ptr =
-                        <span class="self">self</span>.allocate_function_struct_instance(implementation.get_call_name(), operator)<span class="question-mark">?</span>;
-                    (<span class="prelude-val">Some</span>(class_ptr), call_ptr)
-                }
-                <span class="comment">// TODO: find a more reliable way to make sure if this is a call into a local action!!
-                </span>PouIndexEntry::Action { .. }
-                    <span class="kw">if </span><span class="macro">try_from!</span>(operator, ReferenceExpr).is_some_and(|it| it.base.is_none()) =&gt;
-                {
-                    <span class="comment">// special handling for local actions, get the parameter from the function context
+        <span class="kw">match </span>pou {
+            PouIndexEntry::Function { .. } =&gt; {
+                <span class="comment">// we're calling a function
+                </span><span class="kw">let </span>declared_parameters = <span class="self">self</span>.index.get_declared_parameters(implementation.get_type_name());
+                <span class="self">self</span>.generate_function_arguments(pou, passed_parameters, declared_parameters)
+            }
+            PouIndexEntry::Method { .. } =&gt; {
+                <span class="kw">let </span>class_ptr = <span class="self">self</span>.generate_lvalue(operator).or_else(|<span class="kw">_</span>| {
+                    <span class="comment">// this might be a local method
                     </span>function_context
                         .function
                         .get_first_param()
-                        .map(|call_ptr| (<span class="prelude-val">None</span>, call_ptr.into_pointer_value()))
-                        .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))<span class="question-mark">?
-                </span>}
-                <span class="kw">_ </span>=&gt; {
-                    <span class="kw">let </span>call_ptr = <span class="self">self</span>.generate_lvalue(operator)<span class="question-mark">?</span>;
-                    (<span class="prelude-val">None</span>, call_ptr)
-                }
-            };
+                        .map(|class_ptr| class_ptr.into_pointer_value())
+                        .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))
+                })<span class="question-mark">?</span>;
+                <span class="kw">let </span>declared_parameters = <span class="self">self</span>.index.get_declared_parameters(implementation.get_type_name());
+                <span class="kw">let </span><span class="kw-2">mut </span>parameters =
+                    <span class="self">self</span>.generate_function_arguments(pou, passed_parameters, declared_parameters)<span class="question-mark">?</span>;
+                parameters.insert(<span class="number">0</span>, class_ptr.into());
+                <span class="prelude-val">Ok</span>(parameters)
+            }
+            PouIndexEntry::Action { .. }
+                <span class="kw">if </span><span class="macro">try_from!</span>(operator, ReferenceExpr).is_some_and(|it| it.base.is_none()) =&gt;
+            {
+                <span class="comment">// special handling for local actions, get the parameter from the function context
+                </span><span class="kw">let </span>call_ptr = function_context
+                    .function
+                    .get_first_param()
+                    .map(|call_ptr| call_ptr.into_pointer_value())
+                    .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))<span class="question-mark">?</span>;
 
-            <span class="comment">// generate the pou call assignments
-            </span><span class="self">self</span>.generate_stateful_pou_arguments(
-                implementation.get_call_name(),
-                class_ptr,
-                call_ptr,
-                passed_parameters,
-            )<span class="question-mark">?
-        </span>};
-        <span class="prelude-val">Ok</span>(arguments_list)
+                <span class="self">self</span>.generate_stateful_pou_arguments(
+                    implementation.get_call_name(),
+                    <span class="prelude-val">None</span>,
+                    call_ptr,
+                    passed_parameters,
+                )
+            }
+            <span class="kw">_ </span>=&gt; {
+                <span class="kw">let </span>call_ptr = <span class="self">self</span>.generate_lvalue(operator)<span class="question-mark">?</span>;
+                <span class="self">self</span>.generate_stateful_pou_arguments(
+                    implementation.get_call_name(),
+                    <span class="prelude-val">None</span>,
+                    call_ptr,
+                    passed_parameters,
+                )
+            }
+        }
     }
 
     <span class="kw">fn </span>generate_function_arguments(
@@ -4019,27 +4002,6 @@
         } <span class="kw">else </span>{
             <span class="macro">unreachable!</span>(<span class="string">"Function must be variadic"</span>)
         }
-    }
-
-    <span class="comment">// TODO: will be deleted once methods work properly (like functions)
-    </span><span class="doccomment">/// generates a new instance of a function called `function_name` and returns a PointerValue to it
-    ///
-    /// - `function_name` the name of the function as registered in the index
-    /// - `context` the statement used to report a possible Diagnostic on
-    </span><span class="kw">fn </span>allocate_function_struct_instance(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        function_name: <span class="kw-2">&amp;</span>str,
-        context: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
-        <span class="kw">let </span>instance_name = <span class="macro">format!</span>(<span class="string">"{function_name}_instance"</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
-        </span><span class="kw">let </span>function_type = <span class="self">self
-            </span>.llvm_index
-            .find_associated_pou_type(function_name) <span class="comment">//Using find instead of get to control the compile error
-            </span>.ok_or_else(|| {
-                Diagnostic::codegen_error(<span class="macro">format!</span>(<span class="string">"No type associated with '{instance_name:}'"</span>), context)
-            })<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.create_local_variable(<span class="kw-2">&amp;</span>instance_name, <span class="kw-2">&amp;</span>function_type))
     }
 
     <span class="doccomment">/// generates the assignments of a pou-call's parameters

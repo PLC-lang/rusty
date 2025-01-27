@@ -827,7 +827,20 @@
 <a href="#826" id="826">826</a>
 <a href="#827" id="827">827</a>
 <a href="#828" id="828">828</a>
-<a href="#829" id="829">829</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use super</span>::{
     expression_generator::ExpressionCodeGenerator,
@@ -1034,9 +1047,11 @@
         new_llvm_index: <span class="kw-2">&amp;mut </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;FunctionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>declared_parameters = <span class="self">self</span>.index.get_declared_parameters(implementation.get_call_name());
-        <span class="kw">let </span>parameters = <span class="self">self
-            </span>.collect_parameters_for_implementation(implementation)<span class="question-mark">?
-            </span>.iter()
+        <span class="kw">let </span><span class="kw-2">mut </span>parameters = <span class="self">self</span>.collect_parameters_for_implementation(implementation)<span class="question-mark">?</span>;
+        <span class="comment">// if we are handling a method, take the first parameter as the instance
+        </span><span class="kw">let </span>instance = <span class="kw">if </span>implementation.is_method() { <span class="prelude-val">Some</span>(parameters.remove(<span class="number">0</span>)) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
+        <span class="kw">let </span><span class="kw-2">mut </span>parameters = parameters
+            .iter()
             .enumerate()
             .map(|(i, p)| {
                 <span class="kw">let </span>param = declared_parameters.get(i);
@@ -1086,6 +1101,10 @@
                 }
             })
             .collect::&lt;Vec&lt;BasicMetadataTypeEnum&gt;&gt;();
+        <span class="comment">// insert the instance as the first parameter
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(instance) = instance {
+            parameters.insert(<span class="number">0</span>, instance);
+        }
 
         <span class="kw">let </span>return_type = <span class="self">self
             </span>.index
@@ -1179,15 +1198,6 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
         <span class="kw">if </span>!implementation.implementation_type.is_function_or_init() {
             <span class="kw">let </span><span class="kw-2">mut </span>parameters = <span class="macro">vec!</span>[];
-            <span class="kw">if </span>implementation.get_implementation_type() == <span class="kw-2">&amp;</span>ImplementationType::Method {
-                <span class="kw">let </span>class_name =
-                    implementation.get_associated_class_name().expect(<span class="string">"Method needs to have a class-name"</span>);
-                <span class="kw">let </span>instance_members_struct_type: StructType =
-                    <span class="self">self</span>.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())<span class="question-mark">?</span>;
-                parameters.push(
-                    instance_members_struct_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
-                );
-            }
             <span class="kw">let </span>instance_struct_type: StructType = <span class="self">self
                 </span>.llvm_index
                 .get_associated_pou_type(implementation.get_type_name())
@@ -1197,12 +1207,24 @@
             <span class="prelude-val">Ok</span>(parameters)
         } <span class="kw">else </span>{
             <span class="kw">let </span>declared_params = <span class="self">self</span>.index.get_declared_parameters(implementation.get_call_name());
-
             <span class="comment">//find the function's parameters
-            </span>declared_params
+            </span><span class="kw">let </span><span class="kw-2">mut </span>parameters = declared_params
                 .iter()
                 .map(|v| <span class="self">self</span>.llvm_index.get_associated_type(v.get_type_name()).map(Into::into))
-                .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataTypeEnum&gt;, <span class="kw">_</span>&gt;&gt;()
+                .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataTypeEnum&gt;, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
+
+            <span class="kw">if </span>implementation.get_implementation_type() == <span class="kw-2">&amp;</span>ImplementationType::Method {
+                <span class="kw">let </span>class_name =
+                    implementation.get_associated_class_name().expect(<span class="string">"Method needs to have a class-name"</span>);
+                <span class="kw">let </span>instance_members_struct_type: StructType =
+                    <span class="self">self</span>.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())<span class="question-mark">?</span>;
+                parameters.insert(
+                    <span class="number">0</span>,
+                    instance_members_struct_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
+                );
+            }
+
+            <span class="prelude-val">Ok</span>(parameters)
         }
     }
 
@@ -1380,6 +1402,10 @@
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         // eagerly handle the return-variable
         </span><span class="kw">let </span><span class="kw-2">mut </span>params_iter = function_context.function.get_param_iter();
+        <span class="comment">// if we are in a method, skip the first parameter (the instance)
+        </span><span class="kw">if </span><span class="macro">matches!</span>(function_context.linking_context.get_implementation_type(), ImplementationType::Method) {
+            params_iter.next();
+        }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ret_v) = members.iter().find(|it| it.is_return()) {
             <span class="kw">let </span>return_type = index.get_associated_type(ret_v.get_type_name())<span class="question-mark">?</span>;
             <span class="kw">let </span>return_variable = <span class="self">self</span>.llvm.create_local_variable(type_name, <span class="kw-2">&amp;</span>return_type);

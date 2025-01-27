@@ -1732,15 +1732,7 @@
 <a href="#1731" id="1731">1731</a>
 <a href="#1732" id="1732">1732</a>
 <a href="#1733" id="1733">1733</a>
-<a href="#1734" id="1734">1734</a>
-<a href="#1735" id="1735">1735</a>
-<a href="#1736" id="1736">1736</a>
-<a href="#1737" id="1737">1737</a>
-<a href="#1738" id="1738">1738</a>
-<a href="#1739" id="1739">1739</a>
-<a href="#1740" id="1740">1740</a>
-<a href="#1741" id="1741">1741</a>
-<a href="#1742" id="1742">1742</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<a href="#1734" id="1734">1734</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
 <span class="kw">use </span>plc_ast::ast::Assignment;
@@ -3088,19 +3080,11 @@
                 <span class="kw">return</span>;
             }
 
-            <span class="kw">let </span>declared_in_out_params: Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; = <span class="kw">match </span>pou {
-                PouIndexEntry::Method { .. } =&gt; {
-                    <span class="comment">// Methods require both INPUT and IN_OUT arguments to be passed
-                    </span>parameters.into_iter().filter(|p| p.is_input() || p.is_inout()).collect()
-                }
-
-                <span class="comment">// ...other stateful POUs only require IN_OUT arguments (for now?) and fall-back to default
-                // values for INPUT variables if not present
-                </span><span class="kw">_ </span>=&gt; parameters.into_iter().filter(|param| param.is_inout()).collect(),
-            };
+            <span class="kw">let </span>declared_in_out_params: Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; =
+                parameters.into_iter().filter(|param| param.is_inout()).collect();
 
             <span class="kw">if </span>!declared_in_out_params.is_empty() {
-                <span class="comment">// Check if all (INPUT and) IN_OUT arguments were passed by cross-checking with the parameters
+                <span class="comment">// Check if all IN_OUT arguments were passed by cross-checking with the parameters
                 </span>declared_in_out_params.into_iter().for_each(|p| {
                     <span class="kw">if </span>!variable_location_in_parent.contains(<span class="kw-2">&amp;</span>p.get_location_in_parent()) {
                         validator.push_diagnostic(

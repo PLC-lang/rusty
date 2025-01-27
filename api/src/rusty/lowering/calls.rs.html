@@ -1428,7 +1428,7 @@
                 <span class="prelude-val">None</span>,
                 original_location.clone(),
             );
-            <span class="comment">//If the function has an implicit call (foo(x := 1)), we need to add an assignment to the reference
+            <span class="comment">//If the function has an formal arguments (foo(x := 1)), we need to add an assignment to the reference
             </span><span class="kw">let </span>reference = <span class="kw">if </span>stmt
                 .parameters
                 .as_ref()

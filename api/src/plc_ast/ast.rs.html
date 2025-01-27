@@ -2202,7 +2202,7 @@
     }
 
     <span class="kw">pub fn </span>is_function_or_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, PouType::Function | PouType::Init | PouType::ProjectInit)
+        <span class="macro">matches!</span>(<span class="self">self</span>, PouType::Function | PouType::Init | PouType::ProjectInit | PouType::Method { .. })
     }
 }
 
