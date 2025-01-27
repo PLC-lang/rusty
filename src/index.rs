@@ -441,6 +441,10 @@ impl ImplementationIndexEntry {
     pub(crate) fn is_init(&self) -> bool {
         matches!(self.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
     }
+
+    pub fn is_method(&self) -> bool {
+        matches!(self.get_implementation_type(), ImplementationType::Method)
+    }
 }
 
 impl From<&PouType> for ImplementationType {
@@ -459,10 +463,14 @@ impl From<&PouType> for ImplementationType {
 }
 
 impl ImplementationType {
+    // TODO: this now also takes methods into accounts, find a better name
     pub fn is_function_or_init(&self) -> bool {
         matches!(
             self,
-            ImplementationType::Function | ImplementationType::Init | ImplementationType::ProjectInit,
+            ImplementationType::Function
+                | ImplementationType::Init
+                | ImplementationType::ProjectInit
+                | ImplementationType::Method,
         )
     }
 
@@ -754,7 +762,7 @@ impl PouIndexEntry {
         match self {
             PouIndexEntry::Program { instance_struct_name, .. }
             | PouIndexEntry::FunctionBlock { instance_struct_name, .. }
-            | PouIndexEntry::Method { instance_struct_name, .. }
+            // | PouIndexEntry::Method { instance_struct_name, .. }
             | PouIndexEntry::Action { instance_struct_name, .. }
             | PouIndexEntry::Class { instance_struct_name, .. } => Some(instance_struct_name.as_str()),
             _ => None, //functions have no struct type

@@ -261,7 +261,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 None,
                 original_location.clone(),
             );
-            //If the function has an implicit call (foo(x := 1)), we need to add an assignment to the reference
+            //If the function has an formal arguments (foo(x := 1)), we need to add an assignment to the reference
             let reference = if stmt
                 .parameters
                 .as_ref()

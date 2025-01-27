@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-expression: result
+expression: prg
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -18,23 +18,15 @@ entry:
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, i16 %1) {
+define void @MyClass.testMethod(%MyClass* %0, i16* %1) {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
-  %myMethodArg = alloca i16, align 2
-  store i16 %1, i16* %myMethodArg, align 2
-  %myMethodLocalVar = alloca i16, align 2
-  store i16 0, i16* %myMethodLocalVar, align 2
-  %load_myMethodArg = load i16, i16* %myMethodArg, align 2
-  store i16 %load_myMethodArg, i16* %x, align 2
+  %myMethodArg = alloca i16*, align 8
+  store i16* %1, i16** %myMethodArg, align 8
+  %deref = load i16*, i16** %myMethodArg, align 8
   %load_x = load i16, i16* %x, align 2
-  store i16 %load_x, i16* %y, align 2
-  %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
-  %2 = sext i16 %load_myMethodLocalVar to i32
-  %load_y = load i16, i16* %y, align 2
-  %3 = sext i16 %load_y to i32
-  %tmpVar = icmp eq i32 %2, %3
+  store i16 %load_x, i16* %deref, align 2
   ret void
 }
 
@@ -42,13 +34,7 @@ define void @prg(%prg* %0) {
 entry:
   %cl = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %x1 = getelementptr inbounds %MyClass, %MyClass* %cl, i32 0, i32 0
-  %load_x = load i16, i16* %x1, align 2
-  store i16 %load_x, i16* %x, align 2
-  %load_x2 = load i16, i16* %x, align 2
-  call void @MyClass.testMethod(%MyClass* %cl, i16 %load_x2)
-  %load_x3 = load i16, i16* %x, align 2
-  call void @MyClass.testMethod(%MyClass* %cl, i16 %load_x3)
+  call void @MyClass.testMethod(%MyClass* %cl, i16* %x)
   ret void
 }
 ; ModuleID = '__initializers'

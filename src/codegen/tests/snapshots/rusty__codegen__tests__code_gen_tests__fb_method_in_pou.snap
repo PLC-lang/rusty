@@ -1,14 +1,12 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
 %MyClass = type { i16, i16 }
 %prg = type { %MyClass, i16 }
-%MyClass.testMethod = type { i16, i16 }
 
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 @prg_instance = global %prg zeroinitializer
@@ -20,12 +18,13 @@ entry:
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
+define void @MyClass.testMethod(%MyClass* %0, i16 %1) {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
-  %myMethodArg = getelementptr inbounds %MyClass.testMethod, %MyClass.testMethod* %1, i32 0, i32 0
-  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod, %MyClass.testMethod* %1, i32 0, i32 1
+  %myMethodArg = alloca i16, align 2
+  store i16 %1, i16* %myMethodArg, align 2
+  %myMethodLocalVar = alloca i16, align 2
   store i16 0, i16* %myMethodLocalVar, align 2
   %load_myMethodArg = load i16, i16* %myMethodArg, align 2
   store i16 %load_myMethodArg, i16* %x, align 2
@@ -46,16 +45,10 @@ entry:
   %x1 = getelementptr inbounds %MyClass, %MyClass* %cl, i32 0, i32 0
   %load_x = load i16, i16* %x1, align 2
   store i16 %load_x, i16* %x, align 2
-  %MyClass.testMethod_instance = alloca %MyClass.testMethod, align 8
-  %1 = getelementptr inbounds %MyClass.testMethod, %MyClass.testMethod* %MyClass.testMethod_instance, i32 0, i32 0
   %load_x2 = load i16, i16* %x, align 2
-  store i16 %load_x2, i16* %1, align 2
-  call void @MyClass.testMethod(%MyClass* %cl, %MyClass.testMethod* %MyClass.testMethod_instance)
-  %MyClass.testMethod_instance3 = alloca %MyClass.testMethod, align 8
-  %2 = getelementptr inbounds %MyClass.testMethod, %MyClass.testMethod* %MyClass.testMethod_instance3, i32 0, i32 0
-  %load_x4 = load i16, i16* %x, align 2
-  store i16 %load_x4, i16* %2, align 2
-  call void @MyClass.testMethod(%MyClass* %cl, %MyClass.testMethod* %MyClass.testMethod_instance3)
+  call void @MyClass.testMethod(%MyClass* %cl, i16 %load_x2)
+  %load_x3 = load i16, i16* %x, align 2
+  call void @MyClass.testMethod(%MyClass* %cl, i16 %load_x3)
   ret void
 }
 ; ModuleID = '__initializers'

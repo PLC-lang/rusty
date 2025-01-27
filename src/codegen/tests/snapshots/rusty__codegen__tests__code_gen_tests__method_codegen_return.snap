@@ -1,13 +1,11 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
 %MyClass = type {}
-%MyClass.testMethod = type { i16 }
 
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 
@@ -16,13 +14,14 @@ entry:
   ret void
 }
 
-define i16 @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
+define i16 @MyClass.testMethod(%MyClass* %0, i16 %1) {
 entry:
-  %myMethodArg = getelementptr inbounds %MyClass.testMethod, %MyClass.testMethod* %1, i32 0, i32 0
-  %testMethod = alloca i16, align 2
-  store i16 0, i16* %testMethod, align 2
-  store i16 1, i16* %testMethod, align 2
-  %MyClass.testMethod_ret = load i16, i16* %testMethod, align 2
+  %MyClass.testMethod = alloca i16, align 2
+  %myMethodArg = alloca i16, align 2
+  store i16 %1, i16* %myMethodArg, align 2
+  store i16 0, i16* %MyClass.testMethod, align 2
+  store i16 1, i16* %MyClass.testMethod, align 2
+  %MyClass.testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
   ret i16 %MyClass.testMethod_ret
 }
 ; ModuleID = '__initializers'
