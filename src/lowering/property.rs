@@ -42,15 +42,11 @@ impl AstVisitorMut for PropertyLowerer {
     }
 
     fn visit_implementation(&mut self, implementation: &mut Implementation) {
-        match &implementation.pou_type {
-            PouType::Method { property: Some(qualified_name), .. } => {
-                // TODO: Two things, first let's maybe introduce a `enter_method` and `exit_method` method and secondly
-                //       I'm not entirely happy with this solution but it seemed to be the easiest way to solve for now
-                self.context = Some(qualified_name.clone())
-            }
-
-            _ => (),
-        };
+        if let PouType::Method { property: Some(qualified_name), .. } = &implementation.pou_type {
+            // TODO: Two things, first let's maybe introduce a `enter_method` and `exit_method` method and secondly
+            //       I'm not entirely happy with this solution but it seemed to be the easiest way to solve for now
+            self.context = Some(qualified_name.clone())
+        }
 
         for statement in &mut implementation.statements {
             self.visit(statement);
@@ -88,7 +84,7 @@ impl AstVisitorMut for PropertyLowerer {
     }
 
     fn visit_reference_expr(&mut self, node: &mut AstNode) {
-        if let Some(annotation) = self.annotations.as_ref().unwrap().get(&node) {
+        if let Some(annotation) = self.annotations.as_ref().unwrap().get(node) {
             if !annotation.is_property() {
                 return;
             }
@@ -161,7 +157,7 @@ impl PropertyLowerer {
                 let mut implementation = Implementation {
                     name: pou.name.clone(),
                     type_name: pou.name.clone(),
-                    linkage: pou.linkage.clone(),
+                    linkage: pou.linkage,
                     pou_type: pou.kind.clone(),
                     statements: property_impl.statements,
                     location: pou.location.clone(),
@@ -287,7 +283,7 @@ mod tests {
     use crate::{lowering::property::PropertyLowerer, test_utils::tests::parse};
 
     #[test]
-    fn temp() {
+    fn properties_are_lowered_into_methods() {
         let source = r"
         FUNCTION_BLOCK fb
             VAR
@@ -319,455 +315,212 @@ mod tests {
         let (mut unit, diagnostics) = parse(source);
         assert_eq!(diagnostics, Vec::new());
 
+        // Pre-Lowering
+        assert_eq!(unit.units.len(), 1);
+        assert_eq!(unit.units[0].name, "fb");
+
         let mut lowerer = PropertyLowerer::new(IdProvider::default());
         lowerer.lower_to_methods(&mut unit);
 
-        insta::assert_debug_snapshot!(unit, @r#"
-        CompilationUnit {
-            global_vars: [],
-            var_config: [],
-            units: [
-                POU {
-                    name: "fb",
-                    variable_blocks: [
-                        VariableBlock {
-                            variables: [
-                                Variable {
-                                    name: "localPrivateVariable",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "DINT",
-                                    },
-                                },
-                            ],
-                            variable_block_type: Local,
-                        },
-                        VariableBlock {
-                            variables: [
-                                Variable {
-                                    name: "foo",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "DINT",
-                                    },
-                                },
-                                Variable {
-                                    name: "bar",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "DINT",
-                                    },
-                                },
-                            ],
-                            variable_block_type: Property,
-                        },
-                    ],
-                    pou_type: FunctionBlock,
-                    return_type: None,
-                    interfaces: [],
+        // Post-Lowering
+        assert_eq!(unit.units.len(), 5);
+        assert_eq!(unit.units[0].name, "fb");
+        assert_eq!(unit.units[1].name, "fb.__get_foo");
+        assert_eq!(unit.units[2].name, "fb.__set_foo");
+        assert_eq!(unit.units[3].name, "fb.__get_bar");
+        assert_eq!(unit.units[4].name, "fb.__set_bar");
+
+        insta::assert_debug_snapshot!(unit.units[1], @r#"
+        POU {
+            name: "fb.__get_foo",
+            variable_blocks: [],
+            pou_type: Method {
+                parent: "fb",
+                property: Some(
+                    "fb.foo",
+                ),
+            },
+            return_type: Some(
+                DataTypeReference {
+                    referenced_type: "DINT",
                 },
-                POU {
-                    name: "fb.__get_foo",
-                    variable_blocks: [],
-                    pou_type: Method {
-                        parent: "fb",
-                        property: Some(
-                            "fb.foo",
-                        ),
-                    },
-                    return_type: Some(
-                        DataTypeReference {
-                            referenced_type: "DINT",
-                        },
-                    ),
-                    interfaces: [],
-                },
-                POU {
-                    name: "fb.__set_foo",
-                    variable_blocks: [
-                        VariableBlock {
-                            variables: [
-                                Variable {
-                                    name: "__in",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "DINT",
-                                    },
-                                },
-                            ],
-                            variable_block_type: Input(
-                                ByVal,
-                            ),
-                        },
-                    ],
-                    pou_type: Method {
-                        parent: "fb",
-                        property: Some(
-                            "fb.foo",
-                        ),
-                    },
-                    return_type: Some(
-                        DataTypeReference {
-                            referenced_type: "DINT",
-                        },
-                    ),
-                    interfaces: [],
-                },
-                POU {
-                    name: "fb.__get_bar",
-                    variable_blocks: [],
-                    pou_type: Method {
-                        parent: "fb",
-                        property: Some(
-                            "fb.bar",
-                        ),
-                    },
-                    return_type: Some(
-                        DataTypeReference {
-                            referenced_type: "DINT",
-                        },
-                    ),
-                    interfaces: [],
-                },
-                POU {
-                    name: "fb.__set_bar",
-                    variable_blocks: [
-                        VariableBlock {
-                            variables: [
-                                Variable {
-                                    name: "__in",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "DINT",
-                                    },
-                                },
-                            ],
-                            variable_block_type: Input(
-                                ByVal,
-                            ),
-                        },
-                    ],
-                    pou_type: Method {
-                        parent: "fb",
-                        property: Some(
-                            "fb.bar",
-                        ),
-                    },
-                    return_type: Some(
-                        DataTypeReference {
-                            referenced_type: "DINT",
-                        },
-                    ),
-                    interfaces: [],
-                },
-            ],
-            implementations: [
-                Implementation {
-                    name: "fb",
-                    type_name: "fb",
-                    linkage: Internal,
-                    pou_type: FunctionBlock,
-                    statements: [],
-                    location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 25,
-                                column: 8,
-                                offset: 568,
-                            }..TextLocation {
-                                line: 24,
-                                column: 24,
-                                offset: 559,
-                            },
-                        ),
-                    },
-                    name_location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 1,
-                                column: 23,
-                                offset: 24,
-                            }..TextLocation {
-                                line: 1,
-                                column: 25,
-                                offset: 26,
-                            },
-                        ),
-                    },
-                    overriding: false,
-                    generic: false,
-                    access: None,
-                },
-                Implementation {
-                    name: "fb.__get_foo",
-                    type_name: "fb.__get_foo",
-                    linkage: Internal,
-                    pou_type: Method {
-                        parent: "fb",
-                        property: Some(
-                            "fb.foo",
-                        ),
-                    },
-                    statements: [
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "foo",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: LiteralInteger {
-                                value: 5,
-                            },
-                        },
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__get_foo",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "foo",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        },
-                    ],
-                    location: SourceLocation {
-                        span: None,
-                    },
-                    name_location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 6,
-                                column: 21,
-                                offset: 130,
-                            }..TextLocation {
-                                line: 6,
-                                column: 24,
-                                offset: 133,
-                            },
-                        ),
-                    },
-                    overriding: false,
-                    generic: false,
-                    access: Some(
-                        Public,
-                    ),
-                },
-                Implementation {
-                    name: "fb.__set_foo",
-                    type_name: "fb.__set_foo",
-                    linkage: Internal,
-                    pou_type: Method {
-                        parent: "fb",
-                        property: Some(
-                            "fb.foo",
-                        ),
-                    },
-                    statements: [
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "foo",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__in",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        },
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "localPrivateVariable",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "foo",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        },
-                    ],
-                    location: SourceLocation {
-                        span: None,
-                    },
-                    name_location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 6,
-                                column: 21,
-                                offset: 130,
-                            }..TextLocation {
-                                line: 6,
-                                column: 24,
-                                offset: 133,
-                            },
-                        ),
-                    },
-                    overriding: false,
-                    generic: false,
-                    access: Some(
-                        Public,
-                    ),
-                },
-                Implementation {
-                    name: "fb.__get_bar",
-                    type_name: "fb.__get_bar",
-                    linkage: Internal,
-                    pou_type: Method {
-                        parent: "fb",
-                        property: Some(
-                            "fb.bar",
-                        ),
-                    },
-                    statements: [
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "bar",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: LiteralInteger {
-                                value: 5,
-                            },
-                        },
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__get_bar",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "bar",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        },
-                    ],
-                    location: SourceLocation {
-                        span: None,
-                    },
-                    name_location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 16,
-                                column: 21,
-                                offset: 356,
-                            }..TextLocation {
-                                line: 16,
-                                column: 24,
-                                offset: 359,
-                            },
-                        ),
-                    },
-                    overriding: false,
-                    generic: false,
-                    access: Some(
-                        Public,
-                    ),
-                },
-                Implementation {
-                    name: "fb.__set_bar",
-                    type_name: "fb.__set_bar",
-                    linkage: Internal,
-                    pou_type: Method {
-                        parent: "fb",
-                        property: Some(
-                            "fb.bar",
-                        ),
-                    },
-                    statements: [
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "bar",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__in",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        },
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "localPrivateVariable",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "bar",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        },
-                    ],
-                    location: SourceLocation {
-                        span: None,
-                    },
-                    name_location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 16,
-                                column: 21,
-                                offset: 356,
-                            }..TextLocation {
-                                line: 16,
-                                column: 24,
-                                offset: 359,
-                            },
-                        ),
-                    },
-                    overriding: false,
-                    generic: false,
-                    access: Some(
-                        Public,
-                    ),
-                },
-            ],
+            ),
             interfaces: [],
-            user_types: [],
-            file_name: "test.st",
-            properties: [],
+        }
+        "#);
+
+        insta::assert_debug_snapshot!(unit.units[2], @r#"
+        POU {
+            name: "fb.__set_foo",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "__in",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Input(
+                        ByVal,
+                    ),
+                },
+            ],
+            pou_type: Method {
+                parent: "fb",
+                property: Some(
+                    "fb.foo",
+                ),
+            },
+            return_type: Some(
+                DataTypeReference {
+                    referenced_type: "DINT",
+                },
+            ),
+            interfaces: [],
+        }
+        "#);
+
+        assert_eq!(unit.implementations.len(), 5);
+        insta::assert_debug_snapshot!(unit.implementations[1], @r#"
+        Implementation {
+            name: "fb.__get_foo",
+            type_name: "fb.__get_foo",
+            linkage: Internal,
+            pou_type: Method {
+                parent: "fb",
+                property: Some(
+                    "fb.foo",
+                ),
+            },
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: LiteralInteger {
+                        value: 5,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__get_foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: None,
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 21,
+                        offset: 130,
+                    }..TextLocation {
+                        line: 6,
+                        column: 24,
+                        offset: 133,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: Some(
+                Public,
+            ),
+        }
+        "#);
+
+        insta::assert_debug_snapshot!(unit.implementations[2], @r#"
+        Implementation {
+            name: "fb.__set_foo",
+            type_name: "fb.__set_foo",
+            linkage: Internal,
+            pou_type: Method {
+                parent: "fb",
+                property: Some(
+                    "fb.foo",
+                ),
+            },
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__in",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "localPrivateVariable",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: None,
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 21,
+                        offset: 130,
+                    }..TextLocation {
+                        line: 6,
+                        column: 24,
+                        offset: 133,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: Some(
+                Public,
+            ),
         }
         "#);
     }

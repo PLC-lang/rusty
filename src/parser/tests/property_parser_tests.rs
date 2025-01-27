@@ -1,0 +1,279 @@
+use crate::test_utils::tests::{parse, parse_buffered};
+
+#[test]
+fn properties_can_be_parsed() {
+    let source = r"
+        FUNCTION_BLOCK foo
+            PROPERTY bar : INT
+                GET
+                    VAR
+                        getLocalVariable : DINT;
+                    END_VAR
+
+                    bar := 5;
+                END_GET
+                SET
+                    VAR
+                        setLocalVariable : DINT;
+                    END_VAR
+
+                    localNonExistingVariable := bar;
+                END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+    ";
+
+    let (unit, diagnostics) = parse(source);
+
+    assert_eq!(diagnostics, vec![]);
+
+    assert_eq!(unit.units.len(), 1);
+    assert_eq!(unit.units[0].name, "foo");
+
+    assert_eq!(unit.properties.len(), 1);
+    assert_eq!(unit.properties[0].name, "bar");
+    assert_eq!(unit.properties[0].implementations.len(), 2);
+
+    insta::assert_debug_snapshot!(unit.properties, @r#"
+    [
+        Property {
+            name: "bar",
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 21,
+                        offset: 49,
+                    }..TextLocation {
+                        line: 2,
+                        column: 24,
+                        offset: 52,
+                    },
+                ),
+            },
+            kind_parent: FunctionBlock,
+            name_parent: "foo",
+            name_parent_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 23,
+                        offset: 24,
+                    }..TextLocation {
+                        line: 1,
+                        column: 26,
+                        offset: 27,
+                    },
+                ),
+            },
+            datatype: DataTypeReference {
+                referenced_type: "INT",
+            },
+            implementations: [
+                PropertyImplementation {
+                    kind: Get,
+                    variables: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "getLocalVariable",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "DINT",
+                                    },
+                                },
+                            ],
+                            variable_block_type: Local,
+                        },
+                    ],
+                    statements: [
+                        Assignment {
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "bar",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            right: LiteralInteger {
+                                value: 5,
+                            },
+                        },
+                    ],
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 3,
+                                column: 16,
+                                offset: 75,
+                            }..TextLocation {
+                                line: 3,
+                                column: 19,
+                                offset: 78,
+                            },
+                        ),
+                    },
+                },
+                PropertyImplementation {
+                    kind: Set,
+                    variables: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "setLocalVariable",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "DINT",
+                                    },
+                                },
+                            ],
+                            variable_block_type: Local,
+                        },
+                    ],
+                    statements: [
+                        Assignment {
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "localNonExistingVariable",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            right: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "bar",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        },
+                    ],
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 10,
+                                column: 16,
+                                offset: 251,
+                            }..TextLocation {
+                                line: 10,
+                                column: 19,
+                                offset: 254,
+                            },
+                        ),
+                    },
+                },
+            ],
+        },
+    ]
+    "#);
+}
+
+#[test]
+fn property_with_missing_name() {
+    let source = r"
+        FUNCTION_BLOCK foo
+            PROPERTY : INT  // <- Missing name
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+    ";
+
+    // TODO: This error message is pretty bad, however this is more of a parser issue than something property related...
+    let (_, diagnostics) = parse_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E007]: Unexpected token: expected Identifier but found :
+      ┌─ <internal>:3:22
+      │
+    3 │             PROPERTY : INT  // <- Missing name
+      │                      ^ Unexpected token: expected Identifier but found :
+
+    error[E007]: Unexpected token: expected Literal but found END_PROPERTY
+      ┌─ <internal>:4:13
+      │
+    4 │             END_PROPERTY
+      │             ^^^^^^^^^^^^ Unexpected token: expected Literal but found END_PROPERTY
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
+      ┌─ <internal>:4:13
+      │
+    4 │             END_PROPERTY
+      │             ^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
+
+    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
+      ┌─ <internal>:5:9
+      │
+    5 │         END_FUNCTION_BLOCK
+      │         ^^^^^^^^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
+      ┌─ <internal>:5:9
+      │
+    5 │         END_FUNCTION_BLOCK
+      │         ^^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
+    ");
+}
+
+#[test]
+fn property_with_missing_datatype() {
+    let source = r"
+        FUNCTION_BLOCK foo
+            PROPERTY bar    // <- Missing datatype
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+    ";
+
+    // TODO: This error message is pretty bad, however this is more of a parser issue than something property related...
+    let (_, diagnostics) = parse_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E007]: Unexpected token: expected Literal but found END_PROPERTY
+      ┌─ <internal>:4:13
+      │
+    4 │             END_PROPERTY
+      │             ^^^^^^^^^^^^ Unexpected token: expected Literal but found END_PROPERTY
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
+      ┌─ <internal>:4:13
+      │
+    4 │             END_PROPERTY
+      │             ^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
+
+    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
+      ┌─ <internal>:5:9
+      │
+    5 │         END_FUNCTION_BLOCK
+      │         ^^^^^^^^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
+      ┌─ <internal>:5:9
+      │
+    5 │         END_FUNCTION_BLOCK
+      │         ^^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
+    ");
+}
+
+#[test]
+fn property_with_variable_block() {
+    let source = r"
+        FUNCTION_BLOCK foo
+            PROPERTY bar : DINT
+                VAR
+                    // Invalid variable block, should be in a getter or setter
+                END_VAR
+
+                GET
+                    // ...
+                END_GET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+    ";
+
+    // TODO: Update location
+    let (_, diagnostics) = parse_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E007]: Variable blocks may only be defined within a GET or SET block in the context of properties
+      ┌─ <internal>:4:17
+      │
+    4 │                 VAR
+      │                 ^^^ Variable blocks may only be defined within a GET or SET block in the context of properties
+    ");
+}

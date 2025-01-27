@@ -300,12 +300,27 @@ fn property_within_function_pou() {
         r"
         FUNCTION foo : DINT
             PROPERTY prop : DINT
+                GET
+                    prop := 5;
+                END_GET
             END_PROPERTY
         END_FUNCTION
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"");
+    assert_snapshot!(diagnostics, @r"
+    error[E001]: Methods cannot be declared in a POU of type 'Function'.
+      ┌─ <internal>:2:24
+      │
+    2 │         FUNCTION foo : DINT
+      │                        ^^^^ Methods cannot be declared in a POU of type 'Function'.
+
+    error[E001]: Only FUNCTION_BLOCK or PROGRAM are allowed as parent for properties
+      ┌─ <internal>:2:18
+      │
+    2 │         FUNCTION foo : DINT
+      │                  ^^^ Only FUNCTION_BLOCK or PROGRAM are allowed as parent for properties
+    ");
 }
 
 #[test]
@@ -314,38 +329,22 @@ fn property_with_more_than_one_get_block() {
         r"
         FUNCTION_BLOCK foo
             PROPERTY prop : DINT
-                GET
-                END_Get
-                GET
-                END_Get
+                GET END_GET
+                GET END_GET
             END_PROPERTY
         END_FUNCTION_BLOCK
         ",
     );
     assert_snapshot!(diagnostics, @r"
-    ");
-}
-
-#[test]
-fn property_TMP() {
-    let diagnostics = temp_make_me_generic_but_for_now_validate_property(
-        r"
-        FUNCTION_BLOCK foo
-            PROPERTY prop : DINT
-              SET
-                  1 + 2;
-                END_SET
-            END_PROPERTY
-            PROPERTY prop : DINT
-              SET
-                  1 + 2;
-                END_SET
-            END_PROPERTY
-        END_FUNCTION_BLOCK
-        ",
-    );
-
-    assert_snapshot!(diagnostics, @r"
+    error[E001]: Property has more than one GET block
+      ┌─ <internal>:3:22
+      │
+    3 │             PROPERTY prop : DINT
+      │                      ^^^^ Property has more than one GET block
+    4 │                 GET END_GET
+      │                 --- see also
+    5 │                 GET END_GET
+      │                 --- see also
     ");
 }
 
@@ -366,6 +365,14 @@ fn property_with_var_output_in_get_block() {
     );
 
     assert_snapshot!(diagnostics, @r"
+    error[E001]: Only VAR blocks are allowed for properties
+      ┌─ <internal>:3:22
+      │
+    3 │             PROPERTY prop : DINT
+      │                      ^^^^ Only VAR blocks are allowed for properties
+    4 │               GET
+    5 │                   VAR_OUTPUT
+      │                   ---------- see also
     ");
 }
 

@@ -1,8 +1,9 @@
 use std::{ops::Deref, sync::RwLock};
 
-use plc_ast::ast::{Property, PropertyImplementation, PropertyKind};
+use plc_ast::ast::{Property, PropertyKind};
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 
+#[derive(Default)]
 pub struct ParticipantValidator {
     pub diagnostics: Vec<Diagnostic>,
 }
@@ -45,7 +46,6 @@ impl ParticipantValidator {
                         }
                     }
                 }
-                if implementation.kind == PropertyKind::Get {}
                 match implementation.kind {
                     PropertyKind::Get => {
                         get_blocks.push(implementation.location.clone());
@@ -87,6 +87,7 @@ impl ParticipantValidator {
 }
 // -------
 
+#[derive(Default)]
 pub struct ParticipantDiagnostician {
     inner: RwLock<Diagnostician>,
 }

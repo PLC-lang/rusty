@@ -17,6 +17,7 @@ mod misc_parser_tests;
 mod parse_errors;
 mod parse_generics;
 mod program_parser_tests;
+mod property_parser_tests;
 mod statement_parser_tests;
 mod type_parser_tests;
 mod variable_parser_tests;

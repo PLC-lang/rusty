@@ -316,7 +316,7 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Option<AstNode>
 }
 
 fn parse_identifier(lexer: &mut ParseSession<'_>) -> AstNode {
-    AstFactory::create_identifier(&lexer.slice_and_advance(), lexer.last_location(), lexer.next_id())
+    AstFactory::create_identifier(lexer.slice_and_advance(), lexer.last_location(), lexer.next_id())
 }
 
 fn parse_vla_range(lexer: &mut ParseSession) -> Option<AstNode> {

@@ -490,8 +490,8 @@ fn validate_reference<T: AnnotationMap>(
                 && context
                     .qualifier
                     .and_then(|qualifier| context.index.find_pou(qualifier))
-                    .map(|pou| (pou.get_name(), pou.get_container())) // get the container pou (for actions this is the program/fb)
-                    .map_or(false, |(pou, container)| {
+                    .map(|pou| (pou.get_name(), pou.get_container()))
+                    .is_some_and(|(pou, container)| {
                         !qualified_name.starts_with(pou)
                             && !qualified_name.starts_with(container)
                             && !context.index.is_init_function(pou)

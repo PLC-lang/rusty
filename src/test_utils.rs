@@ -18,10 +18,7 @@ pub mod tests {
         codegen::{CodegenContext, GeneratedModule},
         index::{self, FxIndexSet, Index},
         lexer,
-        lowering::{
-            calls::AggregateTypeLowerer, property::PropertyLowerer, validator::ParticipantValidator,
-            InitVisitor,
-        },
+        lowering::{calls::AggregateTypeLowerer, validator::ParticipantValidator, InitVisitor},
         parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
@@ -202,11 +199,10 @@ pub mod tests {
         (all_annotations, full_index, annotated_units)
     }
     pub fn temp_make_me_generic_but_for_now_validate_property(src: &str) -> String {
-        let ids = IdProvider::default();
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
 
-        let (mut unit, mut diagnostics) = parse(src);
+        let (unit, mut diagnostics) = parse(src);
 
         let mut validator = ParticipantValidator::new();
         validator.validate_properties(&unit.properties);

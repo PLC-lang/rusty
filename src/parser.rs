@@ -317,7 +317,9 @@ fn parse_pou(
                 }
 
                 if lexer.token == KeywordProperty {
-                    properties.push(parse_property(lexer, &name, &name_location, &kind));
+                    if let Some(property) = parse_property(lexer, &name, &name_location, &kind) {
+                        properties.push(property);
+                    }
                 } else {
                     let is_const = lexer.try_consume(PropertyConstant);
                     if let Some((pou, implementation)) = parse_method(lexer, &name, linkage, is_const) {
@@ -632,13 +634,25 @@ fn parse_property(
     parent_name: &str,
     parent_location: &SourceLocation,
     kind: &PouType,
-) -> Property {
+) -> Option<Property> {
     let _location = lexer.location();
     lexer.advance(); // Move past `PROPERTY` keyword
 
     // TODO: Error handling
-    let (name, name_location) = parse_identifier(lexer).expect("property missing a name");
-    let datatype = parse_return_type(lexer, &PouType::Function).expect("property missing a datatype"); // XXX: The POU type is not correct
+    let identifier = parse_identifier(lexer);
+    let datatype = parse_return_type(lexer, &PouType::Function); // XXX: The POU type is not correct
+
+    // This is kind of common, hence we parse invalid variable blocks to have useful error messages
+    while lexer.token.is_var() {
+        let block = parse_variable_block(lexer, LinkageType::Internal);
+        lexer.accept_diagnostic(
+            Diagnostic::new(
+                "Variable blocks may only be defined within a GET or SET block in the context of properties",
+            )
+            .with_location(&block.location)
+            .with_error_code("E007"),
+        );
+    }
 
     let mut implementations = Vec::new();
     while matches!(lexer.token, KeywordGet | KeywordSet) {
@@ -655,8 +669,12 @@ fn parse_property(
         implementations.push(PropertyImplementation { kind, variables, statements, location });
     }
 
+    let (name, name_location) = identifier?;
+
+    let datatype = datatype?;
+
     lexer.try_consume_or_report(Token::KeywordEndProperty); // Move past `END_PROPERTY` keyword
-    Property {
+    Some(Property {
         name,
         name_location,
         name_parent: parent_name.to_string(),
@@ -664,7 +682,7 @@ fn parse_property(
         name_parent_location: parent_location.clone(),
         datatype,
         implementations,
-    }
+    })
 }
 
 fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {
