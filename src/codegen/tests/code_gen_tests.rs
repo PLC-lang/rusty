@@ -4200,6 +4200,26 @@ fn variables_in_var_external_block_are_not_generated() {
 }
 
 #[test]
+#[ignore = "tracked in issue #1389"]
+fn function_with_array_string_return() {
+    let res = codegen(
+        "
+        FUNCTION foo : ARRAY[0..1] OF STRING
+            foo[0] := 'hello';
+            foo[1] := 'world';
+        END_FUNCTION
+
+        FUNCTION main
+            foo();
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(res, @r###"
+        "###);
+}
+
+#[test]
 fn method_with_aggregate_return_type() {
     let res = codegen(
         "

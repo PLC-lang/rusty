@@ -15,7 +15,7 @@ however, RuSTy can be build using the `cargo` command. For debug builds this can
 `cargo build` and for release builds (smaller & faster) you would execute `cargo build --release`. The
 resulting binaries can be found at `target/debug/plc` and `target/release/plc` respectively.
 
-## Ubuntu
+## Ubuntu (24.04)
 
 The specified dependencies can be installed with the following command on Ubuntu:
 
@@ -25,9 +25,11 @@ sudo apt install                \
     llvm-14-dev liblld-14-dev   \
     libz-dev                    \
     lld                         \
-    libclang-common-14-dev
+    libclang-common-14-dev      \
+    libpolly-14-dev
 ```
 Additionally you _might_ need `libffi7`, which can be installed with `sudo apt install libffi7`.
+__Note__: On other Ubuntu versions, the required packages _may_ differ.
 
 ## Debian
 
