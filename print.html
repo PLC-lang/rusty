@@ -229,16 +229,18 @@ however, you will need some additional dependencies namely:</p>
 however, RuSTy can be build using the <code>cargo</code> command. For debug builds this can be accomplished by executing
 <code>cargo build</code> and for release builds (smaller &amp; faster) you would execute <code>cargo build --release</code>. The
 resulting binaries can be found at <code>target/debug/plc</code> and <code>target/release/plc</code> respectively.</p>
-<h2 id="ubuntu"><a class="header" href="#ubuntu">Ubuntu</a></h2>
+<h2 id="ubuntu-2404"><a class="header" href="#ubuntu-2404">Ubuntu (24.04)</a></h2>
 <p>The specified dependencies can be installed with the following command on Ubuntu:</p>
 <pre><code class="language-bash">sudo apt install                \
     build-essential             \
     llvm-14-dev liblld-14-dev   \
     libz-dev                    \
     lld                         \
-    libclang-common-14-dev
+    libclang-common-14-dev      \
+    libpolly-14-dev
 </code></pre>
-<p>Additionally you <em>might</em> need <code>libffi7</code>, which can be installed with <code>sudo apt install libffi7</code>.</p>
+<p>Additionally you <em>might</em> need <code>libffi7</code>, which can be installed with <code>sudo apt install libffi7</code>.
+<strong>Note</strong>: On other Ubuntu versions, the required packages <em>may</em> differ.</p>
 <h2 id="debian"><a class="header" href="#debian">Debian</a></h2>
 <p>Same as Ubuntu with the exception of adding additional repository sources since Debian 11 only includes LLVM packages up to version 11.
 To do so follow the <a href="https://apt.llvm.org/">official documentation</a>.</p>
