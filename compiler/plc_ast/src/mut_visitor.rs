@@ -505,7 +505,7 @@ impl WalkerMut for DataTypeDeclaration {
     where
         V: AstVisitorMut,
     {
-        if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = self {
+        if let DataTypeDeclaration::Definition { data_type, .. } = self {
             visitor.visit_data_type(data_type);
         }
     }

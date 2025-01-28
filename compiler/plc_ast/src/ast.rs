@@ -494,7 +494,7 @@ impl Debug for Variable {
 
 impl Variable {
     pub fn replace_data_type_with_reference_to(&mut self, type_name: String) -> DataTypeDeclaration {
-        let new_data_type = DataTypeDeclaration::DataTypeReference {
+        let new_data_type = DataTypeDeclaration::Reference {
             referenced_type: type_name,
             location: self.data_type_declaration.get_location(),
         };
@@ -508,18 +508,18 @@ impl Variable {
 
 #[derive(Clone, PartialEq)]
 pub enum DataTypeDeclaration {
-    DataTypeReference { referenced_type: String, location: SourceLocation },
-    DataTypeDefinition { data_type: DataType, location: SourceLocation, scope: Option<String> },
+    Reference { referenced_type: String, location: SourceLocation },
+    Definition { data_type: DataType, location: SourceLocation, scope: Option<String> },
     Aggregate { referenced_type: String, location: SourceLocation },
 }
 
 impl Debug for DataTypeDeclaration {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
+            DataTypeDeclaration::Reference { referenced_type, .. } => {
                 f.debug_struct("DataTypeReference").field("referenced_type", referenced_type).finish()
             }
-            DataTypeDeclaration::DataTypeDefinition { data_type, .. } => {
+            DataTypeDeclaration::Definition { data_type, .. } => {
                 f.debug_struct("DataTypeDefinition").field("data_type", data_type).finish()
             }
             DataTypeDeclaration::Aggregate { referenced_type, .. } => {
@@ -538,32 +538,30 @@ impl From<&DataTypeDeclaration> for SourceLocation {
 impl DataTypeDeclaration {
     pub fn get_name(&self) -> Option<&str> {
         match self {
-            DataTypeDeclaration::Aggregate { referenced_type, .. }
-            | DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
-                Some(referenced_type.as_str())
-            }
-            DataTypeDeclaration::DataTypeDefinition { data_type, .. } => data_type.get_name(),
+            Self::Aggregate { referenced_type, .. }
+            | DataTypeDeclaration::Reference { referenced_type, .. } => Some(referenced_type.as_str()),
+            DataTypeDeclaration::Definition { data_type, .. } => data_type.get_name(),
         }
     }
 
     pub fn get_location(&self) -> SourceLocation {
         match self {
-            DataTypeDeclaration::DataTypeReference { location, .. } => location.clone(),
-            DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
-            DataTypeDeclaration::Aggregate { location, .. } => location.clone(),
+            DataTypeDeclaration::Reference { location, .. } => location.clone(),
+            DataTypeDeclaration::Definition { location, .. } => location.clone(),
+            Self::Aggregate { location, .. } => location.clone(),
         }
     }
 
     pub fn get_referenced_type(&self) -> Option<String> {
-        let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = self else { return None };
+        let DataTypeDeclaration::Reference { referenced_type, .. } = self else { return None };
         Some(referenced_type.to_owned())
     }
 
     pub fn get_inner_pointer_ty(&self) -> Option<DataTypeDeclaration> {
         match self {
-            DataTypeDeclaration::DataTypeReference { .. } => Some(self.clone()),
+            DataTypeDeclaration::Reference { .. } => Some(self.clone()),
 
-            DataTypeDeclaration::DataTypeDefinition { data_type, .. } => {
+            DataTypeDeclaration::Definition { data_type, .. } => {
                 if let DataType::PointerType { referenced_type, .. } = data_type {
                     return referenced_type.get_inner_pointer_ty();
                 }
@@ -702,11 +700,11 @@ fn replace_reference(
     type_name: String,
     location: &SourceLocation,
 ) -> Option<DataTypeDeclaration> {
-    if let DataTypeDeclaration::DataTypeReference { .. } = **referenced_type {
+    if let DataTypeDeclaration::Reference { .. } = **referenced_type {
         return None;
     }
     let new_data_type =
-        DataTypeDeclaration::DataTypeReference { referenced_type: type_name, location: location.clone() };
+        DataTypeDeclaration::Reference { referenced_type: type_name, location: location.clone() };
     let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
     Some(*old_data_type)
 }

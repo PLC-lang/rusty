@@ -45,7 +45,7 @@ fn simple_struct_type_can_be_parsed() {
                 variables: vec!(
                     Variable {
                         name: "One".to_string(),
-                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                        data_type_declaration: DataTypeDeclaration::Reference {
                             referenced_type: "INT".to_string(),
                             location: SourceLocation::internal(),
                         },
@@ -55,7 +55,7 @@ fn simple_struct_type_can_be_parsed() {
                     },
                     Variable {
                         name: "Two".to_string(),
-                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                        data_type_declaration: DataTypeDeclaration::Reference {
                             referenced_type: "INT".to_string(),
                             location: SourceLocation::internal(),
                         },
@@ -65,7 +65,7 @@ fn simple_struct_type_can_be_parsed() {
                     },
                     Variable {
                         name: "Three".to_string(),
-                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                        data_type_declaration: DataTypeDeclaration::Reference {
                             referenced_type: "INT".to_string(),
                             location: SourceLocation::internal(),
                         },
