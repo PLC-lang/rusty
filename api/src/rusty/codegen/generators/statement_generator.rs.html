@@ -899,7 +899,7 @@
     llvm: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Llvm&lt;<span class="lifetime">'a</span>&gt;,
     index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Index,
     annotations: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>AstAnnotations,
-    llvm_inex: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>LlvmTypedIndex&lt;<span class="lifetime">'a</span>&gt;,
+    llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>LlvmTypedIndex&lt;<span class="lifetime">'a</span>&gt;,
     function_context: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>FunctionContext&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;,
 
     <span class="kw">pub </span>load_prefix: String,
@@ -919,7 +919,7 @@
         llvm: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Llvm&lt;<span class="lifetime">'a</span>&gt;,
         index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Index,
         annotations: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>AstAnnotations,
-        llvm_inex: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>LlvmTypedIndex&lt;<span class="lifetime">'a</span>&gt;,
+        llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>LlvmTypedIndex&lt;<span class="lifetime">'a</span>&gt;,
         linking_context: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>FunctionContext&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;,
         debug: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>DebugBuilderEnum&lt;<span class="lifetime">'a</span>&gt;,
     ) -&gt; StatementCodeGenerator&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
@@ -927,7 +927,7 @@
             llvm,
             index,
             annotations,
-            llvm_inex,
+            llvm_index,
             function_context: linking_context,
             load_prefix: <span class="string">"load_"</span>.to_string(),
             load_suffix: <span class="string">""</span>.to_string(),
@@ -954,7 +954,7 @@
 
     <span class="doccomment">/// generates a list of statements
     </span><span class="kw">pub fn </span>generate_body(<span class="kw-2">&amp;</span><span class="self">self</span>, statements: <span class="kw-2">&amp;</span>[AstNode]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>child_index = LlvmTypedIndex::create_child(<span class="self">self</span>.llvm_inex);
+        <span class="kw">let </span><span class="kw-2">mut </span>child_index = LlvmTypedIndex::create_child(<span class="self">self</span>.llvm_index);
         <span class="kw">for </span>s <span class="kw">in </span>statements {
             child_index = <span class="self">self</span>.generate_statement(child_index, s)<span class="question-mark">?</span>;
         }
@@ -1637,7 +1637,7 @@
                 <span class="kw">let </span>var_name = <span class="macro">format!</span>(<span class="string">"{call_name}_ret"</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
                 </span><span class="kw">let </span>ret_name = ret_v.get_qualified_name();
                 <span class="kw">let </span>value_ptr =
-                    <span class="self">self</span>.llvm_inex.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
+                    <span class="self">self</span>.llvm_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
                         Diagnostic::codegen_error(
                             <span class="macro">format!</span>(<span class="string">"Cannot generate return variable for {call_name:}"</span>),
                             SourceLocation::undefined(),

@@ -2306,30 +2306,7 @@
 <a href="#2305" id="2305">2305</a>
 <a href="#2306" id="2306">2306</a>
 <a href="#2307" id="2307">2307</a>
-<a href="#2308" id="2308">2308</a>
-<a href="#2309" id="2309">2309</a>
-<a href="#2310" id="2310">2310</a>
-<a href="#2311" id="2311">2311</a>
-<a href="#2312" id="2312">2312</a>
-<a href="#2313" id="2313">2313</a>
-<a href="#2314" id="2314">2314</a>
-<a href="#2315" id="2315">2315</a>
-<a href="#2316" id="2316">2316</a>
-<a href="#2317" id="2317">2317</a>
-<a href="#2318" id="2318">2318</a>
-<a href="#2319" id="2319">2319</a>
-<a href="#2320" id="2320">2320</a>
-<a href="#2321" id="2321">2321</a>
-<a href="#2322" id="2322">2322</a>
-<a href="#2323" id="2323">2323</a>
-<a href="#2324" id="2324">2324</a>
-<a href="#2325" id="2325">2325</a>
-<a href="#2326" id="2326">2326</a>
-<a href="#2327" id="2327">2327</a>
-<a href="#2328" id="2328">2328</a>
-<a href="#2329" id="2329">2329</a>
-<a href="#2330" id="2330">2330</a>
-<a href="#2331" id="2331">2331</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2308" id="2308">2308</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -2337,7 +2314,7 @@
 //! records all resulting types associated with the statement's id.
 
 </span><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
-<span class="kw">use </span>std::{any::Any, fmt::Debug, hash::Hash};
+<span class="kw">use </span>std::{fmt::Debug, hash::Hash};
 
 <span class="kw">use </span>plc_ast::{
     ast::{
@@ -2885,7 +2862,7 @@
     }
 }
 
-<span class="kw">pub trait </span>AnnotationMap: ToAny {
+<span class="kw">pub trait </span>AnnotationMap {
     <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
 
     <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
@@ -2968,29 +2945,6 @@
     bool_id: AstId,
 
     bool_annotation: StatementAnnotation,
-}
-
-<span class="kw">pub trait </span>ToAny: <span class="lifetime">'static </span>{
-    <span class="kw">fn </span>as_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any;
-}
-
-<span class="kw">impl</span>&lt;T: AnnotationMap&gt; ToAny <span class="kw">for </span>T {
-    <span class="kw">fn </span>as_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any {
-        <span class="self">self
-    </span>}
-}
-
-<span class="kw">impl </span>AstAnnotations {
-    <span class="kw">pub fn </span>from_dyn(<span class="kw-2">mut </span>annotation_map: Box&lt;<span class="kw">dyn </span>AnnotationMap&gt;, bool_id: AstId) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>it: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any = annotation_map.as_any();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(map) = it.downcast_mut::&lt;AstAnnotations&gt;().map(std::mem::take) {
-            <span class="kw">return </span>map;
-        }
-        <span class="kw">let </span>annotation_map =
-            it.downcast_mut::&lt;AnnotationMapImpl&gt;().map(std::mem::take).expect(<span class="string">"AnnotationMapImpl"</span>);
-
-        <span class="self">Self</span>::new(annotation_map, bool_id)
-    }
 }
 
 <span class="kw">impl </span>AnnotationMap <span class="kw">for </span>AstAnnotations {

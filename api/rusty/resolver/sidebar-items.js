@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["AutoDerefType","Dependency","ResolvingStrategy","StatementAnnotation"],"mod":["const_evaluator","generics"],"struct":["AnnotationMapImpl","AstAnnotations","StringLiterals","TypeAnnotator","VisitorContext"],"trait":["AnnotationMap","ToAny"]};
+window.SIDEBAR_ITEMS = {"enum":["AutoDerefType","Dependency","ResolvingStrategy","StatementAnnotation"],"mod":["const_evaluator","generics"],"struct":["AnnotationMapImpl","AstAnnotations","StringLiterals","TypeAnnotator","VisitorContext"],"trait":["AnnotationMap"]};

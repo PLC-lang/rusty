@@ -1833,9 +1833,7 @@
 <a href="#1832" id="1832">1832</a>
 <a href="#1833" id="1833">1833</a>
 <a href="#1834" id="1834">1834</a>
-<a href="#1835" id="1835">1835</a>
-<a href="#1836" id="1836">1836</a>
-<a href="#1837" id="1837">1837</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1835" id="1835">1835</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
 
@@ -2300,8 +2298,7 @@
 }
 
 <span class="kw">impl </span>ImplementationType {
-    <span class="comment">// TODO: this now also takes methods into accounts, find a better name
-    </span><span class="kw">pub fn </span>is_function_or_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">pub fn </span>is_function_method_or_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
             ImplementationType::Function
@@ -2599,8 +2596,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             PouIndexEntry::Program { instance_struct_name, .. }
             | PouIndexEntry::FunctionBlock { instance_struct_name, .. }
-            <span class="comment">// | PouIndexEntry::Method { instance_struct_name, .. }
-            </span>| PouIndexEntry::Action { instance_struct_name, .. }
+            | PouIndexEntry::Action { instance_struct_name, .. }
             | PouIndexEntry::Class { instance_struct_name, .. } =&gt; <span class="prelude-val">Some</span>(instance_struct_name.as_str()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>, <span class="comment">//functions have no struct type
         </span>}

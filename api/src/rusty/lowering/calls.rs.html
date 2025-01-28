@@ -1165,9 +1165,78 @@
 <a href="#1164" id="1164">1164</a>
 <a href="#1165" id="1165">1165</a>
 <a href="#1166" id="1166">1166</a>
-<a href="#1167" id="1167">1167</a></pre></div><pre class="rust"><code><span class="doccomment">//! Changes the calls to aggregate return types
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
+<a href="#1169" id="1169">1169</a>
+<a href="#1170" id="1170">1170</a>
+<a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a></pre></div><pre class="rust"><code><span class="doccomment">//! Changes the calls to aggregate return types
 //! to make them VAR_IN_OUT calls, allowing them
 //! to be called from C_APIs and simplifying code generation
+//!
+//! As a first step, the POU signature is changed. E.g. a function
+//! returning a `STRING` will now return `__VOID` with the return variable
+//! being moved into a `VAR_IN_OUT` block:
+//! ```iec61131
+//!     // user code
+//!     FUNCTION foo : STRING
+//!     VAR_INPUT
+//!         a: DINT;
+//!     END_VAR
+//!     END_FUNCTION        
+//! ```
+//! ```iec61131
+//!     // lowered equivalent
+//!     FUNCTION foo
+//!     VAR_IN_OUT
+//!         foo: STRING;
+//!     END_VAR
+//!     VAR_INPUT
+//!         a: DINT;
+//!     END_VAR
+//!     END_FUNCTION        
+//! ```
+//!
+//! Next, every call-statement to that POU has it's arguments updated, with a temporary
+//! variable being allocated to hold the value.
+//! Locally allocated variables follow a naming-scheme of `__&lt;function_name&gt;&lt;number&gt;`,
+//! &lt;number&gt; being a value from an atomically incremented counter to avoid naming conflicts
+//! (the same approach is used for allocated variables in LLVM-IR).
+//! ```iec61131
+//!     // user code. Let `s` be a variable of type `STRING`
+//!     // ...
+//!     s := foo(42);
+//!     // ...
+//! ```
+//! ```iec61131
+//!     // lowered equivalent
+//!     // ...
+//!     alloca __foo1 : STRING;
+//!     foo(__foo1, 42);
+//!     s := __foo1;
+//!     // ...
+//! ```
 
 </span><span class="kw">use </span>std::{borrow::BorrowMut, sync::atomic::AtomicI32};
 
@@ -1312,37 +1381,43 @@
             </span><span class="kw">return</span>;
         }
         <span class="kw">let </span>index = <span class="self">self</span>.index.as_ref().expect(<span class="string">"Can't get here without an index"</span>);
-        <span class="comment">//Check if pou has a return type
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(return_var) = pou.return_type.take() {
-            <span class="kw">let </span>name = return_var.get_name().expect(<span class="string">"We should have names at this point"</span>);
-            <span class="kw">let </span>location = return_var.get_location();
+
+        <span class="comment">// Check if POU has a return type
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(return_type_name) = pou
+            .return_type
+            .as_ref()
+            .map(|it| it.get_name().expect(<span class="string">"We should have names at this point"</span>).to_string())
+        <span class="kw">else </span>{
+            <span class="kw">return</span>;
+        };
+
+        <span class="comment">// If the return type is aggregate, remove it from the signature and add a matching variable
+        // in a VAR_IN_OUT block
+        </span><span class="kw">if </span>index.get_effective_type_or_void_by_name(<span class="kw-2">&amp;</span>return_type_name).is_aggregate_type() {
+            <span class="kw">let </span>original_return = pou.return_type.take().unwrap();
+            <span class="kw">let </span>location = original_return.get_location();
             <span class="comment">//Create a new return type for the pou
             </span>pou.return_type.replace(plc_ast::ast::DataTypeDeclaration::Aggregate {
-                referenced_type: name.to_string(),
+                referenced_type: return_type_name,
                 location,
             });
-            <span class="kw">let </span>data_type = index.get_effective_type_or_void_by_name(name);
-            <span class="kw">if </span>data_type.is_aggregate_type() {
-                <span class="comment">//Insert a new in out var to the pou variable block declarations
-                </span><span class="kw">let </span>block = VariableBlock {
-                    access: AccessModifier::Public,
-                    constant: <span class="bool-val">false</span>,
-                    retain: <span class="bool-val">false</span>,
-                    variables: <span class="macro">vec!</span>[Variable {
-                        name: pou.get_return_name().to_string(),
-                        data_type_declaration: return_var,
-                        initializer: <span class="prelude-val">None</span>,
-                        address: <span class="prelude-val">None</span>,
-                        location: pou.name_location.clone(),
-                    }],
-                    variable_block_type: VariableBlockType::InOut,
-                    linkage: LinkageType::Internal,
-                    location: SourceLocation::internal(),
-                };
-                pou.variable_blocks.insert(<span class="number">0</span>, block)
-            } <span class="kw">else </span>{
-                pou.return_type.replace(return_var);
-            }
+            <span class="comment">//Insert a new in out var to the pou variable block declarations
+            </span><span class="kw">let </span>block = VariableBlock {
+                access: AccessModifier::Public,
+                constant: <span class="bool-val">false</span>,
+                retain: <span class="bool-val">false</span>,
+                variables: <span class="macro">vec!</span>[Variable {
+                    name: pou.get_return_name().to_string(),
+                    data_type_declaration: original_return,
+                    initializer: <span class="prelude-val">None</span>,
+                    address: <span class="prelude-val">None</span>,
+                    location: pou.name_location.clone(),
+                }],
+                variable_block_type: VariableBlockType::InOut,
+                linkage: LinkageType::Internal,
+                location: SourceLocation::internal(),
+            };
+            pou.variable_blocks.insert(<span class="number">0</span>, block)
         }
     }
 
@@ -1616,30 +1691,7 @@
         <span class="macro">assert_debug_snapshot!</span>(lowerer.index.unwrap().find_pou_type(<span class="string">"fb.complexMethod"</span>).unwrap());
     }
 
-    <span class="comment">// Are we in a call?
-    // foo(x:= baz()); callStatement -&gt; Reference baz_1
-    // foo(x:= baz()); callStatement -&gt; Reference baz_2
-    // foo(x:= baz()); callStatement -&gt; Reference baz_3
-    // foo(x:= baz()); callStatement -&gt; Reference
-    // foo(x:= baz()); callStatement -&gt; Reference
-    // foo(x:= baz()); callStatement -&gt; Reference
-    // foo(x:= baz()); callStatement -&gt; Reference
-    // alloca temp;
-    // baz(temp);
-    // foo(x := temp)
-    //
-    // call -&gt; alloc, call, ref
-    //
-    // Insert alloca _before_ the call statement
-    // x := foo();
-    // alloca temp
-    // foo(temp);
-    // x := temp;
-    //Check right, if a function call with aggregate, add allocation
-    //fix call
-    //assign to allocation
-    //
-    </span><span class="attr">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>simple_call_statement() {
         <span class="kw">let </span>id_provider = IdProvider::default();
         <span class="kw">let </span>(<span class="kw-2">mut </span>unit, index) = index_with_ids(

@@ -1488,7 +1488,7 @@
         }
 
         <span class="kw">let </span>implementation = pou.find_implementation(index).expect(<span class="string">"A POU will have an impl at this stage"</span>);
-        <span class="kw">if </span>!implementation.get_implementation_type().is_function_or_init() {
+        <span class="kw">if </span>!implementation.get_implementation_type().is_function_method_or_init() {
             <span class="self">self</span>.register_struct_parameter(pou, func);
         } <span class="kw">else </span>{
             <span class="kw">let </span>declared_params = index.get_declared_parameters(implementation.get_call_name());

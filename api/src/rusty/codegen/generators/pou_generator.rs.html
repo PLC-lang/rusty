@@ -1078,7 +1078,7 @@
                     }
                     <span class="kw">_ </span>=&gt; {
                         dti.map(|it| {
-                            <span class="kw">if </span>!implementation.get_implementation_type().is_function_or_init() {
+                            <span class="kw">if </span>!implementation.get_implementation_type().is_function_method_or_init() {
                                 <span class="kw">return </span><span class="kw-2">*</span>p;
                             }
                             <span class="comment">// for aggregate function parameters we will generate a pointer instead of the value type.
@@ -1196,7 +1196,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         implementation: <span class="kw-2">&amp;</span>ImplementationIndexEntry,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BasicMetadataTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;, Diagnostic&gt; {
-        <span class="kw">if </span>!implementation.implementation_type.is_function_or_init() {
+        <span class="kw">if </span>!implementation.implementation_type.is_function_method_or_init() {
             <span class="kw">let </span><span class="kw-2">mut </span>parameters = <span class="macro">vec!</span>[];
             <span class="kw">let </span>instance_struct_type: StructType = <span class="self">self
                 </span>.llvm_index
@@ -1298,7 +1298,7 @@
         }
 
         <span class="comment">// generate local variables
-        </span><span class="kw">if </span>implementation.pou_type.is_function_or_init() {
+        </span><span class="kw">if </span>implementation.pou_type.is_function_method_or_init() {
             <span class="self">self</span>.generate_local_function_arguments_accessors(
                 <span class="kw-2">&amp;mut </span>local_index,
                 <span class="kw-2">&amp;</span>implementation.type_name,

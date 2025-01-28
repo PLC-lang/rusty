@@ -2120,7 +2120,7 @@
     }
 
     <span class="kw">pub fn </span>calc_return_name(pou_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>str {
-        pou_name.split(<span class="string">'.'</span>).last().unwrap_or_default()
+        pou_name.rsplit_once(<span class="string">'.'</span>).map(|(<span class="kw">_</span>, return_name)| return_name).unwrap_or(pou_name)
     }
 
     <span class="kw">pub fn </span>is_aggregate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -2201,7 +2201,7 @@
         </span>}
     }
 
-    <span class="kw">pub fn </span>is_function_or_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">pub fn </span>is_function_method_or_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, PouType::Function | PouType::Init | PouType::ProjectInit | PouType::Method { .. })
     }
 }
@@ -2422,7 +2422,7 @@
 <span class="kw">impl </span>DataTypeDeclaration {
     <span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Aggregate { referenced_type, .. }
+            DataTypeDeclaration::Aggregate { referenced_type, .. }
             | DataTypeDeclaration::DataTypeReference { referenced_type, .. } =&gt; {
                 <span class="prelude-val">Some</span>(referenced_type.as_str())
             }
@@ -2434,7 +2434,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             DataTypeDeclaration::DataTypeReference { location, .. } =&gt; location.clone(),
             DataTypeDeclaration::DataTypeDefinition { location, .. } =&gt; location.clone(),
-            <span class="self">Self</span>::Aggregate { location, .. } =&gt; location.clone(),
+            DataTypeDeclaration::Aggregate { location, .. } =&gt; location.clone(),
         }
     }
 
@@ -2454,12 +2454,12 @@
 
                 <span class="prelude-val">None
             </span>}
-            <span class="self">Self</span>::Aggregate { .. } =&gt; <span class="prelude-val">None</span>,
+            DataTypeDeclaration::Aggregate { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="kw">pub fn </span>is_aggregate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Aggregate { .. })
+        <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeDeclaration::Aggregate { .. })
     }
 }
 
