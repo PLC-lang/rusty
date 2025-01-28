@@ -62,7 +62,9 @@ impl AstVisitorMut for PropertyLowerer {
 
         match self.annotations.as_ref().and_then(|map| map.get(&data.left)) {
             Some(annotation) if annotation.is_property() => {
+                self.visit(&mut data.right);
                 if self.context.as_deref() == annotation.get_qualified_name() {
+                    dbg!(node, self.context.clone(), annotation);
                     return;
                 }
 
@@ -89,6 +91,7 @@ impl AstVisitorMut for PropertyLowerer {
                 return;
             }
 
+            dbg!(&annotation, &self.context);
             if self.context.as_deref() == annotation.get_qualified_name() {
                 return;
             }
@@ -280,7 +283,645 @@ mod helper {
 mod tests {
     use plc_ast::provider::IdProvider;
 
-    use crate::{lowering::property::PropertyLowerer, test_utils::tests::parse};
+    use crate::{
+        lowering::property::PropertyLowerer,
+        resolver::AstAnnotations,
+        test_utils::tests::{annotate_with_ids, index_unit_with_id, index_with_ids, parse},
+    };
+
+    #[test]
+    fn properties_are_used_within_each_other() {
+        let source = r"
+        FUNCTION_BLOCK fb
+          VAR
+            foo : DINT;
+          END_VAR
+          PROPERTY myProp: DINT
+            GET
+              myProp := foo;
+            END_GET
+            SET
+              foo := myProp;
+              myProp := another_prop;
+            END_SET
+          END_PROPERTY
+          PROPERTY another_prop : DINT
+            GET
+              another_prop := myProp;
+            END_GET
+            SET
+            END_SET
+          END_PROPERTY
+        END_FUNCTION_BLOCK
+        ";
+
+        // Parsen -> Lowern -> Index -> Annotaten -> Lowern -> Snapshot
+
+        let mut id_provider = IdProvider::default();
+        let mut lowerer = PropertyLowerer::new(id_provider.clone());
+
+        // Parse
+        let (mut unit, diagnostics) = parse(source);
+        assert_eq!(diagnostics, Vec::new());
+
+        // Lowern
+        lowerer.lower_to_methods(&mut unit);
+
+        // Index
+        let mut index = index_unit_with_id(&unit, id_provider.clone());
+
+        // Annotate
+        let annotations = AstAnnotations::new(
+            annotate_with_ids(&mut unit, &mut index, id_provider.clone()),
+            id_provider.next_id(),
+        );
+
+        // Lower
+        lowerer.annotations = Some(annotations);
+        lowerer.lower_identifiers_to_calls(&mut unit);
+
+        insta::assert_debug_snapshot!(unit.implementations, @r#"
+        [
+            Implementation {
+                name: "fb",
+                type_name: "fb",
+                linkage: Internal,
+                pou_type: FunctionBlock,
+                statements: [],
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 21,
+                            column: 8,
+                            offset: 486,
+                        }..TextLocation {
+                            line: 20,
+                            column: 22,
+                            offset: 477,
+                        },
+                    ),
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 1,
+                            column: 23,
+                            offset: 24,
+                        }..TextLocation {
+                            line: 1,
+                            column: 25,
+                            offset: 26,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: None,
+            },
+            Implementation {
+                name: "fb.__get_myProp",
+                type_name: "fb.__get_myProp",
+                linkage: Internal,
+                pou_type: Method {
+                    parent: "fb",
+                    property: Some(
+                        "fb.myProp",
+                    ),
+                },
+                statements: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo",
+                                },
+                            ),
+                            base: None,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__get_myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                    },
+                ],
+                location: SourceLocation {
+                    span: None,
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 19,
+                            offset: 102,
+                        }..TextLocation {
+                            line: 5,
+                            column: 25,
+                            offset: 108,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: Some(
+                    Public,
+                ),
+            },
+            Implementation {
+                name: "fb.__set_myProp",
+                type_name: "fb.__set_myProp",
+                linkage: Internal,
+                pou_type: Method {
+                    parent: "fb",
+                    property: Some(
+                        "fb.myProp",
+                    ),
+                },
+                statements: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__in",
+                                },
+                            ),
+                            base: None,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__get_another_prop",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: None,
+                        },
+                    },
+                ],
+                location: SourceLocation {
+                    span: None,
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 19,
+                            offset: 102,
+                        }..TextLocation {
+                            line: 5,
+                            column: 25,
+                            offset: 108,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: Some(
+                    Public,
+                ),
+            },
+            Implementation {
+                name: "fb.__get_another_prop",
+                type_name: "fb.__get_another_prop",
+                linkage: Internal,
+                pou_type: Method {
+                    parent: "fb",
+                    property: Some(
+                        "fb.another_prop",
+                    ),
+                },
+                statements: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "another_prop",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__get_myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__get_another_prop",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "another_prop",
+                                },
+                            ),
+                            base: None,
+                        },
+                    },
+                ],
+                location: SourceLocation {
+                    span: None,
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 14,
+                            column: 19,
+                            offset: 325,
+                        }..TextLocation {
+                            line: 14,
+                            column: 31,
+                            offset: 337,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: Some(
+                    Public,
+                ),
+            },
+            Implementation {
+                name: "fb.__set_another_prop",
+                type_name: "fb.__set_another_prop",
+                linkage: Internal,
+                pou_type: Method {
+                    parent: "fb",
+                    property: Some(
+                        "fb.another_prop",
+                    ),
+                },
+                statements: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "another_prop",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__in",
+                                },
+                            ),
+                            base: None,
+                        },
+                    },
+                ],
+                location: SourceLocation {
+                    span: None,
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 14,
+                            column: 19,
+                            offset: 325,
+                        }..TextLocation {
+                            line: 14,
+                            column: 31,
+                            offset: 337,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: Some(
+                    Public,
+                ),
+            },
+        ]
+        "#);
+    }
+
+    #[test]
+    fn properties_are_patched_with_function_calls() {
+        let source = r"
+        FUNCTION_BLOCK fb
+          VAR
+            foo : DINT;
+          END_VAR
+          PROPERTY myProp: DINT
+            GET
+              myProp := foo;
+            END_GET
+            SET
+              foo := myProp;
+            END_SET
+          END_PROPERTY
+        printf('%d', myProp);
+        END_FUNCTION_BLOCK
+        ";
+
+        // Parsen -> Lowern -> Index -> Annotaten -> Lowern -> Snapshot
+
+        let mut id_provider = IdProvider::default();
+        let mut lowerer = PropertyLowerer::new(id_provider.clone());
+
+        // Parse
+        let (mut unit, diagnostics) = parse(source);
+        assert_eq!(diagnostics, Vec::new());
+
+        // Lowern
+        lowerer.lower_to_methods(&mut unit);
+
+        // Index
+        let mut index = index_unit_with_id(&unit, id_provider.clone());
+
+        // Annotate
+        let annotations = AstAnnotations::new(
+            annotate_with_ids(&mut unit, &mut index, id_provider.clone()),
+            id_provider.next_id(),
+        );
+
+        // Lower
+        lowerer.annotations = Some(annotations);
+        lowerer.lower_identifiers_to_calls(&mut unit);
+
+        insta::assert_debug_snapshot!(unit.implementations, @r#"
+        [
+            Implementation {
+                name: "fb",
+                type_name: "fb",
+                linkage: Internal,
+                pou_type: FunctionBlock,
+                statements: [
+                    CallStatement {
+                        operator: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "printf",
+                                },
+                            ),
+                            base: None,
+                        },
+                        parameters: Some(
+                            ExpressionList {
+                                expressions: [
+                                    LiteralString {
+                                        value: "%d",
+                                        is_wide: false,
+                                    },
+                                    CallStatement {
+                                        operator: ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__get_myProp",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                        parameters: None,
+                                    },
+                                ],
+                            },
+                        ),
+                    },
+                ],
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 13,
+                            column: 8,
+                            offset: 276,
+                        }..TextLocation {
+                            line: 13,
+                            column: 29,
+                            offset: 297,
+                        },
+                    ),
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 1,
+                            column: 23,
+                            offset: 24,
+                        }..TextLocation {
+                            line: 1,
+                            column: 25,
+                            offset: 26,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: None,
+            },
+            Implementation {
+                name: "fb.__get_myProp",
+                type_name: "fb.__get_myProp",
+                linkage: Internal,
+                pou_type: Method {
+                    parent: "fb",
+                    property: Some(
+                        "fb.myProp",
+                    ),
+                },
+                statements: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo",
+                                },
+                            ),
+                            base: None,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__get_myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                    },
+                ],
+                location: SourceLocation {
+                    span: None,
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 19,
+                            offset: 102,
+                        }..TextLocation {
+                            line: 5,
+                            column: 25,
+                            offset: 108,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: Some(
+                    Public,
+                ),
+            },
+            Implementation {
+                name: "fb.__set_myProp",
+                type_name: "fb.__set_myProp",
+                linkage: Internal,
+                pou_type: Method {
+                    parent: "fb",
+                    property: Some(
+                        "fb.myProp",
+                    ),
+                },
+                statements: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__in",
+                                },
+                            ),
+                            base: None,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "myProp",
+                                },
+                            ),
+                            base: None,
+                        },
+                    },
+                ],
+                location: SourceLocation {
+                    span: None,
+                },
+                name_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 19,
+                            offset: 102,
+                        }..TextLocation {
+                            line: 5,
+                            column: 25,
+                            offset: 108,
+                        },
+                    ),
+                },
+                overriding: false,
+                generic: false,
+                access: Some(
+                    Public,
+                ),
+            },
+        ]
+        "#);
+    }
 
     #[test]
     fn properties_are_lowered_into_methods() {
