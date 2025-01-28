@@ -60,11 +60,15 @@ impl AstVisitorMut for PropertyLowerer {
             unreachable!();
         };
 
+        // dbg!(&data);
+        self.visit(&mut data.right);
+        // dbg!(&data);
+
         match self.annotations.as_ref().and_then(|map| map.get(&data.left)) {
             Some(annotation) if annotation.is_property() => {
-                self.visit(&mut data.right);
+                // self.visit(&mut data.right);
                 if self.context.as_deref() == annotation.get_qualified_name() {
-                    dbg!(node, self.context.clone(), annotation);
+                    // dbg!(node, self.context.clone(), annotation);
                     return;
                 }
 
@@ -78,10 +82,7 @@ impl AstVisitorMut for PropertyLowerer {
 
                 let _ = std::mem::replace(node, call);
             }
-
-            _ => {
-                self.visit(&mut data.right);
-            }
+            _ => (),
         }
     }
 
@@ -91,7 +92,7 @@ impl AstVisitorMut for PropertyLowerer {
                 return;
             }
 
-            dbg!(&annotation, &self.context);
+            // dbg!(&annotation, &self.context);
             if self.context.as_deref() == annotation.get_qualified_name() {
                 return;
             }
@@ -104,7 +105,9 @@ impl AstVisitorMut for PropertyLowerer {
                 node.location.clone(),
             );
 
+            // dbg!(&call);
             let _ = std::mem::replace(node, call);
+            // dbg!(&node);
         }
     }
 }
