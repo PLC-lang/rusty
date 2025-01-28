@@ -1207,7 +1207,7 @@ impl<'i> TypeAnnotator<'i> {
             let deps = self.get_datatype_dependencies(name, FxIndexSet::default());
             self.dependencies.extend(deps);
         }
-        if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = declaration {
+        if let DataTypeDeclaration::Definition { data_type, .. } = declaration {
             self.visit_data_type(ctx, data_type);
         }
     }

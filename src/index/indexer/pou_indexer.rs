@@ -178,7 +178,7 @@ impl<'i> PouIndexer<'i> {
 
         for block in &pou.variable_blocks {
             for var in &block.variables {
-                let varargs = if let DataTypeDeclaration::DataTypeDefinition {
+                let varargs = if let DataTypeDeclaration::Definition {
                     data_type: plc_ast::ast::DataType::VarArgs { referenced_type, sized },
                     ..
                 } = &var.data_type_declaration
