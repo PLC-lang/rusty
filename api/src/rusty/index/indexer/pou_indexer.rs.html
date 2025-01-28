@@ -475,7 +475,7 @@
 
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;</span>pou.variable_blocks {
             <span class="kw">for </span>var <span class="kw">in </span><span class="kw-2">&amp;</span>block.variables {
-                <span class="kw">let </span>varargs = <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition {
+                <span class="kw">let </span>varargs = <span class="kw">if let </span>DataTypeDeclaration::Definition {
                     data_type: plc_ast::ast::DataType::VarArgs { referenced_type, sized },
                     ..
                 } = <span class="kw-2">&amp;</span>var.data_type_declaration

@@ -1054,7 +1054,7 @@
     <span class="kw">where
         </span>V: AstVisitorMut,
     {
-        <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition { data_type, .. } = <span class="self">self </span>{
+        <span class="kw">if let </span>DataTypeDeclaration::Definition { data_type, .. } = <span class="self">self </span>{
             visitor.visit_data_type(data_type);
         }
     }

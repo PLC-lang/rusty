@@ -3515,7 +3515,7 @@
             <span class="kw">let </span>deps = <span class="self">self</span>.get_datatype_dependencies(name, FxIndexSet::default());
             <span class="self">self</span>.dependencies.extend(deps);
         }
-        <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition { data_type, .. } = declaration {
+        <span class="kw">if let </span>DataTypeDeclaration::Definition { data_type, .. } = declaration {
             <span class="self">self</span>.visit_data_type(ctx, data_type);
         }
     }

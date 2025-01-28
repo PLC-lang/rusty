@@ -607,11 +607,11 @@
         </span><span class="kw">let </span>(vla_arr_type_declaration, dim_arr_type_declaration) =
             <span class="kw">if </span><span class="self">self</span>.index.get_effective_type_by_name(<span class="kw-2">&amp;</span>dummy_array_name).is_ok() {
                 (
-                    DataTypeDeclaration::DataTypeReference {
+                    DataTypeDeclaration::Reference {
                         referenced_type: member_array_name,
                         location: SourceLocation::internal(),
                     },
-                    DataTypeDeclaration::DataTypeReference {
+                    DataTypeDeclaration::Reference {
                         referenced_type: member_dimensions_name,
                         location: SourceLocation::internal(),
                     },
@@ -638,10 +638,10 @@
 
                 <span class="comment">// define internal vla members
                 </span>(
-                    DataTypeDeclaration::DataTypeDefinition {
+                    DataTypeDeclaration::Definition {
                         data_type: DataType::PointerType {
                             name: <span class="prelude-val">Some</span>(member_array_name),
-                            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: Box::new(DataTypeDeclaration::Reference {
                                 referenced_type: dummy_array_name,
                                 location: SourceLocation::internal(),
                             }),
@@ -650,7 +650,7 @@
                         location: SourceLocation::internal(),
                         scope: <span class="prelude-val">None</span>,
                     },
-                    DataTypeDeclaration::DataTypeDefinition {
+                    DataTypeDeclaration::Definition {
                         data_type: DataType::ArrayType {
                             name: <span class="prelude-val">Some</span>(member_dimensions_name),
                             bounds: AstNode::new(
@@ -676,7 +676,7 @@
                                 <span class="number">0</span>,
                                 SourceLocation::internal(),
                             ),
-                            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: Box::new(DataTypeDeclaration::Reference {
                                 referenced_type: DINT_TYPE.to_string(),
                                 location: SourceLocation::internal(),
                             }),

@@ -140,12 +140,12 @@
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
     <span class="kw">match </span>declaration {
-        DataTypeDeclaration::DataTypeReference { referenced_type, location } =&gt; {
+        DataTypeDeclaration::Reference { referenced_type, location } =&gt; {
             <span class="kw">if </span>context.index.find_effective_type_by_name(referenced_type).is_none() {
                 validator.push_diagnostic(Diagnostic::unknown_type(referenced_type, location));
             };
         }
-        DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } =&gt; {
+        DataTypeDeclaration::Definition { data_type, location, .. } =&gt; {
             visit_data_type(validator, data_type, location, context)
         }
         DataTypeDeclaration::Aggregate { .. } =&gt; {}
