@@ -236,7 +236,7 @@ impl Pou {
     }
 
     pub fn calc_return_name(pou_name: &str) -> &str {
-        pou_name.split('.').last().unwrap_or_default()
+        pou_name.rsplit_once('.').map(|(_, return_name)| return_name).unwrap_or(pou_name)
     }
 
     pub fn is_aggregate(&self) -> bool {
@@ -317,7 +317,7 @@ impl PouType {
         }
     }
 
-    pub fn is_function_or_init(&self) -> bool {
+    pub fn is_function_method_or_init(&self) -> bool {
         matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit | PouType::Method { .. })
     }
 }
@@ -538,7 +538,7 @@ impl From<&DataTypeDeclaration> for SourceLocation {
 impl DataTypeDeclaration {
     pub fn get_name(&self) -> Option<&str> {
         match self {
-            Self::Aggregate { referenced_type, .. }
+            DataTypeDeclaration::Aggregate { referenced_type, .. }
             | DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
                 Some(referenced_type.as_str())
             }
@@ -550,7 +550,7 @@ impl DataTypeDeclaration {
         match self {
             DataTypeDeclaration::DataTypeReference { location, .. } => location.clone(),
             DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
-            Self::Aggregate { location, .. } => location.clone(),
+            DataTypeDeclaration::Aggregate { location, .. } => location.clone(),
         }
     }
 
@@ -570,12 +570,12 @@ impl DataTypeDeclaration {
 
                 None
             }
-            Self::Aggregate { .. } => None,
+            DataTypeDeclaration::Aggregate { .. } => None,
         }
     }
 
     pub fn is_aggregate(&self) -> bool {
-        matches!(self, Self::Aggregate { .. })
+        matches!(self, DataTypeDeclaration::Aggregate { .. })
     }
 }
 

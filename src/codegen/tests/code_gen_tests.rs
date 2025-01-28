@@ -1006,7 +1006,6 @@ fn fb_method_with_var_input_defaults() {
     insta::assert_snapshot!(prg);
 }
 
-//A test for a method with an initialized input variable
 #[test]
 fn method_codegen_with_initialized_input() {
     let prg = codegen(
@@ -1027,7 +1026,6 @@ fn method_codegen_with_initialized_input() {
     insta::assert_snapshot!(prg);
 }
 
-//A test for a method with multiple input variables
 #[test]
 fn method_codegen_with_multiple_input() {
     let prg = codegen(

@@ -534,7 +534,7 @@ impl<'ink> DebugBuilder<'ink> {
         }
 
         let implementation = pou.find_implementation(index).expect("A POU will have an impl at this stage");
-        if !implementation.get_implementation_type().is_function_or_init() {
+        if !implementation.get_implementation_type().is_function_method_or_init() {
             self.register_struct_parameter(pou, func);
         } else {
             let declared_params = index.get_declared_parameters(implementation.get_call_name());

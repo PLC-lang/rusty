@@ -45,7 +45,7 @@ pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
     annotations: &'b AstAnnotations,
-    llvm_inex: &'b LlvmTypedIndex<'a>,
+    llvm_index: &'b LlvmTypedIndex<'a>,
     function_context: &'b FunctionContext<'a, 'b>,
 
     pub load_prefix: String,
@@ -65,7 +65,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         llvm: &'b Llvm<'a>,
         index: &'b Index,
         annotations: &'b AstAnnotations,
-        llvm_inex: &'b LlvmTypedIndex<'a>,
+        llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a, 'b>,
         debug: &'b DebugBuilderEnum<'a>,
     ) -> StatementCodeGenerator<'a, 'b> {
@@ -73,7 +73,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             llvm,
             index,
             annotations,
-            llvm_inex,
+            llvm_index,
             function_context: linking_context,
             load_prefix: "load_".to_string(),
             load_suffix: "".to_string(),
@@ -100,7 +100,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     /// generates a list of statements
     pub fn generate_body(&self, statements: &[AstNode]) -> Result<(), Diagnostic> {
-        let mut child_index = LlvmTypedIndex::create_child(self.llvm_inex);
+        let mut child_index = LlvmTypedIndex::create_child(self.llvm_index);
         for s in statements {
             child_index = self.generate_statement(child_index, s)?;
         }
@@ -783,7 +783,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 let var_name = format!("{call_name}_ret"); // TODO: Naming convention (see plc_util/src/convention.rs)
                 let ret_name = ret_v.get_qualified_name();
                 let value_ptr =
-                    self.llvm_inex.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
+                    self.llvm_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
                         Diagnostic::codegen_error(
                             format!("Cannot generate return variable for {call_name:}"),
                             SourceLocation::undefined(),

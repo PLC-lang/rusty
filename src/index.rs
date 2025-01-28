@@ -463,8 +463,7 @@ impl From<&PouType> for ImplementationType {
 }
 
 impl ImplementationType {
-    // TODO: this now also takes methods into accounts, find a better name
-    pub fn is_function_or_init(&self) -> bool {
+    pub fn is_function_method_or_init(&self) -> bool {
         matches!(
             self,
             ImplementationType::Function
@@ -762,7 +761,6 @@ impl PouIndexEntry {
         match self {
             PouIndexEntry::Program { instance_struct_name, .. }
             | PouIndexEntry::FunctionBlock { instance_struct_name, .. }
-            // | PouIndexEntry::Method { instance_struct_name, .. }
             | PouIndexEntry::Action { instance_struct_name, .. }
             | PouIndexEntry::Class { instance_struct_name, .. } => Some(instance_struct_name.as_str()),
             _ => None, //functions have no struct type
