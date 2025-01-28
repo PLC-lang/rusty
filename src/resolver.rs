@@ -6,7 +6,7 @@
 //! records all resulting types associated with the statement's id.
 
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::{any::Any, fmt::Debug, hash::Hash};
+use std::{fmt::Debug, hash::Hash};
 
 use plc_ast::{
     ast::{
@@ -554,7 +554,7 @@ impl Dependency {
     }
 }
 
-pub trait AnnotationMap: ToAny {
+pub trait AnnotationMap {
     fn get(&self, s: &AstNode) -> Option<&StatementAnnotation>;
 
     fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation>;
@@ -637,29 +637,6 @@ pub struct AstAnnotations {
     bool_id: AstId,
 
     bool_annotation: StatementAnnotation,
-}
-
-pub trait ToAny: 'static {
-    fn as_any(&mut self) -> &mut dyn Any;
-}
-
-impl<T: AnnotationMap> ToAny for T {
-    fn as_any(&mut self) -> &mut dyn Any {
-        self
-    }
-}
-
-impl AstAnnotations {
-    pub fn from_dyn(mut annotation_map: Box<dyn AnnotationMap>, bool_id: AstId) -> Self {
-        let it: &mut dyn Any = annotation_map.as_any();
-        if let Some(map) = it.downcast_mut::<AstAnnotations>().map(std::mem::take) {
-            return map;
-        }
-        let annotation_map =
-            it.downcast_mut::<AnnotationMapImpl>().map(std::mem::take).expect("AnnotationMapImpl");
-
-        Self::new(annotation_map, bool_id)
-    }
 }
 
 impl AnnotationMap for AstAnnotations {

@@ -236,7 +236,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     }
                     _ => {
                         dti.map(|it| {
-                            if !implementation.get_implementation_type().is_function_or_init() {
+                            if !implementation.get_implementation_type().is_function_method_or_init() {
                                 return *p;
                             }
                             // for aggregate function parameters we will generate a pointer instead of the value type.
@@ -354,7 +354,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         implementation: &ImplementationIndexEntry,
     ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, Diagnostic> {
-        if !implementation.implementation_type.is_function_or_init() {
+        if !implementation.implementation_type.is_function_method_or_init() {
             let mut parameters = vec![];
             let instance_struct_type: StructType = self
                 .llvm_index
@@ -456,7 +456,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // generate local variables
-        if implementation.pou_type.is_function_or_init() {
+        if implementation.pou_type.is_function_method_or_init() {
             self.generate_local_function_arguments_accessors(
                 &mut local_index,
                 &implementation.type_name,
