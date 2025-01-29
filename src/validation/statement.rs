@@ -1347,19 +1347,11 @@ fn validate_call<T: AnnotationMap>(
                 return;
             }
 
-            let declared_in_out_params: Vec<&VariableIndexEntry> = match pou {
-                PouIndexEntry::Method { .. } => {
-                    // Methods require both INPUT and IN_OUT arguments to be passed
-                    parameters.into_iter().filter(|p| p.is_input() || p.is_inout()).collect()
-                }
-
-                // ...other stateful POUs only require IN_OUT arguments (for now?) and fall-back to default
-                // values for INPUT variables if not present
-                _ => parameters.into_iter().filter(|param| param.is_inout()).collect(),
-            };
+            let declared_in_out_params: Vec<&VariableIndexEntry> =
+                parameters.into_iter().filter(|param| param.is_inout()).collect();
 
             if !declared_in_out_params.is_empty() {
-                // Check if all (INPUT and) IN_OUT arguments were passed by cross-checking with the parameters
+                // Check if all IN_OUT arguments were passed by cross-checking with the parameters
                 declared_in_out_params.into_iter().for_each(|p| {
                     if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
                         validator.push_diagnostic(

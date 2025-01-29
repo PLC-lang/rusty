@@ -952,6 +952,130 @@ fn fb_method_in_pou() {
 }
 
 #[test]
+fn fb_method_with_var_in_out() {
+    let prg = codegen(
+        r"
+    FUNCTION_BLOCK MyClass
+        VAR
+            x, y : INT;
+        END_VAR
+
+        METHOD testMethod
+        VAR_IN_OUT myMethodArg : INT; END_VAR
+            myMethodArg := x;
+        END_METHOD
+    END_FUNCTION_BLOCK
+
+    PROGRAM prg
+    VAR
+    cl : MyClass;
+    x : INT;
+    END_VAR
+        cl.testMethod(x);
+    END_PROGRAM
+        ",
+    );
+    insta::assert_snapshot!(prg);
+}
+
+#[test]
+fn fb_method_with_var_input_defaults() {
+    let prg = codegen(
+        r"
+    FUNCTION_BLOCK MyClass
+        VAR
+            x, y : INT;
+        END_VAR
+
+        METHOD testMethod
+        VAR_INPUT
+            myMethodArg : INT := 3;
+        END_VAR
+            x := myMethodArg;
+        END_METHOD
+    END_FUNCTION_BLOCK
+
+    PROGRAM prg
+    VAR
+    cl : MyClass;
+    END_VAR
+        cl.testMethod();
+    END_PROGRAM
+        ",
+    );
+    insta::assert_snapshot!(prg);
+}
+
+#[test]
+fn method_codegen_with_initialized_input() {
+    let prg = codegen(
+        r#"
+        FUNCTION_BLOCK fb
+        METHOD meth : DINT
+        VAR_INPUT
+            a : DINT := 5;
+        END_VAR
+        END_METHOD
+        meth();
+        meth(4);
+        END_FUNCTION_BLOCK
+
+        FUNCTION foo : DINT END_FUNCTION
+        "#,
+    );
+    insta::assert_snapshot!(prg);
+}
+
+#[test]
+fn method_codegen_with_multiple_input() {
+    let prg = codegen(
+        r#"
+        FUNCTION_BLOCK fb
+        METHOD meth : DINT
+        VAR_INPUT
+            a : DINT := 6;
+            b : DINT;
+            c : DINT := 10;
+        END_VAR
+        END_METHOD
+        meth(1,2,3);
+        meth(5,7); //skip the last parameter it should have value 10
+        meth(a := 3, b := 4); //skip the last parameter it should have value 10
+        meth(b := 4); //skip the first and last parameter they should have value 6 and 10
+        END_FUNCTION_BLOCK
+        "#,
+    );
+    insta::assert_snapshot!(prg);
+}
+
+#[test]
+fn fb_method_called_as_function() {
+    let prg = codegen(
+        r"
+    FUNCTION_BLOCK MyClass
+    VAR
+        x, y : INT;
+    END_VAR
+
+    METHOD testMethod : INT
+        VAR_INPUT myMethodArg : INT; END_VAR
+        VAR myMethodLocalVar : INT; END_VAR
+
+        x := myMethodArg;
+        y := x + 1;
+        myMethodLocalVar := y + 1;
+        testMethod := myMethodLocalVar + 1;
+    END_METHOD
+
+    testMethod(1);
+    testMethod(myMethodArg:= 3);
+    END_FUNCTION_BLOCK",
+    );
+
+    insta::assert_snapshot!(prg);
+}
+
+#[test]
 fn fb_method_called_locally() {
     let result = codegen(
         "
@@ -985,34 +1109,31 @@ fn fb_method_called_locally() {
     source_filename = "<internal>"
 
     %foo = type { i32 }
-    %foo.addToBar = type { i16 }
 
     @__foo__init = unnamed_addr constant %foo { i32 42 }
 
     define void @foo(%foo* %0) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %foo.addToBar_instance = alloca %foo.addToBar, align 8
-      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
-      store i16 42, i16* %1, align 2
-      %call = call i32 @foo.addToBar(%foo* %0, %foo.addToBar* %foo.addToBar_instance)
+      %call = call i32 @foo.addToBar(%foo* %0, i16 42)
       ret void
     }
 
-    define i32 @foo.addToBar(%foo* %0, %foo.addToBar* %1) {
+    define i32 @foo.addToBar(%foo* %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %in = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 0
-      %addToBar = alloca i32, align 4
-      store i32 0, i32* %addToBar, align 4
+      %foo.addToBar = alloca i32, align 4
+      %in = alloca i16, align 2
+      store i16 %1, i16* %in, align 2
+      store i32 0, i32* %foo.addToBar, align 4
       %load_in = load i16, i16* %in, align 2
       %2 = sext i16 %load_in to i32
       %load_bar = load i32, i32* %bar, align 4
       %tmpVar = add i32 %2, %load_bar
       store i32 %tmpVar, i32* %bar, align 4
       %load_bar1 = load i32, i32* %bar, align 4
-      store i32 %load_bar1, i32* %addToBar, align 4
-      %foo.addToBar_ret = load i32, i32* %addToBar, align 4
+      store i32 %load_bar1, i32* %foo.addToBar, align 4
+      %foo.addToBar_ret = load i32, i32* %foo.addToBar, align 4
       ret i32 %foo.addToBar_ret
     }
 
@@ -1024,10 +1145,7 @@ fn fb_method_called_locally() {
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       store i32 0, i32* %x, align 4
       call void @__init_foo(%foo* %fb)
-      %foo.addToBar_instance = alloca %foo.addToBar, align 8
-      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
-      store i16 3, i16* %1, align 2
-      %call = call i32 @foo.addToBar(%foo* %fb, %foo.addToBar* %foo.addToBar_instance)
+      %call = call i32 @foo.addToBar(%foo* %fb, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }
@@ -1101,36 +1219,33 @@ fn fb_local_method_var_shadows_parent_var() {
     source_filename = "<internal>"
 
     %foo = type { i32 }
-    %foo.addToBar = type { i16, i32 }
 
     @__foo__init = unnamed_addr constant %foo { i32 42 }
 
     define void @foo(%foo* %0) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %foo.addToBar_instance = alloca %foo.addToBar, align 8
-      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
-      store i16 42, i16* %1, align 2
-      %call = call i32 @foo.addToBar(%foo* %0, %foo.addToBar* %foo.addToBar_instance)
+      %call = call i32 @foo.addToBar(%foo* %0, i16 42)
       ret void
     }
 
-    define i32 @foo.addToBar(%foo* %0, %foo.addToBar* %1) {
+    define i32 @foo.addToBar(%foo* %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %in = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 0
-      %bar1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 1
-      %addToBar = alloca i32, align 4
+      %foo.addToBar = alloca i32, align 4
+      %in = alloca i16, align 2
+      store i16 %1, i16* %in, align 2
+      %bar1 = alloca i32, align 4
       store i32 69, i32* %bar1, align 4
-      store i32 0, i32* %addToBar, align 4
+      store i32 0, i32* %foo.addToBar, align 4
       %load_in = load i16, i16* %in, align 2
       %2 = sext i16 %load_in to i32
       %load_bar = load i32, i32* %bar1, align 4
       %tmpVar = add i32 %2, %load_bar
       store i32 %tmpVar, i32* %bar1, align 4
       %load_bar2 = load i32, i32* %bar1, align 4
-      store i32 %load_bar2, i32* %addToBar, align 4
-      %foo.addToBar_ret = load i32, i32* %addToBar, align 4
+      store i32 %load_bar2, i32* %foo.addToBar, align 4
+      %foo.addToBar_ret = load i32, i32* %foo.addToBar, align 4
       ret i32 %foo.addToBar_ret
     }
 
@@ -1142,10 +1257,7 @@ fn fb_local_method_var_shadows_parent_var() {
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       store i32 0, i32* %x, align 4
       call void @__init_foo(%foo* %fb)
-      %foo.addToBar_instance = alloca %foo.addToBar, align 8
-      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
-      store i16 3, i16* %1, align 2
-      %call = call i32 @foo.addToBar(%foo* %fb, %foo.addToBar* %foo.addToBar_instance)
+      %call = call i32 @foo.addToBar(%foo* %fb, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }
@@ -1216,34 +1328,31 @@ fn prog_method_called_locally() {
     source_filename = "<internal>"
 
     %foo = type { i32 }
-    %foo.addToBar = type { i16 }
 
     @foo_instance = global %foo { i32 42 }
 
     define void @foo(%foo* %0) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %foo.addToBar_instance = alloca %foo.addToBar, align 8
-      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
-      store i16 42, i16* %1, align 2
-      %call = call i32 @foo.addToBar(%foo* %0, %foo.addToBar* %foo.addToBar_instance)
+      %call = call i32 @foo.addToBar(%foo* %0, i16 42)
       ret void
     }
 
-    define i32 @foo.addToBar(%foo* %0, %foo.addToBar* %1) {
+    define i32 @foo.addToBar(%foo* %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %in = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 0
-      %addToBar = alloca i32, align 4
-      store i32 0, i32* %addToBar, align 4
+      %foo.addToBar = alloca i32, align 4
+      %in = alloca i16, align 2
+      store i16 %1, i16* %in, align 2
+      store i32 0, i32* %foo.addToBar, align 4
       %load_in = load i16, i16* %in, align 2
       %2 = sext i16 %load_in to i32
       %load_bar = load i32, i32* %bar, align 4
       %tmpVar = add i32 %2, %load_bar
       store i32 %tmpVar, i32* %bar, align 4
       %load_bar1 = load i32, i32* %bar, align 4
-      store i32 %load_bar1, i32* %addToBar, align 4
-      %foo.addToBar_ret = load i32, i32* %addToBar, align 4
+      store i32 %load_bar1, i32* %foo.addToBar, align 4
+      %foo.addToBar_ret = load i32, i32* %foo.addToBar, align 4
       ret i32 %foo.addToBar_ret
     }
 
@@ -1251,10 +1360,7 @@ fn prog_method_called_locally() {
     entry:
       %x = alloca i32, align 4
       store i32 0, i32* %x, align 4
-      %foo.addToBar_instance = alloca %foo.addToBar, align 8
-      %0 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
-      store i16 3, i16* %0, align 2
-      %call = call i32 @foo.addToBar(%foo* @foo_instance, %foo.addToBar* %foo.addToBar_instance)
+      %call = call i32 @foo.addToBar(%foo* @foo_instance, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }
@@ -1328,36 +1434,33 @@ fn prog_local_method_var_shadows_parent_var() {
     source_filename = "<internal>"
 
     %foo = type { i32 }
-    %foo.addToBar = type { i16, i32 }
 
     @foo_instance = global %foo { i32 42 }
 
     define void @foo(%foo* %0) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %foo.addToBar_instance = alloca %foo.addToBar, align 8
-      %1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
-      store i16 42, i16* %1, align 2
-      %call = call i32 @foo.addToBar(%foo* %0, %foo.addToBar* %foo.addToBar_instance)
+      %call = call i32 @foo.addToBar(%foo* %0, i16 42)
       ret void
     }
 
-    define i32 @foo.addToBar(%foo* %0, %foo.addToBar* %1) {
+    define i32 @foo.addToBar(%foo* %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %in = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 0
-      %bar1 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %1, i32 0, i32 1
-      %addToBar = alloca i32, align 4
+      %foo.addToBar = alloca i32, align 4
+      %in = alloca i16, align 2
+      store i16 %1, i16* %in, align 2
+      %bar1 = alloca i32, align 4
       store i32 69, i32* %bar1, align 4
-      store i32 0, i32* %addToBar, align 4
+      store i32 0, i32* %foo.addToBar, align 4
       %load_in = load i16, i16* %in, align 2
       %2 = sext i16 %load_in to i32
       %load_bar = load i32, i32* %bar1, align 4
       %tmpVar = add i32 %2, %load_bar
       store i32 %tmpVar, i32* %bar1, align 4
       %load_bar2 = load i32, i32* %bar1, align 4
-      store i32 %load_bar2, i32* %addToBar, align 4
-      %foo.addToBar_ret = load i32, i32* %addToBar, align 4
+      store i32 %load_bar2, i32* %foo.addToBar, align 4
+      %foo.addToBar_ret = load i32, i32* %foo.addToBar, align 4
       ret i32 %foo.addToBar_ret
     }
 
@@ -1365,10 +1468,7 @@ fn prog_local_method_var_shadows_parent_var() {
     entry:
       %x = alloca i32, align 4
       store i32 0, i32* %x, align 4
-      %foo.addToBar_instance = alloca %foo.addToBar, align 8
-      %0 = getelementptr inbounds %foo.addToBar, %foo.addToBar* %foo.addToBar_instance, i32 0, i32 0
-      store i16 3, i16* %0, align 2
-      %call = call i32 @foo.addToBar(%foo* @foo_instance, %foo.addToBar* %foo.addToBar_instance)
+      %call = call i32 @foo.addToBar(%foo* @foo_instance, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }
@@ -4115,4 +4215,54 @@ fn function_with_array_string_return() {
 
     insta::assert_snapshot!(res, @r###"
         "###);
+}
+
+#[test]
+fn method_with_aggregate_return_type() {
+    let res = codegen(
+        "
+        FUNCTION_BLOCK fb_with_method
+        VAR_TEMP
+            ret : STRING;
+        END_VAR
+            METHOD method_with_aggregagte_return: STRING
+            VAR_INPUT
+                in: STRING;
+            END_VAR
+                method_with_aggregagte_return := in;
+            END_METHOD
+
+            ret := method_with_aggregagte_return('Hello');
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn methods_var_output() {
+    let res = codegen(
+        "
+        FUNCTION_BLOCK foo
+        METHOD baz
+        VAR_OUTPUT 
+            out : STRING;
+        END_VAR
+            out := 'hello';
+        END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+        VAR 
+            s: STRING;
+            fb: foo;
+        END_VAR
+            fb.baz(out => s);
+            fb.baz(s);
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(res);
 }

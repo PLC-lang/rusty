@@ -169,7 +169,7 @@ fn create_init_unit(
         vec![VariableBlock::default().with_block_type(VariableBlockType::InOut).with_variables(vec![
             Variable {
                 name: "self".into(),
-                data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                data_type_declaration: DataTypeDeclaration::Reference {
                     referenced_type: container_name.to_string(),
                     location: location.clone(),
                 },

@@ -205,8 +205,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         new_llvm_index: &mut LlvmTypedIndex<'ink>,
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
         let declared_parameters = self.index.get_declared_parameters(implementation.get_call_name());
-        let parameters = self
-            .collect_parameters_for_implementation(implementation)?
+        let mut parameters = self.collect_parameters_for_implementation(implementation)?;
+        // if we are handling a method, take the first parameter as the instance
+        let instance = if implementation.is_method() { Some(parameters.remove(0)) } else { None };
+        let mut parameters = parameters
             .iter()
             .enumerate()
             .map(|(i, p)| {
@@ -234,7 +236,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     }
                     _ => {
                         dti.map(|it| {
-                            if !implementation.get_implementation_type().is_function_or_init() {
+                            if !implementation.get_implementation_type().is_function_method_or_init() {
                                 return *p;
                             }
                             // for aggregate function parameters we will generate a pointer instead of the value type.
@@ -257,6 +259,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 }
             })
             .collect::<Vec<BasicMetadataTypeEnum>>();
+        // insert the instance as the first parameter
+        if let Some(instance) = instance {
+            parameters.insert(0, instance);
+        }
 
         let return_type = self
             .index
@@ -348,17 +354,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         implementation: &ImplementationIndexEntry,
     ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, Diagnostic> {
-        if !implementation.implementation_type.is_function_or_init() {
+        if !implementation.implementation_type.is_function_method_or_init() {
             let mut parameters = vec![];
-            if implementation.get_implementation_type() == &ImplementationType::Method {
-                let class_name =
-                    implementation.get_associated_class_name().expect("Method needs to have a class-name");
-                let instance_members_struct_type: StructType =
-                    self.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())?;
-                parameters.push(
-                    instance_members_struct_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
-                );
-            }
             let instance_struct_type: StructType = self
                 .llvm_index
                 .get_associated_pou_type(implementation.get_type_name())
@@ -368,12 +365,24 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             Ok(parameters)
         } else {
             let declared_params = self.index.get_declared_parameters(implementation.get_call_name());
-
             //find the function's parameters
-            declared_params
+            let mut parameters = declared_params
                 .iter()
                 .map(|v| self.llvm_index.get_associated_type(v.get_type_name()).map(Into::into))
-                .collect::<Result<Vec<BasicMetadataTypeEnum>, _>>()
+                .collect::<Result<Vec<BasicMetadataTypeEnum>, _>>()?;
+
+            if implementation.get_implementation_type() == &ImplementationType::Method {
+                let class_name =
+                    implementation.get_associated_class_name().expect("Method needs to have a class-name");
+                let instance_members_struct_type: StructType =
+                    self.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())?;
+                parameters.insert(
+                    0,
+                    instance_members_struct_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
+                );
+            }
+
+            Ok(parameters)
         }
     }
 
@@ -447,7 +456,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // generate local variables
-        if implementation.pou_type.is_function_or_init() {
+        if implementation.pou_type.is_function_method_or_init() {
             self.generate_local_function_arguments_accessors(
                 &mut local_index,
                 &implementation.type_name,
@@ -551,6 +560,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         // eagerly handle the return-variable
         let mut params_iter = function_context.function.get_param_iter();
+        // if we are in a method, skip the first parameter (the instance)
+        if matches!(function_context.linking_context.get_implementation_type(), ImplementationType::Method) {
+            params_iter.next();
+        }
         if let Some(ret_v) = members.iter().find(|it| it.is_return()) {
             let return_type = index.get_associated_type(ret_v.get_type_name())?;
             let return_variable = self.llvm.create_local_variable(type_name, &return_type);

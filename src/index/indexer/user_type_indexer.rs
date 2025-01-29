@@ -115,11 +115,11 @@ impl UserTypeIndexer<'_, '_> {
         let (vla_arr_type_declaration, dim_arr_type_declaration) =
             if self.index.get_effective_type_by_name(&dummy_array_name).is_ok() {
                 (
-                    DataTypeDeclaration::DataTypeReference {
+                    DataTypeDeclaration::Reference {
                         referenced_type: member_array_name,
                         location: SourceLocation::internal(),
                     },
-                    DataTypeDeclaration::DataTypeReference {
+                    DataTypeDeclaration::Reference {
                         referenced_type: member_dimensions_name,
                         location: SourceLocation::internal(),
                     },
@@ -146,10 +146,10 @@ impl UserTypeIndexer<'_, '_> {
 
                 // define internal vla members
                 (
-                    DataTypeDeclaration::DataTypeDefinition {
+                    DataTypeDeclaration::Definition {
                         data_type: DataType::PointerType {
                             name: Some(member_array_name),
-                            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: Box::new(DataTypeDeclaration::Reference {
                                 referenced_type: dummy_array_name,
                                 location: SourceLocation::internal(),
                             }),
@@ -158,7 +158,7 @@ impl UserTypeIndexer<'_, '_> {
                         location: SourceLocation::internal(),
                         scope: None,
                     },
-                    DataTypeDeclaration::DataTypeDefinition {
+                    DataTypeDeclaration::Definition {
                         data_type: DataType::ArrayType {
                             name: Some(member_dimensions_name),
                             bounds: AstNode::new(
@@ -184,7 +184,7 @@ impl UserTypeIndexer<'_, '_> {
                                 0,
                                 SourceLocation::internal(),
                             ),
-                            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: Box::new(DataTypeDeclaration::Reference {
                                 referenced_type: DINT_TYPE.to_string(),
                                 location: SourceLocation::internal(),
                             }),

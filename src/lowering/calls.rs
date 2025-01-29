@@ -1,6 +1,49 @@
 //! Changes the calls to aggregate return types
 //! to make them VAR_IN_OUT calls, allowing them
 //! to be called from C_APIs and simplifying code generation
+//!
+//! As a first step, the POU signature is changed. E.g. a function
+//! returning a `STRING` will now return `__VOID` with the return variable
+//! being moved into a `VAR_IN_OUT` block:
+//! ```iec61131
+//!     // user code
+//!     FUNCTION foo : STRING
+//!     VAR_INPUT
+//!         a: DINT;
+//!     END_VAR
+//!     END_FUNCTION        
+//! ```
+//! ```iec61131
+//!     // lowered equivalent
+//!     FUNCTION foo
+//!     VAR_IN_OUT
+//!         foo: STRING;
+//!     END_VAR
+//!     VAR_INPUT
+//!         a: DINT;
+//!     END_VAR
+//!     END_FUNCTION        
+//! ```
+//!
+//! Next, every call-statement to that POU has it's arguments updated, with a temporary
+//! variable being allocated to hold the value.
+//! Locally allocated variables follow a naming-scheme of `__<function_name><number>`,
+//! <number> being a value from an atomically incremented counter to avoid naming conflicts
+//! (the same approach is used for allocated variables in LLVM-IR).
+//! ```iec61131
+//!     // user code. Let `s` be a variable of type `STRING`
+//!     // ...
+//!     s := foo(42);
+//!     // ...
+//! ```
+//! ```iec61131
+//!     // lowered equivalent
+//!     // ...
+//!     alloca __foo1 : STRING;
+//!     foo(__foo1, 42);
+//!     s := __foo1;
+//!     // ...
+//! ```
 
 use std::{borrow::BorrowMut, sync::atomic::AtomicI32};
 
@@ -145,37 +188,43 @@ impl AstVisitorMut for AggregateTypeLowerer {
             return;
         }
         let index = self.index.as_ref().expect("Can't get here without an index");
-        //Check if pou has a return type
-        if let Some(return_var) = pou.return_type.take() {
-            let name = return_var.get_name().expect("We should have names at this point");
-            let location = return_var.get_location();
+
+        // Check if POU has a return type
+        let Some(return_type_name) = pou
+            .return_type
+            .as_ref()
+            .map(|it| it.get_name().expect("We should have names at this point").to_string())
+        else {
+            return;
+        };
+
+        // If the return type is aggregate, remove it from the signature and add a matching variable
+        // in a VAR_IN_OUT block
+        if index.get_effective_type_or_void_by_name(&return_type_name).is_aggregate_type() {
+            let original_return = pou.return_type.take().unwrap();
+            let location = original_return.get_location();
             //Create a new return type for the pou
             pou.return_type.replace(plc_ast::ast::DataTypeDeclaration::Aggregate {
-                referenced_type: name.to_string(),
+                referenced_type: return_type_name,
                 location,
             });
-            let data_type = index.get_effective_type_or_void_by_name(name);
-            if data_type.is_aggregate_type() {
-                //Insert a new in out var to the pou variable block declarations
-                let block = VariableBlock {
-                    access: AccessModifier::Public,
-                    constant: false,
-                    retain: false,
-                    variables: vec![Variable {
-                        name: pou.get_return_name().to_string(),
-                        data_type_declaration: return_var,
-                        initializer: None,
-                        address: None,
-                        location: pou.name_location.clone(),
-                    }],
-                    variable_block_type: VariableBlockType::InOut,
-                    linkage: LinkageType::Internal,
-                    location: SourceLocation::internal(),
-                };
-                pou.variable_blocks.insert(0, block)
-            } else {
-                pou.return_type.replace(return_var);
-            }
+            //Insert a new in out var to the pou variable block declarations
+            let block = VariableBlock {
+                access: AccessModifier::Public,
+                constant: false,
+                retain: false,
+                variables: vec![Variable {
+                    name: pou.get_return_name().to_string(),
+                    data_type_declaration: original_return,
+                    initializer: None,
+                    address: None,
+                    location: pou.name_location.clone(),
+                }],
+                variable_block_type: VariableBlockType::InOut,
+                linkage: LinkageType::Internal,
+                location: SourceLocation::internal(),
+            };
+            pou.variable_blocks.insert(0, block)
         }
     }
 
@@ -261,7 +310,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 None,
                 original_location.clone(),
             );
-            //If the function has an implicit call (foo(x := 1)), we need to add an assignment to the reference
+            //If the function has an formal arguments (foo(x := 1)), we need to add an assignment to the reference
             let reference = if stmt
                 .parameters
                 .as_ref()
@@ -449,29 +498,6 @@ mod tests {
         assert_debug_snapshot!(lowerer.index.unwrap().find_pou_type("fb.complexMethod").unwrap());
     }
 
-    // Are we in a call?
-    // foo(x:= baz()); callStatement -> Reference baz_1
-    // foo(x:= baz()); callStatement -> Reference baz_2
-    // foo(x:= baz()); callStatement -> Reference baz_3
-    // foo(x:= baz()); callStatement -> Reference
-    // foo(x:= baz()); callStatement -> Reference
-    // foo(x:= baz()); callStatement -> Reference
-    // foo(x:= baz()); callStatement -> Reference
-    // alloca temp;
-    // baz(temp);
-    // foo(x := temp)
-    //
-    // call -> alloc, call, ref
-    //
-    // Insert alloca _before_ the call statement
-    // x := foo();
-    // alloca temp
-    // foo(temp);
-    // x := temp;
-    //Check right, if a function call with aggregate, add allocation
-    //fix call
-    //assign to allocation
-    //
     #[test]
     fn simple_call_statement() {
         let id_provider = IdProvider::default();

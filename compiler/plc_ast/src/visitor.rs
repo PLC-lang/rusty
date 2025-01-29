@@ -738,7 +738,7 @@ impl Walker for DataTypeDeclaration {
     where
         V: AstVisitor,
     {
-        if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = self {
+        if let DataTypeDeclaration::Definition { data_type, .. } = self {
             visitor.visit_data_type(data_type);
         }
     }

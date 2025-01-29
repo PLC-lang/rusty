@@ -1578,7 +1578,7 @@ fn sized_string_as_function_return() {
         name: "foo".into(),
         poly_mode: None,
         kind: PouType::Function,
-        return_type: Some(DataTypeDeclaration::DataTypeDefinition {
+        return_type: Some(DataTypeDeclaration::Definition {
             data_type: DataType::StringType {
                 name: None,
                 is_wide: false,
@@ -1618,9 +1618,9 @@ fn array_type_as_function_return() {
         name: "foo".into(),
         poly_mode: None,
         kind: PouType::Function,
-        return_type: Some(DataTypeDeclaration::DataTypeDefinition {
+        return_type: Some(DataTypeDeclaration::Definition {
             data_type: DataType::ArrayType {
-                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: Box::new(DataTypeDeclaration::Reference {
                     referenced_type: "INT".into(),
                     location: SourceLocation::internal(),
                 }),

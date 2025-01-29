@@ -192,7 +192,7 @@ fn varargs_parameters_can_be_parsed() {
     let expected = Pou {
         name: "foo".into(),
         kind: PouType::Function,
-        return_type: Some(DataTypeDeclaration::DataTypeReference {
+        return_type: Some(DataTypeDeclaration::Reference {
             referenced_type: "DINT".into(),
             location: SourceLocation::internal(),
         }),
@@ -206,7 +206,7 @@ fn varargs_parameters_can_be_parsed() {
             variables: vec![
                 Variable {
                     name: "args1".into(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+                    data_type_declaration: DataTypeDeclaration::Definition {
                         data_type: DataType::VarArgs { referenced_type: None, sized: false },
                         location: SourceLocation::internal(),
                         scope: Some("foo".into()),
@@ -217,9 +217,9 @@ fn varargs_parameters_can_be_parsed() {
                 },
                 Variable {
                     name: "args2".into(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+                    data_type_declaration: DataTypeDeclaration::Definition {
                         data_type: DataType::VarArgs {
-                            referenced_type: Some(Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: Some(Box::new(DataTypeDeclaration::Reference {
                                 referenced_type: "INT".into(),
                                 location: SourceLocation::internal(),
                             })),
@@ -264,7 +264,7 @@ fn sized_varargs_parameters_can_be_parsed() {
     let expected = Pou {
         name: "foo".into(),
         kind: PouType::Function,
-        return_type: Some(DataTypeDeclaration::DataTypeReference {
+        return_type: Some(DataTypeDeclaration::Reference {
             referenced_type: "DINT".into(),
             location: SourceLocation::internal(),
         }),
@@ -278,7 +278,7 @@ fn sized_varargs_parameters_can_be_parsed() {
             variables: vec![
                 Variable {
                     name: "args1".into(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+                    data_type_declaration: DataTypeDeclaration::Definition {
                         data_type: DataType::VarArgs { referenced_type: None, sized: true },
                         location: SourceLocation::internal(),
                         scope: Some("foo".into()),
@@ -289,9 +289,9 @@ fn sized_varargs_parameters_can_be_parsed() {
                 },
                 Variable {
                     name: "args2".into(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+                    data_type_declaration: DataTypeDeclaration::Definition {
                         data_type: DataType::VarArgs {
-                            referenced_type: Some(Box::new(DataTypeDeclaration::DataTypeReference {
+                            referenced_type: Some(Box::new(DataTypeDeclaration::Reference {
                                 referenced_type: "INT".into(),
                                 location: SourceLocation::internal(),
                             })),

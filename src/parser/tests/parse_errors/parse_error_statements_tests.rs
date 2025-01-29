@@ -205,7 +205,7 @@ fn invalid_variable_name_error_recovery() {
                 location: SourceLocation::internal(),
                 variables: vec![Variable {
                     name: "c".into(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                    data_type_declaration: DataTypeDeclaration::Reference {
                         referenced_type: "INT".into(),
                         location: SourceLocation::internal(),
                     },
@@ -1124,7 +1124,7 @@ fn pointer_type_without_to_test() {
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
             name: Some("SamplePointer".into()),
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+            referenced_type: Box::new(DataTypeDeclaration::Reference {
                 referenced_type: "INT".to_string(),
                 location: SourceLocation::internal(),
             }),
@@ -1151,7 +1151,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
             name: Some("SamplePointer".into()),
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+            referenced_type: Box::new(DataTypeDeclaration::Reference {
                 referenced_type: "tu".to_string(),
                 location: SourceLocation::internal(),
             }),
