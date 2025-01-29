@@ -289,7 +289,7 @@ mod tests {
     use crate::{
         lowering::property::PropertyLowerer,
         resolver::AstAnnotations,
-        test_utils::tests::{annotate_with_ids, index_unit_with_id, index_with_ids, parse},
+        test_utils::tests::{annotate_with_ids, index_unit_with_id, parse},
     };
 
     #[test]

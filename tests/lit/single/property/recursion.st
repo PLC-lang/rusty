@@ -1,5 +1,5 @@
 // Ignored for now
-// RRRRRRRRRRRRRRRRRRRRRRUN: (%COMPILE %s && %RUN) | %CHECK %s
+// NUR: (%COMPILE %s && %RUN) | %CHECK %s
 
 FUNCTION_BLOCK A
     PROPERTY foo : DINT
