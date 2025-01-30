@@ -141,7 +141,7 @@ impl BuildPipeline<PathBuf> {
         T: AsRef<str> + AsRef<OsStr> + std::fmt::Debug,
     {
         let compile_parameters = CompileParameters::parse(args)?;
-        compile_parameters.try_into()
+        BuildPipeline::try_from(compile_parameters)
     }
 }
 
@@ -258,7 +258,10 @@ impl<T: SourceContainer> BuildPipeline<T> {
             InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider());
         self.register_mut_participant(Box::new(init_participant));
 
-        self.register_mut_participant(Box::new(ParticipantValidator::new())); // XXX: I think this has to run first, because the PropertyLowerer will drain the `properties` field resulting in no validation
+        self.register_mut_participant(Box::new(ParticipantValidator::new(
+            &self.context,
+            self.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default(),
+        ))); // XXX: I think this has to run first, because the PropertyLowerer will drain the `properties` field resulting in no validation
         self.register_mut_participant(Box::new(PropertyLowerer::new(self.context.provider())));
 
         let aggregate_return_participant = AggregateTypeLowerer::new(self.context.provider());

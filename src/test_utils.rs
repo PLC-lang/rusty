@@ -25,7 +25,7 @@ pub mod tests {
             StringLiterals, TypeAnnotator,
         },
         typesystem::get_builtin_types,
-        DebugLevel, OnlineChange, Validator,
+        DebugLevel, ErrorFormat, OnlineChange, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -199,17 +199,23 @@ pub mod tests {
         (all_annotations, full_index, annotated_units)
     }
     pub fn temp_make_me_generic_but_for_now_validate_property(src: &str) -> String {
-        let mut reporter = Diagnostician::buffered();
-        reporter.register_file("<internal>".to_string(), src.to_string());
+        let mut context = GlobalContext::new();
+        context.with_error_fmt(plc_index::ErrorFormat::Null);
+        context.insert(&SourceCode::from(src), None).unwrap();
 
         let (unit, mut diagnostics) = parse(src);
 
-        let mut validator = ParticipantValidator::new();
+        let mut validator = ParticipantValidator::new(&context, ErrorFormat::None);
         validator.validate_properties(&unit.properties);
 
         diagnostics.extend(validator.diagnostics);
-        reporter.handle(&diagnostics);
-        reporter.buffer().unwrap_or_default()
+
+        let mut results = Vec::new();
+        for diagnostic in diagnostics {
+            results.push(context.handle_as_str(&diagnostic));
+        }
+
+        results.join("\n").to_string()
     }
 
     pub fn parse_and_validate_buffered(src: &str) -> String {

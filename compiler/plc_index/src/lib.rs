@@ -1,3 +1,4 @@
+use annotate_snippets::Renderer;
 use encoding_rs::Encoding;
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -5,7 +6,16 @@ use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
 use rustc_hash::FxHashMap;
 
-#[derive(Debug, Default)]
+// TODO: The clone is super expensive here, eventually we should have a inner type wrapped around Arc, e.g.
+//       `struct GlobalContext { inner: Arc<GlobalContextInner> }`
+// TODO: The following would be also nice, to have a cleaner API i.e. instead of working with different structs such
+//       as the index or the diagnostics one could instead ONLY use the `GlobalContext` with methods like
+//       `ctxt.{add,get}_diagnostics(...)` making the code perhaps a bit cleaner / reducing the # of arguments for
+//       some functions / methods?
+//       RefCells may or may not make sense here, because maybe we dont want to pass the GlobalContext as a mutable reference?
+//       -> diagnostics: RefCell<Diagnostics>, (private visibility)
+//       -> index: RefCell<Index>, (private visibility; `get_index(&self) -> &mut Index`?)
+#[derive(Debug, Default, Clone)]
 pub struct GlobalContext {
     /// HashMap containing all read, i.e. parsed, sources where the key represents
     /// the relative file path and the value some [`SourceCode`]
@@ -13,20 +23,28 @@ pub struct GlobalContext {
 
     /// [`IdProvider`] used during the parsing session
     provider: IdProvider,
-    // TODO: The following would be also nice, to have a cleaner API i.e. instead of working with different structs such
-    //       as the index or the diagnostics one could instead ONLY use the `GlobalContext` with methods like
-    //       `ctxt.{add,get}_diagnostics(...)` making the code perhaps a bit cleaner / reducing the # of arguments for
-    //       some functions / methods?
-    //       RefCells may or may not make sense here, because maybe we dont want to pass the GlobalContext as a mutable reference?
-    //       -> diagnostics: RefCell<Diagnostics>, (private visibility)
-    //       -> index: RefCell<Index>, (private visibility; `get_index(&self) -> &mut Index`?)
+    error_fmt: ErrorFormat,
+}
+
+// XXX: Temporary
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub enum ErrorFormat {
+    #[default]
+    Rich,
+    Clang,
+    Null,
 }
 
 impl GlobalContext {
-    pub fn new() -> Self {
-        Self { sources: FxHashMap::default(), provider: IdProvider::default() }
+    pub fn new() -> GlobalContext {
+        GlobalContext::default()
     }
 
+    pub fn with_error_fmt(&mut self, error_fmt: ErrorFormat) {
+        self.error_fmt = error_fmt;
+    }
+
+    // TODO: Remove Diagnostic dependency here, instead return a plc_index specific error enum
     /// Inserts a single [`SourceCode`] to the internal source map
     pub fn insert<S>(&mut self, container: &S, encoding: Option<&'static Encoding>) -> Result<(), Diagnostic>
     where
@@ -90,24 +108,96 @@ impl GlobalContext {
         &code.source[span]
     }
 
-    // // TODO: Importing `plc_project` would make life easier here and allow for the code below, but we get a circular dep
-    // pub fn project<S: SourceContainer>(project: &Project<S>, encoding: Option<&'static Encoding>) -> Self {
-    //     let mut ctxt = Self::new();
-    //
-    //     for source in project.get_sources() {
-    //         ctxt.insert(source, encoding);
-    //     }
-    //
-    //     for source in project.get_includes() {
-    //         ctxt.insert(source, encoding);
-    //     }
-    //
-    //     for source in project.get_libraries().iter().flat_map(LibraryInformation::get_includes) {
-    //         ctxt.insert(source, encoding);
-    //     }
-    //
-    //     ctxt
-    // }
+    // TODO: This is a proof-of-concept version how we could use the GlobalContext to handle
+    // diagnostics across the whole compiler pipeline. This will currently **only** display the diagnostics
+    // defined in the `ParticipantValidator`. Ideally we can use this to handle all diagnostics in the future.
+    // This method currently only mimics the `CodeSpanDiagnosticReporter` and its codespan style
+    // `codespan_reporting::term::DisplayStyle::Rich`, meaning other reporters such as the `ClangReporter` are
+    // not working as of now.
+    fn handle_inner(&self, diagnostic: &Diagnostic) -> String {
+        // NOTE: We need to properly error handle these unwraps, for now they should never panic because we
+        //       (assume) we always have a valid file name and location
+        let name = diagnostic.get_location().get_file_name().unwrap_or("<internal>");
+        let Some(code) = &self.sources.get(name) else { return String::new() };
+        let Some(location) = &diagnostic.get_location().get_span().to_range() else { return String::new() };
+        let secondary_locations = diagnostic
+            .get_secondary_locations()
+            .unwrap_or_default()
+            .iter()
+            .flat_map(|it| it.get_span().to_range())
+            .map(|it| annotate_snippets::Level::Error.span(it).label("see also"))
+            .collect::<Vec<_>>();
+
+        let message = annotate_snippets::Level::Error.title(diagnostic.get_message()).snippet(
+            annotate_snippets::Snippet::source(&code.source)
+                .line_start(diagnostic.get_location().get_line())
+                .origin(name)
+                .fold(true)
+                .annotation(
+                    annotate_snippets::Level::Error.span(location.clone()).label(diagnostic.get_message()),
+                )
+                .annotations(secondary_locations),
+        );
+
+        // XXX: Temporary
+        match self.error_fmt {
+            ErrorFormat::Clang => self.clang_format(diagnostic),
+            ErrorFormat::Rich => {
+                let renderer = annotate_snippets::Renderer::styled();
+                let res = renderer.render(message);
+                res.to_string()
+            }
+            ErrorFormat::Null => {
+                let renderer = annotate_snippets::Renderer::plain();
+                let res = renderer.render(message);
+                res.to_string()
+            }
+        }
+    }
+
+    pub fn handle(&self, diagnostic: &Diagnostic) {
+        eprintln!("{}", self.handle_inner(diagnostic))
+    }
+
+    pub fn handle_as_str(&mut self, diagnostic: &Diagnostic) -> String {
+        self.handle_inner(diagnostic)
+    }
+
+    // XXX: Temporary solution
+    fn clang_format(&self, diagnostic: &Diagnostic) -> String {
+        let span = diagnostic.get_location().get_span().to_range().unwrap();
+        if span.start == span.end {
+            format!(
+                "{fname}:{line}:{column}: error[{code}]: {message}",
+                fname = diagnostic.get_location().get_file_name().unwrap(),
+                line = diagnostic.get_location().get_line(),
+                column = diagnostic.get_location().get_column(),
+                code = diagnostic.get_error_code(),
+                message = diagnostic.get_message()
+            )
+        } else {
+            format!(
+                "{fname}:{sline}:{scolumn}:{{{sline}:{scolumn}-{eline}:{ecolumn}}}: error[{code}]: {message}",
+                fname = diagnostic.get_location().get_file_name().unwrap(),
+                sline = diagnostic.get_location().get_line(),
+                scolumn = diagnostic.get_location().get_column(),
+                eline = diagnostic.get_location().get_line_end(),
+                ecolumn = diagnostic.get_location().get_column_end(),
+                code = diagnostic.get_error_code(),
+                message = diagnostic.get_message(),
+            )
+        }
+    }
+}
+
+trait _ClangFormat {
+    fn clang() -> Renderer;
+}
+
+impl _ClangFormat for Renderer {
+    fn clang() -> Renderer {
+        todo!()
+    }
 }
 
 #[cfg(test)]
