@@ -28,8 +28,9 @@ impl PropertyLowerer {
         PropertyLowerer { id_provider, annotations: None, context: None }
     }
 }
+
 impl PropertyLowerer {
-    pub fn lower_identifiers_to_calls(&mut self, unit: &mut CompilationUnit) {
+    pub fn lower_references_to_calls(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
     }
 }
@@ -82,6 +83,7 @@ impl AstVisitorMut for PropertyLowerer {
 
                 let _ = std::mem::replace(node, call);
             }
+
             _ => (),
         }
     }
@@ -341,7 +343,7 @@ mod tests {
 
         // Lower
         lowerer.annotations = Some(annotations);
-        lowerer.lower_identifiers_to_calls(&mut unit);
+        lowerer.lower_references_to_calls(&mut unit);
 
         insta::assert_debug_snapshot!(unit.implementations, @r#"
         [
@@ -710,7 +712,7 @@ mod tests {
 
         // Lower
         lowerer.annotations = Some(annotations);
-        lowerer.lower_identifiers_to_calls(&mut unit);
+        lowerer.lower_references_to_calls(&mut unit);
 
         insta::assert_debug_snapshot!(unit.implementations, @r#"
         [

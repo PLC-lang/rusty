@@ -20,7 +20,7 @@ impl PipelineParticipantMut for PropertyLowerer {
         self.annotations = Some(annotations);
 
         for AnnotatedUnit { unit, .. } in &mut units.iter_mut() {
-            self.lower_identifiers_to_calls(unit);
+            self.lower_references_to_calls(unit);
         }
 
         let project = AnnotatedProject { units, index, annotations: self.annotations.take().unwrap() };
