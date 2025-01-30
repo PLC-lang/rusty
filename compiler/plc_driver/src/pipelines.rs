@@ -252,8 +252,8 @@ impl<T: SourceContainer> BuildPipeline<T> {
         let participants: Vec<Box<dyn PipelineParticipant>> = vec![];
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
             Box::new(InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider())),
+            Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
-            Box::new(AggregateTypeLowerer::new(self.context.provider()))
         ];
 
         for participant in participants {
@@ -294,6 +294,8 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         //TODO : this is post lowering, we might want to control this
         if let Some(CompileParameters { output_ast: true, .. }) = self.compile_parameters {
             println!("{:#?}", annotated_project.units);
+            println!("{:#?}", annotated_project.index);
+            println!("{:#?}", annotated_project.annotations);
             return Ok(());
         }
 

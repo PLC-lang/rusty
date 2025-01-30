@@ -65,6 +65,8 @@ impl InitVisitor {
     fn update_initializer(&mut self, variable: &mut plc_ast::ast::Variable) {
         // flat references to stateful pou-local variables need to have a qualifier added, so they can be resolved in the init functions
         let scope = self.ctxt.get_scope().as_ref().map(|it| it.as_str()).unwrap_or(GLOBAL_SCOPE);
+        // steal the original initializer 
+        let initializer = std::mem::take(&mut variable.initializer);
         let needs_qualifier = |flat_ref| {
             let rhs = self.index.find_member(scope, flat_ref);
             let lhs = self.index.find_member(scope, variable.get_name());
@@ -93,11 +95,13 @@ impl InitVisitor {
                     })
         };
 
-        if let Some(initializer) = variable.initializer.as_ref() {
+
+        if let Some(initializer) = initializer {
             let type_name =
                 variable.data_type_declaration.get_name().expect("Must have a type at this point");
             let data_type = self.index.get_effective_type_or_void_by_name(type_name).get_type_information();
             if !data_type.is_pointer() {
+                variable.initializer = Some(initializer);
                 return;
             }
 
@@ -134,7 +138,11 @@ impl InitVisitor {
                             })
                         })
                     }),
-                _ => return,
+                _ => {
+                    // nothing to do, add back the original initializer
+                    variable.initializer = Some(initializer);
+                    return
+                },
             };
 
             self.unresolved_initializers.insert_initializer(
