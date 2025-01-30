@@ -1,0 +1,58 @@
+---
+source: src/lowering/calls.rs
+expression: "lowerer.index.as_ref().unwrap().find_pou_type(\"foo\").unwrap()"
+---
+DataType {
+    name: "foo",
+    initial_value: None,
+    information: Struct {
+        name: "foo",
+        members: [
+            VariableIndexEntry {
+                name: "foo",
+                qualified_name: "foo.foo",
+                initial_value: None,
+                argument_type: ByRef(
+                    InOut,
+                ),
+                is_constant: false,
+                is_var_external: false,
+                data_type_name: "__auto_pointer_to___foo_return",
+                location_in_parent: 0,
+                linkage: Internal,
+                binding: None,
+                source_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 1,
+                            column: 17,
+                            offset: 18,
+                        }..TextLocation {
+                            line: 1,
+                            column: 20,
+                            offset: 21,
+                        },
+                    ),
+                },
+                varargs: None,
+            },
+        ],
+        source: Pou(
+            Function,
+        ),
+    },
+    nature: Any,
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 1,
+                column: 17,
+                offset: 18,
+            }..TextLocation {
+                line: 1,
+                column: 20,
+                offset: 21,
+            },
+        ),
+    },
+}

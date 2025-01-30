@@ -1,0 +1,10 @@
+---
+source: src/resolver/tests/resolve_generic_calls.rs
+expression: annotations.get(operator).unwrap()
+---
+Function {
+    return_type: "__TO_STRING__WSTRING_return",
+    qualified_name: "TO_STRING__WSTRING",
+    generic_name: None,
+    call_name: None,
+}
