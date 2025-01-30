@@ -88,16 +88,8 @@ impl InheritanceLowerer {
         let Some(ReferenceExpr { base, access }) = try_from_mut!(node, ReferenceExpr) else {
             return node;
         };
-
-        let access = match access {
-            ReferenceAccess::Member(ast_node)
-            | ReferenceAccess::Index(ast_node)
-            | ReferenceAccess::Cast(ast_node) => self.update_inheritance_chain(*std::mem::take(ast_node)),
-            ReferenceAccess::Deref | ReferenceAccess::Address => {
-                return node;
-            }
-        };
-
+        
+        
         let base = std::mem::take(base);
         let (base, ty) = if let Some(base) = base {
             let ty = annotations.get_type(&*base, index);
@@ -107,7 +99,26 @@ impl InheritanceLowerer {
             (base, self.ctx.pou.as_ref().and_then(|it| index.get_type(&it).ok()))
         };
 
-        let qualified_name = annotations.get_qualified_name(&access).expect("QualifiedName"); // TODO: error handling/early exit
+        let access = match access {
+            ReferenceAccess::Member(ast_node)
+            | ReferenceAccess::Index(ast_node)
+            | ReferenceAccess::Cast(ast_node) => self.update_inheritance_chain(*std::mem::take(ast_node)),
+            ReferenceAccess::Deref => {
+                let base = *base.expect("Deref must have base");
+                let location = base.get_location();
+                return AstFactory::create_deref_reference(base, self.ctx.provider().next_id(), location);
+            }
+            ReferenceAccess::Address => {
+                let base = *base.expect("Deref must have base");
+                let location = base.get_location();
+                return AstFactory::create_address_of_reference(base, self.ctx.provider().next_id(), location);
+            }
+        };
+
+        let Some(qualified_name) = annotations.get_qualified_name(&access) else {
+            // this is likely an index into an array/pointer dereference. just return as is
+            return access;
+        };
 
         let segment = qualified_name.split('.').next().expect("Must have a name");
 
@@ -435,7 +446,7 @@ mod tests {
         let src: SourceCode = r#"
             FUNCTION_BLOCK grandparent
             VAR
-                z : INT;
+                z : INT := 42;
             END_VAR
             END_FUNCTION_BLOCK
 
@@ -443,14 +454,15 @@ mod tests {
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK child EXTENDS parent
-                z := 42;
+                z := 420;
             END_FUNCTION_BLOCK
         "#
         .into();
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        // let unit = &project.units[0].get_unit();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit);
+        assert_debug_snapshot!(unit, @r#""#);
     }
 
     #[test]
@@ -650,20 +662,15 @@ mod tests {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "a",
-                                    },
-                                ),
-                                base: None,
+                            Identifier {
+                                name: "a",
                             },
                         ),
                         base: Some(
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "x",
+                                        name: "__BASE",
                                     },
                                 ),
                                 base: Some(
@@ -686,41 +693,18 @@ mod tests {
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "b",
-                                    },
-                                ),
-                                base: None,
+                            Identifier {
+                                name: "b",
                             },
                         ),
                         base: Some(
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "y",
+                                        name: "__BASE",
                                     },
                                 ),
-                                base: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__BASE",
-                                            },
-                                        ),
-                                        base: Some(
-                                            ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "__BASE",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                        ),
-                                    },
-                                ),
+                                base: None,
                             },
                         ),
                     },
@@ -776,7 +760,7 @@ mod tests {
                     }..TextLocation {
                         line: 24,
                         column: 33,
-                        offset: 868,
+                        offset: 938,
                     },
                 ),
             },
@@ -910,5 +894,525 @@ mod tests {
             access: None,
         }
         "#);
+    }
+
+
+    #[test]
+    fn test_array_of_objects() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK grandparent
+            VAR
+                y : ARRAY[0..5] OF INT;
+                a : INT;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK parent extends grandparent
+                VAR
+                    x : ARRAY[0..10] OF INT;
+                    b : INT;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK child EXTENDS parent
+                VAR
+                    z : ARRAY[0..10] OF INT;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+            VAR
+                arr: ARRAY[0..10] OF child;
+            END_VAR
+                arr[0].a := 10;
+                arr[0].y[0] := 20;
+                arr[1].b := 30;
+                arr[1].x[1] := 40;
+                arr[2].z[2] := 50;
+            END_FUNCTION
+            "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().implementations[3];
+        assert_debug_snapshot!(unit, @r#"
+        Implementation {
+            name: "main",
+            type_name: "main",
+            linkage: Internal,
+            pou_type: Function,
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__BASE",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    LiteralInteger {
+                                                        value: 0,
+                                                    },
+                                                ),
+                                                base: Some(
+                                                    ReferenceExpr {
+                                                        kind: Member(
+                                                            Identifier {
+                                                                name: "arr",
+                                                            },
+                                                        ),
+                                                        base: None,
+                                                    },
+                                                ),
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 10,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            LiteralInteger {
+                                value: 0,
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "y",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__BASE",
+                                                    },
+                                                ),
+                                                base: Some(
+                                                    ReferenceExpr {
+                                                        kind: Member(
+                                                            LiteralInteger {
+                                                                value: 0,
+                                                            },
+                                                        ),
+                                                        base: Some(
+                                                            ReferenceExpr {
+                                                                kind: Member(
+                                                                    Identifier {
+                                                                        name: "arr",
+                                                                    },
+                                                                ),
+                                                                base: None,
+                                                            },
+                                                        ),
+                                                    },
+                                                ),
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 20,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "b",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__BASE",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            LiteralInteger {
+                                                value: 1,
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "arr",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 30,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            LiteralInteger {
+                                value: 1,
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "x",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    LiteralInteger {
+                                                        value: 1,
+                                                    },
+                                                ),
+                                                base: Some(
+                                                    ReferenceExpr {
+                                                        kind: Member(
+                                                            Identifier {
+                                                                name: "arr",
+                                                            },
+                                                        ),
+                                                        base: None,
+                                                    },
+                                                ),
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 40,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            LiteralInteger {
+                                value: 2,
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "z",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            LiteralInteger {
+                                                value: 2,
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "arr",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 50,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 25,
+                        column: 16,
+                        offset: 668,
+                    }..TextLocation {
+                        line: 29,
+                        column: 34,
+                        offset: 820,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 21,
+                        column: 21,
+                        offset: 567,
+                    }..TextLocation {
+                        line: 21,
+                        column: 25,
+                        offset: 571,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "#)
+    }
+
+
+    #[test]
+    fn pointer_deref_in_grandparent() {
+        let src: SourceCode = r#"
+                FUNCTION_BLOCK grandparent
+                VAR
+                    a : REF_TO INT;
+                END_VAR
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK parent extends grandparent
+                VAR
+                    b : REF_TO INT;
+                END_VAR
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK child EXTENDS parent
+                VAR
+                    c : REF_TO INT;
+                END_VAR
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                VAR
+                    fb: child;
+                END_VAR
+                    fb.c^ := 10;
+                    fb.b^ := 20;
+                    fb.a^ := 30;
+                END_FUNCTION
+            "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().implementations[3];
+        assert_debug_snapshot!(unit, @r#"
+        Implementation {
+            name: "main",
+            type_name: "main",
+            linkage: Internal,
+            pou_type: Function,
+            statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__init_child",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "fb",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Deref,
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "c",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "fb",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 10,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Deref,
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "b",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "fb",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 20,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Deref,
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "a",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__BASE",
+                                                    },
+                                                ),
+                                                base: Some(
+                                                    ReferenceExpr {
+                                                        kind: Member(
+                                                            Identifier {
+                                                                name: "fb",
+                                                            },
+                                                        ),
+                                                        base: None,
+                                                    },
+                                                ),
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 30,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 23,
+                        column: 20,
+                        offset: 627,
+                    }..TextLocation {
+                        line: 25,
+                        column: 32,
+                        offset: 705,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 19,
+                        column: 25,
+                        offset: 527,
+                    }..TextLocation {
+                        line: 19,
+                        column: 29,
+                        offset: 531,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "#)
     }
 }
