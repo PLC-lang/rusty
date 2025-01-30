@@ -10,7 +10,7 @@
 
 use anyhow::{anyhow, Result};
 use pipelines::{
-    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, IndexedProject,
+    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject,
     Pipeline,
 };
 use std::{

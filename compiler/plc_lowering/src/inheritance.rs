@@ -1,6 +1,6 @@
 use plc::{
-    index::{Index, PouIndexEntry},
-    resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
+    index::Index,
+    resolver::{AnnotationMap, AstAnnotations},
 };
 use plc_ast::{
     ast::{
@@ -57,6 +57,10 @@ impl InheritanceLowerer {
         Self { index: None, annotations: None, ctx: Context::new(id_provider) }
     }
 
+    pub fn provider(&self) -> IdProvider {
+        self.ctx.provider()
+    }
+
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
         // XXX: not sure if we need to visit global vars and user-data-types when walking the compilation unit here
         // for pou in unit.units.iter_mut() {
@@ -106,12 +110,12 @@ impl InheritanceLowerer {
             ReferenceAccess::Deref => {
                 let base = *base.expect("Deref must have base");
                 let location = base.get_location();
-                return AstFactory::create_deref_reference(base, self.ctx.provider().next_id(), location);
+                return AstFactory::create_deref_reference(base, self.provider().next_id(), location);
             }
             ReferenceAccess::Address => {
                 let base = *base.expect("Deref must have base");
                 let location = base.get_location();
-                return AstFactory::create_address_of_reference(base, self.ctx.provider().next_id(), location);
+                return AstFactory::create_address_of_reference(base, self.provider().next_id(), location);
             }
         };
 
@@ -127,7 +131,7 @@ impl InheritanceLowerer {
             return AstFactory::create_member_reference(
                 access,
                 base.map(|it| *it),
-                self.ctx.provider().next_id(),
+                self.provider().next_id(),
             );
         }
 
@@ -136,7 +140,7 @@ impl InheritanceLowerer {
             return AstFactory::create_member_reference(
                 access,
                 base.map(|it| *it),
-                self.ctx.provider().next_id(),
+                self.provider().next_id(),
             );
         }
 
@@ -146,14 +150,14 @@ impl InheritanceLowerer {
                 AstFactory::create_identifier(
                     "__BASE",
                     SourceLocation::internal(),
-                    self.ctx.provider().next_id(),
+                    self.provider().next_id(),
                 ),
                 base.map(|it| *it),
-                self.ctx.provider().next_id(),
+                self.provider().next_id(),
             )))
         });
 
-        AstFactory::create_member_reference(access, base.map(|it| *it), self.ctx.provider().next_id())
+        AstFactory::create_member_reference(access, base.map(|it| *it), self.provider().next_id())
     }
 }
 
@@ -221,7 +225,7 @@ impl AstVisitorMut for InheritanceLowerer {
 }
 
 #[cfg(test)]
-mod tests {
+mod units_tests {
     use insta::assert_debug_snapshot;
     use plc_driver::parse_and_annotate;
     use plc_source::SourceCode;
@@ -279,9 +283,10 @@ mod tests {
             FUNCTION_BLOCK foo
             VAR
                 myFb : fb2;
-                // x : DINT;
+                x : INT;
             END_VAR
                 myFb.x := 1;
+                x := 2; // this should not have any bases added
             END_FUNCTION_BLOCK
         "
         .into();
@@ -326,17 +331,30 @@ mod tests {
                         value: 1,
                     },
                 },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: LiteralInteger {
+                        value: 2,
+                    },
+                },
             ],
             location: SourceLocation {
                 span: Range(
                     TextLocation {
                         line: 16,
                         column: 16,
-                        offset: 363,
+                        offset: 359,
                     }..TextLocation {
-                        line: 16,
-                        column: 28,
-                        offset: 375,
+                        line: 17,
+                        column: 23,
+                        offset: 395,
                     },
                 ),
             },
@@ -1415,4 +1433,112 @@ mod tests {
         }
         "#)
     }
+}
+
+#[cfg(test)]
+mod resolve_bases_tests{
+    use std::ops::Deref;
+
+    use insta::assert_debug_snapshot;
+    use plc_ast::{ast::{Assignment, ReferenceExpr}, try_from};
+    use plc_driver::{parse_and_annotate, pipelines::AnnotatedProject};
+    use plc_source::SourceCode;
+    use plc::resolver::AnnotationMap;
+    
+    #[test]
+    fn base_types_resolved() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK fb
+            VAR
+                x : INT;
+                y : INT;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK fb2 EXTENDS fb
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK baz
+            VAR
+                myFb : fb2;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK foo EXTENDS baz
+            VAR
+                x : INT;
+            END_VAR
+                myFb.x := 1;
+            END_FUNCTION_BLOCK
+            "#
+        .into();
+        
+        let (_, AnnotatedProject { units, index: _index, annotations }) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &units[0].get_unit().implementations[3];
+        let statement = &unit.statements[0];
+        let Some(Assignment { left, .. }) = try_from!(statement, Assignment) else {
+            unreachable!()
+        };        
+        assert_debug_snapshot!(annotations.get(&left), @r#"
+        Some(
+            Variable {
+                resulting_type: "INT",
+                qualified_name: "fb.x",
+                constant: false,
+                argument_type: ByVal(
+                    Local,
+                ),
+                auto_deref: None,
+            },
+        )
+        "#);
+
+        let Some(ReferenceExpr {  base, .. }) = try_from!(left, ReferenceExpr) else {
+            unreachable!()
+        };
+        let base1 = base.as_ref().unwrap().deref();
+        assert_debug_snapshot!(annotations.get(base1).unwrap(), @r#"
+        Variable {
+            resulting_type: "fb",
+            qualified_name: "fb2.__BASE",
+            constant: false,
+            argument_type: ByVal(
+                Local,
+            ),
+            auto_deref: None,
+        }
+        "#);
+        
+        let Some(ReferenceExpr {  base, .. }) = try_from!(base1, ReferenceExpr) else {
+            unreachable!()
+        };        
+        let base2 = base.as_ref().unwrap().deref();
+        assert_debug_snapshot!(annotations.get(base2).unwrap(), @r#"
+        Variable {
+            resulting_type: "fb2",
+            qualified_name: "baz.myFb",
+            constant: false,
+            argument_type: ByVal(
+                Local,
+            ),
+            auto_deref: None,
+        }
+        "#);
+        
+        let Some(ReferenceExpr {  base, .. }) = try_from!(base2, ReferenceExpr) else {
+            unreachable!()
+        };        
+        let base3 = base.as_ref().unwrap().deref();
+        assert_debug_snapshot!(annotations.get(base3).unwrap(), @r#"
+        Variable {
+            resulting_type: "baz",
+            qualified_name: "foo.__BASE",
+            constant: false,
+            argument_type: ByVal(
+                Local,
+            ),
+            auto_deref: None,
+        }
+        "#);
+     }
 }

@@ -18,7 +18,7 @@ use plc_lowering::inheritance::InheritanceLowerer;
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
-use super::{AnnotatedProject, GeneratedProject, IndexedProject, ParsedProject};
+use super::{AnnotatedProject, AnnotatedUnit, GeneratedProject, IndexedProject, ParsedProject};
 
 /// A Build particitpant for different steps in the pipeline
 /// Implementors can decide parse the Ast and project information
@@ -235,8 +235,13 @@ impl PipelineParticipantMut for InheritanceLowerer {
         self.index = Some(index);
         units.iter_mut().for_each(|unit| self.visit_unit(&mut unit.unit));
         let index = self.index.take().expect("Index should be present");
-        let annotations = self.annotations.take().expect("Annotations should be present");
-
-        AnnotatedProject { units, index, annotations }
+        // re-resolve
+        IndexedProject { 
+            project: ParsedProject { 
+                units: units.into_iter().map(|AnnotatedUnit { unit, ..}| unit).collect()
+            }, 
+            index, 
+            unresolvables: vec![] 
+        }.annotate(self.provider())
     }
 }
