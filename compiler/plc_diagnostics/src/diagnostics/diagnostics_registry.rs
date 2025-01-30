@@ -191,7 +191,7 @@ lazy_static! {
         E087,   Error,      include_str!("./error_codes/E087.md"),
         E088,   Error,      include_str!("./error_codes/E088.md"),
         E089,   Error,      include_str!("./error_codes/E089.md"),
-        E090,   Warning,    include_str!("./error_codes/E090.md"), // Incompatible reference Assignment
+        E090,   Warning,    include_str!("./error_codes/E090.md"),  // Incompatible reference Assignment
         E091,   Warning,    include_str!("./error_codes/E091.md"),
         E092,   Info,       include_str!("./error_codes/E092.md"),
         E093,   Warning,    include_str!("./error_codes/E093.md"),
@@ -215,6 +215,9 @@ lazy_static! {
         E111,   Error,      include_str!("./error_codes/E111.md"),  // Duplicate interface methods with different signatures
         E112,   Error,      include_str!("./error_codes/E112.md"),  // Incomplete interface implementation
         E113,   Warning,    include_str!("./error_codes/E113.md"),  // Interface default method implementation
+        E114,   Error,      include_str!("./error_codes/E114.md"),  // Property in unsupported POU type
+        E115,   Error,      include_str!("./error_codes/E115.md"),  // Property defined in non-supported variable block
+        E116,   Error,      include_str!("./error_codes/E116.md"),  // Property with invalid number of GET and/or SET blocks
     );
 }
 

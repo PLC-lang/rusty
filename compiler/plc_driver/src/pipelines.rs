@@ -24,7 +24,7 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{property::PropertyLowerer, InitVisitor},
+    lowering::{property::PropertyLowerer, validator::ParticipantValidator, InitVisitor},
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -258,7 +258,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
             InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider());
         self.register_mut_participant(Box::new(init_participant));
 
-        // self.register_mut_participant(Box::new(ParticipantValidator::new())); // XXX: I think this has to run first, because the PropertyLowerer will drain the `properties` field resulting in no validation
+        self.register_mut_participant(Box::new(ParticipantValidator::new())); // XXX: I think this has to run first, because the PropertyLowerer will drain the `properties` field resulting in no validation
         self.register_mut_participant(Box::new(PropertyLowerer::new(self.context.provider())));
 
         let aggregate_return_participant = AggregateTypeLowerer::new(self.context.provider());

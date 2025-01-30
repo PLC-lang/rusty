@@ -280,19 +280,19 @@ fn property_within_function_pou() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @r###"
     error[E001]: Methods cannot be declared in a POU of type 'Function'.
       ┌─ <internal>:2:24
       │
     2 │         FUNCTION foo : DINT
       │                        ^^^^ Methods cannot be declared in a POU of type 'Function'.
 
-    error[E001]: Only FUNCTION_BLOCK or PROGRAM are allowed as parent for properties
+    error[E114]: Property `prop` must be defined in a stateful POU type (PROGRAM, CLASS or FUNCTION_BLOCK)
       ┌─ <internal>:2:18
       │
     2 │         FUNCTION foo : DINT
-      │                  ^^^ Only FUNCTION_BLOCK or PROGRAM are allowed as parent for properties
-    ");
+      │                  ^^^ Property `prop` must be defined in a stateful POU type (PROGRAM, CLASS or FUNCTION_BLOCK)
+    "###);
 }
 
 #[test]
@@ -307,8 +307,8 @@ fn property_with_more_than_one_get_block() {
         END_FUNCTION_BLOCK
         ",
     );
-    assert_snapshot!(diagnostics, @r"
-    error[E001]: Property has more than one GET block
+    assert_snapshot!(diagnostics, @r###"
+    error[E116]: Property has more than one GET block
       ┌─ <internal>:3:22
       │
     3 │             PROPERTY prop : DINT
@@ -317,7 +317,7 @@ fn property_with_more_than_one_get_block() {
       │                 --- see also
     5 │                 GET END_GET
       │                 --- see also
-    ");
+    "###);
 }
 
 #[test]
@@ -336,16 +336,16 @@ fn property_with_var_output_in_get_block() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"
-    error[E001]: Only VAR blocks are allowed for properties
+    assert_snapshot!(diagnostics, @r###"
+    error[E115]: Properties only allow variable blocks of type VAR
       ┌─ <internal>:3:22
       │
     3 │             PROPERTY prop : DINT
-      │                      ^^^^ Only VAR blocks are allowed for properties
+      │                      ^^^^ Properties only allow variable blocks of type VAR
     4 │               GET
     5 │                   VAR_OUTPUT
       │                   ---------- see also
-    ");
+    "###);
 }
 
 #[test]

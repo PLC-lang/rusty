@@ -16,19 +16,17 @@ impl ParticipantValidator {
     }
 
     pub fn validate_properties(&mut self, properties: &Vec<Property>) {
-        // TODO: [x] validate number of set blocks
-        //       [x] validate number of get blocks
-        //       [x] at least one setter/getter is required
-        //       [x] pou has to be FUNCTION_BLOCK or PROGRAM
-        //       [x] only VAR blocks are allowed by user
         for property in properties {
             let mut get_blocks = vec![];
             let mut set_blocks = vec![];
             if !property.kind_parent.is_stateful_pou() {
                 self.diagnostics.push(
-                    Diagnostic::new("Only FUNCTION_BLOCK or PROGRAM are allowed as parent for properties")
-                        .with_location(property.name_parent_location.clone())
-                        .with_error_code("E001"),
+                    Diagnostic::new(format!(
+                        "Property `{name}` must be defined in a stateful POU type (PROGRAM, CLASS or FUNCTION_BLOCK)",
+                        name = property.name
+                    ))
+                    .with_location(property.name_parent_location.clone())
+                    .with_error_code("E114"),
                 );
             }
             for implementation in &property.implementations {
@@ -38,10 +36,10 @@ impl ParticipantValidator {
                         plc_ast::ast::VariableBlockType::Local => {}
                         _ => {
                             self.diagnostics.push(
-                                Diagnostic::new("Only VAR blocks are allowed for properties")
+                                Diagnostic::new("Properties only allow variable blocks of type VAR")
                                     .with_secondary_location(variable.location.clone())
                                     .with_location(property.name_location.clone())
-                                    .with_error_code("E001"),
+                                    .with_error_code("E115"),
                             );
                         }
                     }
@@ -60,7 +58,7 @@ impl ParticipantValidator {
                 self.diagnostics.push(
                     Diagnostic::new("Property has no GET or SET block")
                         .with_location(property.name_location.clone())
-                        .with_error_code("E001"),
+                        .with_error_code("E116"),
                 );
                 continue;
             }
@@ -70,7 +68,7 @@ impl ParticipantValidator {
                     Diagnostic::new("Property has more than one GET block")
                         .with_location(property.name_location.clone())
                         .with_secondary_locations(get_blocks)
-                        .with_error_code("E001"),
+                        .with_error_code("E116"),
                 );
             }
             if set_blocks.len() > 1 {
@@ -78,7 +76,7 @@ impl ParticipantValidator {
                     Diagnostic::new("Property has more than one SET block")
                         .with_location(property.name_location.clone())
                         .with_secondary_locations(set_blocks)
-                        .with_error_code("E001"),
+                        .with_error_code("E116"),
                 );
             }
         }
