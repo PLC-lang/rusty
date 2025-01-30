@@ -128,7 +128,7 @@ fn inline_enum_declaration_can_be_parsed() {
 
     let v = Variable {
         name: "my_enum".to_string(),
-        data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+        data_type_declaration: DataTypeDeclaration::Definition {
             data_type: DataType::EnumType {
                 name: None,
                 numeric_type: DINT_TYPE.to_string(),

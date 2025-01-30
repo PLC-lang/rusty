@@ -176,7 +176,7 @@ impl AstVisitorMut for InheritanceLowerer {
 
         let base_var = Variable {
             name: "__BASE".to_string(),
-            data_type_declaration: DataTypeDeclaration::DataTypeReference {
+            data_type_declaration: DataTypeDeclaration::Reference {
                 referenced_type: base_name.into(),
                 location: SourceLocation::internal(),
             },

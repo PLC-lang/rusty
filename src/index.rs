@@ -75,7 +75,7 @@ pub struct VariableIndexEntry {
     /// the variable's datatype
     pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
-    location_in_parent: u32,
+    pub location_in_parent: u32,
     /// Wether the variable is externally or internally available
     linkage: LinkageType,
     /// A binding to a hardware or external location
@@ -441,6 +441,10 @@ impl ImplementationIndexEntry {
     pub(crate) fn is_init(&self) -> bool {
         matches!(self.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
     }
+
+    pub fn is_method(&self) -> bool {
+        matches!(self.get_implementation_type(), ImplementationType::Method)
+    }
 }
 
 impl From<&PouType> for ImplementationType {
@@ -459,10 +463,13 @@ impl From<&PouType> for ImplementationType {
 }
 
 impl ImplementationType {
-    pub fn is_function_or_init(&self) -> bool {
+    pub fn is_function_method_or_init(&self) -> bool {
         matches!(
             self,
-            ImplementationType::Function | ImplementationType::Init | ImplementationType::ProjectInit,
+            ImplementationType::Function
+                | ImplementationType::Init
+                | ImplementationType::ProjectInit
+                | ImplementationType::Method,
         )
     }
 
@@ -754,7 +761,6 @@ impl PouIndexEntry {
         match self {
             PouIndexEntry::Program { instance_struct_name, .. }
             | PouIndexEntry::FunctionBlock { instance_struct_name, .. }
-            | PouIndexEntry::Method { instance_struct_name, .. }
             | PouIndexEntry::Action { instance_struct_name, .. }
             | PouIndexEntry::Class { instance_struct_name, .. } => Some(instance_struct_name.as_str()),
             _ => None, //functions have no struct type
@@ -817,6 +823,15 @@ impl PouIndexEntry {
         }
     }
 
+    pub fn get_return_type(&self) -> Option<&str> {
+        match self {
+            PouIndexEntry::Function { return_type, .. } | PouIndexEntry::Method { return_type, .. } => {
+                Some(return_type)
+            }
+            _ => None,
+        }
+    }
+
     /// returns true if this pou has a variadic (last) parameter
     pub fn is_variadic(&self) -> bool {
         if let PouIndexEntry::Function { is_variadic, .. } = self {
@@ -862,6 +877,10 @@ impl PouIndexEntry {
             self,
             PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Class { .. }
         )
+    }
+
+    pub fn is_builtin(&self) -> bool {
+        self.get_linkage() == &LinkageType::BuiltIn
     }
 
     pub(crate) fn is_constant(&self) -> bool {

@@ -197,7 +197,7 @@ fn switch_case_debug_info() {
                 x2 : INT;
                 x3 : INT;
             END_VAR
-            
+
             WHILE TRUE DO
             x1 := x1 + 1;
 
@@ -237,45 +237,54 @@ fn switch_case_debug_info() {
       store i32 0, i32* %main, align 4, !dbg !9
       br label %condition_check, !dbg !20
 
-    condition_check:                                  ; preds = %entry, %continue1
+    condition_check:                                  ; preds = %entry, %continue2
       br i1 true, label %while_body, label %continue, !dbg !21
 
     while_body:                                       ; preds = %condition_check
+      br i1 false, label %condition_body, label %continue1, !dbg !21
+
+    continue:                                         ; preds = %condition_body, %condition_check
+      %main_ret = load i32, i32* %main, align 4, !dbg !20
+      ret i32 %main_ret, !dbg !20
+
+    condition_body:                                   ; preds = %while_body
+      br label %continue, !dbg !21
+
+    buffer_block:                                     ; No predecessors!
+      br label %continue1, !dbg !21
+
+    continue1:                                        ; preds = %buffer_block, %while_body
       %load_x1 = load i16, i16* %x1, align 2, !dbg !22
       %0 = sext i16 %load_x1 to i32, !dbg !22
       %tmpVar = add i32 %0, 1, !dbg !22
       %1 = trunc i32 %tmpVar to i16, !dbg !22
       store i16 %1, i16* %x1, align 2, !dbg !22
-      %load_x12 = load i16, i16* %x1, align 2, !dbg !22
-      switch i16 %load_x12, label %else [
+      %load_x13 = load i16, i16* %x1, align 2, !dbg !22
+      switch i16 %load_x13, label %else [
         i16 1, label %case
-        i16 2, label %case3
-        i16 3, label %case4
+        i16 2, label %case4
+        i16 3, label %case5
       ], !dbg !20
 
-    continue:                                         ; preds = %condition_check
-      %main_ret = load i32, i32* %main, align 4, !dbg !20
-      ret i32 %main_ret, !dbg !20
-
-    case:                                             ; preds = %while_body
+    case:                                             ; preds = %continue1
       store i16 1, i16* %x2, align 2, !dbg !23
-      br label %continue1, !dbg !23
+      br label %continue2, !dbg !23
 
-    case3:                                            ; preds = %while_body
+    case4:                                            ; preds = %continue1
       store i16 2, i16* %x2, align 2, !dbg !24
-      br label %continue1, !dbg !24
+      br label %continue2, !dbg !24
 
-    case4:                                            ; preds = %while_body
+    case5:                                            ; preds = %continue1
       store i16 3, i16* %x2, align 2, !dbg !25
-      br label %continue1, !dbg !25
+      br label %continue2, !dbg !25
 
-    else:                                             ; preds = %while_body
+    else:                                             ; preds = %continue1
       store i16 0, i16* %x1, align 2, !dbg !26
       store i16 1, i16* %x2, align 2, !dbg !27
       store i16 2, i16* %x3, align 2, !dbg !28
-      br label %continue1, !dbg !28
+      br label %continue2, !dbg !28
 
-    continue1:                                        ; preds = %else, %case4, %case3, %case
+    continue2:                                        ; preds = %else, %case5, %case4, %case
       br label %condition_check, !dbg !20
     }
 
@@ -355,16 +364,15 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
 
     // We want to make sure the `dbg.declare` for the method `foo` references a non-empty metadata field, i.e.
     // `!<number>` should not be `!<number> = {}`. Concretely, `!17` should be non-empty
-    assert!(codegen.contains(r#"call void @llvm.dbg.declare(metadata %fb.foo* %1, metadata !17, metadata !DIExpression()), !dbg !16"#));
-    assert!(codegen
-        .contains(r#"!17 = !DILocalVariable(name: "fb.foo", scope: !15, file: !2, line: 3, type: !18)"#));
+    assert!(codegen.contains(
+        r#"call void @llvm.dbg.declare(metadata %fb* %0, metadata !13, metadata !DIExpression()), !dbg !16"#
+    ));
 
     assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %fb = type {}
-    %fb.foo = type {}
 
     @__fb__init = unnamed_addr constant %fb zeroinitializer, !dbg !0
 
@@ -374,10 +382,9 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       ret void, !dbg !14
     }
 
-    define void @fb.foo(%fb* %0, %fb.foo* %1) !dbg !15 {
+    define void @fb.foo(%fb* %0) !dbg !15 {
     entry:
       call void @llvm.dbg.declare(metadata %fb* %0, metadata !13, metadata !DIExpression()), !dbg !16
-      call void @llvm.dbg.declare(metadata %fb.foo* %1, metadata !17, metadata !DIExpression()), !dbg !16
       ret void, !dbg !16
     }
 
@@ -406,8 +413,6 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !14 = !DILocation(line: 5, column: 8, scope: !10)
     !15 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !2, file: !2, line: 3, type: !11, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
     !16 = !DILocation(line: 4, column: 8, scope: !15)
-    !17 = !DILocalVariable(name: "fb.foo", scope: !15, file: !2, line: 3, type: !18)
-    !18 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb.foo", scope: !2, file: !2, line: 3, flags: DIFlagPublic, elements: !4, identifier: "fb.foo")
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
 

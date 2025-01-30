@@ -33,6 +33,50 @@ fn generic_function_call_generates_real_type_call() {
 }
 
 #[test]
+fn generic_codegen_with_aggregate_return() {
+    let prg = codegen(
+        r"
+    FUNCTION main : STRING
+    VAR_TEMP
+        l : DINT;
+        p : DINT;
+    END_VAR
+        l := 4;
+        p := 6;
+        main := MID(
+            '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.the                same           is   true                    for             this                     string.',
+            l,
+            p
+        );
+    END_FUNCTION
+
+    FUNCTION MID < T: ANY_STRING >: T
+    VAR_INPUT {ref}
+        IN: T;
+    END_VAR
+    VAR_INPUT
+        L: DINT;
+        P: DINT;
+    END_VAR
+    END_FUNCTION
+
+    {external}
+    FUNCTION MID__STRING : STRING
+    VAR_INPUT {ref}
+        IN: STRING;
+    END_VAR
+    VAR_INPUT
+        L: DINT;
+        P: DINT;
+    END_VAR
+    END_FUNCTION
+
+        ",
+    );
+    insta::assert_snapshot!(prg);
+}
+
+#[test]
 fn generic_output_parameter() {
     // GIVEN ... (see comments in st-code)
     let src = r"
@@ -119,5 +163,29 @@ fn any_real_function_called_with_ints() {
             res_ulint := foo(ULINT#1);
         END_PROGRAM";
     //Expecting to REAL/LREAL conversion for every call
+    insta::assert_snapshot!(codegen(src));
+}
+
+#[test]
+fn generic_function_with_aggregate_return() {
+    let src = r#"
+    FUNCTION TO_STRING <T: ANY_STRING> : STRING[1024]
+        VAR_INPUT {ref}
+            in : T;
+        END_VAR
+    END_FUNCTION
+
+    {external}
+    FUNCTION TO_STRING__WSTRING : STRING[1024]
+        VAR_INPUT {ref}
+            in : WSTRING;
+        END_VAR
+    END_FUNCTION
+
+    FUNCTION main
+        TO_STRING(WSTRING#"Hello");
+    END_FUNCTION
+
+    "#;
     insta::assert_snapshot!(codegen(src));
 }

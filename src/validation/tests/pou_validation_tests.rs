@@ -236,13 +236,13 @@ fn assigning_return_value_to_void_functions_returns_error() {
 }
 
 #[test]
-fn method_input_arguments_are_not_optional() {
+fn method_input_arguments_are_optional() {
     let diagnostic = parse_and_validate_buffered(
         "
         FUNCTION_BLOCK fb
             METHOD foo
                 VAR_INPUT
-                    in1 : BOOL;
+                    in1 : BOOL := true;
                     in2 : BOOL;
                 END_VAR
             END_METHOD
@@ -253,44 +253,16 @@ fn method_input_arguments_are_not_optional() {
                 fbInstance : fb;
             END_VAR
 
-            // All of these are invalid because they are missing arguments
+            // All of these are valid because parameters will default to their initial values if not given
+            // explicit arguments
             fbInstance.foo();
             fbInstance.foo(in1 := TRUE);
             fbInstance.foo(in2 := TRUE);
-
-            // These are valid
-            fbInstance.foo(in1 := TRUE, in2 := TRUE);
-            fbInstance.foo(in2 := TRUE, in1 := TRUE);
         END_FUNCTION
         ",
     );
 
-    assert_snapshot!(diagnostic, @r###"
-    error[E030]: Argument `in1` is missing
-       ┌─ <internal>:17:13
-       │
-    17 │             fbInstance.foo();
-       │             ^^^^^^^^^^^^^^ Argument `in1` is missing
-
-    error[E030]: Argument `in2` is missing
-       ┌─ <internal>:17:13
-       │
-    17 │             fbInstance.foo();
-       │             ^^^^^^^^^^^^^^ Argument `in2` is missing
-
-    error[E030]: Argument `in2` is missing
-       ┌─ <internal>:18:13
-       │
-    18 │             fbInstance.foo(in1 := TRUE);
-       │             ^^^^^^^^^^^^^^ Argument `in2` is missing
-
-    error[E030]: Argument `in1` is missing
-       ┌─ <internal>:19:13
-       │
-    19 │             fbInstance.foo(in2 := TRUE);
-       │             ^^^^^^^^^^^^^^ Argument `in1` is missing
-
-    "###);
+    assert!(diagnostic.is_empty())
 }
 
 #[test]

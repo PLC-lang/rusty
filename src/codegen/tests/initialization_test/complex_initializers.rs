@@ -790,8 +790,6 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     %foo = type {}
     %cl = type {}
     %myStruct = type {}
-    %foo.m = type {}
-    %cl.m = type {}
 
     @prog_instance = global %prog zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
@@ -808,7 +806,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    define void @foo.m(%foo* %0, %foo.m* %1) {
+    define void @foo.m(%foo* %0) {
     entry:
       ret void
     }
@@ -818,7 +816,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    define void @cl.m(%cl* %0, %cl.m* %1) {
+    define void @cl.m(%cl* %0) {
     entry:
       ret void
     }
@@ -1641,7 +1639,6 @@ fn initializing_method_variables_with_refs() {
     source_filename = "<internal>"
 
     %foo = type {}
-    %foo.bar = type { i32, i32* }
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
 
@@ -1650,10 +1647,10 @@ fn initializing_method_variables_with_refs() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    define void @foo.bar(%foo* %0) {
     entry:
-      %x = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 1
+      %x = alloca i32, align 4
+      %px = alloca i32*, align 8
       store i32 10, i32* %x, align 4
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
@@ -1707,7 +1704,6 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
     source_filename = "<internal>"
 
     %foo = type { i32 }
-    %foo.bar = type { i32* }
 
     @__foo__init = unnamed_addr constant %foo { i32 5 }
 
@@ -1717,10 +1713,10 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    define void @foo.bar(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
+      %px = alloca i32*, align 8
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
       ret void
@@ -1773,7 +1769,6 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
     source_filename = "<internal>"
 
     %foo = type {}
-    %foo.bar = type { i32* }
 
     @x = global i32 0
     @__foo__init = unnamed_addr constant %foo zeroinitializer
@@ -1783,9 +1778,9 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    define void @foo.bar(%foo* %0) {
     entry:
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
+      %px = alloca i32*, align 8
       store i32* @x, i32** %px, align 8
       store i32* @x, i32** %px, align 8
       ret void
@@ -1839,7 +1834,6 @@ fn initializing_method_variables_with_refs_shadowing() {
     source_filename = "<internal>"
 
     %foo = type {}
-    %foo.bar = type { i32, i32* }
 
     @x = global i32 0
     @__foo__init = unnamed_addr constant %foo zeroinitializer
@@ -1849,10 +1843,10 @@ fn initializing_method_variables_with_refs_shadowing() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    define void @foo.bar(%foo* %0) {
     entry:
-      %x = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 1
+      %x = alloca i32, align 4
+      %px = alloca i32*, align 8
       store i32 0, i32* %x, align 4
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
@@ -1903,7 +1897,6 @@ fn initializing_method_variables_with_alias() {
     source_filename = "<internal>"
 
     %foo = type {}
-    %foo.bar = type { i32, i32* }
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
 
@@ -1912,10 +1905,10 @@ fn initializing_method_variables_with_alias() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    define void @foo.bar(%foo* %0) {
     entry:
-      %x = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 1
+      %x = alloca i32, align 4
+      %px = alloca i32*, align 8
       store i32 0, i32* %x, align 4
       store i32* null, i32** %px, align 8
       store i32* %x, i32** %px, align 8
@@ -1966,7 +1959,6 @@ fn initializing_method_variables_with_reference_to() {
     source_filename = "<internal>"
 
     %foo = type {}
-    %foo.bar = type { i32, i32* }
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
 
@@ -1975,10 +1967,10 @@ fn initializing_method_variables_with_reference_to() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0, %foo.bar* %1) {
+    define void @foo.bar(%foo* %0) {
     entry:
-      %x = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 0
-      %px = getelementptr inbounds %foo.bar, %foo.bar* %1, i32 0, i32 1
+      %x = alloca i32, align 4
+      %px = alloca i32*, align 8
       store i32 0, i32* %x, align 4
       store i32* null, i32** %px, align 8
       store i32* %x, i32** %px, align 8
@@ -2037,7 +2029,6 @@ fn methods_call_init_functions_for_their_members() {
 
     %foo = type { i32, i32* }
     %bar = type {}
-    %bar.baz = type { %foo }
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__bar__init = unnamed_addr constant %bar zeroinitializer
@@ -2054,11 +2045,11 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    define void @bar.baz(%bar* %0, %bar.baz* %1) {
+    define void @bar.baz(%bar* %0) {
     entry:
-      %fb = getelementptr inbounds %bar.baz, %bar.baz* %1, i32 0, i32 0
-      %2 = bitcast %foo* %fb to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %2, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      %fb = alloca %foo, align 8
+      %1 = bitcast %foo* %fb to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       call void @__init_foo(%foo* %fb)
       ret void
     }

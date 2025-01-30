@@ -399,6 +399,7 @@ impl WalkerMut for AstNode {
             AstStatement::ReturnStatement(_) => visitor.visit_return_statement(self),
             AstStatement::JumpStatement(_) => visitor.visit_jump_statement(self),
             AstStatement::LabelStatement(_) => visitor.visit_label_statement(self),
+            AstStatement::AllocationStatement(_) => visitor.visit_allocation(self),
         }
     }
 }
@@ -504,7 +505,7 @@ impl WalkerMut for DataTypeDeclaration {
     where
         V: AstVisitorMut,
     {
-        if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = self {
+        if let DataTypeDeclaration::Definition { data_type, .. } = self {
             visitor.visit_data_type(data_type);
         }
     }

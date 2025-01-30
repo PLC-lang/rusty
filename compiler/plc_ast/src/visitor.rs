@@ -2,7 +2,7 @@
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
 use crate::ast::{
-    flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
+    flatten_expression_list, Allocation, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
     CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess,
     EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement,
     MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
@@ -407,6 +407,12 @@ pub trait AstVisitor: Sized {
     /// * `stmt` - The unwraped, typed `LabelStatement` node to visit.
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
     fn visit_label_statement(&mut self, _stmt: &LabelStatement, _node: &AstNode) {}
+
+    /// Visits an `Allocation` node
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `Allocation` node to visit.
+    /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
+    fn visit_allocation(&mut self, _stmt: &Allocation, _node: &AstNode) {}
 }
 
 /// Helper method that walks through a slice of `ConditionalBlock` and applies the visitor's `walk` method to each node.
@@ -600,6 +606,7 @@ impl Walker for AstNode {
             AstStatement::ReturnStatement(stmt) => visitor.visit_return_statement(stmt, node),
             AstStatement::JumpStatement(stmt) => visitor.visit_jump_statement(stmt, node),
             AstStatement::LabelStatement(stmt) => visitor.visit_label_statement(stmt, node),
+            AstStatement::AllocationStatement(stmt) => visitor.visit_allocation(stmt, node),
         }
     }
 }
@@ -731,7 +738,7 @@ impl Walker for DataTypeDeclaration {
     where
         V: AstVisitor,
     {
-        if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = self {
+        if let DataTypeDeclaration::Definition { data_type, .. } = self {
             visitor.visit_data_type(data_type);
         }
     }

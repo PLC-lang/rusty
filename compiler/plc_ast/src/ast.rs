@@ -236,7 +236,15 @@ impl Pou {
     }
 
     pub fn calc_return_name(pou_name: &str) -> &str {
-        pou_name.split('.').last().unwrap_or_default()
+        pou_name.rsplit_once('.').map(|(_, return_name)| return_name).unwrap_or(pou_name)
+    }
+
+    pub fn is_aggregate(&self) -> bool {
+        matches!(self.return_type, Some(DataTypeDeclaration::Aggregate { .. }))
+    }
+
+    pub fn is_generic(&self) -> bool {
+        !self.generics.is_empty()
     }
 }
 
@@ -309,8 +317,8 @@ impl PouType {
         }
     }
 
-    pub fn is_function_or_init(&self) -> bool {
-        matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit)
+    pub fn is_function_method_or_init(&self) -> bool {
+        matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit | PouType::Method { .. })
     }
 }
 
@@ -488,7 +496,7 @@ impl Debug for Variable {
 
 impl Variable {
     pub fn replace_data_type_with_reference_to(&mut self, type_name: String) -> DataTypeDeclaration {
-        let new_data_type = DataTypeDeclaration::DataTypeReference {
+        let new_data_type = DataTypeDeclaration::Reference {
             referenced_type: type_name,
             location: self.data_type_declaration.get_location(),
         };
@@ -502,18 +510,22 @@ impl Variable {
 
 #[derive(Clone, PartialEq)]
 pub enum DataTypeDeclaration {
-    DataTypeReference { referenced_type: String, location: SourceLocation },
-    DataTypeDefinition { data_type: DataType, location: SourceLocation, scope: Option<String> },
+    Reference { referenced_type: String, location: SourceLocation },
+    Definition { data_type: DataType, location: SourceLocation, scope: Option<String> },
+    Aggregate { referenced_type: String, location: SourceLocation },
 }
 
 impl Debug for DataTypeDeclaration {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
+            DataTypeDeclaration::Reference { referenced_type, .. } => {
                 f.debug_struct("DataTypeReference").field("referenced_type", referenced_type).finish()
             }
-            DataTypeDeclaration::DataTypeDefinition { data_type, .. } => {
+            DataTypeDeclaration::Definition { data_type, .. } => {
                 f.debug_struct("DataTypeDefinition").field("data_type", data_type).finish()
+            }
+            DataTypeDeclaration::Aggregate { referenced_type, .. } => {
+                f.debug_struct("Aggregate").field("referenced_type", referenced_type).finish()
             }
         }
     }
@@ -528,35 +540,42 @@ impl From<&DataTypeDeclaration> for SourceLocation {
 impl DataTypeDeclaration {
     pub fn get_name(&self) -> Option<&str> {
         match self {
-            DataTypeDeclaration::DataTypeReference { referenced_type, .. } => Some(referenced_type.as_str()),
-            DataTypeDeclaration::DataTypeDefinition { data_type, .. } => data_type.get_name(),
+            Self::Aggregate { referenced_type, .. }
+            | DataTypeDeclaration::Reference { referenced_type, .. } => Some(referenced_type.as_str()),
+            DataTypeDeclaration::Definition { data_type, .. } => data_type.get_name(),
         }
     }
 
     pub fn get_location(&self) -> SourceLocation {
         match self {
-            DataTypeDeclaration::DataTypeReference { location, .. } => location.clone(),
-            DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
+            DataTypeDeclaration::Reference { location, .. } => location.clone(),
+            DataTypeDeclaration::Definition { location, .. } => location.clone(),
+            Self::Aggregate { location, .. } => location.clone(),
         }
     }
 
     pub fn get_referenced_type(&self) -> Option<String> {
-        let DataTypeDeclaration::DataTypeReference { referenced_type, .. } = self else { return None };
+        let DataTypeDeclaration::Reference { referenced_type, .. } = self else { return None };
         Some(referenced_type.to_owned())
     }
 
     pub fn get_inner_pointer_ty(&self) -> Option<DataTypeDeclaration> {
         match self {
-            DataTypeDeclaration::DataTypeReference { .. } => Some(self.clone()),
+            DataTypeDeclaration::Reference { .. } => Some(self.clone()),
 
-            DataTypeDeclaration::DataTypeDefinition { data_type, .. } => {
+            DataTypeDeclaration::Definition { data_type, .. } => {
                 if let DataType::PointerType { referenced_type, .. } = data_type {
                     return referenced_type.get_inner_pointer_ty();
                 }
 
                 None
             }
+            DataTypeDeclaration::Aggregate { .. } => None,
         }
+    }
+
+    pub fn is_aggregate(&self) -> bool {
+        matches!(self, DataTypeDeclaration::Aggregate { .. })
     }
 }
 
@@ -683,11 +702,11 @@ fn replace_reference(
     type_name: String,
     location: &SourceLocation,
 ) -> Option<DataTypeDeclaration> {
-    if let DataTypeDeclaration::DataTypeReference { .. } = **referenced_type {
+    if let DataTypeDeclaration::Reference { .. } = **referenced_type {
         return None;
     }
     let new_data_type =
-        DataTypeDeclaration::DataTypeReference { referenced_type: type_name, location: location.clone() };
+        DataTypeDeclaration::Reference { referenced_type: type_name, location: location.clone() };
     let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
     Some(*old_data_type)
 }
@@ -774,6 +793,7 @@ pub enum AstStatement {
     ReturnStatement(ReturnStatement),
     JumpStatement(JumpStatement),
     LabelStatement(LabelStatement),
+    AllocationStatement(Allocation),
 }
 
 #[macro_export]
@@ -921,6 +941,11 @@ impl Debug for AstNode {
             AstStatement::LabelStatement(LabelStatement { name, .. }) => {
                 f.debug_struct("LabelStatement").field("name", name).finish()
             }
+            AstStatement::AllocationStatement(Allocation { name, reference_type }) => f
+                .debug_struct("Allocation")
+                .field("name", name)
+                .field("reference_type", reference_type)
+                .finish(),
         }
     }
 }
@@ -1232,6 +1257,17 @@ pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {
         }
         AstStatement::ParenExpression(expression) => flatten_expression_list(expression),
         _ => vec![list],
+    }
+}
+
+pub fn steal_expression_list(list: &mut AstNode) -> Vec<AstNode> {
+    match &mut list.stmt {
+        AstStatement::ExpressionList(expressions, ..) => std::mem::take(expressions),
+        AstStatement::ParenExpression(expression) => steal_expression_list(expression),
+        _ => {
+            let node = std::mem::take(list);
+            vec![node]
+        }
     }
 }
 
@@ -1815,6 +1851,12 @@ pub struct JumpStatement {
 #[derive(Debug, Clone, PartialEq)]
 pub struct LabelStatement {
     pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Allocation {
+    pub name: String,
+    pub reference_type: String,
 }
 
 impl HardwareAccess {

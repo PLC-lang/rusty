@@ -24,7 +24,7 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::InitVisitor,
+    lowering::{calls::AggregateTypeLowerer, InitVisitor},
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -245,7 +245,6 @@ impl<T: SourceContainer> BuildPipeline<T> {
             log::info!("{err}")
         }
     }
-
     /// Register all default participants (excluding codegen/linking)
     pub fn register_default_participants(&mut self) {
         use participant::InitParticipant;
@@ -254,6 +253,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
             Box::new(InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
+            Box::new(AggregateTypeLowerer::new(self.context.provider()))
         ];
 
         for participant in participants {
