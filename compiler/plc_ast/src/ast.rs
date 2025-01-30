@@ -67,9 +67,9 @@ pub struct InterfaceIdentifier {
 pub struct Property {
     pub name: String,
     pub name_location: SourceLocation,
-    pub kind_parent: PouType,
-    pub name_parent: String,
-    pub name_parent_location: SourceLocation,
+    pub parent_kind: PouType,
+    pub parent_name: String,
+    pub parent_name_location: SourceLocation,
     pub datatype: DataTypeDeclaration,
     pub implementations: Vec<PropertyImplementation>,
 }
@@ -77,7 +77,7 @@ pub struct Property {
 #[derive(Debug, PartialEq, Clone)]
 pub struct PropertyImplementation {
     pub kind: PropertyKind,
-    pub variables: Vec<VariableBlock>,
+    pub variable_blocks: Vec<VariableBlock>,
     pub statements: Vec<AstNode>,
     pub location: SourceLocation,
 }
@@ -436,7 +436,7 @@ pub enum VariableBlockType {
     Global,
     InOut,
     External,
-    /// Compiler internal
+    /// Compiler internal: when lowering a property we internally create a variable block with this
     Property,
 }
 

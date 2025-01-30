@@ -19,19 +19,19 @@ impl ParticipantValidator {
         for property in properties {
             let mut get_blocks = vec![];
             let mut set_blocks = vec![];
-            if !property.kind_parent.is_stateful_pou() {
+            if !property.parent_kind.is_stateful_pou() {
                 self.diagnostics.push(
                     Diagnostic::new(format!(
                         "Property `{name}` must be defined in a stateful POU type (PROGRAM, CLASS or FUNCTION_BLOCK)",
                         name = property.name
                     ))
-                    .with_location(property.name_parent_location.clone())
+                    .with_location(property.parent_name_location.clone())
                     .with_error_code("E114"),
                 );
             }
             for implementation in &property.implementations {
                 // implementation.variable_block.variable_block_type
-                for variable in &implementation.variables {
+                for variable in &implementation.variable_blocks {
                     match variable.variable_block_type {
                         plc_ast::ast::VariableBlockType::Local => {}
                         _ => {
@@ -62,7 +62,6 @@ impl ParticipantValidator {
                 );
                 continue;
             }
-            // TODO: check why END_GET is part of error message in property_with_more_than_one_get_block()
             if get_blocks.len() > 1 {
                 self.diagnostics.push(
                     Diagnostic::new("Property has more than one GET block")
@@ -80,10 +79,8 @@ impl ParticipantValidator {
                 );
             }
         }
-        // todo!()
     }
 }
-// -------
 
 #[derive(Default)]
 pub struct ParticipantDiagnostician {

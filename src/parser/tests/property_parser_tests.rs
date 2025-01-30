@@ -51,9 +51,9 @@ fn properties_can_be_parsed() {
                     },
                 ),
             },
-            kind_parent: FunctionBlock,
-            name_parent: "foo",
-            name_parent_location: SourceLocation {
+            parent_kind: FunctionBlock,
+            parent_name: "foo",
+            parent_name_location: SourceLocation {
                 span: Range(
                     TextLocation {
                         line: 1,
@@ -72,7 +72,7 @@ fn properties_can_be_parsed() {
             implementations: [
                 PropertyImplementation {
                     kind: Get,
-                    variables: [
+                    variable_blocks: [
                         VariableBlock {
                             variables: [
                                 Variable {
@@ -116,7 +116,7 @@ fn properties_can_be_parsed() {
                 },
                 PropertyImplementation {
                     kind: Set,
-                    variables: [
+                    variable_blocks: [
                         VariableBlock {
                             variables: [
                                 Variable {
@@ -178,7 +178,6 @@ fn property_with_missing_name() {
         END_FUNCTION_BLOCK
     ";
 
-    // TODO: This error message is pretty bad, however this is more of a parser issue than something property related...
     let (_, diagnostics) = parse_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
     error[E007]: Unexpected token: expected Identifier but found :
@@ -187,29 +186,11 @@ fn property_with_missing_name() {
     3 │             PROPERTY : INT  // <- Missing name
       │                      ^ Unexpected token: expected Identifier but found :
 
-    error[E007]: Unexpected token: expected Literal but found END_PROPERTY
-      ┌─ <internal>:4:13
+    error[E001]: Property definition is missing a name
+      ┌─ <internal>:3:22
       │
-    4 │             END_PROPERTY
-      │             ^^^^^^^^^^^^ Unexpected token: expected Literal but found END_PROPERTY
-
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
-      ┌─ <internal>:4:13
-      │
-    4 │             END_PROPERTY
-      │             ^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
-
-    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
-      ┌─ <internal>:5:9
-      │
-    5 │         END_FUNCTION_BLOCK
-      │         ^^^^^^^^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
-
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
-      ┌─ <internal>:5:9
-      │
-    5 │         END_FUNCTION_BLOCK
-      │         ^^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
+    3 │             PROPERTY : INT  // <- Missing name
+      │                      ^ Property definition is missing a name
     ");
 }
 
@@ -222,32 +203,13 @@ fn property_with_missing_datatype() {
         END_FUNCTION_BLOCK
     ";
 
-    // TODO: This error message is pretty bad, however this is more of a parser issue than something property related...
     let (_, diagnostics) = parse_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
-    error[E007]: Unexpected token: expected Literal but found END_PROPERTY
+    error[E001]: Property definition is missing a datatype
       ┌─ <internal>:4:13
       │
     4 │             END_PROPERTY
-      │             ^^^^^^^^^^^^ Unexpected token: expected Literal but found END_PROPERTY
-
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
-      ┌─ <internal>:4:13
-      │
-    4 │             END_PROPERTY
-      │             ^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
-
-    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
-      ┌─ <internal>:5:9
-      │
-    5 │         END_FUNCTION_BLOCK
-      │         ^^^^^^^^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
-
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
-      ┌─ <internal>:5:9
-      │
-    5 │         END_FUNCTION_BLOCK
-      │         ^^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
+      │             ^^^^^^^^^^^^ Property definition is missing a datatype
     ");
 }
 
@@ -267,7 +229,6 @@ fn property_with_variable_block() {
         END_FUNCTION_BLOCK
     ";
 
-    // TODO: Update location
     let (_, diagnostics) = parse_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
     error[E007]: Variable blocks may only be defined within a GET or SET block in the context of properties

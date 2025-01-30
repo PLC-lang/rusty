@@ -638,9 +638,26 @@ fn parse_property(
     let _location = lexer.location();
     lexer.advance(); // Move past `PROPERTY` keyword
 
-    // TODO: Error handling
-    let identifier = parse_identifier(lexer);
-    let datatype = parse_return_type(lexer, &PouType::Function); // XXX: The POU type is not correct
+    let mut has_error = false;
+
+    let identifier = parse_identifier(lexer).or_else(|| {
+        has_error = true;
+        lexer.accept_diagnostic(
+            Diagnostic::new("Property definition is missing a name").with_location(lexer.location()),
+        );
+        Some((String::new(), SourceLocation::undefined()))
+    });
+
+    let datatype = parse_return_type(lexer, &PouType::Function).or_else(|| {
+        has_error = true;
+        lexer.accept_diagnostic(
+            Diagnostic::new("Property definition is missing a datatype").with_location(lexer.location()),
+        );
+        Some(DataTypeDeclaration::Reference {
+            referenced_type: String::new(),
+            location: SourceLocation::undefined(),
+        })
+    });
 
     // This is kind of common, hence we parse invalid variable blocks to have useful error messages
     while lexer.token.is_var() {
@@ -660,26 +677,29 @@ fn parse_property(
         let kind = if lexer.token == KeywordGet { PropertyKind::Get } else { PropertyKind::Set };
         lexer.advance(); // Move past `GET` or `SET` keyword
 
-        let mut variables = vec![];
+        let mut variable_blocks = vec![];
         while lexer.token.is_var() {
-            variables.push(parse_variable_block(lexer, LinkageType::Internal));
+            variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
         let statements = parse_body_in_region(lexer, vec![Token::KeywordEndGet, Token::KeywordEndSet]);
-        implementations.push(PropertyImplementation { kind, variables, statements, location });
+        implementations.push(PropertyImplementation { kind, variable_blocks, statements, location });
     }
 
-    let (name, name_location) = identifier?;
-
-    let datatype = datatype?;
-
     lexer.try_consume_or_report(Token::KeywordEndProperty); // Move past `END_PROPERTY` keyword
+
+    if has_error {
+        return None;
+    };
+
+    let (name, name_location) = identifier.expect("covered in above is_none() check");
+    let datatype = datatype.expect("covered in above is_none() check");
     Some(Property {
         name,
         name_location,
-        name_parent: parent_name.to_string(),
-        kind_parent: kind.clone(),
-        name_parent_location: parent_location.clone(),
+        parent_name: parent_name.to_string(),
+        parent_kind: kind.clone(),
+        parent_name_location: parent_location.clone(),
         datatype,
         implementations,
     })
@@ -1376,9 +1396,6 @@ fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> O
 fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     // read in a comma separated list of variable names
     let mut var_names: Vec<(String, Range<usize>)> = vec![];
-    // TODO: This is problematic, as this will return an error whenever a keyword defined in tokens.rs is found
-    //       For example `VAR retain : DINT END_VAR` will return an error because `retain` isn't recognized as an
-    //       identifier but rather as `Token::Retain`
     while lexer.token == Identifier {
         let location = lexer.range();
         let identifier_end = location.end;

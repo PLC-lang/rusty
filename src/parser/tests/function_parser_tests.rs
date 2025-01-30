@@ -583,13 +583,8 @@ fn constant_pragma_can_be_parsed_but_errs() {
 }
 
 #[test]
-#[ignore = "This is not a property related issue but more of a general issue with the parser"]
-fn some_defined_tokens_are_not_reserved_keywords() {
-    // TODO: Currently the parse_variable_line method checks if the line contains an Token::Identifier and if so parses
-    //       the line. However, an identifier called (for example) "retain" will not be parseable as a variable because "retain"
-    //       resolves to a `Token::Retain` by the lexer. Same goes for property related keywords.
-    //       One way to solve this would be to get the raw value of the token and check if it is a reserved keyword, e.g.
-    //       `if reserved_keywords.get(token.as_str_representation()) { /* parse... */ } else { /* return error */ }` in the parser
+#[ignore = "This needs a better error message"]
+fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
     let source = r"
         FUNCTION foo
             VAR
@@ -664,9 +659,9 @@ fn property_inside_function_block() {
                     },
                 ),
             },
-            kind_parent: FunctionBlock,
-            name_parent: "foo",
-            name_parent_location: SourceLocation {
+            parent_kind: FunctionBlock,
+            parent_name: "foo",
+            parent_name_location: SourceLocation {
                 span: Range(
                     TextLocation {
                         line: 1,
@@ -685,7 +680,7 @@ fn property_inside_function_block() {
             implementations: [
                 PropertyImplementation {
                     kind: Get,
-                    variables: [
+                    variable_blocks: [
                         VariableBlock {
                             variables: [
                                 Variable {
@@ -729,7 +724,7 @@ fn property_inside_function_block() {
                 },
                 PropertyImplementation {
                     kind: Set,
-                    variables: [
+                    variable_blocks: [
                         VariableBlock {
                             variables: [
                                 Variable {

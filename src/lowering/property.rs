@@ -44,8 +44,6 @@ impl AstVisitorMut for PropertyLowerer {
 
     fn visit_implementation(&mut self, implementation: &mut Implementation) {
         if let PouType::Method { property: Some(qualified_name), .. } = &implementation.pou_type {
-            // TODO: Two things, first let's maybe introduce a `enter_method` and `exit_method` method and secondly
-            //       I'm not entirely happy with this solution but it seemed to be the easiest way to solve for now
             self.context = Some(qualified_name.clone())
         }
 
@@ -61,15 +59,11 @@ impl AstVisitorMut for PropertyLowerer {
             unreachable!();
         };
 
-        // dbg!(&data);
         self.visit(&mut data.right);
-        // dbg!(&data);
 
         match self.annotations.as_ref().and_then(|map| map.get(&data.left)) {
             Some(annotation) if annotation.is_property() => {
-                // self.visit(&mut data.right);
                 if self.context.as_deref() == annotation.get_qualified_name() {
-                    // dbg!(node, self.context.clone(), annotation);
                     return;
                 }
 
@@ -94,7 +88,6 @@ impl AstVisitorMut for PropertyLowerer {
                 return;
             }
 
-            // dbg!(&annotation, &self.context);
             if self.context.as_deref() == annotation.get_qualified_name() {
                 return;
             }
@@ -107,9 +100,7 @@ impl AstVisitorMut for PropertyLowerer {
                 node.location.clone(),
             );
 
-            // dbg!(&call);
             let _ = std::mem::replace(node, call);
-            // dbg!(&node);
         }
     }
 }
@@ -122,24 +113,23 @@ fn patch_prefix_to_name(prefix: &str, node: &mut AstNode) {
     name.insert_str(0, prefix);
 }
 
-// TODO: There are a lot of clone calls here, see if we can reduce them?
 impl PropertyLowerer {
     pub fn lower_to_methods(&mut self, unit: &mut CompilationUnit) {
         let mut parents: HashMap<String, Vec<Property>> = HashMap::new();
 
         for property in &mut unit.properties.drain(..) {
             // Keep track of the parent POUs and all their defined properties
-            match parents.get_mut(&property.name_parent) {
+            match parents.get_mut(&property.parent_name) {
                 Some(values) => values.push(property.clone()),
                 None => {
-                    parents.insert(property.name_parent.clone(), vec![property.clone()]);
+                    parents.insert(property.parent_name.clone(), vec![property.clone()]);
                 }
             }
 
             for property_impl in property.implementations {
                 let name = format!(
                     "{parent}.__{kind}_{name}",
-                    parent = property.name_parent,
+                    parent = property.parent_name,
                     kind = property_impl.kind,
                     name = property.name
                 );
@@ -147,12 +137,12 @@ impl PropertyLowerer {
                 let mut pou = Pou {
                     name,
                     kind: PouType::Method {
-                        parent: property.name_parent.clone(),
-                        property: Some(qualified_name(&property.name_parent, &property.name)),
+                        parent: property.parent_name.clone(),
+                        property: Some(qualified_name(&property.parent_name, &property.name)),
                     },
                     variable_blocks: Vec::new(),
                     return_type: Some(property.datatype.clone()),
-                    location: SourceLocation::undefined(), // TODO: Update me
+                    location: property.name_location.clone(),
                     name_location: property.name_location.clone(),
                     poly_mode: None,
                     generics: Vec::new(),
@@ -194,7 +184,6 @@ impl PropertyLowerer {
                     PropertyKind::Set => {
                         let parameter_name = "__in";
 
-                        // TODO: The return type of a setter should be VOID?
                         pou.variable_blocks.push(VariableBlock {
                             access: AccessModifier::Public,
                             constant: false,
@@ -210,6 +199,7 @@ impl PropertyLowerer {
                             linkage: LinkageType::Internal,
                             location: SourceLocation::internal(),
                         });
+                        pou.return_type = None;
 
                         let name_lhs = &property.name;
                         let name_rhs = parameter_name;
@@ -432,7 +422,17 @@ mod tests {
                     },
                 ],
                 location: SourceLocation {
-                    span: None,
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 19,
+                            offset: 102,
+                        }..TextLocation {
+                            line: 5,
+                            column: 25,
+                            offset: 108,
+                        },
+                    ),
                 },
                 name_location: SourceLocation {
                     span: Range(
@@ -523,7 +523,17 @@ mod tests {
                     },
                 ],
                 location: SourceLocation {
-                    span: None,
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 19,
+                            offset: 102,
+                        }..TextLocation {
+                            line: 5,
+                            column: 25,
+                            offset: 108,
+                        },
+                    ),
                 },
                 name_location: SourceLocation {
                     span: Range(
@@ -567,7 +577,7 @@ mod tests {
                         right: ReferenceExpr {
                             kind: Member(
                                 Identifier {
-                                    name: "__get_myProp",
+                                    name: "myProp",
                                 },
                             ),
                             base: None,
@@ -593,7 +603,17 @@ mod tests {
                     },
                 ],
                 location: SourceLocation {
-                    span: None,
+                    span: Range(
+                        TextLocation {
+                            line: 14,
+                            column: 19,
+                            offset: 325,
+                        }..TextLocation {
+                            line: 14,
+                            column: 31,
+                            offset: 337,
+                        },
+                    ),
                 },
                 name_location: SourceLocation {
                     span: Range(
@@ -645,7 +665,17 @@ mod tests {
                     },
                 ],
                 location: SourceLocation {
-                    span: None,
+                    span: Range(
+                        TextLocation {
+                            line: 14,
+                            column: 19,
+                            offset: 325,
+                        }..TextLocation {
+                            line: 14,
+                            column: 31,
+                            offset: 337,
+                        },
+                    ),
                 },
                 name_location: SourceLocation {
                     span: Range(
@@ -833,7 +863,17 @@ mod tests {
                     },
                 ],
                 location: SourceLocation {
-                    span: None,
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 19,
+                            offset: 102,
+                        }..TextLocation {
+                            line: 5,
+                            column: 25,
+                            offset: 108,
+                        },
+                    ),
                 },
                 name_location: SourceLocation {
                     span: Range(
@@ -903,7 +943,17 @@ mod tests {
                     },
                 ],
                 location: SourceLocation {
-                    span: None,
+                    span: Range(
+                        TextLocation {
+                            line: 5,
+                            column: 19,
+                            offset: 102,
+                        }..TextLocation {
+                            line: 5,
+                            column: 25,
+                            offset: 108,
+                        },
+                    ),
                 },
                 name_location: SourceLocation {
                     span: Range(
@@ -1019,11 +1069,7 @@ mod tests {
                     "fb.foo",
                 ),
             },
-            return_type: Some(
-                DataTypeReference {
-                    referenced_type: "DINT",
-                },
-            ),
+            return_type: None,
             interfaces: [],
         }
         "#);
@@ -1074,7 +1120,17 @@ mod tests {
                 },
             ],
             location: SourceLocation {
-                span: None,
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 21,
+                        offset: 130,
+                    }..TextLocation {
+                        line: 6,
+                        column: 24,
+                        offset: 133,
+                    },
+                ),
             },
             name_location: SourceLocation {
                 span: Range(
@@ -1147,7 +1203,17 @@ mod tests {
                 },
             ],
             location: SourceLocation {
-                span: None,
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 21,
+                        offset: 130,
+                    }..TextLocation {
+                        line: 6,
+                        column: 24,
+                        offset: 133,
+                    },
+                ),
             },
             name_location: SourceLocation {
                 span: Range(
