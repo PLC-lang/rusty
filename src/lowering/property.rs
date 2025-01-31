@@ -1,4 +1,48 @@
-//! TODO: Description of this module
+//! The property lowerer does two things:
+//! - lowering {get/set} blocks within properties to methods:
+//!     This step happens after parsing the sourcecode and introduces
+//!     methods for the GET and SET blocks of a property. The naming
+//!     of these methods follows this rule:
+//!                 `<parent_name>.__{set/get}_<property_name>`
+//!     These new implementations are then added to the AST.
+//!
+//!     Example for the lowering happening here:
+//!         ```iec61131
+//!         FUNCTION_BLOCK fb
+//!             VAR
+//!               bar : DINT;
+//!             END_VAR
+//!             PROPERTY foo : DINT
+//!                 GET
+//!                   foo := 1;
+//!                 END_GET
+//!                 SET
+//!                   bar := foo;
+//!                 END_SET
+//!             END_PROPERTY
+//!         END_FUNCTION_BLOCK
+//!         ```
+//!         is lowered to the equivalent of this:
+//!         ```iec61131
+//!         bar: DINT;
+//!         DINT fb.__get_foo(); // will return 1
+//!         fb.__set_foo(27);
+//!        ```
+//! - lowering references of properties to function calls to the newly created methods:
+//!     This step happens after the Linker step and visits every implementation in the
+//!     CompilationUnit and lowers property references to function calls. The respective
+//!     references in the Ast nodes are then directly patched with the function calls.
+//!
+//!     Example - these property references:
+//!         ```iec61131
+//!         fb.foo := 5;
+//!         bar := fb.foo;
+//!         ```
+//!     are lowered to these function calls (which were created in lower_to_methods)
+//!         ```iec61131
+//!         fb.__set_foo(5);
+//!         bar := fb.__get_foo();
+//!         ```
 
 use std::collections::HashMap;
 
