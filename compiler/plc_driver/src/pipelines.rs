@@ -795,8 +795,9 @@ impl AnnotatedProject {
     }
 
     // TODO: Find better way, this is hella expensive
-    pub fn redo(self, mut id_provider: IdProvider) -> AnnotatedProject {
-        //Create and call the annotator
+    pub fn re_annotate(self, mut id_provider: IdProvider) -> AnnotatedProject {
+        // TODO: this almost duplicates IndexedProject::annotate(). Can we do this differently?
+        // Create and call the annotator again after lowering property references to calls
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
         let result = self

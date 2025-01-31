@@ -24,6 +24,6 @@ impl PipelineParticipantMut for PropertyLowerer {
         }
 
         let project = AnnotatedProject { units, index, annotations: self.annotations.take().unwrap() };
-        project.redo(self.id_provider.clone())
+        project.re_annotate(self.id_provider.clone())
     }
 }
