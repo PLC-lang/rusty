@@ -281,7 +281,7 @@ mod tests {
     use crate::{
         lowering::property::PropertyLowerer,
         resolver::AstAnnotations,
-        test_utils::tests::{annotate_with_ids, index_unit_with_id, parse},
+        test_utils::tests::{annotate_with_ids, index_unit_with_id, parse, parse_with_id},
     };
 
     #[test]
@@ -316,7 +316,7 @@ mod tests {
         let mut lowerer = PropertyLowerer::new(id_provider.clone());
 
         // Parse
-        let (mut unit, diagnostics) = parse(source);
+        let (mut unit, diagnostics) = parse_with_id(source, id_provider.clone());
         assert_eq!(diagnostics, Vec::new());
 
         // Lowern
@@ -574,13 +574,16 @@ mod tests {
                             ),
                             base: None,
                         },
-                        right: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "myProp",
-                                },
-                            ),
-                            base: None,
+                        right: CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__get_myProp",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: None,
                         },
                     },
                     Assignment {
