@@ -24,9 +24,20 @@
 //!         ```
 //!         is lowered to the equivalent of this:
 //!         ```iec61131
-//!         bar: DINT;
-//!         DINT fb.__get_foo(); // will return 1
-//!         fb.__set_foo(27);
+//!         FUNCTION_BLOCK fb
+//!             VAR
+//!               bar : DINT;
+//!             END_VAR
+//!             METHOD __get_foo : DINT
+//!               __get_foo := 1;
+//!             END_METHOD
+//!             METHOD __set_foo
+//!               VAR_INPUT
+//!                 __in : DINT
+//!               END_VAR
+//!               bar := __in;
+//!             END_METHOD
+//!         END_FUNCTION_BLOCK
 //!        ```
 //! - lowering references of properties to function calls to the newly created methods:
 //!     This step happens after the Linker step and visits every implementation in the
