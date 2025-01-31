@@ -36,14 +36,6 @@ pub mod tests {
         )
     }
 
-    pub fn parse_with_id(src: &str, id_provider: IdProvider) -> (CompilationUnit, Vec<Diagnostic>) {
-        parser::parse(
-            lexer::lex_with_ids(src, id_provider, SourceLocationFactory::internal(src)),
-            LinkageType::Internal,
-            "test.st",
-        )
-    }
-
     pub fn parse_buffered(src: &str) -> (CompilationUnit, String) {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
@@ -205,26 +197,6 @@ pub mod tests {
             .collect::<Vec<_>>();
 
         (all_annotations, full_index, annotated_units)
-    }
-
-    pub fn temp_make_me_generic_but_for_now_validate_property(src: &str) -> String {
-        let mut context = GlobalContext::new();
-        context.with_error_fmt(plc_index::ErrorFormat::Null);
-        context.insert(&SourceCode::from(src), None).unwrap();
-
-        let (unit, mut diagnostics) = parse(src);
-
-        let mut validator = ParticipantValidator::new(&context, ErrorFormat::None);
-        validator.validate_properties(&unit.properties);
-
-        diagnostics.extend(validator.diagnostics);
-
-        let mut results = Vec::new();
-        for diagnostic in diagnostics {
-            results.push(context.handle_as_str(&diagnostic));
-        }
-
-        results.join("\n").to_string()
     }
 
     pub fn parse_and_validate_buffered(src: &str) -> String {

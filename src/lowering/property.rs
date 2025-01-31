@@ -107,7 +107,7 @@ impl AstVisitorMut for PropertyLowerer {
 
         match self.annotations.as_ref().and_then(|map| map.get(&data.left)) {
             Some(annotation) if annotation.is_property() => {
-                if self.context.as_deref() == annotation.get_qualified_name() {
+                if self.context.as_deref() == annotation.qualified_name() {
                     return;
                 }
 
@@ -132,7 +132,7 @@ impl AstVisitorMut for PropertyLowerer {
                 return;
             }
 
-            if self.context.as_deref() == annotation.get_qualified_name() {
+            if self.context.as_deref() == annotation.qualified_name() {
                 return;
             }
 
@@ -201,7 +201,7 @@ impl PropertyLowerer {
                     type_name: pou.name.clone(),
                     linkage: pou.linkage,
                     pou_type: pou.kind.clone(),
-                    statements: property_impl.statements,
+                    statements: property_impl.body,
                     location: pou.location.clone(),
                     name_location: pou.name_location.clone(),
                     overriding: false,
@@ -320,13 +320,51 @@ mod helper {
 
 #[cfg(test)]
 mod tests {
-    use plc_ast::provider::IdProvider;
+    use plc_ast::{
+        ast::{CompilationUnit, LinkageType},
+        provider::IdProvider,
+    };
+    use plc_source::source_location::SourceLocationFactory;
 
     use crate::{
+        lexer::lex_with_ids,
         lowering::property::PropertyLowerer,
+        parser::parse,
         resolver::AstAnnotations,
-        test_utils::tests::{annotate_with_ids, index_unit_with_id, parse, parse_with_id},
+        test_utils::tests::{annotate_with_ids, index_unit_with_id},
     };
+
+    // Parse -> Lower -> Index -> Annotate -> Lower -> Snapshot
+    fn lower(source: &str) -> CompilationUnit {
+        let mut id_provider = IdProvider::default();
+        let mut lowerer = PropertyLowerer::new(id_provider.clone());
+
+        // Parse
+        let (mut unit, diagnostics) = parse(
+            lex_with_ids(source, id_provider.clone(), SourceLocationFactory::internal(source)),
+            LinkageType::Internal,
+            "test.st",
+        );
+        assert_eq!(diagnostics, Vec::new());
+
+        // Lower
+        lowerer.lower_to_methods(&mut unit);
+
+        // Index
+        let mut index = index_unit_with_id(&unit, id_provider.clone());
+
+        // Annotate
+        let annotations = AstAnnotations::new(
+            annotate_with_ids(&mut unit, &mut index, id_provider.clone()),
+            id_provider.next_id(),
+        );
+
+        // Lower
+        lowerer.annotations = Some(annotations);
+        lowerer.lower_references_to_calls(&mut unit);
+
+        unit
+    }
 
     #[test]
     fn properties_are_used_within_each_other() {
@@ -354,31 +392,7 @@ mod tests {
         END_FUNCTION_BLOCK
         ";
 
-        // Parsen -> Lowern -> Index -> Annotaten -> Lowern -> Snapshot
-
-        let mut id_provider = IdProvider::default();
-        let mut lowerer = PropertyLowerer::new(id_provider.clone());
-
-        // Parse
-        let (mut unit, diagnostics) = parse_with_id(source, id_provider.clone());
-        assert_eq!(diagnostics, Vec::new());
-
-        // Lowern
-        lowerer.lower_to_methods(&mut unit);
-
-        // Index
-        let mut index = index_unit_with_id(&unit, id_provider.clone());
-
-        // Annotate
-        let annotations = AstAnnotations::new(
-            annotate_with_ids(&mut unit, &mut index, id_provider.clone()),
-            id_provider.next_id(),
-        );
-
-        // Lower
-        lowerer.annotations = Some(annotations);
-        lowerer.lower_references_to_calls(&mut unit);
-
+        let unit = lower(source);
         insta::assert_debug_snapshot!(unit.implementations, @r#"
         [
             Implementation {
@@ -766,31 +780,7 @@ mod tests {
         END_FUNCTION_BLOCK
         ";
 
-        // Parsen -> Lowern -> Index -> Annotaten -> Lowern -> Snapshot
-
-        let mut id_provider = IdProvider::default();
-        let mut lowerer = PropertyLowerer::new(id_provider.clone());
-
-        // Parse
-        let (mut unit, diagnostics) = parse(source);
-        assert_eq!(diagnostics, Vec::new());
-
-        // Lowern
-        lowerer.lower_to_methods(&mut unit);
-
-        // Index
-        let mut index = index_unit_with_id(&unit, id_provider.clone());
-
-        // Annotate
-        let annotations = AstAnnotations::new(
-            annotate_with_ids(&mut unit, &mut index, id_provider.clone()),
-            id_provider.next_id(),
-        );
-
-        // Lower
-        lowerer.annotations = Some(annotations);
-        lowerer.lower_references_to_calls(&mut unit);
-
+        let unit = lower(source);
         insta::assert_debug_snapshot!(unit.implementations, @r#"
         [
             Implementation {
@@ -1055,24 +1045,7 @@ mod tests {
         END_FUNCTION_BLOCK
     ";
 
-        let (mut unit, diagnostics) = parse(source);
-        assert_eq!(diagnostics, Vec::new());
-
-        // Pre-Lowering
-        assert_eq!(unit.units.len(), 1);
-        assert_eq!(unit.units[0].name, "fb");
-
-        let mut lowerer = PropertyLowerer::new(IdProvider::default());
-        lowerer.lower_to_methods(&mut unit);
-
-        // Post-Lowering
-        assert_eq!(unit.units.len(), 5);
-        assert_eq!(unit.units[0].name, "fb");
-        assert_eq!(unit.units[1].name, "fb.__get_foo");
-        assert_eq!(unit.units[2].name, "fb.__set_foo");
-        assert_eq!(unit.units[3].name, "fb.__get_bar");
-        assert_eq!(unit.units[4].name, "fb.__set_bar");
-
+        let unit = lower(source);
         insta::assert_debug_snapshot!(unit.units[1], @r#"
         POU {
             name: "fb.__get_foo",

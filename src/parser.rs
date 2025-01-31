@@ -635,29 +635,25 @@ fn parse_property(
     parent_location: &SourceLocation,
     kind: &PouType,
 ) -> Option<Property> {
-    let _location = lexer.location();
     lexer.advance(); // Move past `PROPERTY` keyword
 
     let mut has_error = false;
 
-    let identifier = parse_identifier(lexer).or_else(|| {
+    let identifier = parse_identifier(lexer);
+    if identifier.is_none() {
         has_error = true;
         lexer.accept_diagnostic(
             Diagnostic::new("Property definition is missing a name").with_location(lexer.location()),
         );
-        Some((String::new(), SourceLocation::undefined()))
-    });
+    }
 
-    let datatype = parse_return_type(lexer, &PouType::Function).or_else(|| {
+    let datatype = parse_return_type(lexer, &PouType::Function);
+    if datatype.is_none() {
         has_error = true;
         lexer.accept_diagnostic(
-            Diagnostic::new("Property definition is missing a datatype").with_location(lexer.location()),
+            Diagnostic::new("Property definition is missing a datatype").with_location(lexer.last_location()),
         );
-        Some(DataTypeDeclaration::Reference {
-            referenced_type: String::new(),
-            location: SourceLocation::undefined(),
-        })
-    });
+    };
 
     // This is kind of common, hence we parse invalid variable blocks to have useful error messages
     while lexer.token.is_var() {
@@ -683,7 +679,7 @@ fn parse_property(
         }
 
         let statements = parse_body_in_region(lexer, vec![Token::KeywordEndGet, Token::KeywordEndSet]);
-        implementations.push(PropertyImplementation { kind, variable_blocks, statements, location });
+        implementations.push(PropertyImplementation { kind, variable_blocks, body: statements, location });
     }
 
     lexer.try_consume_or_report(Token::KeywordEndProperty); // Move past `END_PROPERTY` keyword
@@ -692,8 +688,8 @@ fn parse_property(
         return None;
     };
 
-    let (name, name_location) = identifier.expect("covered in above is_none() check");
-    let datatype = datatype.expect("covered in above is_none() check");
+    let (name, name_location) = identifier.expect("covered above");
+    let datatype = datatype.expect("covered above");
     Some(Property {
         name,
         name_location,

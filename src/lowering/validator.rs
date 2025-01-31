@@ -22,7 +22,7 @@ impl ParticipantValidator {
         for property in properties {
             let mut get_blocks = vec![];
             let mut set_blocks = vec![];
-            if !property.parent_kind.is_stateful_pou() {
+            if !property.parent_kind.is_stateful() {
                 self.diagnostics.push(
                     Diagnostic::new(format!(
                         "Property `{name}` must be defined in a stateful POU type (PROGRAM, CLASS or FUNCTION_BLOCK)",

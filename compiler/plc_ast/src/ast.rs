@@ -77,9 +77,9 @@ pub struct Property {
 #[derive(Debug, PartialEq, Clone)]
 pub struct PropertyImplementation {
     pub kind: PropertyKind,
-    pub variable_blocks: Vec<VariableBlock>,
-    pub statements: Vec<AstNode>,
     pub location: SourceLocation,
+    pub variable_blocks: Vec<VariableBlock>,
+    pub body: Vec<AstNode>,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -321,6 +321,8 @@ pub enum PouType {
     Method {
         /// The parent of this method, i.e. a function block, class or an interface
         parent: String,
+
+        /// The fully qualified name of the property this GET or SET method represents
         property: Option<String>,
     },
     Init,
@@ -356,7 +358,7 @@ impl PouType {
         matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit | PouType::Method { .. })
     }
 
-    pub fn is_stateful_pou(&self) -> bool {
+    pub fn is_stateful(&self) -> bool {
         matches!(self, PouType::FunctionBlock | PouType::Program | PouType::Class)
     }
 }
@@ -436,7 +438,8 @@ pub enum VariableBlockType {
     Global,
     InOut,
     External,
-    /// Compiler internal: when lowering a property we internally create a variable block with this
+
+    /// A compiler internal variable block representing all properties defined within a stateful POU
     Property,
 }
 
@@ -483,7 +486,7 @@ impl VariableBlock {
         self
     }
 
-    /// Creates a new VariableBlock with the block type set to [`Property`]
+    /// Creates a new (internal) variable block with a block type of [`Property`]
     pub fn property(variables: Vec<Variable>) -> VariableBlock {
         VariableBlock {
             access: AccessModifier::Internal,

@@ -72,6 +72,19 @@ fn properties_can_be_parsed() {
             implementations: [
                 PropertyImplementation {
                     kind: Get,
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 3,
+                                column: 16,
+                                offset: 75,
+                            }..TextLocation {
+                                line: 3,
+                                column: 19,
+                                offset: 78,
+                            },
+                        ),
+                    },
                     variable_blocks: [
                         VariableBlock {
                             variables: [
@@ -85,7 +98,7 @@ fn properties_can_be_parsed() {
                             variable_block_type: Local,
                         },
                     ],
-                    statements: [
+                    body: [
                         Assignment {
                             left: ReferenceExpr {
                                 kind: Member(
@@ -100,22 +113,22 @@ fn properties_can_be_parsed() {
                             },
                         },
                     ],
-                    location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 3,
-                                column: 16,
-                                offset: 75,
-                            }..TextLocation {
-                                line: 3,
-                                column: 19,
-                                offset: 78,
-                            },
-                        ),
-                    },
                 },
                 PropertyImplementation {
                     kind: Set,
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 10,
+                                column: 16,
+                                offset: 251,
+                            }..TextLocation {
+                                line: 10,
+                                column: 19,
+                                offset: 254,
+                            },
+                        ),
+                    },
                     variable_blocks: [
                         VariableBlock {
                             variables: [
@@ -129,7 +142,7 @@ fn properties_can_be_parsed() {
                             variable_block_type: Local,
                         },
                     ],
-                    statements: [
+                    body: [
                         Assignment {
                             left: ReferenceExpr {
                                 kind: Member(
@@ -149,19 +162,6 @@ fn properties_can_be_parsed() {
                             },
                         },
                     ],
-                    location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 10,
-                                column: 16,
-                                offset: 251,
-                            }..TextLocation {
-                                line: 10,
-                                column: 19,
-                                offset: 254,
-                            },
-                        ),
-                    },
                 },
             ],
         },
@@ -206,10 +206,10 @@ fn property_with_missing_datatype() {
     let (_, diagnostics) = parse_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
     error[E001]: Property definition is missing a datatype
-      ┌─ <internal>:4:13
+      ┌─ <internal>:3:22
       │
-    4 │             END_PROPERTY
-      │             ^^^^^^^^^^^^ Property definition is missing a datatype
+    3 │             PROPERTY bar    // <- Missing datatype
+      │                      ^^^ Property definition is missing a datatype
     ");
 }
 

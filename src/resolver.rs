@@ -513,7 +513,7 @@ impl StatementAnnotation {
         )
     }
 
-    pub fn get_qualified_name(&self) -> Option<&str> {
+    pub fn qualified_name(&self) -> Option<&str> {
         match self {
             StatementAnnotation::Variable { qualified_name, .. }
             | StatementAnnotation::Function { qualified_name, .. }

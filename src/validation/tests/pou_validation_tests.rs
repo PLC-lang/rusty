@@ -1,6 +1,4 @@
-use crate::test_utils::tests::{
-    parse_and_validate_buffered, temp_make_me_generic_but_for_now_validate_property,
-};
+use crate::test_utils::tests::parse_and_validate_buffered;
 use insta::assert_snapshot;
 
 #[test]
@@ -266,90 +264,6 @@ fn method_input_arguments_are_optional() {
 
     assert!(diagnostic.is_empty())
 }
-#[test]
-fn property_within_function_pou() {
-    let diagnostics = temp_make_me_generic_but_for_now_validate_property(
-        r"
-        FUNCTION foo : DINT
-            PROPERTY prop : DINT
-                GET
-                    prop := 5;
-                END_GET
-            END_PROPERTY
-        END_FUNCTION
-        ",
-    );
-
-    assert_snapshot!(diagnostics, @r"
-    error: Methods cannot be declared in a POU of type 'Function'.
-     --> <internal>:2:24
-      |
-    2 |         FUNCTION foo : DINT
-      |                        ^^^^ Methods cannot be declared in a POU of type 'Function'.
-      |
-    error: Property `prop` must be defined in a stateful POU type (PROGRAM, CLASS or FUNCTION_BLOCK)
-     --> <internal>:2:18
-      |
-    2 |         FUNCTION foo : DINT
-      |                  ^^^ Property `prop` must be defined in a stateful POU type (PROGRAM, CLASS or FUNCTION_BLOCK)
-      |
-    ");
-}
-
-#[test]
-fn property_with_more_than_one_get_block() {
-    let diagnostics = temp_make_me_generic_but_for_now_validate_property(
-        r"
-        FUNCTION_BLOCK foo
-            PROPERTY prop : DINT
-                GET END_GET
-                GET END_GET
-            END_PROPERTY
-        END_FUNCTION_BLOCK
-        ",
-    );
-    assert_snapshot!(diagnostics, @r"
-    error: Property has more than one GET block
-     --> <internal>:4:22
-      |
-    4 |             PROPERTY prop : DINT
-      |                      ^^^^ Property has more than one GET block
-    5 |                 GET END_GET
-      |                 ^^^ see also
-    6 |                 GET END_GET
-      |                 ^^^ see also
-      |
-    ");
-}
-
-#[test]
-fn property_with_var_output_in_get_block() {
-    let diagnostics = temp_make_me_generic_but_for_now_validate_property(
-        r"
-        FUNCTION_BLOCK foo
-            PROPERTY prop : DINT
-              GET
-                  VAR_OUTPUT
-                    out : DINT;
-                  END_VAR
-              END_Get
-            END_PROPERTY
-        END_FUNCTION_BLOCK
-        ",
-    );
-
-    assert_snapshot!(diagnostics, @r"
-    error: Properties only allow variable blocks of type VAR
-     --> <internal>:4:22
-      |
-    4 |             PROPERTY prop : DINT
-      |                      ^^^^ Properties only allow variable blocks of type VAR
-    5 |               GET
-    6 |                   VAR_OUTPUT
-      |                   ^^^^^^^^^^ see also
-      |
-    ");
-}
 
 #[test]
 fn method_inout_arguments_are_not_optional() {
@@ -383,7 +297,7 @@ fn method_inout_arguments_are_not_optional() {
         ",
     );
 
-    assert_snapshot!(diagnostic, @r###"
+    insta::assert_snapshot!(diagnostic, @r###"
     error[E030]: Argument `in1` is missing
        ┌─ <internal>:19:13
        │

@@ -582,8 +582,9 @@ fn constant_pragma_can_be_parsed_but_errs() {
     ");
 }
 
+// TODO(volsa): We should test all keywords here. Also we need better error messages here and shouldn't stop
+//              after the first keyword / error as it currently is the case.
 #[test]
-#[ignore = "This needs a better error message"]
 fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
     let source = r"
         FUNCTION foo
@@ -602,206 +603,36 @@ fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
     ";
 
     let (_, diagnostics) = parse_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
-}
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E007]: Unexpected token: expected KeywordEndVar but found ': DINT;
+                    public : DINT;
+                    property : DINT;
+                    get : DINT;
+                    set : DINT;
 
-#[test]
-fn property_inside_function_block() {
-    let source = r"
-        FUNCTION_BLOCK foo
-            PROPERTY bar : DINT
-                GET
-                    VAR
-                        propertyLocalVariable : DINT;
-                    END_VAR
+                    end_property : DINT;
+                    end_get : DINT;
+                    end_set : DINT;'
+       ┌─ <internal>:4:24
+       │  
+     4 │                   retain : DINT;
+       │ ╭────────────────────────^
+     5 │ │                 public : DINT;
+     6 │ │                 property : DINT;
+     7 │ │                 get : DINT;
+     8 │ │                 set : DINT;
+     9 │ │ 
+    10 │ │                 end_property : DINT;
+    11 │ │                 end_get : DINT;
+    12 │ │                 end_set : DINT;
+       │ ╰───────────────────────────────^ Unexpected token: expected KeywordEndVar but found ': DINT;
+                    public : DINT;
+                    property : DINT;
+                    get : DINT;
+                    set : DINT;
 
-                    propertyLocalVariable := 42;
-                END_GET
-
-                SET
-                    VAR
-                        propertyLocalVariable : DINT;
-                    END_VAR
-
-                    propertyLocalVariable := 42;
-                    functionblockLocalVariable := propertyLocalVariable;
-                END_SET
-            END_PROPERTY
-        END_FUNCTION_BLOCK
-    ";
-
-    let (result, diagnostics) = parse_buffered(source);
-
-    insta::assert_snapshot!(diagnostics, @r"");
-    // We expect one POU
-    assert_eq!(result.units.len(), 1);
-    assert_eq!(result.units[0].name.as_str(), "foo");
-
-    // ...and one implementation
-    assert_eq!(result.implementations.len(), 1);
-    assert_eq!(result.implementations[0].name.as_str(), "foo");
-
-    // Other than that we expect a property named "bar" with a getter and setter, which later will be desugared into a method
-    insta::assert_debug_snapshot!(result.properties, @r#"
-    [
-        Property {
-            name: "bar",
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 21,
-                        offset: 49,
-                    }..TextLocation {
-                        line: 2,
-                        column: 24,
-                        offset: 52,
-                    },
-                ),
-            },
-            parent_kind: FunctionBlock,
-            parent_name: "foo",
-            parent_name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 23,
-                        offset: 24,
-                    }..TextLocation {
-                        line: 1,
-                        column: 26,
-                        offset: 27,
-                    },
-                ),
-            },
-            datatype: DataTypeReference {
-                referenced_type: "DINT",
-            },
-            implementations: [
-                PropertyImplementation {
-                    kind: Get,
-                    variable_blocks: [
-                        VariableBlock {
-                            variables: [
-                                Variable {
-                                    name: "propertyLocalVariable",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "DINT",
-                                    },
-                                },
-                            ],
-                            variable_block_type: Local,
-                        },
-                    ],
-                    statements: [
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "propertyLocalVariable",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: LiteralInteger {
-                                value: 42,
-                            },
-                        },
-                    ],
-                    location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 3,
-                                column: 16,
-                                offset: 76,
-                            }..TextLocation {
-                                line: 3,
-                                column: 19,
-                                offset: 79,
-                            },
-                        ),
-                    },
-                },
-                PropertyImplementation {
-                    kind: Set,
-                    variable_blocks: [
-                        VariableBlock {
-                            variables: [
-                                Variable {
-                                    name: "propertyLocalVariable",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "DINT",
-                                    },
-                                },
-                            ],
-                            variable_block_type: Local,
-                        },
-                    ],
-                    statements: [
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "propertyLocalVariable",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: LiteralInteger {
-                                value: 42,
-                            },
-                        },
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "functionblockLocalVariable",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "propertyLocalVariable",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        },
-                    ],
-                    location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 11,
-                                column: 16,
-                                offset: 277,
-                            }..TextLocation {
-                                line: 11,
-                                column: 19,
-                                offset: 280,
-                            },
-                        ),
-                    },
-                },
-            ],
-        },
-    ]
-    "#);
-}
-
-#[test]
-#[ignore = "TODO: property parsing has no error handling currently"]
-fn property_with_missing_name_and_return_type() {
-    let source = r"
-        FUNCTION_BLOCK foo
-            PROPERTY
-                GET END_GET
-                SET END_SET
-            END_PROPERTY
-        END_FUNCTION_BLOCK
-    ";
-
-    let (_, diagnostics) = parse_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
+                    end_property : DINT;
+                    end_get : DINT;
+                    end_set : DINT;'
+    ");
 }

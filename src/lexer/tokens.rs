@@ -434,6 +434,7 @@ pub enum Token {
 }
 
 impl Token {
+    /// Returns true if the current token represents any `VAR(_*)` keyword
     pub fn is_var(&self) -> bool {
         matches!(
             self,

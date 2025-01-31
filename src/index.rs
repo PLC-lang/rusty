@@ -1588,7 +1588,6 @@ impl Index {
         );
     }
 
-    /// Finds a POU by it fully qualified name
     pub fn find_pou(&self, pou_name: &str) -> Option<&PouIndexEntry> {
         self.pous.get(&pou_name.to_lowercase())
     }
