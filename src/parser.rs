@@ -678,7 +678,13 @@ fn parse_property(
             variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
-        let statements = parse_body_in_region(lexer, vec![Token::KeywordEndGet, Token::KeywordEndSet]);
+        let statements = parse_body_in_region(
+            lexer,
+            match kind {
+                PropertyKind::Get => vec![Token::KeywordEndGet],
+                PropertyKind::Set => vec![Token::KeywordEndSet],
+            },
+        );
         implementations.push(PropertyImplementation { kind, variable_blocks, body: statements, location });
     }
 
