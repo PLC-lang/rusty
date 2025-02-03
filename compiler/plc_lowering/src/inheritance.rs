@@ -105,6 +105,7 @@ impl InheritanceLowerer {
         let access = match access {
             ReferenceAccess::Member(ast_node) => self.update_inheritance_chain(*std::mem::take(ast_node)),
             ReferenceAccess::Cast(ast_node) => {
+                // FIXME: we need to walk this :/ can't do it here because we cannot borrow self as mutable multiple times
                 let location = ast_node.get_location();
                 let base = base.expect("Cast statement must have base");
                 return AstFactory::create_cast_statement(
@@ -115,6 +116,7 @@ impl InheritanceLowerer {
                 );
             }
             ReferenceAccess::Index(ast_node) => {
+                // FIXME: we also need to walk this
                 let location = ast_node.get_location();
                 return AstFactory::create_index_reference(
                     std::mem::take(ast_node),
