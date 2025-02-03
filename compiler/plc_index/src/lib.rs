@@ -114,6 +114,9 @@ impl GlobalContext {
     // This method currently only mimics the `CodeSpanDiagnosticReporter` and its codespan style
     // `codespan_reporting::term::DisplayStyle::Rich`, meaning other reporters such as the `ClangReporter` are
     // not working as of now.
+    //
+    // TODO: Maybe we can make this async by creating using a `mpsc` channel for receiving diagnostics and
+    //       in a final handle call loop over the queue with `while channel.recv() { ... }`
     fn handle_inner(&self, diagnostic: &Diagnostic) -> String {
         // NOTE: We need to properly error handle these unwraps, for now they should never panic because we
         //       (assume) we always have a valid file name and location
@@ -163,7 +166,8 @@ impl GlobalContext {
         self.handle_inner(diagnostic)
     }
 
-    // XXX: Temporary solution
+    // XXX: Temporary solution, at some point we should use the annotation-snippet Renderer trait to properly
+    //      format the diagnostics
     fn clang_format(&self, diagnostic: &Diagnostic) -> String {
         let span = diagnostic.get_location().get_span().to_range().unwrap();
         if span.start == span.end {
