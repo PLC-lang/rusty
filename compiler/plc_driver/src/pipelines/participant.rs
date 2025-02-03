@@ -271,12 +271,13 @@ impl PipelineParticipantMut for InheritanceLowerer {
         units.iter_mut().for_each(|unit| self.visit_unit(&mut unit.unit));
         let index = self.index.take().expect("Index should be present");
         // re-resolve
-        IndexedProject { 
-            project: ParsedProject { 
-                units: units.into_iter().map(|AnnotatedUnit { unit, ..}| unit).collect()
-            }, 
-            index, 
-            unresolvables: vec![] 
-        }.annotate(self.provider())
+        IndexedProject {
+            project: ParsedProject {
+                units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect(),
+            },
+            index,
+            unresolvables: vec![],
+        }
+        .annotate(self.provider())
     }
 }

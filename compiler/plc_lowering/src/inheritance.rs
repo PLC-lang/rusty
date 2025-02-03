@@ -93,22 +93,35 @@ impl InheritanceLowerer {
             return node;
         };
 
-
         let base = std::mem::take(base);
         let (base, ty) = if let Some(base) = base {
             let ty = annotations.get_type(&base, index);
 
             (Some(Box::new(self.update_inheritance_chain(*base))), ty)
         } else {
-            (base, self.ctx.pou.as_ref().and_then(|it| index.get_type(&it).ok()))
+            (base, self.ctx.pou.as_ref().and_then(|it| index.get_type(it).ok()))
         };
 
         let access = match access {
             ReferenceAccess::Member(ast_node) => self.update_inheritance_chain(*std::mem::take(ast_node)),
-            ReferenceAccess::Cast(ast_node) => todo!(),
+            ReferenceAccess::Cast(ast_node) => {
+                let location = ast_node.get_location();
+                let base = base.expect("Cast statement must have base");
+                return AstFactory::create_cast_statement(
+                    *base,
+                    std::mem::take(ast_node),
+                    &location,
+                    self.provider().next_id(),
+                );
+            }
             ReferenceAccess::Index(ast_node) => {
                 let location = ast_node.get_location();
-                return AstFactory::create_index_reference(std::mem::take(ast_node), base.map(|it| *it), self.provider().next_id(), location)
+                return AstFactory::create_index_reference(
+                    std::mem::take(ast_node),
+                    base.map(|it| *it),
+                    self.provider().next_id(),
+                    location,
+                );
             }
             ReferenceAccess::Deref => {
                 let base = *base.expect("Deref must have base");
@@ -916,7 +929,6 @@ mod units_tests {
         "#);
     }
 
-
     #[test]
     fn test_array_of_objects() {
         let src: SourceCode = r#"
@@ -1232,7 +1244,6 @@ mod units_tests {
         "#)
     }
 
-
     #[test]
     fn pointer_deref_in_grandparent() {
         let src: SourceCode = r#"
@@ -1438,14 +1449,17 @@ mod units_tests {
 }
 
 #[cfg(test)]
-mod resolve_bases_tests{
+mod resolve_bases_tests {
     use std::ops::Deref;
 
     use insta::assert_debug_snapshot;
-    use plc_ast::{ast::{Assignment, ReferenceExpr}, try_from};
+    use plc::resolver::AnnotationMap;
+    use plc_ast::{
+        ast::{Assignment, ReferenceExpr},
+        try_from,
+    };
     use plc_driver::{parse_and_annotate, pipelines::AnnotatedProject};
     use plc_source::SourceCode;
-    use plc::resolver::AnnotationMap;
 
     #[test]
     fn base_types_resolved() {
@@ -1475,12 +1489,11 @@ mod resolve_bases_tests{
             "#
         .into();
 
-        let (_, AnnotatedProject { units, index: _index, annotations }) = parse_and_annotate("test", vec![src]).unwrap();
+        let (_, AnnotatedProject { units, index: _index, annotations }) =
+            parse_and_annotate("test", vec![src]).unwrap();
         let unit = &units[0].get_unit().implementations[3];
         let statement = &unit.statements[0];
-        let Some(Assignment { left, .. }) = try_from!(statement, Assignment) else {
-            unreachable!()
-        };
+        let Some(Assignment { left, .. }) = try_from!(statement, Assignment) else { unreachable!() };
         assert_debug_snapshot!(annotations.get(&left), @r#"
         Some(
             Variable {
@@ -1495,9 +1508,7 @@ mod resolve_bases_tests{
         )
         "#);
 
-        let Some(ReferenceExpr {  base, .. }) = try_from!(left, ReferenceExpr) else {
-            unreachable!()
-        };
+        let Some(ReferenceExpr { base, .. }) = try_from!(left, ReferenceExpr) else { unreachable!() };
         let base1 = base.as_ref().unwrap().deref();
         assert_debug_snapshot!(annotations.get(base1).unwrap(), @r#"
         Variable {
@@ -1511,9 +1522,7 @@ mod resolve_bases_tests{
         }
         "#);
 
-        let Some(ReferenceExpr {  base, .. }) = try_from!(base1, ReferenceExpr) else {
-            unreachable!()
-        };
+        let Some(ReferenceExpr { base, .. }) = try_from!(base1, ReferenceExpr) else { unreachable!() };
         let base2 = base.as_ref().unwrap().deref();
         assert_debug_snapshot!(annotations.get(base2).unwrap(), @r#"
         Variable {
@@ -1527,9 +1536,7 @@ mod resolve_bases_tests{
         }
         "#);
 
-        let Some(ReferenceExpr {  base, .. }) = try_from!(base2, ReferenceExpr) else {
-            unreachable!()
-        };
+        let Some(ReferenceExpr { base, .. }) = try_from!(base2, ReferenceExpr) else { unreachable!() };
         let base3 = base.as_ref().unwrap().deref();
         assert_debug_snapshot!(annotations.get(base3).unwrap(), @r#"
         Variable {
@@ -1542,5 +1549,5 @@ mod resolve_bases_tests{
             auto_deref: None,
         }
         "#);
-     }
+    }
 }
