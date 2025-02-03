@@ -57,12 +57,11 @@
 
 use std::collections::HashMap;
 
-use helper::create_internal_assignment;
+use helper::{create_internal_assignment, patch_prefix_to_name};
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, Implementation,
-        LinkageType, Pou, PouType, Property, PropertyKind, ReferenceAccess, ReferenceExpr, Variable,
-        VariableBlock, VariableBlockType,
+        LinkageType, Pou, PouType, Property, PropertyKind, Variable, VariableBlock, VariableBlockType,
     },
     mut_visitor::AstVisitorMut,
     provider::IdProvider,
@@ -88,92 +87,14 @@ impl PropertyLowerer {
     pub fn lower_references_to_calls(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
     }
-}
 
-impl AstVisitorMut for PropertyLowerer {
-    fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
-        for implementation in &mut unit.implementations {
-            self.visit_implementation(implementation);
-        }
-    }
-
-    fn visit_implementation(&mut self, implementation: &mut Implementation) {
-        if let PouType::Method { property: Some(qualified_name), .. } = &implementation.pou_type {
-            self.context = Some(qualified_name.clone())
-        }
-
-        for statement in &mut implementation.statements {
-            self.visit(statement);
-        }
-
-        self.context = None;
-    }
-
-    fn visit_assignment(&mut self, node: &mut AstNode) {
-        let AstStatement::Assignment(data) = &mut node.stmt else {
-            unreachable!();
-        };
-
-        self.visit(&mut data.right);
-
-        match self.annotations.as_ref().and_then(|map| map.get(&data.left)) {
-            Some(annotation) if annotation.is_property() => {
-                if self.context.as_deref() == annotation.qualified_name() {
-                    return;
-                }
-
-                patch_prefix_to_name("__set_", &mut data.left);
-                let call = AstFactory::create_call_statement(
-                    data.left.as_ref().clone(),
-                    Some(data.right.as_ref().clone()),
-                    self.id_provider.next_id(),
-                    node.location.clone(),
-                );
-
-                let _ = std::mem::replace(node, call);
-            }
-
-            _ => (),
-        }
-    }
-
-    fn visit_reference_expr(&mut self, node: &mut AstNode) {
-        if let Some(annotation) = self.annotations.as_ref().unwrap().get(node) {
-            if !annotation.is_property() {
-                return;
-            }
-
-            if self.context.as_deref() == annotation.qualified_name() {
-                return;
-            }
-
-            patch_prefix_to_name("__get_", node);
-            let call = AstFactory::create_call_statement(
-                node.clone(),
-                None,
-                self.id_provider.next_id(),
-                node.location.clone(),
-            );
-
-            let _ = std::mem::replace(node, call);
-        }
-    }
-}
-
-fn patch_prefix_to_name(prefix: &str, node: &mut AstNode) {
-    let AstStatement::ReferenceExpr(ReferenceExpr { ref mut access, .. }) = &mut node.stmt else { return };
-    let ReferenceAccess::Member(member) = access else { return };
-    let AstStatement::Identifier(name) = &mut member.stmt else { return };
-
-    name.insert_str(0, prefix);
-}
-
-impl PropertyLowerer {
     pub fn lower_to_methods(&mut self, unit: &mut CompilationUnit) {
+        // We want to keep track of all parent POUs and their Property definitions to later add a
+        // variable block of type `Property` to each POU since these properties internally are represented
+        // by a variable.
         let mut parents: HashMap<String, Vec<Property>> = HashMap::new();
 
         for property in &mut unit.properties.drain(..) {
-            // Keep track of the parent POUs and all their defined properties
             match parents.get_mut(&property.parent_name) {
                 Some(values) => values.push(property.clone()),
                 None => {
@@ -181,6 +102,8 @@ impl PropertyLowerer {
                 }
             }
 
+            // Transform the property into a method by creating and pushing a `POU` and an `Implementation` to
+            // the compilation unit
             for property_impl in property.implementations {
                 let name = format!(
                     "{parent}.__{kind}_{name}",
@@ -270,8 +193,8 @@ impl PropertyLowerer {
             }
         }
 
-        // Iterate over all POUs, check if they have one or more properties defined and if so, add a variable block
-        // of type `Property` consisting of all the properties.
+        // Iterate over all POUs, check if they have one or more properties defined and if so, add a
+        // variable block of type `Property` consisting of all the properties.
         for pou in &mut unit.units {
             if let Some(properties) = parents.get(&pou.name) {
                 let mut variables = Vec::new();
@@ -291,9 +214,87 @@ impl PropertyLowerer {
     }
 }
 
+impl AstVisitorMut for PropertyLowerer {
+    fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
+        for implementation in &mut unit.implementations {
+            self.visit_implementation(implementation);
+        }
+    }
+
+    fn visit_implementation(&mut self, implementation: &mut Implementation) {
+        //
+        if let PouType::Method { property: Some(qualified_name), .. } = &implementation.pou_type {
+            self.context = Some(qualified_name.clone())
+        }
+
+        for statement in &mut implementation.statements {
+            self.visit(statement);
+        }
+
+        // ...
+        self.context = None;
+    }
+
+    fn visit_assignment(&mut self, node: &mut AstNode) {
+        let AstStatement::Assignment(data) = &mut node.stmt else {
+            unreachable!();
+        };
+
+        self.visit(&mut data.right);
+
+        match self.annotations.as_ref().and_then(|map| map.get(&data.left)) {
+            // When dealing with an assignment where the left-hand side is a property reference, we have to
+            // replace the reference with a method call to `__set_<property>(<right-hand-side>)`
+            Some(annotation) if annotation.is_property() => {
+                if self.context.as_deref() == annotation.qualified_name() {
+                    return;
+                }
+
+                patch_prefix_to_name("__set_", &mut data.left);
+                let call = AstFactory::create_call_statement(
+                    data.left.as_ref().clone(),
+                    Some(data.right.as_ref().clone()),
+                    self.id_provider.next_id(),
+                    node.location.clone(),
+                );
+
+                // In-place AST replacement of the assignment statements as a whole with the newly created call
+                let _ = std::mem::replace(node, call);
+            }
+
+            _ => (),
+        }
+    }
+
+    fn visit_reference_expr(&mut self, node: &mut AstNode) {
+        if let Some(annotation) = self.annotations.as_ref().unwrap().get(node) {
+            if !annotation.is_property() {
+                return;
+            }
+
+            if self.context.as_deref() == annotation.qualified_name() {
+                return;
+            }
+
+            // Any property reference that is not the left-hand side of an assignment needs to be replaced
+            // with a function call to the respective getter property method.
+            patch_prefix_to_name("__get_", node);
+            let call = AstFactory::create_call_statement(
+                node.clone(),
+                None,
+                self.id_provider.next_id(),
+                node.location.clone(),
+            );
+
+            // In-place AST replacement of the reference-expr node with the newly created call
+            let _ = std::mem::replace(node, call);
+        }
+    }
+}
+
 mod helper {
     use plc_ast::{
-        ast::{AstFactory, AstNode},
+        ast::{AstFactory, AstNode, AstStatement, ReferenceAccess, ReferenceExpr},
         provider::IdProvider,
     };
     use plc_source::source_location::SourceLocation;
@@ -326,6 +327,16 @@ mod helper {
             ),
             id_provider.next_id(),
         )
+    }
+
+    pub fn patch_prefix_to_name(prefix: &str, node: &mut AstNode) {
+        let AstStatement::ReferenceExpr(ReferenceExpr { ref mut access, .. }) = &mut node.stmt else {
+            return;
+        };
+        let ReferenceAccess::Member(member) = access else { return };
+        let AstStatement::Identifier(name) = &mut member.stmt else { return };
+
+        name.insert_str(0, prefix);
     }
 }
 

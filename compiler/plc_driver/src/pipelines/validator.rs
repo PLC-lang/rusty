@@ -10,7 +10,7 @@ impl PipelineParticipantMut for ParticipantValidator {
             self.validate_properties(&unit.properties);
         }
 
-        self.report();
+        self.report_diagnostics();
 
         ParsedProject { units }
     }
