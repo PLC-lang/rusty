@@ -92,11 +92,11 @@ impl InheritanceLowerer {
         let Some(ReferenceExpr { base, access }) = try_from_mut!(node, ReferenceExpr) else {
             return node;
         };
-        
-        
+
+
         let base = std::mem::take(base);
         let (base, ty) = if let Some(base) = base {
-            let ty = annotations.get_type(&*base, index);
+            let ty = annotations.get_type(&base, index);
 
             (Some(Box::new(self.update_inheritance_chain(*base))), ty)
         } else {
@@ -104,9 +104,12 @@ impl InheritanceLowerer {
         };
 
         let access = match access {
-            ReferenceAccess::Member(ast_node)
-            | ReferenceAccess::Index(ast_node)
-            | ReferenceAccess::Cast(ast_node) => self.update_inheritance_chain(*std::mem::take(ast_node)),
+            ReferenceAccess::Member(ast_node) => self.update_inheritance_chain(*std::mem::take(ast_node)),
+            ReferenceAccess::Cast(ast_node) => todo!(),
+            ReferenceAccess::Index(ast_node) => {
+                let location = ast_node.get_location();
+                return AstFactory::create_index_reference(std::mem::take(ast_node), base.map(|it| *it), self.provider().next_id(), location)
+            }
             ReferenceAccess::Deref => {
                 let base = *base.expect("Deref must have base");
                 let location = base.get_location();
@@ -219,8 +222,7 @@ impl AstVisitorMut for InheritanceLowerer {
     fn visit_reference_expr(&mut self, node: &mut AstNode) {
         // If the reference is to a member of the base class, we need to add a reference to the
         // base class
-        let new_node = self.update_inheritance_chain(std::mem::take(node));
-        *node = new_node;
+        *node = self.update_inheritance_chain(std::mem::take(node));
     }
 }
 
@@ -1444,7 +1446,7 @@ mod resolve_bases_tests{
     use plc_driver::{parse_and_annotate, pipelines::AnnotatedProject};
     use plc_source::SourceCode;
     use plc::resolver::AnnotationMap;
-    
+
     #[test]
     fn base_types_resolved() {
         let src: SourceCode = r#"
@@ -1472,13 +1474,13 @@ mod resolve_bases_tests{
             END_FUNCTION_BLOCK
             "#
         .into();
-        
+
         let (_, AnnotatedProject { units, index: _index, annotations }) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &units[0].get_unit().implementations[3];
         let statement = &unit.statements[0];
         let Some(Assignment { left, .. }) = try_from!(statement, Assignment) else {
             unreachable!()
-        };        
+        };
         assert_debug_snapshot!(annotations.get(&left), @r#"
         Some(
             Variable {
@@ -1508,10 +1510,10 @@ mod resolve_bases_tests{
             auto_deref: None,
         }
         "#);
-        
+
         let Some(ReferenceExpr {  base, .. }) = try_from!(base1, ReferenceExpr) else {
             unreachable!()
-        };        
+        };
         let base2 = base.as_ref().unwrap().deref();
         assert_debug_snapshot!(annotations.get(base2).unwrap(), @r#"
         Variable {
@@ -1524,10 +1526,10 @@ mod resolve_bases_tests{
             auto_deref: None,
         }
         "#);
-        
+
         let Some(ReferenceExpr {  base, .. }) = try_from!(base2, ReferenceExpr) else {
             unreachable!()
-        };        
+        };
         let base3 = base.as_ref().unwrap().deref();
         assert_debug_snapshot!(annotations.get(base3).unwrap(), @r#"
         Variable {
