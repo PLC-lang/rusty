@@ -1247,6 +1247,186 @@ mod units_tests {
     }
 
     #[test]
+    fn test_complex_array_access() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK grandparent
+            VAR
+                y : ARRAY[0..5] OF INT;
+                a : INT;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK parent extends grandparent
+                VAR
+                    x : ARRAY[0..10] OF INT;
+                    b : INT;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK child EXTENDS parent
+                VAR
+                    z : ARRAY[0..10] OF INT;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+            VAR
+                arr: ARRAY[0..10] OF child;
+            END_VAR
+                arr[0].y[b + z[b*2] - a] := 20;
+            END_FUNCTION
+            "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().implementations[3];
+        assert_debug_snapshot!(unit, @r#"
+        Implementation {
+            name: "main",
+            type_name: "main",
+            linkage: Internal,
+            pou_type: Function,
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Index(
+                            BinaryExpression {
+                                operator: Minus,
+                                left: BinaryExpression {
+                                    operator: Plus,
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "b",
+                                            },
+                                        ),
+                                        base: None,                 // <- missing base
+                                    },
+                                    right: ReferenceExpr {
+                                        kind: Index(
+                                            BinaryExpression {
+                                                operator: Multiplication,
+                                                left: ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "b",
+                                                        },
+                                                    ),
+                                                    base: None,     // <- same here
+                                                },
+                                                right: LiteralInteger {
+                                                    value: 2,
+                                                },
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "z", // <: and here
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                },
+                                right: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "a",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "y",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__BASE",
+                                                    },
+                                                ),
+                                                base: Some(
+                                                    ReferenceExpr {
+                                                        kind: Index(
+                                                            LiteralInteger {
+                                                                value: 0,
+                                                            },
+                                                        ),
+                                                        base: Some(
+                                                            ReferenceExpr {
+                                                                kind: Member(
+                                                                    Identifier {
+                                                                        name: "arr",
+                                                                    },
+                                                                ),
+                                                                base: None,
+                                                            },
+                                                        ),
+                                                    },
+                                                ),
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 20,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 25,
+                        column: 16,
+                        offset: 668,
+                    }..TextLocation {
+                        line: 25,
+                        column: 47,
+                        offset: 699,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 21,
+                        column: 21,
+                        offset: 567,
+                    }..TextLocation {
+                        line: 21,
+                        column: 25,
+                        offset: 571,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "#);
+    }
+
+    #[test]
     fn pointer_deref_in_grandparent() {
         let src: SourceCode = r#"
                 FUNCTION_BLOCK grandparent
