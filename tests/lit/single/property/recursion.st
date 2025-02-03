@@ -1,5 +1,6 @@
-// Ignored for now
-// NUR: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// XFAIL: *
+// Should fail because recursion and hence stack overflow
 
 FUNCTION_BLOCK A
     PROPERTY foo : DINT
