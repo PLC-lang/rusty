@@ -86,8 +86,8 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
             }
             KeywordInterface => {
                 // We ignore any method implementations in interfaces as we do not support default impls yet
-                let (interfaces, _) = parse_interface(&mut lexer);
-                unit.interfaces.push(interfaces);
+                let (interface, _) = parse_interface(&mut lexer);
+                unit.interfaces.push(interface);
             }
             KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
             KeywordVarConfig => unit.var_config.extend(parse_config_variables(&mut lexer)),
@@ -190,6 +190,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
     };
 
     let mut methods = Vec::new();
+    let mut properties = Vec::new();
     let mut implementations = Vec::new();
     loop {
         match lexer.token {
@@ -209,7 +210,11 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
                 }
             }
 
-            KeywordProperty => unimplemented!("not yet supported"),
+            KeywordProperty => {
+                if let Some(prop) = parse_property(lexer, &name, &location_name, &PouType::FunctionBlock) {
+                    properties.push(prop);
+                }
+            }
 
             _ => break,
         }
@@ -222,6 +227,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
         Interface {
             name,
             methods,
+            properties,
             location: lexer.source_range_factory.create_range(location_start..location_end),
             location_name,
         },
