@@ -139,13 +139,12 @@ impl InheritanceLowerer {
 
         let Some(qualified_name) = annotations.get_qualified_name(&access) else {
             // this is likely an index into an array/pointer dereference. just return as is
-            return access;
+            return AstFactory::create_member_reference(access, base.map(|it| *it), self.provider().next_id());
         };
 
         let segment = qualified_name.split('.').next().expect("Must have a name");
 
         if ty.is_some_and(|it| it.get_name() == segment) {
-            // reference was flat reference, just return access
             return AstFactory::create_member_reference(
                 access,
                 base.map(|it| *it),
@@ -238,6 +237,24 @@ impl AstVisitorMut for InheritanceLowerer {
         // If the reference is to a member of the base class, we need to add a reference to the
         // base class
         *node = self.update_inheritance_chain(std::mem::take(node));
+
+        let Some(ReferenceExpr { base, access }) = try_from_mut!(node, ReferenceExpr) else {
+            unreachable!()
+        };
+
+        match access {
+            ReferenceAccess::Member(ast_node)
+            | ReferenceAccess::Index(ast_node)
+            | ReferenceAccess::Cast(ast_node) => {
+                ast_node.walk(self);
+            },
+            ReferenceAccess::Deref
+            | ReferenceAccess::Address => (),
+        }
+
+        if let Some(base) = base {
+            base.walk(self)
+        }
     }
 }
 
