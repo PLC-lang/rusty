@@ -52,6 +52,7 @@ pub struct Pou {
 pub struct Interface {
     pub name: String,
     pub methods: Vec<Pou>,
+    pub properties: Vec<Property>,
     pub location: SourceLocation,
     pub location_name: SourceLocation,
 }

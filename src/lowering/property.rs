@@ -116,6 +116,42 @@ impl PropertyLowerer {
         // block
         let mut parents: HashMap<String, Vec<Property>> = HashMap::new();
 
+        for interface in &mut unit.interfaces {
+            for property in interface.properties.drain(..) {
+                for property_impl in property.implementations {
+                    let name = format!(
+                        "{parent}.__{kind}_{name}",
+                        parent = property.parent_name,
+                        kind = property_impl.kind,
+                        name = property.name
+                    );
+
+                    let pou = Pou {
+                        name: name.clone(),
+                        kind: PouType::Method {
+                            parent: property.parent_name.clone(),
+                            property: Some(qualified_name(&property.parent_name, &property.name)),
+                        },
+                        variable_blocks: Vec::new(),
+                        return_type: Some(property.datatype.clone()),
+                        location: property.name_location.clone(),
+                        name_location: property.name_location.clone(),
+                        poly_mode: None,
+                        generics: Vec::new(),
+                        linkage: LinkageType::Internal,
+                        super_class: None,
+                        interfaces: Vec::new(),
+                        is_const: false,
+                    };
+
+                    interface.methods.push(pou);
+
+                    // TODO: Implementation and validation checks for proeprties, specifically default impl warning
+                    // let mut implementation = Pou {}
+                }
+            }
+        }
+
         for property in &mut unit.properties.drain(..) {
             match parents.get_mut(&property.parent_name) {
                 Some(values) => values.push(property.clone()),
