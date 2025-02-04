@@ -9,7 +9,7 @@ impl PipelineParticipantMut for PropertyLowerer {
         let ParsedProject { mut units } = parsed_project;
 
         for unit in &mut units {
-            self.lower_to_methods(unit);
+            self.lower_properties_to_pous(unit);
         }
 
         ParsedProject { units }

@@ -1,59 +1,77 @@
-//! The property lowerer does two things:
-//! - lowering {get/set} blocks within properties to methods:
-//!     This step happens after parsing the sourcecode and introduces
-//!     methods for the GET and SET blocks of a property. The naming
-//!     of these methods follows this rule:
-//!                 `<parent_name>.__{set/get}_<property_name>`
-//!     These new implementations are then added to the AST.
+//! This module is responsible for lowering any
+//! 1. [`CompilationUnit::properties`] into [`CompilationUnit::units`] and [`CompilationUnit::implementations`]
+//! 2. [`AstStatement::ReferenceExpr`] into [`AstStatement::CallStatement`] to trigger the GET or SET methods
 //!
-//!     Example for the lowering happening here:
-//!         ```iec61131
-//!         FUNCTION_BLOCK fb
-//!             VAR
-//!               bar : DINT;
-//!             END_VAR
-//!             PROPERTY foo : DINT
-//!                 GET
-//!                   foo := 1;
-//!                 END_GET
-//!                 SET
-//!                   bar := foo;
-//!                 END_SET
-//!             END_PROPERTY
-//!         END_FUNCTION_BLOCK
-//!         ```
-//!         is lowered to the equivalent of this:
-//!         ```iec61131
-//!         FUNCTION_BLOCK fb
-//!             VAR
-//!               bar : DINT;
-//!             END_VAR
-//!             METHOD __get_foo : DINT
-//!               __get_foo := 1;
-//!             END_METHOD
-//!             METHOD __set_foo
-//!               VAR_INPUT
-//!                 __in : DINT
-//!               END_VAR
-//!               bar := __in;
-//!             END_METHOD
-//!         END_FUNCTION_BLOCK
-//!        ```
-//! - lowering references of properties to function calls to the newly created methods:
-//!     This step happens after the Linker step and visits every implementation in the
-//!     CompilationUnit and lowers property references to function calls. The respective
-//!     references in the Ast nodes are then directly patched with the function calls.
+//! The first step is triggered right after parsing the source code. For example assume some user wrote the
+//! following code
+//! ```text
+//! FUNCTION_BLOCK fb
+//!     PROPERTY foo : DINT
+//!         GET
+//!             // ...
+//!             foo := <expr>;
+//!             // ...
+//!         END_GET
 //!
-//!     Example - these property references:
-//!         ```iec61131
-//!         fb.foo := 5;
-//!         bar := fb.foo;
-//!         ```
-//!     are lowered to these function calls (which were created in lower_to_methods)
-//!         ```iec61131
-//!         fb.__set_foo(5);
-//!         bar := fb.__get_foo();
-//!         ```
+//!         SET
+//!             // ...
+//!             <expr> := foo;
+//!             // ...
+//!         END_SET
+//!     END_PROPERTY
+//! END_FUNCTION_BLOCK
+//! ```
+//! internally these GET and SET blocks will be lowered into methods because semantically `<var> := fb.foo` is
+//! equivalent to `<var> := fb.get_foo()` and `fb.foo := <expr>` is equivalent to `fb.set_foo(<expr>)`. Hence
+//! the properties internal representation is as follows
+//! ```text
+//! FUNCTION_BLOCK fb
+//!     // Compiler internal
+//!     VAR_PROPERTY
+//!         foo : DINT; // The name and datatype are derived from the property declaration
+//!     END_VAR
+//!
+//!     METHOD __get_foo
+//!         // ...
+//!         foo := <expr>;
+//!         // ...
+//!         __get_foo := foo; // Compiler internal, will always be patched at the end of a GET block
+//!     END_METHOD
+//!
+//!     METHOD __set_foo
+//!         // Compiler internal
+//!         VAR_INPUT
+//!             __in : DINT;
+//!         END_VAR
+//!
+//!         foo := __in; // Compiler internal, will always be patched at the beginning of a SET block
+//!
+//!         // ...
+//!         <expr> := foo;
+//!         // ...
+//!     END_METHOD
+//! END_FUNCTION_BLOCK
+//! ```
+//!
+//! To then trigger these methods whenever a property is referenced in some statement, a second lowering stage
+//! needs to be applied. That lowering stage happens right after we have successfully annotated all AST nodes.
+//! Again, for example assume we have the following code
+//! ```text
+//! FUNCTION main
+//!     VAR
+//!         fbInstance : fb;
+//!         localVariable : DINT;
+//!     END_VAR
+//!
+//!     fb.foo := 5;                // We want this to be `fb.__set_foo(5);`
+//!     localVariable := fb.foo;    // ... and this to be `localVariable := fb.__get_foo();`
+//! END_FUNCTION
+//! ```
+//! Lowering these references is done by simply using the [`AstVisitorMut`] and iterating over all statements.
+//! Any [`AstStatement::ReferenceExpr`] that is not the left hand side of an assignment will then be lowered
+//! into a `__get_<property name>` call if we're dealing with a property reference. If the reference is the
+//! left hand side of an assignment however, the node as a whole will instead be lowered into a
+//! `__set_<property name>(<complete right hand side>)` call instead.
 
 use std::collections::HashMap;
 
@@ -88,10 +106,12 @@ impl PropertyLowerer {
         self.visit_compilation_unit(unit);
     }
 
-    pub fn lower_to_methods(&mut self, unit: &mut CompilationUnit) {
-        // We want to keep track of all parent POUs and their Property definitions to later add a
-        // variable block of type `Property` to each POU since these properties internally are represented
-        // by a variable.
+    /// Lowers [`CompilationUnit::properties`] into [`CompilationUnit::units`] and
+    /// [`CompilationUnit::implementations`]
+    pub fn lower_properties_to_pous(&mut self, unit: &mut CompilationUnit) {
+        // Properties are internally represented as a variable, hence we keep track of all encountered
+        // properties and their respective parent POUs to later patch these variables into a `VAR_PROPERTY`
+        // block
         let mut parents: HashMap<String, Vec<Property>> = HashMap::new();
 
         for property in &mut unit.properties.drain(..) {
@@ -102,8 +122,6 @@ impl PropertyLowerer {
                 }
             }
 
-            // Transform the property into a method by creating and pushing a `POU` and an `Implementation` to
-            // the compilation unit
             for property_impl in property.implementations {
                 let name = format!(
                     "{parent}.__{kind}_{name}",
@@ -144,7 +162,8 @@ impl PropertyLowerer {
                 };
 
                 match property_impl.kind {
-                    // We have to append a `<method_name> := <property_name>` assignment when dealing with getters
+                    // We have to append a `<method_name> := <property_name>` assignment at the end of the
+                    // list of statements when dealing with getters
                     PropertyKind::Get => {
                         let name_lhs = format!("__{}_{}", property_impl.kind, property.name);
                         let name_rhs = &property.name;
@@ -157,7 +176,8 @@ impl PropertyLowerer {
                     }
 
                     // We have to do two things when dealing with setters:
-                    // 1. Patch a variable block of type `VAR_INPUT` with a single variable named `__in : <property_type>`
+                    // 1. Patch a variable block of type `VAR_INPUT` with a single variable named
+                    //    `__in : <property_type>`
                     // 2. Prepend a `<property_name> := __in` assignment to the implementation
                     PropertyKind::Set => {
                         let parameter_name = "__in";
@@ -222,7 +242,9 @@ impl AstVisitorMut for PropertyLowerer {
     }
 
     fn visit_implementation(&mut self, implementation: &mut Implementation) {
-        //
+        // We want to avoid calling `__get__foo` when inside a `GET` block of the `foo` property and similarly
+        // avoid calling `__set__foo` when inside a `SET` block of the `foo` property. To do so we keep track
+        // of the current context by storing the qualified name of the property we're currently inside of.
         if let PouType::Method { property: Some(qualified_name), .. } = &implementation.pou_type {
             self.context = Some(qualified_name.clone())
         }
@@ -231,7 +253,7 @@ impl AstVisitorMut for PropertyLowerer {
             self.visit(statement);
         }
 
-        // ...
+        // ...and reset the context once done (duh)
         self.context = None;
     }
 
@@ -370,7 +392,7 @@ mod tests {
         assert_eq!(diagnostics, Vec::new());
 
         // Lower
-        lowerer.lower_to_methods(&mut unit);
+        lowerer.lower_properties_to_pous(&mut unit);
 
         // Index
         let mut index = index_unit_with_id(&unit, id_provider.clone());
