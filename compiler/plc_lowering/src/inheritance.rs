@@ -4,7 +4,7 @@ use plc::{
 };
 use plc_ast::{
     ast::{
-        AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType,
+        AstFactory, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType,
         ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
@@ -78,103 +78,47 @@ impl InheritanceLowerer {
         self.ctx = old_ctx;
     }
 
-    fn update_inheritance_chain(&self, mut node: AstNode) -> AstNode {
-        let Some(index) = self.index.as_ref() else {
-            // TODO: this will skip visiting initializer nodes
+    fn update_inheritance_chain(&self, node: AstNode, base_type: &str) -> AstNode {
+        if self.index.is_none() || self.annotations.is_none() {
             return node;
-        };
-        let annotations = self.annotations.as_ref().expect("Annotations not set");
+        }
         // disect the qualified name
         // a.b.c -> am i a direct member of b?
         //      b => am I a direct member of a?
         //      a => am I a direct member of local container?
 
-        let Some(ReferenceExpr { base, access }) = try_from_mut!(node, ReferenceExpr) else {
-            return node;
-        };
-
-        let base = std::mem::take(base);
-        let (base, ty) = if let Some(base) = base {
-            let ty = annotations.get_type(&base, index);
-
-            (Some(Box::new(self.update_inheritance_chain(*base))), ty)
-        } else {
-            (base, self.ctx.pou.as_ref().and_then(|it| index.get_type(it).ok()))
-        };
-
-        let access = match access {
-            ReferenceAccess::Member(ast_node) => self.update_inheritance_chain(*std::mem::take(ast_node)),
-            ReferenceAccess::Cast(ast_node) => {
-                // FIXME: we need to walk this :/ can't do it here because we cannot borrow self as mutable multiple times
-                let location = ast_node.get_location();
-                let base = base.expect("Cast statement must have base");
-                return AstFactory::create_cast_statement(
-                    *base,
-                    std::mem::take(ast_node),
-                    &location,
-                    self.provider().next_id(),
-                );
-            }
-            ReferenceAccess::Index(ast_node) => {
-                // FIXME: we also need to walk this
-                let location = ast_node.get_location();
-                return AstFactory::create_index_reference(
-                    std::mem::take(ast_node),
-                    base.map(|it| *it),
-                    self.provider().next_id(),
-                    location,
-                );
-            }
-            ReferenceAccess::Deref => {
-                let base = *base.expect("Deref must have base");
-                let location = base.get_location();
-                return AstFactory::create_deref_reference(base, self.provider().next_id(), location);
-            }
-            ReferenceAccess::Address => {
-                let base = *base.expect("Deref must have base");
-                let location = base.get_location();
-                return AstFactory::create_address_of_reference(base, self.provider().next_id(), location);
-            }
-        };
-
-        let Some(qualified_name) = annotations.get_qualified_name(&access) else {
+        let annotations = self.annotations.as_ref().expect("Annotations exist");
+        let Some(qualified_name) = annotations.get_qualified_name(&node) else {
             // this is likely an index into an array/pointer dereference. just return as is
-            return AstFactory::create_member_reference(access, base.map(|it| *it), self.provider().next_id());
+            return node;
         };
 
         let segment = qualified_name.split('.').next().expect("Must have a name");
 
-        if ty.is_some_and(|it| it.get_name() == segment) {
-            return AstFactory::create_member_reference(
-                access,
-                base.map(|it| *it),
-                self.provider().next_id(),
-            );
+        if base_type == segment {
+            return node;
         }
 
-        let inheritance_chain = index.find_ancestors(ty.map(|it| it.get_name()).unwrap_or_default(), segment);
+        let index = self.index.as_ref().expect("Index exists");
+        let inheritance_chain = index.find_ancestors(base_type, segment);
         if inheritance_chain.len() <= 1 {
-            return AstFactory::create_member_reference(
-                access,
-                base.map(|it| *it),
-                self.provider().next_id(),
-            );
+            return node;
         }
 
         // add a `__BASE` qualifier for each element in the inheritance chain, exluding `self`
-        let base = inheritance_chain.iter().skip(1).fold(base, |base, _| {
+        let base = inheritance_chain.iter().skip(1).fold(None, |base, _| {
             Some(Box::new(AstFactory::create_member_reference(
                 AstFactory::create_identifier(
                     "__BASE",
                     SourceLocation::internal(),
                     self.provider().next_id(),
                 ),
-                base.map(|it| *it),
+                base.map(|it: Box<AstNode>| *it),
                 self.provider().next_id(),
             )))
         });
 
-        AstFactory::create_member_reference(access, base.map(|it| *it), self.provider().next_id())
+        AstFactory::create_member_reference(node, base.map(|it| *it), self.provider().next_id())
     }
 }
 
@@ -234,27 +178,30 @@ impl AstVisitorMut for InheritanceLowerer {
     }
 
     fn visit_reference_expr(&mut self, node: &mut AstNode) {
+        if self.index.is_none() || self.annotations.is_none() {
+            return;
+        }
+        // Find the base type of the expression before walking the node
+        let base_type_name =
+            if let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) = node.get_stmt() {
+                let index = self.index.as_ref().expect("Index exists");
+                let annotations = self.annotations.as_ref().expect("Annotations exist");
+                annotations.get_type(&base, index).map(|it| it.get_name().to_string())
+            } else {
+                self.ctx.base_type_name.clone()
+            };
+        // First walk the statement itself so we make sure any base is correctly added
+        let stmt = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
+        stmt.walk(self);
         // If the reference is to a member of the base class, we need to add a reference to the
         // base class
-        *node = self.update_inheritance_chain(std::mem::take(node));
-
-        let Some(ReferenceExpr { base, access }) = try_from_mut!(node, ReferenceExpr) else {
-            unreachable!()
+        if let ReferenceExpr { base: _, access: ReferenceAccess::Member(access) } = stmt {
+            if let Some(base_type_name) = base_type_name {
+                let mut owned_access =
+                    self.update_inheritance_chain(*std::mem::take(access), &base_type_name);
+                std::mem::swap(access.as_mut(), &mut owned_access);
+            }
         };
-
-        match access {
-            ReferenceAccess::Member(ast_node)
-            | ReferenceAccess::Index(ast_node)
-            | ReferenceAccess::Cast(ast_node) => {
-                ast_node.walk(self);
-            },
-            ReferenceAccess::Deref
-            | ReferenceAccess::Address => (),
-        }
-
-        if let Some(base) = base {
-            base.walk(self)
-        }
     }
 }
 
@@ -319,7 +266,7 @@ mod units_tests {
                 myFb : fb2;
                 x : INT;
             END_VAR
-                myFb.x := 1;
+                myFb.x := 1; //myFb.__BASE.x := 1;
                 x := 2; // this should not have any bases added
             END_FUNCTION_BLOCK
         "
