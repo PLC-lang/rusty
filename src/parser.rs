@@ -683,6 +683,7 @@ fn parse_property(
             variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
+        // TODO: properties in interfaces are not allowed to have a body
         let statements = parse_body_in_region(
             lexer,
             match kind {
