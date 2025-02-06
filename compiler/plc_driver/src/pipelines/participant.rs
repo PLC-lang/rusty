@@ -266,7 +266,7 @@ impl PipelineParticipantMut for InheritanceLowerer {
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         let AnnotatedProject { mut units, index, annotations } = annotated_project;
-        self.annotations = Some(annotations);
+        self.annotations = Some(Box::new(annotations));
         self.index = Some(index);
         units.iter_mut().for_each(|unit| self.visit_unit(&mut unit.unit));
         let index = self.index.take().expect("Index should be present");

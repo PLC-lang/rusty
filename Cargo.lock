@@ -3257,6 +3257,7 @@ dependencies = [
  "serial_test",
  "shell-words",
  "tempfile",
+ "test_utils",
  "thiserror 1.0.69",
  "toml",
  "which",
@@ -3914,6 +3915,21 @@ checksum = "5352447f921fda68cf61b4101566c0bdb5104eff6804d0678e5227580ab6a4e9"
 dependencies = [
  "rustix 0.38.43",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "test_utils"
+version = "0.1.0"
+dependencies = [
+ "plc_ast",
+ "plc_diagnostics",
+ "plc_driver",
+ "plc_index",
+ "plc_lowering",
+ "plc_project",
+ "plc_source",
+ "plc_util",
+ "rusty",
 ]
 
 [[package]]

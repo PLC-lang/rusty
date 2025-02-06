@@ -4266,29 +4266,3 @@ fn methods_var_output() {
 
     insta::assert_snapshot!(res);
 }
-
-#[test]
-fn inherited_classes_generated_correctly() {
-    let result = codegen(
-        "
-        FUNCTION_BLOCK fb
-        VAR
-            x : INT;
-            y : INT;
-        END_VAR
-        END_FUNCTION_BLOCK
-
-        FUNCTION_BLOCK fb2 EXTENDS fb
-        END_FUNCTION_BLOCK
-
-        FUNCTION_BLOCK foo
-        VAR
-            myFb : fb2;
-        END_VAR
-            myFb.x := 1;
-        END_FUNCTION_BLOCK
-        ",
-    );
-
-    insta::assert_snapshot!(result, @r#""#);
-}

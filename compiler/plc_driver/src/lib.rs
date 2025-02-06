@@ -234,6 +234,7 @@ fn generate_to_string_internal<T: SourceContainer>(
         mutable_participants: Vec::default(),
         participants: Vec::default(),
     };
+    pipeline.register_default_participants();
     let project = pipeline.parse()?;
     let project = pipeline.index(project)?;
     let project = pipeline.annotate(project)?;

@@ -1,6 +1,6 @@
 use plc::{
     index::Index,
-    resolver::{AnnotationMap, AstAnnotations},
+    resolver::AnnotationMap,
 };
 use plc_ast::{
     ast::{
@@ -48,7 +48,7 @@ impl Context {
 
 pub struct InheritanceLowerer {
     pub index: Option<Index>,
-    pub annotations: Option<AstAnnotations>,
+    pub annotations: Option<Box<dyn AnnotationMap>>,
     ctx: Context,
 }
 
@@ -78,9 +78,15 @@ impl InheritanceLowerer {
         self.ctx = old_ctx;
     }
 
-    fn update_inheritance_chain(&self, node: AstNode, base_type: &str) -> AstNode {
+    // Updates the base to reflect the inheritance chain of the node and returns it
+    fn update_inheritance_chain(
+        &self,
+        node: &AstNode,
+        base: Option<Box<AstNode>>,
+        base_type: &str,
+    ) -> Option<Box<AstNode>> {
         if self.index.is_none() || self.annotations.is_none() {
-            return node;
+            return base;
         }
         // disect the qualified name
         // a.b.c -> am i a direct member of b?
@@ -88,25 +94,25 @@ impl InheritanceLowerer {
         //      a => am I a direct member of local container?
 
         let annotations = self.annotations.as_ref().expect("Annotations exist");
-        let Some(qualified_name) = annotations.get_qualified_name(&node) else {
+        let Some(qualified_name) = annotations.get_qualified_name(node) else {
             // this is likely an index into an array/pointer dereference. just return as is
-            return node;
+            return base;
         };
 
         let segment = qualified_name.split('.').next().expect("Must have a name");
 
         if base_type == segment {
-            return node;
+            return base;
         }
 
         let index = self.index.as_ref().expect("Index exists");
         let inheritance_chain = index.find_ancestors(base_type, segment);
         if inheritance_chain.len() <= 1 {
-            return node;
+            return base;
         }
 
         // add a `__BASE` qualifier for each element in the inheritance chain, exluding `self`
-        let base = inheritance_chain.iter().skip(1).fold(None, |base, _| {
+        inheritance_chain.iter().skip(1).fold(base, |base, _| {
             Some(Box::new(AstFactory::create_member_reference(
                 AstFactory::create_identifier(
                     "__BASE",
@@ -116,9 +122,7 @@ impl InheritanceLowerer {
                 base.map(|it: Box<AstNode>| *it),
                 self.provider().next_id(),
             )))
-        });
-
-        AstFactory::create_member_reference(node, base.map(|it| *it), self.provider().next_id())
+        })
     }
 }
 
@@ -186,20 +190,20 @@ impl AstVisitorMut for InheritanceLowerer {
             if let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) = node.get_stmt() {
                 let index = self.index.as_ref().expect("Index exists");
                 let annotations = self.annotations.as_ref().expect("Annotations exist");
-                annotations.get_type(&base, index).map(|it| it.get_name().to_string())
+                annotations.get_type(base, index).map(|it| it.get_name().to_string())
             } else {
-                self.ctx.base_type_name.clone()
+                self.ctx.pou.clone()
             };
         // First walk the statement itself so we make sure any base is correctly added
         let stmt = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
         stmt.walk(self);
         // If the reference is to a member of the base class, we need to add a reference to the
         // base class
-        if let ReferenceExpr { base: _, access: ReferenceAccess::Member(access) } = stmt {
+        if let ReferenceExpr { base, access: ReferenceAccess::Member(access) } = stmt {
             if let Some(base_type_name) = base_type_name {
-                let mut owned_access =
-                    self.update_inheritance_chain(*std::mem::take(access), &base_type_name);
-                std::mem::swap(access.as_mut(), &mut owned_access);
+                let mut owned_base =
+                    self.update_inheritance_chain(access, std::mem::take(base), &base_type_name);
+                std::mem::swap(base, &mut owned_base);
             }
         };
     }
@@ -274,7 +278,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "foo",
             type_name: "foo",
@@ -335,7 +339,7 @@ mod units_tests {
                     }..TextLocation {
                         line: 17,
                         column: 23,
-                        offset: 395,
+                        offset: 417,
                     },
                 ),
             },
@@ -356,7 +360,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -461,7 +465,76 @@ mod units_tests {
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         // let unit = &project.units[0].get_unit();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r#""#);
+        assert_debug_snapshot!(unit, @r###"
+        Implementation {
+            name: "child",
+            type_name: "child",
+            linkage: Internal,
+            pou_type: FunctionBlock,
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "z",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__BASE",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 420,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 11,
+                        column: 16,
+                        offset: 289,
+                    }..TextLocation {
+                        line: 11,
+                        column: 25,
+                        offset: 298,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 10,
+                        column: 27,
+                        offset: 252,
+                    }..TextLocation {
+                        line: 10,
+                        column: 32,
+                        offset: 257,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "###);
     }
 
     #[test]
@@ -497,7 +570,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "child",
             type_name: "child",
@@ -506,7 +579,7 @@ mod units_tests {
             statements: [
                 Assignment {
                     left: ReferenceExpr {
-                        kind: Member(
+                        kind: Index(
                             LiteralInteger {
                                 value: 0,
                             },
@@ -537,7 +610,7 @@ mod units_tests {
                 },
                 Assignment {
                     left: ReferenceExpr {
-                        kind: Member(
+                        kind: Index(
                             LiteralInteger {
                                 value: 2,
                             },
@@ -577,7 +650,7 @@ mod units_tests {
                 },
                 Assignment {
                     left: ReferenceExpr {
-                        kind: Member(
+                        kind: Index(
                             LiteralInteger {
                                 value: 3,
                             },
@@ -596,7 +669,7 @@ mod units_tests {
                     right: BinaryExpression {
                         operator: Plus,
                         left: ReferenceExpr {
-                            kind: Member(
+                            kind: Index(
                                 LiteralInteger {
                                     value: 1,
                                 },
@@ -622,7 +695,7 @@ mod units_tests {
                             ),
                         },
                         right: ReferenceExpr {
-                            kind: Member(
+                            kind: Index(
                                 LiteralInteger {
                                     value: 2,
                                 },
@@ -660,16 +733,39 @@ mod units_tests {
                 },
                 Assignment {
                     left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "a",
+                        kind: Index(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "a",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__BASE",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
                             },
                         ),
                         base: Some(
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__BASE",
+                                        name: "x",
                                     },
                                 ),
                                 base: Some(
@@ -691,19 +787,51 @@ mod units_tests {
                 },
                 Assignment {
                     left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "b",
+                        kind: Index(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "b",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
                             },
                         ),
                         base: Some(
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__BASE",
+                                        name: "y",
                                     },
                                 ),
-                                base: None,
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__BASE",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__BASE",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
                             },
                         ),
                     },
@@ -713,7 +841,7 @@ mod units_tests {
                 },
                 Assignment {
                     left: ReferenceExpr {
-                        kind: Member(
+                        kind: Index(
                             BinaryExpression {
                                 operator: Plus,
                                 left: ReferenceExpr {
@@ -722,7 +850,25 @@ mod units_tests {
                                             name: "a",
                                         },
                                     ),
-                                    base: None,
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__BASE",
+                                                },
+                                            ),
+                                            base: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "__BASE",
+                                                        },
+                                                    ),
+                                                    base: None,
+                                                },
+                                            ),
+                                        },
+                                    ),
                                 },
                                 right: ReferenceExpr {
                                     kind: Member(
@@ -730,7 +876,16 @@ mod units_tests {
                                             name: "b",
                                         },
                                     ),
-                                    base: None,
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__BASE",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
                                 },
                             },
                         ),
@@ -780,7 +935,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -933,7 +1088,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[3];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "main",
             type_name: "main",
@@ -963,7 +1118,7 @@ mod units_tests {
                                         ),
                                         base: Some(
                                             ReferenceExpr {
-                                                kind: Member(
+                                                kind: Index(
                                                     LiteralInteger {
                                                         value: 0,
                                                     },
@@ -991,7 +1146,7 @@ mod units_tests {
                 },
                 Assignment {
                     left: ReferenceExpr {
-                        kind: Member(
+                        kind: Index(
                             LiteralInteger {
                                 value: 0,
                             },
@@ -1019,7 +1174,7 @@ mod units_tests {
                                                 ),
                                                 base: Some(
                                                     ReferenceExpr {
-                                                        kind: Member(
+                                                        kind: Index(
                                                             LiteralInteger {
                                                                 value: 0,
                                                             },
@@ -1063,7 +1218,7 @@ mod units_tests {
                                 ),
                                 base: Some(
                                     ReferenceExpr {
-                                        kind: Member(
+                                        kind: Index(
                                             LiteralInteger {
                                                 value: 1,
                                             },
@@ -1089,7 +1244,7 @@ mod units_tests {
                 },
                 Assignment {
                     left: ReferenceExpr {
-                        kind: Member(
+                        kind: Index(
                             LiteralInteger {
                                 value: 1,
                             },
@@ -1110,7 +1265,7 @@ mod units_tests {
                                         ),
                                         base: Some(
                                             ReferenceExpr {
-                                                kind: Member(
+                                                kind: Index(
                                                     LiteralInteger {
                                                         value: 1,
                                                     },
@@ -1138,7 +1293,7 @@ mod units_tests {
                 },
                 Assignment {
                     left: ReferenceExpr {
-                        kind: Member(
+                        kind: Index(
                             LiteralInteger {
                                 value: 2,
                             },
@@ -1152,7 +1307,7 @@ mod units_tests {
                                 ),
                                 base: Some(
                                     ReferenceExpr {
-                                        kind: Member(
+                                        kind: Index(
                                             LiteralInteger {
                                                 value: 2,
                                             },
@@ -1207,7 +1362,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#)
+        "###)
     }
 
     #[test]
@@ -1231,25 +1386,19 @@ mod units_tests {
                 VAR
                     z : ARRAY[0..10] OF INT;
                 END_VAR
+                y[b + z[b*2] - a] := 20;
             END_FUNCTION_BLOCK
-
-            FUNCTION main
-            VAR
-                arr: ARRAY[0..10] OF child;
-            END_VAR
-                arr[0].y[b + z[b*2] - a] := 20;
-            END_FUNCTION
             "#
         .into();
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
-        let unit = &project.units[0].get_unit().implementations[3];
-        assert_debug_snapshot!(unit, @r#"
+        let unit = &project.units[0].get_unit().implementations[2];
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
-            name: "main",
-            type_name: "main",
+            name: "child",
+            type_name: "child",
             linkage: Internal,
-            pou_type: Function,
+            pou_type: FunctionBlock,
             statements: [
                 Assignment {
                     left: ReferenceExpr {
@@ -1264,7 +1413,16 @@ mod units_tests {
                                                 name: "b",
                                             },
                                         ),
-                                        base: None,                 // <- missing base
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__BASE",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
                                     },
                                     right: ReferenceExpr {
                                         kind: Index(
@@ -1276,7 +1434,16 @@ mod units_tests {
                                                             name: "b",
                                                         },
                                                     ),
-                                                    base: None,     // <- same here
+                                                    base: Some(
+                                                        ReferenceExpr {
+                                                            kind: Member(
+                                                                Identifier {
+                                                                    name: "__BASE",
+                                                                },
+                                                            ),
+                                                            base: None,
+                                                        },
+                                                    ),
                                                 },
                                                 right: LiteralInteger {
                                                     value: 2,
@@ -1287,7 +1454,7 @@ mod units_tests {
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "z", // <: and here
+                                                        name: "z",
                                                     },
                                                 ),
                                                 base: None,
@@ -1301,7 +1468,25 @@ mod units_tests {
                                             name: "a",
                                         },
                                     ),
-                                    base: None,
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__BASE",
+                                                },
+                                            ),
+                                            base: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "__BASE",
+                                                        },
+                                                    ),
+                                                    base: None,
+                                                },
+                                            ),
+                                        },
+                                    ),
                                 },
                             },
                         ),
@@ -1326,25 +1511,7 @@ mod units_tests {
                                                         name: "__BASE",
                                                     },
                                                 ),
-                                                base: Some(
-                                                    ReferenceExpr {
-                                                        kind: Index(
-                                                            LiteralInteger {
-                                                                value: 0,
-                                                            },
-                                                        ),
-                                                        base: Some(
-                                                            ReferenceExpr {
-                                                                kind: Member(
-                                                                    Identifier {
-                                                                        name: "arr",
-                                                                    },
-                                                                ),
-                                                                base: None,
-                                                            },
-                                                        ),
-                                                    },
-                                                ),
+                                                base: None,
                                             },
                                         ),
                                     },
@@ -1360,26 +1527,26 @@ mod units_tests {
             location: SourceLocation {
                 span: Range(
                     TextLocation {
-                        line: 25,
+                        line: 19,
                         column: 16,
-                        offset: 668,
+                        offset: 530,
                     }..TextLocation {
-                        line: 25,
-                        column: 47,
-                        offset: 699,
+                        line: 19,
+                        column: 40,
+                        offset: 554,
                     },
                 ),
             },
             name_location: SourceLocation {
                 span: Range(
                     TextLocation {
-                        line: 21,
-                        column: 21,
-                        offset: 567,
+                        line: 15,
+                        column: 27,
+                        offset: 404,
                     }..TextLocation {
-                        line: 21,
-                        column: 25,
-                        offset: 571,
+                        line: 15,
+                        column: 32,
+                        offset: 409,
                     },
                 ),
             },
@@ -1387,7 +1554,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -1640,7 +1807,7 @@ mod resolve_bases_tests {
         let unit = &units[0].get_unit().implementations[3];
         let statement = &unit.statements[0];
         let Some(Assignment { left, .. }) = try_from!(statement, Assignment) else { unreachable!() };
-        assert_debug_snapshot!(annotations.get(&left), @r#"
+        assert_debug_snapshot!(annotations.get(left), @r#"
         Some(
             Variable {
                 resulting_type: "INT",
