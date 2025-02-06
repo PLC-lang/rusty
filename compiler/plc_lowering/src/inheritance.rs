@@ -1,7 +1,4 @@
-use plc::{
-    index::Index,
-    resolver::AnnotationMap,
-};
+use plc::{index::Index, resolver::AnnotationMap};
 use plc_ast::{
     ast::{
         AstFactory, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType,
