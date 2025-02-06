@@ -14,9 +14,10 @@ END_FUNCTION_BLOCK
 
 FUNCTION main: DINT
 VAR
-    s: STRING;
     fb: bar;
 END_VAR
-    fb.baz(); // CHECK: hello
-    fb(); // CHECK: world
+    fb.baz();
+    printf('%s$N', REF(fb.s)); // CHECK: hello
+    fb();
+    printf('%s$N', REF(fb.s)); // CHECK: world
 END_FUNCTION
