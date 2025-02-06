@@ -379,7 +379,6 @@ fn pou_implementing_multiple_interfaces() {
 }
 
 #[test]
-// TODO: make the error nicer (error per occurence and better location?)
 fn property_in_interface_must_not_have_an_implementation() {
     let source = r"
             INTERFACE myInterface
@@ -398,22 +397,42 @@ fn property_in_interface_must_not_have_an_implementation() {
     insta::assert_debug_snapshot!(diagnostics, @r#"
     [
         Diagnostic {
-            message: "Interfaces can not have a default implementation in a Property",
+            message: "Interfaces can not have a default implementations in a Property",
             primary_location: SourceLocation {
                 span: Range(
                     TextLocation {
-                        line: 2,
-                        column: 25,
-                        offset: 60,
+                        line: 3,
+                        column: 20,
+                        offset: 91,
                     }..TextLocation {
-                        line: 2,
-                        column: 28,
-                        offset: 63,
+                        line: 3,
+                        column: 23,
+                        offset: 94,
                     },
                 ),
             },
             secondary_locations: None,
-            error_code: "E117",
+            error_code: "E118",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Interfaces can not have a default implementations in a Property",
+            primary_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 20,
+                        offset: 176,
+                    }..TextLocation {
+                        line: 6,
+                        column: 23,
+                        offset: 179,
+                    },
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E118",
             sub_diagnostics: [],
             internal_error: None,
         },
@@ -563,7 +582,7 @@ mod error_handling {
         insta::assert_snapshot!(diagnostics, @r"
         warning[E113]: Interfaces can not have a default implementations in a Method
           ┌─ <internal>:4:17
-          │  
+          │
         4 │ ╭                 1 > 2;
         5 │ │                 methodA := 5;
           │ ╰─────────────────────────────^ Interfaces can not have a default implementations in a Method
