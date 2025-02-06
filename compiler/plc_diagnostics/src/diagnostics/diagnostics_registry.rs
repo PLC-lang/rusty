@@ -219,7 +219,7 @@ lazy_static! {
         E115,   Error,      include_str!("./error_codes/E115.md"),  // Property in unsupported POU type
         E116,   Error,      include_str!("./error_codes/E116.md"),  // Property defined in unsupported variable block
         E117,   Error,      include_str!("./error_codes/E117.md"),  // Property with invalid number of GET and/or SET blocks
-        E118,   Warning,      include_str!("./error_codes/E117.md"),  // Interface default Property implementation
+        E118,   Warning,      include_str!("./error_codes/E118.md"),  // Interface default Property implementation
     );
 }
 
