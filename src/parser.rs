@@ -214,13 +214,6 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
                 if let Some(prop) =
                     parse_property(lexer, &name, &location_name, &PouType::FunctionBlock, KeywordInterface)
                 {
-                    // if !prop.implementations.iter().all(|statement| statement.body.is_empty()) {
-                    //     lexer.accept_diagnostic(
-                    //         Diagnostic::new("Interfaces can not have a default implementation in a Property")
-                    //             .with_error_code("E117")
-                    //             .with_location(prop.name_location.clone()),
-                    //     );
-                    // }
                     properties.push(prop);
                 }
             }
@@ -703,7 +696,7 @@ fn parse_property(
                 PropertyKind::Set => vec![Token::KeywordEndSet],
             },
         );
-        if property_type == KeywordInterface && !statements.is_empty() {
+        if matches!(property_type, KeywordInterface) && !statements.is_empty() {
             lexer.accept_diagnostic(
                 Diagnostic::new("Interfaces can not have a default implementations in a Property")
                     .with_location(location.clone())
