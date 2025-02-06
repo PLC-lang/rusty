@@ -379,6 +379,49 @@ fn pou_implementing_multiple_interfaces() {
 }
 
 #[test]
+// TODO: make the error nicer (error per occurence and better location?)
+fn property_in_interface_must_not_have_an_implementation() {
+    let source = r"
+            INTERFACE myInterface
+                PROPERTY foo : DINT
+                    GET
+                       foo := 5;
+                    END_GET
+                    SET
+                       foo := 5;
+                    END_SET
+                END_PROPERTY
+            END_INTERFACE
+        ";
+
+    let (unit, diagnostics) = parse(source);
+    insta::assert_debug_snapshot!(diagnostics, @r#"
+    [
+        Diagnostic {
+            message: "Interfaces can not have a default implementation in a Property",
+            primary_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 25,
+                        offset: 60,
+                    }..TextLocation {
+                        line: 2,
+                        column: 28,
+                        offset: 63,
+                    },
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E117",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+    ]
+    "#);
+}
+
+#[test]
 fn property_inside_interface() {
     let source = r#"
     INTERFACE myInterface
@@ -517,15 +560,14 @@ mod error_handling {
         ";
 
         let diagnostics = parse_and_validate_buffered(source);
-        insta::assert_snapshot!(diagnostics, @r###"
-        warning[E113]: Interfaces can not have a default implementations
+        insta::assert_snapshot!(diagnostics, @r"
+        warning[E113]: Interfaces can not have a default implementations in a Method
           ┌─ <internal>:4:17
           │  
         4 │ ╭                 1 > 2;
         5 │ │                 methodA := 5;
-          │ ╰─────────────────────────────^ Interfaces can not have a default implementations
-
-        "###);
+          │ ╰─────────────────────────────^ Interfaces can not have a default implementations in a Method
+        ");
     }
 
     #[test]
