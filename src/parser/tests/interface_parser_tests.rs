@@ -397,41 +397,73 @@ fn property_in_interface_must_not_have_an_implementation() {
     insta::assert_debug_snapshot!(diagnostics, @r#"
     [
         Diagnostic {
-            message: "Interfaces can not have a default implementations in a Property",
+            message: "Interfaces can not have a default implementation in a Property",
             primary_location: SourceLocation {
                 span: Range(
                     TextLocation {
-                        line: 3,
-                        column: 20,
-                        offset: 91,
-                    }..TextLocation {
-                        line: 3,
+                        line: 4,
                         column: 23,
-                        offset: 94,
+                        offset: 118,
+                    }..TextLocation {
+                        line: 4,
+                        column: 31,
+                        offset: 126,
                     },
                 ),
             },
-            secondary_locations: None,
+            secondary_locations: Some(
+                [
+                    SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 2,
+                                column: 16,
+                                offset: 51,
+                            }..TextLocation {
+                                line: 2,
+                                column: 24,
+                                offset: 59,
+                            },
+                        ),
+                    },
+                ],
+            ),
             error_code: "E118",
             sub_diagnostics: [],
             internal_error: None,
         },
         Diagnostic {
-            message: "Interfaces can not have a default implementations in a Property",
+            message: "Interfaces can not have a default implementation in a Property",
             primary_location: SourceLocation {
                 span: Range(
                     TextLocation {
-                        line: 6,
-                        column: 20,
-                        offset: 176,
-                    }..TextLocation {
-                        line: 6,
+                        line: 7,
                         column: 23,
-                        offset: 179,
+                        offset: 203,
+                    }..TextLocation {
+                        line: 7,
+                        column: 31,
+                        offset: 211,
                     },
                 ),
             },
-            secondary_locations: None,
+            secondary_locations: Some(
+                [
+                    SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 2,
+                                column: 16,
+                                offset: 51,
+                            }..TextLocation {
+                                line: 2,
+                                column: 24,
+                                offset: 59,
+                            },
+                        ),
+                    },
+                ],
+            ),
             error_code: "E118",
             sub_diagnostics: [],
             internal_error: None,
@@ -580,12 +612,14 @@ mod error_handling {
 
         let diagnostics = parse_and_validate_buffered(source);
         insta::assert_snapshot!(diagnostics, @r"
-        warning[E113]: Interfaces can not have a default implementations in a Method
-          ┌─ <internal>:4:17
+        warning[E113]: Interfaces can not have a default implementation in a Method
+          ┌─ <internal>:5:29
           │
-        4 │ ╭                 1 > 2;
-        5 │ │                 methodA := 5;
-          │ ╰─────────────────────────────^ Interfaces can not have a default implementations in a Method
+        2 │         INTERFACE interfaceA
+          │                   ---------- see also
+          ·
+        5 │                 methodA := 5;
+          │                             ^ Interfaces can not have a default implementation in a Method
         ");
     }
 

@@ -195,16 +195,9 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
     loop {
         match lexer.token {
             KeywordMethod => {
-                if let Some((method, imp)) = parse_method(lexer, &name, LinkageType::Internal, false) {
-                    // This is temporary? At some point we'll support them but for now it's a diagnostic
-                    if !imp.statements.is_empty() {
-                        lexer.accept_diagnostic(
-                            Diagnostic::new("Interfaces can not have a default implementations in a Method")
-                                .with_error_code("E113")
-                                .with_location(&imp.location),
-                        );
-                    }
-
+                if let Some((method, imp)) =
+                    parse_method(lexer, &name, &lexer.last_location(), LinkageType::Internal, false, true)
+                {
                     methods.push(method);
                     implementations.push(imp);
                 }
@@ -212,7 +205,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
 
             KeywordProperty => {
                 if let Some(prop) =
-                    parse_property(lexer, &name, &location_name, &PouType::FunctionBlock, KeywordInterface)
+                    parse_property(lexer, &name, &location_name, &PouType::FunctionBlock, true)
                 {
                     properties.push(prop);
                 }
@@ -325,14 +318,14 @@ fn parse_pou(
                 }
 
                 if lexer.token == KeywordProperty {
-                    if let Some(property) =
-                        parse_property(lexer, &name, &name_location, &kind, KeywordProperty)
-                    {
+                    if let Some(property) = parse_property(lexer, &name, &name_location, &kind, false) {
                         properties.push(property);
                     }
                 } else {
                     let is_const = lexer.try_consume(PropertyConstant);
-                    if let Some((pou, implementation)) = parse_method(lexer, &name, linkage, is_const) {
+                    if let Some((pou, implementation)) =
+                        parse_method(lexer, &name, &name_location, linkage, is_const, false)
+                    {
                         impl_pous.push(pou);
                         implementations.push(implementation);
                     }
@@ -564,8 +557,10 @@ fn parse_return_type(lexer: &mut ParseSession) -> Option<DataTypeDeclaration> {
 fn parse_method(
     lexer: &mut ParseSession,
     parent: &str,
+    parent_location: &SourceLocation,
     linkage: LinkageType,
     constant: bool,
+    interface: bool,
 ) -> Option<(Pou, Implementation)> {
     parse_any_in_region(lexer, vec![KeywordEndMethod], |lexer| {
         // Method declarations look like this:
@@ -612,6 +607,16 @@ fn parse_method(
             name_location.clone(),
         );
 
+        // This is temporary? At some point we'll support them but for now it's a diagnostic
+        if matches!(interface, true) && !implementation.statements.is_empty() {
+            lexer.accept_diagnostic(
+                Diagnostic::new("Interfaces can not have a default implementation in a Method")
+                    .with_location(lexer.last_location().clone())
+                    .with_secondary_location(parent_location.clone())
+                    .with_error_code("E113"),
+            );
+        }
+
         // parse_implementation() will default-initialize the fields it
         // doesn't know. thus, we have to complete the information.
         let implementation = Implementation { overriding, access, ..implementation };
@@ -643,9 +648,10 @@ fn parse_property(
     parent_name: &str,
     parent_location: &SourceLocation,
     kind: &PouType,
-    property_type: Token,
+    is_interface: bool,
 ) -> Option<Property> {
     lexer.advance(); // Move past `PROPERTY` keyword
+    let property_location = lexer.last_location();
 
     let mut has_error = false;
 
@@ -673,6 +679,7 @@ fn parse_property(
                 "Variable blocks may only be defined within a GET or SET block in the context of properties",
             )
             .with_location(&block.location)
+            .with_secondary_location(property_location.clone())
             .with_error_code("E007"),
         );
     }
@@ -696,12 +703,15 @@ fn parse_property(
                 PropertyKind::Set => vec![Token::KeywordEndSet],
             },
         );
-        if matches!(property_type, KeywordInterface) && !statements.is_empty() {
-            lexer.accept_diagnostic(
-                Diagnostic::new("Interfaces can not have a default implementations in a Property")
-                    .with_location(location.clone())
-                    .with_error_code("E118"),
-            );
+        if matches!(is_interface, true) && !statements.is_empty() {
+            if let Some(AstNode { location, .. }) = statements.first() {
+                lexer.accept_diagnostic(
+                    Diagnostic::new("Interfaces can not have a default implementation in a Property")
+                        .with_location(location)
+                        .with_secondary_location(property_location.clone())
+                        .with_error_code("E118"),
+                );
+            }
         }
 
         implementations.push(PropertyImplementation { kind, variable_blocks, body: statements, location });
