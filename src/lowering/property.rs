@@ -468,24 +468,6 @@ mod tests {
     }
 
     #[test]
-    // TODO this code should fail because get/set in interaces
-    // are not allowed to have an implementation
-    fn property_in_interface_must_not_have_an_implementation() {
-        let source = r"
-            INTERFACE myInterface
-                PROPERTY foo : DINT
-                    GET
-                      foo := 5;
-                    END_GET
-                END_PROPERTY
-            END_INTERFACE
-        ";
-
-        let unit = lower(source);
-        insta::assert_debug_snapshot!(unit.implementations, @"[]");
-    }
-
-    #[test]
     fn properties_are_used_within_each_other() {
         let source = r"
         FUNCTION_BLOCK fb

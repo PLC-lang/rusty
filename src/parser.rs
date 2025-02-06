@@ -199,7 +199,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
                     // This is temporary? At some point we'll support them but for now it's a diagnostic
                     if !imp.statements.is_empty() {
                         lexer.accept_diagnostic(
-                            Diagnostic::new("Interfaces can not have a default implementations")
+                            Diagnostic::new("Interfaces can not have a default implementations in a Method")
                                 .with_error_code("E113")
                                 .with_location(&imp.location),
                         );
@@ -212,6 +212,13 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
 
             KeywordProperty => {
                 if let Some(prop) = parse_property(lexer, &name, &location_name, &PouType::FunctionBlock) {
+                    if !prop.implementations.iter().all(|statement| statement.body.is_empty()) {
+                        lexer.accept_diagnostic(
+                            Diagnostic::new("Interfaces can not have a default implementation in a Property")
+                                .with_error_code("E118")
+                                .with_location(prop.name_location.clone()),
+                        );
+                    }
                     properties.push(prop);
                 }
             }
