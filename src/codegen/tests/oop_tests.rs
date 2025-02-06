@@ -83,7 +83,7 @@ fn write_to_parent_variable_qualified_access() {
         VAR 
             myFb : fb2;
         END_VAR
-            myFb.x = 1;
+            myFb.x := 1;
         END_FUNCTION_BLOCK
        ",
     );
@@ -119,9 +119,7 @@ fn write_to_parent_variable_qualified_access() {
       %myFb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %__BASE = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0
       %x = getelementptr inbounds %fb, %fb* %__BASE, i32 0, i32 0
-      %load_x = load i16, i16* %x, align 2
-      %1 = sext i16 %load_x to i32
-      %tmpVar = icmp eq i32 %1, 1
+      store i16 1, i16* %x, align 2
       ret void
     }
 
