@@ -225,6 +225,31 @@ impl PipelineParticipantMut for InitParticipant {
     }
 }
 
+impl PipelineParticipantMut for InheritanceLowerer {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+        let ParsedProject { mut units } = parsed_project;
+        units.iter_mut().for_each(|unit| self.visit_unit(unit));
+        ParsedProject { units }
+    }
+
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { mut units, index, annotations } = annotated_project;
+        self.annotations = Some(Box::new(annotations));
+        self.index = Some(index);
+        units.iter_mut().for_each(|unit| self.visit_unit(&mut unit.unit));
+        let index = self.index.take().expect("Index should be present");
+        // re-resolve
+        IndexedProject {
+            project: ParsedProject {
+                units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect(),
+            },
+            index,
+            unresolvables: vec![],
+        }
+        .annotate(self.provider())
+    }
+}
+
 impl PipelineParticipantMut for AggregateTypeLowerer {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         let IndexedProject { mut project, index, .. } = indexed_project;
@@ -254,30 +279,5 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
             unresolvables: vec![],
         };
         indexed_project.annotate(self.id_provider.clone())
-    }
-}
-
-impl PipelineParticipantMut for InheritanceLowerer {
-    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
-        let ParsedProject { mut units } = parsed_project;
-        units.iter_mut().for_each(|unit| self.visit_unit(unit));
-        ParsedProject { units }
-    }
-
-    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        let AnnotatedProject { mut units, index, annotations } = annotated_project;
-        self.annotations = Some(Box::new(annotations));
-        self.index = Some(index);
-        units.iter_mut().for_each(|unit| self.visit_unit(&mut unit.unit));
-        let index = self.index.take().expect("Index should be present");
-        // re-resolve
-        IndexedProject {
-            project: ParsedProject {
-                units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect(),
-            },
-            index,
-            unresolvables: vec![],
-        }
-        .annotate(self.provider())
     }
 }
