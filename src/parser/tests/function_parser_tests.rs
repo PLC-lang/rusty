@@ -547,35 +547,35 @@ fn constant_pragma_can_be_parsed_but_errs() {
     insta::assert_snapshot!(diagnostics, @r"
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:2:9
-      │
+      │  
     2 │ ╭         {constant}
     3 │ │         FUNCTION_BLOCK foo END_FUNCTION_BLOCK
       │ ╰──────────────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:4:9
-      │
+      │  
     4 │ ╭         {constant}
     5 │ │         PROGRAM bar END_PROGRAM
       │ ╰───────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:6:9
-      │
+      │  
     6 │ ╭         {constant}
     7 │ │         CLASS qux
       │ ╰─────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:8:13
-      │
+      │  
     8 │ ╭             {constant}
     9 │ │             METHOD quux : DINT END_METHOD
       │ ╰──────────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
        ┌─ <internal>:11:9
-       │
+       │  
     11 │ ╭         {constant}
     12 │ │         FUNCTION corge  : BOOL END_FUNCTION
        │ ╰────────────────^ Pragma {constant} is not allowed in POU declarations
@@ -614,14 +614,14 @@ fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
                     end_get : DINT;
                     end_set : DINT;'
        ┌─ <internal>:4:24
-       │
+       │  
      4 │                   retain : DINT;
        │ ╭────────────────────────^
      5 │ │                 public : DINT;
      6 │ │                 property : DINT;
      7 │ │                 get : DINT;
      8 │ │                 set : DINT;
-     9 │ │
+     9 │ │ 
     10 │ │                 end_property : DINT;
     11 │ │                 end_get : DINT;
     12 │ │                 end_set : DINT;
