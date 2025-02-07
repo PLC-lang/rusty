@@ -9,6 +9,5 @@ plc_ast = { path = "../plc_ast" }
 plc_source = { path = "../plc_source" }
 
 [dev-dependencies]
-#insta.workspace = true # TODO: remove individual insta deps from crates
 plc_driver = { path = "../plc_driver" }
 insta = "1.31.0"
