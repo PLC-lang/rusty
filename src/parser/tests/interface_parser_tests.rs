@@ -1,4 +1,4 @@
-use crate::test_utils::tests::parse;
+use crate::test_utils::tests::{parse, parse_buffered};
 
 #[test]
 fn empty_interface() {
@@ -393,83 +393,26 @@ fn property_in_interface_must_not_have_an_implementation() {
             END_INTERFACE
         ";
 
-    let (unit, diagnostics) = parse(source);
-    insta::assert_debug_snapshot!(diagnostics, @r#"
-    [
-        Diagnostic {
-            message: "Interfaces can not have a default implementation in a Property",
-            primary_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 4,
-                        column: 23,
-                        offset: 118,
-                    }..TextLocation {
-                        line: 4,
-                        column: 31,
-                        offset: 126,
-                    },
-                ),
-            },
-            secondary_locations: Some(
-                [
-                    SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 2,
-                                column: 16,
-                                offset: 51,
-                            }..TextLocation {
-                                line: 2,
-                                column: 24,
-                                offset: 59,
-                            },
-                        ),
-                    },
-                ],
-            ),
-            error_code: "E118",
-            sub_diagnostics: [],
-            internal_error: None,
-        },
-        Diagnostic {
-            message: "Interfaces can not have a default implementation in a Property",
-            primary_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 7,
-                        column: 23,
-                        offset: 203,
-                    }..TextLocation {
-                        line: 7,
-                        column: 31,
-                        offset: 211,
-                    },
-                ),
-            },
-            secondary_locations: Some(
-                [
-                    SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 2,
-                                column: 16,
-                                offset: 51,
-                            }..TextLocation {
-                                line: 2,
-                                column: 24,
-                                offset: 59,
-                            },
-                        ),
-                    },
-                ],
-            ),
-            error_code: "E118",
-            sub_diagnostics: [],
-            internal_error: None,
-        },
-    ]
-    "#);
+    let (_, diagnostics) = parse_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E117]: Interfaces can not have a default implementation in a Property
+      ┌─ <internal>:5:24
+      │
+    3 │                 PROPERTY foo : DINT
+      │                 -------- see also
+    4 │                     GET
+    5 │                        foo := 5;
+      │                        ^^^^^^^^ Interfaces can not have a default implementation in a Property
+
+    error[E117]: Interfaces can not have a default implementation in a Property
+      ┌─ <internal>:8:24
+      │
+    3 │                 PROPERTY foo : DINT
+      │                 -------- see also
+      ·
+    8 │                        foo := 5;
+      │                        ^^^^^^^^ Interfaces can not have a default implementation in a Property
+    ");
 }
 
 #[test]

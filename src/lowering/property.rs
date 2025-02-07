@@ -126,7 +126,7 @@ impl PropertyLowerer {
                         name = property.name
                     );
 
-                    let pou = Pou {
+                    let mut pou = Pou {
                         name: name.clone(),
                         kind: PouType::Method {
                             parent: property.parent_name.clone(),
@@ -143,6 +143,13 @@ impl PropertyLowerer {
                         interfaces: Vec::new(),
                         is_const: false,
                     };
+                    //
+                    match property_impl.kind {
+                        PropertyKind::Set => {
+                            pou.return_type = None;
+                        }
+                        _ => {}
+                    }
 
                     interface.methods.push(pou);
 
@@ -214,10 +221,11 @@ impl PropertyLowerer {
                         ));
                     }
 
-                    // We have to do two things when dealing with setters:
-                    // 1. Patch a variable block of type `VAR_INPUT` with a single variable named
-                    //    `__in : <property_type>`
+                    // We have to do three things when dealing with setters:
+                    // 1. Patch a variable block of type `VAR_INPUT` with a single variable named `__in : <property_type>`
                     // 2. Prepend a `<property_name> := __in` assignment to the implementation
+                    // 3. change the return type to void because the setter does not return
+                    //    anything
                     PropertyKind::Set => {
                         let parameter_name = "__in";
 
