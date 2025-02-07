@@ -59,13 +59,6 @@ impl InheritanceLowerer {
     }
 
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
-        // XXX: not sure if we need to visit global vars and user-data-types when walking the compilation unit here
-        // for pou in unit.units.iter_mut() {
-        //     pou.walk(self);
-        // }
-        // for implementation in unit.implementations.iter_mut() {
-        //     implementation.walk(self);
-        // }
         self.visit_compilation_unit(unit);
     }
 
@@ -85,14 +78,9 @@ impl InheritanceLowerer {
         if self.index.is_none() || self.annotations.is_none() {
             return base;
         }
-        // disect the qualified name
-        // a.b.c -> am i a direct member of b?
-        //      b => am I a direct member of a?
-        //      a => am I a direct member of local container?
 
         let annotations = self.annotations.as_ref().expect("Annotations exist");
         let Some(qualified_name) = annotations.get_qualified_name(node) else {
-            // this is likely an index into an array/pointer dereference. just return as is
             return base;
         };
 
