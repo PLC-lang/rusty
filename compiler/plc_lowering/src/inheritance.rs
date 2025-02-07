@@ -91,7 +91,7 @@ impl InheritanceLowerer {
         }
 
         let index = self.index.as_ref().expect("Index exists");
-        let inheritance_chain = index.find_ancestors(base_type, segment);
+        let inheritance_chain = index.get_inheritance_chain(base_type, segment);
         if inheritance_chain.len() <= 1 {
             return base;
         }

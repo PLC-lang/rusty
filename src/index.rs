@@ -1825,16 +1825,23 @@ impl Index {
     }
 
     /// Recursively traverses the inheritance-chain of `current_gen` up until `target_gen`
-    pub fn find_ancestors<'idx>(&'idx self, current_gen: &str, target_gen: &str) -> Vec<&'idx PouIndexEntry> {
+    pub fn get_inheritance_chain<'idx>(
+        &'idx self,
+        current_gen: &str,
+        target_gen: &str,
+    ) -> Vec<&'idx PouIndexEntry> {
+        //Does the current type exist?
         let Some(current_ty) = self.find_pou(current_gen) else {
             return vec![];
         };
 
+        // If the current type matches, add it as return
         if current_ty.get_name() == target_gen {
             return vec![current_ty];
         }
 
-        let mut res = self.find_ancestors(current_ty.get_super_class().unwrap_or_default(), target_gen);
+        let mut res =
+            self.get_inheritance_chain(current_ty.get_super_class().unwrap_or_default(), target_gen);
         if !res.is_empty() {
             res.push(current_ty);
         };

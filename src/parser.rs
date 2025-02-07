@@ -487,13 +487,13 @@ fn parse_super_class(lexer: &mut ParseSession) -> Option<String> {
     }
     extensions.iter().skip(1).for_each(|(_, location)| {
         lexer.accept_diagnostic(
-            Diagnostic::new(format!("Multiple inheritance. POUs can only be extended once."))
+            Diagnostic::new("Multiple inheritance. POUs can only be extended once.".to_string())
                 .with_error_code("E114")
                 .with_location(location),
         )
     });
 
-    extensions.get(0).map(|(name, _)| name.to_string())
+    extensions.first().map(|(name, _)| name.to_string())
 }
 
 fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<DataTypeDeclaration> {
