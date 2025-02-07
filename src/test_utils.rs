@@ -18,14 +18,14 @@ pub mod tests {
         codegen::{CodegenContext, GeneratedModule},
         index::{self, FxIndexSet, Index},
         lexer,
-        lowering::{calls::AggregateTypeLowerer, validator::ParticipantValidator, InitVisitor},
+        lowering::{calls::AggregateTypeLowerer, InitVisitor},
         parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
             StringLiterals, TypeAnnotator,
         },
         typesystem::get_builtin_types,
-        DebugLevel, ErrorFormat, OnlineChange, Validator,
+        DebugLevel, OnlineChange, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
