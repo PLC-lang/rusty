@@ -16,7 +16,7 @@ fn members_from_base_class_are_available_in_subclasses() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -37,7 +37,7 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     define void @bar(%bar* %0) {
     entry:
-      %__BASE = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      %__SUPER = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 
@@ -53,8 +53,8 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca %bar*, align 8
       store %bar* %0, %bar** %self, align 8
       %deref = load %bar*, %bar** %self, align 8
-      %__BASE = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
-      call void @__init_foo(%foo* %__BASE)
+      %__SUPER = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__init_foo(%foo* %__SUPER)
       ret void
     }
 
@@ -62,7 +62,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -88,7 +88,7 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -110,15 +110,15 @@ fn write_to_parent_variable_qualified_access() {
 
     define void @fb2(%fb2* %0) {
     entry:
-      %__BASE = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
+      %__SUPER = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
       ret void
     }
 
     define void @foo(%foo* %0) {
     entry:
       %myFb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %__BASE = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0
-      %x = getelementptr inbounds %fb, %fb* %__BASE, i32 0, i32 0
+      %__SUPER = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0
+      %x = getelementptr inbounds %fb, %fb* %__SUPER, i32 0, i32 0
       store i16 1, i16* %x, align 2
       ret void
     }
@@ -128,8 +128,8 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca %fb2*, align 8
       store %fb2* %0, %fb2** %self, align 8
       %deref = load %fb2*, %fb2** %self, align 8
-      %__BASE = getelementptr inbounds %fb2, %fb2* %deref, i32 0, i32 0
-      call void @__init_fb(%fb* %__BASE)
+      %__SUPER = getelementptr inbounds %fb2, %fb2* %deref, i32 0, i32 0
+      call void @__init_fb(%fb* %__SUPER)
       ret void
     }
 
@@ -154,7 +154,7 @@ fn write_to_parent_variable_qualified_access() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -184,7 +184,7 @@ fn write_to_parent_variable_in_instance() {
         END_FUNCTION
     "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -213,8 +213,8 @@ fn write_to_parent_variable_in_instance() {
 
     define void @bar(%bar* %0) {
     entry:
-      %__BASE = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, %foo* %__BASE, i32 0, i32 0
+      %__SUPER = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %__SUPER, i32 0, i32 0
       %1 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
       ret void
@@ -229,8 +229,8 @@ fn write_to_parent_variable_in_instance() {
       %1 = bitcast %bar* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%bar, %bar* @__bar__init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
       call void @__init_bar(%bar* %fb)
-      %__BASE = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0
-      call void @foo.baz(%foo* %__BASE)
+      %__SUPER = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0
+      call void @foo.baz(%foo* %__SUPER)
       call void @bar(%bar* %fb)
       ret void
     }
@@ -249,8 +249,8 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca %bar*, align 8
       store %bar* %0, %bar** %self, align 8
       %deref = load %bar*, %bar** %self, align 8
-      %__BASE = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
-      call void @__init_foo(%foo* %__BASE)
+      %__SUPER = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__init_foo(%foo* %__SUPER)
       ret void
     }
 
@@ -268,7 +268,7 @@ fn write_to_parent_variable_in_instance() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
     attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-    "###);
+    "#);
 }
 
 #[test]
@@ -307,7 +307,7 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -329,7 +329,7 @@ fn array_in_parent_generated() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__BASE = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %__SUPER = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
       ret void
@@ -337,7 +337,7 @@ fn array_in_parent_generated() {
 
     define void @child(%child* %0) {
     entry:
-      %__BASE = getelementptr inbounds %child, %child* %0, i32 0, i32 0
+      %__SUPER = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       ret void
     }
@@ -348,23 +348,23 @@ fn array_in_parent_generated() {
       %0 = bitcast [11 x %child]* %arr to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([11 x %child]* getelementptr ([11 x %child], [11 x %child]* null, i32 1) to i64), i1 false)
       %tmpVar = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0
-      %__BASE = getelementptr inbounds %child, %child* %tmpVar, i32 0, i32 0
-      %__BASE1 = getelementptr inbounds %parent, %parent* %__BASE, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %__BASE1, i32 0, i32 1
+      %__SUPER = getelementptr inbounds %child, %child* %tmpVar, i32 0, i32 0
+      %__SUPER1 = getelementptr inbounds %parent, %parent* %__SUPER, i32 0, i32 0
+      %a = getelementptr inbounds %grandparent, %grandparent* %__SUPER1, i32 0, i32 1
       store i16 10, i16* %a, align 2
       %tmpVar2 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0
-      %__BASE3 = getelementptr inbounds %child, %child* %tmpVar2, i32 0, i32 0
-      %__BASE4 = getelementptr inbounds %parent, %parent* %__BASE3, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, %grandparent* %__BASE4, i32 0, i32 0
+      %__SUPER3 = getelementptr inbounds %child, %child* %tmpVar2, i32 0, i32 0
+      %__SUPER4 = getelementptr inbounds %parent, %parent* %__SUPER3, i32 0, i32 0
+      %y = getelementptr inbounds %grandparent, %grandparent* %__SUPER4, i32 0, i32 0
       %tmpVar5 = getelementptr inbounds [6 x i16], [6 x i16]* %y, i32 0, i32 0
       store i16 20, i16* %tmpVar5, align 2
       %tmpVar6 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 1
-      %__BASE7 = getelementptr inbounds %child, %child* %tmpVar6, i32 0, i32 0
-      %b = getelementptr inbounds %parent, %parent* %__BASE7, i32 0, i32 2
+      %__SUPER7 = getelementptr inbounds %child, %child* %tmpVar6, i32 0, i32 0
+      %b = getelementptr inbounds %parent, %parent* %__SUPER7, i32 0, i32 2
       store i16 30, i16* %b, align 2
       %tmpVar8 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 1
-      %__BASE9 = getelementptr inbounds %child, %child* %tmpVar8, i32 0, i32 0
-      %x = getelementptr inbounds %parent, %parent* %__BASE9, i32 0, i32 1
+      %__SUPER9 = getelementptr inbounds %child, %child* %tmpVar8, i32 0, i32 0
+      %x = getelementptr inbounds %parent, %parent* %__SUPER9, i32 0, i32 1
       %tmpVar10 = getelementptr inbounds [11 x i16], [11 x i16]* %x, i32 0, i32 1
       store i16 40, i16* %tmpVar10, align 2
       %tmpVar11 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 2
@@ -382,8 +382,8 @@ fn array_in_parent_generated() {
       %self = alloca %child*, align 8
       store %child* %0, %child** %self, align 8
       %deref = load %child*, %child** %self, align 8
-      %__BASE = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
-      call void @__init_parent(%parent* %__BASE)
+      %__SUPER = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__init_parent(%parent* %__SUPER)
       ret void
     }
 
@@ -392,8 +392,8 @@ fn array_in_parent_generated() {
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
       %deref = load %parent*, %parent** %self, align 8
-      %__BASE = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
-      call void @__init_grandparent(%grandparent* %__BASE)
+      %__SUPER = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      call void @__init_grandparent(%grandparent* %__SUPER)
       ret void
     }
 
@@ -410,7 +410,7 @@ fn array_in_parent_generated() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    "###);
+    "#);
 }
 
 #[test]
@@ -440,7 +440,7 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -462,7 +462,7 @@ fn complex_array_access_generated() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__BASE = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %__SUPER = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
       ret void
@@ -470,14 +470,14 @@ fn complex_array_access_generated() {
 
     define void @child(%child* %0) {
     entry:
-      %__BASE = getelementptr inbounds %child, %child* %0, i32 0, i32 0
+      %__SUPER = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
-      %__BASE1 = getelementptr inbounds %parent, %parent* %__BASE, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, %grandparent* %__BASE1, i32 0, i32 0
-      %b = getelementptr inbounds %parent, %parent* %__BASE, i32 0, i32 2
+      %__SUPER1 = getelementptr inbounds %parent, %parent* %__SUPER, i32 0, i32 0
+      %y = getelementptr inbounds %grandparent, %grandparent* %__SUPER1, i32 0, i32 0
+      %b = getelementptr inbounds %parent, %parent* %__SUPER, i32 0, i32 2
       %load_b = load i16, i16* %b, align 2
       %1 = sext i16 %load_b to i32
-      %b2 = getelementptr inbounds %parent, %parent* %__BASE, i32 0, i32 2
+      %b2 = getelementptr inbounds %parent, %parent* %__SUPER, i32 0, i32 2
       %load_b3 = load i16, i16* %b2, align 2
       %2 = sext i16 %load_b3 to i32
       %tmpVar = mul i32 %2, 2
@@ -487,8 +487,8 @@ fn complex_array_access_generated() {
       %load_tmpVar = load i16, i16* %tmpVar6, align 2
       %3 = sext i16 %load_tmpVar to i32
       %tmpVar7 = add i32 %1, %3
-      %__BASE8 = getelementptr inbounds %parent, %parent* %__BASE, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %__BASE8, i32 0, i32 1
+      %__SUPER8 = getelementptr inbounds %parent, %parent* %__SUPER, i32 0, i32 0
+      %a = getelementptr inbounds %grandparent, %grandparent* %__SUPER8, i32 0, i32 1
       %load_a = load i16, i16* %a, align 2
       %4 = sext i16 %load_a to i32
       %tmpVar9 = sub i32 %tmpVar7, %4
@@ -504,8 +504,8 @@ fn complex_array_access_generated() {
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
       %deref = load %parent*, %parent** %self, align 8
-      %__BASE = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
-      call void @__init_grandparent(%grandparent* %__BASE)
+      %__SUPER = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      call void @__init_grandparent(%grandparent* %__SUPER)
       ret void
     }
 
@@ -521,8 +521,8 @@ fn complex_array_access_generated() {
       %self = alloca %child*, align 8
       store %child* %0, %child** %self, align 8
       %deref = load %child*, %child** %self, align 8
-      %__BASE = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
-      call void @__init_parent(%parent* %__BASE)
+      %__SUPER = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__init_parent(%parent* %__SUPER)
       ret void
     }
 
@@ -530,5 +530,5 @@ fn complex_array_access_generated() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }

@@ -10,6 +10,8 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
+const BASE_TYPE_NAME: &str = "__SUPER";
+
 #[derive(Debug)]
 struct Context {
     base_type_name: Option<String>,
@@ -100,7 +102,7 @@ impl InheritanceLowerer {
         inheritance_chain.iter().skip(1).fold(base, |base, _| {
             Some(Box::new(AstFactory::create_member_reference(
                 AstFactory::create_identifier(
-                    "__BASE",
+                    BASE_TYPE_NAME,
                     SourceLocation::internal(),
                     self.provider().next_id(),
                 ),
@@ -125,7 +127,7 @@ impl AstVisitorMut for InheritanceLowerer {
         };
 
         let base_var = Variable {
-            name: "__BASE".to_string(),
+            name: BASE_TYPE_NAME.into(),
             data_type_declaration: DataTypeDeclaration::Reference {
                 referenced_type: base_name.into(),
                 location: SourceLocation::internal(),
@@ -221,7 +223,7 @@ mod units_tests {
                 VariableBlock {
                     variables: [
                         Variable {
-                            name: "__BASE",
+                            name: "__SUPER",
                             data_type: DataTypeReference {
                                 referenced_type: "foo",
                             },
@@ -263,7 +265,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "foo",
             type_name: "foo",
@@ -281,7 +283,7 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__BASE",
+                                        name: "__SUPER",
                                     },
                                 ),
                                 base: Some(
@@ -345,7 +347,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -383,7 +385,7 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__BASE",
+                                        name: "__SUPER",
                                     },
                                 ),
                                 base: None,
@@ -450,7 +452,7 @@ mod units_tests {
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         // let unit = &project.units[0].get_unit();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "child",
             type_name: "child",
@@ -468,14 +470,14 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__BASE",
+                                        name: "__SUPER",
                                     },
                                 ),
                                 base: Some(
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: None,
@@ -519,7 +521,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -555,7 +557,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "child",
             type_name: "child",
@@ -580,7 +582,7 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: None,
@@ -611,14 +613,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__BASE",
+                                                        name: "__SUPER",
                                                     },
                                                 ),
                                                 base: None,
@@ -670,7 +672,7 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__BASE",
+                                                    name: "__SUPER",
                                                 },
                                             ),
                                             base: None,
@@ -696,14 +698,14 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__BASE",
+                                                    name: "__SUPER",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__BASE",
+                                                            name: "__SUPER",
                                                         },
                                                     ),
                                                     base: None,
@@ -729,14 +731,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__BASE",
+                                                        name: "__SUPER",
                                                     },
                                                 ),
                                                 base: None,
@@ -757,7 +759,7 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: None,
@@ -783,7 +785,7 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: None,
@@ -802,14 +804,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__BASE",
+                                                        name: "__SUPER",
                                                     },
                                                 ),
                                                 base: None,
@@ -839,14 +841,14 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__BASE",
+                                                    name: "__SUPER",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__BASE",
+                                                            name: "__SUPER",
                                                         },
                                                     ),
                                                     base: None,
@@ -865,7 +867,7 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__BASE",
+                                                    name: "__SUPER",
                                                 },
                                             ),
                                             base: None,
@@ -920,7 +922,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -972,7 +974,7 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__BASE",
+                                        name: "__SUPER",
                                     },
                                 ),
                                 base: Some(
@@ -986,7 +988,7 @@ mod units_tests {
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__BASE",
+                                                        name: "__SUPER",
                                                     },
                                                 ),
                                                 base: None,
@@ -1073,7 +1075,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[3];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "main",
             type_name: "main",
@@ -1091,14 +1093,14 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__BASE",
+                                        name: "__SUPER",
                                     },
                                 ),
                                 base: Some(
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: Some(
@@ -1147,14 +1149,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__BASE",
+                                                        name: "__SUPER",
                                                     },
                                                 ),
                                                 base: Some(
@@ -1198,7 +1200,7 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__BASE",
+                                        name: "__SUPER",
                                     },
                                 ),
                                 base: Some(
@@ -1245,7 +1247,7 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: Some(
@@ -1347,7 +1349,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###)
+        "#)
     }
 
     #[test]
@@ -1378,7 +1380,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "child",
             type_name: "child",
@@ -1402,7 +1404,7 @@ mod units_tests {
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__BASE",
+                                                        name: "__SUPER",
                                                     },
                                                 ),
                                                 base: None,
@@ -1423,7 +1425,7 @@ mod units_tests {
                                                         ReferenceExpr {
                                                             kind: Member(
                                                                 Identifier {
-                                                                    name: "__BASE",
+                                                                    name: "__SUPER",
                                                                 },
                                                             ),
                                                             base: None,
@@ -1457,14 +1459,14 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__BASE",
+                                                    name: "__SUPER",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__BASE",
+                                                            name: "__SUPER",
                                                         },
                                                     ),
                                                     base: None,
@@ -1486,14 +1488,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__BASE",
+                                                        name: "__SUPER",
                                                     },
                                                 ),
                                                 base: None,
@@ -1539,7 +1541,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -1644,7 +1646,7 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: Some(
@@ -1680,14 +1682,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__BASE",
+                                                name: "__SUPER",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__BASE",
+                                                        name: "__SUPER",
                                                     },
                                                 ),
                                                 base: Some(
@@ -1811,7 +1813,7 @@ mod resolve_bases_tests {
         assert_debug_snapshot!(annotations.get(base1).unwrap(), @r#"
         Variable {
             resulting_type: "fb",
-            qualified_name: "fb2.__BASE",
+            qualified_name: "fb2.__SUPER",
             constant: false,
             argument_type: ByVal(
                 Local,
@@ -1839,7 +1841,7 @@ mod resolve_bases_tests {
         assert_debug_snapshot!(annotations.get(base3).unwrap(), @r#"
         Variable {
             resulting_type: "baz",
-            qualified_name: "foo.__BASE",
+            qualified_name: "foo.__SUPER",
             constant: false,
             argument_type: ByVal(
                 Local,
