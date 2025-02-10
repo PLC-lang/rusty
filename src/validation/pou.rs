@@ -301,6 +301,19 @@ fn validate_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context:
     if pou.kind == PouType::Program {
         validate_program(validator, pou);
     }
+    //If the POU is not a function or method, it cannot have a return type
+    if !matches!(pou.kind, PouType::Function | PouType::Method { .. }) {
+        if let Some(start_return_type) = &pou.return_type {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "POU Type {:?} does not support a return type",
+                    pou.kind
+                ))
+                .with_error_code("E026")
+                .with_location(start_return_type.get_location()),
+            )
+        }
+    }
 }
 
 fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<T>) {
@@ -315,15 +328,6 @@ fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, contex
         validator.push_diagnostic(
             Diagnostic::new("A class cannot contain VAR_IN VAR_IN_OUT or VAR_OUT blocks")
                 .with_error_code("E019")
-                .with_location(&pou.name_location),
-        );
-    }
-
-    // classes cannot have a return type
-    if context.index.find_return_type(&pou.name).is_some() {
-        validator.push_diagnostic(
-            Diagnostic::new("A class cannot have a return type")
-                .with_error_code("E020")
                 .with_location(&pou.name_location),
         );
     }

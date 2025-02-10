@@ -2,16 +2,14 @@
 source: src/validation/tests/variable_length_array_test.rs
 expression: program_input
 ---
-error[E026]: POU Type Program does not support a return type. Did you mean Function?
-  ┌─ <internal>:2:16
+error[E026]: POU Type Program does not support a return type
+  ┌─ <internal>:2:18
   │
 2 │     PROGRAM fn : DINT
-  │                ^^^^^^ POU Type Program does not support a return type. Did you mean Function?
+  │                  ^^^^ POU Type Program does not support a return type
 
 error[E044]: Variable Length Arrays are not allowed to be defined inside a Program
   ┌─ <internal>:4:13
   │
 4 │             arr : ARRAY[*] OF DINT;
   │             ^^^ Variable Length Arrays are not allowed to be defined inside a Program
-
-

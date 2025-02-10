@@ -25,7 +25,11 @@ use plc::{
     OptimizationLevel,
 };
 
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_diagnostics::{
+    diagnostician::Diagnostician,
+    diagnostics::Diagnostic,
+    reporter::DiagnosticReporter,
+};
 use plc_index::GlobalContext;
 use project::project::Project;
 use source_code::SourceContainer;
@@ -184,23 +188,45 @@ pub fn parse_and_annotate<T: SourceContainer + Clone>(
     name: &str,
     src: Vec<T>,
 ) -> Result<(GlobalContext, AnnotatedProject), Diagnostic> {
+    let (pipeline, project) = parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered())
+        .map_err(|it| Diagnostic::new(it.buffer().unwrap_or_default()))?;
+    Ok((pipeline.context, project))
+}
+
+pub fn parse_and_annotate_with_diagnostics<T: SourceContainer + Clone>(
+    name: &str,
+    src: Vec<T>,
+    diagnostician: Diagnostician,
+) -> Result<(BuildPipeline<T>, AnnotatedProject), Diagnostician> {
     // Parse the source to ast
     let project = Project::new(name.to_string()).with_sources(src);
-    let context = GlobalContext::new().with_source(project.get_sources(), None)?;
+    let Ok(context) = GlobalContext::new().with_source(project.get_sources(), None) else {
+        return Err(diagnostician);
+    };
     let mut pipeline = BuildPipeline {
         context,
         project,
-        diagnostician: Diagnostician::default(),
+        diagnostician,
         compile_parameters: None,
         linker: LinkerType::Internal,
         mutable_participants: Vec::default(),
         participants: Vec::default(),
     };
     pipeline.register_default_participants();
-    let project = pipeline.parse()?;
-    let project = pipeline.index(project)?;
-    let project = pipeline.annotate(project)?;
-    Ok((pipeline.context, project))
+    let Ok(project) = pipeline.parse() else { return Err(pipeline.diagnostician) };
+    let Ok(project) = pipeline.index(project) else { return Err(pipeline.diagnostician) };
+    let Ok(project) = pipeline.annotate(project) else { return Err(pipeline.diagnostician) };
+    Ok((pipeline, project))
+}
+
+pub fn parse_and_validate<T: SourceContainer + Clone>(name: &str, src: Vec<T>) -> String {
+    match parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered()) {
+        Ok((mut pipeline, project)) => {
+            let _ = project.validate(&pipeline.context, &mut pipeline.diagnostician);
+            pipeline.diagnostician.buffer().unwrap()
+        }
+        Err(diagnostician) => diagnostician.buffer().unwrap(),
+    }
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls

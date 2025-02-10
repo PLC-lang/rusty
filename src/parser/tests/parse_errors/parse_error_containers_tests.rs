@@ -126,25 +126,6 @@ fn function_return_type_with_initializer() {
 }
 
 #[test]
-fn program_with_illegal_return_variable_declaration() {
-    let src = r"
-                PROGRAM foo : INT
-                VAR END_VAR
-                a;
-                END_PROGRAM
-                ";
-
-    let (compilation_unit, diagnostics) = parse_buffered(src);
-    //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
-    //Expecting a missing semicolon message
-    assert_snapshot!(diagnostics);
-
-    //check if a was parsed successfully
-    let pou = &compilation_unit.implementations[0];
-    assert_debug_snapshot!(pou.statements);
-}
-
-#[test]
 fn unclosed_var_container() {
     let src = r"
                 PROGRAM foo

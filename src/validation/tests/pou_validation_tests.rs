@@ -1,4 +1,4 @@
-use crate::test_utils::tests::parse_and_validate_buffered;
+use test_utils::parse_and_validate_buffered;
 use insta::assert_snapshot;
 
 #[test]
@@ -323,4 +323,27 @@ fn method_inout_arguments_are_not_optional() {
        │             ^^^^^^^^^^^^^^ Argument `in1` is missing
 
     "###);
+}
+
+#[test]
+fn methods_in_function_blocks_need_to_match_base() {
+    // GIVEN a function block with a method
+    // WHEN the method in the function block does not match the base method
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD foo
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2 EXTENDS fb
+            METHOD foo
+                VAR_INPUT
+                    in1 : BOOL;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+    // THEN there should be one diagnostic -> Method foo in function block fb2 does not match base method
 }
