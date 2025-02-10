@@ -98,6 +98,34 @@ fn pou_implements_method_with_wrong_return_type() {
     "###);
 }
 
+#[ignore]
+#[test]
+fn function_block_implements_interface_with_wrong_type() {
+    // TODO: this test case is handled in the validation step
+    //       but not here. The reason is that the validation
+    //       happens after lowering when properties and interfaces
+    //       no longer exist because they were lowered to function
+    //       calls. But maybe it would be nice to test this here
+    //       as well.
+    let source = r"
+            INTERFACE myInterface
+                PROPERTY foo : DINT
+                    GET
+                    END_GET
+                END_PROPERTY
+            END_INTERFACE
+            FUNCTION_BLOCK fb IMPLEMENTS myInterface
+              PROPERTY foo : BOOL
+                    GET
+                    END_GET
+              END_PROPERTY
+            END_FUNCTION_BLOCK
+        ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
+}
+
 #[test]
 fn pou_does_not_implement_interface_methods() {
     let source = r"
