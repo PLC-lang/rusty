@@ -710,7 +710,7 @@ fn parse_property(
                     Diagnostic::new("Interfaces can not have a default implementation in a Property")
                         .with_location(location)
                         .with_secondary_location(property_location.clone())
-                        .with_error_code("E117"),
+                        .with_error_code("E113"),
                 );
             }
         }
