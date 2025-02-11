@@ -262,7 +262,7 @@ fn get_declaration_type_for(block: &VariableBlock, pou_type: &PouType) -> Argume
 
 fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
     match block.variable_block_type {
-        VariableBlockType::Local | VariableBlockType::Base => VariableType::Local, // XXX: we might want to split these into two types
+        VariableBlockType::Local => VariableType::Local,
         VariableBlockType::Temp => VariableType::Temp,
         VariableBlockType::Input(_) => VariableType::Input,
         VariableBlockType::Output => VariableType::Output,
