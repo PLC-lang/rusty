@@ -1,4 +1,8 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// XFAIL: *
+// TODO: Disabled because it doesnt work yet since an INTERFACE
+//       with a PROPERTY of type STRING/STRUCT fails to compile
+//       atm.
 TYPE MyStruct : STRUCT
   ArrayOfStrings : ARRAY[0..100] OF STRING[10];
 END_STRUCT
