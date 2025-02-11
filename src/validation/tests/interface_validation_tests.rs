@@ -101,12 +101,13 @@ fn pou_implements_method_with_wrong_return_type() {
 #[ignore]
 #[test]
 fn function_block_implements_interface_with_wrong_type() {
-    // TODO: this test case is handled in the validation step
-    //       but not here. The reason is that the validation
-    //       happens after lowering when properties and interfaces
-    //       no longer exist because they were lowered to function
-    //       calls. But maybe it would be nice to test this here
-    //       as well.
+    // TODO:
+    // This code is wrong, but the test will not fail.
+    // This is because, at this point, INTERFACE and FUNCTION_BLOCK
+    // are separate. This test case is handled in the validation step,
+    // which occurs after lowering properties to function calls.
+    // At that point, it will fail.
+    // However, it might be beneficial to test this here as well.
     let source = r"
             INTERFACE myInterface
                 PROPERTY foo : DINT

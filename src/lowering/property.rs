@@ -153,6 +153,7 @@ impl PropertyLowerer {
 
                     interface.methods.push(pou);
 
+                    // NOTE: Is this TODO still relevant?
                     // TODO: Implementation and validation checks for proeprties, specifically default impl warning
                     // let mut implementation = Pou {}
                 }
