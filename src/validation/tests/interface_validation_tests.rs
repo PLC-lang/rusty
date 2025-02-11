@@ -545,3 +545,63 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
        │                ^^^ Parameter `b : INT` missing in method `foo`
     ");
 }
+
+#[test]
+fn interface_with_aggregate_return_type_string() {
+    let source = r"
+        INTERFACE foo
+            METHOD bar : STRING
+            END_METHOD
+        END_INTERFACE
+
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : STRING
+            END_METHOD
+        END_FUNCTION_BLOCK
+    ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn interface_with_aggregate_return_type_array() {
+    let source = r"
+        INTERFACE foo
+            METHOD bar : ARRAY[1..5] OF STRING
+            END_METHOD
+        END_INTERFACE
+
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : ARRAY[1..5] OF STRING
+            END_METHOD
+        END_FUNCTION_BLOCK
+    ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn interface_with_aggregate_return_type_struct() {
+    let source = r"
+        TYPE txn : STRUCT
+            id      : DINT;
+            block   : DINT;
+            values  : STRING;
+        END_STRUCT END_TYPE
+
+        INTERFACE foo
+            METHOD bar : txn
+            END_METHOD
+        END_INTERFACE
+
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : txn
+            END_METHOD
+        END_FUNCTION_BLOCK
+    ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"");
+}

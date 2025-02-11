@@ -211,8 +211,14 @@ where
     let method_name = method_ref.get_qualified_name().into_iter().last().unwrap_or_default();
 
     // Check if the return type matches
-    let return_type_ref = ctxt.index.get_return_type_or_void(method_ref.get_name());
-    let return_type_impl = ctxt.index.get_return_type_or_void(method_impl.get_name());
+
+    // TODO: find_semantic_return_type(pouIndexEntry) => index
+    // TODO: ctxt.index.get_sematnic_return_type(pouIndexEntry);
+    let method_ref_return_type_name = method_ref.get_return_type().unwrap_or_default();
+    let method_impl_return_type_name = method_impl.get_return_type().unwrap_or_default();
+
+    let return_type_ref = ctxt.index.get_effective_type_or_void_by_name(method_ref_return_type_name);
+    let return_type_impl = ctxt.index.get_effective_type_or_void_by_name(method_impl_return_type_name);
 
     if return_type_impl != return_type_ref {
         diagnostics.push(

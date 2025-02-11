@@ -1527,6 +1527,9 @@ impl Index {
         self.get_initial_value(&initial_value)
     }
 
+    // TODO: I think this is broken for aggregate types, because an aggregate type will have a `InOut` as its
+    //       ArgumenType in VariableIndexEntry rather than a `Return`. We will need to re-check this...
+    //       This also seems to be only used really in codegen? Maybe move it there
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
         self.get_pou_types().get(&pou_name.to_lowercase()).and_then(|it| it.find_return_variable())
     }
@@ -1534,12 +1537,6 @@ impl Index {
     pub fn find_return_type(&self, pou_name: &str) -> Option<&DataType> {
         let variable = self.find_return_variable(pou_name);
         variable.and_then(|it| self.get_type(it.get_type_name()).ok())
-    }
-
-    pub fn get_return_type_or_void(&self, pou_name: &str) -> &DataType {
-        self.find_return_variable(pou_name)
-            .and_then(|variable| self.find_type(variable.get_type_name()))
-            .unwrap_or(self.get_void_type())
     }
 
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
