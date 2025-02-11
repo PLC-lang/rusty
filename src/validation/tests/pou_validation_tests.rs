@@ -297,7 +297,7 @@ fn method_inout_arguments_are_not_optional() {
         ",
     );
 
-    assert_snapshot!(diagnostic, @r###"
+    insta::assert_snapshot!(diagnostic, @r###"
     error[E030]: Argument `in1` is missing
        ┌─ <internal>:19:13
        │

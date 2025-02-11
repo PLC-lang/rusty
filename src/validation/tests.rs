@@ -10,6 +10,7 @@ mod interface_validation_tests;
 mod literals_validation_tests;
 mod naming_validation_test;
 mod pou_validation_tests;
+mod property_validation_tests;
 mod recursive_validation_tests;
 mod reference_resolve_tests;
 mod statement_validation_tests;

@@ -78,15 +78,15 @@ fn rs() {
             f_f_t  : BOOL;
             f_f_f  : BOOL;
         END_VAR
-            rs_inst(SET := TRUE, RESET1 := TRUE, Q1 => t_t_f); (* Q is in default state, S and R are asserted -> Q stays low *)
-            rs_inst(SET := FALSE, RESET1 := FALSE, Q1 => f_f_f); (* Q is low, neither S nor R are asserted -> Q stays low*)
-            rs_inst(SET := TRUE, RESET1 := FALSE, Q1 => t_f_f); (* Q is low, S is asserted -> Q goes high *)
-            rs_inst(SET := FALSE, RESET1 := TRUE, Q1 => f_t_t); (* Q is high, R is asserted -> Q goes low *)
-            rs_inst(SET := FALSE, RESET1 := TRUE, Q1 => f_t_f); (* Q is low, R is asserted -> Q stays low *)
-            rs_inst(SET := TRUE, RESET1 := FALSE, Q1 => t_f_t); (* set *)
-            rs_inst(SET := TRUE, RESET1 := FALSE, Q1 => t_f_t); (* Q is high, S is asserted -> Q stays high *)
-            rs_inst(SET := FALSE, RESET1 := FALSE, Q1 => f_f_t); (* Q is high, neither S nor R are asserted -> Q stays high *)
-            rs_inst(SET := TRUE, RESET1 := TRUE, Q1 => t_t_t); (* Q is high, S and R are asserted -> Q goes low *)
+            rs_inst(SET0 := TRUE, RESET1 := TRUE, Q1 => t_t_f); (* Q is in default state, S and R are asserted -> Q stays low *)
+            rs_inst(SET0 := FALSE, RESET1 := FALSE, Q1 => f_f_f); (* Q is low, neither S nor R are asserted -> Q stays low*)
+            rs_inst(SET0 := TRUE, RESET1 := FALSE, Q1 => t_f_f); (* Q is low, S is asserted -> Q goes high *)
+            rs_inst(SET0 := FALSE, RESET1 := TRUE, Q1 => f_t_t); (* Q is high, R is asserted -> Q goes low *)
+            rs_inst(SET0 := FALSE, RESET1 := TRUE, Q1 => f_t_f); (* Q is low, R is asserted -> Q stays low *)
+            rs_inst(SET0 := TRUE, RESET1 := FALSE, Q1 => t_f_t); (* set *)
+            rs_inst(SET0 := TRUE, RESET1 := FALSE, Q1 => t_f_t); (* Q is high, S is asserted -> Q stays high *)
+            rs_inst(SET0 := FALSE, RESET1 := FALSE, Q1 => f_f_t); (* Q is high, neither S nor R are asserted -> Q stays high *)
+            rs_inst(SET0 := TRUE, RESET1 := TRUE, Q1 => t_t_t); (* Q is high, S and R are asserted -> Q goes low *)
         END_PROGRAM
     "#;
 

@@ -24,7 +24,7 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::InitVisitor,
+    lowering::{property::PropertyLowerer, validator::ParticipantValidator, InitVisitor},
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -49,7 +49,10 @@ use source_code::{source_location::SourceLocation, SourceContainer};
 use serde_json;
 use tempfile::NamedTempFile;
 use toml;
+
 pub mod participant;
+pub mod property;
+pub mod validator;
 
 pub struct BuildPipeline<T: SourceContainer> {
     pub context: GlobalContext,
@@ -138,7 +141,7 @@ impl BuildPipeline<PathBuf> {
         T: AsRef<str> + AsRef<OsStr> + std::fmt::Debug,
     {
         let compile_parameters = CompileParameters::parse(args)?;
-        compile_parameters.try_into()
+        BuildPipeline::try_from(compile_parameters)
     }
 }
 
@@ -255,6 +258,14 @@ impl<T: SourceContainer> BuildPipeline<T> {
             InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider());
         self.register_mut_participant(Box::new(init_participant));
 
+        // Note: The order matters here, the PropertyLowerer will drain the `properties` field, meaning the
+        //       PariticipantValidator has to run first since it uses these `properties`
+        self.register_mut_participant(Box::new(ParticipantValidator::new(
+            &self.context,
+            self.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default(),
+        )));
+        self.register_mut_participant(Box::new(PropertyLowerer::new(self.context.provider())));
+
         let aggregate_return_participant = AggregateTypeLowerer::new(self.context.provider());
         self.register_mut_participant(Box::new(aggregate_return_participant));
     }
@@ -283,9 +294,9 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.initialize_thread_pool();
 
         let parsed_project = self.parse()?;
-        // 1. Parse, 2. Index and 3. Resolve / Annotate
         let indexed_project = self.index(parsed_project)?;
         let annotated_project = self.annotate(indexed_project)?;
+
         //TODO : this is post lowering, we might want to control this
         if let Some(CompileParameters { output_ast: true, .. }) = self.compile_parameters {
             println!("{:#?}", annotated_project.units);
@@ -783,6 +794,35 @@ impl AnnotatedProject {
             Diagnostic::new(it.to_string()).with_internal_error(it.into()).with_error_code("E002")
         })?;
         Ok(())
+    }
+
+    // TODO: Find better way, this is hella expensive
+    pub fn re_annotate(self, mut id_provider: IdProvider) -> AnnotatedProject {
+        // TODO: this almost duplicates IndexedProject::annotate(). Can we do this differently?
+        // Create and call the annotator again after lowering property references to calls
+        let mut annotated_units = Vec::new();
+        let mut all_annotations = AnnotationMapImpl::default();
+        let result = self
+            .units
+            .into_par_iter()
+            .map(|unit| {
+                let (annotation, dependencies, literals) =
+                    TypeAnnotator::visit_unit(&self.index, &unit.unit, id_provider.clone());
+                (unit, annotation, dependencies, literals)
+            })
+            .collect::<Vec<_>>();
+
+        for (unit, annotation, dependencies, literals) in result {
+            annotated_units.push(AnnotatedUnit::new(unit.unit, dependencies, literals));
+            all_annotations.import(annotation);
+        }
+
+        let mut index = self.index;
+        index.import(std::mem::take(&mut all_annotations.new_index));
+
+        let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+
+        AnnotatedProject { units: annotated_units, index, annotations }
     }
 }
 

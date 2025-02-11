@@ -367,6 +367,7 @@ pub enum VariableType {
     Global,
     Return,
     External,
+    Property,
 }
 
 impl VariableType {
@@ -386,6 +387,7 @@ impl std::fmt::Display for VariableType {
             VariableType::Global => write!(f, "Global"),
             VariableType::Return => write!(f, "Return"),
             VariableType::External => write!(f, "External"),
+            VariableType::Property => write!(f, "Property"),
         }
     }
 }

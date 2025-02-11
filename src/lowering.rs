@@ -15,6 +15,8 @@ use plc_source::source_location::SourceLocation;
 
 pub mod calls;
 mod initializers;
+pub mod property;
+pub mod validator;
 
 pub struct InitVisitor {
     index: Index,

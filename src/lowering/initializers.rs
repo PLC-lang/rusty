@@ -357,5 +357,6 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &str) -> Compil
         interfaces: vec![],
         user_types: vec![],
         file_name: file_name.into(),
+        properties: vec![],
     }
 }

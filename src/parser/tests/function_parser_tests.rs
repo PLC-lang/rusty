@@ -531,12 +531,12 @@ fn constant_pragma_can_be_parsed_but_errs() {
         {constant}
         FUNCTION_BLOCK foo END_FUNCTION_BLOCK
         {constant}
-        PROGRAM bar END_PROGRAM 
+        PROGRAM bar END_PROGRAM
         {constant}
-        CLASS qux 
+        CLASS qux
             {constant}
-            METHOD quux : DINT END_METHOD 
-        END_CLASS 
+            METHOD quux : DINT END_METHOD
+        END_CLASS
         {constant}
         FUNCTION corge  : BOOL END_FUNCTION
         // {constant} pragma in comment does not cause validation
@@ -556,21 +556,21 @@ fn constant_pragma_can_be_parsed_but_errs() {
       ┌─ <internal>:4:9
       │  
     4 │ ╭         {constant}
-    5 │ │         PROGRAM bar END_PROGRAM 
+    5 │ │         PROGRAM bar END_PROGRAM
       │ ╰───────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:6:9
       │  
     6 │ ╭         {constant}
-    7 │ │         CLASS qux 
+    7 │ │         CLASS qux
       │ ╰─────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:8:13
       │  
     8 │ ╭             {constant}
-    9 │ │             METHOD quux : DINT END_METHOD 
+    9 │ │             METHOD quux : DINT END_METHOD
       │ ╰──────────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
@@ -579,6 +579,159 @@ fn constant_pragma_can_be_parsed_but_errs() {
     11 │ ╭         {constant}
     12 │ │         FUNCTION corge  : BOOL END_FUNCTION
        │ ╰────────────────^ Pragma {constant} is not allowed in POU declarations
-
     "###);
+}
+
+// TODO(volsa): We should test all keywords here. Also we need better error messages here and shouldn't stop
+//              after the first keyword / error as it currently is the case.
+#[test]
+fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
+    let source = r"
+        FUNCTION foo
+            VAR
+                retain : DINT;
+                public : DINT;
+                property : DINT;
+                get : DINT;
+                set : DINT;
+
+                end_property : DINT;
+                end_get : DINT;
+                end_set : DINT;
+            END_VAR
+        END_FUNCTION
+    ";
+
+    let (_, diagnostics) = parse_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E007]: Unexpected token: expected KeywordEndVar but found ': DINT;
+                    public : DINT;
+                    property : DINT;
+                    get : DINT;
+                    set : DINT;
+
+                    end_property : DINT;
+                    end_get : DINT;
+                    end_set : DINT;'
+       ┌─ <internal>:4:24
+       │  
+     4 │                   retain : DINT;
+       │ ╭────────────────────────^
+     5 │ │                 public : DINT;
+     6 │ │                 property : DINT;
+     7 │ │                 get : DINT;
+     8 │ │                 set : DINT;
+     9 │ │ 
+    10 │ │                 end_property : DINT;
+    11 │ │                 end_get : DINT;
+    12 │ │                 end_set : DINT;
+       │ ╰───────────────────────────────^ Unexpected token: expected KeywordEndVar but found ': DINT;
+                    public : DINT;
+                    property : DINT;
+                    get : DINT;
+                    set : DINT;
+
+                    end_property : DINT;
+                    end_get : DINT;
+                    end_set : DINT;'
+    "###);
+}
+#[test]
+fn use_incorrect_end_keyword() {
+    let source = r"
+        FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET
+                    END_SET;
+                    GET
+                    END_GET;
+                    GET
+                    END_SET;
+                    END_PROPERTY
+        END_FUNCTION_BLOCK
+    ";
+
+    let (_, diagnostics) = parse_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E007]: Unexpected token: expected Literal but found END_SET
+      ┌─ <internal>:5:21
+      │
+    5 │                     END_SET;
+      │                     ^^^^^^^ Unexpected token: expected Literal but found END_SET
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_SET'
+      ┌─ <internal>:5:21
+      │
+    5 │                     END_SET;
+      │                     ^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_SET'
+
+    error[E007]: Unexpected token: expected Literal but found GET
+      ┌─ <internal>:6:21
+      │
+    6 │                     GET
+      │                     ^^^ Unexpected token: expected Literal but found GET
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'GET'
+      ┌─ <internal>:6:21
+      │
+    6 │                     GET
+      │                     ^^^ Unexpected token: expected KeywordSemicolon but found 'GET'
+
+    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
+      ┌─ <internal>:7:21
+      │
+    7 │                     END_GET;
+      │                     ^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_GET'
+      ┌─ <internal>:7:21
+      │
+    7 │                     END_GET;
+      │                     ^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_GET'
+
+    error[E006]: Missing expected Token KeywordEndProperty
+      ┌─ <internal>:7:28
+      │
+    7 │                     END_GET;
+      │                            ^ Missing expected Token KeywordEndProperty
+
+    error[E007]: Unexpected token: expected Literal but found GET
+      ┌─ <internal>:8:21
+      │
+    8 │                     GET
+      │                     ^^^ Unexpected token: expected Literal but found GET
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'GET
+                        END_SET'
+      ┌─ <internal>:8:21
+      │  
+    8 │ ╭                     GET
+    9 │ │                     END_SET;
+      │ ╰───────────────────────────^ Unexpected token: expected KeywordSemicolon but found 'GET
+                        END_SET'
+
+    error[E007]: Unexpected token: expected Literal but found END_PROPERTY
+       ┌─ <internal>:10:21
+       │
+    10 │                     END_PROPERTY
+       │                     ^^^^^^^^^^^^ Unexpected token: expected Literal but found END_PROPERTY
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
+       ┌─ <internal>:10:21
+       │
+    10 │                     END_PROPERTY
+       │                     ^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
+
+    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
+       ┌─ <internal>:11:9
+       │
+    11 │         END_FUNCTION_BLOCK
+       │         ^^^^^^^^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
+       ┌─ <internal>:11:9
+       │
+    11 │         END_FUNCTION_BLOCK
+       │         ^^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
+    ");
 }

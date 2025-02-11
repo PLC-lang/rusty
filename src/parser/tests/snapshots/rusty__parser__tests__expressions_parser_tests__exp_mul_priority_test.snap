@@ -103,4 +103,5 @@ CompilationUnit {
     interfaces: [],
     user_types: [],
     file_name: "test.st",
+    properties: [],
 }

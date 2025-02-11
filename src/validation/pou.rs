@@ -162,7 +162,12 @@ where
 
     // Check if the parameters match; note that the order of the parameters is important due to implicit calls
     let parameters_ref = ctxt.index.get_declared_parameters(method_ref.get_name());
-    let parameters_impl = ctxt.index.get_declared_parameters(method_impl.get_name());
+    let parameters_impl = ctxt
+        .index
+        .get_declared_parameters(method_impl.get_name())
+        .into_iter()
+        .filter(|par| !par.source_location.is_internal())
+        .collect::<Vec<_>>();
 
     for (idx, parameter_ref) in parameters_ref.iter().enumerate() {
         match parameters_impl.get(idx) {

@@ -1,4 +1,4 @@
-use crate::test_utils::tests::parse;
+use crate::test_utils::tests::{parse, parse_buffered};
 
 #[test]
 fn empty_interface() {
@@ -15,6 +15,7 @@ fn empty_interface() {
         Interface {
             name: "myInterface",
             methods: [],
+            properties: [],
             location: SourceLocation {
                 span: Range(
                     TextLocation {
@@ -44,6 +45,194 @@ fn empty_interface() {
         },
     ]
     "###);
+}
+
+#[test]
+fn interface_with_property_and_function_block_with_additional_accessor() {
+    let source = r"
+    INTERFACE myInterface
+        PROPERTY foo : DINT
+            GET END_GET
+        END_PROPERTY
+        END_INTERFACE
+
+        FUNCTION_BLOCK bar implements myInterface
+          PROPERTY foo : DINT
+            GET END_GET
+            Set END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+        ";
+
+    let (unit, diagnostics) = parse(source);
+    assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
+
+    insta::assert_debug_snapshot!(unit.properties  , @r#"
+    [
+        Property {
+            name: "foo",
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 8,
+                        column: 19,
+                        offset: 192,
+                    }..TextLocation {
+                        line: 8,
+                        column: 22,
+                        offset: 195,
+                    },
+                ),
+            },
+            parent_kind: FunctionBlock,
+            parent_name: "bar",
+            parent_name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 7,
+                        column: 23,
+                        offset: 146,
+                    }..TextLocation {
+                        line: 7,
+                        column: 26,
+                        offset: 149,
+                    },
+                ),
+            },
+            datatype: DataTypeReference {
+                referenced_type: "DINT",
+            },
+            implementations: [
+                PropertyImplementation {
+                    kind: Get,
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 9,
+                                column: 12,
+                                offset: 215,
+                            }..TextLocation {
+                                line: 9,
+                                column: 15,
+                                offset: 218,
+                            },
+                        ),
+                    },
+                    variable_blocks: [],
+                    body: [],
+                },
+                PropertyImplementation {
+                    kind: Set,
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 10,
+                                column: 12,
+                                offset: 239,
+                            }..TextLocation {
+                                line: 10,
+                                column: 15,
+                                offset: 242,
+                            },
+                        ),
+                    },
+                    variable_blocks: [],
+                    body: [],
+                },
+            ],
+        },
+    ]
+    "#);
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    [
+        Interface {
+            name: "myInterface",
+            methods: [],
+            properties: [
+                Property {
+                    name: "foo",
+                    name_location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 2,
+                                column: 17,
+                                offset: 44,
+                            }..TextLocation {
+                                line: 2,
+                                column: 20,
+                                offset: 47,
+                            },
+                        ),
+                    },
+                    parent_kind: FunctionBlock,
+                    parent_name: "myInterface",
+                    parent_name_location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 1,
+                                column: 14,
+                                offset: 15,
+                            }..TextLocation {
+                                line: 1,
+                                column: 25,
+                                offset: 26,
+                            },
+                        ),
+                    },
+                    datatype: DataTypeReference {
+                        referenced_type: "DINT",
+                    },
+                    implementations: [
+                        PropertyImplementation {
+                            kind: Get,
+                            location: SourceLocation {
+                                span: Range(
+                                    TextLocation {
+                                        line: 3,
+                                        column: 12,
+                                        offset: 67,
+                                    }..TextLocation {
+                                        line: 3,
+                                        column: 15,
+                                        offset: 70,
+                                    },
+                                ),
+                            },
+                            variable_blocks: [],
+                            body: [],
+                        },
+                    ],
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 4,
+                        offset: 5,
+                    }..TextLocation {
+                        line: 7,
+                        column: 8,
+                        offset: 131,
+                    },
+                ),
+            },
+            location_name: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 14,
+                        offset: 15,
+                    }..TextLocation {
+                        line: 1,
+                        column: 25,
+                        offset: 26,
+                    },
+                ),
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -92,6 +281,7 @@ fn interface_with_single_method() {
                     ],
                     pou_type: Method {
                         parent: "myInterface",
+                        property: None,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -101,6 +291,7 @@ fn interface_with_single_method() {
                     interfaces: [],
                 },
             ],
+            properties: [],
             location: SourceLocation {
                 span: Range(
                     TextLocation {
@@ -188,6 +379,7 @@ fn interface_with_multiple_methods() {
                     ],
                     pou_type: Method {
                         parent: "myInterface",
+                        property: None,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -226,6 +418,7 @@ fn interface_with_multiple_methods() {
                     ],
                     pou_type: Method {
                         parent: "myInterface",
+                        property: None,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -235,6 +428,7 @@ fn interface_with_multiple_methods() {
                     interfaces: [],
                 },
             ],
+            properties: [],
             location: SourceLocation {
                 span: Range(
                     TextLocation {
@@ -372,6 +566,167 @@ fn pou_implementing_multiple_interfaces() {
     "###);
 }
 
+#[test]
+fn property_in_interface_must_not_have_an_implementation() {
+    let source = r"
+            INTERFACE myInterface
+                PROPERTY foo : DINT
+                    GET
+                       foo := 5;
+                    END_GET
+                    SET
+                       foo := 5;
+                    END_SET
+                END_PROPERTY
+            END_INTERFACE
+        ";
+
+    let (_, diagnostics) = parse_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    warning[E113]: Interfaces can not have a default implementation in a Property
+      ┌─ <internal>:5:24
+      │
+    3 │                 PROPERTY foo : DINT
+      │                 -------- see also
+    4 │                     GET
+    5 │                        foo := 5;
+      │                        ^^^^^^^^ Interfaces can not have a default implementation in a Property
+
+    warning[E113]: Interfaces can not have a default implementation in a Property
+      ┌─ <internal>:8:24
+      │
+    3 │                 PROPERTY foo : DINT
+      │                 -------- see also
+      ·
+    8 │                        foo := 5;
+      │                        ^^^^^^^^ Interfaces can not have a default implementation in a Property
+    ");
+}
+
+#[test]
+fn property_inside_interface() {
+    let source = r#"
+    INTERFACE myInterface
+        PROPERTY foo : DINT
+            GET END_GET
+            SET END_SET
+        END_PROPERTY
+    END_INTERFACE
+    "#;
+
+    let (unit, diagnostics) = parse(source);
+
+    assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
+    insta::assert_debug_snapshot!(unit.interfaces, @r###"
+    [
+        Interface {
+            name: "myInterface",
+            methods: [],
+            properties: [
+                Property {
+                    name: "foo",
+                    name_location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 2,
+                                column: 17,
+                                offset: 44,
+                            }..TextLocation {
+                                line: 2,
+                                column: 20,
+                                offset: 47,
+                            },
+                        ),
+                    },
+                    parent_kind: FunctionBlock,
+                    parent_name: "myInterface",
+                    parent_name_location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 1,
+                                column: 14,
+                                offset: 15,
+                            }..TextLocation {
+                                line: 1,
+                                column: 25,
+                                offset: 26,
+                            },
+                        ),
+                    },
+                    datatype: DataTypeReference {
+                        referenced_type: "DINT",
+                    },
+                    implementations: [
+                        PropertyImplementation {
+                            kind: Get,
+                            location: SourceLocation {
+                                span: Range(
+                                    TextLocation {
+                                        line: 3,
+                                        column: 12,
+                                        offset: 67,
+                                    }..TextLocation {
+                                        line: 3,
+                                        column: 15,
+                                        offset: 70,
+                                    },
+                                ),
+                            },
+                            variable_blocks: [],
+                            body: [],
+                        },
+                        PropertyImplementation {
+                            kind: Set,
+                            location: SourceLocation {
+                                span: Range(
+                                    TextLocation {
+                                        line: 4,
+                                        column: 12,
+                                        offset: 91,
+                                    }..TextLocation {
+                                        line: 4,
+                                        column: 15,
+                                        offset: 94,
+                                    },
+                                ),
+                            },
+                            variable_blocks: [],
+                            body: [],
+                        },
+                    ],
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 4,
+                        offset: 5,
+                    }..TextLocation {
+                        line: 7,
+                        column: 4,
+                        offset: 146,
+                    },
+                ),
+            },
+            location_name: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 14,
+                        offset: 15,
+                    }..TextLocation {
+                        line: 1,
+                        column: 25,
+                        offset: 26,
+                    },
+                ),
+            },
+        },
+    ]
+    "###);
+}
+
 mod error_handling {
     use crate::test_utils::tests::{parse, parse_and_validate_buffered};
 
@@ -387,15 +742,16 @@ mod error_handling {
         ";
 
         let diagnostics = parse_and_validate_buffered(source);
-        insta::assert_snapshot!(diagnostics, @r###"
-        warning[E113]: Interfaces can not have a default implementations
-          ┌─ <internal>:4:17
-          │  
-        4 │ ╭                 1 > 2;
-        5 │ │                 methodA := 5;
-          │ ╰─────────────────────────────^ Interfaces can not have a default implementations
-
-        "###);
+        insta::assert_snapshot!(diagnostics, @r"
+        warning[E113]: Interfaces can not have a default implementation in a Method
+          ┌─ <internal>:5:29
+          │
+        2 │         INTERFACE interfaceA
+          │                   ---------- see also
+          ·
+        5 │                 methodA := 5;
+          │                             ^ Interfaces can not have a default implementation in a Method
+        ");
     }
 
     #[test]
