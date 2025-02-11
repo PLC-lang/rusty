@@ -575,9 +575,17 @@ impl Dependency {
 }
 
 pub trait AnnotationMap {
-    fn get(&self, s: &AstNode) -> Option<&StatementAnnotation>;
+    fn get(&self, s: &AstNode) -> Option<&StatementAnnotation> {
+        self.get_with_id(s.get_id())
+    }
 
-    fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation>;
+    fn get_with_id(&self, id: AstId) -> Option<&StatementAnnotation>;
+
+    fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation> {
+        self.get_hint_with_id(s.get_id())
+    }
+
+    fn get_hint_with_id(&self, id: AstId) -> Option<&StatementAnnotation>;
 
     fn get_hidden_function_call(&self, s: &AstNode) -> Option<&AstNode>;
 
@@ -662,19 +670,19 @@ pub struct AstAnnotations {
 }
 
 impl AnnotationMap for AstAnnotations {
-    fn get(&self, s: &AstNode) -> Option<&StatementAnnotation> {
-        if s.get_id() == self.bool_id {
+    fn get_with_id(&self, id: AstId) -> Option<&StatementAnnotation> {
+        if id == self.bool_id {
             Some(&self.bool_annotation)
         } else {
-            self.annotation_map.get(s)
+            self.annotation_map.get_with_id(id)
         }
     }
 
-    fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation> {
-        if s.get_id() == self.bool_id {
+    fn get_hint_with_id(&self, id: AstId) -> Option<&StatementAnnotation> {
+        if id == self.bool_id {
             Some(&self.bool_annotation)
         } else {
-            self.annotation_map.get_hint(s)
+            self.annotation_map.get_hint_with_id(id)
         }
     }
 
@@ -773,12 +781,12 @@ impl AnnotationMapImpl {
 }
 
 impl AnnotationMap for AnnotationMapImpl {
-    fn get(&self, s: &AstNode) -> Option<&StatementAnnotation> {
-        self.type_map.get(&s.get_id())
+    fn get_with_id(&self, id: AstId) -> Option<&StatementAnnotation> {
+        self.type_map.get(&id)
     }
 
-    fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation> {
-        self.type_hint_map.get(&s.get_id())
+    fn get_hint_with_id(&self, id: AstId) -> Option<&StatementAnnotation> {
+        self.type_hint_map.get(&id)
     }
 
     /// returns the function call previously annoted on s via annotate_hidden_function_call(...)
@@ -940,20 +948,28 @@ impl<'i> TypeAnnotator<'i> {
                 self.dependencies.insert(Dependency::Datatype(parent_pou_name.clone()));
                 //If the method is overriden, annotate the method with the original method
                 //Get the method's pou index entry in the super class
-                let mut super_class = self
-                    .index
-                    .find_pou(parent_pou_name)
-                    .and_then(|it| it.get_super_class().and_then(|it| self.index.find_pou(it)));
-                while let Some(base) = super_class {
-                    if let Some(method) = self.index.find_method(base.get_name(), method_name) {
-                        self.annotate_with_id(
-                            pou.id,
-                            StatementAnnotation::create_override(vec![method.get_name().into()]),
-                        );
-                        break;
-                    } else {
-                        super_class = base.get_super_class().and_then(|it| self.index.find_pou(it))
+                // TODO: lazy inheritance iterator
+                if let Some(base_pou) = self.index.find_pou(parent_pou_name) {
+                    let mut super_class = base_pou.get_super_class()
+                        .and_then(|it| self.index.find_pou(it));
+                    let mut overrides = vec![];
+                    while let Some(base) = super_class {
+                        if let Some(method) = self.index.find_method(base.get_name(), method_name) {
+                            overrides.push(method.get_name());
+                            break;
+                        } else {
+                            super_class = base.get_super_class().and_then(|it| self.index.find_pou(it))
+                        }
                     }
+                    // Annotate all methods with the interface methods
+                    // TODO: once we implement inheritance for interfaces, we need to adjust this logic
+                    dbg!(base_pou.get_interfaces()).iter().for_each(|interface| {
+                        if let Some(interface) = dbg!(self.index.find_interface(interface)) {
+                           if let Some(name) = interface.methods.iter().find(|it| it.rsplit_once('.').map(|(_, it)| dbg!(it)).as_ref().unwrap() == dbg!(method_name)) {
+                               overrides.push(name);
+                           }
+                        }
+                    });
                 }
             }
         }

@@ -539,6 +539,7 @@ pub enum PouIndexEntry {
         linkage: LinkageType,
         location: SourceLocation,
         super_class: Option<String>,
+        interfaces: Vec<String>,
     },
     Function {
         name: String,
@@ -556,6 +557,7 @@ pub enum PouIndexEntry {
         linkage: LinkageType,
         location: SourceLocation,
         super_class: Option<String>,
+        interfaces: Vec<String>,
     },
     Method {
         name: String,
@@ -608,14 +610,16 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SourceLocation,
-        super_class: Option<String>,
+        super_class: Option<InterfaceIdentifier>,
+        interfaces: Vec<InterfaceIdentifier>,
     ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class,
+            super_class: super_class.map(|it| it.name.clone()),
+            interfaces: interfaces.into_iter().map(|it| it.name.clone()).collect::<Vec<_>>(),
         }
     }
 
@@ -691,6 +695,7 @@ impl PouIndexEntry {
         linkage: LinkageType,
         location: SourceLocation,
         super_class: Option<InterfaceIdentifier>,
+        interfaces: Vec<InterfaceIdentifier>,
     ) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
@@ -698,6 +703,7 @@ impl PouIndexEntry {
             linkage,
             location,
             super_class: super_class.map(|it| it.name.clone()),
+            interfaces: interfaces.into_iter().map(|it| it.name.clone()).collect::<Vec<_>>(),
         }
     }
 
@@ -742,6 +748,15 @@ impl PouIndexEntry {
                 super_class.as_deref()
             }
             _ => None,
+        }
+    }
+
+    pub fn get_interfaces(&self) -> Vec<&str> {
+        match self {
+            PouIndexEntry::Class { interfaces, .. } | PouIndexEntry::FunctionBlock { interfaces, .. } => {
+                interfaces.iter().map(|it| it.as_str()).collect()
+            }
+            _ => Vec::new(),
         }
     }
 
