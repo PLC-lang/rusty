@@ -339,6 +339,7 @@ fn parse_pou(
 
             let mut pous = vec![Pou {
                 name,
+                id: lexer.next_id(),
                 kind,
                 variable_blocks,
                 return_type,
@@ -479,7 +480,7 @@ fn parse_polymorphism_mode(lexer: &mut ParseSession, pou_type: &PouType) -> Opti
     }
 }
 
-fn parse_super_class(lexer: &mut ParseSession) -> Option<String> {
+fn parse_super_class(lexer: &mut ParseSession) -> Option<InterfaceIdentifier> {
     let mut extensions = vec![];
     while lexer.try_consume(KeywordExtends) {
         let name_and_location = parse_identifier(lexer)?;
@@ -493,7 +494,9 @@ fn parse_super_class(lexer: &mut ParseSession) -> Option<String> {
         )
     });
 
-    extensions.first().map(|(name, _)| name.to_string())
+    extensions
+        .first()
+        .map(|(name, location)| InterfaceIdentifier { name: name.to_string(), location: location.clone() })
 }
 
 fn parse_return_type(lexer: &mut ParseSession) -> Option<DataTypeDeclaration> {
@@ -599,6 +602,7 @@ fn parse_method(
         Some((
             Pou {
                 name: call_name,
+                id: lexer.next_id(),
                 kind,
                 variable_blocks,
                 return_type,

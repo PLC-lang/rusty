@@ -7,7 +7,7 @@ use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
-    Interface, LinkageType, PouType, TypeNature,
+    Interface, InterfaceIdentifier, LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -608,14 +608,14 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SourceLocation,
-        super_class: Option<&str>,
+        super_class: Option<String>,
     ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class: super_class.map(|s| s.to_owned()),
+            super_class,
         }
     }
 
@@ -690,14 +690,14 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SourceLocation,
-        super_class: Option<String>,
+        super_class: Option<InterfaceIdentifier>,
     ) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class,
+            super_class: super_class.map(|it| it.name.clone()),
         }
     }
 
@@ -900,6 +900,12 @@ impl PouIndexEntry {
 
     fn is_auto_generated_function(&self) -> bool {
         matches!(self, PouIndexEntry::Function { is_generated: true, .. })
+    }
+
+    /// Returns the method's without the qualifier
+    pub fn get_qualified_name(&self) -> Vec<&str> {
+        let name = self.get_name();
+        name.split('.').collect::<Vec<_>>()
     }
 }
 

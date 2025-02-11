@@ -11,8 +11,9 @@ use std::{fmt::Debug, hash::Hash};
 use plc_ast::{
     ast::{
         self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
-        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
+        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType,
+        InterfaceIdentifier, JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature,
+        UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -157,7 +158,7 @@ pub struct TypeAnnotator<'i> {
 }
 
 impl TypeAnnotator<'_> {
-    pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
+    pub fn annotate_with_id(&mut self, id: AstId, annotation: StatementAnnotation) {
         match &annotation {
             StatementAnnotation::Function { return_type, qualified_name, call_name, .. } => {
                 let name = call_name.as_ref().unwrap_or(qualified_name);
@@ -200,7 +201,11 @@ impl TypeAnnotator<'_> {
             }
             _ => (),
         };
-        self.annotation_map.annotate(s, annotation);
+        self.annotation_map.annotate_with_id(id, annotation);
+    }
+
+    pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
+        self.annotate_with_id(s.get_id(), annotation);
     }
 
     fn visit_compare_statement(&mut self, ctx: &VisitorContext, statement: &AstNode) {
@@ -459,6 +464,17 @@ pub enum StatementAnnotation {
     Label {
         name: String,
     },
+    /// A method override
+    Override {
+        // The qualified name of all definitions of this method in interfaces or base classes
+        definitions: Vec<String>,
+    },
+    Super {
+        // Name of the super class (EXTENDS)
+        name: String,
+        // name of all interfaces implemented by the class
+        interfaces: Vec<String>,
+    },
     #[default]
     None,
 }
@@ -467,6 +483,10 @@ impl StatementAnnotation {
     /// Constructs a new [`StatementAnnotation::Value`] with the given type name
     pub fn value(type_name: impl Into<String>) -> Self {
         StatementAnnotation::Value { resulting_type: type_name.into() }
+    }
+
+    pub fn create_override(definitions: Vec<String>) -> Self {
+        StatementAnnotation::Override { definitions }
     }
 
     pub fn with_generic_name(self, generic_name: &str) -> Self {
@@ -593,10 +613,12 @@ pub trait AnnotationMap {
                 .get_hint(statement)
                 .or_else(|| self.get(statement))
                 .and_then(|it| self.get_type_name_for_annotation(it)),
-            StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
+            StatementAnnotation::Program { qualified_name }
+            | StatementAnnotation::Super { name: qualified_name, .. } => Some(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } => Some(type_name),
             StatementAnnotation::Function { .. }
             | StatementAnnotation::Label { .. }
+            | StatementAnnotation::Override { .. }
             | StatementAnnotation::None => None,
         }
     }
@@ -726,8 +748,16 @@ impl AnnotationMapImpl {
         self.type_map.insert(s.get_id(), annotation);
     }
 
+    pub fn annotate_with_id(&mut self, id: AstId, annotation: StatementAnnotation) {
+        self.type_map.insert(id, annotation);
+    }
+
     pub fn annotate_type_hint(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         self.type_hint_map.insert(s.get_id(), annotation);
+    }
+
+    pub fn annotate_type_hint_with_id(&mut self, id: AstId, annotation: StatementAnnotation) {
+        self.type_hint_map.insert(id, annotation);
     }
 
     /// annotates the given statement s with the call-statement f so codegen can generate
@@ -899,7 +929,34 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_pou(&mut self, ctx: &VisitorContext, pou: &'i Pou) {
         self.dependencies.insert(Dependency::Datatype(pou.name.clone()));
-        //TODO dependency on super class
+        if let Some(InterfaceIdentifier { name, .. }) = &pou.super_class {
+            self.dependencies.insert(Dependency::Datatype(name.to_string()));
+        }
+        if let Some(index_entry) = self.index.find_pou(&pou.name) {
+            //If the POU is a method, add the class to the dependencies
+            if let PouIndexEntry::Method { parent_pou_name, .. } = index_entry {
+                let qualified_name = index_entry.get_qualified_name();
+                let method_name = qualified_name.last().expect("Method has a name");
+                self.dependencies.insert(Dependency::Datatype(parent_pou_name.clone()));
+                //If the method is overriden, annotate the method with the original method
+                //Get the method's pou index entry in the super class
+                let mut super_class = self
+                    .index
+                    .find_pou(parent_pou_name)
+                    .and_then(|it| it.get_super_class().and_then(|it| self.index.find_pou(it)));
+                while let Some(base) = super_class {
+                    if let Some(method) = self.index.find_method(base.get_name(), method_name) {
+                        self.annotate_with_id(
+                            pou.id,
+                            StatementAnnotation::create_override(vec![method.get_name().into()]),
+                        );
+                        break;
+                    } else {
+                        super_class = base.get_super_class().and_then(|it| self.index.find_pou(it))
+                    }
+                }
+            }
+        }
         let pou_ctx = ctx.with_pou(pou.name.as_str());
         for block in &pou.variable_blocks {
             for variable in &block.variables {

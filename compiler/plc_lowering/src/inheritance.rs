@@ -122,7 +122,7 @@ impl AstVisitorMut for InheritanceLowerer {
             return;
         }
 
-        let Some(base_name) = pou.super_class.as_ref() else {
+        let Some(base_name) = pou.super_class.as_ref().map(|it| &it.name) else {
             return;
         };
 

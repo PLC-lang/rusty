@@ -1,4 +1,4 @@
-use plc_ast::ast::{Implementation, LinkageType, Pou, PouType, VariableBlockType};
+use plc_ast::ast::{Implementation, InterfaceIdentifier, LinkageType, Pou, PouType, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
@@ -9,13 +9,52 @@ use std::collections::HashMap;
 
 pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
     if pou.linkage != LinkageType::External {
-        validate_pou(validator, pou, context);
+        validate_pou(validator, pou);
         validate_interface_impl(validator, context, pou);
+        validate_base_class(validator, context, pou);
 
         for block in &pou.variable_blocks {
             visit_variable_block(validator, Some(pou), block, context);
         }
     }
+}
+
+fn validate_base_class<T: AnnotationMap>(
+    validator: &mut Validator<'_>,
+    context: &ValidationContext<'_, T>,
+    pou: &Pou,
+) {
+    // Find all the base classes of the pou
+    let mut classes = vec![];
+    let mut current = if let Some(InterfaceIdentifier { name, location }) = &pou.super_class {
+        if let Some(super_class) = context.index.find_pou(name) {
+            classes.push(super_class);
+            super_class.get_super_class()
+        } else {
+            validator.push_diagnostic(
+                Diagnostic::new(format!("Base `{}` does not exist", name))
+                    .with_error_code("E048")
+                    .with_location(location),
+            );
+            return;
+        }
+    } else {
+        None
+    };
+    while let Some(super_class) = current {
+        match context.index.find_pou(super_class) {
+            Some(super_class) => {
+                classes.push(super_class);
+                current = super_class.get_super_class();
+            }
+            None => {
+                return;
+            }
+        }
+    }
+
+    //Find all methods on classes
+    // todo!()
 }
 
 fn validate_interface_impl<T>(validator: &mut Validator, ctxt: &ValidationContext<'_, T>, pou: &Pou)
@@ -291,12 +330,12 @@ pub fn visit_implementation<T: AnnotationMap>(
     }
 }
 
-fn validate_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
+fn validate_pou(validator: &mut Validator, pou: &Pou) {
     if pou.kind == PouType::Function {
         validate_function(validator, pou);
     };
     if pou.kind == PouType::Class {
-        validate_class(validator, pou, context);
+        validate_class(validator, pou);
     };
     if pou.kind == PouType::Program {
         validate_program(validator, pou);
@@ -305,18 +344,15 @@ fn validate_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context:
     if !matches!(pou.kind, PouType::Function | PouType::Method { .. }) {
         if let Some(start_return_type) = &pou.return_type {
             validator.push_diagnostic(
-                Diagnostic::new(format!(
-                    "POU Type {:?} does not support a return type",
-                    pou.kind
-                ))
-                .with_error_code("E026")
-                .with_location(start_return_type.get_location()),
+                Diagnostic::new(format!("POU Type {:?} does not support a return type", pou.kind))
+                    .with_error_code("E026")
+                    .with_location(start_return_type.get_location()),
             )
         }
     }
 }
 
-fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<T>) {
+fn validate_class(validator: &mut Validator, pou: &Pou) {
     // var in/out/inout blocks are not allowed inside of class declaration
     // TODO: This should be on each block
     if pou.variable_blocks.iter().any(|it| {

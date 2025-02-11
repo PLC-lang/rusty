@@ -1,5 +1,5 @@
-use test_utils::parse_and_validate_buffered;
 use insta::assert_snapshot;
+use test_utils::parse_and_validate_buffered;
 
 #[test]
 fn actions_container_no_name() {
@@ -346,4 +346,5 @@ fn methods_in_function_blocks_need_to_match_base() {
         ",
     );
     // THEN there should be one diagnostic -> Method foo in function block fb2 does not match base method
+    assert_snapshot!(diagnostics, @r###""###);
 }
