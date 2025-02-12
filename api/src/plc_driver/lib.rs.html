@@ -284,7 +284,8 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a></pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a></pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
 //! It can be used to verify a project or to produce:
@@ -520,6 +521,7 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
         mutable_participants: Vec::default(),
         participants: Vec::default(),
     };
+    pipeline.register_default_participants();
     <span class="kw">let </span>project = pipeline.parse()<span class="question-mark">?</span>;
     <span class="kw">let </span>project = pipeline.index(project)<span class="question-mark">?</span>;
     <span class="kw">let </span>project = pipeline.annotate(project)<span class="question-mark">?</span>;

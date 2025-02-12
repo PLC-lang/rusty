@@ -982,6 +982,13 @@ now is not supported.</p>
     END_METHOD
 END_INTERFACE
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="cannot-extend-a-pou-multiple-times"><a class="header" href="#cannot-extend-a-pou-multiple-times">Cannot extend a POU multiple times</a></h1>
+<p>Multiple <code>EXTENDS</code> keywords are not allowed</p>
+<p>Erreneous code example:</p>
+<pre><code>FUNCTION_BLOCK foo EXTENDS bar EXTENDS baz
+    // ...
+END_FUNCTION_BLOCK
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="libraries-1"><a class="header" href="#libraries-1">Libraries</a></h1>
 <p>RuSTy does not currently have support for importing <em>source based libraries</em>.</p>
 <p>Source based libraries can, however, be compiled together with the application as normal files.</p>

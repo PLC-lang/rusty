@@ -1421,7 +1421,15 @@
 <a href="#1420" id="1420">1420</a>
 <a href="#1421" id="1421">1421</a>
 <a href="#1422" id="1422">1422</a>
-<a href="#1423" id="1423">1423</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
 
@@ -1903,12 +1911,20 @@
 }
 
 <span class="kw">fn </span>parse_super_class(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-    <span class="kw">if </span>lexer.try_consume(KeywordExtends) {
-        <span class="kw">let </span>(name, <span class="kw">_</span>) = parse_identifier(lexer)<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(name)
-    } <span class="kw">else </span>{
-        <span class="prelude-val">None
-    </span>}
+    <span class="kw">let </span><span class="kw-2">mut </span>extensions = <span class="macro">vec!</span>[];
+    <span class="kw">while </span>lexer.try_consume(KeywordExtends) {
+        <span class="kw">let </span>name_and_location = parse_identifier(lexer)<span class="question-mark">?</span>;
+        extensions.push(name_and_location);
+    }
+    extensions.iter().skip(<span class="number">1</span>).for_each(|(<span class="kw">_</span>, location)| {
+        lexer.accept_diagnostic(
+            Diagnostic::new(<span class="string">"Multiple inheritance. POUs can only be extended once."</span>.to_string())
+                .with_error_code(<span class="string">"E114"</span>)
+                .with_location(location),
+        )
+    });
+
+    extensions.first().map(|(name, <span class="kw">_</span>)| name.to_string())
 }
 
 <span class="kw">fn </span>parse_return_type(lexer: <span class="kw-2">&amp;mut </span>ParseSession, pou_type: <span class="kw-2">&amp;</span>PouType) -&gt; <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt; {

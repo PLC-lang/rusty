@@ -255,7 +255,33 @@
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a></pre></div><pre class="rust"><code><span class="doccomment">//!
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a></pre></div><pre class="rust"><code><span class="doccomment">//!
 //! Pipeline participants allow for additional steps to happen during the build.
 //! Such steps can be read only using the `PipelineParticipant` such as Validators
 //! or Read Write using the `PipelineParticipantMut` such as lowering operations
@@ -274,6 +300,7 @@
     OnlineChange, Target,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_lowering::inheritance::InheritanceLowerer;
 <span class="kw">use </span>project::{object::Object, project::LibraryInformation};
 <span class="kw">use </span>source_code::SourceContainer;
 
@@ -478,6 +505,31 @@
 <span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>InitParticipant {
     <span class="kw">fn </span>pre_annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, indexed_project: IndexedProject) -&gt; IndexedProject {
         indexed_project.extend_with_init_units(<span class="kw-2">&amp;</span><span class="self">self</span>.symbol_name, <span class="self">self</span>.id_provider.clone())
+    }
+}
+
+<span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>InheritanceLowerer {
+    <span class="kw">fn </span>pre_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parsed_project: ParsedProject) -&gt; ParsedProject {
+        <span class="kw">let </span>ParsedProject { <span class="kw-2">mut </span>units } = parsed_project;
+        units.iter_mut().for_each(|unit| <span class="self">self</span>.visit_unit(unit));
+        ParsedProject { units }
+    }
+
+    <span class="kw">fn </span>post_annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotated_project: AnnotatedProject) -&gt; AnnotatedProject {
+        <span class="kw">let </span>AnnotatedProject { <span class="kw-2">mut </span>units, index, annotations } = annotated_project;
+        <span class="self">self</span>.annotations = <span class="prelude-val">Some</span>(Box::new(annotations));
+        <span class="self">self</span>.index = <span class="prelude-val">Some</span>(index);
+        units.iter_mut().for_each(|unit| <span class="self">self</span>.visit_unit(<span class="kw-2">&amp;mut </span>unit.unit));
+        <span class="kw">let </span>index = <span class="self">self</span>.index.take().expect(<span class="string">"Index should be present"</span>);
+        <span class="comment">// re-resolve
+        </span>IndexedProject {
+            project: ParsedProject {
+                units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect(),
+            },
+            index,
+            unresolvables: <span class="macro">vec!</span>[],
+        }
+        .annotate(<span class="self">self</span>.provider())
     }
 }
 

@@ -938,7 +938,13 @@
 <a href="#937" id="937">937</a>
 <a href="#938" id="938">938</a>
 <a href="#939" id="939">939</a>
-<a href="#940" id="940">940</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     env,
     ffi::OsStr,
@@ -964,7 +970,7 @@
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::InitVisitor,
+    lowering::{calls::AggregateTypeLowerer, InitVisitor},
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -979,6 +985,7 @@
     diagnostics::{Diagnostic, Severity},
 };
 <span class="kw">use </span>plc_index::GlobalContext;
+<span class="kw">use </span>plc_lowering::inheritance::InheritanceLowerer;
 <span class="kw">use </span>project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -1184,19 +1191,23 @@
             </span><span class="macro">log::info!</span>(<span class="string">"{err}"</span>)
         }
     }
-
     <span class="doccomment">/// Register all default participants (excluding codegen/linking)
     </span><span class="kw">pub fn </span>register_default_participants(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">use </span>participant::InitParticipant;
-        <span class="kw">use </span>plc::lowering::calls::AggregateTypeLowerer;
-
         <span class="comment">// XXX: should we use a static array of participants?
-        </span><span class="kw">let </span>init_participant =
-            InitParticipant::new(<span class="kw-2">&amp;</span><span class="self">self</span>.project.get_init_symbol_name(), <span class="self">self</span>.context.provider());
-        <span class="self">self</span>.register_mut_participant(Box::new(init_participant));
+        </span><span class="kw">let </span>participants: Vec&lt;Box&lt;<span class="kw">dyn </span>PipelineParticipant&gt;&gt; = <span class="macro">vec!</span>[];
+        <span class="kw">let </span>mut_participants: Vec&lt;Box&lt;<span class="kw">dyn </span>PipelineParticipantMut&gt;&gt; = <span class="macro">vec!</span>[
+            Box::new(InitParticipant::new(<span class="kw-2">&amp;</span><span class="self">self</span>.project.get_init_symbol_name(), <span class="self">self</span>.context.provider())),
+            Box::new(AggregateTypeLowerer::new(<span class="self">self</span>.context.provider())),
+            Box::new(InheritanceLowerer::new(<span class="self">self</span>.context.provider())),
+        ];
 
-        <span class="kw">let </span>aggregate_return_participant = AggregateTypeLowerer::new(<span class="self">self</span>.context.provider());
-        <span class="self">self</span>.register_mut_participant(Box::new(aggregate_return_participant));
+        <span class="kw">for </span>participant <span class="kw">in </span>participants {
+            <span class="self">self</span>.register_participant(participant)
+        }
+        <span class="kw">for </span>participant <span class="kw">in </span>mut_participants {
+            <span class="self">self</span>.register_mut_participant(participant)
+        }
     }
 }
 
@@ -1342,6 +1353,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 }
+
 <span class="kw">pub fn </span>read_got_layout(location: <span class="kw-2">&amp;</span>str, format: ConfigFormat) -&gt; <span class="prelude-ty">Result</span>&lt;HashMap&lt;String, u64&gt;, Diagnostic&gt; {
     <span class="kw">if </span>!Path::new(location).is_file() {
         <span class="comment">// Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
