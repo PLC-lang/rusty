@@ -489,6 +489,23 @@ pub enum MethodDeclarationType {
     Concrete(QualifiedName),
 }
 
+impl MethodDeclarationType {
+    pub fn is_abstract(&self) -> bool {
+        matches!(self, Self::Abstract(_))
+    }
+
+    pub fn is_concrete(&self) -> bool {
+        matches!(self, Self::Concrete(_))
+    }
+
+    pub fn get_qualified_name(&self) -> &str {
+        match self {
+            MethodDeclarationType::Abstract(name) |
+            MethodDeclarationType::Concrete(name) => name,
+        }
+    }
+}
+
 impl StatementAnnotation {
     /// Constructs a new [`StatementAnnotation::Value`] with the given type name
     pub fn value(type_name: impl Into<String>) -> Self {
