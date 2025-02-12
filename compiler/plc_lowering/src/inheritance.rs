@@ -9,7 +9,6 @@ use plc_ast::{
     try_from_mut,
 };
 use plc_source::source_location::SourceLocation;
-
 const BASE_TYPE_NAME: &str = "__SUPER";
 
 #[derive(Debug)]
@@ -98,7 +97,7 @@ impl InheritanceLowerer {
             return base;
         }
 
-        // add a `__BASE` qualifier for each element in the inheritance chain, exluding `self`
+        // add a `__SUPER` qualifier for each element in the inheritance chain, exluding `self`
         inheritance_chain.iter().skip(1).fold(base, |base, _| {
             Some(Box::new(AstFactory::create_member_reference(
                 AstFactory::create_identifier(
@@ -116,20 +115,22 @@ impl InheritanceLowerer {
 impl AstVisitorMut for InheritanceLowerer {
     fn visit_pou(&mut self, pou: &mut Pou) {
         if self.index.is_some() {
-            return self.walk_with_context(pou, self.ctx.with_pou(&pou.name));
+            // methods need to be walked in the context of its container
+            let pou_name = if let PouType::Method { parent } = &pou.kind { parent } else { &pou.name };
+            return self.walk_with_context(pou, self.ctx.with_pou(pou_name));
         }
         if !matches!(pou.kind, PouType::FunctionBlock | PouType::Class) {
             return;
         }
 
-        let Some(base_name) = pou.super_class.as_ref().map(|it| &it.name) else {
+        let Some(base_name) = pou.super_class.as_ref() else {
             return;
         };
 
         let base_var = Variable {
             name: BASE_TYPE_NAME.into(),
             data_type_declaration: DataTypeDeclaration::Reference {
-                referenced_type: base_name.into(),
+                referenced_type: base_name.name.clone(),
                 location: SourceLocation::internal(),
             },
             location: SourceLocation::internal(),
@@ -139,12 +140,14 @@ impl AstVisitorMut for InheritanceLowerer {
 
         let block = VariableBlock {
             variables: vec![base_var],
-            variable_block_type: VariableBlockType::Base,
+            variable_block_type: VariableBlockType::Local,
             linkage: LinkageType::Internal,
             location: SourceLocation::internal(),
             ..Default::default()
         };
 
+        // To ensure that the `__SUPER` variable is consistently the first variable in the struct,
+        // we insert it as the first variable block. This simplifies writing FFI bindings.
         pou.variable_blocks.insert(0, block);
         self.walk_with_context(pou, self.ctx.with_pou(&pou.name));
     }
@@ -155,7 +158,13 @@ impl AstVisitorMut for InheritanceLowerer {
             return;
         }
 
-        let ctx = self.ctx.with_pou(&implementation.type_name);
+        let type_name = if let PouType::Method { parent } = &implementation.pou_type {
+            parent
+        } else {
+            &implementation.type_name
+        };
+
+        let ctx = self.ctx.with_pou(type_name);
         let ctx = if let Some(base) = self
             .index
             .as_ref()
@@ -202,7 +211,6 @@ mod units_tests {
     use plc_driver::parse_and_annotate;
     use plc_source::SourceCode;
 
-    // FIXME: `cargo insta review` doesn't pick up these snapshots for review
     #[test]
     fn after_parsing_a_function_block_contains_ref_to_its_base() {
         let src: SourceCode = "
@@ -229,7 +237,7 @@ mod units_tests {
                             },
                         },
                     ],
-                    variable_block_type: Base,
+                    variable_block_type: Local,
                 },
             ],
             pou_type: FunctionBlock,
@@ -257,7 +265,7 @@ mod units_tests {
                 myFb : fb2;
                 x : INT;
             END_VAR
-                myFb.x := 1; //myFb.__BASE.x := 1;
+                myFb.x := 1; //myFb.__SUPER.x := 1;
                 x := 2; // this should not have any bases added
             END_FUNCTION_BLOCK
         "
@@ -326,7 +334,7 @@ mod units_tests {
                     }..TextLocation {
                         line: 17,
                         column: 23,
-                        offset: 417,
+                        offset: 418,
                     },
                 ),
             },
@@ -545,12 +553,12 @@ mod units_tests {
                     VAR
                         z : ARRAY[0..10] OF INT;
                     END_VAR
-                    x[0] := 42; //__BASE.x[0] := 42;
-                    y[2]:= 5; //__BASE.__BASE.y[2] := 5;
-                    z[3] := x[1] + y[2]; //z[3] := __BASE.x[1] + __BASE.__BASE.y[2];
-                    x[a] := 5; //__BASE.x[__BASE__.BASE__.a] := 5;
-                    y[b] := 6; //__BASE.__BASE.y[__BASE.b] := 6;
-                    z[a+b] := 10; //z[__BASE.__BASE.a + __BASE.b] := 10;
+                    x[0] := 42; //__SUPER.x[0] := 42;
+                    y[2]:= 5; //__SUPER.__SUPER.y[2] := 5;
+                    z[3] := x[1] + y[2]; //z[3] := __SUPER.x[1] + __SUPER.__SUPER.y[2];
+                    x[a] := 5; //__SUPER.x[__SUPER__.BASE__.a] := 5;
+                    y[b] := 6; //__SUPER.__SUPER.y[__SUPER.b] := 6;
+                    z[a+b] := 10; //z[__SUPER.__SUPER.a + __SUPER.b] := 10;
                 END_FUNCTION_BLOCK
             "#
         .into();
@@ -901,7 +909,7 @@ mod units_tests {
                     }..TextLocation {
                         line: 24,
                         column: 33,
-                        offset: 938,
+                        offset: 949,
                     },
                 ),
             },
@@ -949,7 +957,7 @@ mod units_tests {
                 x : INT;
             END_VAR
                 myFb.x := 1;
-                // __BASE.myFb.__BASE.x
+                // __SUPER.myFb.__SUPER.x
             END_FUNCTION_BLOCK
         "
         .into();
@@ -1745,6 +1753,257 @@ mod units_tests {
             access: None,
         }
         "#)
+    }
+
+    #[test]
+    fn base_type_in_initializer() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK grandparent
+            VAR CONSTANT
+                a : DINT := 3;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK parent extends grandparent
+            VAR
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK child EXTENDS parent
+            VAR
+                b : DINT := a;
+            END_VAR
+            END_FUNCTION_BLOCK
+        "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().units[2];
+        assert_debug_snapshot!(unit, @r#"
+        POU {
+            name: "child",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "__SUPER",
+                            data_type: DataTypeReference {
+                                referenced_type: "parent",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "b",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                            initializer: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "a",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__SUPER",
+                                                },
+                                            ),
+                                            base: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "__SUPER",
+                                                        },
+                                                    ),
+                                                    base: None,
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+            ],
+            pou_type: FunctionBlock,
+            return_type: None,
+            interfaces: [],
+        }
+        "#);
+    }
+
+    #[test]
+    fn base_type_in_method_var_initializer() {
+        let src: SourceCode = r#"
+    FUNCTION_BLOCK grandparent
+    VAR CONSTANT
+        a : DINT := 3;
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK parent extends grandparent
+    VAR
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK child EXTENDS parent
+        METHOD foo
+        VAR
+            b : DINT := a;
+        END_VAR
+        END_METHOD
+    END_FUNCTION_BLOCK
+"#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().units[3];
+        assert_debug_snapshot!(unit, @r#"
+        POU {
+            name: "child.foo",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "b",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                            initializer: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "a",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__SUPER",
+                                                },
+                                            ),
+                                            base: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "__SUPER",
+                                                        },
+                                                    ),
+                                                    base: None,
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+            ],
+            pou_type: Method {
+                parent: "child",
+            },
+            return_type: None,
+            interfaces: [],
+        }
+        "#);
+    }
+
+    #[test]
+    fn assigning_to_base_type_in_method() {
+        let src: SourceCode = r#"
+        FUNCTION_BLOCK foo
+        VAR
+            x : DINT := 50;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK bar EXTENDS foo
+        METHOD set
+            x := 25;
+        END_METHOD
+        END_FUNCTION_BLOCK
+        "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().implementations[1];
+        assert_debug_snapshot!(unit, @r#"
+        Implementation {
+            name: "bar.set",
+            type_name: "bar.set",
+            linkage: Internal,
+            pou_type: Method {
+                parent: "bar",
+            },
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__SUPER",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 25,
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 9,
+                        column: 12,
+                        offset: 182,
+                    }..TextLocation {
+                        line: 9,
+                        column: 20,
+                        offset: 190,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 8,
+                        column: 15,
+                        offset: 166,
+                    }..TextLocation {
+                        line: 8,
+                        column: 18,
+                        offset: 169,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: Some(
+                Protected,
+            ),
+        }
+        "#);
     }
 }
 
