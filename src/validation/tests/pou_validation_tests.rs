@@ -409,7 +409,6 @@ fn redeclaration_of_variables_from_super_is_an_error() {
     10 │                 var1 : BOOL;
        │                 ^^^^ Variable `var1` is already declared in parent POU `fb`
     "###);
-
 }
 
 #[test]
@@ -443,7 +442,6 @@ fn redeclaration_of_variables_from_super_super_is_an_error() {
     13 │                 var1 : BOOL;
        │                 ^^^^ Variable `var1` is already declared in parent POU `fb`
     "###);
-
 }
 
 #[test]

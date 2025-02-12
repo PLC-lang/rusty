@@ -475,8 +475,18 @@ pub enum StatementAnnotation {
         // name of all interfaces implemented by the class
         interfaces: Vec<String>,
     },
+    MethodDeclarations {
+        declarations: FxHashMap<String, Vec<MethodDeclarationType>>,
+    },
     #[default]
     None,
+}
+
+type QualifiedName = String;
+#[derive(Debug, Hash, Clone, PartialEq)]
+pub enum MethodDeclarationType {
+    Abstract(QualifiedName),
+    Concrete(QualifiedName),
 }
 
 impl StatementAnnotation {
@@ -627,6 +637,7 @@ pub trait AnnotationMap {
             StatementAnnotation::Function { .. }
             | StatementAnnotation::Label { .. }
             | StatementAnnotation::Override { .. }
+            | StatementAnnotation::MethodDeclarations { .. }
             | StatementAnnotation::None => None,
         }
     }
@@ -950,23 +961,44 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     fn annotate_pou(&mut self, pou: &Pou) {
-        if let Some(method) = self.index.find_pou(&pou.name) {
-            match method {
-                PouIndexEntry::Program { name, .. } | 
-                PouIndexEntry::FunctionBlock { name, .. } | 
-                PouIndexEntry::Class { name, .. } => {
+        if let Some(pou_entry) = self.index.find_pou(&pou.name) {
+            match pou_entry {
+                PouIndexEntry::Program { name, .. }
+                | PouIndexEntry::FunctionBlock { name, .. }
+                | PouIndexEntry::Class { name, .. } => {
                     //Find all declared methods
-                    let mut methods = self.index.find_methods(name);
+                    let mut methods = self
+                        .index
+                        .find_methods(name)
+                        .into_iter()
+                        .map(|it| {
+                            (
+                                it.get_flat_reference_name().to_string(),
+                                MethodDeclarationType::Concrete(it.get_name().to_string()),
+                            )
+                        })
+                        .collect::<Vec<_>>();
                     //Find all methods in interfaces (possibly undeclared)
-                    for interface in method.get_interfaces() {
+                    for interface in pou_entry.get_interfaces() {
                         if let Some(interface) = self.index.find_interface(interface) {
-                            methods.extend(interface.get_methods(self.index));
+                            methods.extend(interface.get_methods(self.index).into_iter().map(|it| {
+                                (
+                                    it.get_flat_reference_name().to_string(),
+                                    MethodDeclarationType::Abstract(it.get_name().to_string()),
+                                )
+                            }));
                         }
                     }
-                    dbg!(methods);
+                    let mut declarations = FxHashMap::<String, Vec<MethodDeclarationType>>::default();
+                    methods.into_iter().for_each(|(key, value)| {
+                        let entry = declarations.entry(key).or_default();
+                        entry.push(value);
+                    });
+                    self.annotation_map
+                        .annotate_with_id(pou.id, StatementAnnotation::MethodDeclarations { declarations });
                 }
                 PouIndexEntry::Method { parent_pou_name, .. } => {
-                    self.annotate_method(pou.id, parent_pou_name, method.get_qualified_name());
+                    self.annotate_method(pou.id, parent_pou_name, pou_entry.get_qualified_name());
                 }
                 _ => {}
             };

@@ -25,11 +25,7 @@ use plc::{
     OptimizationLevel,
 };
 
-use plc_diagnostics::{
-    diagnostician::Diagnostician,
-    diagnostics::Diagnostic,
-    reporter::DiagnosticReporter,
-};
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter};
 use plc_index::GlobalContext;
 use project::project::Project;
 use source_code::SourceContainer;

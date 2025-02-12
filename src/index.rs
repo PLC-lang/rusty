@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::{collections::HashSet, hash::BuildHasherDefault};
+use std::hash::BuildHasherDefault;
 
 use itertools::Itertools;
 use rustc_hash::{FxHashSet, FxHasher};
@@ -921,12 +921,12 @@ impl PouIndexEntry {
         matches!(self, PouIndexEntry::Function { is_generated: true, .. })
     }
 
-    /// Returns the method's without the qualifier
+    /// Returns the POU's without the qualifier
     pub fn get_qualified_name(&self) -> Vec<&str> {
         let name = self.get_name();
         name.split('.').collect::<Vec<_>>()
     }
-    /// Returns the method's without the qualifier
+    /// Returns the POU's identifier without the qualifier
     pub fn get_flat_reference_name(&self) -> &str {
         self.get_qualified_name().into_iter().last().unwrap_or_default()
     }

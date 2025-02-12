@@ -276,7 +276,7 @@ fn validate_variable<T: AnnotationMap>(
                         ))
                         .with_error_code("E022")
                         .with_location(&variable.location)
-                        .with_secondary_location(&shadowed_variable.source_location)
+                        .with_secondary_location(&shadowed_variable.source_location),
                     );
                     break;
                 }
