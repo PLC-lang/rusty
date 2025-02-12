@@ -357,3 +357,147 @@ fn methods_in_function_blocks_need_to_match_base() {
        │                     ^^^ Parameter count mismatch: `foo` has more parameters than the method defined in `fb`
     ");
 }
+
+#[test]
+fn only_function_blocks_can_use_extends() {
+    // GIVEN a program that extends a function block
+    // WHEN the program extends a function block
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+        END_FUNCTION_BLOCK
+
+        PROGRAM prog EXTENDS fb
+        END_PROGRAM
+        ",
+    );
+    // THEN there should be one diagnostic -> Only function blocks can use EXTENDS
+    assert_snapshot!(diagnostics, @r###"
+    error[E110]: Subclassing is only allowed in `CLASS` and `FUNCTION_BLOCK`
+      ┌─ <internal>:5:17
+      │
+    5 │         PROGRAM prog EXTENDS fb
+      │                 ^^^^ Subclassing is only allowed in `CLASS` and `FUNCTION_BLOCK`
+    "###);
+}
+
+#[test]
+fn redeclaration_of_variables_from_super_is_an_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                var1 : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2 EXTENDS fb
+            VAR
+                var1 : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    warning[E021]: Variable `var1` is already declared in parent POU `fb`
+       ┌─ <internal>:10:17
+       │
+     4 │                 var1 : BOOL;
+       │                 ---- see also
+       ·
+    10 │                 var1 : BOOL;
+       │                 ^^^^ Variable `var1` is already declared in parent POU `fb`
+    "###);
+
+}
+
+#[test]
+fn redeclaration_of_variables_from_super_super_is_an_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                var1 : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2 EXTENDS fb
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb3 EXTENDS fb2
+            VAR
+                var1 : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    warning[E021]: Variable `var1` is already declared in parent POU `fb`
+       ┌─ <internal>:13:17
+       │
+     4 │                 var1 : BOOL;
+       │                 ---- see also
+       ·
+    13 │                 var1 : BOOL;
+       │                 ^^^^ Variable `var1` is already declared in parent POU `fb`
+    "###);
+
+}
+
+#[test]
+fn signature_mismatch_between_base_and_interface() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        INTERFACE intf
+            METHOD foo
+            END_METHOD
+        END_INTERFACE
+
+        FUNCTION_BLOCK fb
+            METHOD foo
+                VAR_INPUT
+                    in1 : BOOL;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb3 EXTENDS fb IMPLEMENTS intf
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E112]: Parameter count mismatch: `foo` has more parameters than the method defined in `fb2`
+       ┌─ <internal>:16:21
+       │
+     3 │             METHOD foo
+       │                    --- see also
+       ·
+    16 │                     in1 : BOOL;
+       │                     ^^^ Parameter count mismatch: `foo` has more parameters than the method defined in `fb2`
+    "###);
+}
+
+#[test]
+fn interface_method_declared_in_parent_is_allowed() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        INTERFACE intf
+            METHOD foo
+            END_METHOD
+        END_INTERFACE
+
+        FUNCTION_BLOCK fb
+            METHOD foo
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb3 EXTENDS fb IMPLEMENTS intf
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"");
+}

@@ -951,10 +951,25 @@ impl<'i> TypeAnnotator<'i> {
 
     fn annotate_pou(&mut self, pou: &Pou) {
         if let Some(method) = self.index.find_pou(&pou.name) {
-            //If the POU is a method, add the class to the dependencies
-            if let PouIndexEntry::Method { parent_pou_name, .. } = method {
-                self.annotate_method(pou.id, parent_pou_name, method.get_qualified_name());
-            }
+            match method {
+                PouIndexEntry::Program { name, .. } | 
+                PouIndexEntry::FunctionBlock { name, .. } | 
+                PouIndexEntry::Class { name, .. } => {
+                    //Find all declared methods
+                    let mut methods = self.index.find_methods(name);
+                    //Find all methods in interfaces (possibly undeclared)
+                    for interface in method.get_interfaces() {
+                        if let Some(interface) = self.index.find_interface(interface) {
+                            methods.extend(interface.get_methods(self.index));
+                        }
+                    }
+                    dbg!(methods);
+                }
+                PouIndexEntry::Method { parent_pou_name, .. } => {
+                    self.annotate_method(pou.id, parent_pou_name, method.get_qualified_name());
+                }
+                _ => {}
+            };
         }
     }
 

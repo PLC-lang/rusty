@@ -58,18 +58,17 @@ fn not_supported_pou_type_implements_interface() {
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
-    error[E110]: Interfaces can only be implemented by classes or function blocks
+    error[E110]: Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`
        ┌─ <internal>:10:32
        │
     10 │     PROGRAM     baz IMPLEMENTS interfaceA            /* ... */ END_PROGRAM
-       │                                ^^^^^^^^^^ Interfaces can only be implemented by classes or function blocks
+       │                                ^^^^^^^^^^ Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`
 
-    error[E110]: Interfaces can only be implemented by classes or function blocks
+    error[E110]: Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`
        ┌─ <internal>:11:32
        │
     11 │     FUNCTION    qux IMPLEMENTS interfaceA, interfaceB /* ... */ END_FUNCTION
-       │                                ^^^^^^^^^^^^^^^^^^^^^^ Interfaces can only be implemented by classes or function blocks
-
+       │                                ^^^^^^^^^^^^^^^^^^^^^^ Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`
     "###);
 }
 

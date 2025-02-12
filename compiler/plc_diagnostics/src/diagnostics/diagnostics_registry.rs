@@ -122,7 +122,6 @@ lazy_static! {
         E018,   Error,      include_str!("./error_codes/E018.md"), // Duplicate Label
         E019,   Error,      include_str!("./error_codes/E019.md"), // Classes cannot contain IN_OUT variables
         E020,   Error,      include_str!("./error_codes/E020.md"), // Classes cannot contain a return type
-        E021,   Error,      include_str!("./error_codes/E021.md"), // POUs cannot be extended
         E022,   Warning,    include_str!("./error_codes/E022.md"), // Missing action container
         E023,   Warning,    include_str!("./error_codes/E023.md"), // Statement with no effect
         E024,   Warning,    include_str!("./error_codes/E024.md"), // Invalid pragma location

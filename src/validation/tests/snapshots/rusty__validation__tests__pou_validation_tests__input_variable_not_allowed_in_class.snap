@@ -2,8 +2,8 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: "&diagnostics"
 ---
-error[E019]: A class cannot contain VAR_IN VAR_IN_OUT or VAR_OUT blocks
+error[E019]: A class cannot contain `VAR_INPUT`, `VAR_IN_OUT`, or `VAR_OUTPUT` blocks
   ┌─ <internal>:2:15
   │
 2 │         CLASS cls
-  │               ^^^ A class cannot contain VAR_IN VAR_IN_OUT or VAR_OUT blocks
+  │               ^^^ A class cannot contain `VAR_INPUT`, `VAR_IN_OUT`, or `VAR_OUTPUT` blocks

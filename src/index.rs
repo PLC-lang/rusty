@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::hash::BuildHasherDefault;
+use std::{collections::HashSet, hash::BuildHasherDefault};
 
 use itertools::Itertools;
 use rustc_hash::{FxHashSet, FxHasher};
@@ -327,6 +327,10 @@ impl VariableIndexEntry {
     fn has_parent(&self, context: &str) -> bool {
         let name = qualified_name(context, &self.name);
         self.qualified_name.eq_ignore_ascii_case(&name)
+    }
+
+    pub fn get_qualifier(&self) -> Option<&str> {
+        self.qualified_name.rsplit_once('.').map(|(x, _)| x)
     }
 }
 
@@ -922,6 +926,10 @@ impl PouIndexEntry {
         let name = self.get_name();
         name.split('.').collect::<Vec<_>>()
     }
+    /// Returns the method's without the qualifier
+    pub fn get_flat_reference_name(&self) -> &str {
+        self.get_qualified_name().into_iter().last().unwrap_or_default()
+    }
 }
 
 /// the TypeIndex carries all types.
@@ -1274,7 +1282,7 @@ impl Index {
         self.find_local_member(container_name, variable_name)
             .or_else(|| {
                 if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                    self.find_member(class, variable_name)
+                    self.find_member(class, variable_name).filter(|it| !(it.is_temp()))
                 } else {
                     None
                 }
@@ -1868,6 +1876,40 @@ impl Index {
         };
 
         res
+    }
+
+    /// Returns all methods declared on container, or its parents.
+    /// If a method is declared in the container the parent method is not included
+    pub fn find_methods(&self, container: &str) -> Vec<&PouIndexEntry> {
+        self.find_method_recursive(container, vec![])
+    }
+
+    fn find_method_recursive<'a>(
+        &'a self,
+        container: &str,
+        current_methods: Vec<&'a PouIndexEntry>,
+    ) -> Vec<&'a PouIndexEntry> {
+        if let Some(pou) = self.find_pou(container) {
+            let mut res = self
+                .get_pous()
+                .values()
+                .filter(|it| it.is_method())
+                .filter(|it| it.get_parent_pou_name() == container)
+                .filter(|it| {
+                    !current_methods
+                        .iter()
+                        .any(|m| m.get_flat_reference_name() == it.get_flat_reference_name())
+                })
+                .collect::<Vec<_>>();
+            res.extend(current_methods);
+            if let Some(super_class) = pou.get_super_class() {
+                return self.find_method_recursive(super_class, res);
+            } else {
+                return res;
+            }
+        } else {
+            current_methods
+        }
     }
 }
 

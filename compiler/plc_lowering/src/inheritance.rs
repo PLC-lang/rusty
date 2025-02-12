@@ -9,7 +9,6 @@ use plc_ast::{
     try_from_mut,
 };
 use plc_source::source_location::SourceLocation;
-const BASE_TYPE_NAME: &str = "__SUPER";
 
 #[derive(Debug)]
 struct Context {
@@ -98,10 +97,10 @@ impl InheritanceLowerer {
         }
 
         // add a `__SUPER` qualifier for each element in the inheritance chain, exluding `self`
-        inheritance_chain.iter().skip(1).fold(base, |base, _| {
+        inheritance_chain.iter().rev().skip(1).fold(base, |base, pou| {
             Some(Box::new(AstFactory::create_member_reference(
                 AstFactory::create_identifier(
-                    BASE_TYPE_NAME,
+                    &format!("__{}", pou.get_name()),
                     SourceLocation::internal(),
                     self.provider().next_id(),
                 ),
@@ -128,7 +127,7 @@ impl AstVisitorMut for InheritanceLowerer {
         };
 
         let base_var = Variable {
-            name: BASE_TYPE_NAME.into(),
+            name: format!("__{}", &base_name.name),
             data_type_declaration: DataTypeDeclaration::Reference {
                 referenced_type: base_name.name.clone(),
                 location: SourceLocation::internal(),
@@ -224,14 +223,14 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().units[1];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         POU {
             name: "bar",
             variable_blocks: [
                 VariableBlock {
                     variables: [
                         Variable {
-                            name: "__SUPER",
+                            name: "__foo",
                             data_type: DataTypeReference {
                                 referenced_type: "foo",
                             },
@@ -244,7 +243,7 @@ mod units_tests {
             return_type: None,
             interfaces: [],
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -273,7 +272,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "foo",
             type_name: "foo",
@@ -291,7 +290,7 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__fb",
                                     },
                                 ),
                                 base: Some(
@@ -355,7 +354,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -375,7 +374,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[1];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "bar",
             type_name: "bar",
@@ -393,7 +392,7 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__foo",
                                     },
                                 ),
                                 base: None,
@@ -436,7 +435,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -460,7 +459,7 @@ mod units_tests {
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         // let unit = &project.units[0].get_unit();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "child",
             type_name: "child",
@@ -478,14 +477,14 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__grandparent",
                                     },
                                 ),
                                 base: Some(
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: None,
@@ -529,7 +528,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -565,7 +564,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "child",
             type_name: "child",
@@ -590,7 +589,7 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: None,
@@ -621,14 +620,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: None,
@@ -680,7 +679,7 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__parent",
                                                 },
                                             ),
                                             base: None,
@@ -706,14 +705,14 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__grandparent",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__SUPER",
+                                                            name: "__parent",
                                                         },
                                                     ),
                                                     base: None,
@@ -739,14 +738,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: None,
@@ -767,7 +766,7 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: None,
@@ -793,7 +792,7 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: None,
@@ -812,14 +811,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: None,
@@ -849,14 +848,14 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__grandparent",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__SUPER",
+                                                            name: "__parent",
                                                         },
                                                     ),
                                                     base: None,
@@ -875,7 +874,7 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__parent",
                                                 },
                                             ),
                                             base: None,
@@ -930,7 +929,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -964,7 +963,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[3];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "foo",
             type_name: "foo",
@@ -982,7 +981,7 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__fb",
                                     },
                                 ),
                                 base: Some(
@@ -996,7 +995,7 @@ mod units_tests {
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__baz",
                                                     },
                                                 ),
                                                 base: None,
@@ -1042,7 +1041,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -1083,7 +1082,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[3];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "main",
             type_name: "main",
@@ -1101,14 +1100,14 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__grandparent",
                                     },
                                 ),
                                 base: Some(
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: Some(
@@ -1157,14 +1156,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: Some(
@@ -1208,7 +1207,7 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__parent",
                                     },
                                 ),
                                 base: Some(
@@ -1255,7 +1254,7 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: Some(
@@ -1357,7 +1356,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#)
+        "###)
     }
 
     #[test]
@@ -1388,7 +1387,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "child",
             type_name: "child",
@@ -1412,7 +1411,7 @@ mod units_tests {
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: None,
@@ -1433,7 +1432,7 @@ mod units_tests {
                                                         ReferenceExpr {
                                                             kind: Member(
                                                                 Identifier {
-                                                                    name: "__SUPER",
+                                                                    name: "__parent",
                                                                 },
                                                             ),
                                                             base: None,
@@ -1467,14 +1466,14 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__grandparent",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__SUPER",
+                                                            name: "__parent",
                                                         },
                                                     ),
                                                     base: None,
@@ -1496,14 +1495,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: None,
@@ -1549,7 +1548,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -1586,7 +1585,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[3];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "main",
             type_name: "main",
@@ -1654,7 +1653,7 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: Some(
@@ -1690,14 +1689,14 @@ mod units_tests {
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: Some(
@@ -1752,7 +1751,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "#)
+        "###)
     }
 
     #[test]
@@ -1779,14 +1778,14 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().units[2];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         POU {
             name: "child",
             variable_blocks: [
                 VariableBlock {
                     variables: [
                         Variable {
-                            name: "__SUPER",
+                            name: "__parent",
                             data_type: DataTypeReference {
                                 referenced_type: "parent",
                             },
@@ -1812,14 +1811,14 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__grandparent",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__SUPER",
+                                                            name: "__parent",
                                                         },
                                                     ),
                                                     base: None,
@@ -1838,7 +1837,7 @@ mod units_tests {
             return_type: None,
             interfaces: [],
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -1867,7 +1866,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().units[3];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         POU {
             name: "child.foo",
             variable_blocks: [
@@ -1889,14 +1888,14 @@ mod units_tests {
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__grandparent",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__SUPER",
+                                                            name: "__parent",
                                                         },
                                                     ),
                                                     base: None,
@@ -1917,7 +1916,7 @@ mod units_tests {
             return_type: None,
             interfaces: [],
         }
-        "#);
+        "###);
     }
 
     #[test]
@@ -1939,7 +1938,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[1];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         Implementation {
             name: "bar.set",
             type_name: "bar.set",
@@ -1959,7 +1958,7 @@ mod units_tests {
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__foo",
                                     },
                                 ),
                                 base: None,
@@ -2003,7 +2002,7 @@ mod units_tests {
                 Protected,
             ),
         }
-        "#);
+        "###);
     }
 }
 
@@ -2069,17 +2068,17 @@ mod resolve_bases_tests {
 
         let Some(ReferenceExpr { base, .. }) = try_from!(left, ReferenceExpr) else { unreachable!() };
         let base1 = base.as_ref().unwrap().deref();
-        assert_debug_snapshot!(annotations.get(base1).unwrap(), @r#"
+        assert_debug_snapshot!(annotations.get(base1).unwrap(), @r###"
         Variable {
             resulting_type: "fb",
-            qualified_name: "fb2.__SUPER",
+            qualified_name: "fb2.__fb",
             constant: false,
             argument_type: ByVal(
                 Local,
             ),
             auto_deref: None,
         }
-        "#);
+        "###);
 
         let Some(ReferenceExpr { base, .. }) = try_from!(base1, ReferenceExpr) else { unreachable!() };
         let base2 = base.as_ref().unwrap().deref();
@@ -2097,16 +2096,16 @@ mod resolve_bases_tests {
 
         let Some(ReferenceExpr { base, .. }) = try_from!(base2, ReferenceExpr) else { unreachable!() };
         let base3 = base.as_ref().unwrap().deref();
-        assert_debug_snapshot!(annotations.get(base3).unwrap(), @r#"
+        assert_debug_snapshot!(annotations.get(base3).unwrap(), @r###"
         Variable {
             resulting_type: "baz",
-            qualified_name: "foo.__SUPER",
+            qualified_name: "foo.__baz",
             constant: false,
             argument_type: ByVal(
                 Local,
             ),
             auto_deref: None,
         }
-        "#);
+        "###);
     }
 }

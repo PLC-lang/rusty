@@ -80,6 +80,15 @@ fn validate_base_class<T: AnnotationMap>(
 ) {
     //If base class does not exist, report error
     if let Some(InterfaceIdentifier { name, location }) = &pou.super_class {
+        // Check if the interfaces are implemented on the correct POU types
+        if !matches!(pou.kind, PouType::FunctionBlock | PouType::Class) {
+            validator.push_diagnostic(
+                Diagnostic::new("Subclassing is only allowed in `CLASS` and `FUNCTION_BLOCK`")
+                    .with_error_code("E110")
+                    .with_location(&pou.name_location),
+            );
+        }
+
         if context.index.find_pou(name).is_none() {
             validator.push_diagnostic(
                 Diagnostic::new(format!("Base `{}` does not exist", name))
@@ -109,7 +118,7 @@ where
         };
 
         validator.push_diagnostic(
-            Diagnostic::new("Interfaces can only be implemented by classes or function blocks")
+            Diagnostic::new("Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`")
                 .with_error_code("E110")
                 .with_location(location),
         );
@@ -323,15 +332,9 @@ pub fn visit_implementation<T: AnnotationMap>(
 }
 
 fn validate_pou(validator: &mut Validator, pou: &Pou) {
-    if pou.kind == PouType::Function {
-        validate_function(validator, pou);
-    };
     if pou.kind == PouType::Class {
         validate_class(validator, pou);
     };
-    if pou.kind == PouType::Program {
-        validate_program(validator, pou);
-    }
     //If the POU is not a function or method, it cannot have a return type
     if !matches!(pou.kind, PouType::Function | PouType::Method { .. }) {
         if let Some(start_return_type) = &pou.return_type {
@@ -354,30 +357,8 @@ fn validate_class(validator: &mut Validator, pou: &Pou) {
         )
     }) {
         validator.push_diagnostic(
-            Diagnostic::new("A class cannot contain VAR_IN VAR_IN_OUT or VAR_OUT blocks")
+            Diagnostic::new("A class cannot contain `VAR_INPUT`, `VAR_IN_OUT`, or `VAR_OUTPUT` blocks")
                 .with_error_code("E019")
-                .with_location(&pou.name_location),
-        );
-    }
-}
-
-fn validate_function(validator: &mut Validator, pou: &Pou) {
-    // functions cannot use EXTENDS
-    if pou.super_class.is_some() {
-        validator.push_diagnostic(
-            Diagnostic::new("A function cannot use `EXTEND`")
-                .with_error_code("E021")
-                .with_location(&pou.name_location),
-        );
-    }
-}
-
-fn validate_program(validator: &mut Validator, pou: &Pou) {
-    // programs cannot use EXTENDS
-    if pou.super_class.is_some() {
-        validator.push_diagnostic(
-            Diagnostic::new("A program cannot use `EXTEND`")
-                .with_error_code("E021")
                 .with_location(&pou.name_location),
         );
     }
