@@ -17,6 +17,7 @@ use plc::{
     OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_lowering::inheritance::InheritanceLowerer;
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
@@ -221,6 +222,31 @@ impl InitParticipant {
 impl PipelineParticipantMut for InitParticipant {
     fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         indexed_project.extend_with_init_units(&self.symbol_name, self.id_provider.clone())
+    }
+}
+
+impl PipelineParticipantMut for InheritanceLowerer {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+        let ParsedProject { mut units } = parsed_project;
+        units.iter_mut().for_each(|unit| self.visit_unit(unit));
+        ParsedProject { units }
+    }
+
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { mut units, index, annotations } = annotated_project;
+        self.annotations = Some(Box::new(annotations));
+        self.index = Some(index);
+        units.iter_mut().for_each(|unit| self.visit_unit(&mut unit.unit));
+        let index = self.index.take().expect("Index should be present");
+        // re-resolve
+        IndexedProject {
+            project: ParsedProject {
+                units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect(),
+            },
+            index,
+            unresolvables: vec![],
+        }
+        .annotate(self.provider())
     }
 }
 

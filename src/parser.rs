@@ -480,12 +480,20 @@ fn parse_polymorphism_mode(lexer: &mut ParseSession, pou_type: &PouType) -> Opti
 }
 
 fn parse_super_class(lexer: &mut ParseSession) -> Option<String> {
-    if lexer.try_consume(KeywordExtends) {
-        let (name, _) = parse_identifier(lexer)?;
-        Some(name)
-    } else {
-        None
+    let mut extensions = vec![];
+    while lexer.try_consume(KeywordExtends) {
+        let name_and_location = parse_identifier(lexer)?;
+        extensions.push(name_and_location);
     }
+    extensions.iter().skip(1).for_each(|(_, location)| {
+        lexer.accept_diagnostic(
+            Diagnostic::new("Multiple inheritance. POUs can only be extended once.".to_string())
+                .with_error_code("E114")
+                .with_location(location),
+        )
+    });
+
+    extensions.first().map(|(name, _)| name.to_string())
 }
 
 fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<DataTypeDeclaration> {

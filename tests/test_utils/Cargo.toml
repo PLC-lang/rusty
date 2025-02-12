@@ -1,0 +1,17 @@
+[package]
+name = "test_utils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+driver = { path = "../../compiler/plc_driver/", package = "plc_driver" }
+project = { path = "../../compiler/plc_project/", package = "plc_project", features = [
+    "integration",
+] }
+plc_lowering = { path = "../../compiler/plc_lowering"}
+plc = {path = "../..", package = "rusty"}
+plc_source = { path = "../../compiler/plc_source" }
+plc_ast = { path = "../../compiler/plc_ast" }
+plc_util = { path = "../../compiler/plc_util" }
+plc_diagnostics = { path = "../../compiler/plc_diagnostics" }
+plc_index = { path = "../../compiler/plc_index" }
