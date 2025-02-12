@@ -22,7 +22,15 @@ fn overriden_method_is_annotated() {
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
     let unit = &units[0].0.units[3];
-    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r###""###);
+    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
+    Some(
+        Override {
+            definitions: [
+                "base.foo",
+            ],
+        },
+    )
+    "#);
 
 }
 
@@ -53,9 +61,26 @@ fn overriden_method_from_multiple_interfaces_is_annotated() {
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
     let unit = &units[0].0.units[1];
-    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r###""###);
+    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
+    Some(
+        Override {
+            definitions: [
+                "base.foo",
+                "base2.foo",
+            ],
+        },
+    )
+    "#);
     let unit = &units[0].0.units[2];
-    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r###""###);
+    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
+    Some(
+        Override {
+            definitions: [
+                "base2.bar",
+            ],
+        },
+    )
+    "#);
 
 }
 
@@ -77,7 +102,15 @@ fn overriden_method_from_interface_is_annotated() {
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
     let unit = &units[0].0.units[1];
-    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r###""###);
+    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
+    Some(
+        Override {
+            definitions: [
+                "base.foo",
+            ],
+        },
+    )
+    "#);
 
 }
 
@@ -108,8 +141,25 @@ fn overriden_method_from_interface_and_base_is_annotated() {
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
     let unit = &units[0].0.units[3];
-    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r###""###);
+    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
+    Some(
+        Override {
+            definitions: [
+                "base.foo",
+                "base2.foo",
+            ],
+        },
+    )
+    "#);
     let unit = &units[0].0.units[4];
-    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r###""###);
+    assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
+    Some(
+        Override {
+            definitions: [
+                "base2.bar",
+            ],
+        },
+    )
+    "#);
 
 }

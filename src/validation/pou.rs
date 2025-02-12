@@ -4,7 +4,10 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use super::{
     statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
 };
-use crate::{index::PouIndexEntry, resolver::AnnotationMap};
+use crate::{
+    index::PouIndexEntry,
+    resolver::{AnnotationMap, StatementAnnotation},
+};
 use std::collections::HashMap;
 
 pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
@@ -12,6 +15,9 @@ pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context
         validate_pou(validator, pou);
         validate_interface_impl(validator, context, pou);
         validate_base_class(validator, context, pou);
+        if let PouType::Method { .. } = pou.kind {
+            validate_method(validator, pou, context);
+        }
 
         for block in &pou.variable_blocks {
             visit_variable_block(validator, Some(pou), block, context);
@@ -19,42 +25,69 @@ pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context
     }
 }
 
+fn validate_method<T: AnnotationMap>(
+    validator: &mut Validator<'_>,
+    pou: &Pou,
+    context: &ValidationContext<'_, T>,
+) {
+    let Some(StatementAnnotation::Override { definitions }) = context.annotations.get_with_id(pou.id) else {
+        //No override
+        return;
+    };
+    let Some(method_impl) = context.index.find_pou(&pou.name) else {
+        //Method does not exist
+        return;
+    };
+
+    let method_name = method_impl.get_qualified_name().into_iter().last().unwrap_or_default();
+
+    let interface_methods = definitions.iter().flat_map(|it| context.index.find_pou(it)).collect::<Vec<_>>();
+    if interface_methods.len() >= 2 {
+        for methods in interface_methods.windows(2) {
+            let (method1, method2) = (methods[0], methods[1]);
+            let diagnostics = validate_method_signature(context, method1, method2);
+            if !diagnostics.is_empty() {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Method `{}` is defined with different signatures in interfaces `{}` and `{}`",
+                        method_name,
+                        method1.get_parent_pou_name(),
+                        method2.get_parent_pou_name()
+                    ))
+                    .with_error_code("E111")
+                    .with_location(&pou.name_location)
+                    .with_secondary_location(method1.get_location())
+                    .with_secondary_location(method2.get_location())
+                    .with_sub_diagnostics(diagnostics),
+                );
+                //Abort validation
+                return;
+            }
+        }
+    }
+    interface_methods.iter().for_each(|method_ref| {
+        let diagnostics = validate_method_signature(context, method_ref, method_impl);
+        for diagnostic in diagnostics {
+            validator.push_diagnostic(diagnostic);
+        }
+    })
+}
+
 fn validate_base_class<T: AnnotationMap>(
     validator: &mut Validator<'_>,
     context: &ValidationContext<'_, T>,
     pou: &Pou,
 ) {
-    // Find all the base classes of the pou
-    let mut classes = vec![];
-    let mut current = if let Some(InterfaceIdentifier { name, location }) = &pou.super_class {
-        if let Some(super_class) = context.index.find_pou(name) {
-            classes.push(super_class);
-            super_class.get_super_class()
-        } else {
+    //If base class does not exist, report error
+    if let Some(InterfaceIdentifier { name, location }) = &pou.super_class {
+        if context.index.find_pou(name).is_none() {
             validator.push_diagnostic(
                 Diagnostic::new(format!("Base `{}` does not exist", name))
                     .with_error_code("E048")
                     .with_location(location),
             );
-            return;
         }
-    } else {
-        None
     };
-    while let Some(super_class) = current {
-        match context.index.find_pou(super_class) {
-            Some(super_class) => {
-                classes.push(super_class);
-                current = super_class.get_super_class();
-            }
-            None => {
-                return;
-            }
-        }
-    }
-
-    //Find all methods on classes
-    // todo!()
 }
 
 fn validate_interface_impl<T>(validator: &mut Validator, ctxt: &ValidationContext<'_, T>, pou: &Pou)
@@ -109,63 +142,21 @@ where
         occurrences.entry(name).and_modify(|entries| entries.push(method)).or_insert(vec![method]);
     }
 
-    let mut abort = false;
-    for (name, methods) in occurrences.iter().filter(|(_, methods)| methods.len() > 1) {
-        for method in methods.windows(2) {
-            let (method_ref, method_impl) = (method[0], method[1]);
-            let diagnostics = validate_method_signature(ctxt, method_ref, method_impl);
-
-            if !diagnostics.is_empty() {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Method `{}` is defined with different signatures in interfaces `{}` and `{}`",
-                        name,
-                        method_ref.get_parent_pou_name(),
-                        method_impl.get_parent_pou_name()
-                    ))
-                    .with_error_code("E111")
-                    .with_location(&pou.name_location)
-                    .with_secondary_location(method_ref.get_location())
-                    .with_secondary_location(method_impl.get_location())
-                    .with_sub_diagnostics(diagnostics),
-                );
-
-                abort = true;
-            }
-        }
-    }
-
-    // We want to early return here otherwise we could spam the user with lots of (valid) but identical
-    // diagnostics reported earlier.
-    if abort {
-        return;
-    }
-
     // Check if the POUs are implementing the interface methods
     for method_interface in &interface_methods {
         // XXX(volsa): Not entirely happy with this `split` call, is there a better approach?
         let (interface_name, method_name) = method_interface.get_name().split_once('.').unwrap();
 
-        match ctxt.index.find_method(&pou.name, method_name) {
-            Some(method_pou) => {
-                let diagnostics = validate_method_signature(ctxt, method_interface, method_pou);
-
-                for diagnostic in diagnostics {
-                    validator.push_diagnostic(diagnostic);
-                }
-            }
-
-            None => {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Method `{}` defined in interface `{}` is missing in POU `{}`",
-                        method_name, interface_name, pou.name
-                    ))
-                    .with_error_code("E112")
-                    .with_location(&pou.name_location)
-                    .with_secondary_location(method_interface.get_location()),
-                );
-            }
+        if ctxt.index.find_method(&pou.name, method_name).is_none() {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "Method `{}` defined in interface `{}` is missing in POU `{}`",
+                    method_name, interface_name, pou.name
+                ))
+                .with_error_code("E112")
+                .with_location(&pou.name_location)
+                .with_secondary_location(method_interface.get_location()),
+            );
         }
     }
 }
@@ -179,6 +170,7 @@ where
     T: AnnotationMap,
 {
     let mut diagnostics = Vec::new();
+    let method_name = method_ref.get_qualified_name().into_iter().last().unwrap_or_default();
 
     // Check if the return type matches
     let return_type_ref = ctxt.index.get_return_type_or_void(method_ref.get_name());
@@ -188,7 +180,7 @@ where
         diagnostics.push(
             Diagnostic::new(format!(
                 "Return type of `{}` does not match the return type of the method defined in `{}`, expected `{}` but got `{}` instead",
-                method_impl.get_name(),
+                method_name,
                 method_ref.get_parent_pou_name(),
                 return_type_ref.get_name(),
                 return_type_impl.get_name(),
@@ -258,7 +250,7 @@ where
                         "Parameter `{} : {}` missing in method `{}`",
                         parameter_ref.get_name(),
                         parameter_ref.get_type_name(),
-                        method_impl.get_name()
+                        method_name,
                     ))
                     .with_error_code("E112")
                     .with_location(method_impl)
@@ -276,7 +268,7 @@ where
             diagnostics.push(
                 Diagnostic::new(format!(
                     "Parameter count mismatch: `{}` has more parameters than the method defined in `{}`",
-                    method_impl.get_name(),
+                    method_name,
                     method_ref.get_parent_pou_name(),
                 ))
                 .with_error_code("E112")

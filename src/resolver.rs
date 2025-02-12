@@ -940,43 +940,53 @@ impl<'i> TypeAnnotator<'i> {
         if let Some(InterfaceIdentifier { name, .. }) = &pou.super_class {
             self.dependencies.insert(Dependency::Datatype(name.to_string()));
         }
-        if let Some(index_entry) = self.index.find_pou(&pou.name) {
-            //If the POU is a method, add the class to the dependencies
-            if let PouIndexEntry::Method { parent_pou_name, .. } = index_entry {
-                let qualified_name = index_entry.get_qualified_name();
-                let method_name = qualified_name.last().expect("Method has a name");
-                self.dependencies.insert(Dependency::Datatype(parent_pou_name.clone()));
-                //If the method is overriden, annotate the method with the original method
-                //Get the method's pou index entry in the super class
-                // TODO: lazy inheritance iterator
-                if let Some(base_pou) = self.index.find_pou(parent_pou_name) {
-                    let mut super_class = base_pou.get_super_class()
-                        .and_then(|it| self.index.find_pou(it));
-                    let mut overrides = vec![];
-                    while let Some(base) = super_class {
-                        if let Some(method) = self.index.find_method(base.get_name(), method_name) {
-                            overrides.push(method.get_name());
-                            break;
-                        } else {
-                            super_class = base.get_super_class().and_then(|it| self.index.find_pou(it))
-                        }
-                    }
-                    // Annotate all methods with the interface methods
-                    // TODO: once we implement inheritance for interfaces, we need to adjust this logic
-                    dbg!(base_pou.get_interfaces()).iter().for_each(|interface| {
-                        if let Some(interface) = dbg!(self.index.find_interface(interface)) {
-                           if let Some(name) = interface.methods.iter().find(|it| it.rsplit_once('.').map(|(_, it)| dbg!(it)).as_ref().unwrap() == dbg!(method_name)) {
-                               overrides.push(name);
-                           }
-                        }
-                    });
-                }
-            }
-        }
+        self.annotate_pou(pou);
         let pou_ctx = ctx.with_pou(pou.name.as_str());
         for block in &pou.variable_blocks {
             for variable in &block.variables {
                 self.visit_variable(&pou_ctx, variable);
+            }
+        }
+    }
+
+    fn annotate_pou(&mut self, pou: &Pou) {
+        if let Some(method) = self.index.find_pou(&pou.name) {
+            //If the POU is a method, add the class to the dependencies
+            if let PouIndexEntry::Method { parent_pou_name, .. } = method {
+                self.annotate_method(pou.id, parent_pou_name, method.get_qualified_name());
+            }
+        }
+    }
+
+    fn annotate_method(&mut self, id: AstId, parent_pou_name: &String, qualified_name: Vec<&str>) {
+        let method_name = qualified_name.last().expect("Method has a name");
+        self.dependencies.insert(Dependency::Datatype(parent_pou_name.clone()));
+        //If the method is overriden, annotate the method with the original method
+        //Get the method's pou index entry in the super class
+        // TODO: lazy inheritance iterator
+        if let Some(base_pou) = self.index.find_pou(parent_pou_name) {
+            let mut overrides = vec![];
+            if let Some(super_class) = base_pou.get_super_class().and_then(|it| self.index.find_pou(it)) {
+                if let Some(method) = self.index.find_method(super_class.get_name(), method_name) {
+                    overrides.push(method.get_name().into());
+                }
+            }
+            // Annotate all methods with the interface methods
+            // TODO: once we implement inheritance for interfaces, we need to adjust this logic
+            base_pou.get_interfaces().iter().for_each(|interface| {
+                if let Some(interface) = self.index.find_interface(interface) {
+                    if let Some(name) = interface
+                        .methods
+                        .iter()
+                        .find(|it| it.rsplit_once('.').map(|(_, it)| it).as_ref().unwrap() == method_name)
+                    {
+                        overrides.push(name.into());
+                    }
+                }
+            });
+
+            if !overrides.is_empty() {
+                self.annotation_map.annotate_with_id(id, StatementAnnotation::create_override(overrides));
             }
         }
     }

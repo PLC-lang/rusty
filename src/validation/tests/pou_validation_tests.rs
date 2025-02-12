@@ -346,5 +346,14 @@ fn methods_in_function_blocks_need_to_match_base() {
         ",
     );
     // THEN there should be one diagnostic -> Method foo in function block fb2 does not match base method
-    assert_snapshot!(diagnostics, @r###""###);
+    assert_snapshot!(diagnostics, @r"
+    error[E112]: Parameter count mismatch: `foo` has more parameters than the method defined in `fb`
+       ┌─ <internal>:10:21
+       │
+     3 │             METHOD foo
+       │                    --- see also
+       ·
+    10 │                     in1 : BOOL;
+       │                     ^^^ Parameter count mismatch: `foo` has more parameters than the method defined in `fb`
+    ");
 }
