@@ -28,7 +28,7 @@ impl ParticipantValidator {
                         name = property.name
                     ))
                     .with_location(property.parent_name_location.clone())
-                    .with_error_code("E116"),
+                    .with_error_code("E115"),
                 );
             }
 

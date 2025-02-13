@@ -3,7 +3,7 @@ use plc_source::SourceCode;
 
 use crate::{lowering::validator::ParticipantValidator, test_utils::tests::parse, ErrorFormat};
 
-pub fn lower_and_validate(src: &str) -> String {
+fn lower_and_validate(src: &str) -> String {
     let mut context = GlobalContext::new();
     context.with_error_fmt(plc_index::ErrorFormat::Null);
     context.insert(&SourceCode::from(src), None).unwrap();

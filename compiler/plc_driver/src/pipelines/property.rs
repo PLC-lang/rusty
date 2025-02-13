@@ -2,7 +2,9 @@
 
 use plc::lowering::property::PropertyLowerer;
 
-use super::{participant::PipelineParticipantMut, AnnotatedProject, AnnotatedUnit, ParsedProject};
+use super::{
+    participant::PipelineParticipantMut, AnnotatedProject, AnnotatedUnit, IndexedProject, ParsedProject,
+};
 
 impl PipelineParticipantMut for PropertyLowerer {
     fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
@@ -23,7 +25,12 @@ impl PipelineParticipantMut for PropertyLowerer {
             self.lower_references_to_calls(unit);
         }
 
-        let project = AnnotatedProject { units, index, annotations: self.annotations.take().unwrap() };
-        project.re_annotate(self.id_provider.clone())
+        let project = IndexedProject {
+            project: ParsedProject { units: units.into_iter().map(|annotated| annotated.unit).collect() },
+            index,
+            unresolvables: vec![],
+        };
+
+        project.annotate(self.id_provider.clone())
     }
 }

@@ -4,7 +4,7 @@
 //!
 //! The first step is triggered right after parsing the source code. For example assume some user wrote the
 //! following code
-//! ```text
+//! ```iec61131st
 //! FUNCTION_BLOCK fb
 //!     PROPERTY foo : DINT
 //!         GET
@@ -24,7 +24,7 @@
 //! internally these GET and SET blocks will be lowered into methods because semantically `<var> := fb.foo` is
 //! equivalent to `<var> := fb.get_foo()` and `fb.foo := <expr>` is equivalent to `fb.set_foo(<expr>)`. Hence
 //! the properties internal representation is as follows
-//! ```text
+//! ```iec61131st
 //! FUNCTION_BLOCK fb
 //!     // Compiler internal
 //!     VAR_PROPERTY
@@ -63,8 +63,8 @@
 //!         localVariable : DINT;
 //!     END_VAR
 //!
-//!     fb.foo := 5;                // We want this to be `fb.__set_foo(5);`
-//!     localVariable := fb.foo;    // ... and this to be `localVariable := fb.__get_foo();`
+//!     fbInstance.foo := 5;                // We want this to be `fbInstance.__set_foo(5);`
+//!     localVariable := fbInstance.foo;    // ... and this to be `localVariable := fbInstance.__get_foo();`
 //! END_FUNCTION
 //! ```
 //! Lowering these references is done by simply using the [`AstVisitorMut`] and iterating over all statements.
@@ -81,7 +81,7 @@ use plc_ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, Implementation,
         LinkageType, Pou, PouType, Property, PropertyKind, Variable, VariableBlock, VariableBlockType,
     },
-    mut_visitor::AstVisitorMut,
+    mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
@@ -249,9 +249,7 @@ impl AstVisitorMut for PropertyLowerer {
             self.context = Some(qualified_name.clone())
         }
 
-        for statement in &mut implementation.statements {
-            self.visit(statement);
-        }
+        implementation.walk(self);
 
         // ...and reset the context once done (duh)
         self.context = None;
