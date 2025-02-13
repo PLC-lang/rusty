@@ -61,8 +61,8 @@ fn validate_implemented_methods<T: AnnotationMap>(
                     .with_secondary_location(method2.get_location())
                     .with_sub_diagnostics(diagnostics),
                 );
-                //Abort validation
-                // XXX(mhasel): ^ should we really abort validating here?
+                // We want to early return here otherwise we could spam the user with lots of (valid) but identical
+                // diagnostics reported earlier.
                 return;
             }
         }

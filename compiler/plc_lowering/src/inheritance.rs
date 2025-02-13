@@ -1,3 +1,56 @@
+//! This module is responsible for lowering inherited references.
+//! Derived POUs can access members of their base class using the `__SUPER` qualifier,
+//! which is an implicit reference to an instance of the base class which
+//! is added as a member variable of the derived class in the 'pre_index' pass.
+//!
+//! For example, given the following code:
+//! ```iec61131st
+//! FUNCTION_BLOCK foo
+//! END_FUNCTION_BLOCK
+//!
+//! FUNCTION_BLOCK bar EXTENDS foo
+//! END_FUNCTION_BLOCK
+//! ```
+//! After the `pre-index` pass, the `bar`-function block will be transformed to:
+//! ```iec61131st
+//! FUNCTION_BLOCK bar
+//! VAR
+//!   __SUPER : foo;
+//! END_VAR
+//! END_FUNCTION_BLOCK
+//! ```
+//!
+//! During the `post_annotate` pass, the inheritance hierarchy is resolved and the `__SUPER` references are added to
+//! each `ReferenceExpression` that references a member of the base class.
+//!
+//! For example, given the following code:
+//! ```iec61131st
+//! FUNCTION_BLOCK foo
+//! VAR
+//!     x: INT;
+//! END_VAR
+//! END_FUNCTION_BLOCK
+//!
+//! FUNCTION_BLOCK bar EXTENDS foo
+//! END_FUNCTION_BLOCK
+//!
+//! FUNCTION_BLOCK baz
+//! VAR
+//!    myFb : bar;
+//! END_VAR
+//!     myFb.x := 1;
+//! END_FUNCTION_BLOCK
+//! ```
+//! After the `post_annotate` pass, the `baz`-function block will be transformed to:
+//! ```iec61131st
+//! FUNCTION_BLOCK baz
+//! VAR
+//!   myFb : bar;
+//! END_VAR
+//!    myFb.__SUPER.x := 1;
+//! END_FUNCTION_BLOCK
+//! ```
+
 use plc::{index::Index, resolver::AnnotationMap};
 use plc_ast::{
     ast::{
