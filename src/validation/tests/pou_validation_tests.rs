@@ -399,8 +399,8 @@ fn redeclaration_of_variables_from_super_is_an_error() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
-    warning[E021]: Variable `var1` is already declared in parent POU `fb`
+    assert_snapshot!(diagnostics, @r"
+    error[E021]: Variable `var1` is already declared in parent POU `fb`
        ┌─ <internal>:10:17
        │
      4 │                 var1 : BOOL;
@@ -408,7 +408,7 @@ fn redeclaration_of_variables_from_super_is_an_error() {
        ·
     10 │                 var1 : BOOL;
        │                 ^^^^ Variable `var1` is already declared in parent POU `fb`
-    "###);
+    ");
 }
 
 #[test]
@@ -432,8 +432,8 @@ fn redeclaration_of_variables_from_super_super_is_an_error() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
-    warning[E021]: Variable `var1` is already declared in parent POU `fb`
+    assert_snapshot!(diagnostics, @r"
+    error[E021]: Variable `var1` is already declared in parent POU `fb`
        ┌─ <internal>:13:17
        │
      4 │                 var1 : BOOL;
@@ -441,7 +441,7 @@ fn redeclaration_of_variables_from_super_super_is_an_error() {
        ·
     13 │                 var1 : BOOL;
        │                 ^^^^ Variable `var1` is already declared in parent POU `fb`
-    "###);
+    ");
 }
 
 #[test]
@@ -466,16 +466,16 @@ fn signature_mismatch_between_base_and_interface() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
-    error[E112]: Parameter count mismatch: `foo` has more parameters than the method defined in `fb2`
-       ┌─ <internal>:16:21
+    assert_snapshot!(diagnostics, @r"
+    error[E112]: Parameter count mismatch: `foo` has more parameters than the method defined in `intf`
+       ┌─ <internal>:10:21
        │
      3 │             METHOD foo
        │                    --- see also
        ·
-    16 │                     in1 : BOOL;
-       │                     ^^^ Parameter count mismatch: `foo` has more parameters than the method defined in `fb2`
-    "###);
+    10 │                     in1 : BOOL;
+       │                     ^^^ Parameter count mismatch: `foo` has more parameters than the method defined in `intf`
+    ");
 }
 
 #[test]

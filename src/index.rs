@@ -1903,9 +1903,9 @@ impl Index {
                 .collect::<Vec<_>>();
             res.extend(current_methods);
             if let Some(super_class) = pou.get_super_class() {
-                return self.find_method_recursive(super_class, res);
+                self.find_method_recursive(super_class, res)
             } else {
-                return res;
+                res
             }
         } else {
             current_methods

@@ -15,11 +15,10 @@ pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context
         validate_pou(validator, pou);
         validate_interface_impl(validator, context, pou);
         validate_base_class(validator, context, pou);
-        // if let PouType::Method { .. } = pou.kind {
-        //     validate_method(validator, pou, context);
-        // }
-
         validate_implemented_methods(validator, context, pou);
+        if let PouType::Method { .. } = pou.kind {
+            validate_method(validator, pou, context);
+        }
 
         for block in &pou.variable_blocks {
             visit_variable_block(validator, Some(pou), block, context);
@@ -27,17 +26,26 @@ pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context
     }
 }
 
-fn validate_implemented_methods<T: AnnotationMap>(validator: &mut Validator, context: &ValidationContext<'_, T>, pou: &Pou) {
-    let Some(StatementAnnotation::MethodDeclarations { declarations }) = context.annotations.get_with_id(pou.id) else {
+fn validate_implemented_methods<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<'_, T>,
+    pou: &Pou,
+) {
+    let Some(StatementAnnotation::MethodDeclarations { declarations }) =
+        context.annotations.get_with_id(pou.id)
+    else {
         return;
     };
 
     declarations.iter().for_each(|(method_name, decl)| {
-        let methods = decl.iter().flat_map(|it| context.index.find_pou(it.get_qualified_name())).collect_vec();
-        
-        // validate signatures
-        for window in methods.windows(2) {
-            let (method1, method2) = (window[0], window[1]);
+        // validate that abstract signatures all match
+        // Concrete to abstract methods are checked at a different stage
+        let methods = decl
+            .iter()
+            .filter(|it| it.is_abstract())
+            .flat_map(|it| context.index.find_pou(it.get_qualified_name()));
+        //XXX(ghha) should this not be combinations instead of tuple_windows?
+        for (method1, method2) in methods.tuple_windows() {
             let diagnostics = validate_method_signature(context, method1, method2);
             if !diagnostics.is_empty() {
                 validator.push_diagnostic(
@@ -58,12 +66,28 @@ fn validate_implemented_methods<T: AnnotationMap>(validator: &mut Validator, con
                 return;
             }
         }
-        
+
         // validate that each abstract method has at least one concrete implementation
-        let abstracts = decl.iter().filter(|it| it.is_abstract());
-        let has_concretes = decl.iter().any(|it| it.is_concrete());
-        if !has_concretes {
-            abstracts.map(|it| (it.get_qualified_name(), context.index.find_pou(it.get_qualified_name()).unwrap())).for_each(|(name, intf)| {
+        let abstracts = decl
+            .iter()
+            .filter(|it| it.is_abstract())
+            .map(|it| (it.get_qualifier(), context.index.find_pou(it.get_qualified_name()).unwrap()));
+        // Expecting only one concrete implementation
+        let concrete = decl
+            .iter()
+            .filter(|it| it.is_concrete())
+            .map(|it| context.index.find_pou(it.get_qualified_name()).unwrap())
+            .next();
+        // Validate that each concrete method that has an abstract counterpart has the same signature
+        if let Some(method_impl) = concrete {
+            abstracts.for_each(|(_, method_ref)| {
+                let diagnostics = validate_method_signature(context, method_ref, method_impl);
+                for diagnostic in diagnostics {
+                    validator.push_diagnostic(diagnostic);
+                }
+            });
+        } else {
+            abstracts.for_each(|(name, intf)| {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "Method `{}` defined in interface `{}` is missing in POU `{}`",
@@ -92,32 +116,12 @@ fn validate_method<T: AnnotationMap>(
         return;
     };
 
-    let method_name = method_impl.get_qualified_name().into_iter().last().unwrap_or_default();
-
-    let interface_methods = definitions.iter().flat_map(|it| context.index.find_pou(it)).collect::<Vec<_>>();
-    if interface_methods.len() >= 2 {
-        for methods in interface_methods.windows(2) {
-            let (method1, method2) = (methods[0], methods[1]);
-            let diagnostics = validate_method_signature(context, method1, method2);
-            if !diagnostics.is_empty() {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Method `{}` is defined with different signatures in interfaces `{}` and `{}`",
-                        method_name,
-                        method1.get_parent_pou_name(),
-                        method2.get_parent_pou_name()
-                    ))
-                    .with_error_code("E111")
-                    .with_location(&pou.name_location)
-                    .with_secondary_location(method1.get_location())
-                    .with_secondary_location(method2.get_location())
-                    .with_sub_diagnostics(diagnostics),
-                );
-                //Abort validation
-                return;
-            }
-        }
-    }
+    //Only validate methods that are not abstract, abstract methods are validated in validate_implemented_methods
+    let interface_methods = definitions
+        .iter()
+        .filter(|it| it.is_concrete())
+        .flat_map(|it| context.index.find_pou(it.get_qualified_name()))
+        .collect::<Vec<_>>();
     interface_methods.iter().for_each(|method_ref| {
         let diagnostics = validate_method_signature(context, method_ref, method_impl);
         for diagnostic in diagnostics {
@@ -194,33 +198,6 @@ where
             }
         }
     }
-
-    // // We want to check if two or more interface methods with the same name also have the same signature
-    // let interface_methods = interfaces.iter().flat_map(|it| it.get_methods(ctxt.index)).collect::<Vec<_>>();
-    // let mut occurrences: HashMap<&str, Vec<&PouIndexEntry>> = HashMap::new();
-    // for method in &interface_methods {
-    //     // XXX(volsa): Not entirely happy with this `split` call, is there a better approach?
-    //     let name = method.get_name().rsplit_once('.').map(|(_, last)| last).unwrap_or(method.get_name());
-    //     occurrences.entry(name).and_modify(|entries| entries.push(method)).or_insert(vec![method]);
-    // }
-
-    // // Check if the POUs are implementing the interface methods
-    // for method_interface in &interface_methods {
-    //     // XXX(volsa): Not entirely happy with this `split` call, is there a better approach?
-    //     let (interface_name, method_name) = method_interface.get_name().split_once('.').unwrap();
-
-    //     if ctxt.index.find_method(&pou.name, method_name).is_none() {
-    //         validator.push_diagnostic(
-    //             Diagnostic::new(format!(
-    //                 "Method `{}` defined in interface `{}` is missing in POU `{}`",
-    //                 method_name, interface_name, pou.name
-    //             ))
-    //             .with_error_code("E112")
-    //             .with_location(&pou.name_location)
-    //             .with_secondary_location(method_interface.get_location()),
-    //         );
-    //     }
-    // }
 }
 
 pub fn validate_method_signature<T>(

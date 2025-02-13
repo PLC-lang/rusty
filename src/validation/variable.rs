@@ -274,7 +274,7 @@ fn validate_variable<T: AnnotationMap>(
                             variable.get_name(),
                             shadowed_variable.get_qualifier().unwrap_or_default()
                         ))
-                        .with_error_code("E022")
+                        .with_error_code("E021")
                         .with_location(&variable.location)
                         .with_secondary_location(&shadowed_variable.source_location),
                     );

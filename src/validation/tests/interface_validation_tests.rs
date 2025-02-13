@@ -396,7 +396,7 @@ fn interfaces_with_same_method_name_but_different_signatures_return_type() {
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
     error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
-       ┌─ <internal>:21:16
+       ┌─ <internal>:20:20
        │
      3 │         METHOD foo : INT
        │                --- see also
@@ -404,8 +404,8 @@ fn interfaces_with_same_method_name_but_different_signatures_return_type() {
     12 │         METHOD foo : DINT
        │                --- see also
        ·
-    21 │         METHOD foo : INT
-       │                ^^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+    20 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
+       │                    ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
 
     error[E112]: Return type of `foo` does not match the return type of the method defined in `interfaceA`, expected `INT` but got `DINT` instead
        ┌─ <internal>:12:16
@@ -452,7 +452,7 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
     error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
-       ┌─ <internal>:21:16
+       ┌─ <internal>:20:20
        │
      3 │         METHOD foo : INT
        │                --- see also
@@ -460,8 +460,8 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
     12 │         METHOD foo : INT
        │                --- see also
        ·
-    21 │         METHOD foo : INT
-       │                ^^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+    20 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
+       │                    ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
 
     error[E112]: Interface implementation mismatch: Expected parameter `b` to have `INT` as its type but got `DINT`
        ┌─ <internal>:12:16
@@ -506,7 +506,7 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
     error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
-       ┌─ <internal>:20:16
+       ┌─ <internal>:19:20
        │
      3 │         METHOD foo : INT
        │                --- see also
@@ -514,8 +514,8 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
     12 │         METHOD foo : INT
        │                --- see also
        ·
-    20 │         METHOD foo : INT
-       │                ^^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+    19 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
+       │                    ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
 
     error[E112]: Interface implementation mismatch: Expected parameter `a` to have `INT` as its type but got `__auto_pointer_to_INT`
        ┌─ <internal>:12:16

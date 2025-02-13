@@ -31,7 +31,9 @@ fn overriden_method_is_annotated() {
     Some(
         Override {
             definitions: [
-                "base.foo",
+                Concrete(
+                    "base.foo",
+                ),
             ],
         },
     )
@@ -72,8 +74,12 @@ fn overriden_method_from_multiple_interfaces_is_annotated() {
     Some(
         Override {
             definitions: [
-                "base.foo",
-                "base2.foo",
+                Abstract(
+                    "base.foo",
+                ),
+                Abstract(
+                    "base2.foo",
+                ),
             ],
         },
     )
@@ -83,7 +89,9 @@ fn overriden_method_from_multiple_interfaces_is_annotated() {
     Some(
         Override {
             definitions: [
-                "base2.bar",
+                Abstract(
+                    "base2.bar",
+                ),
             ],
         },
     )
@@ -115,7 +123,9 @@ fn overriden_method_from_interface_is_annotated() {
     Some(
         Override {
             definitions: [
-                "base.foo",
+                Abstract(
+                    "base.foo",
+                ),
             ],
         },
     )
@@ -156,8 +166,12 @@ fn overriden_method_from_interface_and_base_is_annotated() {
     Some(
         Override {
             definitions: [
-                "base.foo",
-                "base2.foo",
+                Concrete(
+                    "base.foo",
+                ),
+                Abstract(
+                    "base2.foo",
+                ),
             ],
         },
     )
@@ -167,7 +181,9 @@ fn overriden_method_from_interface_and_base_is_annotated() {
     Some(
         Override {
             definitions: [
-                "base2.bar",
+                Abstract(
+                    "base2.bar",
+                ),
             ],
         },
     )

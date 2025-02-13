@@ -467,7 +467,7 @@ pub enum StatementAnnotation {
     /// A method override
     Override {
         // The qualified name of all definitions of this method in interfaces or base classes
-        definitions: Vec<String>,
+        definitions: Vec<MethodDeclarationType>,
     },
     Super {
         // Name of the super class (EXTENDS)
@@ -490,6 +490,14 @@ pub enum MethodDeclarationType {
 }
 
 impl MethodDeclarationType {
+    pub fn abstract_method(name: &str) -> Self {
+        MethodDeclarationType::Abstract(name.into())
+    }
+
+    pub fn concrete_method(name: &str) -> Self {
+        MethodDeclarationType::Concrete(name.into())
+    }
+
     pub fn is_abstract(&self) -> bool {
         matches!(self, Self::Abstract(_))
     }
@@ -500,8 +508,23 @@ impl MethodDeclarationType {
 
     pub fn get_qualified_name(&self) -> &str {
         match self {
-            MethodDeclarationType::Abstract(name) |
-            MethodDeclarationType::Concrete(name) => name,
+            MethodDeclarationType::Abstract(name) | MethodDeclarationType::Concrete(name) => name,
+        }
+    }
+
+    pub fn get_qualifier(&self) -> &str {
+        match self {
+            MethodDeclarationType::Abstract(name) | MethodDeclarationType::Concrete(name) => {
+                name.rsplit_once('.').map(|(qualifier, _)| qualifier).unwrap_or(name)
+            }
+        }
+    }
+
+    pub fn get_flat_name(&self) -> &str {
+        match self {
+            MethodDeclarationType::Abstract(name) | MethodDeclarationType::Concrete(name) => {
+                name.rsplit_once('.').map(|(_, flat_name)| flat_name).unwrap_or(name)
+            }
         }
     }
 }
@@ -512,7 +535,7 @@ impl StatementAnnotation {
         StatementAnnotation::Value { resulting_type: type_name.into() }
     }
 
-    pub fn create_override(definitions: Vec<String>) -> Self {
+    pub fn create_override(definitions: Vec<MethodDeclarationType>) -> Self {
         StatementAnnotation::Override { definitions }
     }
 
@@ -1022,9 +1045,9 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn annotate_method(&mut self, id: AstId, parent_pou_name: &String, qualified_name: Vec<&str>) {
+    fn annotate_method(&mut self, id: AstId, parent_pou_name: &str, qualified_name: Vec<&str>) {
         let method_name = qualified_name.last().expect("Method has a name");
-        self.dependencies.insert(Dependency::Datatype(parent_pou_name.clone()));
+        self.dependencies.insert(Dependency::Datatype(parent_pou_name.into()));
         //If the method is overriden, annotate the method with the original method
         //Get the method's pou index entry in the super class
         // TODO: lazy inheritance iterator
@@ -1032,7 +1055,7 @@ impl<'i> TypeAnnotator<'i> {
             let mut overrides = vec![];
             if let Some(super_class) = base_pou.get_super_class().and_then(|it| self.index.find_pou(it)) {
                 if let Some(method) = self.index.find_method(super_class.get_name(), method_name) {
-                    overrides.push(method.get_name().into());
+                    overrides.push(MethodDeclarationType::concrete_method(method.get_name()));
                 }
             }
             // Annotate all methods with the interface methods
@@ -1044,7 +1067,7 @@ impl<'i> TypeAnnotator<'i> {
                         .iter()
                         .find(|it| it.rsplit_once('.').map(|(_, it)| it).as_ref().unwrap() == method_name)
                     {
-                        overrides.push(name.into());
+                        overrides.push(MethodDeclarationType::abstract_method(name));
                     }
                 }
             });
