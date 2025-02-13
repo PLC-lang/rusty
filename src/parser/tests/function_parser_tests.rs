@@ -582,8 +582,7 @@ fn constant_pragma_can_be_parsed_but_errs() {
     ");
 }
 
-// TODO(volsa): We should test all keywords here. Also we need better error messages here and shouldn't stop
-//              after the first keyword / error as it currently is the case.
+// TODO(volsa): https://github.com/PLC-lang/rusty/issues/1408
 #[test]
 fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
     let source = r"

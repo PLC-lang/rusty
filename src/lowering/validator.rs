@@ -28,7 +28,7 @@ impl ParticipantValidator {
                         name = property.name
                     ))
                     .with_location(property.parent_name_location.clone())
-                    .with_error_code("E114"),
+                    .with_error_code("E116"),
                 );
             }
 
@@ -41,7 +41,7 @@ impl ParticipantValidator {
                                 Diagnostic::new("Properties only allow variable blocks of type VAR")
                                     .with_secondary_location(variable.location.clone())
                                     .with_location(property.name_location.clone())
-                                    .with_error_code("E115"),
+                                    .with_error_code("E116"),
                             );
                         }
                     }
@@ -58,7 +58,7 @@ impl ParticipantValidator {
                 self.diagnostics.push(
                     Diagnostic::new("Property has no GET or SET block")
                         .with_location(property.name_location.clone())
-                        .with_error_code("E116"),
+                        .with_error_code("E117"),
                 );
                 continue;
             }
@@ -68,7 +68,7 @@ impl ParticipantValidator {
                     Diagnostic::new("Property has more than one GET block")
                         .with_location(property.name_location.clone())
                         .with_secondary_locations(get_blocks)
-                        .with_error_code("E116"),
+                        .with_error_code("E117"),
                 );
             }
 
@@ -77,7 +77,7 @@ impl ParticipantValidator {
                     Diagnostic::new("Property has more than one SET block")
                         .with_location(property.name_location.clone())
                         .with_secondary_locations(set_blocks)
-                        .with_error_code("E116"),
+                        .with_error_code("E117"),
                 );
             }
         }

@@ -262,10 +262,10 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 &self.context,
                 self.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default(),
             )),
+            Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
-            Box::new(PropertyLowerer::new(self.context.provider())),
         ];
 
         for participant in participants {
