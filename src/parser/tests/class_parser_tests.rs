@@ -1,6 +1,7 @@
+use insta::assert_snapshot;
 use plc_ast::ast::{AccessModifier, ArgumentProperty, PolymorphismMode, PouType, VariableBlockType};
 
-use crate::test_utils::tests::parse;
+use crate::test_utils::tests::{parse, parse_and_validate_buffered};
 
 #[test]
 fn simple_class_with_defaults_can_be_parsed() {
@@ -575,4 +576,40 @@ fn function_block_with_extends_and_implements_can_be_parsed() {
     assert_eq!(fb2.name, "MyFb2");
     assert_eq!(fb2.super_class.as_ref().unwrap(), "MyFb");
     assert_eq!(fb2.interfaces[0].name, "MyInterface");
+}
+
+#[test]
+fn function_block_can_only_be_extended_once() {
+    let src = r#"
+        FUNCTION_BLOCK foo
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK bar EXTENDS foo
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK baz EXTENDS foo
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK qux
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK quux EXTENDS bar EXTENDS baz EXTENDS qux
+        END_FUNCTION_BLOCK
+    "#;
+
+    let diagnostics = parse_and_validate_buffered(src);
+
+    assert_snapshot!(diagnostics, @r"
+    error[E114]: Multiple inheritance. POUs can only be extended once.
+       ┌─ <internal>:14:49
+       │
+    14 │         FUNCTION_BLOCK quux EXTENDS bar EXTENDS baz EXTENDS qux
+       │                                                 ^^^ Multiple inheritance. POUs can only be extended once.
+
+    error[E114]: Multiple inheritance. POUs can only be extended once.
+       ┌─ <internal>:14:61
+       │
+    14 │         FUNCTION_BLOCK quux EXTENDS bar EXTENDS baz EXTENDS qux
+       │                                                             ^^^ Multiple inheritance. POUs can only be extended once.
+    ")
 }

@@ -2149,8 +2149,8 @@ fn var_config_hardware_address_creates_global_variable() {
 fn var_externals_are_distinctly_indexed() {
     let (_, index) = index(
         "
-            VAR_GLOBAL 
-                arr: ARRAY [0..100] OF INT; 
+            VAR_GLOBAL
+                arr: ARRAY [0..100] OF INT;
             END_VAR
 
             FUNCTION foo
@@ -2173,8 +2173,8 @@ fn var_externals_are_distinctly_indexed() {
 fn var_externals_constants_are_both_flagged_as_external_and_constant() {
     let (_, index) = index(
         "
-            VAR_GLOBAL 
-                arr: ARRAY [0..100] OF INT; 
+            VAR_GLOBAL
+                arr: ARRAY [0..100] OF INT;
             END_VAR
 
             FUNCTION foo
@@ -2187,4 +2187,40 @@ fn var_externals_constants_are_both_flagged_as_external_and_constant() {
 
     let external = &index.get_pou_members("foo")[0];
     assert!(external.is_var_external() && external.is_constant());
+}
+
+#[test]
+fn inheritance_chain_correctly_finds_parents() {
+    let (_, index) = index(
+        "
+        FUNCTION_BLOCK grandparent
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK parent EXTENDS grandparent
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK child EXTENDS parent
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let inheritance_chain = index.get_inheritance_chain("child", "child");
+    assert_eq!(inheritance_chain, vec![index.find_pou("child").unwrap()]);
+    let inheritance_chain = index.get_inheritance_chain("child", "parent");
+    assert_eq!(inheritance_chain, vec![index.find_pou("parent").unwrap(), index.find_pou("child").unwrap()]);
+    let inheritance_chain = index.get_inheritance_chain("child", "grandparent");
+    assert_eq!(
+        inheritance_chain,
+        vec![
+            index.find_pou("grandparent").unwrap(),
+            index.find_pou("parent").unwrap(),
+            index.find_pou("child").unwrap()
+        ]
+    );
+    let inheritance_chain = index.get_inheritance_chain("parent", "child");
+    assert_eq!(inheritance_chain, Vec::<&PouIndexEntry>::new());
+    let inheritance_chain = index.get_inheritance_chain("grandparent", "parent");
+    assert_eq!(inheritance_chain, Vec::<&PouIndexEntry>::new());
+    let inheritance_chain = index.get_inheritance_chain("grandparent", "child");
+    assert_eq!(inheritance_chain, Vec::<&PouIndexEntry>::new());
 }

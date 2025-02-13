@@ -24,7 +24,11 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{property::PropertyLowerer, validator::ParticipantValidator, InitVisitor},
+    lowering::{
+        property::PropertyLowerer,
+        validator::ParticipantValidator,
+        {calls::AggregateTypeLowerer, InitVisitor},
+    },
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -39,6 +43,7 @@ use plc_diagnostics::{
     diagnostics::{Diagnostic, Severity},
 };
 use plc_index::GlobalContext;
+use plc_lowering::inheritance::InheritanceLowerer;
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -247,27 +252,28 @@ impl<T: SourceContainer> BuildPipeline<T> {
             log::info!("{err}")
         }
     }
-
     /// Register all default participants (excluding codegen/linking)
     pub fn register_default_participants(&mut self) {
         use participant::InitParticipant;
-        use plc::lowering::calls::AggregateTypeLowerer;
-
         // XXX: should we use a static array of participants?
-        let init_participant =
-            InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider());
-        self.register_mut_participant(Box::new(init_participant));
+        let participants: Vec<Box<dyn PipelineParticipant>> = vec![];
+        let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
+            Box::new(ParticipantValidator::new(
+                &self.context,
+                self.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default(),
+            )),
+            Box::new(InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider())),
+            Box::new(AggregateTypeLowerer::new(self.context.provider())),
+            Box::new(InheritanceLowerer::new(self.context.provider())),
+            Box::new(PropertyLowerer::new(self.context.provider())),
+        ];
 
-        // Note: The order matters here, the PropertyLowerer will drain the `properties` field, meaning the
-        //       PariticipantValidator has to run first since it uses these `properties`
-        self.register_mut_participant(Box::new(ParticipantValidator::new(
-            &self.context,
-            self.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default(),
-        )));
-        self.register_mut_participant(Box::new(PropertyLowerer::new(self.context.provider())));
-
-        let aggregate_return_participant = AggregateTypeLowerer::new(self.context.provider());
-        self.register_mut_participant(Box::new(aggregate_return_participant));
+        for participant in participants {
+            self.register_participant(participant)
+        }
+        for participant in mut_participants {
+            self.register_mut_participant(participant)
+        }
     }
 }
 
@@ -413,6 +419,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         Ok(())
     }
 }
+
 pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
     if !Path::new(location).is_file() {
         // Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
