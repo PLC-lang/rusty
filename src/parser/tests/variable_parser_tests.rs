@@ -259,7 +259,7 @@ fn var_config_test() {
     let (result, diag) = parse(src);
 
     assert!(diag.is_empty());
-    insta::assert_debug_snapshot!(result, @r###"
+    insta::assert_debug_snapshot!(result, @r#"
     CompilationUnit {
         global_vars: [],
         var_config: [
@@ -407,8 +407,9 @@ fn var_config_test() {
         interfaces: [],
         user_types: [],
         file_name: "test.st",
+        properties: [],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -440,7 +441,7 @@ fn var_external() {
 
     let (result, _) = parse(src);
 
-    insta::assert_debug_snapshot!(result, @r###"
+    insta::assert_debug_snapshot!(result, @r#"
     CompilationUnit {
         global_vars: [
             VariableBlock {
@@ -546,8 +547,9 @@ fn var_external() {
         interfaces: [],
         user_types: [],
         file_name: "test.st",
+        properties: [],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -566,7 +568,7 @@ fn var_external_constant() {
 
     let (result, _) = parse(src);
 
-    insta::assert_debug_snapshot!(result, @r###"
+    insta::assert_debug_snapshot!(result, @r#"
     CompilationUnit {
         global_vars: [
             VariableBlock {
@@ -672,6 +674,7 @@ fn var_external_constant() {
         interfaces: [],
         user_types: [],
         file_name: "test.st",
+        properties: [],
     }
-    "###);
+    "#);
 }

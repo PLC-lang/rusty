@@ -21,6 +21,7 @@ use std::convert::Infallible;
 use std::str::FromStr;
 
 use clap::clap_derive::ArgEnum;
+use plc_index::ErrorFormat as IndexErrorFormat;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -153,6 +154,16 @@ pub enum ErrorFormat {
     Rich,
     Clang,
     None,
+}
+
+impl From<ErrorFormat> for IndexErrorFormat {
+    fn from(value: ErrorFormat) -> Self {
+        match value {
+            ErrorFormat::Rich => IndexErrorFormat::Rich,
+            ErrorFormat::Clang => IndexErrorFormat::Clang,
+            ErrorFormat::None => IndexErrorFormat::Null,
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]

@@ -126,6 +126,15 @@ impl CodeSpan {
         }
     }
 
+    /// Gets the colmumn representation for a source location
+    /// If the location does not represent a line, 0 is returned
+    pub fn get_line_end(&self) -> usize {
+        match self {
+            Self::Range(range) => range.end.line,
+            _ => 0,
+        }
+    }
+
     pub fn get_line_plus_one(&self) -> usize {
         match self {
             Self::Range(range) => range.start.line + 1,
@@ -139,6 +148,15 @@ impl CodeSpan {
     pub fn get_column(&self) -> usize {
         match self {
             Self::Range(range) => range.start.column,
+            _ => 0,
+        }
+    }
+
+    /// Gets the colmumn representation for a source location
+    /// If the location does not represent a line, 0 is returned
+    pub fn get_column_end(&self) -> usize {
+        match self {
+            Self::Range(range) => range.end.column,
             _ => 0,
         }
     }
@@ -247,6 +265,13 @@ impl SourceLocation {
         self.span.get_line()
     }
 
+    /// Gets the line representation for a source location
+    /// If the location does not represent a line, the closest equivalent is returned
+    /// That is 0 for None and the ID for id/inner spans
+    pub fn get_line_end(&self) -> usize {
+        self.span.get_line_end()
+    }
+
     /// Same as [`get_line`] but adds one to the line number if its of type [`CodeSpan::Range`].
     pub fn get_line_plus_one(&self) -> usize {
         self.span.get_line_plus_one()
@@ -256,6 +281,12 @@ impl SourceLocation {
     /// If the location does not represent a line, 0 is returned
     pub fn get_column(&self) -> usize {
         self.span.get_column()
+    }
+
+    /// Gets the colmumn representation for a source location
+    /// If the location does not represent a line, 0 is returned
+    pub fn get_column_end(&self) -> usize {
+        self.span.get_column_end()
     }
 
     /// returns a new SourceRange that spans `this` and the `other` range.

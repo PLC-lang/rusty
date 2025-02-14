@@ -827,3 +827,22 @@ fn lowercase_keywords_accepted() {
         result.advance();
     }
 }
+
+#[test]
+fn property_related_keywords() {
+    let mut lexer = lex(r"
+        PROPERTY END_PROPERTY GET END_GET SET END_SET
+        ENDPROPERTY ENDGET ENDSET
+    ");
+
+    assert!(lexer.try_consume(KeywordProperty));
+    assert!(lexer.try_consume(KeywordEndProperty));
+    assert!(lexer.try_consume(KeywordGet));
+    assert!(lexer.try_consume(KeywordEndGet));
+    assert!(lexer.try_consume(KeywordSet));
+    assert!(lexer.try_consume(KeywordEndSet));
+
+    assert!(lexer.try_consume(KeywordEndProperty));
+    assert!(lexer.try_consume(KeywordEndGet));
+    assert!(lexer.try_consume(KeywordEndSet));
+}

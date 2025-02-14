@@ -459,6 +459,32 @@ fn validate_reference<T: AnnotationMap>(
 ) {
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
+        // XXX: Temporary solution, is there a better way? Technically we could introduce a diagnostic when
+        //      lowering the references to calls, then checking with the index if the defined POU exists but
+        //      then we'd get two similar error, one describing what the exact issue is (i.e. no get/set) and
+        //      the other describing that it cant find a reference to "__{get,set}_<property name>"
+        match ref_name {
+            _ if ref_name.starts_with("__set") => {
+                validator.push_diagnostic(
+                    Diagnostic::new("SET property not defined")
+                        .with_error_code("E048")
+                        .with_location(location),
+                );
+                return;
+            }
+
+            _ if ref_name.starts_with("__get") => {
+                validator.push_diagnostic(
+                    Diagnostic::new("GET property not defined")
+                        .with_error_code("E048")
+                        .with_location(location),
+                );
+                return;
+            }
+
+            _ => (),
+        };
+
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
 
         // was this meant as a direct access?
@@ -490,8 +516,8 @@ fn validate_reference<T: AnnotationMap>(
                 && context
                     .qualifier
                     .and_then(|qualifier| context.index.find_pou(qualifier))
-                    .map(|pou| (pou.get_name(), pou.get_container())) // get the container pou (for actions this is the program/fb)
-                    .map_or(false, |(pou, container)| {
+                    .map(|pou| (pou.get_name(), pou.get_container()))
+                    .is_some_and(|(pou, container)| {
                         !qualified_name.starts_with(pou)
                             && !qualified_name.starts_with(container)
                             && !context.index.is_init_function(pou)
