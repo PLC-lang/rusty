@@ -156,7 +156,7 @@
 <p>Stack-local variables do not yet exist at the time of initialization. Additionally, pointing to a temporary variable will lead to a dangling pointer
 as soon as it goes out of scope - potential use after free.</p>
 <p>Erroneous code example:</p>
-<pre><code>FUNCTION_BLOCK foo
+<pre><code class="language-iecst">FUNCTION_BLOCK foo
     VAR
         a : REF_TO BOOL := REF(b);
     END_VAR

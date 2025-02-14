@@ -573,7 +573,7 @@ END_PROGRAM
 <div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-parameter-type"><a class="header" href="#invalid-parameter-type">Invalid parameter type</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-number-of-arguments"><a class="header" href="#invalid-number-of-arguments">Invalid number of arguments</a></h1>
 <p>An invalid number of arguments was passed to a POU. For example</p>
-<pre><code>FUNCTION foo
+<pre><code class="language-iecst">FUNCTION foo
     (* ... *)
 END_FUNCTION
 
@@ -649,7 +649,7 @@ which (internally) yield a literal integer 0, 1 or 2.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="incompatible-reference-assingment"><a class="header" href="#incompatible-reference-assingment">Incompatible reference assingment</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="unsafe-enum-assignment"><a class="header" href="#unsafe-enum-assignment">Unsafe Enum Assignment</a></h1>
 <p>At runtime there is no way to guarantee that a non-const reference will not change its value to something out-of-bounds for enums. For example consider the following</p>
-<pre><code>PROGRAM main
+<pre><code class="language-iecst">PROGRAM main
     VAR
         zero  : DINT := 0;
         color : (red := 0, green := 1, blue := 2);
@@ -702,7 +702,7 @@ A valid range for the given statement would have been <code>ARRAY[-1..0]</code>.
 <p><code>REF=</code> assignments are considered valid if the left-hand side of the assignment is a pointer variable
 and the right-hand side is a variable of the type that is being referenced.</p>
 <p>For example assignments such as the following are invalid</p>
-<pre><code class="language-smalltalk">VAR
+<pre><code class="language-iecst">VAR
     foo     : DINT;
     bar     : DINT;
     qux     : SINT;
@@ -722,7 +722,7 @@ refFoo  REF= qux;       // `refFoo` and `qux` have different types, DINT vs SINT
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="immutable-variable-address"><a class="header" href="#immutable-variable-address">Immutable Variable Address</a></h1>
 <p>Alias variables are immutable with regards to their pointer address, thus re-assigning an address will return an error. For example the following code will not compile</p>
-<pre><code class="language-ST">FUNCTION main
+<pre><code class="language-iecst">FUNCTION main
     VAR
         foo AT bar : DINT;
         bar : DINT;
@@ -736,7 +736,7 @@ END_FUNCTION
 <div style="break-before: page; page-break-before: always;"></div><h1 id="template-variable-does-not-exist"><a class="header" href="#template-variable-does-not-exist">Template variable does not exist</a></h1>
 <p>A variable was configured in a <code>VAR_CONFIG</code> block, but the variable can not be found in the code.</p>
 <p>Erroneous code example:</p>
-<pre><code>VAR_CONFIG
+<pre><code class="language-iecst">VAR_CONFIG
     main.foo.bar AT %IX1.0 : BOOL;
 END_VAR
 
@@ -757,7 +757,7 @@ a <code>bar</code> variable. The could should have been <code>main.foo.qux AT %I
 <div style="break-before: page; page-break-before: always;"></div><h1 id="template-variable-without-hardware-binding"><a class="header" href="#template-variable-without-hardware-binding">Template variable without hardware binding</a></h1>
 <p>A template variable must contain a hardware binding.</p>
 <p>Erroneous code example:</p>
-<pre><code>VAR_CONFIG
+<pre><code class="language-iecst">VAR_CONFIG
     main.foo.bar AT %IX1.0 : BOOL;
 END_VAR
 
@@ -779,7 +779,7 @@ considered valid, <code>bar</code> should have been declared as e.g. <code>bar A
 <div style="break-before: page; page-break-before: always;"></div><h1 id="immutable-hardware-binding"><a class="header" href="#immutable-hardware-binding">Immutable Hardware Binding</a></h1>
 <p>Variables configured in a <code>VAR_CONFIG</code> block can not override their hardware binding.</p>
 <p>Erroneous code example:</p>
-<pre><code>VAR_CONFIG
+<pre><code class="language-iecst">VAR_CONFIG
     main.foo.bar AT %IX1.0 : BOOL;
 END_VAR
 
@@ -801,7 +801,7 @@ However, at the same time the <code>bar</code> inside the POU <code>foo_fb</code
 <div style="break-before: page; page-break-before: always;"></div><h1 id="config-variable-with-incomplete-address"><a class="header" href="#config-variable-with-incomplete-address">Config Variable With Incomplete Address</a></h1>
 <p>Variables defined in a <code>VAR_CONFIG</code> block, i.e. config variables, must specify a complete address.</p>
 <p>Erroneous code example:</p>
-<pre><code>VAR_CONFIG
+<pre><code class="language-iecst">VAR_CONFIG
     main.foo.bar AT %I* : BOOL;
 END_VAR
 </code></pre>
@@ -810,7 +810,7 @@ For the example to be considered valid, a specific address such as <code>%IX1.0<
 <div style="break-before: page; page-break-before: always;"></div><h1 id="constant-keyword-in-pou"><a class="header" href="#constant-keyword-in-pou">CONSTANT keyword in POU</a></h1>
 <p>The <code>CONSTANT</code> keyword is not allowed for POU declarations, only variables can be <code>CONSTANT</code></p>
 <p>Erroneous code example:</p>
-<pre><code>FUNCTION FOO : BOOL CONSTANT 
+<pre><code class="language-iecst">FUNCTION FOO : BOOL CONSTANT 
 VAR_INPUT
 END_VAR
     // ...
@@ -819,7 +819,7 @@ END_FUNCTION
 <div style="break-before: page; page-break-before: always;"></div><h1 id="var_external-blocks-have-no-effect"><a class="header" href="#var_external-blocks-have-no-effect">VAR_EXTERNAL blocks have no effect</a></h1>
 <p>Variables declared in a <code>VAR_EXTERNAL</code> block are currently ignored and the referenced globals will be used instead.</p>
 <p>Example:</p>
-<pre><code>VAR_GLOBAL
+<pre><code class="language-iecst">VAR_GLOBAL
     myArray : ARRAY [0..10] OF INT;
     myString: STRING;
 END_VAR
@@ -838,7 +838,7 @@ is not declared in a <code>VAR_EXTERNAL</code> block.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="missing-configuration-for-template-variable"><a class="header" href="#missing-configuration-for-template-variable">Missing configuration for template variable</a></h1>
 <p>A template variable was left unconfigured.</p>
 <p>Erroneous code example:</p>
-<pre><code>VAR_CONFIG
+<pre><code class="language-iecst">VAR_CONFIG
     main.foo.bar AT %IX1.0 : BOOL;
 END_VAR
 
@@ -860,7 +860,7 @@ an address-configuration for it. Each template variable needs to be configured, 
 <div style="break-before: page; page-break-before: always;"></div><h1 id="template-variable-is-configured-multiple-times"><a class="header" href="#template-variable-is-configured-multiple-times">Template variable is configured multiple times</a></h1>
 <p>A template variable is configured more than once, leading to ambiguity.</p>
 <p>Erroneous code example:</p>
-<pre><code>VAR_CONFIG
+<pre><code class="language-iecst">VAR_CONFIG
     main.foo.bar AT %IX1.0 : BOOL;
     main.foo.bar AT %IX1.1 : BOOL;
 END_VAR
@@ -882,7 +882,7 @@ END_FUNCTION_BLOCK
 <p>Stack-local variables do not yet exist at the time of initialization. Additionally, pointing to a temporary variable will lead to a dangling pointer
 as soon as it goes out of scope - potential use after free.</p>
 <p>Erroneous code example:</p>
-<pre><code>FUNCTION_BLOCK foo
+<pre><code class="language-iecst">FUNCTION_BLOCK foo
     VAR
         a : REF_TO BOOL := REF(b);
     END_VAR
@@ -895,7 +895,7 @@ END_FUNCTION_BLOCK
 <p>Interfaces can only be implemented on classes and function-blocks, any other POU type is invalid and will
 result in this error.</p>
 <p>Errouneus code example:</p>
-<pre><code>INTERFACE interfaceA
+<pre><code class="language-iecst">INTERFACE interfaceA
     /* ... */
 END_INTERFACE
 
@@ -909,7 +909,7 @@ END_FUNCTION_BLOCK
 to have the same signature for the method. A method signature is thereby defined by its name, return type and
 parameter list.</p>
 <p>Errouneus code example:</p>
-<pre><code>INTERFACE interfaceA
+<pre><code class="language-iecst">INTERFACE interfaceA
     METHOD foo : INT
         VAR_INPUT
             a : INT;
@@ -947,7 +947,7 @@ Generally speaking this error is raised when any of the following conditions are
 the interface (name, data type, or variable block type i.e. INPUT, OUTPUT, IN_OUT)</li>
 </ol>
 <p>Errouneus code example:</p>
-<pre><code>INTERFACE interfaceA
+<pre><code class="language-iecst">INTERFACE interfaceA
     METHOD foo : INT
         VAR_INPUT
             a : INT;
@@ -976,7 +976,7 @@ an interface can no longer be guaranteed.</p>
 used to validate and/or generate code and thus will have no effect. This may change in the future but as of
 now is not supported.</p>
 <p>Erreneous code example:</p>
-<pre><code>INTERFACE interfaceA
+<pre><code class="language-iecst">INTERFACE interfaceA
     METHOD methodA : INT
         methodA := 5; // This counts as a default implementation and hence will return a warning
     END_METHOD
@@ -985,7 +985,7 @@ END_INTERFACE
 <div style="break-before: page; page-break-before: always;"></div><h1 id="cannot-extend-a-pou-multiple-times"><a class="header" href="#cannot-extend-a-pou-multiple-times">Cannot extend a POU multiple times</a></h1>
 <p>Multiple <code>EXTENDS</code> keywords are not allowed</p>
 <p>Erreneous code example:</p>
-<pre><code>FUNCTION_BLOCK foo EXTENDS bar EXTENDS baz
+<pre><code class="language-iecst">FUNCTION_BLOCK foo EXTENDS bar EXTENDS baz
     // ...
 END_FUNCTION_BLOCK
 </code></pre>
