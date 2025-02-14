@@ -3,9 +3,12 @@ use crate::{
     lowering::{create_assignment_if_necessary, create_call_statement, create_member_reference},
     resolver::const_evaluator::UnresolvableConstant,
 };
-use plc_ast::ast::{
-    AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, Implementation, LinkageType, Pou, PouType,
-    Variable, VariableBlock, VariableBlockType,
+use plc_ast::{
+    ast::{
+        AstFactory, AstId, AstNode, CompilationUnit, DataTypeDeclaration, Implementation, LinkageType, Pou,
+        PouType, Variable, VariableBlock, VariableBlockType,
+    },
+    provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
 
@@ -122,9 +125,9 @@ impl InitVisitor {
     }
 }
 
-fn create_var_config_init(statements: Vec<AstNode>) -> CompilationUnit {
+fn create_var_config_init(statements: Vec<AstNode>, mut id_provider: IdProvider) -> CompilationUnit {
     let loc = SourceLocation::internal_in_unit(Some(INIT_COMPILATION_UNIT));
-    let pou = new_pou(VAR_CONFIG_INIT, vec![], PouType::Init, &loc); // this can probably just be internal
+    let pou = new_pou(VAR_CONFIG_INIT, id_provider.next_id(), vec![], PouType::Init, &loc); // this can probably just be internal
     let implementation = new_implementation(VAR_CONFIG_INIT, statements, PouType::Init, &loc);
     new_unit(pou, implementation, INIT_COMPILATION_UNIT)
 }
@@ -151,7 +154,7 @@ fn create_init_unit(
     assignments: &InitAssignments,
     all_init_units: &FxIndexSet<&str>,
 ) -> Option<CompilationUnit> {
-    let id_provider = &lowerer.ctxt.id_provider;
+    let mut id_provider = lowerer.ctxt.id_provider.clone();
     let init_fn_name = get_init_fn_name(container_name);
     let (is_stateless, location) = lowerer
         .index
@@ -181,7 +184,7 @@ fn create_init_unit(
         "self".to_string(),
     );
 
-    let init_pou = new_pou(&init_fn_name, param, PouType::Init, location);
+    let init_pou = new_pou(&init_fn_name, id_provider.next_id(), param, PouType::Init, location);
 
     let mut statements = assignments
         .iter()
@@ -233,7 +236,13 @@ fn create_init_wrapper_function(
     };
 
     let mut id_provider = lowerer.ctxt.id_provider.clone();
-    let init_pou = new_pou(init_symbol_name, vec![], PouType::ProjectInit, &SourceLocation::internal());
+    let init_pou = new_pou(
+        init_symbol_name,
+        id_provider.next_id(),
+        vec![],
+        PouType::ProjectInit,
+        &SourceLocation::internal(),
+    );
 
     let global_instances = if let Some(global_instances) =
         lowerer.unresolved_initializers.get(GLOBAL_SCOPE).map(|it| {
@@ -306,14 +315,22 @@ fn create_init_wrapper_function(
         return Some(global_init);
     };
 
-    let var_config_init = create_var_config_init(std::mem::take(&mut lowerer.var_config_initializers));
+    let var_config_init =
+        create_var_config_init(std::mem::take(&mut lowerer.var_config_initializers), id_provider.clone());
     global_init.import(var_config_init);
     Some(global_init)
 }
 
-fn new_pou(name: &str, variable_blocks: Vec<VariableBlock>, kind: PouType, location: &SourceLocation) -> Pou {
+fn new_pou(
+    name: &str,
+    id: AstId,
+    variable_blocks: Vec<VariableBlock>,
+    kind: PouType,
+    location: &SourceLocation,
+) -> Pou {
     Pou {
         name: name.into(),
+        id,
         variable_blocks,
         kind,
         return_type: None,

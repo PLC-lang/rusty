@@ -2,10 +2,8 @@
 source: src/validation/tests/pou_validation_tests.rs
 expression: "&diagnostics"
 ---
-error[E021]: A program cannot use `EXTEND`
+error[E110]: Subclassing is only allowed in `CLASS` and `FUNCTION_BLOCK`
   ┌─ <internal>:5:17
   │
 5 │         PROGRAM prog EXTENDS cls
-  │                 ^^^^ A program cannot use `EXTEND`
-
-
+  │                 ^^^^ Subclassing is only allowed in `CLASS` and `FUNCTION_BLOCK`

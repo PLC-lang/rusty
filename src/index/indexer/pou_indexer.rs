@@ -142,6 +142,7 @@ impl<'i> PouIndexer<'i> {
             pou.linkage,
             pou.name_location.clone(),
             pou.super_class.clone(),
+            pou.interfaces.clone(),
         ));
         self.index.register_pou_type(pou_struct_type);
     }
@@ -162,7 +163,8 @@ impl<'i> PouIndexer<'i> {
             &pou.name,
             pou.linkage,
             pou.name_location.clone(),
-            pou.super_class.clone().as_deref(),
+            pou.super_class.clone(),
+            pou.interfaces.clone(),
         ));
         self.index.register_pou_type(pou_struct_type);
     }

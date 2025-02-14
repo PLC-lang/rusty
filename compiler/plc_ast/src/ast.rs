@@ -31,6 +31,7 @@ pub struct GenericBinding {
 #[derive(PartialEq)]
 pub struct Pou {
     pub name: String,
+    pub id: AstId,
     pub kind: PouType,
     pub variable_blocks: Vec<VariableBlock>,
     pub return_type: Option<DataTypeDeclaration>,
@@ -41,7 +42,7 @@ pub struct Pou {
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
-    pub super_class: Option<String>,
+    pub super_class: Option<InterfaceIdentifier>,
     /// A list of interfaces this POU implements
     pub interfaces: Vec<InterfaceIdentifier>,
     pub is_const: bool,
@@ -57,7 +58,7 @@ pub struct Interface {
 
 /// Helper struct for [`Pou`] to get the location of the interface without relying on [`Interface`] which
 /// only exists if the interface is actually defined. Mostly needed for user-friendly validation messages.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct InterfaceIdentifier {
     pub name: String,
     pub location: SourceLocation,
