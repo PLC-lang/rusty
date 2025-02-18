@@ -208,8 +208,6 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
                         );
                     }
 
-                    dbg!(&method);
-
                     methods.push(method);
                     implementations.push(imp);
                 }
