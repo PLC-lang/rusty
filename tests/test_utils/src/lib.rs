@@ -19,3 +19,8 @@ pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Resul
     }
     .map_err(|it| it.to_string())
 }
+
+pub fn parse_and_validate_buffered(src: &str) -> String {
+    let source: SourceCode = src.into();
+    driver::parse_and_validate("TestProject", vec![source])
+}

@@ -29,7 +29,7 @@ fn extends_can_be_parsed() {
     ";
     let unit = parse(src).0;
 
-    assert_eq!(&unit.units[1].super_class.clone().unwrap(), "MyClass");
+    assert_eq!(&unit.units[1].super_class.as_ref().unwrap().name, "MyClass");
 }
 
 #[test]
@@ -526,7 +526,7 @@ fn fb_extends_can_be_parsed() {
     "#;
     let unit = parse(src).0;
 
-    assert_eq!(&unit.units[1].super_class.clone().unwrap(), "MyFb");
+    assert_eq!(&unit.units[1].super_class.as_ref().unwrap().name, "MyFb");
 }
 #[test]
 fn class_with_extends_and_implements_can_be_parsed() {
@@ -548,7 +548,7 @@ fn class_with_extends_and_implements_can_be_parsed() {
     let class2 = &unit.units[1];
     assert_eq!(class2.kind, PouType::Class);
     assert_eq!(class2.name, "MyClass2");
-    assert_eq!(class2.super_class.as_ref().unwrap(), "MyClass");
+    assert_eq!(class2.super_class.as_ref().unwrap().name, "MyClass");
     assert_eq!(class2.interfaces[0].name, "MyInterface");
 }
 
@@ -574,7 +574,7 @@ fn function_block_with_extends_and_implements_can_be_parsed() {
     let fb2 = &unit.units[1];
     assert_eq!(fb2.kind, PouType::FunctionBlock);
     assert_eq!(fb2.name, "MyFb2");
-    assert_eq!(fb2.super_class.as_ref().unwrap(), "MyFb");
+    assert_eq!(fb2.super_class.as_ref().unwrap().name, "MyFb");
     assert_eq!(fb2.interfaces[0].name, "MyInterface");
 }
 
