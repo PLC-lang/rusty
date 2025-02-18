@@ -8,6 +8,7 @@ use super::{
 use crate::{
     index::PouIndexEntry,
     resolver::{AnnotationMap, StatementAnnotation},
+    typesystem::DataTypeInformation,
 };
 
 pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
@@ -207,6 +208,24 @@ pub fn validate_method_signature<T>(
 where
     T: AnnotationMap,
 {
+    let validate_array_param = |left: &DataTypeInformation, right: &DataTypeInformation| {
+        let left_name = left
+            .get_inner_array_type_name()
+            .map(|it| ctxt.index.get_effective_type_or_void_by_name(it).get_name())
+            .unwrap_or_default();
+        let right_name = right
+            .get_inner_array_type_name()
+            .map(|it| ctxt.index.get_effective_type_or_void_by_name(it).get_name())
+            .unwrap_or_default();
+        if left_name != right_name {
+            todo!("Inner type mismatch")
+        };
+        let left_size = left.get_array_length(ctxt.index).unwrap_or_default();
+        let right_size = right.get_array_length(ctxt.index).unwrap_or_default();
+        if left_size != right_size {
+            todo!("Array size mismatch")
+        }
+    };
     let mut diagnostics = Vec::new();
     let method_name = method_ref.get_qualified_name().into_iter().last().unwrap_or_default();
 
@@ -217,10 +236,14 @@ where
     let method_ref_return_type_name = method_ref.get_return_type().unwrap_or_default();
     let method_impl_return_type_name = method_impl.get_return_type().unwrap_or_default();
 
-    let return_type_ref = ctxt.index.get_effective_type_or_void_by_name(method_ref_return_type_name);
-    let return_type_impl = ctxt.index.get_effective_type_or_void_by_name(method_impl_return_type_name);
+    let return_type_ref =
+        ctxt.index.get_intrinsic_type_by_name(method_ref_return_type_name).get_type_information();
+    let return_type_impl =
+        ctxt.index.get_intrinsic_type_by_name(method_impl_return_type_name).get_type_information();
 
-    if return_type_impl != return_type_ref {
+    if return_type_impl.is_array() && return_type_ref.is_array() {
+        validate_array_param(return_type_impl, return_type_ref);
+    } else if return_type_impl != return_type_ref {
         diagnostics.push(
             Diagnostic::new(format!(
                 "Return type of `{}` does not match the return type of the method defined in `{}`, expected `{}` but got `{}` instead",
@@ -257,7 +280,21 @@ where
                 }
 
                 // Type
-                if parameter_impl.get_type_name() != parameter_ref.get_type_name() {
+                let impl_ty_info = ctxt
+                    .index
+                    .get_effective_type_or_void_by_name(parameter_impl.get_type_name())
+                    .get_type_information();
+                let ref_ty_info = ctxt
+                    .index
+                    .get_effective_type_or_void_by_name(parameter_ref.get_type_name())
+                    .get_type_information();
+
+                // TODO: this will probably miss different levels of indirection - we need to check how many nested pointers there are
+                let impl_ty_info = ctxt.index.find_elementary_pointer_type(impl_ty_info);
+                let ref_ty_info = ctxt.index.find_elementary_pointer_type(ref_ty_info);
+                if impl_ty_info.is_array() && ref_ty_info.is_array() {
+                    validate_array_param(impl_ty_info, ref_ty_info);
+                } else if impl_ty_info.get_name() != ref_ty_info.get_name() {
                     diagnostics.push(
                         Diagnostic::new(format!(
                             "Interface implementation mismatch: Expected parameter `{}` to have `{}` as its type but got `{}`",

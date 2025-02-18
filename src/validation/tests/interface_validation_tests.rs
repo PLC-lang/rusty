@@ -517,15 +517,6 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
     19 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
        │                    ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
 
-    error[E112]: Interface implementation mismatch: Expected parameter `a` to have `INT` as its type but got `__auto_pointer_to_INT`
-       ┌─ <internal>:12:16
-       │
-     5 │                 a : INT;
-       │                 - see also
-       ·
-    12 │         METHOD foo : INT
-       │                ^^^ Interface implementation mismatch: Expected parameter `a` to have `INT` as its type but got `__auto_pointer_to_INT`
-
     error[E112]: Interface implementation mismatch: Expected parameter `a` to have `Input` as its declaration type but got `Output`
        ┌─ <internal>:12:16
        │
