@@ -32,7 +32,7 @@ use plc::{
         TypeAnnotator,
     },
     validation::Validator,
-    ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
+    ConfigFormat, DebugLevel, ErrorFormat, OnlineChange, Target, Threads,
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,
@@ -60,6 +60,7 @@ pub struct BuildPipeline<T: SourceContainer> {
     pub linker: LinkerType,
     pub mutable_participants: Vec<Box<dyn PipelineParticipantMut>>,
     pub participants: Vec<Box<dyn PipelineParticipant>>,
+    pub module_name: Option<String>,
 }
 
 pub trait Pipeline {
@@ -129,6 +130,7 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
             linker,
             mutable_participants: vec![],
             participants: vec![],
+            module_name: None,
         })
     }
 }
@@ -210,6 +212,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 lib_location: params.get_lib_location(),
                 build_location: params.get_build_location(),
                 linker_script,
+                module_name: self.get_module_name(),
             }
         })
     }
@@ -262,6 +265,12 @@ impl<T: SourceContainer> BuildPipeline<T> {
         for participant in mut_participants {
             self.register_mut_participant(participant)
         }
+    }
+
+    /// Returns an internal module name if specified
+    /// Useful for tests
+    fn get_module_name(&self) -> Option<String> {
+        self.module_name.clone()
     }
 }
 
@@ -838,6 +847,13 @@ impl GeneratedProject {
                         let b = b?;
                         a.merge(b)
                     })
+                    .inspect(|it| {
+                        if let Ok(it) = it.as_ref() {
+                            if let Some(name) = link_options.module_name.as_ref() {
+                                it.set_name(name)
+                            }
+                        }
+                    })
                     .ok_or_else(|| {
                         Diagnostic::codegen_error("Could not create bitcode", SourceLocation::undefined())
                     })??;
@@ -854,6 +870,13 @@ impl GeneratedProject {
                         let a = a?;
                         let b = b?;
                         a.merge(b)
+                    })
+                    .inspect(|it| {
+                        if let Ok(it) = it.as_ref() {
+                            if let Some(name) = link_options.module_name.as_ref() {
+                                it.set_name(name)
+                            }
+                        }
                     })
                     .ok_or_else(|| {
                         Diagnostic::codegen_error("Could not create ir", SourceLocation::undefined())

@@ -292,16 +292,26 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let pou_name = implementation.get_call_name();
         if let Some(pou) = self.index.find_pou(pou_name) {
-            let parameter_types = declared_parameters
+            let mut parameter_types = declared_parameters
                 .iter()
                 .map(|v| self.index.get_effective_type_or_void_by_name(v.get_type_name()))
                 .collect::<Vec<&DataType>>();
 
+            // If the implementation is a method, the first parameter is the instance
+            if let Some(class_name) = dbg!(implementation.get_associated_class_name()) {
+                if let Some(class_type) = self.index.find_type(class_name) {
+                    parameter_types.insert(0, class_type);
+                }
+            };
+
+            let parent_function =
+                implementation.get_associated_class_name().and_then(|it| module.get_function(it));
             debug.register_function(
                 self.index,
                 curr_f,
                 pou,
                 return_type,
+                parent_function,
                 parameter_types.as_slice(),
                 implementation.get_location().get_line(),
             );
@@ -361,7 +371,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .get_associated_pou_type(implementation.get_type_name())
                 .map(|it| it.into_struct_type())?;
             parameters.push(instance_struct_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
-
             Ok(parameters)
         } else {
             let declared_params = self.index.get_declared_parameters(implementation.get_call_name());
@@ -441,18 +450,15 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             blocks,
         };
 
-        let mut param_index = 0;
         if let PouType::Method { .. } = implementation.pou_type {
-            let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
+            let class_name = dbg!(implementation.type_name.split('.').collect::<Vec<&str>>()[0]);
             self.generate_local_pou_variable_accessors(
-                param_index,
                 &mut local_index,
                 class_name,
                 &function_context,
                 &implementation.location,
                 debug,
             )?;
-            param_index += 1;
         }
 
         // generate local variables
@@ -465,9 +471,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             )?;
         } else {
             self.generate_local_pou_variable_accessors(
-                param_index,
                 &mut local_index,
-                &implementation.type_name,
+                dbg!(&implementation.type_name),
                 &function_context,
                 &implementation.location,
                 debug,
@@ -661,7 +666,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     /// for pous that take a struct-state-variable (or two for methods)
     fn generate_local_pou_variable_accessors(
         &self,
-        arg_index: u32,
         index: &mut LlvmTypedIndex<'ink>,
         type_name: &str,
         function_context: &FunctionContext<'ink, '_>,
@@ -671,7 +675,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let members = self.index.get_pou_members(type_name);
         let param_pointer = function_context
             .function
-            .get_nth_param(arg_index)
+            .get_nth_param(0)
             .map(BasicValueEnum::into_pointer_value)
             .ok_or_else(|| Diagnostic::missing_function(location))?;
         //Generate POU struct declaration for debug

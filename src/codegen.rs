@@ -109,6 +109,7 @@ impl<'ink> CodeGen<'ink> {
     pub fn generate_llvm_index(
         &mut self,
         context: &'ink CodegenContext,
+
         annotations: &AstAnnotations,
         literals: &StringLiterals,
         dependencies: &FxIndexSet<Dependency>,
@@ -346,6 +347,7 @@ impl<'ink> GeneratedModule<'ink> {
     }
 
     pub fn try_from_ir(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
+        //dbg!("pre {}", std::fs::read_to_string(path).unwrap());
         let buffer = MemoryBuffer::create_from_file(path)
             .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
         let module = context
@@ -624,6 +626,11 @@ impl<'ink> GeneratedModule<'ink> {
         let engine = self.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
         *self.engine.borrow_mut() = Some(engine.clone());
         engine
+    }
+
+    pub fn set_name(&self, name: &str) {
+        self.module.set_name(name);
+        self.module.set_source_file_name(name);
     }
 }
 

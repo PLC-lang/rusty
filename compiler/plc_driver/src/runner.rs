@@ -39,6 +39,7 @@ pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> Ge
         linker: plc::linker::LinkerType::Internal,
         mutable_participants: Default::default(),
         participants: Default::default(),
+        module_name: Some("<internal>".to_string()),
     };
 
     pipeline.register_default_participants();

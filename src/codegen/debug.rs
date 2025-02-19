@@ -5,8 +5,8 @@ use inkwell::{
     context::Context,
     debug_info::{
         AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFile, DIFlags,
-        DIFlagsConstants, DILocalVariable, DISubprogram, DISubroutineType, DIType, DWARFEmissionKind,
-        DebugInfoBuilder,
+        DIFlagsConstants, DILocalVariable, DIScope, DISubprogram, DISubroutineType, DIType,
+        DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
@@ -69,6 +69,7 @@ pub trait Debug<'ink> {
         func: FunctionValue<'ink>,
         pou: &PouIndexEntry,
         return_type: Option<&'idx DataType>,
+        parent_function: Option<FunctionValue<'ink>>,
         parameter_types: &[&'idx DataType],
         implementation_start: usize,
     );
@@ -478,6 +479,7 @@ impl<'ink> DebugBuilder<'ink> {
 
     fn create_function(
         &mut self,
+        scope: DIScope<'ink>,
         pou: &PouIndexEntry,
         return_type: Option<&DataType>,
         parameter_types: &[&DataType],
@@ -491,7 +493,7 @@ impl<'ink> DebugBuilder<'ink> {
         let is_external = matches!(pou.get_linkage(), LinkageType::External);
         let ditype = self.create_subroutine_type(return_type, parameter_types, file);
         self.debug_info.create_function(
-            file.as_debug_info_scope(),
+            scope,
             pou.get_name(),
             Some(pou.get_name()), // for generics e.g. NAME__TYPE
             file,
@@ -537,6 +539,12 @@ impl<'ink> DebugBuilder<'ink> {
         if !implementation.get_implementation_type().is_function_method_or_init() {
             self.register_struct_parameter(pou, func);
         } else {
+            // For methods register self as parameter 0
+            if let Some(class_name) = implementation.get_associated_class_name() {
+                let class_entry = index.find_pou(class_name).expect("Class should exist at this stage");
+                self.register_struct_parameter(class_entry, func);
+                param_offset += 1;
+            }
             let declared_params = index.get_declared_parameters(implementation.get_call_name());
 
             // Register all parameters for debugging
@@ -617,13 +625,24 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         func: FunctionValue<'ink>,
         pou: &PouIndexEntry,
         return_type: Option<&'idx DataType>,
+        parent_function: Option<FunctionValue<'ink>>,
         parameter_types: &[&'idx DataType],
         implementation_start: usize,
     ) {
         if matches!(pou.get_linkage(), LinkageType::External) {
             return;
         }
-        let subprogram = self.create_function(pou, return_type, parameter_types, implementation_start);
+        let file = pou
+            .get_location()
+            .get_file_name()
+            .map(|it| self.get_or_create_debug_file(it))
+            .unwrap_or_else(|| self.compile_unit.get_file());
+        let scope = if let Some(function) = parent_function.and_then(|it| it.get_subprogram()) {
+            function.as_debug_info_scope()
+        } else {
+            file.as_debug_info_scope()
+        };
+        let subprogram = self.create_function(scope, pou, return_type, parameter_types, implementation_start);
         func.set_subprogram(subprogram);
         //Create function parameters
         self.create_function_variables(pou, func, index);
@@ -723,6 +742,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         alignment: u32,
         scope: FunctionValue<'ink>,
     ) {
+        dbg!(variable);
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
         let file = location
@@ -757,6 +777,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         arg_no: usize,
         scope: FunctionValue<'ink>,
     ) {
+        dbg!(variable);
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
         let file = location
@@ -786,6 +807,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     }
 
     fn register_struct_parameter(&mut self, pou: &PouIndexEntry, scope: FunctionValue<'ink>) {
+        dbg!(pou);
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -861,14 +883,21 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         func: FunctionValue<'ink>,
         pou: &PouIndexEntry,
         return_type: Option<&'idx DataType>,
+        parent_function: Option<FunctionValue<'ink>>,
         parameter_types: &[&'idx DataType],
         implementation_start: usize,
     ) {
         match self {
             Self::None | Self::VariablesOnly(..) => {}
-            Self::Full(obj) => {
-                obj.register_function(index, func, pou, return_type, parameter_types, implementation_start)
-            }
+            Self::Full(obj) => obj.register_function(
+                index,
+                func,
+                pou,
+                return_type,
+                parent_function,
+                parameter_types,
+                implementation_start,
+            ),
         };
     }
 

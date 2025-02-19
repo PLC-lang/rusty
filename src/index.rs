@@ -438,7 +438,7 @@ impl ImplementationIndexEntry {
         self.get_location().is_in_unit(unit)
     }
 
-    pub(crate) fn is_init(&self) -> bool {
+    pub fn is_init(&self) -> bool {
         matches!(self.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
     }
 
