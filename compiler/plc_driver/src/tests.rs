@@ -1,15 +1,19 @@
 use std::{fmt::Debug, path::PathBuf};
 
 use plc::DebugLevel;
-use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter};
 use plc_index::GlobalContext;
 use project::project::Project;
 use source_code::SourceContainer;
 
-use crate::{pipelines, CompileOptions};
+use crate::{
+    pipelines::{self, BuildPipeline, Pipeline},
+    CompileOptions,
+};
 
 mod external_files;
 mod multi_files;
+mod validation;
 
 pub fn compile_with_root<S, T>(
     sources: T,
@@ -57,4 +61,31 @@ where
         .annotate(ctxt.provider())
         //Codegen
         .codegen_to_string(&compile_options)
+}
+
+/// Parses and validates the given source with the `BuildPipeline` and default participants.
+/// This function is meant to be used for integration tests to ensure our validations behave as expected.
+pub fn parse_and_validate_buffered<T: SourceContainer>(source: T) -> String {
+    let diagnostician = Diagnostician::buffered();
+    let project = Project::new("TestProject".into()).with_sources(vec![source]);
+    let context = GlobalContext::new().with_source(project.get_sources(), None).unwrap();
+
+    let mut pipeline = BuildPipeline {
+        context,
+        project,
+        diagnostician,
+        compile_parameters: None,
+        linker: plc::linker::LinkerType::Internal,
+        mutable_participants: Default::default(),
+        participants: Default::default(),
+    };
+
+    pipeline.register_default_participants();
+
+    let project = pipeline.parse().unwrap();
+    let project = pipeline.index(project).unwrap();
+    let project = pipeline.annotate(project).unwrap();
+    let _ = project.validate(&pipeline.context, &mut pipeline.diagnostician);
+
+    pipeline.diagnostician.buffer().unwrap_or_default()
 }

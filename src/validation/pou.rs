@@ -208,7 +208,10 @@ pub fn validate_method_signature<T>(
 where
     T: AnnotationMap,
 {
+    let method_name = method_ref.get_qualified_name().into_iter().last().unwrap_or_default();
+
     let validate_array_param = |left: &DataTypeInformation, right: &DataTypeInformation| {
+        let mut diagnostics = vec![];
         let left_name = left
             .get_inner_array_type_name()
             .map(|it| ctxt.index.get_effective_type_or_void_by_name(it).get_name())
@@ -218,31 +221,60 @@ where
             .map(|it| ctxt.index.get_effective_type_or_void_by_name(it).get_name())
             .unwrap_or_default();
         if left_name != right_name {
-            todo!("Inner type mismatch")
+            diagnostics.push(
+                Diagnostic::new(format!(
+                    "Array type mismatch: expected `{}` but got `{}`",
+                    right_name, left_name
+                ))
+                .with_error_code("E112")
+                .with_location(method_impl)
+                .with_secondary_location(method_ref),
+            )
         };
         let left_size = left.get_array_length(ctxt.index).unwrap_or_default();
         let right_size = right.get_array_length(ctxt.index).unwrap_or_default();
         if left_size != right_size {
-            todo!("Array size mismatch")
+            diagnostics.push(
+                Diagnostic::new(format!(
+                    "Array size mismatch: expected `{}` but got `{}`",
+                    right_size, left_size
+                ))
+                .with_error_code("E112")
+                .with_location(method_impl)
+                .with_secondary_location(method_ref),
+            )
         }
+
+        if diagnostics.is_empty() {
+            return None;
+        };
+
+        Some(
+            Diagnostic::new(format!(
+                "Return type of `{}` does not match the return type of the method defined in `{}`",
+                method_name,
+                method_ref.get_parent_pou_name(),
+            ))
+            .with_error_code("E112")
+            .with_location(method_impl)
+            .with_secondary_location(method_ref)
+            .with_sub_diagnostics(diagnostics),
+        )
     };
+
     let mut diagnostics = Vec::new();
-    let method_name = method_ref.get_qualified_name().into_iter().last().unwrap_or_default();
 
     // Check if the return type matches
-
-    // TODO: find_semantic_return_type(pouIndexEntry) => index
-    // TODO: ctxt.index.get_sematnic_return_type(pouIndexEntry);
     let method_ref_return_type_name = method_ref.get_return_type().unwrap_or_default();
     let method_impl_return_type_name = method_impl.get_return_type().unwrap_or_default();
 
     let return_type_ref =
-        ctxt.index.get_intrinsic_type_by_name(method_ref_return_type_name).get_type_information();
+        ctxt.index.get_effective_type_or_void_by_name(method_ref_return_type_name).get_type_information();
     let return_type_impl =
-        ctxt.index.get_intrinsic_type_by_name(method_impl_return_type_name).get_type_information();
+        ctxt.index.get_effective_type_or_void_by_name(method_impl_return_type_name).get_type_information();
 
     if return_type_impl.is_array() && return_type_ref.is_array() {
-        validate_array_param(return_type_impl, return_type_ref);
+        validate_array_param(return_type_impl, return_type_ref).map(|it| diagnostics.push(it));
     } else if return_type_impl != return_type_ref {
         diagnostics.push(
             Diagnostic::new(format!(
@@ -262,7 +294,14 @@ where
     let parameters_ref = ctxt.index.get_declared_parameters(method_ref.get_name());
     let parameters_impl = ctxt.index.get_declared_parameters(method_impl.get_name());
 
-    for (idx, parameter_ref) in parameters_ref.iter().enumerate() {
+    // Skip the first parameter if the return type is aggregate.
+    // Return types have already been validated and we don't want to show errors
+    // for internally modified code.
+    for (idx, parameter_ref) in parameters_ref
+        .iter()
+        .enumerate()
+        .skip((return_type_ref.is_aggregate() && return_type_impl.is_aggregate()) as usize)
+    {
         match parameters_impl.get(idx) {
             Some(parameter_impl) => {
                 // Name
@@ -293,7 +332,7 @@ where
                 let impl_ty_info = ctxt.index.find_elementary_pointer_type(impl_ty_info);
                 let ref_ty_info = ctxt.index.find_elementary_pointer_type(ref_ty_info);
                 if impl_ty_info.is_array() && ref_ty_info.is_array() {
-                    validate_array_param(impl_ty_info, ref_ty_info);
+                    validate_array_param(impl_ty_info, ref_ty_info).map(|it| diagnostics.push(it));
                 } else if impl_ty_info.get_name() != ref_ty_info.get_name() {
                     diagnostics.push(
                         Diagnostic::new(format!(
