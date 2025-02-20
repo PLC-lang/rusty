@@ -211,17 +211,21 @@ where
     let method_name = method_ref.get_qualified_name().into_iter().last().unwrap_or_default();
 
     let validate_array_param = |left: &DataTypeInformation, right: &DataTypeInformation| {
-        let mut diagnostics = vec![];
-        let left_name = left
-            .get_inner_array_type_name()
-            .map(|it| ctxt.index.get_effective_type_or_void_by_name(it).get_name())
-            .unwrap_or_default();
-        let right_name = right
-            .get_inner_array_type_name()
-            .map(|it| ctxt.index.get_effective_type_or_void_by_name(it).get_name())
-            .unwrap_or_default();
+        let mut sub_diagnostics = vec![];
+        let mut left_type = left;
+        let mut right_type = right;
+
+        while let (Some(left_ty), Some(right_ty)) =
+            (left_type.get_inner_array_type_name(), right_type.get_inner_array_type_name())
+        {
+            left_type = ctxt.index.get_effective_type_or_void_by_name(left_ty).get_type_information();
+            right_type = ctxt.index.get_effective_type_or_void_by_name(right_ty).get_type_information();
+        }
+
+        let left_name = left_type.get_name();
+        let right_name = right_type.get_name();
         if left_name != right_name {
-            diagnostics.push(
+            sub_diagnostics.push(
                 Diagnostic::new(format!(
                     "Array type mismatch: expected `{}` but got `{}`",
                     right_name, left_name
@@ -234,7 +238,7 @@ where
         let left_size = left.get_array_length(ctxt.index).unwrap_or_default();
         let right_size = right.get_array_length(ctxt.index).unwrap_or_default();
         if left_size != right_size {
-            diagnostics.push(
+            sub_diagnostics.push(
                 Diagnostic::new(format!(
                     "Array size mismatch: expected `{}` but got `{}`",
                     right_size, left_size
@@ -245,7 +249,7 @@ where
             )
         }
 
-        if diagnostics.is_empty() {
+        if sub_diagnostics.is_empty() {
             return None;
         };
 
@@ -258,7 +262,7 @@ where
             .with_error_code("E112")
             .with_location(method_impl)
             .with_secondary_location(method_ref)
-            .with_sub_diagnostics(diagnostics),
+            .with_sub_diagnostics(sub_diagnostics),
         )
     };
 
@@ -274,7 +278,9 @@ where
         ctxt.index.get_effective_type_or_void_by_name(method_impl_return_type_name).get_type_information();
 
     if return_type_impl.is_array() && return_type_ref.is_array() {
-        validate_array_param(return_type_impl, return_type_ref).map(|it| diagnostics.push(it));
+        if let Some(diagnostic) = validate_array_param(return_type_impl, return_type_ref) {
+            diagnostics.push(diagnostic);
+        }
     } else if return_type_impl != return_type_ref {
         diagnostics.push(
             Diagnostic::new(format!(
@@ -294,16 +300,16 @@ where
     let parameters_ref = ctxt.index.get_declared_parameters(method_ref.get_name());
     let parameters_impl = ctxt.index.get_declared_parameters(method_impl.get_name());
 
-    // Skip the first parameter if the return type is aggregate.
+    // Conditionally skip the first parameter if the return type is aggregate.
     // Return types have already been validated and we don't want to show errors
     // for internally modified code.
-    for (idx, parameter_ref) in parameters_ref
+    for pair in parameters_ref
         .iter()
-        .enumerate()
-        .skip((return_type_ref.is_aggregate() && return_type_impl.is_aggregate()) as usize)
+        .skip(return_type_ref.is_aggregate() as usize)
+        .zip_longest(parameters_impl.iter().skip(return_type_impl.is_aggregate() as usize))
     {
-        match parameters_impl.get(idx) {
-            Some(parameter_impl) => {
+        match pair {
+            itertools::EitherOrBoth::Both(parameter_ref, parameter_impl) => {
                 // Name
                 if parameter_impl.get_name() != parameter_ref.get_name() {
                     diagnostics.push(
@@ -332,7 +338,9 @@ where
                 let impl_ty_info = ctxt.index.find_elementary_pointer_type(impl_ty_info);
                 let ref_ty_info = ctxt.index.find_elementary_pointer_type(ref_ty_info);
                 if impl_ty_info.is_array() && ref_ty_info.is_array() {
-                    validate_array_param(impl_ty_info, ref_ty_info).map(|it| diagnostics.push(it));
+                    if let Some(diagnostic) = validate_array_param(impl_ty_info, ref_ty_info) {
+                        diagnostics.push(diagnostic);
+                    };
                 } else if impl_ty_info.get_name() != ref_ty_info.get_name() {
                     diagnostics.push(
                         Diagnostic::new(format!(
@@ -362,9 +370,7 @@ where
                     );
                 }
             }
-
-            // Method did not implement the parameter
-            None => {
+            itertools::EitherOrBoth::Left(parameter_ref) => {
                 diagnostics.push(
                     Diagnostic::new(format!(
                         "Parameter `{} : {}` missing in method `{}`",
@@ -377,24 +383,21 @@ where
                     .with_secondary_location(&parameter_ref.source_location),
                 );
             }
-        }
-    }
-
-    // Exceeding parameters in the POU, which we did not catch in the for loop above because we were only
-    // iterating over the interface parameters; anyhow any exceeding parameter is considered an error because
-    // the function signature no longer holds
-    if parameters_impl.len() > parameters_ref.len() {
-        for parameter in parameters_impl.into_iter().skip(parameters_ref.len()) {
-            diagnostics.push(
-                Diagnostic::new(format!(
-                    "Parameter count mismatch: `{}` has more parameters than the method defined in `{}`",
-                    method_name,
-                    method_ref.get_parent_pou_name(),
-                ))
-                .with_error_code("E112")
-                .with_location(&parameter.source_location)
-                .with_secondary_location(method_ref),
-            );
+            // Exceeding parameters in the POU, which we did not catch in the for loop above because we were only
+            // iterating over the interface parameters; anyhow any exceeding parameter is considered an error because
+            // the function signature no longer holds
+            itertools::EitherOrBoth::Right(parameter_impl) => {
+                diagnostics.push(
+                    Diagnostic::new(format!(
+                        "Parameter count mismatch: `{}` has more parameters than the method defined in `{}`",
+                        method_name,
+                        method_ref.get_parent_pou_name(),
+                    ))
+                    .with_error_code("E112")
+                    .with_location(&parameter_impl.source_location)
+                    .with_secondary_location(method_ref),
+                );
+            }
         }
     }
 

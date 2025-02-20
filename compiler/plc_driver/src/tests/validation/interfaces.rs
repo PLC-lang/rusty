@@ -609,7 +609,6 @@ fn interface_with_aggregate_return_type_string_mismatch() {
 }
 
 #[test]
-// FIXME: despair
 fn interface_with_aliased_aggregate_return_type_string() {
     let source = SourceCode::from(
         r"
@@ -727,8 +726,31 @@ fn interface_with_aggregate_return_type_array_inner_type_mismatch() {
 }
 
 #[test]
-// FIXME: despair²
 fn interface_with_aggregate_return_type_nested_arrays() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar : ARRAY[1..5, 1..5] OF STRING
+            END_METHOD
+            METHOD baz : ARRAY[1..5] OF ARRAY[1..5] OF STRING
+            END_METHOD
+        END_INTERFACE
+            
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : ARRAY[1..5, 1..5] OF STRING
+            END_METHOD
+            METHOD baz : ARRAY[1..5] OF ARRAY[1..5] OF STRING
+            END_METHOD
+        END_FUNCTION_BLOCK        
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
     let source = SourceCode::from(
         r"
         INTERFACE foo
@@ -817,4 +839,214 @@ fn interface_with_aliased_aggregate_return_type_struct() {
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn interface_with_aggregate_return_type_non_aggregate_impl() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar : STRING
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : DINT
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+      ┌─ <internal>:8:20
+      │
+    3 │             METHOD bar : STRING
+      │                    --- see also
+      ·
+    8 │             METHOD bar : DINT
+      │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+    ");
+}
+
+#[test]
+fn interface_with_non_aggregate_return_type_aggregate_impl() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar : DINT
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : STRING
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+      ┌─ <internal>:8:20
+      │
+    3 │             METHOD bar : DINT
+      │                    --- see also
+      ·
+    8 │             METHOD bar : STRING
+      │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+    ");
+}
+
+#[test]
+fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_mismatch() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar : STRING
+            VAR_INPUT
+                a : DINT;
+                b : DINT;
+            END_VAR
+            END_METHOD
+
+            METHOD baz : STRING 
+            VAR_INPUT
+                a : DINT;
+            END_VAR
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : DINT
+            VAR_INPUT
+                a : DINT;
+            END_VAR
+            END_METHOD
+            
+            METHOD baz : DINT 
+            VAR_INPUT
+                a : DINT;
+                b : DINT;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+       ┌─ <internal>:18:20
+       │
+     3 │             METHOD bar : STRING
+       │                    --- see also
+       ·
+    18 │             METHOD bar : DINT
+       │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+
+    error[E112]: Parameter `b : DINT` missing in method `bar`
+       ┌─ <internal>:18:20
+       │
+     6 │                 b : DINT;
+       │                 - see also
+       ·
+    18 │             METHOD bar : DINT
+       │                    ^^^ Parameter `b : DINT` missing in method `bar`
+
+    error[E112]: Return type of `baz` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+       ┌─ <internal>:24:20
+       │
+    10 │             METHOD baz : STRING 
+       │                    --- see also
+       ·
+    24 │             METHOD baz : DINT 
+       │                    ^^^ Return type of `baz` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+
+    error[E112]: Parameter count mismatch: `baz` has more parameters than the method defined in `foo`
+       ┌─ <internal>:27:17
+       │
+    10 │             METHOD baz : STRING 
+       │                    --- see also
+       ·
+    27 │                 b : DINT;
+       │                 ^ Parameter count mismatch: `baz` has more parameters than the method defined in `foo`
+    ");
+}
+
+#[test]
+fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_mismatch() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar : DINT
+            VAR_INPUT
+                a : DINT;
+                b : DINT;
+            END_VAR
+            END_METHOD
+
+            METHOD baz : DINT 
+            VAR_INPUT
+                a : DINT;
+            END_VAR
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : STRING
+            VAR_INPUT
+                a : DINT;
+            END_VAR
+            END_METHOD
+            
+            METHOD baz : STRING 
+            VAR_INPUT
+                a : DINT;
+                b : DINT;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+       ┌─ <internal>:18:20
+       │
+     3 │              METHOD bar : DINT
+       │                     --- see also
+       ·
+    18 │             METHOD bar : STRING
+       │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+
+    error[E112]: Parameter `b : DINT` missing in method `bar`
+       ┌─ <internal>:18:20
+       │
+     6 │                 b : DINT;
+       │                 - see also
+       ·
+    18 │             METHOD bar : STRING
+       │                    ^^^ Parameter `b : DINT` missing in method `bar`
+
+    error[E112]: Return type of `baz` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+       ┌─ <internal>:24:20
+       │
+    10 │             METHOD baz : DINT 
+       │                    --- see also
+       ·
+    24 │             METHOD baz : STRING 
+       │                    ^^^ Return type of `baz` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+
+    error[E112]: Parameter count mismatch: `baz` has more parameters than the method defined in `foo`
+       ┌─ <internal>:27:17
+       │
+    10 │             METHOD baz : DINT 
+       │                    --- see also
+       ·
+    27 │                 b : DINT;
+       │                 ^ Parameter count mismatch: `baz` has more parameters than the method defined in `foo`
+    ");
 }
