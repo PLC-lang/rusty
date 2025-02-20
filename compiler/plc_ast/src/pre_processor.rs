@@ -37,6 +37,10 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         preprocess_return_type(pou, &mut unit.user_types);
     }
 
+    for interface in unit.interfaces.iter_mut().flat_map(|it| &mut it.methods) {
+        preprocess_return_type(interface, &mut unit.user_types);
+    }
+
     //process all variables from GVLs
     process_global_variables(unit, &mut id_provider);
     process_var_config_variables(unit);

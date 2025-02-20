@@ -181,6 +181,11 @@ impl AstVisitorMut for AggregateTypeLowerer {
         }
         unit.walk(self);
     }
+
+    fn visit_interface(&mut self, interface: &mut plc_ast::ast::Interface) {
+        interface.methods.iter_mut().for_each(|m| self.visit_pou(m));
+    }
+
     // Change the signature for functions/methods with aggregate returns
     fn visit_pou(&mut self, pou: &mut Pou) {
         if pou.is_aggregate() || pou.is_generic() {
@@ -188,7 +193,6 @@ impl AstVisitorMut for AggregateTypeLowerer {
             return;
         }
         let index = self.index.as_ref().expect("Can't get here without an index");
-
         // Check if POU has a return type
         let Some(return_type_name) = pou
             .return_type
