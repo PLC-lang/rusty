@@ -210,7 +210,19 @@ where
 {
     let method_name = method_ref.get_qualified_name().into_iter().last().unwrap_or_default();
 
+    let create_diagnostic = |left: &str, right: &str| {
+        Diagnostic::new(format!(
+            "Type `{right}` declared in `{}` but `{}` implemented type `{left}`",
+            method_ref.get_name(), method_impl.get_name()
+        ))
+        .with_location(method_impl)
+        .with_secondary_location(method_ref)
+    };
+
     let validate_array_param = |left: &DataTypeInformation, right: &DataTypeInformation| {
+        if !(left.is_array() && right.is_array()) {
+            return None;
+        };
         let mut sub_diagnostics = vec![];
         let mut left_type = left;
         let mut right_type = right;
@@ -227,10 +239,9 @@ where
         if left_name != right_name {
             sub_diagnostics.push(
                 Diagnostic::new(format!(
-                    "Array type mismatch: expected `{}` but got `{}`",
+                    "Expected array of type `{}` but got `{}`",
                     right_name, left_name
                 ))
-                .with_error_code("E112")
                 .with_location(method_impl)
                 .with_secondary_location(method_ref),
             )
@@ -240,10 +251,9 @@ where
         if left_size != right_size {
             sub_diagnostics.push(
                 Diagnostic::new(format!(
-                    "Array size mismatch: expected `{}` but got `{}`",
+                    "Expected array size `{}` but got `{}`",
                     right_size, left_size
                 ))
-                .with_error_code("E112")
                 .with_location(method_impl)
                 .with_secondary_location(method_ref),
             )
@@ -253,17 +263,51 @@ where
             return None;
         };
 
-        Some(
-            Diagnostic::new(format!(
-                "Return type of `{}` does not match the return type of the method defined in `{}`",
-                method_name,
-                method_ref.get_parent_pou_name(),
+        Some(sub_diagnostics)
+    };
+
+    let validate_string_length = |left: &DataTypeInformation, right: &DataTypeInformation| {
+        if !(left.is_string() && right.is_string()) {
+            return None;
+        };
+        let l_encoding = left.get_string_character_width(ctxt.index);
+        let r_encoding = right.get_string_character_width(ctxt.index);
+        let left_length = left.get_size(ctxt.index).bits() / l_encoding.bits();
+        let right_length = right.get_size(ctxt.index).bits() / r_encoding.bits();
+        let mut sub_diagnostics = vec![];
+        (left_length != right_length).then(|| {
+            sub_diagnostics.push(Diagnostic::new(format!(
+                "Expected string of length `{}` but got string of length `{}`",
+                right_length, left_length
             ))
-            .with_error_code("E112")
             .with_location(method_impl)
-            .with_secondary_location(method_ref)
-            .with_sub_diagnostics(sub_diagnostics),
-        )
+            .with_secondary_location(method_ref));
+        });
+        (l_encoding != r_encoding).then(|| {
+            sub_diagnostics.push(create_diagnostic(left.get_name(), right.get_name()));
+        });
+
+        if sub_diagnostics.is_empty() {
+            return None;
+        };
+
+        Some(sub_diagnostics)
+    };
+
+    let collect_sub_diagnostics = |left: &DataTypeInformation, right: &DataTypeInformation| {
+        let mut sub_diagnostics = vec![];
+        if let Some(diagnostics) = validate_array_param(left, right) {
+            sub_diagnostics.extend(diagnostics);
+        }
+        if let Some(diagnostics) = validate_string_length(left, right) {
+            sub_diagnostics.extend(diagnostics);
+        }
+        if sub_diagnostics.is_empty() {
+            sub_diagnostics.push(
+                create_diagnostic(left.get_name(), right.get_name())
+            );
+        }
+        sub_diagnostics
     };
 
     let mut diagnostics = Vec::new();
@@ -277,23 +321,14 @@ where
     let return_type_impl =
         ctxt.index.get_effective_type_or_void_by_name(method_impl_return_type_name).get_type_information();
 
-    if return_type_impl.is_array() && return_type_ref.is_array() {
-        if let Some(diagnostic) = validate_array_param(return_type_impl, return_type_ref) {
-            diagnostics.push(diagnostic);
-        }
-    } else if return_type_impl != return_type_ref {
+    if return_type_impl != return_type_ref {      
         diagnostics.push(
             Diagnostic::new(format!(
-                "Return type of `{}` does not match the return type of the method defined in `{}`, expected `{}` but got `{}` instead",
-                method_name,
-                method_ref.get_parent_pou_name(),
-                return_type_ref.get_name(),
-                return_type_impl.get_name(),
-            ))
-            .with_error_code("E112")
-            .with_location(method_impl)
-            .with_secondary_location(method_ref),
+                "Interface implementation mismatch: return types do not match:",
+            )).with_error_code("E112")
+            .with_sub_diagnostics(collect_sub_diagnostics(return_type_impl, return_type_ref))
         );
+        
     }
 
     // Check if the parameters match; note that the order of the parameters is important due to implicit calls
@@ -337,21 +372,18 @@ where
                 // TODO: this will probably miss different levels of indirection - we need to check how many nested pointers there are
                 let impl_ty_info = ctxt.index.find_elementary_pointer_type(impl_ty_info);
                 let ref_ty_info = ctxt.index.find_elementary_pointer_type(ref_ty_info);
-                if impl_ty_info.is_array() && ref_ty_info.is_array() {
-                    if let Some(diagnostic) = validate_array_param(impl_ty_info, ref_ty_info) {
-                        diagnostics.push(diagnostic);
-                    };
-                } else if impl_ty_info.get_name() != ref_ty_info.get_name() {
+                if impl_ty_info.get_name() != ref_ty_info.get_name() {
+                    dbg!(impl_ty_info.get_name(), ref_ty_info.get_name());
+                    let sub_diagnostics = collect_sub_diagnostics(impl_ty_info, ref_ty_info);
                     diagnostics.push(
                         Diagnostic::new(format!(
-                            "Interface implementation mismatch: Expected parameter `{}` to have `{}` as its type but got `{}`",
+                            "Interface implementation mismatch: Parameter `{}` has different types in declaration and implemenation:",
                             parameter_ref.get_name(),
-                            parameter_ref.get_type_name(),
-                            parameter_impl.get_type_name(),
                         ))
                         .with_error_code("E112")
+                        .with_sub_diagnostics(sub_diagnostics)
                         .with_location(method_impl)
-                        .with_secondary_location(&parameter_ref.source_location),
+                        .with_secondary_location(&parameter_ref.source_location)
                     );
                 }
 
