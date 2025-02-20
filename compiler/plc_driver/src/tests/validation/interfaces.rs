@@ -94,16 +94,18 @@ fn pou_implements_method_with_wrong_return_type() {
     );
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return type of `methodA` does not match the return type of the method defined in `interfaceA`, expected `DINT` but got `BOOL` instead
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E001]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
       ┌─ <internal>:7:20
       │
     3 │             METHOD methodA : DINT /* ... */ END_METHOD
       │                    ------- see also
       ·
     7 │             METHOD methodA : BOOL /* ... */ END_METHOD
-      │                    ^^^^^^^ Return type of `methodA` does not match the return type of the method defined in `interfaceA`, expected `DINT` but got `BOOL` instead
-    "###);
+      │                    ^^^^^^^ Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
+    ");
 }
 
 #[test]
@@ -242,16 +244,25 @@ fn pou_with_incorrect_parameter_type_in_interface_implementation() {
     );
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Interface implementation mismatch: Expected parameter `a` to have `DINT` as its type but got `BOOL`
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: Parameter `a` has different types in declaration and implemenation:
        ┌─ <internal>:11:16
        │
      5 │             a : DINT;
        │             - see also
        ·
     11 │         METHOD methodA
-       │                ^^^^^^^ Interface implementation mismatch: Expected parameter `a` to have `DINT` as its type but got `BOOL`
-    "###);
+       │                ^^^^^^^ Interface implementation mismatch: Parameter `a` has different types in declaration and implemenation:
+
+    error[E001]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
+       ┌─ <internal>:11:16
+       │
+     3 │         METHOD methodA
+       │                ------- see also
+       ·
+    11 │         METHOD methodA
+       │                ^^^^^^^ Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
+    ");
 }
 
 #[test]
@@ -596,16 +607,18 @@ fn interface_with_aggregate_return_type_string_mismatch() {
     );
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`, expected `STRING` but got `WSTRING` instead
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E001]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `WSTRING`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : STRING
       │                    --- see also
       ·
     8 │             METHOD bar : WSTRING
-      │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`, expected `STRING` but got `WSTRING` instead
-    "###);
+      │                    ^^^ Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `WSTRING`
+    ");
 }
 
 #[test]
@@ -626,7 +639,18 @@ fn interface_with_aliased_aggregate_return_type_string() {
     );
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E001]: Expected string of length `11` but got string of length `81`
+      ┌─ <internal>:9:20
+      │
+    4 │             METHOD bar : myString
+      │                    --- see also
+      ·
+    9 │             METHOD bar : STRING
+      │                    ^^^ Expected string of length `11` but got string of length `81`
+    ");
 }
 
 #[test]
@@ -666,25 +690,18 @@ fn interface_with_aggregate_return_type_array_length_mismatch() {
     );
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`
-      ┌─ <internal>:8:20
-      │
-    3 │             METHOD bar : ARRAY[1..6] OF STRING
-      │                    --- see also
-      ·
-    8 │             METHOD bar : ARRAY[1..5] OF STRING
-      │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E112]: Array size mismatch: expected `6` but got `5`
+    error[E001]: Expected array size `6` but got `5`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : ARRAY[1..6] OF STRING
       │                    --- see also
       ·
     8 │             METHOD bar : ARRAY[1..5] OF STRING
-      │                    ^^^ Array size mismatch: expected `6` but got `5`
-    "###);
+      │                    ^^^ Expected array size `6` but got `5`
+    ");
 }
 
 #[test]
@@ -704,25 +721,18 @@ fn interface_with_aggregate_return_type_array_inner_type_mismatch() {
     );
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`
-      ┌─ <internal>:8:20
-      │
-    3 │             METHOD bar : ARRAY[1..5] OF STRING
-      │                    --- see also
-      ·
-    8 │             METHOD bar : ARRAY[1..5] OF WSTRING
-      │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E112]: Array type mismatch: expected `STRING` but got `WSTRING`
+    error[E001]: Expected array of type `STRING` but got `WSTRING`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : ARRAY[1..5] OF STRING
       │                    --- see also
       ·
     8 │             METHOD bar : ARRAY[1..5] OF WSTRING
-      │                    ^^^ Array type mismatch: expected `STRING` but got `WSTRING`
-    "###);
+      │                    ^^^ Expected array of type `STRING` but got `WSTRING`
+    ");
 }
 
 #[test]
@@ -766,25 +776,18 @@ fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
     );
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`
-      ┌─ <internal>:8:20
-      │
-    3 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..5] OF STRING
-      │                    --- see also
-      ·
-    8 │             METHOD bar : ARRAY[1..5, 1..5] OF STRING
-      │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E112]: Array type mismatch: expected `foo.bar_` but got `STRING`
+    error[E001]: Expected array of type `foo.bar_` but got `STRING`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..5] OF STRING
       │                    --- see also
       ·
     8 │             METHOD bar : ARRAY[1..5, 1..5] OF STRING
-      │                    ^^^ Array type mismatch: expected `foo.bar_` but got `STRING`
-    "###);
+      │                    ^^^ Expected array of type `foo.bar_` but got `STRING`
+    ");
 }
 
 #[test]
@@ -859,14 +862,16 @@ fn interface_with_aggregate_return_type_non_aggregate_impl() {
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
-    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E001]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : STRING
       │                    --- see also
       ·
     8 │             METHOD bar : DINT
-      │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+      │                    ^^^ Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
     ");
 }
 
@@ -888,14 +893,16 @@ fn interface_with_non_aggregate_return_type_aggregate_impl() {
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
-    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E001]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : DINT
       │                    --- see also
       ·
     8 │             METHOD bar : STRING
-      │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+      │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
     ");
 }
 
@@ -937,14 +944,16 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
-    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E001]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
        ┌─ <internal>:18:20
        │
      3 │             METHOD bar : STRING
        │                    --- see also
        ·
     18 │             METHOD bar : DINT
-       │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+       │                    ^^^ Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
 
     error[E112]: Parameter `b : DINT` missing in method `bar`
        ┌─ <internal>:18:20
@@ -955,14 +964,16 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
     18 │             METHOD bar : DINT
        │                    ^^^ Parameter `b : DINT` missing in method `bar`
 
-    error[E112]: Return type of `baz` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E001]: Type `STRING` declared in `foo.baz` but `fb.baz` implemented type `DINT`
        ┌─ <internal>:24:20
        │
     10 │             METHOD baz : STRING 
        │                    --- see also
        ·
     24 │             METHOD baz : DINT 
-       │                    ^^^ Return type of `baz` does not match the return type of the method defined in `foo`, expected `STRING` but got `DINT` instead
+       │                    ^^^ Type `STRING` declared in `foo.baz` but `fb.baz` implemented type `DINT`
 
     error[E112]: Parameter count mismatch: `baz` has more parameters than the method defined in `foo`
        ┌─ <internal>:27:17
@@ -1013,14 +1024,16 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
-    error[E112]: Return type of `bar` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E001]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
        ┌─ <internal>:18:20
        │
-     3 │              METHOD bar : DINT
-       │                     --- see also
+     3 │             METHOD bar : DINT
+       │                    --- see also
        ·
     18 │             METHOD bar : STRING
-       │                    ^^^ Return type of `bar` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
 
     error[E112]: Parameter `b : DINT` missing in method `bar`
        ┌─ <internal>:18:20
@@ -1031,14 +1044,16 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
     18 │             METHOD bar : STRING
        │                    ^^^ Parameter `b : DINT` missing in method `bar`
 
-    error[E112]: Return type of `baz` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E001]: Type `DINT` declared in `foo.baz` but `fb.baz` implemented type `STRING`
        ┌─ <internal>:24:20
        │
     10 │             METHOD baz : DINT 
        │                    --- see also
        ·
     24 │             METHOD baz : STRING 
-       │                    ^^^ Return type of `baz` does not match the return type of the method defined in `foo`, expected `DINT` but got `STRING` instead
+       │                    ^^^ Type `DINT` declared in `foo.baz` but `fb.baz` implemented type `STRING`
 
     error[E112]: Parameter count mismatch: `baz` has more parameters than the method defined in `foo`
        ┌─ <internal>:27:17
