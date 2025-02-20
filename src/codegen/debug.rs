@@ -466,7 +466,7 @@ impl<'ink> DebugBuilder<'ink> {
             .iter()
             .map(|dt| {
                 self.types
-                    .get(dt.get_name().to_lowercase().as_str())
+                    .get(dbg!(dt.get_name().to_lowercase().as_str()))
                     .copied()
                     .map(Into::into)
                     .unwrap_or_else(|| panic!("Cound not find debug type information for {}", dt.get_name()))
@@ -491,6 +491,7 @@ impl<'ink> DebugBuilder<'ink> {
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
         let is_external = matches!(pou.get_linkage(), LinkageType::External);
+        dbg!(pou.get_name());
         let ditype = self.create_subroutine_type(return_type, parameter_types, file);
         self.debug_info.create_function(
             scope,
@@ -500,7 +501,7 @@ impl<'ink> DebugBuilder<'ink> {
             location.get_line_plus_one() as u32,
             // entry for the function
             ditype,
-            false, // TODO: what is this
+            false,
             !is_external,
             (implementation_start + 1) as u32,
             DIFlagsConstants::PUBLIC,
@@ -527,12 +528,12 @@ impl<'ink> DebugBuilder<'ink> {
             let alignment = var_type.get_type_information().get_alignment(index).bits();
             //If the variable is an aggregate return type, register it as first parameter, and
             //increase the param count
-            if variable.is_return() && var_type.is_aggregate_type() {
-                self.register_aggregate_return(variable, var_type, func);
-                param_offset += 1;
-            } else {
-                self.register_local_variable(variable, alignment, func);
-            }
+            // if variable.is_return() && var_type.is_aggregate_type() {
+            //     self.register_aggregate_return(variable, var_type, func);
+            //     param_offset += 1;
+            // } else {
+            self.register_local_variable(variable, alignment, func);
+            // }
         }
 
         let implementation = pou.find_implementation(index).expect("A POU will have an impl at this stage");
@@ -742,7 +743,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         alignment: u32,
         scope: FunctionValue<'ink>,
     ) {
-        dbg!(variable);
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
         let file = location
@@ -777,7 +777,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         arg_no: usize,
         scope: FunctionValue<'ink>,
     ) {
-        dbg!(variable);
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
         let file = location
@@ -807,7 +806,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     }
 
     fn register_struct_parameter(&mut self, pou: &PouIndexEntry, scope: FunctionValue<'ink>) {
-        dbg!(pou);
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())

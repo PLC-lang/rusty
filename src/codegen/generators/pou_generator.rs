@@ -298,11 +298,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .collect::<Vec<&DataType>>();
 
             // If the implementation is a method, the first parameter is the instance
-            if let Some(class_name) = dbg!(implementation.get_associated_class_name()) {
+            if let Some(class_name) = implementation.get_associated_class_name() {
                 if let Some(class_type) = self.index.find_type(class_name) {
                     parameter_types.insert(0, class_type);
                 }
-            };
+            } else if !implementation.get_implementation_type().is_function_method_or_init() {
+                //For non functions or methods, the first parameter is self
+                if let Some(type_name) = self.index.find_type(implementation.get_type_name()) {
+                    parameter_types.insert(0, type_name);
+                }
+            }
 
             let parent_function =
                 implementation.get_associated_class_name().and_then(|it| module.get_function(it));
@@ -451,7 +456,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         };
 
         if let PouType::Method { .. } = implementation.pou_type {
-            let class_name = dbg!(implementation.type_name.split('.').collect::<Vec<&str>>()[0]);
+            let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
             self.generate_local_pou_variable_accessors(
                 &mut local_index,
                 class_name,
@@ -472,7 +477,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         } else {
             self.generate_local_pou_variable_accessors(
                 &mut local_index,
-                dbg!(&implementation.type_name),
+                &implementation.type_name,
                 &function_context,
                 &implementation.location,
                 debug,
@@ -663,7 +668,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     }
 
     /// generates a load-statement for the given members
-    /// for pous that take a struct-state-variable (or two for methods)
+    /// for pous that take a struct-state-variable
     fn generate_local_pou_variable_accessors(
         &self,
         index: &mut LlvmTypedIndex<'ink>,
@@ -680,6 +685,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .ok_or_else(|| Diagnostic::missing_function(location))?;
         //Generate POU struct declaration for debug
         if let Some(block) = self.llvm.builder.get_insert_block() {
+            dbg!(function_context.linking_context.get_call_name());
+            dbg!(type_name);
+            dbg!(location);
             debug.add_variable_declaration(
                 type_name,
                 param_pointer,
@@ -694,6 +702,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let mut var_count = 0;
         for m in members.iter().filter(|it| !it.is_var_external()) {
             let parameter_name = m.get_name();
+            //TODO: this is not creating local variables
             let (name, variable) = if m.is_temp() || m.is_return() {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
                 (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type))
