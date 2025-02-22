@@ -213,16 +213,15 @@ where
     let create_diagnostic = |left: &str, right: &str| {
         Diagnostic::new(format!(
             "Type `{right}` declared in `{}` but `{}` implemented type `{left}`",
-            method_ref.get_name(), method_impl.get_name()
+            method_ref.get_name(),
+            method_impl.get_name()
         ))
+        .with_error_code("E112")
         .with_location(method_impl)
         .with_secondary_location(method_ref)
     };
 
     let validate_array_param = |left: &DataTypeInformation, right: &DataTypeInformation| {
-        if !(left.is_array() && right.is_array()) {
-            return None;
-        };
         let mut sub_diagnostics = vec![];
         let mut left_type = left;
         let mut right_type = right;
@@ -238,75 +237,64 @@ where
         let right_name = right_type.get_name();
         if left_name != right_name {
             sub_diagnostics.push(
-                Diagnostic::new(format!(
-                    "Expected array of type `{}` but got `{}`",
-                    right_name, left_name
-                ))
-                .with_location(method_impl)
-                .with_secondary_location(method_ref),
+                Diagnostic::new(format!("Expected array of type `{}` but got `{}`", right_name, left_name))
+                    .with_error_code("E112")
+                    .with_location(method_impl)
+                    .with_secondary_location(method_ref),
             )
         };
         let left_size = left.get_array_length(ctxt.index).unwrap_or_default();
         let right_size = right.get_array_length(ctxt.index).unwrap_or_default();
         if left_size != right_size {
             sub_diagnostics.push(
-                Diagnostic::new(format!(
-                    "Expected array size `{}` but got `{}`",
-                    right_size, left_size
-                ))
-                .with_location(method_impl)
-                .with_secondary_location(method_ref),
+                Diagnostic::new(format!("Expected array size `{}` but got `{}`", right_size, left_size))
+                    .with_error_code("E112")
+                    .with_location(method_impl)
+                    .with_secondary_location(method_ref),
             )
         }
 
-        if sub_diagnostics.is_empty() {
-            return None;
-        };
-
-        Some(sub_diagnostics)
+        sub_diagnostics
     };
 
     let validate_string_length = |left: &DataTypeInformation, right: &DataTypeInformation| {
-        if !(left.is_string() && right.is_string()) {
-            return None;
-        };
         let l_encoding = left.get_string_character_width(ctxt.index);
         let r_encoding = right.get_string_character_width(ctxt.index);
         let left_length = left.get_size(ctxt.index).bits() / l_encoding.bits();
         let right_length = right.get_size(ctxt.index).bits() / r_encoding.bits();
         let mut sub_diagnostics = vec![];
         (left_length != right_length).then(|| {
-            sub_diagnostics.push(Diagnostic::new(format!(
-                "Expected string of length `{}` but got string of length `{}`",
-                right_length, left_length
-            ))
-            .with_location(method_impl)
-            .with_secondary_location(method_ref));
+            sub_diagnostics.push(
+                Diagnostic::new(format!(
+                    "Expected string of length `{}` but got string of length `{}`",
+                    right_length, left_length
+                ))
+                .with_error_code("E112")
+                .with_location(method_impl)
+                .with_secondary_location(method_ref),
+            );
         });
         (l_encoding != r_encoding).then(|| {
             sub_diagnostics.push(create_diagnostic(left.get_name(), right.get_name()));
         });
 
-        if sub_diagnostics.is_empty() {
-            return None;
-        };
-
-        Some(sub_diagnostics)
+        sub_diagnostics
     };
 
     let collect_sub_diagnostics = |left: &DataTypeInformation, right: &DataTypeInformation| {
         let mut sub_diagnostics = vec![];
-        if let Some(diagnostics) = validate_array_param(left, right) {
-            sub_diagnostics.extend(diagnostics);
-        }
-        if let Some(diagnostics) = validate_string_length(left, right) {
-            sub_diagnostics.extend(diagnostics);
-        }
-        if sub_diagnostics.is_empty() {
-            sub_diagnostics.push(
-                create_diagnostic(left.get_name(), right.get_name())
-            );
-        }
+        match (left, right) {
+            (DataTypeInformation::Array { .. }, DataTypeInformation::Array { .. }) => {
+                sub_diagnostics.extend(validate_array_param(left, right))
+            }
+            (DataTypeInformation::Pointer { .. }, DataTypeInformation::Pointer { .. }) => todo!(),
+            (DataTypeInformation::String { .. }, DataTypeInformation::String { .. }) => {
+                sub_diagnostics.extend(validate_string_length(left, right))
+            }
+            (DataTypeInformation::SubRange { .. }, DataTypeInformation::SubRange { .. }) => todo!(),
+            _ => sub_diagnostics.push(create_diagnostic(left.get_name(), right.get_name())),
+        };
+
         sub_diagnostics
     };
 
@@ -321,14 +309,17 @@ where
     let return_type_impl =
         ctxt.index.get_effective_type_or_void_by_name(method_impl_return_type_name).get_type_information();
 
-    if return_type_impl != return_type_ref {      
-        diagnostics.push(
-            Diagnostic::new(format!(
-                "Interface implementation mismatch: return types do not match:",
-            )).with_error_code("E112")
-            .with_sub_diagnostics(collect_sub_diagnostics(return_type_impl, return_type_ref))
-        );
-        
+    // TODO: subranges/pointer indirection
+
+    if return_type_impl != return_type_ref {
+        let sub_diagnostics = collect_sub_diagnostics(return_type_impl, return_type_ref);
+        if !sub_diagnostics.is_empty() {
+            diagnostics.push(
+                Diagnostic::new("Interface implementation mismatch: return types do not match:")
+                    .with_error_code("E112")
+                    .with_sub_diagnostics(sub_diagnostics),
+            );
+        }
     }
 
     // Check if the parameters match; note that the order of the parameters is important due to implicit calls
@@ -385,6 +376,7 @@ where
                         .with_location(method_impl)
                         .with_secondary_location(&parameter_ref.source_location)
                     );
+                    dbg!(&diagnostics);
                 }
 
                 // Declaration Type (VAR_INPUT, VAR_OUTPUT, VAR_IN_OUT)

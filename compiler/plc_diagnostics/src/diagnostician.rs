@@ -39,7 +39,8 @@ impl Diagnostician {
             .iter()
             .flat_map(|it| {
                 let mut res = vec![it];
-                res.extend(it.get_sub_diagnostics());
+                let sub_diagnostics = it.get_sub_diagnostics();
+                res.extend(sub_diagnostics);
                 res
             })
             .map(|d| ResolvedDiagnostics {

@@ -97,7 +97,7 @@ fn pou_implements_method_with_wrong_return_type() {
     insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
+    error[E112]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
       ┌─ <internal>:7:20
       │
     3 │             METHOD methodA : DINT /* ... */ END_METHOD
@@ -254,7 +254,7 @@ fn pou_with_incorrect_parameter_type_in_interface_implementation() {
     11 │         METHOD methodA
        │                ^^^^^^^ Interface implementation mismatch: Parameter `a` has different types in declaration and implemenation:
 
-    error[E001]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
+    error[E112]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
        ┌─ <internal>:11:16
        │
      3 │         METHOD methodA
@@ -423,7 +423,7 @@ fn interfaces_with_same_method_name_but_different_signatures_return_type() {
     );
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
        ┌─ <internal>:20:20
        │
@@ -436,15 +436,17 @@ fn interfaces_with_same_method_name_but_different_signatures_return_type() {
     20 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
        │                    ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
 
-    error[E112]: Return type of `foo` does not match the return type of the method defined in `interfaceA`, expected `INT` but got `DINT` instead
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E112]: Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
        ┌─ <internal>:12:16
        │
      3 │     METHOD foo : INT
        │            --- see also
        ·
     12 │         METHOD foo : DINT
-       │                ^^^ Return type of `foo` does not match the return type of the method defined in `interfaceA`, expected `INT` but got `DINT` instead
-    "###);
+       │                ^^^ Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
+    ");
 }
 
 #[test]
@@ -481,7 +483,7 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
     );
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
        ┌─ <internal>:20:24
        │
@@ -494,15 +496,24 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
     20 │         FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
        │                        ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
 
-    error[E112]: Interface implementation mismatch: Expected parameter `b` to have `INT` as its type but got `DINT`
+    error[E112]: Interface implementation mismatch: Parameter `b` has different types in declaration and implemenation:
        ┌─ <internal>:12:20
        │
      6 │                 b : INT;
        │                 - see also
        ·
     12 │             METHOD foo : INT
-       │                    ^^^ Interface implementation mismatch: Expected parameter `b` to have `INT` as its type but got `DINT`
-    "###);
+       │                    ^^^ Interface implementation mismatch: Parameter `b` has different types in declaration and implemenation:
+
+    error[E112]: Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
+       ┌─ <internal>:12:20
+       │
+     3 │             METHOD foo : INT
+       │                    --- see also
+       ·
+    12 │             METHOD foo : INT
+       │                    ^^^ Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
+    ");
 }
 
 #[test]
@@ -610,7 +621,7 @@ fn interface_with_aggregate_return_type_string_mismatch() {
     insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `WSTRING`
+    error[E112]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `WSTRING`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : STRING
@@ -642,7 +653,7 @@ fn interface_with_aliased_aggregate_return_type_string() {
     insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Expected string of length `11` but got string of length `81`
+    error[E112]: Expected string of length `11` but got string of length `81`
       ┌─ <internal>:9:20
       │
     4 │             METHOD bar : myString
@@ -693,7 +704,7 @@ fn interface_with_aggregate_return_type_array_length_mismatch() {
     insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Expected array size `6` but got `5`
+    error[E112]: Expected array size `6` but got `5`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : ARRAY[1..6] OF STRING
@@ -724,7 +735,7 @@ fn interface_with_aggregate_return_type_array_inner_type_mismatch() {
     insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Expected array of type `STRING` but got `WSTRING`
+    error[E112]: Expected array of type `STRING` but got `WSTRING`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : ARRAY[1..5] OF STRING
@@ -779,7 +790,7 @@ fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
     insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Expected array of type `foo.bar_` but got `STRING`
+    error[E112]: Expected array of type `foo.bar_` but got `STRING`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..5] OF STRING
@@ -864,7 +875,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl() {
     insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
+    error[E112]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : STRING
@@ -895,7 +906,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl() {
     insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
+    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
       ┌─ <internal>:8:20
       │
     3 │             METHOD bar : DINT
@@ -946,7 +957,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
     insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
+    error[E112]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
        ┌─ <internal>:18:20
        │
      3 │             METHOD bar : STRING
@@ -966,7 +977,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
 
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Type `STRING` declared in `foo.baz` but `fb.baz` implemented type `DINT`
+    error[E112]: Type `STRING` declared in `foo.baz` but `fb.baz` implemented type `DINT`
        ┌─ <internal>:24:20
        │
     10 │             METHOD baz : STRING 
@@ -1026,7 +1037,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
     insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
+    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
        ┌─ <internal>:18:20
        │
      3 │             METHOD bar : DINT
@@ -1046,7 +1057,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
 
     error[E112]: Interface implementation mismatch: return types do not match:
 
-    error[E001]: Type `DINT` declared in `foo.baz` but `fb.baz` implemented type `STRING`
+    error[E112]: Type `DINT` declared in `foo.baz` but `fb.baz` implemented type `STRING`
        ┌─ <internal>:24:20
        │
     10 │             METHOD baz : DINT 
