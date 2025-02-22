@@ -1076,3 +1076,33 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
        │                 ^ Parameter count mismatch: `baz` has more parameters than the method defined in `foo`
     ");
 }
+
+#[test]
+fn pointer_to_pointer() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar : REF_TO REF_TO DINT
+            VAR_INPUT
+                a : REF_TO DINT;
+                b AT a : DINT;
+                c: REFERENCE TO DINT := a;
+            END_VAR
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : REF_TO REF_TO DINT
+            VAR_INPUT
+                a : REF_TO DINT;
+                b AT a : DINT;
+                c: REFERENCE TO DINT := REF(b);
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"");
+}
