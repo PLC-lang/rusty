@@ -1078,25 +1078,160 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
 }
 
 #[test]
-fn pointer_to_pointer() {
+fn pointer_return() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar : REF_TO DINT
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : REF_TO DINT
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn pointer_return_type_mismatch() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar : REF_TO INT
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : REF_TO DINT
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E112]: Type `INT` declared in `foo.bar` but `fb.bar` implemented type `DINT`
+      ┌─ <internal>:8:20
+      │
+    3 │             METHOD bar : REF_TO INT
+      │                    --- see also
+      ·
+    8 │             METHOD bar : REF_TO DINT
+      │                    ^^^ Type `INT` declared in `foo.bar` but `fb.bar` implemented type `DINT`
+    ");
+}
+
+#[test]
+fn pointer_to_pointer_return() {
     let source = SourceCode::from(
         r"
         INTERFACE foo
             METHOD bar : REF_TO REF_TO DINT
-            VAR_INPUT
-                a : REF_TO DINT;
-                b AT a : DINT;
-                c: REFERENCE TO DINT := a;
-            END_VAR
             END_METHOD
         END_INTERFACE
                 
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : REF_TO REF_TO DINT
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn pointer_to_pointer_return_inner_type_mismatch() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar : REF_TO REF_TO DINT
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : REF_TO REF_TO INT
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+      ┌─ <internal>:8:20
+      │
+    3 │             METHOD bar : REF_TO REF_TO DINT
+      │                    --- see also
+      ·
+    8 │             METHOD bar : REF_TO REF_TO INT
+      │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+    ");
+}
+
+#[test]
+fn pointer_to_pointer_return_indirection_level_mismatch() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar : REF_TO DINT
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar : REF_TO REF_TO DINT
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: return types do not match:
+
+    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `fb.bar_`
+      ┌─ <internal>:8:20
+      │
+    3 │             METHOD bar : REF_TO DINT
+      │                    --- see also
+      ·
+    8 │             METHOD bar : REF_TO REF_TO DINT
+      │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `fb.bar_`
+    ");
+}
+
+#[test]
+fn pointer_fields() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar
             VAR_INPUT
                 a : REF_TO DINT;
-                b AT a : DINT;
-                c: REFERENCE TO DINT := REF(b);
+                b : REF_TO REF_TO DINT;
+                c : REFERENCE TO DINT;
+                d AT a : DINT;
+            END_VAR
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar
+            VAR_INPUT
+                a : REF_TO DINT;
+                b : REF_TO REF_TO DINT;
+                c : REFERENCE TO DINT;
+                d AT a : DINT;
             END_VAR
             END_METHOD
         END_FUNCTION_BLOCK
@@ -1105,4 +1240,172 @@ fn pointer_to_pointer() {
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn pointer_fields_type_mismatch() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar
+            VAR_INPUT
+                a : REF_TO DINT;
+                b : REF_TO REF_TO DINT;
+                c : REFERENCE TO DINT;
+                d AT a : DINT;
+            END_VAR
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar
+            VAR_INPUT
+                a : REF_TO INT;
+                b : REF_TO REF_TO INT;
+                c : REFERENCE TO INT;
+                d AT a : INT;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: Parameter `a` has different types in declaration and implemenation:
+       ┌─ <internal>:14:20
+       │
+     5 │                 a : REF_TO DINT;
+       │                 - see also
+       ·
+    14 │             METHOD bar
+       │                    ^^^ Interface implementation mismatch: Parameter `a` has different types in declaration and implemenation:
+
+    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+       ┌─ <internal>:14:20
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    14 │             METHOD bar
+       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+
+    error[E112]: Interface implementation mismatch: Parameter `b` has different types in declaration and implemenation:
+       ┌─ <internal>:14:20
+       │
+     6 │                 b : REF_TO REF_TO DINT;
+       │                 - see also
+       ·
+    14 │             METHOD bar
+       │                    ^^^ Interface implementation mismatch: Parameter `b` has different types in declaration and implemenation:
+
+    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+       ┌─ <internal>:14:20
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    14 │             METHOD bar
+       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+
+    error[E112]: Interface implementation mismatch: Parameter `c` has different types in declaration and implemenation:
+       ┌─ <internal>:14:20
+       │
+     7 │                 c : REFERENCE TO DINT;
+       │                 - see also
+       ·
+    14 │             METHOD bar
+       │                    ^^^ Interface implementation mismatch: Parameter `c` has different types in declaration and implemenation:
+
+    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+       ┌─ <internal>:14:20
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    14 │             METHOD bar
+       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+
+    error[E112]: Interface implementation mismatch: Parameter `d` has different types in declaration and implemenation:
+       ┌─ <internal>:14:20
+       │
+     8 │                 d AT a : DINT;
+       │                 - see also
+       ·
+    14 │             METHOD bar
+       │                    ^^^ Interface implementation mismatch: Parameter `d` has different types in declaration and implemenation:
+
+    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+       ┌─ <internal>:14:20
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    14 │             METHOD bar
+       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+    ");
+}
+
+#[test]
+fn pointer_fields_indirection_mismatch() {
+    let source = SourceCode::from(
+        r"
+        INTERFACE foo
+            METHOD bar
+            VAR_INPUT
+                a : REF_TO DINT;
+                b : REF_TO REF_TO DINT;
+            END_VAR
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar
+            VAR_INPUT
+                a : REF_TO REF_TO DINT;
+                b : REF_TO DINT;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Interface implementation mismatch: Parameter `a` has different types in declaration and implemenation:
+       ┌─ <internal>:12:20
+       │
+     5 │                 a : REF_TO DINT;
+       │                 - see also
+       ·
+    12 │             METHOD bar
+       │                    ^^^ Interface implementation mismatch: Parameter `a` has different types in declaration and implemenation:
+
+    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
+       ┌─ <internal>:12:20
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    12 │             METHOD bar
+       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
+
+    error[E112]: Interface implementation mismatch: Parameter `b` has different types in declaration and implemenation:
+       ┌─ <internal>:12:20
+       │
+     6 │                 b : REF_TO REF_TO DINT;
+       │                 - see also
+       ·
+    12 │             METHOD bar
+       │                    ^^^ Interface implementation mismatch: Parameter `b` has different types in declaration and implemenation:
+
+    error[E112]: Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `DINT`
+       ┌─ <internal>:12:20
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    12 │             METHOD bar
+       │                    ^^^ Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `DINT`
+    ");
 }

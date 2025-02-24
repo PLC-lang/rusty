@@ -23,22 +23,11 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         let generic_types = preprocess_generic_structs(pou);
         unit.user_types.extend(generic_types);
 
-        let local_variables = pou
-            .variable_blocks
-            .iter_mut()
-            .flat_map(|it| it.variables.iter_mut())
-            .filter(|it| should_generate_implicit_type(it));
-
-        for var in local_variables {
-            pre_process_variable_data_type(pou.name.as_str(), var, &mut unit.user_types)
-        }
-
-        //Generate implicit type for returns
-        preprocess_return_type(pou, &mut unit.user_types);
+        process_pou_variables(pou, &mut unit.user_types);
     }
 
     for interface in unit.interfaces.iter_mut().flat_map(|it| &mut it.methods) {
-        preprocess_return_type(interface, &mut unit.user_types);
+        process_pou_variables(interface, &mut unit.user_types);
     }
 
     //process all variables from GVLs
@@ -146,6 +135,21 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         }
     }
     unit.user_types.append(&mut new_types);
+}
+
+fn process_pou_variables(pou: &mut Pou, user_types: &mut Vec<UserTypeDeclaration>) {
+    let local_variables = pou
+        .variable_blocks
+        .iter_mut()
+        .flat_map(|it| it.variables.iter_mut())
+        .filter(|it| should_generate_implicit_type(it));
+
+    for var in local_variables {
+        pre_process_variable_data_type(pou.name.as_str(), var, user_types)
+    }
+
+    //Generate implicit type for returns
+    preprocess_return_type(pou, user_types);
 }
 
 fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProvider) {

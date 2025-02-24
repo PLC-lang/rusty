@@ -353,15 +353,12 @@ pub(super) mod signature_validation {
 
         fn validate_return_types(&mut self) {
             let (return_type_ref, return_type_impl) = self.context.get_return_types();
-            if return_type_impl != return_type_ref {
-                let sub_diagnostics = self.validate_types(return_type_impl, return_type_ref);
-                if !sub_diagnostics.is_empty() {
-                    self.diagnostics.push(
-                        Diagnostic::new("Interface implementation mismatch: return types do not match:")
-                            .with_error_code("E112")
-                            .with_sub_diagnostics(sub_diagnostics),
-                    );
-                }
+            if let Some(sub_diagnostics) = self.validate_types(return_type_impl, return_type_ref) {
+                self.diagnostics.push(
+                    Diagnostic::new("Interface implementation mismatch: return types do not match:")
+                        .with_error_code("E112")
+                        .with_sub_diagnostics(sub_diagnostics),
+                );
             }
         }
 
@@ -405,12 +402,11 @@ pub(super) mod signature_validation {
                             .get_effective_type_or_void_by_name(parameter_impl.get_type_name())
                             .get_type_information();
                         let ref_ty_info = context
-                            .index
-                            .get_effective_type_or_void_by_name(parameter_ref.get_type_name())
-                            .get_type_information();
+                                                    .index
+                                                    .get_effective_type_or_void_by_name(parameter_ref.get_type_name())
+                                                    .get_type_information();
 
-                        if impl_ty_info.get_name() != ref_ty_info.get_name() {
-                            let sub_diagnostics = self.validate_types(impl_ty_info, ref_ty_info);
+                        if let Some(sub_diagnostics) = self.validate_types(impl_ty_info, ref_ty_info) {
                             self.diagnostics.push(
                                 Diagnostic::new(format!(
                                     "Interface implementation mismatch: Parameter `{}` has different types in declaration and implemenation:",
@@ -470,40 +466,78 @@ pub(super) mod signature_validation {
             })
         }
 
-        fn validate_types(&self, left: &DataTypeInformation, right: &DataTypeInformation) -> Vec<Diagnostic> {
-            let ctxt = self.context;
+        fn validate_types(
+            &self,
+            left: &DataTypeInformation,
+            right: &DataTypeInformation,
+        ) -> Option<Vec<Diagnostic>> {
+            if left == right {
+                return None;
+            }
+            let context = self.context;
             let mut diagnostics = vec![];
             match (left, right) {
                 (DataTypeInformation::Array { .. }, DataTypeInformation::Array { .. }) => {
-                    diagnostics.extend(self.validate_array_types(left, right))
+                    let sub_diagnostics = self.validate_array_types(left, right);
+                    if sub_diagnostics.is_empty() {
+                        return None;
+                    };
+                    diagnostics.extend(sub_diagnostics)
                 }
                 (
-                    DataTypeInformation::Pointer { name: l_name, inner_type_name: l_inner, .. },
-                    DataTypeInformation::Pointer { name: r_name, inner_type_name: r_inner, .. },
+                    DataTypeInformation::Pointer { inner_type_name: l_inner, auto_deref: l_auto, .. },
+                    DataTypeInformation::Pointer { inner_type_name: r_inner, auto_deref: r_auto, .. },
                 ) => {
-                    if l_name != r_name {
-                        diagnostics.push(self.create_diagnostic(l_name, r_name));
+                    if l_auto.is_some() || r_auto.is_some() {
+                        let left = l_auto
+                            .map(|_| {
+                                context
+                                    .index
+                                    .get_effective_type_or_void_by_name(l_inner)
+                                    .get_type_information()
+                            })
+                            .unwrap_or(left);
+                        let right = r_auto
+                            .map(|_| {
+                                context
+                                    .index
+                                    .get_effective_type_or_void_by_name(r_inner)
+                                    .get_type_information()
+                            })
+                            .unwrap_or(right);
+                        return self.validate_types(left, right);
                     }
-                    if l_inner != r_inner {
-                        diagnostics.push(self.create_diagnostic(l_inner, r_inner));
-                    }
-                    if ctxt.index.get_effective_type_or_void_by_name(&l_inner).get_type_information()
-                        != ctxt.index.get_effective_type_or_void_by_name(&r_inner).get_type_information()
-                    {
-                        // collect_sub_diagnostics(
-                        //     &ctxt.index.get_effective_type_or_void_by_name(&l_inner).get_type_information(),
-                        //     &ctxt.index.get_effective_type_or_void_by_name(&r_inner).get_type_information(),
-                        // );
-                    }
+                    return self.validate_types(
+                        context.index.get_effective_type_or_void_by_name(l_inner).get_type_information(),
+                        context.index.get_effective_type_or_void_by_name(r_inner).get_type_information(),
+                    );
+                }
+                (DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. }, _) => {
+                    let inner_type = context
+                        .index
+                        .get_effective_type_or_void_by_name(inner_type_name)
+                        .get_type_information();
+                    return self.validate_types(inner_type, right);
+                }
+                (_, DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. }) => {
+                    let inner_type = context
+                        .index
+                        .get_effective_type_or_void_by_name(inner_type_name)
+                        .get_type_information();
+                    return self.validate_types(left, inner_type);
                 }
                 (DataTypeInformation::String { .. }, DataTypeInformation::String { .. }) => {
-                    diagnostics.extend(self.validate_string_types(left, right))
+                    let sub_diagnostics = self.validate_string_types(left, right);
+                    if sub_diagnostics.is_empty() {
+                        return None;
+                    };
+                    diagnostics.extend(sub_diagnostics);
                 }
                 (DataTypeInformation::SubRange { .. }, DataTypeInformation::SubRange { .. }) => todo!(),
                 _ => diagnostics.push(self.create_diagnostic(left.get_name(), right.get_name())),
             };
 
-            diagnostics
+            Some(diagnostics)
         }
 
         fn create_diagnostic(&self, left: &str, right: &str) -> Diagnostic {
