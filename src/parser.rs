@@ -6,9 +6,8 @@ use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
-        Implementation, Interface, InterfaceIdentifier, LinkageType, PolymorphismMode, Pou, PouType,
-        ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock,
-        VariableBlockType,
+        Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess,
+        ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -399,7 +398,7 @@ fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
 
 /// Parses the comma seperated identifiers after an `IMPLEMENTS` keyword, e.g. `bar` and `baz` in
 /// `INTERFACE foo IMPLEMENTS bar`
-fn parse_interface_declarations(lexer: &mut ParseSession) -> Vec<InterfaceIdentifier> {
+fn parse_interface_declarations(lexer: &mut ParseSession) -> Vec<Identifier> {
     let mut declarations = Vec::new();
 
     if !lexer.try_consume(KeywordImplements) {
@@ -422,7 +421,7 @@ fn parse_interface_declarations(lexer: &mut ParseSession) -> Vec<InterfaceIdenti
         match lexer.token {
             Token::Identifier => {
                 let (name, location) = parse_identifier(lexer).expect("Identifier already matched");
-                declarations.push(InterfaceIdentifier { name, location });
+                declarations.push(Identifier { name, location });
             }
             Token::KeywordComma => lexer.advance(),
 
@@ -480,7 +479,7 @@ fn parse_polymorphism_mode(lexer: &mut ParseSession, pou_type: &PouType) -> Opti
     }
 }
 
-fn parse_super_class(lexer: &mut ParseSession) -> Option<InterfaceIdentifier> {
+fn parse_super_class(lexer: &mut ParseSession) -> Option<Identifier> {
     let mut extensions = vec![];
     while lexer.try_consume(KeywordExtends) {
         let name_and_location = parse_identifier(lexer)?;
@@ -496,7 +495,7 @@ fn parse_super_class(lexer: &mut ParseSession) -> Option<InterfaceIdentifier> {
 
     extensions
         .first()
-        .map(|(name, location)| InterfaceIdentifier { name: name.to_string(), location: location.clone() })
+        .map(|(name, location)| Identifier { name: name.to_string(), location: location.clone() })
 }
 
 fn parse_return_type(lexer: &mut ParseSession) -> Option<DataTypeDeclaration> {

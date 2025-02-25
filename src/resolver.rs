@@ -11,9 +11,9 @@ use std::{fmt::Debug, hash::Hash};
 use plc_ast::{
     ast::{
         self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType,
-        InterfaceIdentifier, JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature,
-        UserTypeDeclaration, Variable,
+        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Identifier,
+        JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
+        Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -988,7 +988,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_pou(&mut self, ctx: &VisitorContext, pou: &'i Pou) {
         self.dependencies.insert(Dependency::Datatype(pou.name.clone()));
-        if let Some(InterfaceIdentifier { name, .. }) = &pou.super_class {
+        if let Some(Identifier { name, .. }) = &pou.super_class {
             self.dependencies.insert(Dependency::Datatype(name.to_string()));
         }
         self.annotate_pou(pou);

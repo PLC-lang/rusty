@@ -7,7 +7,7 @@ use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
-    Interface, InterfaceIdentifier, LinkageType, PouType, TypeNature,
+    Identifier, Interface, LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -614,8 +614,8 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SourceLocation,
-        super_class: Option<InterfaceIdentifier>,
-        interfaces: Vec<InterfaceIdentifier>,
+        super_class: Option<Identifier>,
+        interfaces: Vec<Identifier>,
     ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
@@ -698,8 +698,8 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SourceLocation,
-        super_class: Option<InterfaceIdentifier>,
-        interfaces: Vec<InterfaceIdentifier>,
+        super_class: Option<Identifier>,
+        interfaces: Vec<Identifier>,
     ) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),

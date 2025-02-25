@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use plc_ast::ast::{Implementation, InterfaceIdentifier, LinkageType, Pou, PouType, VariableBlockType};
+use plc_ast::ast::{Identifier, Implementation, LinkageType, Pou, PouType, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
@@ -135,8 +135,7 @@ fn validate_base_class<T: AnnotationMap>(
     context: &ValidationContext<'_, T>,
     pou: &Pou,
 ) {
-    //If base class does not exist, report error
-    if let Some(InterfaceIdentifier { name, location }) = &pou.super_class {
+    if let Some(Identifier { name, location }) = &pou.super_class {
         // Check if the interfaces are implemented on the correct POU types
         if !matches!(pou.kind, PouType::FunctionBlock | PouType::Class) {
             validator.push_diagnostic(
