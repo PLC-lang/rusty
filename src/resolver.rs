@@ -11,8 +11,9 @@ use std::{fmt::Debug, hash::Hash};
 use plc_ast::{
     ast::{
         self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
-        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
+        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Identifier,
+        JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
+        Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -157,7 +158,7 @@ pub struct TypeAnnotator<'i> {
 }
 
 impl TypeAnnotator<'_> {
-    pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
+    pub fn annotate_with_id(&mut self, id: AstId, annotation: StatementAnnotation) {
         match &annotation {
             StatementAnnotation::Function { return_type, qualified_name, call_name, .. } => {
                 let name = call_name.as_ref().unwrap_or(qualified_name);
@@ -200,7 +201,11 @@ impl TypeAnnotator<'_> {
             }
             _ => (),
         };
-        self.annotation_map.annotate(s, annotation);
+        self.annotation_map.annotate_with_id(id, annotation);
+    }
+
+    pub fn annotate(&mut self, s: &AstNode, annotation: StatementAnnotation) {
+        self.annotate_with_id(s.get_id(), annotation);
     }
 
     fn visit_compare_statement(&mut self, ctx: &VisitorContext, statement: &AstNode) {
@@ -459,14 +464,79 @@ pub enum StatementAnnotation {
     Label {
         name: String,
     },
+    /// A method override
+    Override {
+        // The qualified name of all definitions of this method in interfaces or base classes
+        definitions: Vec<MethodDeclarationType>,
+    },
+    Super {
+        // Name of the super class (EXTENDS)
+        name: String,
+        // name of all interfaces implemented by the class
+        interfaces: Vec<String>,
+    },
+    MethodDeclarations {
+        declarations: FxHashMap<String, Vec<MethodDeclarationType>>,
+    },
     #[default]
     None,
+}
+
+type QualifiedName = String;
+#[derive(Debug, Hash, Clone, PartialEq)]
+pub enum MethodDeclarationType {
+    Abstract(QualifiedName),
+    Concrete(QualifiedName),
+}
+
+impl MethodDeclarationType {
+    pub fn abstract_method(name: &str) -> Self {
+        MethodDeclarationType::Abstract(name.into())
+    }
+
+    pub fn concrete_method(name: &str) -> Self {
+        MethodDeclarationType::Concrete(name.into())
+    }
+
+    pub fn is_abstract(&self) -> bool {
+        matches!(self, Self::Abstract(_))
+    }
+
+    pub fn is_concrete(&self) -> bool {
+        matches!(self, Self::Concrete(_))
+    }
+
+    pub fn get_qualified_name(&self) -> &str {
+        match self {
+            MethodDeclarationType::Abstract(name) | MethodDeclarationType::Concrete(name) => name,
+        }
+    }
+
+    pub fn get_qualifier(&self) -> &str {
+        match self {
+            MethodDeclarationType::Abstract(name) | MethodDeclarationType::Concrete(name) => {
+                name.rsplit_once('.').map(|(qualifier, _)| qualifier).unwrap_or(name)
+            }
+        }
+    }
+
+    pub fn get_flat_name(&self) -> &str {
+        match self {
+            MethodDeclarationType::Abstract(name) | MethodDeclarationType::Concrete(name) => {
+                name.rsplit_once('.').map(|(_, flat_name)| flat_name).unwrap_or(name)
+            }
+        }
+    }
 }
 
 impl StatementAnnotation {
     /// Constructs a new [`StatementAnnotation::Value`] with the given type name
     pub fn value(type_name: impl Into<String>) -> Self {
         StatementAnnotation::Value { resulting_type: type_name.into() }
+    }
+
+    pub fn create_override(definitions: Vec<MethodDeclarationType>) -> Self {
+        StatementAnnotation::Override { definitions }
     }
 
     pub fn with_generic_name(self, generic_name: &str) -> Self {
@@ -555,9 +625,17 @@ impl Dependency {
 }
 
 pub trait AnnotationMap {
-    fn get(&self, s: &AstNode) -> Option<&StatementAnnotation>;
+    fn get(&self, s: &AstNode) -> Option<&StatementAnnotation> {
+        self.get_with_id(s.get_id())
+    }
 
-    fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation>;
+    fn get_with_id(&self, id: AstId) -> Option<&StatementAnnotation>;
+
+    fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation> {
+        self.get_hint_with_id(s.get_id())
+    }
+
+    fn get_hint_with_id(&self, id: AstId) -> Option<&StatementAnnotation>;
 
     fn get_hidden_function_call(&self, s: &AstNode) -> Option<&AstNode>;
 
@@ -593,10 +671,13 @@ pub trait AnnotationMap {
                 .get_hint(statement)
                 .or_else(|| self.get(statement))
                 .and_then(|it| self.get_type_name_for_annotation(it)),
-            StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
+            StatementAnnotation::Program { qualified_name }
+            | StatementAnnotation::Super { name: qualified_name, .. } => Some(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } => Some(type_name),
             StatementAnnotation::Function { .. }
             | StatementAnnotation::Label { .. }
+            | StatementAnnotation::Override { .. }
+            | StatementAnnotation::MethodDeclarations { .. }
             | StatementAnnotation::None => None,
         }
     }
@@ -640,19 +721,19 @@ pub struct AstAnnotations {
 }
 
 impl AnnotationMap for AstAnnotations {
-    fn get(&self, s: &AstNode) -> Option<&StatementAnnotation> {
-        if s.get_id() == self.bool_id {
+    fn get_with_id(&self, id: AstId) -> Option<&StatementAnnotation> {
+        if id == self.bool_id {
             Some(&self.bool_annotation)
         } else {
-            self.annotation_map.get(s)
+            self.annotation_map.get_with_id(id)
         }
     }
 
-    fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation> {
-        if s.get_id() == self.bool_id {
+    fn get_hint_with_id(&self, id: AstId) -> Option<&StatementAnnotation> {
+        if id == self.bool_id {
             Some(&self.bool_annotation)
         } else {
-            self.annotation_map.get_hint(s)
+            self.annotation_map.get_hint_with_id(id)
         }
     }
 
@@ -726,8 +807,16 @@ impl AnnotationMapImpl {
         self.type_map.insert(s.get_id(), annotation);
     }
 
+    pub fn annotate_with_id(&mut self, id: AstId, annotation: StatementAnnotation) {
+        self.type_map.insert(id, annotation);
+    }
+
     pub fn annotate_type_hint(&mut self, s: &AstNode, annotation: StatementAnnotation) {
         self.type_hint_map.insert(s.get_id(), annotation);
+    }
+
+    pub fn annotate_type_hint_with_id(&mut self, id: AstId, annotation: StatementAnnotation) {
+        self.type_hint_map.insert(id, annotation);
     }
 
     /// annotates the given statement s with the call-statement f so codegen can generate
@@ -743,12 +832,12 @@ impl AnnotationMapImpl {
 }
 
 impl AnnotationMap for AnnotationMapImpl {
-    fn get(&self, s: &AstNode) -> Option<&StatementAnnotation> {
-        self.type_map.get(&s.get_id())
+    fn get_with_id(&self, id: AstId) -> Option<&StatementAnnotation> {
+        self.type_map.get(&id)
     }
 
-    fn get_hint(&self, s: &AstNode) -> Option<&StatementAnnotation> {
-        self.type_hint_map.get(&s.get_id())
+    fn get_hint_with_id(&self, id: AstId) -> Option<&StatementAnnotation> {
+        self.type_hint_map.get(&id)
     }
 
     /// returns the function call previously annoted on s via annotate_hidden_function_call(...)
@@ -899,11 +988,92 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_pou(&mut self, ctx: &VisitorContext, pou: &'i Pou) {
         self.dependencies.insert(Dependency::Datatype(pou.name.clone()));
-        //TODO dependency on super class
+        if let Some(Identifier { name, .. }) = &pou.super_class {
+            self.dependencies.insert(Dependency::Datatype(name.to_string()));
+        }
+        self.annotate_pou(pou);
         let pou_ctx = ctx.with_pou(pou.name.as_str());
         for block in &pou.variable_blocks {
             for variable in &block.variables {
                 self.visit_variable(&pou_ctx, variable);
+            }
+        }
+    }
+
+    fn annotate_pou(&mut self, pou: &Pou) {
+        if let Some(pou_entry) = self.index.find_pou(&pou.name) {
+            match pou_entry {
+                PouIndexEntry::Program { name, .. }
+                | PouIndexEntry::FunctionBlock { name, .. }
+                | PouIndexEntry::Class { name, .. } => {
+                    //Find all declared methods
+                    let mut methods = self
+                        .index
+                        .find_methods(name)
+                        .into_iter()
+                        .map(|it| {
+                            (
+                                it.get_flat_reference_name().to_string(),
+                                MethodDeclarationType::Concrete(it.get_name().to_string()),
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    //Find all methods in interfaces (possibly undeclared)
+                    for interface in pou_entry.get_interfaces() {
+                        if let Some(interface) = self.index.find_interface(interface) {
+                            methods.extend(interface.get_methods(self.index).into_iter().map(|it| {
+                                (
+                                    it.get_flat_reference_name().to_string(),
+                                    MethodDeclarationType::Abstract(it.get_name().to_string()),
+                                )
+                            }));
+                        }
+                    }
+                    let mut declarations = FxHashMap::<String, Vec<MethodDeclarationType>>::default();
+                    methods.into_iter().for_each(|(key, value)| {
+                        let entry = declarations.entry(key).or_default();
+                        entry.push(value);
+                    });
+                    self.annotation_map
+                        .annotate_with_id(pou.id, StatementAnnotation::MethodDeclarations { declarations });
+                }
+                PouIndexEntry::Method { parent_pou_name, .. } => {
+                    self.annotate_method(pou.id, parent_pou_name, pou_entry.get_qualified_name());
+                }
+                _ => {}
+            };
+        }
+    }
+
+    fn annotate_method(&mut self, id: AstId, parent_pou_name: &str, qualified_name: Vec<&str>) {
+        let method_name = qualified_name.last().expect("Method has a name");
+        self.dependencies.insert(Dependency::Datatype(parent_pou_name.into()));
+        //If the method is overriden, annotate the method with the original method
+        //Get the method's pou index entry in the super class
+        // TODO: lazy inheritance iterator
+        if let Some(base_pou) = self.index.find_pou(parent_pou_name) {
+            let mut overrides = vec![];
+            if let Some(super_class) = base_pou.get_super_class().and_then(|it| self.index.find_pou(it)) {
+                if let Some(method) = self.index.find_method(super_class.get_name(), method_name) {
+                    overrides.push(MethodDeclarationType::concrete_method(method.get_name()));
+                }
+            }
+            // Annotate all methods with the interface methods
+            // TODO: once we implement inheritance for interfaces, we need to adjust this logic
+            base_pou.get_interfaces().iter().for_each(|interface| {
+                if let Some(interface) = self.index.find_interface(interface) {
+                    if let Some(name) = interface
+                        .methods
+                        .iter()
+                        .find(|it| it.rsplit_once('.').map(|(_, it)| it).as_ref().unwrap() == method_name)
+                    {
+                        overrides.push(MethodDeclarationType::abstract_method(name));
+                    }
+                }
+            });
+
+            if !overrides.is_empty() {
+                self.annotation_map.annotate_with_id(id, StatementAnnotation::create_override(overrides));
             }
         }
     }

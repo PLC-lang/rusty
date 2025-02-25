@@ -7,7 +7,7 @@ use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
-    Interface, LinkageType, PouType, TypeNature,
+    Identifier, Interface, LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -328,6 +328,10 @@ impl VariableIndexEntry {
         let name = qualified_name(context, &self.name);
         self.qualified_name.eq_ignore_ascii_case(&name)
     }
+
+    pub fn get_qualifier(&self) -> Option<&str> {
+        self.qualified_name.rsplit_once('.').map(|(x, _)| x)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -539,6 +543,7 @@ pub enum PouIndexEntry {
         linkage: LinkageType,
         location: SourceLocation,
         super_class: Option<String>,
+        interfaces: Vec<String>,
     },
     Function {
         name: String,
@@ -556,6 +561,7 @@ pub enum PouIndexEntry {
         linkage: LinkageType,
         location: SourceLocation,
         super_class: Option<String>,
+        interfaces: Vec<String>,
     },
     Method {
         name: String,
@@ -608,14 +614,16 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SourceLocation,
-        super_class: Option<&str>,
+        super_class: Option<Identifier>,
+        interfaces: Vec<Identifier>,
     ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class: super_class.map(|s| s.to_owned()),
+            super_class: super_class.map(|it| it.name.clone()),
+            interfaces: interfaces.into_iter().map(|it| it.name.clone()).collect::<Vec<_>>(),
         }
     }
 
@@ -690,14 +698,16 @@ impl PouIndexEntry {
         pou_name: &str,
         linkage: LinkageType,
         location: SourceLocation,
-        super_class: Option<String>,
+        super_class: Option<Identifier>,
+        interfaces: Vec<Identifier>,
     ) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class,
+            super_class: super_class.map(|it| it.name.clone()),
+            interfaces: interfaces.into_iter().map(|it| it.name.clone()).collect::<Vec<_>>(),
         }
     }
 
@@ -742,6 +752,15 @@ impl PouIndexEntry {
                 super_class.as_deref()
             }
             _ => None,
+        }
+    }
+
+    pub fn get_interfaces(&self) -> Vec<&str> {
+        match self {
+            PouIndexEntry::Class { interfaces, .. } | PouIndexEntry::FunctionBlock { interfaces, .. } => {
+                interfaces.iter().map(|it| it.as_str()).collect()
+            }
+            _ => Vec::new(),
         }
     }
 
@@ -900,6 +919,16 @@ impl PouIndexEntry {
 
     fn is_auto_generated_function(&self) -> bool {
         matches!(self, PouIndexEntry::Function { is_generated: true, .. })
+    }
+
+    /// Returns the POU's without the qualifier
+    pub fn get_qualified_name(&self) -> Vec<&str> {
+        let name = self.get_name();
+        name.split('.').collect::<Vec<_>>()
+    }
+    /// Returns the POU's identifier without the qualifier
+    pub fn get_flat_reference_name(&self) -> &str {
+        self.get_qualified_name().into_iter().last().unwrap_or_default()
     }
 }
 
@@ -1253,7 +1282,7 @@ impl Index {
         self.find_local_member(container_name, variable_name)
             .or_else(|| {
                 if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                    self.find_member(class, variable_name)
+                    self.find_member(class, variable_name).filter(|it| !(it.is_temp()))
                 } else {
                     None
                 }
@@ -1847,6 +1876,40 @@ impl Index {
         };
 
         res
+    }
+
+    /// Returns all methods declared on container, or its parents.
+    /// If a method is declared in the container the parent method is not included
+    pub fn find_methods(&self, container: &str) -> Vec<&PouIndexEntry> {
+        self.find_method_recursive(container, vec![])
+    }
+
+    fn find_method_recursive<'a>(
+        &'a self,
+        container: &str,
+        current_methods: Vec<&'a PouIndexEntry>,
+    ) -> Vec<&'a PouIndexEntry> {
+        if let Some(pou) = self.find_pou(container) {
+            let mut res = self
+                .get_pous()
+                .values()
+                .filter(|it| it.is_method())
+                .filter(|it| it.get_parent_pou_name() == container)
+                .filter(|it| {
+                    !current_methods
+                        .iter()
+                        .any(|m| m.get_flat_reference_name() == it.get_flat_reference_name())
+                })
+                .collect::<Vec<_>>();
+            res.extend(current_methods);
+            if let Some(super_class) = pou.get_super_class() {
+                self.find_method_recursive(super_class, res)
+            } else {
+                res
+            }
+        } else {
+            current_methods
+        }
     }
 }
 

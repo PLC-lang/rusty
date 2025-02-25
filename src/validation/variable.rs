@@ -254,6 +254,37 @@ fn validate_variable<T: AnnotationMap>(
     variable: &Variable,
     context: &ValidationContext<T>,
 ) {
+    //Validate redeclaration of variable
+    //See if we are in a POU that is extended
+    if let Some(mut super_class) =
+        context.qualifier.and_then(|it| context.index.find_pou(it)).map(PouIndexEntry::get_super_class)
+    {
+        while let Some(parent_pou) = super_class {
+            let Some(parent_pou) = context.index.find_pou(parent_pou) else {
+                break;
+            };
+            if let Some(shadowed_variable) = context
+                .index
+                .find_member(parent_pou.get_name(), variable.name.as_str())
+                .filter(|v| !v.is_temp())
+            {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Variable `{}` is already declared in parent POU `{}`",
+                        variable.get_name(),
+                        shadowed_variable.get_qualifier().unwrap_or_default()
+                    ))
+                    .with_error_code("E021")
+                    .with_location(&variable.location)
+                    .with_secondary_location(&shadowed_variable.source_location),
+                );
+                break;
+            }
+
+            super_class = parent_pou.get_super_class();
+        }
+    }
+
     validate_array_ranges(validator, variable, context);
 
     if let Some(v_entry) = context.index.find_variable(context.qualifier, &[&variable.name]) {

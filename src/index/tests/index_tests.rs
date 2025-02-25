@@ -1392,6 +1392,7 @@ fn a_program_pou_is_indexed() {
             instance_struct_name: "myFunctionBlock".into(),
             location: source_location_factory.create_range(139..154),
             super_class: None,
+            interfaces: vec![],
         }),
         index.find_pou("myFunctionBlock"),
     );
@@ -1403,6 +1404,7 @@ fn a_program_pou_is_indexed() {
             instance_struct_name: "myClass".into(),
             location: source_location_factory.create_range(197..204),
             super_class: None,
+            interfaces: vec![],
         }),
         index.find_pou("myClass"),
     );

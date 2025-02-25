@@ -3,7 +3,7 @@ source: tests/integration/cfc/resolver_tests.rs
 expression: "index.get_label(\"main\", \"lbl\").unwrap()"
 ---
 Label {
-    id: 26,
+    id: 27,
     name: "lbl",
     location: SourceLocation {
         span: Block {
