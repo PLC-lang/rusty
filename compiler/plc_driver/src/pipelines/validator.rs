@@ -1,17 +1,13 @@
 use plc::lowering::validator::ParticipantValidator;
 
-use super::{participant::PipelineParticipantMut, ParsedProject};
+use super::{participant::PipelineParticipant, ParsedProject};
 
-impl PipelineParticipantMut for ParticipantValidator {
-    fn pre_index(&mut self, project: ParsedProject) -> ParsedProject {
-        let ParsedProject { units } = project;
-
-        for unit in &units {
+impl PipelineParticipant for ParticipantValidator {
+    fn pre_index(&mut self, project: &ParsedProject) {
+        for unit in &project.units {
             self.validate_properties(&unit.properties);
         }
 
         self.report_diagnostics();
-
-        ParsedProject { units }
     }
 }

@@ -29,7 +29,7 @@ use super::{AnnotatedProject, AnnotatedUnit, GeneratedProject, IndexedProject, P
 pub trait PipelineParticipant: Sync + Send {
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
-    fn pre_index(&self, _parsed_project: &ParsedProject) {}
+    fn pre_index(&mut self, _parsed_project: &ParsedProject) {}
     /// Implement this to access the project after it got indexed
     /// This happens directly after the index returns
     fn post_index(&self, _indexed_project: &IndexedProject) {}
