@@ -56,7 +56,7 @@
 //! To then trigger these methods whenever a property is referenced in some statement, a second lowering stage
 //! needs to be applied. That lowering stage happens right after we have successfully annotated all AST nodes.
 //! Again, for example assume we have the following code
-//! ```text
+//! ```iec61131st
 //! FUNCTION main
 //!     VAR
 //!         fbInstance : fb;
@@ -79,10 +79,12 @@ use helper::{create_internal_assignment, patch_prefix_to_name};
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, Implementation,
-        LinkageType, Pou, PouType, Property, PropertyKind, Variable, VariableBlock, VariableBlockType,
+        LinkageType, Pou, PouType, Property, PropertyKind, ReferenceAccess, ReferenceExpr, Variable,
+        VariableBlock, VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
+    try_from_mut,
 };
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
@@ -287,6 +289,26 @@ impl AstVisitorMut for PropertyLowerer {
     }
 
     fn visit_reference_expr(&mut self, node: &mut AstNode) {
+        let Some(ReferenceExpr { access, base }) = try_from_mut!(node, ReferenceExpr) else {
+            return;
+        };
+
+        // First check if we're dealing with an array, as they'll need to be handled a bit differently, i.e.
+        // we have to lower their base and index expression as well. Think of `fb.foo[fb.bar]` which needs to
+        // become `fb.__get_foo()[fb.__get_bar()]`
+        if let Some(base) = base {
+            base.walk(self);
+        }
+
+        match access {
+            ReferenceAccess::Member(node) | ReferenceAccess::Index(node) | ReferenceAccess::Cast(node) => {
+                node.walk(self);
+            }
+
+            _ => (),
+        };
+
+        // ...and otherwise check the node as a whole
         if let Some(annotation) = self.annotations.as_ref().unwrap().get(node) {
             if !annotation.is_property() {
                 return;
@@ -1297,5 +1319,239 @@ mod tests {
             ),
         }
         "#);
+    }
+
+    #[test]
+    fn getter_with_array_of_strings() {
+        let source = r"
+        FUNCTION_BLOCK fb
+            PROPERTY foo : ARRAY[1..5] OF STRING
+                GET
+                    foo := 5;
+                END_GET
+
+                SET
+                    localPrivateVariable := foo;
+                END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2 EXTENDS fb
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                fbInstance : fb2;
+            END_VAR
+
+            fbInstance.foo[1];
+            printf('%s$N', REF(fbInstance.foo[1]));
+        END_FUNCTION
+        ";
+
+        // fbInstance.__get_foo()[1]
+        let unit = lower(source);
+        insta::assert_debug_snapshot!(unit.implementations[2].statements[0], @r###"
+        ReferenceExpr {
+            kind: Index(
+                LiteralInteger {
+                    value: 1,
+                },
+            ),
+            base: Some(
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__get_foo",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "fbInstance",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    parameters: None,
+                },
+            ),
+        }
+        "###);
+        insta::assert_debug_snapshot!(unit.implementations[2].statements[1], @r###"
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "printf",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ExpressionList {
+                    expressions: [
+                        LiteralString {
+                            value: "%s\n",
+                            is_wide: false,
+                        },
+                        CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "REF",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: Some(
+                                ReferenceExpr {
+                                    kind: Index(
+                                        LiteralInteger {
+                                            value: 1,
+                                        },
+                                    ),
+                                    base: Some(
+                                        CallStatement {
+                                            operator: ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__get_foo",
+                                                    },
+                                                ),
+                                                base: Some(
+                                                    ReferenceExpr {
+                                                        kind: Member(
+                                                            Identifier {
+                                                                name: "fbInstance",
+                                                            },
+                                                        ),
+                                                        base: None,
+                                                    },
+                                                ),
+                                            },
+                                            parameters: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ],
+                },
+            ),
+        }
+        "###);
+    }
+
+    #[test]
+    fn getter_used_in_array_index() {
+        let source = r"
+        FUNCTION_BLOCK fb
+            PROPERTY foo : ARRAY[1..5] OF STRING
+                GET
+                    foo := ['a', 'b', 'c', 'd', 'e'];
+                END_GET
+            END_PROPERTY
+
+            PROPERTY bar : DINT
+                GET
+                    bar := 5;
+                END_GET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance : fb;
+            END_VAR
+
+            // We expect `instance.__get_foo()[instance.__get_bar()]`
+            printf('%s$N', REF(instance.foo[instance.bar]));
+        END_FUNCTION
+        ";
+
+        // fbInstance.__get_foo()[1]
+        let unit = lower(source);
+        insta::assert_debug_snapshot!(unit.implementations[1].statements[0], @r###"
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "printf",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ExpressionList {
+                    expressions: [
+                        LiteralString {
+                            value: "%s\n",
+                            is_wide: false,
+                        },
+                        CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "REF",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: Some(
+                                ReferenceExpr {
+                                    kind: Index(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "bar",
+                                                },
+                                            ),
+                                            base: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "instance",
+                                                        },
+                                                    ),
+                                                    base: None,
+                                                },
+                                            ),
+                                        },
+                                    ),
+                                    base: Some(
+                                        CallStatement {
+                                            operator: ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__get_foo",
+                                                    },
+                                                ),
+                                                base: Some(
+                                                    ReferenceExpr {
+                                                        kind: Member(
+                                                            Identifier {
+                                                                name: "instance",
+                                                            },
+                                                        ),
+                                                        base: None,
+                                                    },
+                                                ),
+                                            },
+                                            parameters: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ],
+                },
+            ),
+        }
+        "###);
     }
 }
