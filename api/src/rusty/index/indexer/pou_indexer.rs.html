@@ -295,7 +295,9 @@
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
     ArgumentProperty, DataTypeDeclaration, PouType, TypeNature, VariableBlock, VariableBlockType,
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -439,6 +441,7 @@
             pou.linkage,
             pou.name_location.clone(),
             pou.super_class.clone(),
+            pou.interfaces.clone(),
         ));
         <span class="self">self</span>.index.register_pou_type(pou_struct_type);
     }
@@ -459,7 +462,8 @@
             <span class="kw-2">&amp;</span>pou.name,
             pou.linkage,
             pou.name_location.clone(),
-            pou.super_class.clone().as_deref(),
+            pou.super_class.clone(),
+            pou.interfaces.clone(),
         ));
         <span class="self">self</span>.index.register_pou_type(pou_struct_type);
     }

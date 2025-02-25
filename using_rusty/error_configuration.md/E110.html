@@ -152,15 +152,18 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="invalid-pou-type-for-interface-implementation"><a class="header" href="#invalid-pou-type-for-interface-implementation">Invalid POU Type for Interface Implementation</a></h1>
-<p>Interfaces can only be implemented on classes and function-blocks, any other POU type is invalid and will
+                        <h1 id="invalid-pou-type-for-inheritance"><a class="header" href="#invalid-pou-type-for-inheritance">Invalid POU Type for Inheritance</a></h1>
+<p>Base Classes and Interfaces can only be used on <code>CLASS</code>es and <code>FUNCTION_BLOCK</code>s, any other POU type is invalid and will
 result in this error.</p>
 <p>Errouneus code example:</p>
 <pre><code class="language-iecst">INTERFACE interfaceA
     /* ... */
 END_INTERFACE
 
-FUNCTION foo IMPLEMENTS interfaceA
+FUNCTION_BLOCK fb
+END_FUNCTION_BLOCK
+
+FUNCTION foo EXTENDS fb IMPLEMENTS interfaceA
     /* ... */
 END_FUNCTION_BLOCK
 </code></pre>

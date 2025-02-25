@@ -1879,8 +1879,7 @@
 <a href="#1878" id="1878">1878</a>
 <a href="#1879" id="1879">1879</a>
 <a href="#1880" id="1880">1880</a>
-<a href="#1881" id="1881">1881</a>
-<a href="#1882" id="1882">1882</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1881" id="1881">1881</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
@@ -1913,6 +1912,7 @@
 <span class="attr">#[derive(PartialEq)]
 </span><span class="kw">pub struct </span>Pou {
     <span class="kw">pub </span>name: String,
+    <span class="kw">pub </span>id: AstId,
     <span class="kw">pub </span>kind: PouType,
     <span class="kw">pub </span>variable_blocks: Vec&lt;VariableBlock&gt;,
     <span class="kw">pub </span>return_type: <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt;,
@@ -1923,9 +1923,9 @@
     <span class="kw">pub </span>poly_mode: <span class="prelude-ty">Option</span>&lt;PolymorphismMode&gt;,
     <span class="kw">pub </span>generics: Vec&lt;GenericBinding&gt;,
     <span class="kw">pub </span>linkage: LinkageType,
-    <span class="kw">pub </span>super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>super_class: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
     <span class="doccomment">/// A list of interfaces this POU implements
-    </span><span class="kw">pub </span>interfaces: Vec&lt;InterfaceIdentifier&gt;,
+    </span><span class="kw">pub </span>interfaces: Vec&lt;Identifier&gt;,
     <span class="kw">pub </span>is_const: bool,
 }
 
@@ -1937,10 +1937,8 @@
     <span class="kw">pub </span>location_name: SourceLocation,
 }
 
-<span class="doccomment">/// Helper struct for [`Pou`] to get the location of the interface without relying on [`Interface`] which
-/// only exists if the interface is actually defined. Mostly needed for user-friendly validation messages.
-</span><span class="attr">#[derive(Debug, PartialEq)]
-</span><span class="kw">pub struct </span>InterfaceIdentifier {
+<span class="attr">#[derive(Debug, PartialEq, Clone)]
+</span><span class="kw">pub struct </span>Identifier {
     <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>location: SourceLocation,
 }

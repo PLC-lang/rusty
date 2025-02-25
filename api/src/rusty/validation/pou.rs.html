@@ -360,24 +360,203 @@
 <a href="#359" id="359">359</a>
 <a href="#360" id="360">360</a>
 <a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{Implementation, LinkageType, Pou, PouType, VariableBlockType};
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a></pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
+<span class="kw">use </span>plc_ast::ast::{Identifier, Implementation, LinkageType, Pou, PouType, VariableBlockType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
 <span class="kw">use super</span>::{
     statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
 };
-<span class="kw">use crate</span>::{index::PouIndexEntry, resolver::AnnotationMap};
-<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use crate</span>::{
+    index::PouIndexEntry,
+    resolver::{AnnotationMap, StatementAnnotation},
+};
 
 <span class="kw">pub fn </span>visit_pou&lt;T: AnnotationMap&gt;(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou, context: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">'_</span>, T&gt;) {
     <span class="kw">if </span>pou.linkage != LinkageType::External {
-        validate_pou(validator, pou, context);
+        validate_pou(validator, pou);
         validate_interface_impl(validator, context, pou);
+        validate_base_class(validator, context, pou);
+        validate_implemented_methods(validator, context, pou);
+        <span class="kw">if let </span>PouType::Method { .. } = pou.kind {
+            validate_method(validator, pou, context);
+        }
 
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;</span>pou.variable_blocks {
             visit_variable_block(validator, <span class="prelude-val">Some</span>(pou), block, context);
         }
     }
+}
+
+<span class="kw">fn </span>validate_implemented_methods&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">'_</span>, T&gt;,
+    pou: <span class="kw-2">&amp;</span>Pou,
+) {
+    <span class="kw">let </span><span class="prelude-val">Some</span>(StatementAnnotation::MethodDeclarations { declarations }) =
+        context.annotations.get_with_id(pou.id)
+    <span class="kw">else </span>{
+        <span class="kw">return</span>;
+    };
+
+    declarations.iter().for_each(|(method_name, decl)| {
+        <span class="comment">// validate that abstract signatures all match
+        // Concrete to abstract methods are checked at a different stage
+        </span><span class="kw">let </span>methods = decl
+            .iter()
+            .filter(|it| it.is_abstract())
+            .flat_map(|it| context.index.find_pou(it.get_qualified_name()));
+        <span class="comment">//XXX(ghha) should this not be combinations instead of tuple_windows?
+        </span><span class="kw">for </span>(method1, method2) <span class="kw">in </span>methods.tuple_windows() {
+            <span class="kw">let </span>diagnostics = validate_method_signature(context, method1, method2);
+            <span class="kw">if </span>!diagnostics.is_empty() {
+                validator.push_diagnostic(
+                    Diagnostic::new(<span class="macro">format!</span>(
+                        <span class="string">"Method `{}` is defined with different signatures in interfaces `{}` and `{}`"</span>,
+                        method_name,
+                        method1.get_parent_pou_name(),
+                        method2.get_parent_pou_name()
+                    ))
+                    .with_error_code(<span class="string">"E111"</span>)
+                    .with_location(<span class="kw-2">&amp;</span>pou.name_location)
+                    .with_secondary_location(method1.get_location())
+                    .with_secondary_location(method2.get_location())
+                    .with_sub_diagnostics(diagnostics),
+                );
+                <span class="comment">// We want to early return here otherwise we could spam the user with lots of (valid) but identical
+                // diagnostics reported earlier.
+                </span><span class="kw">return</span>;
+            }
+        }
+
+        <span class="comment">// validate that each abstract method has at least one concrete implementation
+        </span><span class="kw">let </span>abstracts = decl
+            .iter()
+            .filter(|it| it.is_abstract())
+            .map(|it| (it.get_qualifier(), context.index.find_pou(it.get_qualified_name()).unwrap()));
+        <span class="comment">// Expecting only one concrete implementation
+        </span><span class="kw">let </span>concrete = decl
+            .iter()
+            .filter(|it| it.is_concrete())
+            .map(|it| context.index.find_pou(it.get_qualified_name()).unwrap())
+            .next();
+        <span class="comment">// Validate that each concrete method that has an abstract counterpart has the same signature
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(method_impl) = concrete {
+            abstracts.for_each(|(<span class="kw">_</span>, method_ref)| {
+                <span class="kw">let </span>diagnostics = validate_method_signature(context, method_ref, method_impl);
+                <span class="kw">for </span>diagnostic <span class="kw">in </span>diagnostics {
+                    validator.push_diagnostic(diagnostic);
+                }
+            });
+        } <span class="kw">else </span>{
+            abstracts.for_each(|(name, intf)| {
+                validator.push_diagnostic(
+                    Diagnostic::new(<span class="macro">format!</span>(
+                        <span class="string">"Method `{}` defined in interface `{}` is missing in POU `{}`"</span>,
+                        method_name, name, pou.name
+                    ))
+                    .with_error_code(<span class="string">"E112"</span>)
+                    .with_location(<span class="kw-2">&amp;</span>pou.name_location)
+                    .with_secondary_location(intf.get_location()),
+                );
+            })
+        };
+    });
+}
+
+<span class="kw">fn </span>validate_method&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator&lt;<span class="lifetime">'_</span>&gt;,
+    pou: <span class="kw-2">&amp;</span>Pou,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">'_</span>, T&gt;,
+) {
+    <span class="kw">let </span><span class="prelude-val">Some</span>(StatementAnnotation::Override { definitions }) = context.annotations.get_with_id(pou.id) <span class="kw">else </span>{
+        <span class="comment">//No override
+        </span><span class="kw">return</span>;
+    };
+    <span class="kw">let </span><span class="prelude-val">Some</span>(method_impl) = context.index.find_pou(<span class="kw-2">&amp;</span>pou.name) <span class="kw">else </span>{
+        <span class="comment">//Method does not exist
+        </span><span class="kw">return</span>;
+    };
+
+    <span class="comment">//Only validate methods that are not abstract, abstract methods are validated in validate_implemented_methods
+    </span><span class="kw">let </span>interface_methods = definitions
+        .iter()
+        .filter(|it| it.is_concrete())
+        .flat_map(|it| context.index.find_pou(it.get_qualified_name()))
+        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    interface_methods.iter().for_each(|method_ref| {
+        <span class="kw">let </span>diagnostics = validate_method_signature(context, method_ref, method_impl);
+        <span class="kw">for </span>diagnostic <span class="kw">in </span>diagnostics {
+            validator.push_diagnostic(diagnostic);
+        }
+    })
+}
+
+<span class="kw">fn </span>validate_base_class&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator&lt;<span class="lifetime">'_</span>&gt;,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">'_</span>, T&gt;,
+    pou: <span class="kw-2">&amp;</span>Pou,
+) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(Identifier { name, location }) = <span class="kw-2">&amp;</span>pou.super_class {
+        <span class="comment">// Check if the interfaces are implemented on the correct POU types
+        </span><span class="kw">if </span>!<span class="macro">matches!</span>(pou.kind, PouType::FunctionBlock | PouType::Class) {
+            validator.push_diagnostic(
+                Diagnostic::new(<span class="string">"Subclassing is only allowed in `CLASS` and `FUNCTION_BLOCK`"</span>)
+                    .with_error_code(<span class="string">"E110"</span>)
+                    .with_location(<span class="kw-2">&amp;</span>pou.name_location),
+            );
+        }
+
+        <span class="kw">if </span>context.index.find_pou(name).is_none() {
+            validator.push_diagnostic(
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Base `{}` does not exist"</span>, name))
+                    .with_error_code(<span class="string">"E048"</span>)
+                    .with_location(location),
+            );
+        }
+    };
 }
 
 <span class="kw">fn </span>validate_interface_impl&lt;T&gt;(validator: <span class="kw-2">&amp;mut </span>Validator, ctxt: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">'_</span>, T&gt;, pou: <span class="kw-2">&amp;</span>Pou)
@@ -399,7 +578,7 @@
         };
 
         validator.push_diagnostic(
-            Diagnostic::new(<span class="string">"Interfaces can only be implemented by classes or function blocks"</span>)
+            Diagnostic::new(<span class="string">"Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`"</span>)
                 .with_error_code(<span class="string">"E110"</span>)
                 .with_location(location),
         );
@@ -422,75 +601,6 @@
             }
         }
     }
-
-    <span class="comment">// We want to check if two or more interface methods with the same name also have the same signature
-    </span><span class="kw">let </span>interface_methods = interfaces.iter().flat_map(|it| it.get_methods(ctxt.index)).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-    <span class="kw">let </span><span class="kw-2">mut </span>occurrences: HashMap&lt;<span class="kw-2">&amp;</span>str, Vec&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt;&gt; = HashMap::new();
-    <span class="kw">for </span>method <span class="kw">in </span><span class="kw-2">&amp;</span>interface_methods {
-        <span class="comment">// XXX(volsa): Not entirely happy with this `split` call, is there a better approach?
-        </span><span class="kw">let </span>name = method.get_name().rsplit_once(<span class="string">'.'</span>).map(|(<span class="kw">_</span>, last)| last).unwrap_or(method.get_name());
-        occurrences.entry(name).and_modify(|entries| entries.push(method)).or_insert(<span class="macro">vec!</span>[method]);
-    }
-
-    <span class="kw">let </span><span class="kw-2">mut </span>abort = <span class="bool-val">false</span>;
-    <span class="kw">for </span>(name, methods) <span class="kw">in </span>occurrences.iter().filter(|(<span class="kw">_</span>, methods)| methods.len() &gt; <span class="number">1</span>) {
-        <span class="kw">for </span>method <span class="kw">in </span>methods.windows(<span class="number">2</span>) {
-            <span class="kw">let </span>(method_ref, method_impl) = (method[<span class="number">0</span>], method[<span class="number">1</span>]);
-            <span class="kw">let </span>diagnostics = validate_method_signature(ctxt, method_ref, method_impl);
-
-            <span class="kw">if </span>!diagnostics.is_empty() {
-                validator.push_diagnostic(
-                    Diagnostic::new(<span class="macro">format!</span>(
-                        <span class="string">"Method `{}` is defined with different signatures in interfaces `{}` and `{}`"</span>,
-                        name,
-                        method_ref.get_parent_pou_name(),
-                        method_impl.get_parent_pou_name()
-                    ))
-                    .with_error_code(<span class="string">"E111"</span>)
-                    .with_location(<span class="kw-2">&amp;</span>pou.name_location)
-                    .with_secondary_location(method_ref.get_location())
-                    .with_secondary_location(method_impl.get_location())
-                    .with_sub_diagnostics(diagnostics),
-                );
-
-                abort = <span class="bool-val">true</span>;
-            }
-        }
-    }
-
-    <span class="comment">// We want to early return here otherwise we could spam the user with lots of (valid) but identical
-    // diagnostics reported earlier.
-    </span><span class="kw">if </span>abort {
-        <span class="kw">return</span>;
-    }
-
-    <span class="comment">// Check if the POUs are implementing the interface methods
-    </span><span class="kw">for </span>method_interface <span class="kw">in </span><span class="kw-2">&amp;</span>interface_methods {
-        <span class="comment">// XXX(volsa): Not entirely happy with this `split` call, is there a better approach?
-        </span><span class="kw">let </span>(interface_name, method_name) = method_interface.get_name().split_once(<span class="string">'.'</span>).unwrap();
-
-        <span class="kw">match </span>ctxt.index.find_method(<span class="kw-2">&amp;</span>pou.name, method_name) {
-            <span class="prelude-val">Some</span>(method_pou) =&gt; {
-                <span class="kw">let </span>diagnostics = validate_method_signature(ctxt, method_interface, method_pou);
-
-                <span class="kw">for </span>diagnostic <span class="kw">in </span>diagnostics {
-                    validator.push_diagnostic(diagnostic);
-                }
-            }
-
-            <span class="prelude-val">None </span>=&gt; {
-                validator.push_diagnostic(
-                    Diagnostic::new(<span class="macro">format!</span>(
-                        <span class="string">"Method `{}` defined in interface `{}` is missing in POU `{}`"</span>,
-                        method_name, interface_name, pou.name
-                    ))
-                    .with_error_code(<span class="string">"E112"</span>)
-                    .with_location(<span class="kw-2">&amp;</span>pou.name_location)
-                    .with_secondary_location(method_interface.get_location()),
-                );
-            }
-        }
-    }
 }
 
 <span class="kw">pub fn </span>validate_method_signature&lt;T&gt;(
@@ -502,6 +612,7 @@
     </span>T: AnnotationMap,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>diagnostics = Vec::new();
+    <span class="kw">let </span>method_name = method_ref.get_qualified_name().into_iter().last().unwrap_or_default();
 
     <span class="comment">// Check if the return type matches
     </span><span class="kw">let </span>return_type_ref = ctxt.index.get_return_type_or_void(method_ref.get_name());
@@ -511,7 +622,7 @@
         diagnostics.push(
             Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">"Return type of `{}` does not match the return type of the method defined in `{}`, expected `{}` but got `{}` instead"</span>,
-                method_impl.get_name(),
+                method_name,
                 method_ref.get_parent_pou_name(),
                 return_type_ref.get_name(),
                 return_type_impl.get_name(),
@@ -581,7 +692,7 @@
                         <span class="string">"Parameter `{} : {}` missing in method `{}`"</span>,
                         parameter_ref.get_name(),
                         parameter_ref.get_type_name(),
-                        method_impl.get_name()
+                        method_name,
                     ))
                     .with_error_code(<span class="string">"E112"</span>)
                     .with_location(method_impl)
@@ -599,7 +710,7 @@
             diagnostics.push(
                 Diagnostic::new(<span class="macro">format!</span>(
                     <span class="string">"Parameter count mismatch: `{}` has more parameters than the method defined in `{}`"</span>,
-                    method_impl.get_name(),
+                    method_name,
                     method_ref.get_parent_pou_name(),
                 ))
                 .with_error_code(<span class="string">"E112"</span>)
@@ -653,19 +764,23 @@
     }
 }
 
-<span class="kw">fn </span>validate_pou&lt;T: AnnotationMap&gt;(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou, context: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">'_</span>, T&gt;) {
-    <span class="kw">if </span>pou.kind == PouType::Function {
-        validate_function(validator, pou);
-    };
+<span class="kw">fn </span>validate_pou(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou) {
     <span class="kw">if </span>pou.kind == PouType::Class {
-        validate_class(validator, pou, context);
+        validate_class(validator, pou);
     };
-    <span class="kw">if </span>pou.kind == PouType::Program {
-        validate_program(validator, pou);
+    <span class="comment">//If the POU is not a function or method, it cannot have a return type
+    </span><span class="kw">if </span>!<span class="macro">matches!</span>(pou.kind, PouType::Function | PouType::Method { .. }) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(start_return_type) = <span class="kw-2">&amp;</span>pou.return_type {
+            validator.push_diagnostic(
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"POU Type {:?} does not support a return type"</span>, pou.kind))
+                    .with_error_code(<span class="string">"E026"</span>)
+                    .with_location(start_return_type.get_location()),
+            )
+        }
     }
 }
 
-<span class="kw">fn </span>validate_class&lt;T: AnnotationMap&gt;(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou, context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;) {
+<span class="kw">fn </span>validate_class(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou) {
     <span class="comment">// var in/out/inout blocks are not allowed inside of class declaration
     // TODO: This should be on each block
     </span><span class="kw">if </span>pou.variable_blocks.iter().any(|it| {
@@ -675,39 +790,8 @@
         )
     }) {
         validator.push_diagnostic(
-            Diagnostic::new(<span class="string">"A class cannot contain VAR_IN VAR_IN_OUT or VAR_OUT blocks"</span>)
+            Diagnostic::new(<span class="string">"A class cannot contain `VAR_INPUT`, `VAR_IN_OUT`, or `VAR_OUTPUT` blocks"</span>)
                 .with_error_code(<span class="string">"E019"</span>)
-                .with_location(<span class="kw-2">&amp;</span>pou.name_location),
-        );
-    }
-
-    <span class="comment">// classes cannot have a return type
-    </span><span class="kw">if </span>context.index.find_return_type(<span class="kw-2">&amp;</span>pou.name).is_some() {
-        validator.push_diagnostic(
-            Diagnostic::new(<span class="string">"A class cannot have a return type"</span>)
-                .with_error_code(<span class="string">"E020"</span>)
-                .with_location(<span class="kw-2">&amp;</span>pou.name_location),
-        );
-    }
-}
-
-<span class="kw">fn </span>validate_function(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou) {
-    <span class="comment">// functions cannot use EXTENDS
-    </span><span class="kw">if </span>pou.super_class.is_some() {
-        validator.push_diagnostic(
-            Diagnostic::new(<span class="string">"A function cannot use `EXTEND`"</span>)
-                .with_error_code(<span class="string">"E021"</span>)
-                .with_location(<span class="kw-2">&amp;</span>pou.name_location),
-        );
-    }
-}
-
-<span class="kw">fn </span>validate_program(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="kw-2">&amp;</span>Pou) {
-    <span class="comment">// programs cannot use EXTENDS
-    </span><span class="kw">if </span>pou.super_class.is_some() {
-        validator.push_diagnostic(
-            Diagnostic::new(<span class="string">"A program cannot use `EXTEND`"</span>)
-                .with_error_code(<span class="string">"E021"</span>)
                 .with_location(<span class="kw-2">&amp;</span>pou.name_location),
         );
     }

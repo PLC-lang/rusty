@@ -2306,7 +2306,177 @@
 <a href="#2305" id="2305">2305</a>
 <a href="#2306" id="2306">2306</a>
 <a href="#2307" id="2307">2307</a>
-<a href="#2308" id="2308">2308</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2308" id="2308">2308</a>
+<a href="#2309" id="2309">2309</a>
+<a href="#2310" id="2310">2310</a>
+<a href="#2311" id="2311">2311</a>
+<a href="#2312" id="2312">2312</a>
+<a href="#2313" id="2313">2313</a>
+<a href="#2314" id="2314">2314</a>
+<a href="#2315" id="2315">2315</a>
+<a href="#2316" id="2316">2316</a>
+<a href="#2317" id="2317">2317</a>
+<a href="#2318" id="2318">2318</a>
+<a href="#2319" id="2319">2319</a>
+<a href="#2320" id="2320">2320</a>
+<a href="#2321" id="2321">2321</a>
+<a href="#2322" id="2322">2322</a>
+<a href="#2323" id="2323">2323</a>
+<a href="#2324" id="2324">2324</a>
+<a href="#2325" id="2325">2325</a>
+<a href="#2326" id="2326">2326</a>
+<a href="#2327" id="2327">2327</a>
+<a href="#2328" id="2328">2328</a>
+<a href="#2329" id="2329">2329</a>
+<a href="#2330" id="2330">2330</a>
+<a href="#2331" id="2331">2331</a>
+<a href="#2332" id="2332">2332</a>
+<a href="#2333" id="2333">2333</a>
+<a href="#2334" id="2334">2334</a>
+<a href="#2335" id="2335">2335</a>
+<a href="#2336" id="2336">2336</a>
+<a href="#2337" id="2337">2337</a>
+<a href="#2338" id="2338">2338</a>
+<a href="#2339" id="2339">2339</a>
+<a href="#2340" id="2340">2340</a>
+<a href="#2341" id="2341">2341</a>
+<a href="#2342" id="2342">2342</a>
+<a href="#2343" id="2343">2343</a>
+<a href="#2344" id="2344">2344</a>
+<a href="#2345" id="2345">2345</a>
+<a href="#2346" id="2346">2346</a>
+<a href="#2347" id="2347">2347</a>
+<a href="#2348" id="2348">2348</a>
+<a href="#2349" id="2349">2349</a>
+<a href="#2350" id="2350">2350</a>
+<a href="#2351" id="2351">2351</a>
+<a href="#2352" id="2352">2352</a>
+<a href="#2353" id="2353">2353</a>
+<a href="#2354" id="2354">2354</a>
+<a href="#2355" id="2355">2355</a>
+<a href="#2356" id="2356">2356</a>
+<a href="#2357" id="2357">2357</a>
+<a href="#2358" id="2358">2358</a>
+<a href="#2359" id="2359">2359</a>
+<a href="#2360" id="2360">2360</a>
+<a href="#2361" id="2361">2361</a>
+<a href="#2362" id="2362">2362</a>
+<a href="#2363" id="2363">2363</a>
+<a href="#2364" id="2364">2364</a>
+<a href="#2365" id="2365">2365</a>
+<a href="#2366" id="2366">2366</a>
+<a href="#2367" id="2367">2367</a>
+<a href="#2368" id="2368">2368</a>
+<a href="#2369" id="2369">2369</a>
+<a href="#2370" id="2370">2370</a>
+<a href="#2371" id="2371">2371</a>
+<a href="#2372" id="2372">2372</a>
+<a href="#2373" id="2373">2373</a>
+<a href="#2374" id="2374">2374</a>
+<a href="#2375" id="2375">2375</a>
+<a href="#2376" id="2376">2376</a>
+<a href="#2377" id="2377">2377</a>
+<a href="#2378" id="2378">2378</a>
+<a href="#2379" id="2379">2379</a>
+<a href="#2380" id="2380">2380</a>
+<a href="#2381" id="2381">2381</a>
+<a href="#2382" id="2382">2382</a>
+<a href="#2383" id="2383">2383</a>
+<a href="#2384" id="2384">2384</a>
+<a href="#2385" id="2385">2385</a>
+<a href="#2386" id="2386">2386</a>
+<a href="#2387" id="2387">2387</a>
+<a href="#2388" id="2388">2388</a>
+<a href="#2389" id="2389">2389</a>
+<a href="#2390" id="2390">2390</a>
+<a href="#2391" id="2391">2391</a>
+<a href="#2392" id="2392">2392</a>
+<a href="#2393" id="2393">2393</a>
+<a href="#2394" id="2394">2394</a>
+<a href="#2395" id="2395">2395</a>
+<a href="#2396" id="2396">2396</a>
+<a href="#2397" id="2397">2397</a>
+<a href="#2398" id="2398">2398</a>
+<a href="#2399" id="2399">2399</a>
+<a href="#2400" id="2400">2400</a>
+<a href="#2401" id="2401">2401</a>
+<a href="#2402" id="2402">2402</a>
+<a href="#2403" id="2403">2403</a>
+<a href="#2404" id="2404">2404</a>
+<a href="#2405" id="2405">2405</a>
+<a href="#2406" id="2406">2406</a>
+<a href="#2407" id="2407">2407</a>
+<a href="#2408" id="2408">2408</a>
+<a href="#2409" id="2409">2409</a>
+<a href="#2410" id="2410">2410</a>
+<a href="#2411" id="2411">2411</a>
+<a href="#2412" id="2412">2412</a>
+<a href="#2413" id="2413">2413</a>
+<a href="#2414" id="2414">2414</a>
+<a href="#2415" id="2415">2415</a>
+<a href="#2416" id="2416">2416</a>
+<a href="#2417" id="2417">2417</a>
+<a href="#2418" id="2418">2418</a>
+<a href="#2419" id="2419">2419</a>
+<a href="#2420" id="2420">2420</a>
+<a href="#2421" id="2421">2421</a>
+<a href="#2422" id="2422">2422</a>
+<a href="#2423" id="2423">2423</a>
+<a href="#2424" id="2424">2424</a>
+<a href="#2425" id="2425">2425</a>
+<a href="#2426" id="2426">2426</a>
+<a href="#2427" id="2427">2427</a>
+<a href="#2428" id="2428">2428</a>
+<a href="#2429" id="2429">2429</a>
+<a href="#2430" id="2430">2430</a>
+<a href="#2431" id="2431">2431</a>
+<a href="#2432" id="2432">2432</a>
+<a href="#2433" id="2433">2433</a>
+<a href="#2434" id="2434">2434</a>
+<a href="#2435" id="2435">2435</a>
+<a href="#2436" id="2436">2436</a>
+<a href="#2437" id="2437">2437</a>
+<a href="#2438" id="2438">2438</a>
+<a href="#2439" id="2439">2439</a>
+<a href="#2440" id="2440">2440</a>
+<a href="#2441" id="2441">2441</a>
+<a href="#2442" id="2442">2442</a>
+<a href="#2443" id="2443">2443</a>
+<a href="#2444" id="2444">2444</a>
+<a href="#2445" id="2445">2445</a>
+<a href="#2446" id="2446">2446</a>
+<a href="#2447" id="2447">2447</a>
+<a href="#2448" id="2448">2448</a>
+<a href="#2449" id="2449">2449</a>
+<a href="#2450" id="2450">2450</a>
+<a href="#2451" id="2451">2451</a>
+<a href="#2452" id="2452">2452</a>
+<a href="#2453" id="2453">2453</a>
+<a href="#2454" id="2454">2454</a>
+<a href="#2455" id="2455">2455</a>
+<a href="#2456" id="2456">2456</a>
+<a href="#2457" id="2457">2457</a>
+<a href="#2458" id="2458">2458</a>
+<a href="#2459" id="2459">2459</a>
+<a href="#2460" id="2460">2460</a>
+<a href="#2461" id="2461">2461</a>
+<a href="#2462" id="2462">2462</a>
+<a href="#2463" id="2463">2463</a>
+<a href="#2464" id="2464">2464</a>
+<a href="#2465" id="2465">2465</a>
+<a href="#2466" id="2466">2466</a>
+<a href="#2467" id="2467">2467</a>
+<a href="#2468" id="2468">2468</a>
+<a href="#2469" id="2469">2469</a>
+<a href="#2470" id="2470">2470</a>
+<a href="#2471" id="2471">2471</a>
+<a href="#2472" id="2472">2472</a>
+<a href="#2473" id="2473">2473</a>
+<a href="#2474" id="2474">2474</a>
+<a href="#2475" id="2475">2475</a>
+<a href="#2476" id="2476">2476</a>
+<a href="#2477" id="2477">2477</a>
+<a href="#2478" id="2478">2478</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -2319,8 +2489,9 @@
 <span class="kw">use </span>plc_ast::{
     ast::{
         <span class="self">self</span>, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, JumpStatement,
-        Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
+        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Identifier,
+        JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
+        Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -2465,7 +2636,7 @@
 }
 
 <span class="kw">impl </span>TypeAnnotator&lt;<span class="lifetime">'_</span>&gt; {
-    <span class="kw">pub fn </span>annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, annotation: StatementAnnotation) {
+    <span class="kw">pub fn </span>annotate_with_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: AstId, annotation: StatementAnnotation) {
         <span class="kw">match </span><span class="kw-2">&amp;</span>annotation {
             StatementAnnotation::Function { return_type, qualified_name, call_name, .. } =&gt; {
                 <span class="kw">let </span>name = call_name.as_ref().unwrap_or(qualified_name);
@@ -2508,7 +2679,11 @@
             }
             <span class="kw">_ </span>=&gt; (),
         };
-        <span class="self">self</span>.annotation_map.annotate(s, annotation);
+        <span class="self">self</span>.annotation_map.annotate_with_id(id, annotation);
+    }
+
+    <span class="kw">pub fn </span>annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, annotation: StatementAnnotation) {
+        <span class="self">self</span>.annotate_with_id(s.get_id(), annotation);
     }
 
     <span class="kw">fn </span>visit_compare_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstNode) {
@@ -2767,14 +2942,79 @@
     </span>Label {
         name: String,
     },
+    <span class="doccomment">/// A method override
+    </span>Override {
+        <span class="comment">// The qualified name of all definitions of this method in interfaces or base classes
+        </span>definitions: Vec&lt;MethodDeclarationType&gt;,
+    },
+    Super {
+        <span class="comment">// Name of the super class (EXTENDS)
+        </span>name: String,
+        <span class="comment">// name of all interfaces implemented by the class
+        </span>interfaces: Vec&lt;String&gt;,
+    },
+    MethodDeclarations {
+        declarations: FxHashMap&lt;String, Vec&lt;MethodDeclarationType&gt;&gt;,
+    },
     <span class="attr">#[default]
     </span><span class="prelude-val">None</span>,
+}
+
+<span class="kw">type </span>QualifiedName = String;
+<span class="attr">#[derive(Debug, Hash, Clone, PartialEq)]
+</span><span class="kw">pub enum </span>MethodDeclarationType {
+    Abstract(QualifiedName),
+    Concrete(QualifiedName),
+}
+
+<span class="kw">impl </span>MethodDeclarationType {
+    <span class="kw">pub fn </span>abstract_method(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        MethodDeclarationType::Abstract(name.into())
+    }
+
+    <span class="kw">pub fn </span>concrete_method(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        MethodDeclarationType::Concrete(name.into())
+    }
+
+    <span class="kw">pub fn </span>is_abstract(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Abstract(<span class="kw">_</span>))
+    }
+
+    <span class="kw">pub fn </span>is_concrete(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Concrete(<span class="kw">_</span>))
+    }
+
+    <span class="kw">pub fn </span>get_qualified_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            MethodDeclarationType::Abstract(name) | MethodDeclarationType::Concrete(name) =&gt; name,
+        }
+    }
+
+    <span class="kw">pub fn </span>get_qualifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            MethodDeclarationType::Abstract(name) | MethodDeclarationType::Concrete(name) =&gt; {
+                name.rsplit_once(<span class="string">'.'</span>).map(|(qualifier, <span class="kw">_</span>)| qualifier).unwrap_or(name)
+            }
+        }
+    }
+
+    <span class="kw">pub fn </span>get_flat_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            MethodDeclarationType::Abstract(name) | MethodDeclarationType::Concrete(name) =&gt; {
+                name.rsplit_once(<span class="string">'.'</span>).map(|(<span class="kw">_</span>, flat_name)| flat_name).unwrap_or(name)
+            }
+        }
+    }
 }
 
 <span class="kw">impl </span>StatementAnnotation {
     <span class="doccomment">/// Constructs a new [`StatementAnnotation::Value`] with the given type name
     </span><span class="kw">pub fn </span>value(type_name: <span class="kw">impl </span>Into&lt;String&gt;) -&gt; <span class="self">Self </span>{
         StatementAnnotation::Value { resulting_type: type_name.into() }
+    }
+
+    <span class="kw">pub fn </span>create_override(definitions: Vec&lt;MethodDeclarationType&gt;) -&gt; <span class="self">Self </span>{
+        StatementAnnotation::Override { definitions }
     }
 
     <span class="kw">pub fn </span>with_generic_name(<span class="self">self</span>, generic_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
@@ -2863,9 +3103,17 @@
 }
 
 <span class="kw">pub trait </span>AnnotationMap {
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
+        <span class="self">self</span>.get_with_id(s.get_id())
+    }
 
-    <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
+    <span class="kw">fn </span>get_with_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: AstId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
+
+    <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
+        <span class="self">self</span>.get_hint_with_id(s.get_id())
+    }
+
+    <span class="kw">fn </span>get_hint_with_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: AstId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt;;
 
     <span class="kw">fn </span>get_hidden_function_call(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;;
 
@@ -2901,10 +3149,13 @@
                 </span>.get_hint(statement)
                 .or_else(|| <span class="self">self</span>.get(statement))
                 .and_then(|it| <span class="self">self</span>.get_type_name_for_annotation(it)),
-            StatementAnnotation::Program { qualified_name } =&gt; <span class="prelude-val">Some</span>(qualified_name.as_str()),
+            StatementAnnotation::Program { qualified_name }
+            | StatementAnnotation::Super { name: qualified_name, .. } =&gt; <span class="prelude-val">Some</span>(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } =&gt; <span class="prelude-val">Some</span>(type_name),
             StatementAnnotation::Function { .. }
             | StatementAnnotation::Label { .. }
+            | StatementAnnotation::Override { .. }
+            | StatementAnnotation::MethodDeclarations { .. }
             | StatementAnnotation::None =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2948,19 +3199,19 @@
 }
 
 <span class="kw">impl </span>AnnotationMap <span class="kw">for </span>AstAnnotations {
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
-        <span class="kw">if </span>s.get_id() == <span class="self">self</span>.bool_id {
+    <span class="kw">fn </span>get_with_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: AstId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
+        <span class="kw">if </span>id == <span class="self">self</span>.bool_id {
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.bool_annotation)
         } <span class="kw">else </span>{
-            <span class="self">self</span>.annotation_map.get(s)
+            <span class="self">self</span>.annotation_map.get_with_id(id)
         }
     }
 
-    <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
-        <span class="kw">if </span>s.get_id() == <span class="self">self</span>.bool_id {
+    <span class="kw">fn </span>get_hint_with_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: AstId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
+        <span class="kw">if </span>id == <span class="self">self</span>.bool_id {
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.bool_annotation)
         } <span class="kw">else </span>{
-            <span class="self">self</span>.annotation_map.get_hint(s)
+            <span class="self">self</span>.annotation_map.get_hint_with_id(id)
         }
     }
 
@@ -3034,8 +3285,16 @@
         <span class="self">self</span>.type_map.insert(s.get_id(), annotation);
     }
 
+    <span class="kw">pub fn </span>annotate_with_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: AstId, annotation: StatementAnnotation) {
+        <span class="self">self</span>.type_map.insert(id, annotation);
+    }
+
     <span class="kw">pub fn </span>annotate_type_hint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode, annotation: StatementAnnotation) {
         <span class="self">self</span>.type_hint_map.insert(s.get_id(), annotation);
+    }
+
+    <span class="kw">pub fn </span>annotate_type_hint_with_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: AstId, annotation: StatementAnnotation) {
+        <span class="self">self</span>.type_hint_map.insert(id, annotation);
     }
 
     <span class="doccomment">/// annotates the given statement s with the call-statement f so codegen can generate
@@ -3051,12 +3310,12 @@
 }
 
 <span class="kw">impl </span>AnnotationMap <span class="kw">for </span>AnnotationMapImpl {
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
-        <span class="self">self</span>.type_map.get(<span class="kw-2">&amp;</span>s.get_id())
+    <span class="kw">fn </span>get_with_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: AstId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
+        <span class="self">self</span>.type_map.get(<span class="kw-2">&amp;</span>id)
     }
 
-    <span class="kw">fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
-        <span class="self">self</span>.type_hint_map.get(<span class="kw-2">&amp;</span>s.get_id())
+    <span class="kw">fn </span>get_hint_with_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: AstId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StatementAnnotation&gt; {
+        <span class="self">self</span>.type_hint_map.get(<span class="kw-2">&amp;</span>id)
     }
 
     <span class="doccomment">/// returns the function call previously annoted on s via annotate_hidden_function_call(...)
@@ -3207,11 +3466,92 @@
 
     <span class="kw">fn </span>visit_pou(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, pou: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>Pou) {
         <span class="self">self</span>.dependencies.insert(Dependency::Datatype(pou.name.clone()));
-        <span class="comment">//TODO dependency on super class
-        </span><span class="kw">let </span>pou_ctx = ctx.with_pou(pou.name.as_str());
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(Identifier { name, .. }) = <span class="kw-2">&amp;</span>pou.super_class {
+            <span class="self">self</span>.dependencies.insert(Dependency::Datatype(name.to_string()));
+        }
+        <span class="self">self</span>.annotate_pou(pou);
+        <span class="kw">let </span>pou_ctx = ctx.with_pou(pou.name.as_str());
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;</span>pou.variable_blocks {
             <span class="kw">for </span>variable <span class="kw">in </span><span class="kw-2">&amp;</span>block.variables {
                 <span class="self">self</span>.visit_variable(<span class="kw-2">&amp;</span>pou_ctx, variable);
+            }
+        }
+    }
+
+    <span class="kw">fn </span>annotate_pou(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>Pou) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pou_entry) = <span class="self">self</span>.index.find_pou(<span class="kw-2">&amp;</span>pou.name) {
+            <span class="kw">match </span>pou_entry {
+                PouIndexEntry::Program { name, .. }
+                | PouIndexEntry::FunctionBlock { name, .. }
+                | PouIndexEntry::Class { name, .. } =&gt; {
+                    <span class="comment">//Find all declared methods
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>methods = <span class="self">self
+                        </span>.index
+                        .find_methods(name)
+                        .into_iter()
+                        .map(|it| {
+                            (
+                                it.get_flat_reference_name().to_string(),
+                                MethodDeclarationType::Concrete(it.get_name().to_string()),
+                            )
+                        })
+                        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                    <span class="comment">//Find all methods in interfaces (possibly undeclared)
+                    </span><span class="kw">for </span>interface <span class="kw">in </span>pou_entry.get_interfaces() {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(interface) = <span class="self">self</span>.index.find_interface(interface) {
+                            methods.extend(interface.get_methods(<span class="self">self</span>.index).into_iter().map(|it| {
+                                (
+                                    it.get_flat_reference_name().to_string(),
+                                    MethodDeclarationType::Abstract(it.get_name().to_string()),
+                                )
+                            }));
+                        }
+                    }
+                    <span class="kw">let </span><span class="kw-2">mut </span>declarations = FxHashMap::&lt;String, Vec&lt;MethodDeclarationType&gt;&gt;::default();
+                    methods.into_iter().for_each(|(key, value)| {
+                        <span class="kw">let </span>entry = declarations.entry(key).or_default();
+                        entry.push(value);
+                    });
+                    <span class="self">self</span>.annotation_map
+                        .annotate_with_id(pou.id, StatementAnnotation::MethodDeclarations { declarations });
+                }
+                PouIndexEntry::Method { parent_pou_name, .. } =&gt; {
+                    <span class="self">self</span>.annotate_method(pou.id, parent_pou_name, pou_entry.get_qualified_name());
+                }
+                <span class="kw">_ </span>=&gt; {}
+            };
+        }
+    }
+
+    <span class="kw">fn </span>annotate_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: AstId, parent_pou_name: <span class="kw-2">&amp;</span>str, qualified_name: Vec&lt;<span class="kw-2">&amp;</span>str&gt;) {
+        <span class="kw">let </span>method_name = qualified_name.last().expect(<span class="string">"Method has a name"</span>);
+        <span class="self">self</span>.dependencies.insert(Dependency::Datatype(parent_pou_name.into()));
+        <span class="comment">//If the method is overriden, annotate the method with the original method
+        //Get the method's pou index entry in the super class
+        // TODO: lazy inheritance iterator
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(base_pou) = <span class="self">self</span>.index.find_pou(parent_pou_name) {
+            <span class="kw">let </span><span class="kw-2">mut </span>overrides = <span class="macro">vec!</span>[];
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(super_class) = base_pou.get_super_class().and_then(|it| <span class="self">self</span>.index.find_pou(it)) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(method) = <span class="self">self</span>.index.find_method(super_class.get_name(), method_name) {
+                    overrides.push(MethodDeclarationType::concrete_method(method.get_name()));
+                }
+            }
+            <span class="comment">// Annotate all methods with the interface methods
+            // TODO: once we implement inheritance for interfaces, we need to adjust this logic
+            </span>base_pou.get_interfaces().iter().for_each(|interface| {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(interface) = <span class="self">self</span>.index.find_interface(interface) {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = interface
+                        .methods
+                        .iter()
+                        .find(|it| it.rsplit_once(<span class="string">'.'</span>).map(|(<span class="kw">_</span>, it)| it).as_ref().unwrap() == method_name)
+                    {
+                        overrides.push(MethodDeclarationType::abstract_method(name));
+                    }
+                }
+            });
+
+            <span class="kw">if </span>!overrides.is_empty() {
+                <span class="self">self</span>.annotation_map.annotate_with_id(id, StatementAnnotation::create_override(overrides));
             }
         }
     }

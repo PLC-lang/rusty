@@ -1858,7 +1858,70 @@
 <a href="#1857" id="1857">1857</a>
 <a href="#1858" id="1858">1858</a>
 <a href="#1859" id="1859">1859</a>
-<a href="#1860" id="1860">1860</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1860" id="1860">1860</a>
+<a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
+<a href="#1880" id="1880">1880</a>
+<a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
+<a href="#1884" id="1884">1884</a>
+<a href="#1885" id="1885">1885</a>
+<a href="#1886" id="1886">1886</a>
+<a href="#1887" id="1887">1887</a>
+<a href="#1888" id="1888">1888</a>
+<a href="#1889" id="1889">1889</a>
+<a href="#1890" id="1890">1890</a>
+<a href="#1891" id="1891">1891</a>
+<a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
+<a href="#1896" id="1896">1896</a>
+<a href="#1897" id="1897">1897</a>
+<a href="#1898" id="1898">1898</a>
+<a href="#1899" id="1899">1899</a>
+<a href="#1900" id="1900">1900</a>
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
 
@@ -1867,7 +1930,7 @@
 
 <span class="kw">use </span>plc_ast::ast::{
     AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
-    Interface, LinkageType, PouType, TypeNature,
+    Identifier, Interface, LinkageType, PouType, TypeNature,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -2188,6 +2251,10 @@
         <span class="kw">let </span>name = qualified_name(context, <span class="kw-2">&amp;</span><span class="self">self</span>.name);
         <span class="self">self</span>.qualified_name.eq_ignore_ascii_case(<span class="kw-2">&amp;</span>name)
     }
+
+    <span class="kw">pub fn </span>get_qualifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.qualified_name.rsplit_once(<span class="string">'.'</span>).map(|(x, <span class="kw">_</span>)| x)
+    }
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -2399,6 +2466,7 @@
         linkage: LinkageType,
         location: SourceLocation,
         super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        interfaces: Vec&lt;String&gt;,
     },
     Function {
         name: String,
@@ -2416,6 +2484,7 @@
         linkage: LinkageType,
         location: SourceLocation,
         super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        interfaces: Vec&lt;String&gt;,
     },
     Method {
         name: String,
@@ -2468,14 +2537,16 @@
         pou_name: <span class="kw-2">&amp;</span>str,
         linkage: LinkageType,
         location: SourceLocation,
-        super_class: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+        super_class: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+        interfaces: Vec&lt;Identifier&gt;,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class: super_class.map(|s| s.to_owned()),
+            super_class: super_class.map(|it| it.name.clone()),
+            interfaces: interfaces.into_iter().map(|it| it.name.clone()).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
         }
     }
 
@@ -2550,14 +2621,16 @@
         pou_name: <span class="kw-2">&amp;</span>str,
         linkage: LinkageType,
         location: SourceLocation,
-        super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        super_class: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+        interfaces: Vec&lt;Identifier&gt;,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class,
+            super_class: super_class.map(|it| it.name.clone()),
+            interfaces: interfaces.into_iter().map(|it| it.name.clone()).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
         }
     }
 
@@ -2602,6 +2675,15 @@
                 super_class.as_deref()
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>get_interfaces(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            PouIndexEntry::Class { interfaces, .. } | PouIndexEntry::FunctionBlock { interfaces, .. } =&gt; {
+                interfaces.iter().map(|it| it.as_str()).collect()
+            }
+            <span class="kw">_ </span>=&gt; Vec::new(),
         }
     }
 
@@ -2760,6 +2842,16 @@
 
     <span class="kw">fn </span>is_auto_generated_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, PouIndexEntry::Function { is_generated: <span class="bool-val">true</span>, .. })
+    }
+
+    <span class="doccomment">/// Returns the POU's without the qualifier
+    </span><span class="kw">pub fn </span>get_qualified_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="kw">let </span>name = <span class="self">self</span>.get_name();
+        name.split(<span class="string">'.'</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+    }
+    <span class="doccomment">/// Returns the POU's identifier without the qualifier
+    </span><span class="kw">pub fn </span>get_flat_reference_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.get_qualified_name().into_iter().last().unwrap_or_default()
     }
 }
 
@@ -3113,7 +3205,7 @@
         </span><span class="self">self</span>.find_local_member(container_name, variable_name)
             .or_else(|| {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(class) = <span class="self">self</span>.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                    <span class="self">self</span>.find_member(class, variable_name)
+                    <span class="self">self</span>.find_member(class, variable_name).filter(|it| !(it.is_temp()))
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
@@ -3707,6 +3799,40 @@
         };
 
         res
+    }
+
+    <span class="doccomment">/// Returns all methods declared on container, or its parents.
+    /// If a method is declared in the container the parent method is not included
+    </span><span class="kw">pub fn </span>find_methods(<span class="kw-2">&amp;</span><span class="self">self</span>, container: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
+        <span class="self">self</span>.find_method_recursive(container, <span class="macro">vec!</span>[])
+    }
+
+    <span class="kw">fn </span>find_method_recursive&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
+        container: <span class="kw-2">&amp;</span>str,
+        current_methods: Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>PouIndexEntry&gt;,
+    ) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>PouIndexEntry&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = <span class="self">self</span>.find_pou(container) {
+            <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="self">self
+                </span>.get_pous()
+                .values()
+                .filter(|it| it.is_method())
+                .filter(|it| it.get_parent_pou_name() == container)
+                .filter(|it| {
+                    !current_methods
+                        .iter()
+                        .any(|m| m.get_flat_reference_name() == it.get_flat_reference_name())
+                })
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+            res.extend(current_methods);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(super_class) = pou.get_super_class() {
+                <span class="self">self</span>.find_method_recursive(super_class, res)
+            } <span class="kw">else </span>{
+                res
+            }
+        } <span class="kw">else </span>{
+            current_methods
+        }
     }
 }
 

@@ -560,7 +560,21 @@ END_PROGRAM
 <div style="break-before: page; page-break-before: always;"></div><h1 id="duplicate-label"><a class="header" href="#duplicate-label">Duplicate Label</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="classes-cannot-contain-in_out-variables"><a class="header" href="#classes-cannot-contain-in_out-variables">Classes cannot contain IN_OUT variables</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="classes-cannot-contain-a-return-type"><a class="header" href="#classes-cannot-contain-a-return-type">Classes cannot contain a return type</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="pous-cannot-be-extended"><a class="header" href="#pous-cannot-be-extended">POUs cannot be extended</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="variable-re-declatation-in-subclasses-is-not-allowed"><a class="header" href="#variable-re-declatation-in-subclasses-is-not-allowed">Variable re-declatation in Subclasses is not allowed</a></h1>
+<p>A variable already declared in a parent class cannot be re-declared in a subclass.</p>
+<p>Example:</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK FB
+VAR
+    a : INT;
+END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK FB2 EXTENDS FB
+VAR
+    a : INT; // Error: Variable 'a' is already declared in the parent class
+END_VAR
+END_FUNCTION_BLOCK
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="missing-container-name-for-action"><a class="header" href="#missing-container-name-for-action">Missing container name for action</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="statement-has-no-effect"><a class="header" href="#statement-has-no-effect">Statement has no effect</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-pragma-location"><a class="header" href="#invalid-pragma-location">Invalid Pragma Location</a></h1>
@@ -891,15 +905,18 @@ as soon as it goes out of scope - potential use after free.</p>
     END_VAR
 END_FUNCTION_BLOCK
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-pou-type-for-interface-implementation"><a class="header" href="#invalid-pou-type-for-interface-implementation">Invalid POU Type for Interface Implementation</a></h1>
-<p>Interfaces can only be implemented on classes and function-blocks, any other POU type is invalid and will
+<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-pou-type-for-inheritance"><a class="header" href="#invalid-pou-type-for-inheritance">Invalid POU Type for Inheritance</a></h1>
+<p>Base Classes and Interfaces can only be used on <code>CLASS</code>es and <code>FUNCTION_BLOCK</code>s, any other POU type is invalid and will
 result in this error.</p>
 <p>Errouneus code example:</p>
 <pre><code class="language-iecst">INTERFACE interfaceA
     /* ... */
 END_INTERFACE
 
-FUNCTION foo IMPLEMENTS interfaceA
+FUNCTION_BLOCK fb
+END_FUNCTION_BLOCK
+
+FUNCTION foo EXTENDS fb IMPLEMENTS interfaceA
     /* ... */
 END_FUNCTION_BLOCK
 </code></pre>

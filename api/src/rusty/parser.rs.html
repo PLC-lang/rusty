@@ -1419,17 +1419,7 @@
 <a href="#1418" id="1418">1418</a>
 <a href="#1419" id="1419">1419</a>
 <a href="#1420" id="1420">1420</a>
-<a href="#1421" id="1421">1421</a>
-<a href="#1422" id="1422">1422</a>
-<a href="#1423" id="1423">1423</a>
-<a href="#1424" id="1424">1424</a>
-<a href="#1425" id="1425">1425</a>
-<a href="#1426" id="1426">1426</a>
-<a href="#1427" id="1427">1427</a>
-<a href="#1428" id="1428">1428</a>
-<a href="#1429" id="1429">1429</a>
-<a href="#1430" id="1430">1430</a>
-<a href="#1431" id="1431">1431</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1421" id="1421">1421</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
 
@@ -1437,9 +1427,8 @@
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
-        Implementation, Interface, InterfaceIdentifier, LinkageType, PolymorphismMode, Pou, PouType,
-        ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock,
-        VariableBlockType,
+        Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess,
+        ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -1713,7 +1702,7 @@
 
             <span class="comment">// parse an optional return type
             // classes do not have a return type (check in validator)
-            </span><span class="kw">let </span>return_type = parse_return_type(lexer, <span class="kw-2">&amp;</span>kind);
+            </span><span class="kw">let </span>return_type = parse_return_type(lexer);
 
             <span class="comment">// parse variable declarations. note that var in/out/inout
             // blocks are not allowed inside of class declarations.
@@ -1770,6 +1759,7 @@
 
             <span class="kw">let </span><span class="kw-2">mut </span>pous = <span class="macro">vec!</span>[Pou {
                 name,
+                id: lexer.next_id(),
                 kind,
                 variable_blocks,
                 return_type,
@@ -1829,7 +1819,7 @@
 
 <span class="doccomment">/// Parses the comma seperated identifiers after an `IMPLEMENTS` keyword, e.g. `bar` and `baz` in
 /// `INTERFACE foo IMPLEMENTS bar`
-</span><span class="kw">fn </span>parse_interface_declarations(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;InterfaceIdentifier&gt; {
+</span><span class="kw">fn </span>parse_interface_declarations(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;Identifier&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>declarations = Vec::new();
 
     <span class="kw">if </span>!lexer.try_consume(KeywordImplements) {
@@ -1852,7 +1842,7 @@
         <span class="kw">match </span>lexer.token {
             Token::Identifier =&gt; {
                 <span class="kw">let </span>(name, location) = parse_identifier(lexer).expect(<span class="string">"Identifier already matched"</span>);
-                declarations.push(InterfaceIdentifier { name, location });
+                declarations.push(Identifier { name, location });
             }
             Token::KeywordComma =&gt; lexer.advance(),
 
@@ -1910,7 +1900,7 @@
     }
 }
 
-<span class="kw">fn </span>parse_super_class(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+<span class="kw">fn </span>parse_super_class(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;Identifier&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>extensions = <span class="macro">vec!</span>[];
     <span class="kw">while </span>lexer.try_consume(KeywordExtends) {
         <span class="kw">let </span>name_and_location = parse_identifier(lexer)<span class="question-mark">?</span>;
@@ -1924,11 +1914,12 @@
         )
     });
 
-    extensions.first().map(|(name, <span class="kw">_</span>)| name.to_string())
+    extensions
+        .first()
+        .map(|(name, location)| Identifier { name: name.to_string(), location: location.clone() })
 }
 
-<span class="kw">fn </span>parse_return_type(lexer: <span class="kw-2">&amp;mut </span>ParseSession, pou_type: <span class="kw-2">&amp;</span>PouType) -&gt; <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt; {
-    <span class="kw">let </span>start_return_type = lexer.range().start;
+<span class="kw">fn </span>parse_return_type(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt; {
     <span class="kw">if </span>lexer.try_consume(KeywordColon) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>((declaration, initializer)) = parse_data_type_definition(lexer, <span class="prelude-val">None</span>) {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = initializer {
@@ -1937,18 +1928,6 @@
                         .with_location(init.get_location())
                         .with_error_code(<span class="string">"E016"</span>),
                 );
-            }
-
-            <span class="kw">if </span>!<span class="macro">matches!</span>(pou_type, PouType::Function | PouType::Method { .. }) {
-                lexer.accept_diagnostic(
-                    Diagnostic::new(<span class="macro">format!</span>(
-                        <span class="string">"POU Type {pou_type:?} does not support a return type. Did you mean Function?"
-                    </span>))
-                    .with_error_code(<span class="string">"E026"</span>)
-                    .with_location(
-                        lexer.source_range_factory.create_range(start_return_type..lexer.last_range.end),
-                    ),
-                )
             }
 
             <span class="kw">if let </span>DataTypeDeclaration::Definition { data_type, .. } = <span class="kw-2">&amp;</span>declaration {
@@ -2012,7 +1991,7 @@
         <span class="kw">let </span>overriding = lexer.try_consume(KeywordOverride);
         <span class="kw">let </span>(name, name_location) = parse_identifier(lexer)<span class="question-mark">?</span>;
         <span class="kw">let </span>generics = parse_generics(lexer);
-        <span class="kw">let </span>return_type = parse_return_type(lexer, <span class="kw-2">&amp;</span>kind);
+        <span class="kw">let </span>return_type = parse_return_type(lexer);
 
         <span class="kw">let </span><span class="kw-2">mut </span>variable_blocks = <span class="macro">vec!</span>[];
         <span class="kw">while </span>lexer.token == KeywordVar
@@ -2043,6 +2022,7 @@
         <span class="prelude-val">Some</span>((
             Pou {
                 name: call_name,
+                id: lexer.next_id(),
                 kind,
                 variable_blocks,
                 return_type,

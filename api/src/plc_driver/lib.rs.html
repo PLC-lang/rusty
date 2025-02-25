@@ -285,7 +285,29 @@
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a></pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a></pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
 //! It can be used to verify a project or to produce:
@@ -312,7 +334,7 @@
     OptimizationLevel,
 };
 
-<span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
+<span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter};
 <span class="kw">use </span>plc_index::GlobalContext;
 <span class="kw">use </span>project::project::Project;
 <span class="kw">use </span>source_code::SourceContainer;
@@ -471,23 +493,45 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
     name: <span class="kw-2">&amp;</span>str,
     src: Vec&lt;T&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(GlobalContext, AnnotatedProject), Diagnostic&gt; {
+    <span class="kw">let </span>(pipeline, project) = parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered())
+        .map_err(|it| Diagnostic::new(it.buffer().unwrap_or_default()))<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>((pipeline.context, project))
+}
+
+<span class="kw">pub fn </span>parse_and_annotate_with_diagnostics&lt;T: SourceContainer + Clone&gt;(
+    name: <span class="kw-2">&amp;</span>str,
+    src: Vec&lt;T&gt;,
+    diagnostician: Diagnostician,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(BuildPipeline&lt;T&gt;, AnnotatedProject), Diagnostician&gt; {
     <span class="comment">// Parse the source to ast
     </span><span class="kw">let </span>project = Project::new(name.to_string()).with_sources(src);
-    <span class="kw">let </span>context = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="prelude-val">Ok</span>(context) = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>) <span class="kw">else </span>{
+        <span class="kw">return </span><span class="prelude-val">Err</span>(diagnostician);
+    };
     <span class="kw">let </span><span class="kw-2">mut </span>pipeline = BuildPipeline {
         context,
         project,
-        diagnostician: Diagnostician::default(),
+        diagnostician,
         compile_parameters: <span class="prelude-val">None</span>,
         linker: LinkerType::Internal,
         mutable_participants: Vec::default(),
         participants: Vec::default(),
     };
     pipeline.register_default_participants();
-    <span class="kw">let </span>project = pipeline.parse()<span class="question-mark">?</span>;
-    <span class="kw">let </span>project = pipeline.index(project)<span class="question-mark">?</span>;
-    <span class="kw">let </span>project = pipeline.annotate(project)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>((pipeline.context, project))
+    <span class="kw">let </span><span class="prelude-val">Ok</span>(project) = pipeline.parse() <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Err</span>(pipeline.diagnostician) };
+    <span class="kw">let </span><span class="prelude-val">Ok</span>(project) = pipeline.index(project) <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Err</span>(pipeline.diagnostician) };
+    <span class="kw">let </span><span class="prelude-val">Ok</span>(project) = pipeline.annotate(project) <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Err</span>(pipeline.diagnostician) };
+    <span class="prelude-val">Ok</span>((pipeline, project))
+}
+
+<span class="kw">pub fn </span>parse_and_validate&lt;T: SourceContainer + Clone&gt;(name: <span class="kw-2">&amp;</span>str, src: Vec&lt;T&gt;) -&gt; String {
+    <span class="kw">match </span>parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered()) {
+        <span class="prelude-val">Ok</span>((<span class="kw-2">mut </span>pipeline, project)) =&gt; {
+            <span class="kw">let _ </span>= project.validate(<span class="kw-2">&amp;</span>pipeline.context, <span class="kw-2">&amp;mut </span>pipeline.diagnostician);
+            pipeline.diagnostician.buffer().unwrap()
+        }
+        <span class="prelude-val">Err</span>(diagnostician) =&gt; diagnostician.buffer().unwrap(),
+    }
 }
 
 <span class="doccomment">/// Generates an IR string from a list of sources. Useful for tests or api calls

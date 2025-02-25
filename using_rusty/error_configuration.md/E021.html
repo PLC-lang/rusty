@@ -152,7 +152,21 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="pous-cannot-be-extended"><a class="header" href="#pous-cannot-be-extended">POUs cannot be extended</a></h1>
+                        <h1 id="variable-re-declatation-in-subclasses-is-not-allowed"><a class="header" href="#variable-re-declatation-in-subclasses-is-not-allowed">Variable re-declatation in Subclasses is not allowed</a></h1>
+<p>A variable already declared in a parent class cannot be re-declared in a subclass.</p>
+<p>Example:</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK FB
+VAR
+    a : INT;
+END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK FB2 EXTENDS FB
+VAR
+    a : INT; // Error: Variable 'a' is already declared in the parent class
+END_VAR
+END_FUNCTION_BLOCK
+</code></pre>
 
                     </main>
 

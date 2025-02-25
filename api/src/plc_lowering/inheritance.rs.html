@@ -2162,8 +2162,7 @@
 <a href="#2161" id="2161">2161</a>
 <a href="#2162" id="2162">2162</a>
 <a href="#2163" id="2163">2163</a>
-<a href="#2164" id="2164">2164</a>
-<a href="#2165" id="2165">2165</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering inherited references.
+<a href="#2164" id="2164">2164</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering inherited references.
 //! Derived POUs can access members of their base class using the `__SUPER` qualifier,
 //! which is an implicit reference to an instance of the base class which
 //! is added as a member variable of the derived class in the 'pre_index' pass.
@@ -2227,7 +2226,6 @@
     try_from_mut,
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
-<span class="kw">const </span>BASE_TYPE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"__SUPER"</span>;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>Context {
@@ -2316,10 +2314,10 @@
         }
 
         <span class="comment">// add a `__SUPER` qualifier for each element in the inheritance chain, exluding `self`
-        </span>inheritance_chain.iter().skip(<span class="number">1</span>).fold(base, |base, <span class="kw">_</span>| {
+        </span>inheritance_chain.iter().rev().skip(<span class="number">1</span>).fold(base, |base, pou| {
             <span class="prelude-val">Some</span>(Box::new(AstFactory::create_member_reference(
                 AstFactory::create_identifier(
-                    BASE_TYPE_NAME,
+                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"__{}"</span>, pou.get_name()),
                     SourceLocation::internal(),
                     <span class="self">self</span>.provider().next_id(),
                 ),
@@ -2346,9 +2344,9 @@
         };
 
         <span class="kw">let </span>base_var = Variable {
-            name: BASE_TYPE_NAME.into(),
+            name: <span class="macro">format!</span>(<span class="string">"__{}"</span>, <span class="kw-2">&amp;</span>base_name.name),
             data_type_declaration: DataTypeDeclaration::Reference {
-                referenced_type: base_name.into(),
+                referenced_type: base_name.name.clone(),
                 location: SourceLocation::internal(),
             },
             location: SourceLocation::internal(),
@@ -2442,14 +2440,14 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().units[<span class="number">1</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         POU {
             name: "bar",
             variable_blocks: [
                 VariableBlock {
                     variables: [
                         Variable {
-                            name: "__SUPER",
+                            name: "__foo",
                             data_type: DataTypeReference {
                                 referenced_type: "foo",
                             },
@@ -2462,7 +2460,7 @@
             return_type: None,
             interfaces: [],
         }
-        "#</span>);
+        "###</span>);
     }
 
     <span class="attr">#[test]
@@ -2491,7 +2489,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">2</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         Implementation {
             name: "foo",
             type_name: "foo",
@@ -2509,7 +2507,7 @@
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__fb",
                                     },
                                 ),
                                 base: Some(
@@ -2573,7 +2571,7 @@
             generic: false,
             access: None,
         }
-        "#</span>);
+        "###</span>);
     }
 
     <span class="attr">#[test]
@@ -2593,7 +2591,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">1</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         Implementation {
             name: "bar",
             type_name: "bar",
@@ -2611,7 +2609,7 @@
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__foo",
                                     },
                                 ),
                                 base: None,
@@ -2654,7 +2652,7 @@
             generic: false,
             access: None,
         }
-        "#</span>);
+        "###</span>);
     }
 
     <span class="attr">#[test]
@@ -2678,7 +2676,7 @@
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="comment">// let unit = &amp;project.units[0].get_unit();
         </span><span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">2</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         Implementation {
             name: "child",
             type_name: "child",
@@ -2696,14 +2694,14 @@
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__grandparent",
                                     },
                                 ),
                                 base: Some(
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: None,
@@ -2747,7 +2745,7 @@
             generic: false,
             access: None,
         }
-        "#</span>);
+        "###</span>);
     }
 
     <span class="attr">#[test]
@@ -2783,7 +2781,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">2</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         Implementation {
             name: "child",
             type_name: "child",
@@ -2808,7 +2806,7 @@
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: None,
@@ -2839,14 +2837,14 @@
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: None,
@@ -2898,7 +2896,7 @@
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__parent",
                                                 },
                                             ),
                                             base: None,
@@ -2924,14 +2922,14 @@
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__grandparent",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__SUPER",
+                                                            name: "__parent",
                                                         },
                                                     ),
                                                     base: None,
@@ -2957,14 +2955,14 @@
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: None,
@@ -2985,7 +2983,7 @@
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: None,
@@ -3011,7 +3009,7 @@
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: None,
@@ -3030,14 +3028,14 @@
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: None,
@@ -3067,14 +3065,14 @@
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__grandparent",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__SUPER",
+                                                            name: "__parent",
                                                         },
                                                     ),
                                                     base: None,
@@ -3093,7 +3091,7 @@
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__parent",
                                                 },
                                             ),
                                             base: None,
@@ -3148,7 +3146,7 @@
             generic: false,
             access: None,
         }
-        "#</span>);
+        "###</span>);
     }
 
     <span class="attr">#[test]
@@ -3182,7 +3180,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">3</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         Implementation {
             name: "foo",
             type_name: "foo",
@@ -3200,7 +3198,7 @@
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__fb",
                                     },
                                 ),
                                 base: Some(
@@ -3214,7 +3212,7 @@
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__baz",
                                                     },
                                                 ),
                                                 base: None,
@@ -3260,7 +3258,7 @@
             generic: false,
             access: None,
         }
-        "#</span>);
+        "###</span>);
     }
 
     <span class="attr">#[test]
@@ -3301,7 +3299,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">3</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         Implementation {
             name: "main",
             type_name: "main",
@@ -3319,14 +3317,14 @@
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__grandparent",
                                     },
                                 ),
                                 base: Some(
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: Some(
@@ -3375,14 +3373,14 @@
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: Some(
@@ -3426,7 +3424,7 @@
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__parent",
                                     },
                                 ),
                                 base: Some(
@@ -3473,7 +3471,7 @@
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: Some(
@@ -3575,7 +3573,7 @@
             generic: false,
             access: None,
         }
-        "#</span>)
+        "###</span>)
     }
 
     <span class="attr">#[test]
@@ -3606,7 +3604,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">2</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         Implementation {
             name: "child",
             type_name: "child",
@@ -3630,7 +3628,7 @@
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: None,
@@ -3651,7 +3649,7 @@
                                                         ReferenceExpr {
                                                             kind: Member(
                                                                 Identifier {
-                                                                    name: "__SUPER",
+                                                                    name: "__parent",
                                                                 },
                                                             ),
                                                             base: None,
@@ -3685,14 +3683,14 @@
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__grandparent",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__SUPER",
+                                                            name: "__parent",
                                                         },
                                                     ),
                                                     base: None,
@@ -3714,14 +3712,14 @@
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: None,
@@ -3767,7 +3765,7 @@
             generic: false,
             access: None,
         }
-        "#</span>);
+        "###</span>);
     }
 
     <span class="attr">#[test]
@@ -3804,7 +3802,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">3</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         Implementation {
             name: "main",
             type_name: "main",
@@ -3872,7 +3870,7 @@
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__parent",
                                             },
                                         ),
                                         base: Some(
@@ -3908,14 +3906,14 @@
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__SUPER",
+                                                name: "__grandparent",
                                             },
                                         ),
                                         base: Some(
                                             ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "__SUPER",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: Some(
@@ -3970,7 +3968,7 @@
             generic: false,
             access: None,
         }
-        "#</span>)
+        "###</span>)
     }
 
     <span class="attr">#[test]
@@ -3997,14 +3995,14 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().units[<span class="number">2</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         POU {
             name: "child",
             variable_blocks: [
                 VariableBlock {
                     variables: [
                         Variable {
-                            name: "__SUPER",
+                            name: "__parent",
                             data_type: DataTypeReference {
                                 referenced_type: "parent",
                             },
@@ -4030,14 +4028,14 @@
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__grandparent",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__SUPER",
+                                                            name: "__parent",
                                                         },
                                                     ),
                                                     base: None,
@@ -4056,7 +4054,7 @@
             return_type: None,
             interfaces: [],
         }
-        "#</span>);
+        "###</span>);
     }
 
     <span class="attr">#[test]
@@ -4085,7 +4083,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().units[<span class="number">3</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         POU {
             name: "child.foo",
             variable_blocks: [
@@ -4107,14 +4105,14 @@
                                         ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "__SUPER",
+                                                    name: "__grandparent",
                                                 },
                                             ),
                                             base: Some(
                                                 ReferenceExpr {
                                                     kind: Member(
                                                         Identifier {
-                                                            name: "__SUPER",
+                                                            name: "__parent",
                                                         },
                                                     ),
                                                     base: None,
@@ -4135,7 +4133,7 @@
             return_type: None,
             interfaces: [],
         }
-        "#</span>);
+        "###</span>);
     }
 
     <span class="attr">#[test]
@@ -4157,7 +4155,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">1</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         Implementation {
             name: "bar.set",
             type_name: "bar.set",
@@ -4177,7 +4175,7 @@
                             ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__SUPER",
+                                        name: "__foo",
                                     },
                                 ),
                                 base: None,
@@ -4221,7 +4219,7 @@
                 Protected,
             ),
         }
-        "#</span>);
+        "###</span>);
     }
 }
 
@@ -4287,17 +4285,17 @@
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(ReferenceExpr { base, .. }) = <span class="macro">try_from!</span>(left, ReferenceExpr) <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
         <span class="kw">let </span>base1 = base.as_ref().unwrap().deref();
-        <span class="macro">assert_debug_snapshot!</span>(annotations.get(base1).unwrap(), @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(annotations.get(base1).unwrap(), @<span class="string">r###"
         Variable {
             resulting_type: "fb",
-            qualified_name: "fb2.__SUPER",
+            qualified_name: "fb2.__fb",
             constant: false,
             argument_type: ByVal(
                 Local,
             ),
             auto_deref: None,
         }
-        "#</span>);
+        "###</span>);
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(ReferenceExpr { base, .. }) = <span class="macro">try_from!</span>(base1, ReferenceExpr) <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
         <span class="kw">let </span>base2 = base.as_ref().unwrap().deref();
@@ -4315,17 +4313,17 @@
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(ReferenceExpr { base, .. }) = <span class="macro">try_from!</span>(base2, ReferenceExpr) <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
         <span class="kw">let </span>base3 = base.as_ref().unwrap().deref();
-        <span class="macro">assert_debug_snapshot!</span>(annotations.get(base3).unwrap(), @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(annotations.get(base3).unwrap(), @<span class="string">r###"
         Variable {
             resulting_type: "baz",
-            qualified_name: "foo.__SUPER",
+            qualified_name: "foo.__baz",
             constant: false,
             argument_type: ByVal(
                 Local,
             ),
             auto_deref: None,
         }
-        "#</span>);
+        "###</span>);
     }
 }
 </code></pre></div></section></main></body></html>
