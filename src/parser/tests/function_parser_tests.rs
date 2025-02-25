@@ -1,11 +1,7 @@
 use crate::test_utils::tests::{parse, parse_and_validate_buffered, parse_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
-use plc_ast::ast::{
-    AccessModifier, ArgumentProperty, DataType, DataTypeDeclaration, LinkageType, Pou, PouType, Variable,
-    VariableBlock, VariableBlockType,
-};
+use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
 #[test]
@@ -187,63 +183,49 @@ fn varargs_parameters_can_be_parsed() {
     let (parse_result, diagnostics) = parse(src);
 
     assert_eq!(format!("{diagnostics:#?}"), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
-
-    let x = &parse_result.units[0];
-    let expected = Pou {
-        name: "foo".into(),
-        kind: PouType::Function,
-        return_type: Some(DataTypeDeclaration::Reference {
-            referenced_type: "DINT".into(),
-            location: SourceLocation::internal(),
-        }),
-        variable_blocks: vec![VariableBlock {
-            constant: false,
-            access: AccessModifier::Protected,
-            retain: false,
-            variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
-            location: SourceLocation::internal(),
-            linkage: LinkageType::Internal,
-            variables: vec![
-                Variable {
-                    name: "args1".into(),
-                    data_type_declaration: DataTypeDeclaration::Definition {
-                        data_type: DataType::VarArgs { referenced_type: None, sized: false },
-                        location: SourceLocation::internal(),
-                        scope: Some("foo".into()),
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceLocation::internal(),
-                },
-                Variable {
-                    name: "args2".into(),
-                    data_type_declaration: DataTypeDeclaration::Definition {
-                        data_type: DataType::VarArgs {
-                            referenced_type: Some(Box::new(DataTypeDeclaration::Reference {
-                                referenced_type: "INT".into(),
-                                location: SourceLocation::internal(),
-                            })),
-                            sized: false,
+    assert_debug_snapshot!(parse_result.units[0], @r#"
+    POU {
+        name: "foo",
+        variable_blocks: [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "args1",
+                        data_type: DataTypeDefinition {
+                            data_type: VarArgs {
+                                referenced_type: None,
+                                sized: false,
+                            },
                         },
-                        location: SourceLocation::internal(),
-                        scope: Some("foo".into()),
                     },
-                    initializer: None,
-                    address: None,
-                    location: SourceLocation::internal(),
-                },
-            ],
-        }],
-        location: SourceLocation::internal(),
-        name_location: SourceLocation::internal(),
-        poly_mode: None,
-        generics: vec![],
-        linkage: LinkageType::Internal,
-        super_class: None,
-        interfaces: vec![],
-        is_const: false,
-    };
-    assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
+                    Variable {
+                        name: "args2",
+                        data_type: DataTypeDefinition {
+                            data_type: VarArgs {
+                                referenced_type: Some(
+                                    DataTypeReference {
+                                        referenced_type: "INT",
+                                    },
+                                ),
+                                sized: false,
+                            },
+                        },
+                    },
+                ],
+                variable_block_type: Input(
+                    ByVal,
+                ),
+            },
+        ],
+        pou_type: Function,
+        return_type: Some(
+            DataTypeReference {
+                referenced_type: "DINT",
+            },
+        ),
+        interfaces: [],
+    }
+    "#);
 }
 
 #[test]
@@ -259,63 +241,49 @@ fn sized_varargs_parameters_can_be_parsed() {
     let (parse_result, diagnostics) = parse(src);
 
     assert_eq!(format!("{diagnostics:#?}"), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
-
-    let x = &parse_result.units[0];
-    let expected = Pou {
-        name: "foo".into(),
-        kind: PouType::Function,
-        return_type: Some(DataTypeDeclaration::Reference {
-            referenced_type: "DINT".into(),
-            location: SourceLocation::internal(),
-        }),
-        variable_blocks: vec![VariableBlock {
-            constant: false,
-            access: AccessModifier::Protected,
-            retain: false,
-            variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
-            location: SourceLocation::internal(),
-            linkage: LinkageType::Internal,
-            variables: vec![
-                Variable {
-                    name: "args1".into(),
-                    data_type_declaration: DataTypeDeclaration::Definition {
-                        data_type: DataType::VarArgs { referenced_type: None, sized: true },
-                        location: SourceLocation::internal(),
-                        scope: Some("foo".into()),
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceLocation::internal(),
-                },
-                Variable {
-                    name: "args2".into(),
-                    data_type_declaration: DataTypeDeclaration::Definition {
-                        data_type: DataType::VarArgs {
-                            referenced_type: Some(Box::new(DataTypeDeclaration::Reference {
-                                referenced_type: "INT".into(),
-                                location: SourceLocation::internal(),
-                            })),
-                            sized: true,
+    assert_debug_snapshot!(parse_result.units[0], @r#"
+    POU {
+        name: "foo",
+        variable_blocks: [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "args1",
+                        data_type: DataTypeDefinition {
+                            data_type: VarArgs {
+                                referenced_type: None,
+                                sized: true,
+                            },
                         },
-                        location: SourceLocation::internal(),
-                        scope: Some("foo".into()),
                     },
-                    initializer: None,
-                    address: None,
-                    location: SourceLocation::internal(),
-                },
-            ],
-        }],
-        location: SourceLocation::internal(),
-        name_location: SourceLocation::internal(),
-        poly_mode: None,
-        generics: vec![],
-        linkage: LinkageType::Internal,
-        super_class: None,
-        interfaces: vec![],
-        is_const: false,
-    };
-    assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
+                    Variable {
+                        name: "args2",
+                        data_type: DataTypeDefinition {
+                            data_type: VarArgs {
+                                referenced_type: Some(
+                                    DataTypeReference {
+                                        referenced_type: "INT",
+                                    },
+                                ),
+                                sized: true,
+                            },
+                        },
+                    },
+                ],
+                variable_block_type: Input(
+                    ByVal,
+                ),
+            },
+        ],
+        pou_type: Function,
+        return_type: Some(
+            DataTypeReference {
+                referenced_type: "DINT",
+            },
+        ),
+        interfaces: [],
+    }
+    "#);
 }
 
 // Tests for function return types

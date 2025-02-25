@@ -279,7 +279,7 @@ fn parse_pou(
 
             // parse an optional return type
             // classes do not have a return type (check in validator)
-            let return_type = parse_return_type(lexer, &kind);
+            let return_type = parse_return_type(lexer);
 
             // parse variable declarations. note that var in/out/inout
             // blocks are not allowed inside of class declarations.
@@ -343,6 +343,7 @@ fn parse_pou(
 
             let mut pous = vec![Pou {
                 name,
+                id: lexer.next_id(),
                 kind,
                 variable_blocks,
                 return_type,
@@ -487,7 +488,7 @@ fn parse_polymorphism_mode(lexer: &mut ParseSession, pou_type: &PouType) -> Opti
     }
 }
 
-fn parse_super_class(lexer: &mut ParseSession) -> Option<String> {
+fn parse_super_class(lexer: &mut ParseSession) -> Option<InterfaceIdentifier> {
     let mut extensions = vec![];
     while lexer.try_consume(KeywordExtends) {
         let name_and_location = parse_identifier(lexer)?;
@@ -501,11 +502,12 @@ fn parse_super_class(lexer: &mut ParseSession) -> Option<String> {
         )
     });
 
-    extensions.first().map(|(name, _)| name.to_string())
+    extensions
+        .first()
+        .map(|(name, location)| InterfaceIdentifier { name: name.to_string(), location: location.clone() })
 }
 
-fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<DataTypeDeclaration> {
-    let start_return_type = lexer.range().start;
+fn parse_return_type(lexer: &mut ParseSession) -> Option<DataTypeDeclaration> {
     if lexer.try_consume(KeywordColon) {
         if let Some((declaration, initializer)) = parse_data_type_definition(lexer, None) {
             if let Some(init) = initializer {
@@ -514,18 +516,6 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
                         .with_location(init.get_location())
                         .with_error_code("E016"),
                 );
-            }
-
-            if !matches!(pou_type, PouType::Function | PouType::Method { .. }) {
-                lexer.accept_diagnostic(
-                    Diagnostic::new(format!(
-                        "POU Type {pou_type:?} does not support a return type. Did you mean Function?"
-                    ))
-                    .with_error_code("E026")
-                    .with_location(
-                        lexer.source_range_factory.create_range(start_return_type..lexer.last_range.end),
-                    ),
-                )
             }
 
             if let DataTypeDeclaration::Definition { data_type, .. } = &declaration {
@@ -589,7 +579,7 @@ fn parse_method(
         let overriding = lexer.try_consume(KeywordOverride);
         let (name, name_location) = parse_identifier(lexer)?;
         let generics = parse_generics(lexer);
-        let return_type = parse_return_type(lexer, &kind);
+        let return_type = parse_return_type(lexer);
 
         let mut variable_blocks = vec![];
         while lexer.token == KeywordVar
@@ -620,6 +610,7 @@ fn parse_method(
         Some((
             Pou {
                 name: call_name,
+                id: lexer.next_id(),
                 kind,
                 variable_blocks,
                 return_type,

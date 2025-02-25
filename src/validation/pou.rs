@@ -1,21 +1,159 @@
-use plc_ast::ast::{Implementation, LinkageType, Pou, PouType, VariableBlockType};
+use itertools::Itertools;
+use plc_ast::ast::{Implementation, InterfaceIdentifier, LinkageType, Pou, PouType, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
     statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
 };
-use crate::{index::PouIndexEntry, resolver::AnnotationMap};
-use std::collections::HashMap;
+use crate::{
+    index::PouIndexEntry,
+    resolver::{AnnotationMap, StatementAnnotation},
+};
 
 pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
     if pou.linkage != LinkageType::External {
-        validate_pou(validator, pou, context);
+        validate_pou(validator, pou);
         validate_interface_impl(validator, context, pou);
+        validate_base_class(validator, context, pou);
+        validate_implemented_methods(validator, context, pou);
+        if let PouType::Method { .. } = pou.kind {
+            validate_method(validator, pou, context);
+        }
 
         for block in &pou.variable_blocks {
             visit_variable_block(validator, Some(pou), block, context);
         }
     }
+}
+
+fn validate_implemented_methods<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<'_, T>,
+    pou: &Pou,
+) {
+    let Some(StatementAnnotation::MethodDeclarations { declarations }) =
+        context.annotations.get_with_id(pou.id)
+    else {
+        return;
+    };
+
+    declarations.iter().for_each(|(method_name, decl)| {
+        // validate that abstract signatures all match
+        // Concrete to abstract methods are checked at a different stage
+        let methods = decl
+            .iter()
+            .filter(|it| it.is_abstract())
+            .flat_map(|it| context.index.find_pou(it.get_qualified_name()));
+        //XXX(ghha) should this not be combinations instead of tuple_windows?
+        for (method1, method2) in methods.tuple_windows() {
+            let diagnostics = validate_method_signature(context, method1, method2);
+            if !diagnostics.is_empty() {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Method `{}` is defined with different signatures in interfaces `{}` and `{}`",
+                        method_name,
+                        method1.get_parent_pou_name(),
+                        method2.get_parent_pou_name()
+                    ))
+                    .with_error_code("E111")
+                    .with_location(&pou.name_location)
+                    .with_secondary_location(method1.get_location())
+                    .with_secondary_location(method2.get_location())
+                    .with_sub_diagnostics(diagnostics),
+                );
+                // We want to early return here otherwise we could spam the user with lots of (valid) but identical
+                // diagnostics reported earlier.
+                return;
+            }
+        }
+
+        // validate that each abstract method has at least one concrete implementation
+        let abstracts = decl
+            .iter()
+            .filter(|it| it.is_abstract())
+            .map(|it| (it.get_qualifier(), context.index.find_pou(it.get_qualified_name()).unwrap()));
+        // Expecting only one concrete implementation
+        let concrete = decl
+            .iter()
+            .filter(|it| it.is_concrete())
+            .map(|it| context.index.find_pou(it.get_qualified_name()).unwrap())
+            .next();
+        // Validate that each concrete method that has an abstract counterpart has the same signature
+        if let Some(method_impl) = concrete {
+            abstracts.for_each(|(_, method_ref)| {
+                let diagnostics = validate_method_signature(context, method_ref, method_impl);
+                for diagnostic in diagnostics {
+                    validator.push_diagnostic(diagnostic);
+                }
+            });
+        } else {
+            abstracts.for_each(|(name, intf)| {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Method `{}` defined in interface `{}` is missing in POU `{}`",
+                        method_name, name, pou.name
+                    ))
+                    .with_error_code("E112")
+                    .with_location(&pou.name_location)
+                    .with_secondary_location(intf.get_location()),
+                );
+            })
+        };
+    });
+}
+
+fn validate_method<T: AnnotationMap>(
+    validator: &mut Validator<'_>,
+    pou: &Pou,
+    context: &ValidationContext<'_, T>,
+) {
+    let Some(StatementAnnotation::Override { definitions }) = context.annotations.get_with_id(pou.id) else {
+        //No override
+        return;
+    };
+    let Some(method_impl) = context.index.find_pou(&pou.name) else {
+        //Method does not exist
+        return;
+    };
+
+    //Only validate methods that are not abstract, abstract methods are validated in validate_implemented_methods
+    let interface_methods = definitions
+        .iter()
+        .filter(|it| it.is_concrete())
+        .flat_map(|it| context.index.find_pou(it.get_qualified_name()))
+        .collect::<Vec<_>>();
+    interface_methods.iter().for_each(|method_ref| {
+        let diagnostics = validate_method_signature(context, method_ref, method_impl);
+        for diagnostic in diagnostics {
+            validator.push_diagnostic(diagnostic);
+        }
+    })
+}
+
+fn validate_base_class<T: AnnotationMap>(
+    validator: &mut Validator<'_>,
+    context: &ValidationContext<'_, T>,
+    pou: &Pou,
+) {
+    //If base class does not exist, report error
+    if let Some(InterfaceIdentifier { name, location }) = &pou.super_class {
+        // Check if the interfaces are implemented on the correct POU types
+        if !matches!(pou.kind, PouType::FunctionBlock | PouType::Class) {
+            validator.push_diagnostic(
+                Diagnostic::new("Subclassing is only allowed in `CLASS` and `FUNCTION_BLOCK`")
+                    .with_error_code("E110")
+                    .with_location(&pou.name_location),
+            );
+        }
+
+        if context.index.find_pou(name).is_none() {
+            validator.push_diagnostic(
+                Diagnostic::new(format!("Base `{}` does not exist", name))
+                    .with_error_code("E048")
+                    .with_location(location),
+            );
+        }
+    };
 }
 
 fn validate_interface_impl<T>(validator: &mut Validator, ctxt: &ValidationContext<'_, T>, pou: &Pou)
@@ -37,7 +175,7 @@ where
         };
 
         validator.push_diagnostic(
-            Diagnostic::new("Interfaces can only be implemented by classes or function blocks")
+            Diagnostic::new("Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`")
                 .with_error_code("E110")
                 .with_location(location),
         );
@@ -60,75 +198,6 @@ where
             }
         }
     }
-
-    // We want to check if two or more interface methods with the same name also have the same signature
-    let interface_methods = interfaces.iter().flat_map(|it| it.get_methods(ctxt.index)).collect::<Vec<_>>();
-    let mut occurrences: HashMap<&str, Vec<&PouIndexEntry>> = HashMap::new();
-    for method in &interface_methods {
-        // XXX(volsa): Not entirely happy with this `split` call, is there a better approach?
-        let name = method.get_name().rsplit_once('.').map(|(_, last)| last).unwrap_or(method.get_name());
-        occurrences.entry(name).and_modify(|entries| entries.push(method)).or_insert(vec![method]);
-    }
-
-    let mut abort = false;
-    for (name, methods) in occurrences.iter().filter(|(_, methods)| methods.len() > 1) {
-        for method in methods.windows(2) {
-            let (method_ref, method_impl) = (method[0], method[1]);
-            let diagnostics = validate_method_signature(ctxt, method_ref, method_impl);
-
-            if !diagnostics.is_empty() {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Method `{}` is defined with different signatures in interfaces `{}` and `{}`",
-                        name,
-                        method_ref.get_parent_pou_name(),
-                        method_impl.get_parent_pou_name()
-                    ))
-                    .with_error_code("E111")
-                    .with_location(&pou.name_location)
-                    .with_secondary_location(method_ref.get_location())
-                    .with_secondary_location(method_impl.get_location())
-                    .with_sub_diagnostics(diagnostics),
-                );
-
-                abort = true;
-            }
-        }
-    }
-
-    // We want to early return here otherwise we could spam the user with lots of (valid) but identical
-    // diagnostics reported earlier.
-    if abort {
-        return;
-    }
-
-    // Check if the POUs are implementing the interface methods
-    for method_interface in &interface_methods {
-        // XXX(volsa): Not entirely happy with this `split` call, is there a better approach?
-        let (interface_name, method_name) = method_interface.get_name().split_once('.').unwrap();
-
-        match ctxt.index.find_method(&pou.name, method_name) {
-            Some(method_pou) => {
-                let diagnostics = validate_method_signature(ctxt, method_interface, method_pou);
-
-                for diagnostic in diagnostics {
-                    validator.push_diagnostic(diagnostic);
-                }
-            }
-
-            None => {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Method `{}` defined in interface `{}` is missing in POU `{}`",
-                        method_name, interface_name, pou.name
-                    ))
-                    .with_error_code("E112")
-                    .with_location(&pou.name_location)
-                    .with_secondary_location(method_interface.get_location()),
-                );
-            }
-        }
-    }
 }
 
 pub fn validate_method_signature<T>(
@@ -140,6 +209,7 @@ where
     T: AnnotationMap,
 {
     let mut diagnostics = Vec::new();
+    let method_name = method_ref.get_qualified_name().into_iter().last().unwrap_or_default();
 
     // Check if the return type matches
     let return_type_ref = ctxt.index.get_return_type_or_void(method_ref.get_name());
@@ -149,7 +219,7 @@ where
         diagnostics.push(
             Diagnostic::new(format!(
                 "Return type of `{}` does not match the return type of the method defined in `{}`, expected `{}` but got `{}` instead",
-                method_impl.get_name(),
+                method_name,
                 method_ref.get_parent_pou_name(),
                 return_type_ref.get_name(),
                 return_type_impl.get_name(),
@@ -219,7 +289,7 @@ where
                         "Parameter `{} : {}` missing in method `{}`",
                         parameter_ref.get_name(),
                         parameter_ref.get_type_name(),
-                        method_impl.get_name()
+                        method_name,
                     ))
                     .with_error_code("E112")
                     .with_location(method_impl)
@@ -237,7 +307,7 @@ where
             diagnostics.push(
                 Diagnostic::new(format!(
                     "Parameter count mismatch: `{}` has more parameters than the method defined in `{}`",
-                    method_impl.get_name(),
+                    method_name,
                     method_ref.get_parent_pou_name(),
                 ))
                 .with_error_code("E112")
@@ -291,19 +361,23 @@ pub fn visit_implementation<T: AnnotationMap>(
     }
 }
 
-fn validate_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
-    if pou.kind == PouType::Function {
-        validate_function(validator, pou);
-    };
+fn validate_pou(validator: &mut Validator, pou: &Pou) {
     if pou.kind == PouType::Class {
-        validate_class(validator, pou, context);
+        validate_class(validator, pou);
     };
-    if pou.kind == PouType::Program {
-        validate_program(validator, pou);
+    //If the POU is not a function or method, it cannot have a return type
+    if !matches!(pou.kind, PouType::Function | PouType::Method { .. }) {
+        if let Some(start_return_type) = &pou.return_type {
+            validator.push_diagnostic(
+                Diagnostic::new(format!("POU Type {:?} does not support a return type", pou.kind))
+                    .with_error_code("E026")
+                    .with_location(start_return_type.get_location()),
+            )
+        }
     }
 }
 
-fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<T>) {
+fn validate_class(validator: &mut Validator, pou: &Pou) {
     // var in/out/inout blocks are not allowed inside of class declaration
     // TODO: This should be on each block
     if pou.variable_blocks.iter().any(|it| {
@@ -313,39 +387,8 @@ fn validate_class<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, contex
         )
     }) {
         validator.push_diagnostic(
-            Diagnostic::new("A class cannot contain VAR_IN VAR_IN_OUT or VAR_OUT blocks")
+            Diagnostic::new("A class cannot contain `VAR_INPUT`, `VAR_IN_OUT`, or `VAR_OUTPUT` blocks")
                 .with_error_code("E019")
-                .with_location(&pou.name_location),
-        );
-    }
-
-    // classes cannot have a return type
-    if context.index.find_return_type(&pou.name).is_some() {
-        validator.push_diagnostic(
-            Diagnostic::new("A class cannot have a return type")
-                .with_error_code("E020")
-                .with_location(&pou.name_location),
-        );
-    }
-}
-
-fn validate_function(validator: &mut Validator, pou: &Pou) {
-    // functions cannot use EXTENDS
-    if pou.super_class.is_some() {
-        validator.push_diagnostic(
-            Diagnostic::new("A function cannot use `EXTEND`")
-                .with_error_code("E021")
-                .with_location(&pou.name_location),
-        );
-    }
-}
-
-fn validate_program(validator: &mut Validator, pou: &Pou) {
-    // programs cannot use EXTENDS
-    if pou.super_class.is_some() {
-        validator.push_diagnostic(
-            Diagnostic::new("A program cannot use `EXTEND`")
-                .with_error_code("E021")
                 .with_location(&pou.name_location),
         );
     }

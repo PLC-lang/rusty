@@ -2,9 +2,7 @@
 use crate::parser::tests::ref_to;
 use crate::test_utils::tests::parse;
 use insta::{assert_debug_snapshot, assert_snapshot};
-use plc_ast::ast::{
-    AstFactory, AstNode, AstStatement, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PouType,
-};
+use plc_ast::ast::{AstFactory, AstNode, AstStatement, Operator};
 use plc_ast::literals::AstLiteral;
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
@@ -1573,35 +1571,27 @@ fn sized_string_as_function_return() {
     END_FUNCTION
     ",
     );
-
-    let expected = Pou {
-        name: "foo".into(),
-        poly_mode: None,
-        kind: PouType::Function,
-        return_type: Some(DataTypeDeclaration::Definition {
-            data_type: DataType::StringType {
-                name: None,
-                is_wide: false,
-                size: Some(AstFactory::create_literal(
-                    AstLiteral::new_integer(10),
-                    SourceLocation::internal(),
-                    0,
-                )),
+    assert_debug_snapshot!(ast.units[0], @r#"
+    POU {
+        name: "foo",
+        variable_blocks: [],
+        pou_type: Function,
+        return_type: Some(
+            DataTypeDefinition {
+                data_type: StringType {
+                    name: None,
+                    is_wide: false,
+                    size: Some(
+                        LiteralInteger {
+                            value: 10,
+                        },
+                    ),
+                },
             },
-            location: SourceLocation::internal(),
-            scope: Some("foo".into()),
-        }),
-        variable_blocks: vec![],
-        location: SourceLocation::internal(),
-        name_location: SourceLocation::internal(),
-        generics: vec![],
-        linkage: LinkageType::Internal,
-        super_class: None,
-        interfaces: vec![],
-        is_const: false,
-    };
-
-    assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));
+        ),
+        interfaces: [],
+    }
+    "#);
     assert_eq!(diagnostics.is_empty(), true);
 }
 
@@ -1614,38 +1604,33 @@ fn array_type_as_function_return() {
     ",
     );
 
-    let expected = Pou {
-        name: "foo".into(),
-        poly_mode: None,
-        kind: PouType::Function,
-        return_type: Some(DataTypeDeclaration::Definition {
-            data_type: DataType::ArrayType {
-                referenced_type: Box::new(DataTypeDeclaration::Reference {
-                    referenced_type: "INT".into(),
-                    location: SourceLocation::internal(),
-                }),
-                bounds: AstFactory::create_range_statement(
-                    AstFactory::create_literal(AstLiteral::Integer(0), SourceLocation::internal(), 0),
-                    AstFactory::create_literal(AstLiteral::Integer(10), SourceLocation::internal(), 0),
-                    0,
-                ),
-                name: None,
-                is_variable_length: false,
+    assert_debug_snapshot!(ast.units[0], @r#"
+    POU {
+        name: "foo",
+        variable_blocks: [],
+        pou_type: Function,
+        return_type: Some(
+            DataTypeDefinition {
+                data_type: ArrayType {
+                    name: None,
+                    bounds: RangeStatement {
+                        start: LiteralInteger {
+                            value: 0,
+                        },
+                        end: LiteralInteger {
+                            value: 10,
+                        },
+                    },
+                    referenced_type: DataTypeReference {
+                        referenced_type: "INT",
+                    },
+                    is_variable_length: false,
+                },
             },
-            location: SourceLocation::internal(),
-            scope: Some("foo".into()),
-        }),
-        variable_blocks: vec![],
-        location: SourceLocation::internal(),
-        name_location: SourceLocation::internal(),
-        generics: vec![],
-        linkage: LinkageType::Internal,
-        super_class: None,
-        interfaces: vec![],
-        is_const: false,
-    };
-
-    assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));
+        ),
+        interfaces: [],
+    }
+    "#);
     assert_eq!(diagnostics.is_empty(), true);
 }
 
