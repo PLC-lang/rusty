@@ -533,7 +533,17 @@ pub(super) mod signature_validation {
                     };
                     diagnostics.extend(sub_diagnostics);
                 }
-                (DataTypeInformation::SubRange { .. }, DataTypeInformation::SubRange { .. }) => todo!(),
+                (
+                    DataTypeInformation::SubRange { sub_range: _l_range, .. },
+                    DataTypeInformation::SubRange { sub_range: _r_range, .. },
+                ) => {
+                    return self.validate_types(
+                        context.index.find_intrinsic_type(left),
+                        context.index.find_intrinsic_type(right),
+                    );
+
+                    // FIXME: properly validate the ranges (folded constants are problematic)
+                }
                 _ => diagnostics.push(self.create_diagnostic(left.get_name(), right.get_name())),
             };
 

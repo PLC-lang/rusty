@@ -1,15 +1,11 @@
-use source_code::SourceCode;
-
-use crate::tests::parse_and_validate_buffered;
+use test_utils::parse_and_validate_buffered;
 
 #[test]
 fn pou_implementing_non_existing_interfaces() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         FUNCTION_BLOCK foo IMPLEMENTS delulu /* ... */ END_FUNCTION_BLOCK
         FUNCTION_BLOCK bar IMPLEMENTS delulu, delululu /* ... */ END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
@@ -35,12 +31,10 @@ fn pou_implementing_non_existing_interfaces() {
 
 #[test]
 fn pou_implementing_same_interface_multiple_times() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE interfaceA /* ... */ END_INTERFACE
         FUNCTION_BLOCK foo IMPLEMENTS interfaceA, interfaceA /* ... */ END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"");
@@ -48,8 +42,7 @@ fn pou_implementing_same_interface_multiple_times() {
 
 #[test]
 fn not_supported_pou_type_implements_interface() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE interfaceA /* ... */ END_INTERFACE
         INTERFACE interfaceB /* ... */ END_INTERFACE
 
@@ -60,8 +53,7 @@ fn not_supported_pou_type_implements_interface() {
         // Invalid
         PROGRAM     baz IMPLEMENTS interfaceA            /* ... */ END_PROGRAM
         FUNCTION    qux IMPLEMENTS interfaceA, interfaceB /* ... */ END_FUNCTION
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
@@ -81,8 +73,7 @@ fn not_supported_pou_type_implements_interface() {
 
 #[test]
 fn pou_implements_method_with_wrong_return_type() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE interfaceA
             METHOD methodA : DINT /* ... */ END_METHOD
         END_INTERFACE
@@ -90,8 +81,7 @@ fn pou_implements_method_with_wrong_return_type() {
         FUNCTION_BLOCK fb IMPLEMENTS interfaceA
             METHOD methodA : BOOL /* ... */ END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -110,8 +100,7 @@ fn pou_implements_method_with_wrong_return_type() {
 
 #[test]
 fn pou_does_not_implement_interface_methods() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE interfaceA
             METHOD methodA /* ... */ END_METHOD
         END_INTERFACE
@@ -119,8 +108,7 @@ fn pou_does_not_implement_interface_methods() {
         FUNCTION_BLOCK fb IMPLEMENTS interfaceA
         // Missing `methodA` implementation
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
@@ -137,8 +125,7 @@ fn pou_does_not_implement_interface_methods() {
 
 #[test]
 fn pou_with_missing_parameter_in_interface_implementation() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
     INTERFACE interfaceA
         METHOD methodA
         VAR_INPUT
@@ -157,8 +144,7 @@ fn pou_with_missing_parameter_in_interface_implementation() {
         END_VAR
         END_METHOD
     END_FUNCTION_BLOCK
-    ",
-    );
+    ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
@@ -175,8 +161,7 @@ fn pou_with_missing_parameter_in_interface_implementation() {
 
 #[test]
 fn pou_with_unordered_parameters_in_interface_implementation() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
     INTERFACE interfaceA
         METHOD methodA
         VAR_INPUT
@@ -196,8 +181,7 @@ fn pou_with_unordered_parameters_in_interface_implementation() {
         END_VAR
         END_METHOD
     END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
@@ -223,8 +207,7 @@ fn pou_with_unordered_parameters_in_interface_implementation() {
 
 #[test]
 fn pou_with_incorrect_parameter_type_in_interface_implementation() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
     INTERFACE interfaceA
         METHOD methodA
         VAR_INPUT
@@ -240,8 +223,7 @@ fn pou_with_incorrect_parameter_type_in_interface_implementation() {
         END_VAR
         END_METHOD
     END_FUNCTION_BLOCK
-    ",
-    );
+    ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -267,8 +249,7 @@ fn pou_with_incorrect_parameter_type_in_interface_implementation() {
 
 #[test]
 fn pou_with_incorrect_parameter_declaration_type_in_interface_implementation() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
     INTERFACE interfaceA
         METHOD methodA
         VAR_INPUT {ref}
@@ -284,8 +265,7 @@ fn pou_with_incorrect_parameter_declaration_type_in_interface_implementation() {
         END_VAR
         END_METHOD
     END_FUNCTION_BLOCK
-    ",
-    );
+    ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
@@ -302,8 +282,7 @@ fn pou_with_incorrect_parameter_declaration_type_in_interface_implementation() {
 
 #[test]
 fn pou_with_more_parameters_than_defined_in_interface() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
     INTERFACE interfaceA
         METHOD methodA
         VAR_INPUT
@@ -328,8 +307,7 @@ fn pou_with_more_parameters_than_defined_in_interface() {
         END_VAR
         END_METHOD
     END_FUNCTION_BLOCK
-    ",
-    );
+    ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
@@ -391,8 +369,7 @@ fn pou_with_more_parameters_than_defined_in_interface() {
 
 #[test]
 fn interfaces_with_same_method_name_but_different_signatures_return_type() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
     INTERFACE interfaceA
     METHOD foo : INT
     VAR_INPUT
@@ -419,8 +396,7 @@ fn interfaces_with_same_method_name_but_different_signatures_return_type() {
         END_VAR
         END_METHOD
     END_FUNCTION_BLOCK
-    ",
-    );
+    ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -451,8 +427,7 @@ fn interfaces_with_same_method_name_but_different_signatures_return_type() {
 
 #[test]
 fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE interfaceA
             METHOD foo : INT
             VAR_INPUT
@@ -479,8 +454,7 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
             END_VAR
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -518,8 +492,7 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
 
 #[test]
 fn interfaces_with_same_method_name_but_different_signatures_parameter_list_declaration_type() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE interfaceA
             METHOD foo : INT
             VAR_INPUT
@@ -544,8 +517,7 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
             END_VAR
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r###"
@@ -583,8 +555,7 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
 
 #[test]
 fn interface_with_aggregate_return_type_string() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : STRING
             END_METHOD
@@ -594,8 +565,7 @@ fn interface_with_aggregate_return_type_string() {
             METHOD bar : STRING
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"");
@@ -603,8 +573,7 @@ fn interface_with_aggregate_return_type_string() {
 
 #[test]
 fn interface_with_aggregate_return_type_string_mismatch() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : STRING
             END_METHOD
@@ -614,8 +583,7 @@ fn interface_with_aggregate_return_type_string_mismatch() {
             METHOD bar : WSTRING
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -634,8 +602,7 @@ fn interface_with_aggregate_return_type_string_mismatch() {
 
 #[test]
 fn interface_with_aliased_aggregate_return_type_string() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         TYPE myString : STRING[10]; END_TYPE
         INTERFACE foo
             METHOD bar : myString
@@ -646,8 +613,7 @@ fn interface_with_aliased_aggregate_return_type_string() {
             METHOD bar : STRING
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -666,8 +632,7 @@ fn interface_with_aliased_aggregate_return_type_string() {
 
 #[test]
 fn interface_with_aggregate_return_type_array() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : ARRAY[1..5] OF STRING
             END_METHOD
@@ -677,8 +642,7 @@ fn interface_with_aggregate_return_type_array() {
             METHOD bar : ARRAY[1..5] OF STRING
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"");
@@ -686,8 +650,7 @@ fn interface_with_aggregate_return_type_array() {
 
 #[test]
 fn interface_with_aggregate_return_type_array_length_mismatch() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : ARRAY[1..6] OF STRING
             END_METHOD
@@ -697,8 +660,7 @@ fn interface_with_aggregate_return_type_array_length_mismatch() {
             METHOD bar : ARRAY[1..5] OF STRING
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -717,8 +679,7 @@ fn interface_with_aggregate_return_type_array_length_mismatch() {
 
 #[test]
 fn interface_with_aggregate_return_type_array_inner_type_mismatch() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : ARRAY[1..5] OF STRING
             END_METHOD
@@ -728,8 +689,7 @@ fn interface_with_aggregate_return_type_array_inner_type_mismatch() {
             METHOD bar : ARRAY[1..5] OF WSTRING
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -748,8 +708,7 @@ fn interface_with_aggregate_return_type_array_inner_type_mismatch() {
 
 #[test]
 fn interface_with_aggregate_return_type_nested_arrays() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : ARRAY[1..5, 1..5] OF STRING
             END_METHOD
@@ -763,8 +722,7 @@ fn interface_with_aggregate_return_type_nested_arrays() {
             METHOD baz : ARRAY[1..5] OF ARRAY[1..5] OF STRING
             END_METHOD
         END_FUNCTION_BLOCK        
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @"");
@@ -772,8 +730,7 @@ fn interface_with_aggregate_return_type_nested_arrays() {
 
 #[test]
 fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : ARRAY[1..5] OF ARRAY[1..5] OF STRING
             END_METHOD
@@ -783,8 +740,7 @@ fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
             METHOD bar : ARRAY[1..5, 1..5] OF STRING
             END_METHOD
         END_FUNCTION_BLOCK        
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -803,8 +759,7 @@ fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
 
 #[test]
 fn interface_with_aggregate_return_type_struct() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
             TYPE txn : STRUCT
                 id      : DINT;
                 block   : DINT;
@@ -820,8 +775,7 @@ fn interface_with_aggregate_return_type_struct() {
                 METHOD bar : txn
                 END_METHOD
             END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"");
@@ -829,8 +783,7 @@ fn interface_with_aggregate_return_type_struct() {
 
 #[test]
 fn interface_with_aliased_aggregate_return_type_struct() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
             TYPE txn : STRUCT
                 id      : DINT;
                 block   : DINT;
@@ -848,8 +801,7 @@ fn interface_with_aliased_aggregate_return_type_struct() {
                 METHOD bar : myTxn
                 END_METHOD
             END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"");
@@ -857,8 +809,7 @@ fn interface_with_aliased_aggregate_return_type_struct() {
 
 #[test]
 fn interface_with_aggregate_return_type_non_aggregate_impl() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : STRING
             END_METHOD
@@ -868,8 +819,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl() {
             METHOD bar : DINT
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -888,8 +838,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl() {
 
 #[test]
 fn interface_with_non_aggregate_return_type_aggregate_impl() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : DINT
             END_METHOD
@@ -899,8 +848,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl() {
             METHOD bar : STRING
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -919,8 +867,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl() {
 
 #[test]
 fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_mismatch() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : STRING
             VAR_INPUT
@@ -950,8 +897,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
             END_VAR
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -999,8 +945,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
 
 #[test]
 fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_mismatch() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : DINT
             VAR_INPUT
@@ -1030,8 +975,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
             END_VAR
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -1079,8 +1023,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
 
 #[test]
 fn pointer_return() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : REF_TO DINT
             END_METHOD
@@ -1090,8 +1033,7 @@ fn pointer_return() {
             METHOD bar : REF_TO DINT
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"");
@@ -1099,8 +1041,7 @@ fn pointer_return() {
 
 #[test]
 fn pointer_return_type_mismatch() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : REF_TO INT
             END_METHOD
@@ -1110,8 +1051,7 @@ fn pointer_return_type_mismatch() {
             METHOD bar : REF_TO DINT
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -1130,8 +1070,7 @@ fn pointer_return_type_mismatch() {
 
 #[test]
 fn pointer_to_pointer_return() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : REF_TO REF_TO DINT
             END_METHOD
@@ -1141,8 +1080,7 @@ fn pointer_to_pointer_return() {
             METHOD bar : REF_TO REF_TO DINT
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"");
@@ -1150,8 +1088,7 @@ fn pointer_to_pointer_return() {
 
 #[test]
 fn pointer_to_pointer_return_inner_type_mismatch() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : REF_TO REF_TO DINT
             END_METHOD
@@ -1161,8 +1098,7 @@ fn pointer_to_pointer_return_inner_type_mismatch() {
             METHOD bar : REF_TO REF_TO INT
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -1181,8 +1117,7 @@ fn pointer_to_pointer_return_inner_type_mismatch() {
 
 #[test]
 fn pointer_to_pointer_return_indirection_level_mismatch() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar : REF_TO DINT
             END_METHOD
@@ -1192,8 +1127,7 @@ fn pointer_to_pointer_return_indirection_level_mismatch() {
             METHOD bar : REF_TO REF_TO DINT
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -1212,8 +1146,7 @@ fn pointer_to_pointer_return_indirection_level_mismatch() {
 
 #[test]
 fn pointer_fields() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar
             VAR_INPUT
@@ -1235,8 +1168,7 @@ fn pointer_fields() {
             END_VAR
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"");
@@ -1244,8 +1176,7 @@ fn pointer_fields() {
 
 #[test]
 fn pointer_fields_type_mismatch() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar
             VAR_INPUT
@@ -1267,8 +1198,7 @@ fn pointer_fields_type_mismatch() {
             END_VAR
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -1348,8 +1278,7 @@ fn pointer_fields_type_mismatch() {
 
 #[test]
 fn pointer_fields_indirection_mismatch() {
-    let source = SourceCode::from(
-        r"
+    let source = r"
         INTERFACE foo
             METHOD bar
             VAR_INPUT
@@ -1367,8 +1296,7 @@ fn pointer_fields_indirection_mismatch() {
             END_VAR
             END_METHOD
         END_FUNCTION_BLOCK
-        ",
-    );
+        ";
 
     let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
@@ -1408,4 +1336,70 @@ fn pointer_fields_indirection_mismatch() {
     12 │             METHOD bar
        │                    ^^^ Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `DINT`
     ");
+}
+
+#[test]
+fn subranges() {
+    let source = r"
+        INTERFACE foo
+            METHOD bar
+            VAR_INPUT
+                a : UINT(1..10);
+            END_VAR
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar
+            VAR_INPUT
+                a : UINT(1..10);
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn subranges_type_mismatch() {
+    let source = r"
+        INTERFACE foo
+            METHOD bar
+            VAR_INPUT
+                a : UINT(1..10);
+            END_VAR
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar
+            VAR_INPUT
+                a : INT(1..10);
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E112]: Interface implementation mismatch: Parameter `a` has different types in declaration and implemenation:
+       ┌─ <internal>:11:20
+       │
+     5 │                 a : UINT(1..10);
+       │                 - see also
+       ·
+    11 │             METHOD bar
+       │                    ^^^ Interface implementation mismatch: Parameter `a` has different types in declaration and implemenation:
+
+    error[E112]: Type `UINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+       ┌─ <internal>:11:20
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    11 │             METHOD bar
+       │                    ^^^ Type `UINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+    "###);
 }
