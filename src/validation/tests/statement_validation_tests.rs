@@ -1968,3 +1968,32 @@ fn builtin_math_functions_with_incompatible_literal_types() {
 
     "###);
 }
+
+#[test]
+fn validate_property_call_with_braces() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+        PROPERTY foo :  REF_TO DINT
+        GET END_GET
+        END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                fb_instance : fb;
+            END_VAR
+
+            fb_instance.foo();
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E007]: Properties cannot be called like functions. Remove `()`
+       ┌─ <internal>:13:13
+       │
+    13 │             fb_instance.foo();
+       │             ^^^^^^^^^^^^^^^ Properties cannot be called like functions. Remove `()`
+    "###);
+}

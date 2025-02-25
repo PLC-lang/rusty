@@ -646,7 +646,7 @@ fn parse_property(
         );
     }
 
-    let datatype = parse_return_type(lexer, &PouType::Function);
+    let datatype = parse_return_type(lexer);
     if datatype.is_none() {
         has_error = true;
         lexer.accept_diagnostic(

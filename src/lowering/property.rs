@@ -148,6 +148,7 @@ impl PropertyLowerer {
                     super_class: None,
                     interfaces: Vec::new(),
                     is_const: false,
+                    id: self.id_provider.next_id(),
                 };
 
                 let mut implementation = Implementation {
