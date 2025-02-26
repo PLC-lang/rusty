@@ -408,7 +408,7 @@ impl TypeAnnotator<'_> {
                                     DataTypeInformation::String {
                                         encoding: StringEncoding::Utf16, ..
                                     } => self.index.find_effective_type_info(WSTRING_TYPE).unwrap_or(it),
-                                    _ => self.index.find_intrinsic_type(it),
+                                    _ => self.index.get_intrinsic_type_information(it),
                                 }
                             });
 

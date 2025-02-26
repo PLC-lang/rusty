@@ -790,7 +790,7 @@ fn validate_variable_length_array_bound_function(
                 let dimension_idx = *dimension_idx as usize;
 
                 let Some(n_dimensions) =
-                    annotations.get_type_or_void(vla, index).get_type_information().get_dimensions()
+                    annotations.get_type_or_void(vla, index).get_type_information().get_dimension_count()
                 else {
                     // not a vla, validated via type nature
                     return;

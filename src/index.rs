@@ -1733,26 +1733,48 @@ impl Index {
         &self.constant_expressions
     }
 
-    /// returns the intrinsic (built-in) type represented by the given type-information
+    /// returns the intrinsic (built-in) [DataTypeInformation] represented by the given type-information
     /// this will return the built-in type behind alias / range-types
-    pub fn find_intrinsic_type<'idx>(
+    pub fn get_intrinsic_type_information<'idx>(
         &'idx self,
         initial_type: &'idx DataTypeInformation,
     ) -> &'idx DataTypeInformation {
-        match initial_type {
-            DataTypeInformation::SubRange { .. } | DataTypeInformation::Alias { .. } => {
-                let inner_type_name = match initial_type {
-                    DataTypeInformation::SubRange { referenced_type, .. } => referenced_type,
-                    _ => initial_type.get_name(),
-                };
-                if let Some(inner_type) = self.find_effective_type_info(inner_type_name) {
-                    self.find_intrinsic_type(inner_type)
-                } else {
-                    initial_type
-                }
+        fn get_inner_type_name(initial_type: &DataTypeInformation) -> &str {
+            match initial_type {
+                DataTypeInformation::SubRange { referenced_type, .. } => referenced_type,
+                _ => initial_type.get_name(),
             }
+        }
+        match initial_type {
+            DataTypeInformation::SubRange { .. } | DataTypeInformation::Alias { .. } => self
+                .find_effective_type_info(get_inner_type_name(initial_type))
+                .map(|it| self.get_intrinsic_type_information(it))
+                .unwrap_or(initial_type),
             DataTypeInformation::Enum { referenced_type, .. } => {
                 self.find_effective_type_info(referenced_type).unwrap_or(initial_type)
+            }
+            _ => initial_type,
+        }
+    }
+
+    /// returns the intrinsic (built-in) [DataType] represented by the given type
+    /// this will return the built-in type behind alias / range-types
+    pub fn get_intrinsic_type<'idx>(&'idx self, initial_type: &'idx DataType) -> &'idx DataType {
+        fn get_inner_type_name(initial_type: &DataTypeInformation) -> &str {
+            match initial_type {
+                DataTypeInformation::SubRange { referenced_type, .. } => referenced_type,
+                _ => initial_type.get_name(),
+            }
+        }
+
+        let ty_info = initial_type.get_type_information();
+        match ty_info {
+            DataTypeInformation::SubRange { .. } | DataTypeInformation::Alias { .. } => self
+                .find_effective_type_by_name(get_inner_type_name(ty_info))
+                .map(|it| self.get_intrinsic_type(it))
+                .unwrap_or(initial_type),
+            DataTypeInformation::Enum { referenced_type, .. } => {
+                self.find_effective_type_by_name(referenced_type).unwrap_or(initial_type)
             }
             _ => initial_type,
         }
@@ -1764,7 +1786,7 @@ impl Index {
     ) -> &'idx DataTypeInformation {
         if let DataTypeInformation::Pointer { inner_type_name, .. } = initial_type {
             if let Some(ty) = self.find_effective_type_info(inner_type_name) {
-                return self.find_elementary_pointer_type(self.find_intrinsic_type(ty));
+                return self.find_elementary_pointer_type(self.get_intrinsic_type_information(ty));
             } else {
                 // the inner type can't be found, return VOID as placeholder
                 return self.get_void_type().get_type_information();

@@ -726,7 +726,7 @@ fn validate_binary_expression<T: AnnotationMap>(
     let right_type = context.annotations.get_type_or_void(right, context.index).get_type_information();
 
     // if the type is a subrange, check if the intrinsic type is numerical
-    let is_numerical = context.index.find_intrinsic_type(left_type).is_numerical();
+    let is_numerical = context.index.get_intrinsic_type_information(left_type).is_numerical();
 
     if discriminant(left_type) == discriminant(right_type) && !(is_numerical || left_type.is_pointer()) {
         // see if we have the right compare-function (non-numbers are compared using user-defined callback-functions)
@@ -834,12 +834,12 @@ pub fn validate_pointer_assignment<T>(
 ) where
     T: AnnotationMap,
 {
-    let type_info_lhs = context
-        .index
-        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_lhs.get_type_information()));
-    let type_info_rhs = context
-        .index
-        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_rhs.get_type_information()));
+    let type_info_lhs = context.index.get_intrinsic_type_information(
+        context.index.find_elementary_pointer_type(type_lhs.get_type_information()),
+    );
+    let type_info_rhs = context.index.get_intrinsic_type_information(
+        context.index.find_elementary_pointer_type(type_rhs.get_type_information()),
+    );
 
     if type_info_lhs.is_array() && type_info_rhs.is_array() {
         let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
@@ -1130,8 +1130,8 @@ fn validate_variable_length_array_assignment<T: AnnotationMap>(
     let left_dt = context.index.get_effective_type_or_void_by_name(left_inner_type);
     let right_dt = context.index.get_effective_type_or_void_by_name(right_inner_type);
 
-    let left_dims = left_type.get_type_information().get_dimensions().unwrap();
-    let right_dims = right_type.get_type_information().get_dimensions().unwrap();
+    let left_dims = left_type.get_type_information().get_dimension_count().unwrap();
+    let right_dims = right_type.get_type_information().get_dimension_count().unwrap();
 
     if left_dt != right_dt || left_dims != right_dims {
         validator.push_diagnostic(Diagnostic::invalid_assignment(
@@ -1279,10 +1279,10 @@ fn is_aggregate_type_missmatch(left_type: &DataType, right_type: &DataType, inde
         return false;
     }
     if lhs.is_array() {
-        let inner_l = index.find_intrinsic_type(
+        let inner_l = index.get_intrinsic_type_information(
             index.get_type_information_or_void(lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE)),
         );
-        let inner_r = index.find_intrinsic_type(
+        let inner_r = index.get_intrinsic_type_information(
             index.get_type_information_or_void(rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE)),
         );
         !(inner_l == inner_r && typesystem::is_same_type_class(lhs, rhs, index))

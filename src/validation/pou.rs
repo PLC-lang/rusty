@@ -287,7 +287,7 @@ pub(super) mod signature_validation {
 
     use crate::{
         index::{Index, PouIndexEntry},
-        typesystem::DataTypeInformation,
+        typesystem::{DataType, DataTypeInformation},
     };
 
     pub fn validate_method_signature(
@@ -316,18 +316,13 @@ pub(super) mod signature_validation {
             Self { index, method_ref, method_impl }
         }
 
-        /// Returns a tuple of the return types the method reference and the method implementation
-        fn get_return_types(&self) -> (&DataTypeInformation, &DataTypeInformation) {
+        /// Returns a tuple of the return [DataType]s of the method reference and the method implementation
+        fn get_return_types(&self) -> (&DataType, &DataType) {
             let method_ref_return_type_name = self.method_ref.get_return_type().unwrap_or_default();
             let method_impl_return_type_name = self.method_impl.get_return_type().unwrap_or_default();
-            let return_type_ref = self
-                .index
-                .get_effective_type_or_void_by_name(method_ref_return_type_name)
-                .get_type_information();
-            let return_type_impl = self
-                .index
-                .get_effective_type_or_void_by_name(method_impl_return_type_name)
-                .get_type_information();
+            let return_type_ref = self.index.get_effective_type_or_void_by_name(method_ref_return_type_name);
+            let return_type_impl =
+                self.index.get_effective_type_or_void_by_name(method_impl_return_type_name);
 
             (return_type_ref, return_type_impl)
         }
@@ -355,7 +350,7 @@ pub(super) mod signature_validation {
             let (return_type_ref, return_type_impl) = self.context.get_return_types();
             if let Some(sub_diagnostics) = self.validate_types(return_type_impl, return_type_ref) {
                 self.diagnostics.push(
-                    Diagnostic::new("Interface implementation mismatch: return types do not match:")
+                    Diagnostic::new("Return types do not match:")
                         .with_error_code("E112")
                         .with_sub_diagnostics(sub_diagnostics),
                 );
@@ -376,8 +371,8 @@ pub(super) mod signature_validation {
             let (return_type_ref, return_type_impl) = context.get_return_types();
             parameters_ref
                 .iter()
-                .skip(return_type_ref.is_aggregate() as usize)
-                .zip_longest(parameters_impl.iter().skip(return_type_impl.is_aggregate() as usize))
+                .skip(return_type_ref.get_type_information().is_aggregate() as usize)
+                .zip_longest(parameters_impl.iter().skip(return_type_impl.get_type_information().is_aggregate() as usize))
                 .for_each(|pair|
             {
                 match pair {
@@ -386,7 +381,7 @@ pub(super) mod signature_validation {
                         if parameter_impl.get_name() != parameter_ref.get_name() {
                             self.diagnostics.push(
                                 Diagnostic::new(format!(
-                                    "Interface implementation mismatch: expected parameter `{}` but got `{}`",
+                                    "Expected parameter `{}` but got `{}`",
                                     parameter_ref.get_name(),
                                     parameter_impl.get_name()
                                 ))
@@ -397,19 +392,17 @@ pub(super) mod signature_validation {
                         }
 
                         // Type
-                        let impl_ty_info = context
+                        let impl_ty = context
                             .index
-                            .get_effective_type_or_void_by_name(parameter_impl.get_type_name())
-                            .get_type_information();
-                        let ref_ty_info = context
-                                                    .index
-                                                    .get_effective_type_or_void_by_name(parameter_ref.get_type_name())
-                                                    .get_type_information();
+                            .get_effective_type_or_void_by_name(parameter_impl.get_type_name());
+                        let ref_ty = context
+                            .index
+                            .get_effective_type_or_void_by_name(parameter_ref.get_type_name());
 
-                        if let Some(sub_diagnostics) = self.validate_types(impl_ty_info, ref_ty_info) {
+                        if let Some(sub_diagnostics) = self.validate_types(impl_ty, ref_ty) {
                             self.diagnostics.push(
                                 Diagnostic::new(format!(
-                                    "Interface implementation mismatch: Parameter `{}` has different types in declaration and implemenation:",
+                                    "Parameter `{}` has different types in declaration and implemenation:",
                                     parameter_ref.get_name(),
                                 ))
                                 .with_error_code("E112")
@@ -423,7 +416,7 @@ pub(super) mod signature_validation {
                         if parameter_impl.get_declaration_type() != parameter_ref.get_declaration_type() {
                             self.diagnostics.push(
                                 Diagnostic::new(format!(
-                                    "Interface implementation mismatch: Expected parameter `{}` to have `{}` as its declaration type but got `{}`",
+                                    "Expected parameter `{}` to have `{}` as its declaration type but got `{}`",
                                     parameter_impl.get_name(),
                                     parameter_ref.get_declaration_type().get_inner(),
                                     parameter_impl.get_declaration_type().get_inner(),
@@ -453,7 +446,7 @@ pub(super) mod signature_validation {
                     itertools::EitherOrBoth::Right(parameter_impl) => {
                         self.diagnostics.push(
                             Diagnostic::new(format!(
-                                "Parameter count mismatch: `{}` has more parameters than the method defined in `{}`",
+                                "`{}` has more parameters than the method defined in `{}`",
                                 method_name,
                                 method_ref.get_parent_pou_name(),
                             ))
@@ -466,16 +459,14 @@ pub(super) mod signature_validation {
             })
         }
 
-        fn validate_types(
-            &self,
-            left: &DataTypeInformation,
-            right: &DataTypeInformation,
-        ) -> Option<Vec<Diagnostic>> {
-            if left == right {
+        fn validate_types(&self, left: &DataType, right: &DataType) -> Option<Vec<Diagnostic>> {
+            let l_type_info = left.get_type_information();
+            let r_type_info = right.get_type_information();
+            if l_type_info == r_type_info {
                 return None;
             }
             let context = self.context;
-            match (left, right) {
+            match (l_type_info, r_type_info) {
                 (DataTypeInformation::Array { .. }, DataTypeInformation::Array { .. }) => {
                     self.validate_array_types(left, right)
                 }
@@ -485,57 +476,41 @@ pub(super) mod signature_validation {
                 ) => {
                     if l_auto.is_some() || r_auto.is_some() {
                         let left = l_auto
-                            .map(|_| {
-                                context
-                                    .index
-                                    .get_effective_type_or_void_by_name(l_inner)
-                                    .get_type_information()
-                            })
+                            .map(|_| context.index.get_effective_type_or_void_by_name(l_inner))
                             .unwrap_or(left);
                         let right = r_auto
-                            .map(|_| {
-                                context
-                                    .index
-                                    .get_effective_type_or_void_by_name(r_inner)
-                                    .get_type_information()
-                            })
+                            .map(|_| context.index.get_effective_type_or_void_by_name(r_inner))
                             .unwrap_or(right);
                         return self.validate_types(left, right);
                     }
                     self.validate_types(
-                        context.index.get_effective_type_or_void_by_name(l_inner).get_type_information(),
-                        context.index.get_effective_type_or_void_by_name(r_inner).get_type_information(),
+                        context.index.get_effective_type_or_void_by_name(l_inner),
+                        context.index.get_effective_type_or_void_by_name(r_inner),
                     )
                 }
                 (DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. }, _) => {
-                    let inner_type = context
-                        .index
-                        .get_effective_type_or_void_by_name(inner_type_name)
-                        .get_type_information();
+                    let inner_type = context.index.get_effective_type_or_void_by_name(inner_type_name);
                     self.validate_types(inner_type, right)
                 }
                 (_, DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. }) => {
-                    let inner_type = context
-                        .index
-                        .get_effective_type_or_void_by_name(inner_type_name)
-                        .get_type_information();
+                    let inner_type = context.index.get_effective_type_or_void_by_name(inner_type_name);
                     self.validate_types(left, inner_type)
                 }
                 (DataTypeInformation::String { .. }, DataTypeInformation::String { .. }) => {
-                    self.validate_string_types(left, right)
+                    self.validate_string_types(l_type_info, r_type_info)
                 }
                 (
                     DataTypeInformation::SubRange { sub_range: _l_range, .. },
                     DataTypeInformation::SubRange { sub_range: _r_range, .. },
                 ) => {
                     self.validate_types(
-                        context.index.find_intrinsic_type(left),
-                        context.index.find_intrinsic_type(right),
+                        context.index.get_intrinsic_type(left),
+                        context.index.get_intrinsic_type(right),
                     )
 
                     // FIXME: properly validate the ranges (folded constants are problematic)
                 }
-                _ => Some(vec![self.create_diagnostic(left.get_name(), right.get_name())]),
+                _ => Some(vec![self.create_diagnostic(l_type_info.get_name(), r_type_info.get_name())]),
             }
         }
 
@@ -550,23 +525,23 @@ pub(super) mod signature_validation {
             .with_secondary_location(self.context.method_ref)
         }
 
-        fn validate_array_types(
-            &self,
-            left: &DataTypeInformation,
-            right: &DataTypeInformation,
-        ) -> Option<Vec<Diagnostic>> {
-            let ctxt = self.context;
-            let method_impl = ctxt.method_impl;
-            let method_ref = ctxt.method_ref;
+        fn validate_array_types(&self, left: &DataType, right: &DataType) -> Option<Vec<Diagnostic>> {
+            let context = self.context;
+            let method_impl = context.method_impl;
+            let method_ref = context.method_ref;
+
             let mut sub_diagnostics = vec![];
             let mut left_type = left;
             let mut right_type = right;
 
-            while let (Some(left_ty), Some(right_ty)) =
-                (left_type.get_inner_array_type_name(), right_type.get_inner_array_type_name())
-            {
-                left_type = ctxt.index.get_effective_type_or_void_by_name(left_ty).get_type_information();
-                right_type = ctxt.index.get_effective_type_or_void_by_name(right_ty).get_type_information();
+            while let (Some(l_inner), Some(r_inner)) = (
+                left_type.get_type_information().get_inner_array_type_name(),
+                right_type.get_type_information().get_inner_array_type_name(),
+            ) {
+                // we found two inner types, so the previous iteration was array types. check their dimensions
+                sub_diagnostics.extend(self.validate_array_dimensions(left_type, right));
+                left_type = context.index.get_effective_type_or_void_by_name(l_inner);
+                right_type = context.index.get_effective_type_or_void_by_name(r_inner);
             }
 
             let left_name = left_type.get_name();
@@ -582,17 +557,55 @@ pub(super) mod signature_validation {
                     .with_secondary_location(method_ref),
                 )
             };
-            let left_size = left.get_array_length(ctxt.index).unwrap_or_default();
-            let right_size = right.get_array_length(ctxt.index).unwrap_or_default();
-            if left_size != right_size {
-                sub_diagnostics.push(
-                    Diagnostic::new(format!("Expected array size `{}` but got `{}`", right_size, left_size))
-                        .with_error_code("E112")
-                        .with_location(method_impl)
-                        .with_secondary_location(method_ref),
-                )
-            }
+
             (!sub_diagnostics.is_empty()).then_some(sub_diagnostics)
+        }
+
+        fn validate_array_dimensions(&self, left: &DataType, right: &DataType) -> Vec<Diagnostic> {
+            let context = self.context;
+            let left_type = left.get_type_information();
+            let right_type = right.get_type_information();
+            let l_dims = left_type.get_dimensions().expect("Array type without dimensions");
+            let r_dims = right_type.get_dimensions().expect("Array type without dimensions");
+
+            l_dims
+                .iter()
+                .zip_longest(r_dims.iter())
+                .filter_map(|pair| {
+                    match pair {
+                        itertools::EitherOrBoth::Both(l, r) => {
+                            match (l.get_range(context.index), r.get_range(context.index)) {
+                                (Ok(l_range), Ok(r_range)) => (l_range != r_range).then_some(
+                                    Diagnostic::new(format!(
+                                        "Array range declared as `[{}..{}]` but implemented as `[{}..{}]`",
+                                        r_range.start, r_range.end, l_range.start, l_range.end
+                                    ))
+                                    .with_error_code("E112")
+                                    .with_secondary_location(left.location.clone())
+                                    .with_secondary_location(right.location.clone()),
+                                ),
+                                _ => {
+                                    // Expression in array dimension could not be evaluated. this should already have raised an error elsewhere
+                                    None
+                                }
+                            }
+                        }
+                        itertools::EitherOrBoth::Left(_) | itertools::EitherOrBoth::Right(_) => Some(
+                            Diagnostic::new(format!(
+                                "Array declared with `{}` dimension{} but implemented with `{}`",
+                                l_dims.len(),
+                                if l_dims.len() == 1 { "" } else { "s" },
+                                r_dims.len()
+                            ))
+                            .with_error_code("E112")
+                            .with_location(right.location.clone())
+                            .with_secondary_location(context.method_impl)
+                            .with_secondary_location(left.location.clone())
+                            .with_secondary_location(context.method_ref),
+                        ),
+                    }
+                })
+                .collect()
         }
 
         fn validate_string_types(

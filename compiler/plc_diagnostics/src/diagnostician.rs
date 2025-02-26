@@ -37,12 +37,12 @@ impl Diagnostician {
     pub fn handle(&mut self, diagnostics: &[Diagnostic]) -> Severity {
         let resolved_diagnostics = diagnostics
             .iter()
-            .flat_map(|it| {
-                let mut res = vec![it];
-                let sub_diagnostics = it.get_sub_diagnostics();
-                res.extend(sub_diagnostics);
-                res
+            .fold(vec![], |mut acc, d| {
+                acc.push(d);
+                acc.extend(d.get_sub_diagnostics());
+                acc
             })
+            .iter()
             .map(|d| ResolvedDiagnostics {
                 code: d.get_error_code().to_string(),
                 message: d.get_message().to_string(),

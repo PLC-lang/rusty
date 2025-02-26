@@ -529,7 +529,7 @@ impl DataTypeInformation {
         )
     }
 
-    pub fn get_dimensions(&self) -> Option<usize> {
+    pub fn get_dimension_count(&self) -> Option<usize> {
         match self {
             DataTypeInformation::Array { dimensions, .. } => Some(dimensions.len()),
             DataTypeInformation::Struct {
@@ -537,6 +537,13 @@ impl DataTypeInformation {
                 ..
             } => Some(*ndims),
 
+            _ => None,
+        }
+    }
+
+    pub fn get_dimensions(&self) -> Option<&Vec<Dimension>> {
+        match self {
+            DataTypeInformation::Array { dimensions, .. } => Some(dimensions),
             _ => None,
         }
     }
@@ -1303,8 +1310,8 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
 /// Returns true if provided types have the same type nature
 /// i.e. Both are numeric or both are floats
 pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformation, index: &Index) -> bool {
-    let ltype = index.find_intrinsic_type(ltype);
-    let rtype = index.find_intrinsic_type(rtype);
+    let ltype = index.get_intrinsic_type_information(ltype);
+    let rtype = index.get_intrinsic_type_information(rtype);
 
     match ltype {
         DataTypeInformation::Integer { .. } => matches!(rtype, DataTypeInformation::Integer { .. }),
