@@ -1403,3 +1403,65 @@ fn subranges_type_mismatch() {
        │                    ^^^ Type `UINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
     "###);
 }
+
+#[test]
+fn pointer_to_array_mismatch() {
+    let source = r"
+        INTERFACE foo
+            METHOD bar
+            VAR_INPUT
+                a : REF_TO ARRAY[1..5] OF STRING;
+                b : REF_TO ARRAY[1..5] OF ARRAY[1..5] OF STRING;
+            END_VAR
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS foo
+            METHOD bar
+            VAR_INPUT
+                a : REF_TO REF_TO ARRAY[1..6] OF WSTRING;
+                b : REF_TO REF_TO REF_TO ARRAY[-3..2] OF ARRAY[1..5] OF ARRAY[1..5] OF WSTRING;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E112]: Interface implementation mismatch: Parameter `a` has different types in declaration and implemenation:
+       ┌─ <internal>:12:20
+       │
+     5 │                 a : REF_TO ARRAY[1..5] OF STRING;
+       │                 - see also
+       ·
+    12 │             METHOD bar
+       │                    ^^^ Interface implementation mismatch: Parameter `a` has different types in declaration and implemenation:
+
+    error[E112]: Type `__foo.bar_a_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
+       ┌─ <internal>:12:20
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    12 │             METHOD bar
+       │                    ^^^ Type `__foo.bar_a_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
+
+    error[E112]: Interface implementation mismatch: Parameter `b` has different types in declaration and implemenation:
+       ┌─ <internal>:12:20
+       │
+     6 │                 b : REF_TO ARRAY[1..5] OF ARRAY[1..5] OF STRING;
+       │                 - see also
+       ·
+    12 │             METHOD bar
+       │                    ^^^ Interface implementation mismatch: Parameter `b` has different types in declaration and implemenation:
+
+    error[E112]: Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_b_`
+       ┌─ <internal>:12:20
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    12 │             METHOD bar
+       │                    ^^^ Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_b_`
+    "###);
+}

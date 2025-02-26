@@ -475,14 +475,9 @@ pub(super) mod signature_validation {
                 return None;
             }
             let context = self.context;
-            let mut diagnostics = vec![];
             match (left, right) {
                 (DataTypeInformation::Array { .. }, DataTypeInformation::Array { .. }) => {
-                    let sub_diagnostics = self.validate_array_types(left, right);
-                    if sub_diagnostics.is_empty() {
-                        return None;
-                    };
-                    diagnostics.extend(sub_diagnostics)
+                    self.validate_array_types(left, right)
                 }
                 (
                     DataTypeInformation::Pointer { inner_type_name: l_inner, auto_deref: l_auto, .. },
@@ -507,47 +502,41 @@ pub(super) mod signature_validation {
                             .unwrap_or(right);
                         return self.validate_types(left, right);
                     }
-                    return self.validate_types(
+                    self.validate_types(
                         context.index.get_effective_type_or_void_by_name(l_inner).get_type_information(),
                         context.index.get_effective_type_or_void_by_name(r_inner).get_type_information(),
-                    );
+                    )
                 }
                 (DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. }, _) => {
                     let inner_type = context
                         .index
                         .get_effective_type_or_void_by_name(inner_type_name)
                         .get_type_information();
-                    return self.validate_types(inner_type, right);
+                    self.validate_types(inner_type, right)
                 }
                 (_, DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. }) => {
                     let inner_type = context
                         .index
                         .get_effective_type_or_void_by_name(inner_type_name)
                         .get_type_information();
-                    return self.validate_types(left, inner_type);
+                    self.validate_types(left, inner_type)
                 }
                 (DataTypeInformation::String { .. }, DataTypeInformation::String { .. }) => {
-                    let sub_diagnostics = self.validate_string_types(left, right);
-                    if sub_diagnostics.is_empty() {
-                        return None;
-                    };
-                    diagnostics.extend(sub_diagnostics);
+                    self.validate_string_types(left, right)
                 }
                 (
                     DataTypeInformation::SubRange { sub_range: _l_range, .. },
                     DataTypeInformation::SubRange { sub_range: _r_range, .. },
                 ) => {
-                    return self.validate_types(
+                    self.validate_types(
                         context.index.find_intrinsic_type(left),
                         context.index.find_intrinsic_type(right),
-                    );
+                    )
 
                     // FIXME: properly validate the ranges (folded constants are problematic)
                 }
-                _ => diagnostics.push(self.create_diagnostic(left.get_name(), right.get_name())),
-            };
-
-            Some(diagnostics)
+                _ => Some(vec![self.create_diagnostic(left.get_name(), right.get_name())]),
+            }
         }
 
         fn create_diagnostic(&self, left: &str, right: &str) -> Diagnostic {
@@ -565,7 +554,7 @@ pub(super) mod signature_validation {
             &self,
             left: &DataTypeInformation,
             right: &DataTypeInformation,
-        ) -> Vec<Diagnostic> {
+        ) -> Option<Vec<Diagnostic>> {
             let ctxt = self.context;
             let method_impl = ctxt.method_impl;
             let method_ref = ctxt.method_ref;
@@ -603,15 +592,14 @@ pub(super) mod signature_validation {
                         .with_secondary_location(method_ref),
                 )
             }
-
-            sub_diagnostics
+            (!sub_diagnostics.is_empty()).then_some(sub_diagnostics)
         }
 
         fn validate_string_types(
             &self,
             left: &DataTypeInformation,
             right: &DataTypeInformation,
-        ) -> Vec<Diagnostic> {
+        ) -> Option<Vec<Diagnostic>> {
             let ctxt = self.context;
             let method_impl = ctxt.method_impl;
             let method_ref = ctxt.method_ref;
@@ -635,7 +623,7 @@ pub(super) mod signature_validation {
                 sub_diagnostics.push(self.create_diagnostic(left.get_name(), right.get_name()));
             });
 
-            sub_diagnostics
+            (!sub_diagnostics.is_empty()).then_some(sub_diagnostics)
         }
     }
 }
