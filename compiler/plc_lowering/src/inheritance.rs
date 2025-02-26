@@ -153,7 +153,7 @@ impl InheritanceLowerer {
         inheritance_chain.iter().rev().skip(1).fold(base, |base, pou| {
             Some(Box::new(AstFactory::create_member_reference(
                 AstFactory::create_identifier(
-                    format!("__{}", pou.get_name()),
+                    &format!("__{}", pou.get_name()),
                     SourceLocation::internal(),
                     self.provider().next_id(),
                 ),
