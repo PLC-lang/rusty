@@ -276,7 +276,10 @@
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a></pre></div><pre class="rust"><code><span class="doccomment">/// Returns a diagnostics map with the error code, default severity and a description
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a></pre></div><pre class="rust"><code><span class="doccomment">/// Returns a diagnostics map with the error code, default severity and a description
 </span><span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -469,7 +472,7 @@
         E087,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E087.md"</span>),
         E088,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E088.md"</span>),
         E089,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E089.md"</span>),
-        E090,   Warning,    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E090.md"</span>), <span class="comment">// Incompatible reference Assignment
+        E090,   Warning,    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E090.md"</span>),  <span class="comment">// Incompatible reference Assignment
         </span>E091,   Warning,    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E091.md"</span>),
         E092,   Info,       <span class="macro">include_str!</span>(<span class="string">"./error_codes/E092.md"</span>),
         E093,   Warning,    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E093.md"</span>),
@@ -494,6 +497,9 @@
         </span>E112,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E112.md"</span>),  <span class="comment">// Incomplete interface implementation
         </span>E113,   Warning,    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E113.md"</span>),  <span class="comment">// Interface default method implementation
         </span>E114,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E114.md"</span>),  <span class="comment">// Multiple extensions of same POU
+        </span>E115,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E115.md"</span>),  <span class="comment">// Property in unsupported POU type
+        </span>E116,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E116.md"</span>),  <span class="comment">// Property defined in unsupported variable block
+        </span>E117,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E117.md"</span>),  <span class="comment">// Property with invalid number of GET and/or SET blocks
     </span>);
 }
 

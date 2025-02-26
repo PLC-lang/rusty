@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["DEFAULT_TERM_WIDTH"],"enum":["AnsiColor","Color"],"struct":["Ansi256Color","EffectIter","Effects","Renderer","Reset","RgbColor","Style"]};

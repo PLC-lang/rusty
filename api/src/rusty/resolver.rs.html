@@ -2476,7 +2476,24 @@
 <a href="#2475" id="2475">2475</a>
 <a href="#2476" id="2476">2476</a>
 <a href="#2477" id="2477">2477</a>
-<a href="#2478" id="2478">2478</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2478" id="2478">2478</a>
+<a href="#2479" id="2479">2479</a>
+<a href="#2480" id="2480">2480</a>
+<a href="#2481" id="2481">2481</a>
+<a href="#2482" id="2482">2482</a>
+<a href="#2483" id="2483">2483</a>
+<a href="#2484" id="2484">2484</a>
+<a href="#2485" id="2485">2485</a>
+<a href="#2486" id="2486">2486</a>
+<a href="#2487" id="2487">2487</a>
+<a href="#2488" id="2488">2488</a>
+<a href="#2489" id="2489">2489</a>
+<a href="#2490" id="2490">2490</a>
+<a href="#2491" id="2491">2491</a>
+<a href="#2492" id="2492">2492</a>
+<a href="#2493" id="2493">2493</a>
+<a href="#2494" id="2494">2494</a>
+<a href="#2495" id="2495">2495</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -3052,6 +3069,23 @@
 
     <span class="kw">pub fn </span>data_type(type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
         StatementAnnotation::Type { type_name: type_name.into() }
+    }
+
+    <span class="kw">pub fn </span>is_property(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>,
+            StatementAnnotation::Variable { argument_type: ArgumentType::ByVal(VariableType::Property), .. }
+        )
+    }
+
+    <span class="kw">pub fn </span>qualified_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            StatementAnnotation::Variable { qualified_name, .. }
+            | StatementAnnotation::Function { qualified_name, .. }
+            | StatementAnnotation::Program { qualified_name } =&gt; <span class="prelude-val">Some</span>(qualified_name.as_str()),
+
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
     }
 }
 

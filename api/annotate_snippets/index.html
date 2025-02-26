@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A library for formatting of text or programming code snippets."><title>annotate_snippets - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="annotate_snippets" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../annotate_snippets/index.html">annotate_<wbr>snippets</a><span class="version">0.11.5</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li><li><a href="#features" title="features">features</a></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>annotate_snippets</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/annotate_snippets/lib.rs.html#1-50">source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A library for formatting of text or programming code snippets.</p>
+<p>It’s primary purpose is to build an ASCII-graphical representation of the snippet
+with annotations.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>annotate_snippets::{Level, Renderer, Snippet};
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>source = <span class="string">r#"                annotations: vec![SourceAnnotation {
+                label: "expected struct `annotate_snippets::snippet::Slice`, found reference"
+                    ,
+                range: &lt;22, 25&gt;,"#</span>;
+    <span class="kw">let </span>message = Level::Error.title(<span class="string">"expected type, found `22`"</span>).snippet(
+        Snippet::source(source)
+            .line_start(<span class="number">26</span>)
+            .origin(<span class="string">"examples/footer.rs"</span>)
+            .fold(<span class="bool-val">true</span>)
+            .annotation(
+                Level::Error
+                    .span(<span class="number">193</span>..<span class="number">195</span>)
+                    .label(<span class="string">"expected struct `annotate_snippets::snippet::Slice`, found reference"</span>),
+            )
+            .annotation(Level::Info.span(<span class="number">34</span>..<span class="number">50</span>).label(<span class="string">"while parsing this struct"</span>)),
+    );
+
+    <span class="kw">let </span>renderer = Renderer::styled();
+    <span class="macro">anstream::println!</span>(<span class="string">"{}"</span>, renderer.render(message));
+}</code></pre></div>
+<svg width="860px" height="218px" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .fg { fill: #AAAAAA }
+    .bg { background: #000000 }
+    .fg-bright-blue { fill: #5555FF }
+    .fg-bright-red { fill: #FF5555 }
+    .container {
+      padding: 0 10px;
+      line-height: 18px;
+    }
+    .bold { font-weight: bold; }
+    tspan {
+      font: 14px SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+      white-space: pre;
+      line-height: 18px;
+    }
+  </style>
+  <rect width="100%" height="100%" y="0" rx="4.5" class="bg" />
+  <text xml:space="preserve" class="container fg">
+    <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan>: </tspan><tspan class="bold">expected type, found `22`</tspan>
+</tspan>
+    <tspan x="10px" y="46px"><tspan>  </tspan><tspan class="fg-bright-blue bold">--&gt;</tspan><tspan> examples/footer.rs:29:25</tspan>
+</tspan>
+    <tspan x="10px" y="64px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
+</tspan>
+    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">26 |</tspan><tspan>                 annotations: vec![SourceAnnotation {</tspan>
+</tspan>
+    <tspan x="10px" y="100px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                                   </tspan><tspan class="fg-bright-blue bold">----------------</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">info: while parsing this struct</tspan>
+</tspan>
+    <tspan x="10px" y="118px"><tspan class="fg-bright-blue bold">27 |</tspan><tspan>                 label: "expected struct `annotate_snippets::snippet::Slice`, found reference"</tspan>
+</tspan>
+    <tspan x="10px" y="136px"><tspan class="fg-bright-blue bold">28 |</tspan><tspan>                     ,</tspan>
+</tspan>
+    <tspan x="10px" y="154px"><tspan class="fg-bright-blue bold">29 |</tspan><tspan>                 range: &lt;22, 25&gt;,</tspan>
+</tspan>
+    <tspan x="10px" y="172px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                         </tspan><tspan class="fg-bright-red bold">^^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">expected struct `annotate_snippets::snippet::Slice`, found reference</tspan>
+</tspan>
+    <tspan x="10px" y="190px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
+</tspan>
+    <tspan x="10px" y="208px">
+</tspan>
+  </text>
+</svg>
+<p>The crate uses a three stage process with two conversions between states:</p>
+<div class="example-wrap"><pre class="language-text"><code>Message --&gt; Renderer --&gt; impl Display</code></pre></div>
+<p>The input type - <a href="struct.Message.html" title="struct annotate_snippets::Message">Message</a> is a structure designed
+to align with likely output from any parser whose code snippet is to be
+annotated.</p>
+<p>The middle structure - <a href="struct.Renderer.html" title="struct annotate_snippets::Renderer">Renderer</a> is a structure designed
+to convert a snippet into an internal structure that is designed to store
+the snippet data in a way that is easy to format.
+<a href="struct.Renderer.html" title="struct annotate_snippets::Renderer">Renderer</a> also handles the user-configurable formatting
+options, such as color, or margins.</p>
+<p>Finally, <code>impl Display</code> into a final <code>String</code> output.</p>
+<h2 id="features"><a class="doc-anchor" href="#features">§</a>features</h2>
+<ul>
+<li><code>testing-colors</code> - Makes <a href="struct.Renderer.html#method.styled" title="associated function annotate_snippets::Renderer::styled">Renderer::styled</a> colors OS independent, which
+allows for easier testing when testing colored output. It should be added as
+a feature in <code>[dev-dependencies]</code>, which can be done with the following command:</li>
+</ul>
+<div class="example-wrap"><pre class="language-text"><code>cargo add annotate-snippets --dev --feature testing-colors</code></pre></div></div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="renderer/index.html" title="mod annotate_snippets::renderer">renderer</a></div><div class="desc docblock-short">The renderer for <a href="struct.Message.html" title="struct annotate_snippets::Message"><code>Message</code></a>s</div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Annotation.html" title="struct annotate_snippets::Annotation">Annotation</a></div><div class="desc docblock-short">An annotation for a <a href="struct.Snippet.html" title="struct annotate_snippets::Snippet"><code>Snippet</code></a>.</div></li><li><div class="item-name"><a class="struct" href="struct.Message.html" title="struct annotate_snippets::Message">Message</a></div><div class="desc docblock-short">Primary structure provided for formatting</div></li><li><div class="item-name"><a class="struct" href="struct.Renderer.html" title="struct annotate_snippets::Renderer">Renderer</a></div><div class="desc docblock-short">A renderer for <a href="struct.Message.html" title="struct annotate_snippets::Message"><code>Message</code></a>s</div></li><li><div class="item-name"><a class="struct" href="struct.Snippet.html" title="struct annotate_snippets::Snippet">Snippet</a></div><div class="desc docblock-short">Structure containing the slice of text to be annotated and
+basic information about the location of the slice.</div></li></ul><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.Level.html" title="enum annotate_snippets::Level">Level</a></div><div class="desc docblock-short">Types of annotations.</div></li></ul></section></div></main></body></html>

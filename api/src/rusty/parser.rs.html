@@ -1419,7 +1419,94 @@
 <a href="#1418" id="1418">1418</a>
 <a href="#1419" id="1419">1419</a>
 <a href="#1420" id="1420">1420</a>
-<a href="#1421" id="1421">1421</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
 
@@ -1427,8 +1514,9 @@
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
-        Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou, PouType, ReferenceAccess,
-        ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou, PouType, Property,
+        PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr, TypeNature,
+        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -1520,11 +1608,7 @@
                     <span class="kw">_ </span>=&gt; (PouType::FunctionBlock, KeywordEndFunctionBlock),
                 };
 
-                <span class="kw">let </span>(<span class="kw-2">mut </span>pou, <span class="kw-2">mut </span>implementation) =
-                    parse_pou(<span class="kw-2">&amp;mut </span>lexer, params.<span class="number">0</span>, linkage, params.<span class="number">1</span>, constant);
-
-                unit.units.append(<span class="kw-2">&amp;mut </span>pou);
-                unit.implementations.append(<span class="kw-2">&amp;mut </span>implementation);
+                parse_pou(<span class="kw-2">&amp;mut </span>lexer, <span class="kw-2">&amp;mut </span>unit, params.<span class="number">0</span>, linkage, params.<span class="number">1</span>, constant);
 
                 <span class="comment">// reset const pragma
                 </span>constant = <span class="bool-val">false</span>;
@@ -1664,11 +1748,12 @@
 ///
 </span><span class="kw">fn </span>parse_pou(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
+    unit: <span class="kw-2">&amp;mut </span>CompilationUnit,
     kind: PouType,
     linkage: LinkageType,
     expected_end_token: lexer::Token,
     constant: bool,
-) -&gt; (Vec&lt;Pou&gt;, Vec&lt;Implementation&gt;) {
+) {
     <span class="kw">if </span>constant &amp;&amp; !<span class="macro">matches!</span>(linkage, LinkageType::BuiltIn) {
         lexer.accept_diagnostic(Diagnostic::const_pragma_is_not_allowed(
             lexer.last_location().span(<span class="kw-2">&amp;</span>lexer.location()),
@@ -1685,7 +1770,7 @@
         KeywordEndFunctionBlock,
         KeywordEndClass,
     ];
-    <span class="kw">let </span>pou = parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
+    <span class="kw">let </span>result = parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
         <span class="comment">// parse polymorphism mode for all pou types
         // check in validator if pou type allows polymorphism
         </span><span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>kind);
@@ -1719,8 +1804,9 @@
                 variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
             }
 
-            <span class="kw">let </span><span class="kw-2">mut </span>impl_pous = <span class="macro">vec!</span>[];
-            <span class="kw">let </span><span class="kw-2">mut </span>implementations = <span class="macro">vec!</span>[];
+            <span class="kw">let </span><span class="kw-2">mut </span>impl_pous = Vec::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>implementations = Vec::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>properties = Vec::new();
 
             <span class="comment">// classes and function blocks can have methods. methods consist of a Pou part
             // and an implementation part. That's why we get another (Pou, Implementation)
@@ -1728,7 +1814,7 @@
             // implementations. Note that function blocks have to start with the method
             // declarations before their implementation.
             // all other Pous need to be checked in the validator if they can have methods.
-            </span><span class="kw">while </span><span class="macro">matches!</span>(lexer.token, KeywordMethod | PropertyConstant) {
+            </span><span class="kw">while </span><span class="macro">matches!</span>(lexer.token, KeywordMethod | KeywordProperty | PropertyConstant) {
                 <span class="kw">if </span>!<span class="macro">matches!</span>(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
                     <span class="kw">let </span>location = lexer.source_range_factory.create_range(lexer.last_range.clone());
 
@@ -1736,12 +1822,18 @@
                         Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Methods cannot be declared in a POU of type '{kind}'."</span>))
                             .with_location(location),
                     );
-                    <span class="kw">break</span>;
                 }
-                <span class="kw">let </span>const_method = lexer.try_consume(PropertyConstant);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((pou, implementation)) = parse_method(lexer, <span class="kw-2">&amp;</span>name, linkage, const_method) {
-                    impl_pous.push(pou);
-                    implementations.push(implementation);
+
+                <span class="kw">if </span>lexer.token == KeywordProperty {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(property) = parse_property(lexer, <span class="kw-2">&amp;</span>name, <span class="kw-2">&amp;</span>name_location, <span class="kw-2">&amp;</span>kind) {
+                        properties.push(property);
+                    }
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>is_const = lexer.try_consume(PropertyConstant);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>((pou, implementation)) = parse_method(lexer, <span class="kw-2">&amp;</span>name, linkage, is_const) {
+                        impl_pous.push(pou);
+                        implementations.push(implementation);
+                    }
                 }
             }
 
@@ -1774,7 +1866,7 @@
             }];
             pous.append(<span class="kw-2">&amp;mut </span>impl_pous);
 
-            (pous, implementations)
+            (pous, implementations, properties)
         })
     });
 
@@ -1786,7 +1878,11 @@
             lexer.source_range_factory.create_range(lexer.last_range.clone()),
         ));
     }
-    pou
+
+    <span class="kw">let </span>(<span class="kw-2">mut </span>pous, <span class="kw-2">mut </span>implementations, <span class="kw-2">mut </span>properties) = result;
+    unit.units.append(<span class="kw-2">&amp;mut </span>pous);
+    unit.implementations.append(<span class="kw-2">&amp;mut </span>implementations);
+    unit.properties.append(<span class="kw-2">&amp;mut </span>properties);
 }
 
 <span class="kw">fn </span>parse_generics(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;GenericBinding&gt; {
@@ -1986,7 +2082,7 @@
         lexer.advance(); <span class="comment">// eat METHOD keyword
 
         </span><span class="kw">let </span>access = <span class="prelude-val">Some</span>(parse_access_modifier(lexer));
-        <span class="kw">let </span>kind = PouType::Method { parent: parent.into() };
+        <span class="kw">let </span>kind = PouType::Method { parent: parent.into(), property: <span class="prelude-val">None </span>};
         <span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>kind);
         <span class="kw">let </span>overriding = lexer.try_consume(KeywordOverride);
         <span class="kw">let </span>(name, name_location) = parse_identifier(lexer)<span class="question-mark">?</span>;
@@ -2007,7 +2103,7 @@
         <span class="kw">let </span>implementation = parse_implementation(
             lexer,
             linkage,
-            PouType::Method { parent: parent.into() },
+            PouType::Method { parent: parent.into(), property: <span class="prelude-val">None </span>},
             <span class="kw-2">&amp;</span>call_name,
             <span class="kw-2">&amp;</span>call_name,
             !generics.is_empty(),
@@ -2037,6 +2133,84 @@
             },
             implementation,
         ))
+    })
+}
+
+<span class="kw">fn </span>parse_property(
+    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
+    parent_name: <span class="kw-2">&amp;</span>str,
+    parent_location: <span class="kw-2">&amp;</span>SourceLocation,
+    kind: <span class="kw-2">&amp;</span>PouType,
+) -&gt; <span class="prelude-ty">Option</span>&lt;Property&gt; {
+    lexer.advance(); <span class="comment">// Move past `PROPERTY` keyword
+
+    </span><span class="kw">let </span><span class="kw-2">mut </span>has_error = <span class="bool-val">false</span>;
+
+    <span class="kw">let </span>identifier = parse_identifier(lexer);
+    <span class="kw">if </span>identifier.is_none() {
+        has_error = <span class="bool-val">true</span>;
+        lexer.accept_diagnostic(
+            Diagnostic::new(<span class="string">"Property definition is missing a name"</span>).with_location(lexer.location()),
+        );
+    }
+
+    <span class="kw">let </span>datatype = parse_return_type(lexer);
+    <span class="kw">if </span>datatype.is_none() {
+        has_error = <span class="bool-val">true</span>;
+        lexer.accept_diagnostic(
+            Diagnostic::new(<span class="string">"Property definition is missing a datatype"</span>).with_location(lexer.last_location()),
+        );
+    };
+
+    <span class="comment">// This is kind of common, hence we parse invalid variable blocks to have useful error messages
+    </span><span class="kw">while </span>lexer.token.is_var() {
+        <span class="kw">let </span>block = parse_variable_block(lexer, LinkageType::Internal);
+        lexer.accept_diagnostic(
+            Diagnostic::new(
+                <span class="string">"Variable blocks may only be defined within a GET or SET block in the context of properties"</span>,
+            )
+            .with_location(<span class="kw-2">&amp;</span>block.location)
+            .with_error_code(<span class="string">"E007"</span>),
+        );
+    }
+
+    <span class="kw">let </span><span class="kw-2">mut </span>implementations = Vec::new();
+    <span class="kw">while </span><span class="macro">matches!</span>(lexer.token, KeywordGet | KeywordSet) {
+        <span class="kw">let </span>location = lexer.location();
+        <span class="kw">let </span>kind = <span class="kw">if </span>lexer.token == KeywordGet { PropertyKind::Get } <span class="kw">else </span>{ PropertyKind::Set };
+        lexer.advance(); <span class="comment">// Move past `GET` or `SET` keyword
+
+        </span><span class="kw">let </span><span class="kw-2">mut </span>variable_blocks = <span class="macro">vec!</span>[];
+        <span class="kw">while </span>lexer.token.is_var() {
+            variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
+        }
+
+        <span class="kw">let </span>statements = parse_body_in_region(
+            lexer,
+            <span class="kw">match </span>kind {
+                PropertyKind::Get =&gt; <span class="macro">vec!</span>[Token::KeywordEndGet],
+                PropertyKind::Set =&gt; <span class="macro">vec!</span>[Token::KeywordEndSet],
+            },
+        );
+        implementations.push(PropertyImplementation { kind, variable_blocks, body: statements, location });
+    }
+
+    lexer.try_consume_or_report(Token::KeywordEndProperty); <span class="comment">// Move past `END_PROPERTY` keyword
+
+    </span><span class="kw">if </span>has_error {
+        <span class="kw">return </span><span class="prelude-val">None</span>;
+    };
+
+    <span class="kw">let </span>(name, name_location) = identifier.expect(<span class="string">"covered above"</span>);
+    <span class="kw">let </span>datatype = datatype.expect(<span class="string">"covered above"</span>);
+    <span class="prelude-val">Some</span>(Property {
+        name,
+        name_location,
+        parent_name: parent_name.to_string(),
+        parent_kind: kind.clone(),
+        parent_name_location: parent_location.clone(),
+        datatype,
+        implementations,
     })
 }
 

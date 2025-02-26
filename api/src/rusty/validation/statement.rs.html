@@ -1732,7 +1732,41 @@
 <a href="#1731" id="1731">1731</a>
 <a href="#1732" id="1732">1732</a>
 <a href="#1733" id="1733">1733</a>
-<a href="#1734" id="1734">1734</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<a href="#1734" id="1734">1734</a>
+<a href="#1735" id="1735">1735</a>
+<a href="#1736" id="1736">1736</a>
+<a href="#1737" id="1737">1737</a>
+<a href="#1738" id="1738">1738</a>
+<a href="#1739" id="1739">1739</a>
+<a href="#1740" id="1740">1740</a>
+<a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
+<a href="#1745" id="1745">1745</a>
+<a href="#1746" id="1746">1746</a>
+<a href="#1747" id="1747">1747</a>
+<a href="#1748" id="1748">1748</a>
+<a href="#1749" id="1749">1749</a>
+<a href="#1750" id="1750">1750</a>
+<a href="#1751" id="1751">1751</a>
+<a href="#1752" id="1752">1752</a>
+<a href="#1753" id="1753">1753</a>
+<a href="#1754" id="1754">1754</a>
+<a href="#1755" id="1755">1755</a>
+<a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
+<a href="#1763" id="1763">1763</a>
+<a href="#1764" id="1764">1764</a>
+<a href="#1765" id="1765">1765</a>
+<a href="#1766" id="1766">1766</a>
+<a href="#1767" id="1767">1767</a>
+<a href="#1768" id="1768">1768</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
 <span class="kw">use </span>plc_ast::ast::Assignment;
@@ -2193,6 +2227,32 @@
 ) {
     <span class="comment">// unresolved reference
     </span><span class="kw">if </span>!context.annotations.has_type_annotation(statement) {
+        <span class="comment">// XXX: Temporary solution, is there a better way? Technically we could introduce a diagnostic when
+        //      lowering the references to calls, then checking with the index if the defined POU exists but
+        //      then we'd get two similar error, one describing what the exact issue is (i.e. no get/set) and
+        //      the other describing that it cant find a reference to "__{get,set}_&lt;property name&gt;"
+        </span><span class="kw">match </span>ref_name {
+            <span class="kw">_ if </span>ref_name.starts_with(<span class="string">"__set"</span>) =&gt; {
+                validator.push_diagnostic(
+                    Diagnostic::new(<span class="string">"SET property not defined"</span>)
+                        .with_error_code(<span class="string">"E048"</span>)
+                        .with_location(location),
+                );
+                <span class="kw">return</span>;
+            }
+
+            <span class="kw">_ if </span>ref_name.starts_with(<span class="string">"__get"</span>) =&gt; {
+                validator.push_diagnostic(
+                    Diagnostic::new(<span class="string">"GET property not defined"</span>)
+                        .with_error_code(<span class="string">"E048"</span>)
+                        .with_location(location),
+                );
+                <span class="kw">return</span>;
+            }
+
+            <span class="kw">_ </span>=&gt; (),
+        };
+
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
 
         <span class="comment">// was this meant as a direct access?
@@ -2224,8 +2284,8 @@
                 &amp;&amp; context
                     .qualifier
                     .and_then(|qualifier| context.index.find_pou(qualifier))
-                    .map(|pou| (pou.get_name(), pou.get_container())) <span class="comment">// get the container pou (for actions this is the program/fb)
-                    </span>.map_or(<span class="bool-val">false</span>, |(pou, container)| {
+                    .map(|pou| (pou.get_name(), pou.get_container()))
+                    .is_some_and(|(pou, container)| {
                         !qualified_name.starts_with(pou)
                             &amp;&amp; !qualified_name.starts_with(container)
                             &amp;&amp; !context.index.is_init_function(pou)
@@ -3007,6 +3067,14 @@
 ) {
     visit_statement(validator, fn_ident, context);
 
+    <span class="kw">if let </span>AstStatement::CallStatement(<span class="kw">_</span>) = fn_ident.get_stmt() {
+        validator.push_diagnostic(
+            Diagnostic::new(<span class="string">"Properties cannot be called like functions. Remove `()`"</span>)
+                .with_error_code(<span class="string">"E007"</span>)
+                .with_location(fn_ident),
+        );
+    }
+
     <span class="comment">// Check if we're dealing with a builtin function and if so call its validation function
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(validation) = builtins::get_builtin(fn_ident.get_flat_reference_name().unwrap_or_default())
         .and_then(BuiltIn::get_validation)
@@ -3014,92 +3082,92 @@
         validation(validator, fn_ident, fn_args, context.annotations, context.index);
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = context.find_pou(fn_ident) {
-        <span class="kw">let </span>arguments = fn_args.map(flatten_expression_list).unwrap_or_default();
-        <span class="kw">let </span>parameters = context.index.get_declared_parameters(pou.get_name());
-
-        <span class="kw">if </span>builtins::get_builtin(pou.get_name()).is_none() {
-            validate_argument_count(context, validator, pou, <span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>fn_ident.location);
-        }
-
-        <span class="kw">let </span><span class="kw-2">mut </span>arguments_are_implicit = <span class="bool-val">true</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>variable_location_in_parent = <span class="macro">vec!</span>[];
-
-        <span class="comment">// validate parameters
-        </span><span class="kw">for </span>(i, argument) <span class="kw">in </span>arguments.iter().enumerate() {
-            <span class="kw">match </span>get_implicit_call_parameter(argument, <span class="kw-2">&amp;</span>parameters, i) {
-                <span class="prelude-val">Ok</span>((parameter_idx, right, is_implicit)) =&gt; {
-                    <span class="kw">if </span>i == <span class="number">0 </span>{
-                        arguments_are_implicit = is_implicit;
-                    }
-
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(left) = parameters.get(parameter_idx) {
-                        validate_call_by_ref(validator, left, argument);
-                        <span class="comment">// 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
-                        // save actual location in parent for InOut validation
-                        </span>variable_location_in_parent.push(left.get_location_in_parent());
-                    }
-
-                    <span class="comment">// explicit call parameter assignments will be handled by
-                    // `visit_statement()` via `Assignment` and `OutputAssignment`
-                    </span><span class="kw">if </span>is_implicit {
-                        validate_assignment(validator, right, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>argument.get_location(), context);
-                    }
-
-                    <span class="comment">// mixing implicit and explicit arguments is not allowed
-                    // allways compare to the first argument
-                    </span><span class="kw">if </span>arguments_are_implicit != is_implicit {
-                        validator.push_diagnostic(
-                            Diagnostic::new(<span class="string">"Cannot mix implicit and explicit call parameters!"</span>)
-                                .with_error_code(<span class="string">"E031"</span>)
-                                .with_location(<span class="kw-2">*</span>argument),
-                        );
-                    }
-                }
-
-                <span class="prelude-val">Err</span>(err) =&gt; {
-                    validator.push_diagnostic(
-                        Diagnostic::new(<span class="string">"Invalid call parameters"</span>)
-                            .with_error_code(<span class="string">"E089"</span>)
-                            .with_location(<span class="kw-2">*</span>argument)
-                            .with_sub_diagnostic(err),
-                    );
-                    <span class="kw">break</span>;
-                }
-            }
-
-            visit_statement(validator, argument, context);
-        }
-
-        <span class="comment">// for PROGRAM/FB we need special inout validation
-        </span><span class="kw">if </span>pou.is_stateful() || pou.is_method() {
-            <span class="comment">// pou might actually be an action call: in that case,
-            // we need to check if it is called within the context of the parent POU
-            // (either the body of the parent or another associated action) =&gt; we don't need to validate the params
-            </span><span class="kw">if </span>is_action_call_in_qualified_context(context, fn_ident) {
-                <span class="kw">return</span>;
-            }
-
-            <span class="kw">let </span>declared_in_out_params: Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; =
-                parameters.into_iter().filter(|param| param.is_inout()).collect();
-
-            <span class="kw">if </span>!declared_in_out_params.is_empty() {
-                <span class="comment">// Check if all IN_OUT arguments were passed by cross-checking with the parameters
-                </span>declared_in_out_params.into_iter().for_each(|p| {
-                    <span class="kw">if </span>!variable_location_in_parent.contains(<span class="kw-2">&amp;</span>p.get_location_in_parent()) {
-                        validator.push_diagnostic(
-                            Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Argument `{}` is missing"</span>, p.get_name()))
-                                .with_error_code(<span class="string">"E030"</span>)
-                                .with_location(fn_ident),
-                        );
-                    }
-                });
-            }
-        }
-    } <span class="kw">else </span>{
+    <span class="kw">let </span><span class="prelude-val">Some</span>(pou) = context.find_pou(fn_ident) <span class="kw">else </span>{
         <span class="comment">// POU could not be found, we can still partially validate the passed parameters
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(s) = fn_args.as_ref() {
             visit_statement(validator, s, context);
+        }
+        <span class="kw">return</span>;
+    };
+    <span class="kw">let </span>arguments = fn_args.map(flatten_expression_list).unwrap_or_default();
+    <span class="kw">let </span>parameters = context.index.get_declared_parameters(pou.get_name());
+
+    <span class="kw">if </span>builtins::get_builtin(pou.get_name()).is_none() {
+        validate_argument_count(context, validator, pou, <span class="kw-2">&amp;</span>arguments, <span class="kw-2">&amp;</span>fn_ident.location);
+    }
+
+    <span class="kw">let </span><span class="kw-2">mut </span>arguments_are_implicit = <span class="bool-val">true</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>variable_location_in_parent = <span class="macro">vec!</span>[];
+
+    <span class="comment">// validate parameters
+    </span><span class="kw">for </span>(i, argument) <span class="kw">in </span>arguments.iter().enumerate() {
+        <span class="kw">match </span>get_implicit_call_parameter(argument, <span class="kw-2">&amp;</span>parameters, i) {
+            <span class="prelude-val">Ok</span>((parameter_idx, right, is_implicit)) =&gt; {
+                <span class="kw">if </span>i == <span class="number">0 </span>{
+                    arguments_are_implicit = is_implicit;
+                }
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(left) = parameters.get(parameter_idx) {
+                    validate_call_by_ref(validator, left, argument);
+                    <span class="comment">// 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
+                    // save actual location in parent for InOut validation
+                    </span>variable_location_in_parent.push(left.get_location_in_parent());
+                }
+
+                <span class="comment">// explicit call parameter assignments will be handled by
+                // `visit_statement()` via `Assignment` and `OutputAssignment`
+                </span><span class="kw">if </span>is_implicit {
+                    validate_assignment(validator, right, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>argument.get_location(), context);
+                }
+
+                <span class="comment">// mixing implicit and explicit arguments is not allowed
+                // allways compare to the first argument
+                </span><span class="kw">if </span>arguments_are_implicit != is_implicit {
+                    validator.push_diagnostic(
+                        Diagnostic::new(<span class="string">"Cannot mix implicit and explicit call parameters!"</span>)
+                            .with_error_code(<span class="string">"E031"</span>)
+                            .with_location(<span class="kw-2">*</span>argument),
+                    );
+                }
+            }
+
+            <span class="prelude-val">Err</span>(err) =&gt; {
+                validator.push_diagnostic(
+                    Diagnostic::new(<span class="string">"Invalid call parameters"</span>)
+                        .with_error_code(<span class="string">"E089"</span>)
+                        .with_location(<span class="kw-2">*</span>argument)
+                        .with_sub_diagnostic(err),
+                );
+                <span class="kw">break</span>;
+            }
+        }
+
+        visit_statement(validator, argument, context);
+    }
+
+    <span class="comment">// for PROGRAM/FB we need special inout validation
+    </span><span class="kw">if </span>pou.is_stateful() || pou.is_method() {
+        <span class="comment">// pou might actually be an action call: in that case,
+        // we need to check if it is called within the context of the parent POU
+        // (either the body of the parent or another associated action) =&gt; we don't need to validate the params
+        </span><span class="kw">if </span>is_action_call_in_qualified_context(context, fn_ident) {
+            <span class="kw">return</span>;
+        }
+
+        <span class="kw">let </span>declared_in_out_params: Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; =
+            parameters.into_iter().filter(|param| param.is_inout()).collect();
+
+        <span class="kw">if </span>!declared_in_out_params.is_empty() {
+            <span class="comment">// Check if all IN_OUT arguments were passed by cross-checking with the parameters
+            </span>declared_in_out_params.into_iter().for_each(|p| {
+                <span class="kw">if </span>!variable_location_in_parent.contains(<span class="kw-2">&amp;</span>p.get_location_in_parent()) {
+                    validator.push_diagnostic(
+                        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Argument `{}` is missing"</span>, p.get_name()))
+                            .with_error_code(<span class="string">"E030"</span>)
+                            .with_location(fn_ident),
+                    );
+                }
+            });
         }
     }
 }

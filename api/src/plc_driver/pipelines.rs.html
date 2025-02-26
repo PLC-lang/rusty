@@ -944,7 +944,19 @@
 <a href="#943" id="943">943</a>
 <a href="#944" id="944">944</a>
 <a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     collections::HashMap,
     env,
     ffi::OsStr,
@@ -970,7 +982,11 @@
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{calls::AggregateTypeLowerer, InitVisitor},
+    lowering::{
+        property::PropertyLowerer,
+        validator::ParticipantValidator,
+        {calls::AggregateTypeLowerer, InitVisitor},
+    },
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -996,7 +1012,10 @@
 <span class="kw">use </span>serde_json;
 <span class="kw">use </span>tempfile::NamedTempFile;
 <span class="kw">use </span>toml;
+
 <span class="kw">pub mod </span>participant;
+<span class="kw">pub mod </span>property;
+<span class="kw">pub mod </span>validator;
 
 <span class="kw">pub struct </span>BuildPipeline&lt;T: SourceContainer&gt; {
     <span class="kw">pub </span>context: GlobalContext,
@@ -1085,7 +1104,7 @@
         </span>T: AsRef&lt;str&gt; + AsRef&lt;OsStr&gt; + std::fmt::Debug,
     {
         <span class="kw">let </span>compile_parameters = CompileParameters::parse(args)<span class="question-mark">?</span>;
-        compile_parameters.try_into()
+        BuildPipeline::try_from(compile_parameters)
     }
 }
 
@@ -1195,8 +1214,13 @@
     </span><span class="kw">pub fn </span>register_default_participants(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">use </span>participant::InitParticipant;
         <span class="comment">// XXX: should we use a static array of participants?
-        </span><span class="kw">let </span>participants: Vec&lt;Box&lt;<span class="kw">dyn </span>PipelineParticipant&gt;&gt; = <span class="macro">vec!</span>[];
+        </span><span class="kw">let </span>participants: Vec&lt;Box&lt;<span class="kw">dyn </span>PipelineParticipant&gt;&gt; = <span class="macro">vec!</span>[Box::new(ParticipantValidator::new(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.context,
+            <span class="self">self</span>.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default(),
+        ))];
+
         <span class="kw">let </span>mut_participants: Vec&lt;Box&lt;<span class="kw">dyn </span>PipelineParticipantMut&gt;&gt; = <span class="macro">vec!</span>[
+            Box::new(PropertyLowerer::new(<span class="self">self</span>.context.provider())),
             Box::new(InitParticipant::new(<span class="kw-2">&amp;</span><span class="self">self</span>.project.get_init_symbol_name(), <span class="self">self</span>.context.provider())),
             Box::new(AggregateTypeLowerer::new(<span class="self">self</span>.context.provider())),
             Box::new(InheritanceLowerer::new(<span class="self">self</span>.context.provider())),
@@ -1234,9 +1258,9 @@
         <span class="self">self</span>.initialize_thread_pool();
 
         <span class="kw">let </span>parsed_project = <span class="self">self</span>.parse()<span class="question-mark">?</span>;
-        <span class="comment">// 1. Parse, 2. Index and 3. Resolve / Annotate
-        </span><span class="kw">let </span>indexed_project = <span class="self">self</span>.index(parsed_project)<span class="question-mark">?</span>;
+        <span class="kw">let </span>indexed_project = <span class="self">self</span>.index(parsed_project)<span class="question-mark">?</span>;
         <span class="kw">let </span>annotated_project = <span class="self">self</span>.annotate(indexed_project)<span class="question-mark">?</span>;
+
         <span class="comment">//TODO : this is post lowering, we might want to control this
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(CompileParameters { output_ast: <span class="bool-val">true</span>, .. }) = <span class="self">self</span>.compile_parameters {
             <span class="macro">println!</span>(<span class="string">"{:#?}"</span>, annotated_project.units);
@@ -1272,7 +1296,7 @@
     }
 
     <span class="kw">fn </span>index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, project: ParsedProject) -&gt; <span class="prelude-ty">Result</span>&lt;IndexedProject, Diagnostic&gt; {
-        <span class="self">self</span>.participants.iter().for_each(|p| {
+        <span class="self">self</span>.participants.iter_mut().for_each(|p| {
             p.pre_index(<span class="kw-2">&amp;</span>project);
         });
         <span class="kw">let </span>project = <span class="self">self</span>.mutable_participants.iter_mut().fold(project, |project, p| p.pre_index(project));

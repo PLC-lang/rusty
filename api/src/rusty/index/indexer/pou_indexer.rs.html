@@ -297,7 +297,8 @@
 <a href="#296" id="296">296</a>
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
     ArgumentProperty, DataTypeDeclaration, PouType, TypeNature, VariableBlock, VariableBlockType,
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -373,7 +374,7 @@
             PouType::Function | PouType::Init | PouType::ProjectInit =&gt; {
                 <span class="self">self</span>.index_function(pou, return_type_name, member_varargs, pou_struct_type);
             }
-            PouType::Method { parent } =&gt; {
+            PouType::Method { parent, .. } =&gt; {
                 <span class="self">self</span>.index_method(pou, return_type_name, parent, pou_struct_type);
             }
             <span class="kw">_ </span>=&gt; {}
@@ -570,6 +571,7 @@
         VariableBlockType::Global =&gt; VariableType::Global,
         VariableBlockType::InOut =&gt; VariableType::InOut,
         VariableBlockType::External =&gt; VariableType::External,
+        VariableBlockType::Property =&gt; VariableType::Property,
     }
 }
 

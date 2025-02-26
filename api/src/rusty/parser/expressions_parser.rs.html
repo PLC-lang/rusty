@@ -1261,7 +1261,7 @@
 }
 
 <span class="kw">fn </span>parse_identifier(lexer: <span class="kw-2">&amp;mut </span>ParseSession&lt;<span class="lifetime">'_</span>&gt;) -&gt; AstNode {
-    AstFactory::create_identifier(<span class="kw-2">&amp;</span>lexer.slice_and_advance(), lexer.last_location(), lexer.next_id())
+    AstFactory::create_identifier(lexer.slice_and_advance(), lexer.last_location(), lexer.next_id())
 }
 
 <span class="kw">fn </span>parse_vla_range(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {

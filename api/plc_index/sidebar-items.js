@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["GlobalContext"]};
+window.SIDEBAR_ITEMS = {"enum":["ErrorFormat"],"struct":["GlobalContext"]};

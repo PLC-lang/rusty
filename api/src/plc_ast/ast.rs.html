@@ -1879,7 +1879,68 @@
 <a href="#1878" id="1878">1878</a>
 <a href="#1879" id="1879">1879</a>
 <a href="#1880" id="1880">1880</a>
-<a href="#1881" id="1881">1881</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
+<a href="#1884" id="1884">1884</a>
+<a href="#1885" id="1885">1885</a>
+<a href="#1886" id="1886">1886</a>
+<a href="#1887" id="1887">1887</a>
+<a href="#1888" id="1888">1888</a>
+<a href="#1889" id="1889">1889</a>
+<a href="#1890" id="1890">1890</a>
+<a href="#1891" id="1891">1891</a>
+<a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
+<a href="#1896" id="1896">1896</a>
+<a href="#1897" id="1897">1897</a>
+<a href="#1898" id="1898">1898</a>
+<a href="#1899" id="1899">1899</a>
+<a href="#1900" id="1900">1900</a>
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
+<a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a>
+<a href="#1942" id="1942">1942</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
@@ -1911,8 +1972,8 @@
 
 <span class="attr">#[derive(PartialEq)]
 </span><span class="kw">pub struct </span>Pou {
-    <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>id: AstId,
+    <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>kind: PouType,
     <span class="kw">pub </span>variable_blocks: Vec&lt;VariableBlock&gt;,
     <span class="kw">pub </span>return_type: <span class="prelude-ty">Option</span>&lt;DataTypeDeclaration&gt;,
@@ -1941,6 +2002,40 @@
 </span><span class="kw">pub struct </span>Identifier {
     <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>location: SourceLocation,
+}
+
+<span class="attr">#[derive(Debug, PartialEq, Clone)]
+</span><span class="kw">pub struct </span>Property {
+    <span class="kw">pub </span>name: String,
+    <span class="kw">pub </span>name_location: SourceLocation,
+    <span class="kw">pub </span>parent_kind: PouType,
+    <span class="kw">pub </span>parent_name: String,
+    <span class="kw">pub </span>parent_name_location: SourceLocation,
+    <span class="kw">pub </span>datatype: DataTypeDeclaration,
+    <span class="kw">pub </span>implementations: Vec&lt;PropertyImplementation&gt;,
+}
+
+<span class="attr">#[derive(Debug, PartialEq, Clone)]
+</span><span class="kw">pub struct </span>PropertyImplementation {
+    <span class="kw">pub </span>kind: PropertyKind,
+    <span class="kw">pub </span>location: SourceLocation,
+    <span class="kw">pub </span>variable_blocks: Vec&lt;VariableBlock&gt;,
+    <span class="kw">pub </span>body: Vec&lt;AstNode&gt;,
+}
+
+<span class="attr">#[derive(Debug, PartialEq, Clone, Copy)]
+</span><span class="kw">pub enum </span>PropertyKind {
+    Get,
+    Set,
+}
+
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>PropertyKind {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            PropertyKind::Get =&gt; <span class="macro">write!</span>(f, <span class="string">"get"</span>),
+            PropertyKind::Set =&gt; <span class="macro">write!</span>(f, <span class="string">"set"</span>),
+        }
+    }
 }
 
 <span class="attr">#[derive(Debug, PartialEq, Eq)]
@@ -2149,7 +2244,7 @@
     BuiltIn,
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Eq)]
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 </span><span class="kw">pub enum </span>AccessModifier {
     Private,
     Public,
@@ -2167,6 +2262,9 @@
     Method {
         <span class="doccomment">/// The parent of this method, i.e. a function block, class or an interface
         </span>parent: String,
+
+        <span class="doccomment">/// The fully qualified name of the property this GET or SET method represents
+        </span>property: <span class="prelude-ty">Option</span>&lt;String&gt;,
     },
     Init,
     ProjectInit,
@@ -2190,7 +2288,7 @@
 <span class="kw">impl </span>PouType {
     <span class="doccomment">/// returns Some(owner_class) if this is a `Method` or otherwhise `None`
     </span><span class="kw">pub fn </span>get_optional_owner_class(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-        <span class="kw">if let </span>PouType::Method { parent } = <span class="self">self </span>{
+        <span class="kw">if let </span>PouType::Method { parent, .. } = <span class="self">self </span>{
             <span class="prelude-val">Some</span>(parent.clone())
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -2199,6 +2297,10 @@
 
     <span class="kw">pub fn </span>is_function_method_or_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, PouType::Function | PouType::Init | PouType::ProjectInit | PouType::Method { .. })
+    }
+
+    <span class="kw">pub fn </span>is_stateful(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, PouType::FunctionBlock | PouType::Program | PouType::Class)
     }
 }
 
@@ -2232,6 +2334,7 @@
     <span class="kw">pub </span>interfaces: Vec&lt;Interface&gt;,
     <span class="kw">pub </span>user_types: Vec&lt;UserTypeDeclaration&gt;,
     <span class="kw">pub </span>file_name: String,
+    <span class="kw">pub </span>properties: Vec&lt;Property&gt;,
 }
 
 <span class="kw">impl </span>CompilationUnit {
@@ -2244,6 +2347,7 @@
             interfaces: Vec::new(),
             user_types: Vec::new(),
             file_name: file_name.to_string(),
+            properties: Vec::new(),
         }
     }
 
@@ -2275,6 +2379,9 @@
     Global,
     InOut,
     External,
+
+    <span class="doccomment">/// A compiler internal variable block representing all properties defined within a stateful POU
+    </span>Property,
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>VariableBlockType {
@@ -2287,6 +2394,7 @@
             VariableBlockType::Global =&gt; <span class="macro">write!</span>(f, <span class="string">"Global"</span>),
             VariableBlockType::InOut =&gt; <span class="macro">write!</span>(f, <span class="string">"InOut"</span>),
             VariableBlockType::External =&gt; <span class="macro">write!</span>(f, <span class="string">"External"</span>),
+            VariableBlockType::Property =&gt; <span class="macro">write!</span>(f, <span class="string">"Property"</span>),
         }
     }
 }
@@ -2297,7 +2405,7 @@
     ByRef,
 }
 
-<span class="attr">#[derive(PartialEq)]
+<span class="attr">#[derive(PartialEq, Clone)]
 </span><span class="kw">pub struct </span>VariableBlock {
     <span class="kw">pub </span>access: AccessModifier,
     <span class="kw">pub </span>constant: bool,
@@ -2318,6 +2426,19 @@
         <span class="self">self</span>.variables = variables;
         <span class="self">self
     </span>}
+
+    <span class="doccomment">/// Creates a new (internal) variable block with a block type of [`Property`]
+    </span><span class="kw">pub fn </span>property(variables: Vec&lt;Variable&gt;) -&gt; VariableBlock {
+        VariableBlock {
+            access: AccessModifier::Internal,
+            constant: <span class="bool-val">false</span>,
+            retain: <span class="bool-val">false</span>,
+            variables,
+            variable_block_type: VariableBlockType::Property,
+            linkage: LinkageType::Internal,
+            location: SourceLocation::internal(),
+        }
+    }
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>VariableBlock {
@@ -3180,7 +3301,7 @@
         <span class="macro">assert_eq!</span>(PouType::FunctionBlock.to_string(), <span class="string">"FunctionBlock"</span>);
         <span class="macro">assert_eq!</span>(PouType::Action.to_string(), <span class="string">"Action"</span>);
         <span class="macro">assert_eq!</span>(PouType::Class.to_string(), <span class="string">"Class"</span>);
-        <span class="macro">assert_eq!</span>(PouType::Method { parent: <span class="string">"..."</span>.to_string() }.to_string(), <span class="string">"Method"</span>);
+        <span class="macro">assert_eq!</span>(PouType::Method { parent: String::new(), property: <span class="prelude-val">None </span>}.to_string(), <span class="string">"Method"</span>);
     }
 
     <span class="attr">#[test]
@@ -3376,11 +3497,12 @@
     }
 
     <span class="doccomment">/// creates a new Identifier
-    </span><span class="kw">pub fn </span>create_identifier&lt;T&gt;(name: <span class="kw-2">&amp;</span>str, location: T, id: AstId) -&gt; AstNode
+    </span><span class="kw">pub fn </span>create_identifier&lt;T, U&gt;(name: T, location: U, id: AstId) -&gt; AstNode
     <span class="kw">where
-        </span>T: Into&lt;SourceLocation&gt;,
+        </span>T: Into&lt;String&gt;,
+        U: Into&lt;SourceLocation&gt;,
     {
-        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.into())
+        AstNode::new(AstStatement::Identifier(name.into()), id, location.into())
     }
 
     <span class="kw">pub fn </span>create_unary_expression(

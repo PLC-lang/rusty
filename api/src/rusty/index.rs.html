@@ -1921,7 +1921,9 @@
 <a href="#1920" id="1920">1920</a>
 <a href="#1921" id="1921">1921</a>
 <a href="#1922" id="1922">1922</a>
-<a href="#1923" id="1923">1923</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
 
@@ -2294,6 +2296,7 @@
     Global,
     Return,
     External,
+    Property,
 }
 
 <span class="kw">impl </span>VariableType {
@@ -2313,6 +2316,7 @@
             VariableType::Global =&gt; <span class="macro">write!</span>(f, <span class="string">"Global"</span>),
             VariableType::Return =&gt; <span class="macro">write!</span>(f, <span class="string">"Return"</span>),
             VariableType::External =&gt; <span class="macro">write!</span>(f, <span class="string">"External"</span>),
+            VariableType::Property =&gt; <span class="macro">write!</span>(f, <span class="string">"Property"</span>),
         }
     }
 }

@@ -2162,7 +2162,9 @@
 <a href="#2161" id="2161">2161</a>
 <a href="#2162" id="2162">2162</a>
 <a href="#2163" id="2163">2163</a>
-<a href="#2164" id="2164">2164</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering inherited references.
+<a href="#2164" id="2164">2164</a>
+<a href="#2165" id="2165">2165</a>
+<a href="#2166" id="2166">2166</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering inherited references.
 //! Derived POUs can access members of their base class using the `__SUPER` qualifier,
 //! which is an implicit reference to an instance of the base class which
 //! is added as a member variable of the derived class in the 'pre_index' pass.
@@ -2317,7 +2319,7 @@
         </span>inheritance_chain.iter().rev().skip(<span class="number">1</span>).fold(base, |base, pou| {
             <span class="prelude-val">Some</span>(Box::new(AstFactory::create_member_reference(
                 AstFactory::create_identifier(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"__{}"</span>, pou.get_name()),
+                    <span class="macro">format!</span>(<span class="string">"__{}"</span>, pou.get_name()),
                     SourceLocation::internal(),
                     <span class="self">self</span>.provider().next_id(),
                 ),
@@ -2332,7 +2334,7 @@
     <span class="kw">fn </span>visit_pou(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;mut </span>Pou) {
         <span class="kw">if </span><span class="self">self</span>.index.is_some() {
             <span class="comment">// methods need to be walked in the context of its container
-            </span><span class="kw">let </span>pou_name = <span class="kw">if let </span>PouType::Method { parent } = <span class="kw-2">&amp;</span>pou.kind { parent } <span class="kw">else </span>{ <span class="kw-2">&amp;</span>pou.name };
+            </span><span class="kw">let </span>pou_name = <span class="kw">if let </span>PouType::Method { parent, .. } = <span class="kw-2">&amp;</span>pou.kind { parent } <span class="kw">else </span>{ <span class="kw-2">&amp;</span>pou.name };
             <span class="kw">return </span><span class="self">self</span>.walk_with_context(pou, <span class="self">self</span>.ctx.with_pou(pou_name));
         }
         <span class="kw">if </span>!<span class="macro">matches!</span>(pou.kind, PouType::FunctionBlock | PouType::Class) {
@@ -2374,7 +2376,7 @@
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let </span>type_name = <span class="kw">if let </span>PouType::Method { parent } = <span class="kw-2">&amp;</span>implementation.pou_type {
+        <span class="kw">let </span>type_name = <span class="kw">if let </span>PouType::Method { parent, .. } = <span class="kw-2">&amp;</span>implementation.pou_type {
             parent
         } <span class="kw">else </span>{
             <span class="kw-2">&amp;</span>implementation.type_name
@@ -4129,6 +4131,7 @@
             ],
             pou_type: Method {
                 parent: "child",
+                property: None,
             },
             return_type: None,
             interfaces: [],
@@ -4146,7 +4149,7 @@
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK bar EXTENDS foo
-        METHOD set
+        METHOD set0 // TODO(volsa): https://github.com/PLC-lang/rusty/issues/1408
             x := 25;
         END_METHOD
         END_FUNCTION_BLOCK
@@ -4157,11 +4160,12 @@
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">1</span>];
         <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         Implementation {
-            name: "bar.set",
-            type_name: "bar.set",
+            name: "bar.set0",
+            type_name: "bar.set0",
             linkage: Internal,
             pou_type: Method {
                 parent: "bar",
+                property: None,
             },
             statements: [
                 Assignment {
@@ -4192,11 +4196,11 @@
                     TextLocation {
                         line: 9,
                         column: 12,
-                        offset: 182,
+                        offset: 245,
                     }..TextLocation {
                         line: 9,
                         column: 20,
-                        offset: 190,
+                        offset: 253,
                     },
                 ),
             },
@@ -4208,8 +4212,8 @@
                         offset: 166,
                     }..TextLocation {
                         line: 8,
-                        column: 18,
-                        offset: 169,
+                        column: 19,
+                        offset: 170,
                     },
                 ),
             },

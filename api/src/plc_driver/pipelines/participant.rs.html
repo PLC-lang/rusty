@@ -312,7 +312,7 @@
 </span><span class="kw">pub trait </span>PipelineParticipant: Sync + Send {
     <span class="doccomment">/// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
-    </span><span class="kw">fn </span>pre_index(<span class="kw-2">&amp;</span><span class="self">self</span>, _parsed_project: <span class="kw-2">&amp;</span>ParsedProject) {}
+    </span><span class="kw">fn </span>pre_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _parsed_project: <span class="kw-2">&amp;</span>ParsedProject) {}
     <span class="doccomment">/// Implement this to access the project after it got indexed
     /// This happens directly after the index returns
     </span><span class="kw">fn </span>post_index(<span class="kw-2">&amp;</span><span class="self">self</span>, _indexed_project: <span class="kw-2">&amp;</span>IndexedProject) {}

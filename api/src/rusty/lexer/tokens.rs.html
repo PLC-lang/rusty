@@ -418,7 +418,35 @@
 <a href="#417" id="417">417</a>
 <a href="#418" id="418">418</a>
 <a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a></pre></div><pre class="rust"><code><span class="kw">use </span>logos::Logos;
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a></pre></div><pre class="rust"><code><span class="kw">use </span>logos::Logos;
 
 <span class="kw">use </span>plc_ast::ast::{DirectAccessType, HardwareAccessType};
 
@@ -469,13 +497,6 @@
     #[token(<span class="string">"ENDINTERFACE"</span>, ignore(case))]
     </span>KeywordEndInterface,
 
-    <span class="attr">#[token(<span class="string">"PROPERTY"</span>, ignore(case))]
-    </span>KeywordProperty,
-
-    <span class="attr">#[token(<span class="string">"END_PROPERTY"</span>, ignore(case))]
-    #[token(<span class="string">"ENDPROPERTY"</span>, ignore(case))]
-    </span>KeywordEndProperty,
-
     <span class="attr">#[token(<span class="string">"VAR_INPUT"</span>, ignore(case))]
     #[token(<span class="string">"VARINPUT"</span>, ignore(case))]
     </span>KeywordVarInput,
@@ -499,6 +520,31 @@
     <span class="attr">#[token(<span class="string">"METHOD"</span>, ignore(case))]
     </span>KeywordMethod,
 
+    <span class="attr">#[token(<span class="string">"END_METHOD"</span>, ignore(case))]
+    #[token(<span class="string">"ENDMETHOD"</span>, ignore(case))]
+    </span>KeywordEndMethod,
+
+    <span class="attr">#[token(<span class="string">"PROPERTY"</span>, ignore(case))]
+    </span>KeywordProperty,
+
+    <span class="attr">#[token(<span class="string">"END_PROPERTY"</span>, ignore(case))]
+    #[token(<span class="string">"ENDPROPERTY"</span>, ignore(case))]
+    </span>KeywordEndProperty,
+
+    <span class="attr">#[token(<span class="string">"GET"</span>, ignore(case))]
+    </span>KeywordGet,
+
+    <span class="attr">#[token(<span class="string">"END_GET"</span>, ignore(case))]
+    #[token(<span class="string">"ENDGET"</span>, ignore(case))]
+    </span>KeywordEndGet,
+
+    <span class="attr">#[token(<span class="string">"SET"</span>, ignore(case))]
+    </span>KeywordSet,
+
+    <span class="attr">#[token(<span class="string">"END_SET"</span>, ignore(case))]
+    #[token(<span class="string">"ENDSET"</span>, ignore(case))]
+    </span>KeywordEndSet,
+
     <span class="attr">#[token(<span class="string">"CONSTANT"</span>, ignore(case))]
     </span>KeywordConstant,
 
@@ -512,10 +558,6 @@
     <span class="attr">#[token(<span class="string">"VAR_TEMP"</span>, ignore(case))]
     #[token(<span class="string">"VARTEMP"</span>, ignore(case))]
     </span>KeywordVarTemp,
-
-    <span class="attr">#[token(<span class="string">"END_METHOD"</span>, ignore(case))]
-    #[token(<span class="string">"ENDMETHOD"</span>, ignore(case))]
-    </span>KeywordEndMethod,
 
     <span class="attr">#[token(<span class="string">"PUBLIC"</span>, ignore(case))]
     </span>KeywordAccessPublic,
@@ -837,5 +879,19 @@
 
     <span class="attr">#[regex(<span class="string">r"[ \t\n\f]+"</span>, logos::skip)]
     </span>End,
+}
+
+<span class="kw">impl </span>Token {
+    <span class="doccomment">/// Returns true if the current token represents any `VAR(_*)` keyword
+    </span><span class="kw">pub fn </span>is_var(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>,
+            Token::KeywordVar
+                | Token::KeywordVarInput
+                | Token::KeywordVarOutput
+                | Token::KeywordVarInOut
+                | Token::KeywordVarTemp
+        )
+    }
 }
 </code></pre></div></section></main></body></html>

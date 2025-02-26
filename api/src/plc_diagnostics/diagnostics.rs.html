@@ -424,17 +424,17 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Diagnostic {
     <span class="doccomment">/// The Description of the error being reported.
-    </span>message: String,
+    </span><span class="kw">pub </span>message: String,
     <span class="doccomment">/// Primary location where the diagnostic occurred
-    </span>primary_location: SourceLocation,
+    </span><span class="kw">pub </span>primary_location: SourceLocation,
     <span class="doccomment">/// Seconday locations relevant to the diagnostics
-    </span>secondary_locations: <span class="prelude-ty">Option</span>&lt;Vec&lt;SourceLocation&gt;&gt;,
+    </span><span class="kw">pub </span>secondary_locations: <span class="prelude-ty">Option</span>&lt;Vec&lt;SourceLocation&gt;&gt;,
     <span class="doccomment">/// Error code for reference in the documentation
-    </span>error_code: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+    </span><span class="kw">pub </span>error_code: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     <span class="doccomment">/// Children of the current diagnostic
-    </span>sub_diagnostics: Vec&lt;Diagnostic&gt;,
+    </span><span class="kw">pub </span>sub_diagnostics: Vec&lt;Diagnostic&gt;,
     <span class="doccomment">/// If the diagnostic is caused by an error, this field contains the original error
-    </span>internal_error: <span class="prelude-ty">Option</span>&lt;anyhow::Error&gt;,
+    </span><span class="kw">pub </span>internal_error: <span class="prelude-ty">Option</span>&lt;anyhow::Error&gt;,
 }
 
 <span class="kw">impl </span>std::error::Error <span class="kw">for </span>Diagnostic {

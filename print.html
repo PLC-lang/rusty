@@ -1006,6 +1006,50 @@ END_INTERFACE
     // ...
 END_FUNCTION_BLOCK
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="property-defined-in-non-stateful-pou-type"><a class="header" href="#property-defined-in-non-stateful-pou-type">Property defined in non-stateful POU type</a></h1>
+<p>Properties may only be defined in stateful POUs such as a <code>PROGRAM</code>,<code>CLASS</code> or <code>FUNCTION_BLOCK</code>.</p>
+<p>Errouneus code example:</p>
+<pre><code>FUNCTION foo
+    // Invalid definition
+    PROPERTY bar : DINT
+        GET
+            bar := 42;
+        END_GET
+    END_PROPERTY
+END_FUNCTION</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="property-defined-in-unsupported-variable-block"><a class="header" href="#property-defined-in-unsupported-variable-block">Property defined in unsupported variable block</a></h1>
+<p>Properties only allow for variable blocks of type <code>VAR</code>.</p>
+<p>Errouneus code example:</p>
+<pre><code>FUNCTION foo
+    PROPERTY bar : DINT 
+        GET
+            VAR         /* ... */   END_VAR
+            VAR_INPUT   /* ... */   END_VAR // Invalid
+        END_GET
+    END_PROPERTY
+END_FUNCTION
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="property-with-invalid-number-of-get-andor-set-blocks"><a class="header" href="#property-with-invalid-number-of-get-andor-set-blocks">Property with invalid number of GET and/or SET blocks</a></h1>
+<p>Properties must be non empty and <em>at most</em> contain one block of type GET or SET.</p>
+<p>Errouneus code example:</p>
+<pre><code>FUNCTION foo
+    PROPERTY bar : DINT 
+        // Invalid, empty (no GET or SET block)
+    END_PROPERTY
+
+    PROPERTY baz : DINT 
+        // Invalid, two GET blocks
+        GET END_GET
+        GET END_GET
+    END_PROPERTY
+
+    PROPERTY qux : DINT 
+        // Invalid, two SET blocks
+        SET END_SET
+        SET END_SET
+    END_PROPERTY
+END_FUNCTION
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="libraries-1"><a class="header" href="#libraries-1">Libraries</a></h1>
 <p>RuSTy does not currently have support for importing <em>source based libraries</em>.</p>
 <p>Source based libraries can, however, be compiled together with the application as normal files.</p>

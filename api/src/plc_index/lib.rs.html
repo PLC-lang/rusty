@@ -129,14 +129,118 @@
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a></pre></div><pre class="rust"><code><span class="kw">use </span>encoding_rs::Encoding;
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a></pre></div><pre class="rust"><code><span class="kw">use </span>annotate_snippets::Renderer;
+<span class="kw">use </span>encoding_rs::Encoding;
 <span class="kw">use </span>plc_ast::provider::IdProvider;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_source::{SourceCode, SourceContainer};
 <span class="kw">use </span>rustc_hash::FxHashMap;
 
-<span class="attr">#[derive(Debug, Default)]
+<span class="comment">// TODO: The clone is super expensive here, eventually we should have a inner type wrapped around Arc, e.g.
+//       `struct GlobalContext { inner: Arc&lt;GlobalContextInner&gt; }`
+// TODO: The following would be also nice, to have a cleaner API i.e. instead of working with different structs such
+//       as the index or the diagnostics one could instead ONLY use the `GlobalContext` with methods like
+//       `ctxt.{add,get}_diagnostics(...)` making the code perhaps a bit cleaner / reducing the # of arguments for
+//       some functions / methods?
+//       RefCells may or may not make sense here, because maybe we dont want to pass the GlobalContext as a mutable reference?
+//       -&gt; diagnostics: RefCell&lt;Diagnostics&gt;, (private visibility)
+//       -&gt; index: RefCell&lt;Index&gt;, (private visibility; `get_index(&amp;self) -&gt; &amp;mut Index`?)
+</span><span class="attr">#[derive(Debug, Default, Clone)]
 </span><span class="kw">pub struct </span>GlobalContext {
     <span class="doccomment">/// HashMap containing all read, i.e. parsed, sources where the key represents
     /// the relative file path and the value some [`SourceCode`]
@@ -144,21 +248,29 @@
 
     <span class="doccomment">/// [`IdProvider`] used during the parsing session
     </span>provider: IdProvider,
-    <span class="comment">// TODO: The following would be also nice, to have a cleaner API i.e. instead of working with different structs such
-    //       as the index or the diagnostics one could instead ONLY use the `GlobalContext` with methods like
-    //       `ctxt.{add,get}_diagnostics(...)` making the code perhaps a bit cleaner / reducing the # of arguments for
-    //       some functions / methods?
-    //       RefCells may or may not make sense here, because maybe we dont want to pass the GlobalContext as a mutable reference?
-    //       -&gt; diagnostics: RefCell&lt;Diagnostics&gt;, (private visibility)
-    //       -&gt; index: RefCell&lt;Index&gt;, (private visibility; `get_index(&amp;self) -&gt; &amp;mut Index`?)
-</span>}
+    error_fmt: ErrorFormat,
+}
+
+<span class="comment">// XXX: Temporary
+</span><span class="attr">#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>ErrorFormat {
+    <span class="attr">#[default]
+    </span>Rich,
+    Clang,
+    Null,
+}
 
 <span class="kw">impl </span>GlobalContext {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ sources: FxHashMap::default(), provider: IdProvider::default() }
+    <span class="kw">pub fn </span>new() -&gt; GlobalContext {
+        GlobalContext::default()
     }
 
-    <span class="doccomment">/// Inserts a single [`SourceCode`] to the internal source map
+    <span class="kw">pub fn </span>with_error_fmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, error_fmt: ErrorFormat) {
+        <span class="self">self</span>.error_fmt = error_fmt;
+    }
+
+    <span class="comment">// TODO: Remove Diagnostic dependency here, instead return a plc_index specific error enum
+    </span><span class="doccomment">/// Inserts a single [`SourceCode`] to the internal source map
     </span><span class="kw">pub fn </span>insert&lt;S&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, container: <span class="kw-2">&amp;</span>S, encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>Encoding&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt;
     <span class="kw">where
         </span>S: SourceContainer,
@@ -221,25 +333,101 @@
         <span class="kw-2">&amp;</span>code.source[span]
     }
 
-    <span class="comment">// // TODO: Importing `plc_project` would make life easier here and allow for the code below, but we get a circular dep
-    // pub fn project&lt;S: SourceContainer&gt;(project: &amp;Project&lt;S&gt;, encoding: Option&lt;&amp;'static Encoding&gt;) -&gt; Self {
-    //     let mut ctxt = Self::new();
+    <span class="comment">// TODO: This is a proof-of-concept version how we could use the GlobalContext to handle
+    // diagnostics across the whole compiler pipeline. This will currently **only** display the diagnostics
+    // defined in the `ParticipantValidator`. Ideally we can use this to handle all diagnostics in the future.
+    // This method currently only mimics the `CodeSpanDiagnosticReporter` and its codespan style
+    // `codespan_reporting::term::DisplayStyle::Rich`, meaning other reporters such as the `ClangReporter` are
+    // not working as of now.
     //
-    //     for source in project.get_sources() {
-    //         ctxt.insert(source, encoding);
-    //     }
-    //
-    //     for source in project.get_includes() {
-    //         ctxt.insert(source, encoding);
-    //     }
-    //
-    //     for source in project.get_libraries().iter().flat_map(LibraryInformation::get_includes) {
-    //         ctxt.insert(source, encoding);
-    //     }
-    //
-    //     ctxt
-    // }
-</span>}
+    // TODO: Maybe we can make this async by creating using a `mpsc` channel for receiving diagnostics and
+    //       in a final handle call loop over the queue with `while channel.recv() { ... }`
+    </span><span class="kw">fn </span>handle_inner(<span class="kw-2">&amp;</span><span class="self">self</span>, diagnostic: <span class="kw-2">&amp;</span>Diagnostic) -&gt; String {
+        <span class="comment">// NOTE: We need to properly error handle these unwraps, for now they should never panic because we
+        //       (assume) we always have a valid file name and location
+        </span><span class="kw">let </span>name = diagnostic.get_location().get_file_name().unwrap_or(<span class="string">"&lt;internal&gt;"</span>);
+        <span class="kw">let </span><span class="prelude-val">Some</span>(code) = <span class="kw-2">&amp;</span><span class="self">self</span>.sources.get(name) <span class="kw">else </span>{ <span class="kw">return </span>String::new() };
+        <span class="kw">let </span><span class="prelude-val">Some</span>(location) = <span class="kw-2">&amp;</span>diagnostic.get_location().get_span().to_range() <span class="kw">else </span>{ <span class="kw">return </span>String::new() };
+        <span class="kw">let </span>secondary_locations = diagnostic
+            .get_secondary_locations()
+            .unwrap_or_default()
+            .iter()
+            .flat_map(|it| it.get_span().to_range())
+            .map(|it| annotate_snippets::Level::Error.span(it).label(<span class="string">"see also"</span>))
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+
+        <span class="kw">let </span>message = annotate_snippets::Level::Error.title(diagnostic.get_message()).snippet(
+            annotate_snippets::Snippet::source(<span class="kw-2">&amp;</span>code.source)
+                .line_start(diagnostic.get_location().get_line())
+                .origin(name)
+                .fold(<span class="bool-val">true</span>)
+                .annotation(
+                    annotate_snippets::Level::Error.span(location.clone()).label(diagnostic.get_message()),
+                )
+                .annotations(secondary_locations),
+        );
+
+        <span class="comment">// XXX: Temporary
+        </span><span class="kw">match </span><span class="self">self</span>.error_fmt {
+            ErrorFormat::Clang =&gt; <span class="self">self</span>.clang_format(diagnostic),
+            ErrorFormat::Rich =&gt; {
+                <span class="kw">let </span>renderer = annotate_snippets::Renderer::styled();
+                <span class="kw">let </span>res = renderer.render(message);
+                res.to_string()
+            }
+            ErrorFormat::Null =&gt; {
+                <span class="kw">let </span>renderer = annotate_snippets::Renderer::plain();
+                <span class="kw">let </span>res = renderer.render(message);
+                res.to_string()
+            }
+        }
+    }
+
+    <span class="kw">pub fn </span>handle(<span class="kw-2">&amp;</span><span class="self">self</span>, diagnostic: <span class="kw-2">&amp;</span>Diagnostic) {
+        <span class="macro">eprintln!</span>(<span class="string">"{}"</span>, <span class="self">self</span>.handle_inner(diagnostic))
+    }
+
+    <span class="kw">pub fn </span>handle_as_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, diagnostic: <span class="kw-2">&amp;</span>Diagnostic) -&gt; String {
+        <span class="self">self</span>.handle_inner(diagnostic)
+    }
+
+    <span class="comment">// XXX: Temporary solution, at some point we should use the annotation-snippet Renderer trait to properly
+    //      format the diagnostics
+    </span><span class="kw">fn </span>clang_format(<span class="kw-2">&amp;</span><span class="self">self</span>, diagnostic: <span class="kw-2">&amp;</span>Diagnostic) -&gt; String {
+        <span class="kw">let </span>span = diagnostic.get_location().get_span().to_range().unwrap();
+        <span class="kw">if </span>span.start == span.end {
+            <span class="macro">format!</span>(
+                <span class="string">"{fname}:{line}:{column}: error[{code}]: {message}"</span>,
+                fname = diagnostic.get_location().get_file_name().unwrap(),
+                line = diagnostic.get_location().get_line(),
+                column = diagnostic.get_location().get_column(),
+                code = diagnostic.get_error_code(),
+                message = diagnostic.get_message()
+            )
+        } <span class="kw">else </span>{
+            <span class="macro">format!</span>(
+                <span class="string">"{fname}:{sline}:{scolumn}:{{{sline}:{scolumn}-{eline}:{ecolumn}}}: error[{code}]: {message}"</span>,
+                fname = diagnostic.get_location().get_file_name().unwrap(),
+                sline = diagnostic.get_location().get_line(),
+                scolumn = diagnostic.get_location().get_column(),
+                eline = diagnostic.get_location().get_line_end(),
+                ecolumn = diagnostic.get_location().get_column_end(),
+                code = diagnostic.get_error_code(),
+                message = diagnostic.get_message(),
+            )
+        }
+    }
+}
+
+<span class="kw">trait </span>_ClangFormat {
+    <span class="kw">fn </span>clang() -&gt; Renderer;
+}
+
+<span class="kw">impl </span>_ClangFormat <span class="kw">for </span>Renderer {
+    <span class="kw">fn </span>clang() -&gt; Renderer {
+        <span class="macro">todo!</span>()
+    }
+}
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
