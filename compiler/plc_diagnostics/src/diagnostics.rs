@@ -30,17 +30,17 @@ pub enum Severity {
 #[derive(Debug)]
 pub struct Diagnostic {
     /// The Description of the error being reported.
-    message: String,
+    pub message: String,
     /// Primary location where the diagnostic occurred
-    primary_location: SourceLocation,
+    pub primary_location: SourceLocation,
     /// Seconday locations relevant to the diagnostics
-    secondary_locations: Option<Vec<SourceLocation>>,
+    pub secondary_locations: Option<Vec<SourceLocation>>,
     /// Error code for reference in the documentation
-    error_code: &'static str,
+    pub error_code: &'static str,
     /// Children of the current diagnostic
-    sub_diagnostics: Vec<Diagnostic>,
+    pub sub_diagnostics: Vec<Diagnostic>,
     /// If the diagnostic is caused by an error, this field contains the original error
-    internal_error: Option<anyhow::Error>,
+    pub internal_error: Option<anyhow::Error>,
 }
 
 impl std::error::Error for Diagnostic {

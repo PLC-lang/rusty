@@ -51,4 +51,5 @@ CompilationUnit {
     interfaces: [],
     user_types: [],
     file_name: "<internal>",
+    properties: [],
 }

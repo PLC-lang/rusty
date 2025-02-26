@@ -575,6 +575,23 @@ impl StatementAnnotation {
     pub fn data_type(type_name: &str) -> Self {
         StatementAnnotation::Type { type_name: type_name.into() }
     }
+
+    pub fn is_property(&self) -> bool {
+        matches!(
+            self,
+            StatementAnnotation::Variable { argument_type: ArgumentType::ByVal(VariableType::Property), .. }
+        )
+    }
+
+    pub fn qualified_name(&self) -> Option<&str> {
+        match self {
+            StatementAnnotation::Variable { qualified_name, .. }
+            | StatementAnnotation::Function { qualified_name, .. }
+            | StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
+
+            _ => None,
+        }
+    }
 }
 
 impl From<&PouIndexEntry> for StatementAnnotation {

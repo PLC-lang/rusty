@@ -153,7 +153,7 @@ impl InheritanceLowerer {
         inheritance_chain.iter().rev().skip(1).fold(base, |base, pou| {
             Some(Box::new(AstFactory::create_member_reference(
                 AstFactory::create_identifier(
-                    &format!("__{}", pou.get_name()),
+                    format!("__{}", pou.get_name()),
                     SourceLocation::internal(),
                     self.provider().next_id(),
                 ),
@@ -168,7 +168,7 @@ impl AstVisitorMut for InheritanceLowerer {
     fn visit_pou(&mut self, pou: &mut Pou) {
         if self.index.is_some() {
             // methods need to be walked in the context of its container
-            let pou_name = if let PouType::Method { parent } = &pou.kind { parent } else { &pou.name };
+            let pou_name = if let PouType::Method { parent, .. } = &pou.kind { parent } else { &pou.name };
             return self.walk_with_context(pou, self.ctx.with_pou(pou_name));
         }
         if !matches!(pou.kind, PouType::FunctionBlock | PouType::Class) {
@@ -210,7 +210,7 @@ impl AstVisitorMut for InheritanceLowerer {
             return;
         }
 
-        let type_name = if let PouType::Method { parent } = &implementation.pou_type {
+        let type_name = if let PouType::Method { parent, .. } = &implementation.pou_type {
             parent
         } else {
             &implementation.type_name
@@ -1965,6 +1965,7 @@ mod units_tests {
             ],
             pou_type: Method {
                 parent: "child",
+                property: None,
             },
             return_type: None,
             interfaces: [],
@@ -1982,7 +1983,7 @@ mod units_tests {
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK bar EXTENDS foo
-        METHOD set
+        METHOD set0 // TODO(volsa): https://github.com/PLC-lang/rusty/issues/1408
             x := 25;
         END_METHOD
         END_FUNCTION_BLOCK
@@ -1993,11 +1994,12 @@ mod units_tests {
         let unit = &project.units[0].get_unit().implementations[1];
         assert_debug_snapshot!(unit, @r###"
         Implementation {
-            name: "bar.set",
-            type_name: "bar.set",
+            name: "bar.set0",
+            type_name: "bar.set0",
             linkage: Internal,
             pou_type: Method {
                 parent: "bar",
+                property: None,
             },
             statements: [
                 Assignment {
@@ -2028,11 +2030,11 @@ mod units_tests {
                     TextLocation {
                         line: 9,
                         column: 12,
-                        offset: 182,
+                        offset: 245,
                     }..TextLocation {
                         line: 9,
                         column: 20,
-                        offset: 190,
+                        offset: 253,
                     },
                 ),
             },
@@ -2044,8 +2046,8 @@ mod units_tests {
                         offset: 166,
                     }..TextLocation {
                         line: 8,
-                        column: 18,
-                        offset: 169,
+                        column: 19,
+                        offset: 170,
                     },
                 ),
             },

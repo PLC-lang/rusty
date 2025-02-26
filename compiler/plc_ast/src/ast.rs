@@ -30,8 +30,8 @@ pub struct GenericBinding {
 
 #[derive(PartialEq)]
 pub struct Pou {
-    pub name: String,
     pub id: AstId,
+    pub name: String,
     pub kind: PouType,
     pub variable_blocks: Vec<VariableBlock>,
     pub return_type: Option<DataTypeDeclaration>,
@@ -60,6 +60,40 @@ pub struct Interface {
 pub struct Identifier {
     pub name: String,
     pub location: SourceLocation,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Property {
+    pub name: String,
+    pub name_location: SourceLocation,
+    pub parent_kind: PouType,
+    pub parent_name: String,
+    pub parent_name_location: SourceLocation,
+    pub datatype: DataTypeDeclaration,
+    pub implementations: Vec<PropertyImplementation>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct PropertyImplementation {
+    pub kind: PropertyKind,
+    pub location: SourceLocation,
+    pub variable_blocks: Vec<VariableBlock>,
+    pub body: Vec<AstNode>,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum PropertyKind {
+    Get,
+    Set,
+}
+
+impl std::fmt::Display for PropertyKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PropertyKind::Get => write!(f, "get"),
+            PropertyKind::Set => write!(f, "set"),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -268,7 +302,7 @@ pub enum LinkageType {
     BuiltIn,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum AccessModifier {
     Private,
     Public,
@@ -286,6 +320,9 @@ pub enum PouType {
     Method {
         /// The parent of this method, i.e. a function block, class or an interface
         parent: String,
+
+        /// The fully qualified name of the property this GET or SET method represents
+        property: Option<String>,
     },
     Init,
     ProjectInit,
@@ -309,7 +346,7 @@ impl Display for PouType {
 impl PouType {
     /// returns Some(owner_class) if this is a `Method` or otherwhise `None`
     pub fn get_optional_owner_class(&self) -> Option<String> {
-        if let PouType::Method { parent } = self {
+        if let PouType::Method { parent, .. } = self {
             Some(parent.clone())
         } else {
             None
@@ -318,6 +355,10 @@ impl PouType {
 
     pub fn is_function_method_or_init(&self) -> bool {
         matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit | PouType::Method { .. })
+    }
+
+    pub fn is_stateful(&self) -> bool {
+        matches!(self, PouType::FunctionBlock | PouType::Program | PouType::Class)
     }
 }
 
@@ -351,6 +392,7 @@ pub struct CompilationUnit {
     pub interfaces: Vec<Interface>,
     pub user_types: Vec<UserTypeDeclaration>,
     pub file_name: String,
+    pub properties: Vec<Property>,
 }
 
 impl CompilationUnit {
@@ -363,6 +405,7 @@ impl CompilationUnit {
             interfaces: Vec::new(),
             user_types: Vec::new(),
             file_name: file_name.to_string(),
+            properties: Vec::new(),
         }
     }
 
@@ -394,6 +437,9 @@ pub enum VariableBlockType {
     Global,
     InOut,
     External,
+
+    /// A compiler internal variable block representing all properties defined within a stateful POU
+    Property,
 }
 
 impl Display for VariableBlockType {
@@ -406,6 +452,7 @@ impl Display for VariableBlockType {
             VariableBlockType::Global => write!(f, "Global"),
             VariableBlockType::InOut => write!(f, "InOut"),
             VariableBlockType::External => write!(f, "External"),
+            VariableBlockType::Property => write!(f, "Property"),
         }
     }
 }
@@ -416,7 +463,7 @@ pub enum ArgumentProperty {
     ByRef,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct VariableBlock {
     pub access: AccessModifier,
     pub constant: bool,
@@ -436,6 +483,19 @@ impl VariableBlock {
     pub fn with_variables(mut self, variables: Vec<Variable>) -> Self {
         self.variables = variables;
         self
+    }
+
+    /// Creates a new (internal) variable block with a block type of [`Property`]
+    pub fn property(variables: Vec<Variable>) -> VariableBlock {
+        VariableBlock {
+            access: AccessModifier::Internal,
+            constant: false,
+            retain: false,
+            variables,
+            variable_block_type: VariableBlockType::Property,
+            linkage: LinkageType::Internal,
+            location: SourceLocation::internal(),
+        }
     }
 }
 
@@ -1299,7 +1359,7 @@ mod tests {
         assert_eq!(PouType::FunctionBlock.to_string(), "FunctionBlock");
         assert_eq!(PouType::Action.to_string(), "Action");
         assert_eq!(PouType::Class.to_string(), "Class");
-        assert_eq!(PouType::Method { parent: "...".to_string() }.to_string(), "Method");
+        assert_eq!(PouType::Method { parent: String::new(), property: None }.to_string(), "Method");
     }
 
     #[test]
@@ -1495,11 +1555,12 @@ impl AstFactory {
     }
 
     /// creates a new Identifier
-    pub fn create_identifier<T>(name: &str, location: T, id: AstId) -> AstNode
+    pub fn create_identifier<T, U>(name: T, location: U, id: AstId) -> AstNode
     where
-        T: Into<SourceLocation>,
+        T: Into<String>,
+        U: Into<SourceLocation>,
     {
-        AstNode::new(AstStatement::Identifier(name.to_string()), id, location.into())
+        AstNode::new(AstStatement::Identifier(name.into()), id, location.into())
     }
 
     pub fn create_unary_expression(

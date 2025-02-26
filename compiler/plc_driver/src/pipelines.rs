@@ -24,7 +24,11 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{calls::AggregateTypeLowerer, InitVisitor},
+    lowering::{
+        property::PropertyLowerer,
+        validator::ParticipantValidator,
+        {calls::AggregateTypeLowerer, InitVisitor},
+    },
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -50,7 +54,10 @@ use source_code::{source_location::SourceLocation, SourceContainer};
 use serde_json;
 use tempfile::NamedTempFile;
 use toml;
+
 pub mod participant;
+pub mod property;
+pub mod validator;
 
 pub struct BuildPipeline<T: SourceContainer> {
     pub context: GlobalContext,
@@ -139,7 +146,7 @@ impl BuildPipeline<PathBuf> {
         T: AsRef<str> + AsRef<OsStr> + std::fmt::Debug,
     {
         let compile_parameters = CompileParameters::parse(args)?;
-        compile_parameters.try_into()
+        BuildPipeline::try_from(compile_parameters)
     }
 }
 
@@ -249,8 +256,13 @@ impl<T: SourceContainer> BuildPipeline<T> {
     pub fn register_default_participants(&mut self) {
         use participant::InitParticipant;
         // XXX: should we use a static array of participants?
-        let participants: Vec<Box<dyn PipelineParticipant>> = vec![];
+        let participants: Vec<Box<dyn PipelineParticipant>> = vec![Box::new(ParticipantValidator::new(
+            &self.context,
+            self.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default(),
+        ))];
+
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
+            Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
@@ -288,9 +300,9 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.initialize_thread_pool();
 
         let parsed_project = self.parse()?;
-        // 1. Parse, 2. Index and 3. Resolve / Annotate
         let indexed_project = self.index(parsed_project)?;
         let annotated_project = self.annotate(indexed_project)?;
+
         //TODO : this is post lowering, we might want to control this
         if let Some(CompileParameters { output_ast: true, .. }) = self.compile_parameters {
             println!("{:#?}", annotated_project.units);
@@ -326,7 +338,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
-        self.participants.iter().for_each(|p| {
+        self.participants.iter_mut().for_each(|p| {
             p.pre_index(&project);
         });
         let project = self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_index(project));

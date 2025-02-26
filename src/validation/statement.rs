@@ -459,6 +459,32 @@ fn validate_reference<T: AnnotationMap>(
 ) {
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
+        // XXX: Temporary solution, is there a better way? Technically we could introduce a diagnostic when
+        //      lowering the references to calls, then checking with the index if the defined POU exists but
+        //      then we'd get two similar error, one describing what the exact issue is (i.e. no get/set) and
+        //      the other describing that it cant find a reference to "__{get,set}_<property name>"
+        match ref_name {
+            _ if ref_name.starts_with("__set") => {
+                validator.push_diagnostic(
+                    Diagnostic::new("SET property not defined")
+                        .with_error_code("E048")
+                        .with_location(location),
+                );
+                return;
+            }
+
+            _ if ref_name.starts_with("__get") => {
+                validator.push_diagnostic(
+                    Diagnostic::new("GET property not defined")
+                        .with_error_code("E048")
+                        .with_location(location),
+                );
+                return;
+            }
+
+            _ => (),
+        };
+
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
 
         // was this meant as a direct access?
@@ -490,8 +516,8 @@ fn validate_reference<T: AnnotationMap>(
                 && context
                     .qualifier
                     .and_then(|qualifier| context.index.find_pou(qualifier))
-                    .map(|pou| (pou.get_name(), pou.get_container())) // get the container pou (for actions this is the program/fb)
-                    .map_or(false, |(pou, container)| {
+                    .map(|pou| (pou.get_name(), pou.get_container()))
+                    .is_some_and(|(pou, container)| {
                         !qualified_name.starts_with(pou)
                             && !qualified_name.starts_with(container)
                             && !context.index.is_init_function(pou)
@@ -1273,6 +1299,14 @@ fn validate_call<T: AnnotationMap>(
 ) {
     visit_statement(validator, fn_ident, context);
 
+    if let AstStatement::CallStatement(_) = fn_ident.get_stmt() {
+        validator.push_diagnostic(
+            Diagnostic::new("Properties cannot be called like functions. Remove `()`")
+                .with_error_code("E007")
+                .with_location(fn_ident),
+        );
+    }
+
     // Check if we're dealing with a builtin function and if so call its validation function
     if let Some(validation) = builtins::get_builtin(fn_ident.get_flat_reference_name().unwrap_or_default())
         .and_then(BuiltIn::get_validation)
@@ -1280,92 +1314,92 @@ fn validate_call<T: AnnotationMap>(
         validation(validator, fn_ident, fn_args, context.annotations, context.index);
     }
 
-    if let Some(pou) = context.find_pou(fn_ident) {
-        let arguments = fn_args.map(flatten_expression_list).unwrap_or_default();
-        let parameters = context.index.get_declared_parameters(pou.get_name());
-
-        if builtins::get_builtin(pou.get_name()).is_none() {
-            validate_argument_count(context, validator, pou, &arguments, &fn_ident.location);
-        }
-
-        let mut arguments_are_implicit = true;
-        let mut variable_location_in_parent = vec![];
-
-        // validate parameters
-        for (i, argument) in arguments.iter().enumerate() {
-            match get_implicit_call_parameter(argument, &parameters, i) {
-                Ok((parameter_idx, right, is_implicit)) => {
-                    if i == 0 {
-                        arguments_are_implicit = is_implicit;
-                    }
-
-                    if let Some(left) = parameters.get(parameter_idx) {
-                        validate_call_by_ref(validator, left, argument);
-                        // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
-                        // save actual location in parent for InOut validation
-                        variable_location_in_parent.push(left.get_location_in_parent());
-                    }
-
-                    // explicit call parameter assignments will be handled by
-                    // `visit_statement()` via `Assignment` and `OutputAssignment`
-                    if is_implicit {
-                        validate_assignment(validator, right, None, &argument.get_location(), context);
-                    }
-
-                    // mixing implicit and explicit arguments is not allowed
-                    // allways compare to the first argument
-                    if arguments_are_implicit != is_implicit {
-                        validator.push_diagnostic(
-                            Diagnostic::new("Cannot mix implicit and explicit call parameters!")
-                                .with_error_code("E031")
-                                .with_location(*argument),
-                        );
-                    }
-                }
-
-                Err(err) => {
-                    validator.push_diagnostic(
-                        Diagnostic::new("Invalid call parameters")
-                            .with_error_code("E089")
-                            .with_location(*argument)
-                            .with_sub_diagnostic(err),
-                    );
-                    break;
-                }
-            }
-
-            visit_statement(validator, argument, context);
-        }
-
-        // for PROGRAM/FB we need special inout validation
-        if pou.is_stateful() || pou.is_method() {
-            // pou might actually be an action call: in that case,
-            // we need to check if it is called within the context of the parent POU
-            // (either the body of the parent or another associated action) => we don't need to validate the params
-            if is_action_call_in_qualified_context(context, fn_ident) {
-                return;
-            }
-
-            let declared_in_out_params: Vec<&VariableIndexEntry> =
-                parameters.into_iter().filter(|param| param.is_inout()).collect();
-
-            if !declared_in_out_params.is_empty() {
-                // Check if all IN_OUT arguments were passed by cross-checking with the parameters
-                declared_in_out_params.into_iter().for_each(|p| {
-                    if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
-                        validator.push_diagnostic(
-                            Diagnostic::new(format!("Argument `{}` is missing", p.get_name()))
-                                .with_error_code("E030")
-                                .with_location(fn_ident),
-                        );
-                    }
-                });
-            }
-        }
-    } else {
+    let Some(pou) = context.find_pou(fn_ident) else {
         // POU could not be found, we can still partially validate the passed parameters
         if let Some(s) = fn_args.as_ref() {
             visit_statement(validator, s, context);
+        }
+        return;
+    };
+    let arguments = fn_args.map(flatten_expression_list).unwrap_or_default();
+    let parameters = context.index.get_declared_parameters(pou.get_name());
+
+    if builtins::get_builtin(pou.get_name()).is_none() {
+        validate_argument_count(context, validator, pou, &arguments, &fn_ident.location);
+    }
+
+    let mut arguments_are_implicit = true;
+    let mut variable_location_in_parent = vec![];
+
+    // validate parameters
+    for (i, argument) in arguments.iter().enumerate() {
+        match get_implicit_call_parameter(argument, &parameters, i) {
+            Ok((parameter_idx, right, is_implicit)) => {
+                if i == 0 {
+                    arguments_are_implicit = is_implicit;
+                }
+
+                if let Some(left) = parameters.get(parameter_idx) {
+                    validate_call_by_ref(validator, left, argument);
+                    // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
+                    // save actual location in parent for InOut validation
+                    variable_location_in_parent.push(left.get_location_in_parent());
+                }
+
+                // explicit call parameter assignments will be handled by
+                // `visit_statement()` via `Assignment` and `OutputAssignment`
+                if is_implicit {
+                    validate_assignment(validator, right, None, &argument.get_location(), context);
+                }
+
+                // mixing implicit and explicit arguments is not allowed
+                // allways compare to the first argument
+                if arguments_are_implicit != is_implicit {
+                    validator.push_diagnostic(
+                        Diagnostic::new("Cannot mix implicit and explicit call parameters!")
+                            .with_error_code("E031")
+                            .with_location(*argument),
+                    );
+                }
+            }
+
+            Err(err) => {
+                validator.push_diagnostic(
+                    Diagnostic::new("Invalid call parameters")
+                        .with_error_code("E089")
+                        .with_location(*argument)
+                        .with_sub_diagnostic(err),
+                );
+                break;
+            }
+        }
+
+        visit_statement(validator, argument, context);
+    }
+
+    // for PROGRAM/FB we need special inout validation
+    if pou.is_stateful() || pou.is_method() {
+        // pou might actually be an action call: in that case,
+        // we need to check if it is called within the context of the parent POU
+        // (either the body of the parent or another associated action) => we don't need to validate the params
+        if is_action_call_in_qualified_context(context, fn_ident) {
+            return;
+        }
+
+        let declared_in_out_params: Vec<&VariableIndexEntry> =
+            parameters.into_iter().filter(|param| param.is_inout()).collect();
+
+        if !declared_in_out_params.is_empty() {
+            // Check if all IN_OUT arguments were passed by cross-checking with the parameters
+            declared_in_out_params.into_iter().for_each(|p| {
+                if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
+                    validator.push_diagnostic(
+                        Diagnostic::new(format!("Argument `{}` is missing", p.get_name()))
+                            .with_error_code("E030")
+                            .with_location(fn_ident),
+                    );
+                }
+            });
         }
     }
 }

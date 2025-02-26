@@ -74,7 +74,7 @@ impl<'i> PouIndexer<'i> {
             PouType::Function | PouType::Init | PouType::ProjectInit => {
                 self.index_function(pou, return_type_name, member_varargs, pou_struct_type);
             }
-            PouType::Method { parent } => {
+            PouType::Method { parent, .. } => {
                 self.index_method(pou, return_type_name, parent, pou_struct_type);
             }
             _ => {}
@@ -271,6 +271,7 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
         VariableBlockType::Global => VariableType::Global,
         VariableBlockType::InOut => VariableType::InOut,
         VariableBlockType::External => VariableType::External,
+        VariableBlockType::Property => VariableType::Property,
     }
 }
 
