@@ -5331,7 +5331,7 @@
 
         <span class="comment">// get lengths of dimensions
         </span><span class="kw">let </span>type_ = <span class="self">self</span>.index.get_type_information_or_void(reference_type);
-        <span class="kw">let </span><span class="prelude-val">Some</span>(ndims) = type_.get_type_information().get_dimensions() <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
+        <span class="kw">let </span><span class="prelude-val">Some</span>(ndims) = type_.get_type_information().get_dimension_count() <span class="kw">else </span>{ <span class="macro">unreachable!</span>() };
 
         <span class="comment">// get the start/end offsets for each dimension ( ARRAY[4..10, -4..4] ...)
         </span><span class="kw">let </span>index_offsets = get_indices(<span class="self">self</span>.llvm, ndims, dim_arr_gep);

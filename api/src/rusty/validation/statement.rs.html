@@ -2494,7 +2494,7 @@
     <span class="kw">let </span>right_type = context.annotations.get_type_or_void(right, context.index).get_type_information();
 
     <span class="comment">// if the type is a subrange, check if the intrinsic type is numerical
-    </span><span class="kw">let </span>is_numerical = context.index.find_intrinsic_type(left_type).is_numerical();
+    </span><span class="kw">let </span>is_numerical = context.index.get_intrinsic_type_information(left_type).is_numerical();
 
     <span class="kw">if </span>discriminant(left_type) == discriminant(right_type) &amp;&amp; !(is_numerical || left_type.is_pointer()) {
         <span class="comment">// see if we have the right compare-function (non-numbers are compared using user-defined callback-functions)
@@ -2602,12 +2602,12 @@
 ) <span class="kw">where
     </span>T: AnnotationMap,
 {
-    <span class="kw">let </span>type_info_lhs = context
-        .index
-        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_lhs.get_type_information()));
-    <span class="kw">let </span>type_info_rhs = context
-        .index
-        .find_intrinsic_type(context.index.find_elementary_pointer_type(type_rhs.get_type_information()));
+    <span class="kw">let </span>type_info_lhs = context.index.get_intrinsic_type_information(
+        context.index.find_elementary_pointer_type(type_lhs.get_type_information()),
+    );
+    <span class="kw">let </span>type_info_rhs = context.index.get_intrinsic_type_information(
+        context.index.find_elementary_pointer_type(type_rhs.get_type_information()),
+    );
 
     <span class="kw">if </span>type_info_lhs.is_array() &amp;&amp; type_info_rhs.is_array() {
         <span class="kw">let </span>len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
@@ -2898,8 +2898,8 @@
     <span class="kw">let </span>left_dt = context.index.get_effective_type_or_void_by_name(left_inner_type);
     <span class="kw">let </span>right_dt = context.index.get_effective_type_or_void_by_name(right_inner_type);
 
-    <span class="kw">let </span>left_dims = left_type.get_type_information().get_dimensions().unwrap();
-    <span class="kw">let </span>right_dims = right_type.get_type_information().get_dimensions().unwrap();
+    <span class="kw">let </span>left_dims = left_type.get_type_information().get_dimension_count().unwrap();
+    <span class="kw">let </span>right_dims = right_type.get_type_information().get_dimension_count().unwrap();
 
     <span class="kw">if </span>left_dt != right_dt || left_dims != right_dims {
         validator.push_diagnostic(Diagnostic::invalid_assignment(
@@ -3047,10 +3047,10 @@
         <span class="kw">return </span><span class="bool-val">false</span>;
     }
     <span class="kw">if </span>lhs.is_array() {
-        <span class="kw">let </span>inner_l = index.find_intrinsic_type(
+        <span class="kw">let </span>inner_l = index.get_intrinsic_type_information(
             index.get_type_information_or_void(lhs.get_inner_array_type_name().unwrap_or(VOID_TYPE)),
         );
-        <span class="kw">let </span>inner_r = index.find_intrinsic_type(
+        <span class="kw">let </span>inner_r = index.get_intrinsic_type_information(
             index.get_type_information_or_void(rhs.get_inner_array_type_name().unwrap_or(VOID_TYPE)),
         );
         !(inner_l == inner_r &amp;&amp; typesystem::is_same_type_class(lhs, rhs, index))

@@ -1923,7 +1923,23 @@
 <a href="#1922" id="1922">1922</a>
 <a href="#1923" id="1923">1923</a>
 <a href="#1924" id="1924">1924</a>
-<a href="#1925" id="1925">1925</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
+<a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
 
@@ -3461,12 +3477,6 @@
         variable.and_then(|it| <span class="self">self</span>.get_type(it.get_type_name()).ok())
     }
 
-    <span class="kw">pub fn </span>get_return_type_or_void(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>DataType {
-        <span class="self">self</span>.find_return_variable(pou_name)
-            .and_then(|variable| <span class="self">self</span>.find_type(variable.get_type_name()))
-            .unwrap_or(<span class="self">self</span>.get_void_type())
-    }
-
     <span class="kw">pub fn </span>get_type_information_or_void(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>DataTypeInformation {
         <span class="self">self</span>.find_effective_type_by_name(type_name)
             .map(|it| it.get_type_information())
@@ -3664,26 +3674,48 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.constant_expressions
     }
 
-    <span class="doccomment">/// returns the intrinsic (built-in) type represented by the given type-information
+    <span class="doccomment">/// returns the intrinsic (built-in) [DataTypeInformation] represented by the given type-information
     /// this will return the built-in type behind alias / range-types
-    </span><span class="kw">pub fn </span>find_intrinsic_type&lt;<span class="lifetime">'idx</span>&gt;(
+    </span><span class="kw">pub fn </span>get_intrinsic_type_information&lt;<span class="lifetime">'idx</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
         initial_type: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataTypeInformation,
     ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataTypeInformation {
-        <span class="kw">match </span>initial_type {
-            DataTypeInformation::SubRange { .. } | DataTypeInformation::Alias { .. } =&gt; {
-                <span class="kw">let </span>inner_type_name = <span class="kw">match </span>initial_type {
-                    DataTypeInformation::SubRange { referenced_type, .. } =&gt; referenced_type,
-                    <span class="kw">_ </span>=&gt; initial_type.get_name(),
-                };
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(inner_type) = <span class="self">self</span>.find_effective_type_info(inner_type_name) {
-                    <span class="self">self</span>.find_intrinsic_type(inner_type)
-                } <span class="kw">else </span>{
-                    initial_type
-                }
+        <span class="kw">fn </span>get_inner_type_name(initial_type: <span class="kw-2">&amp;</span>DataTypeInformation) -&gt; <span class="kw-2">&amp;</span>str {
+            <span class="kw">match </span>initial_type {
+                DataTypeInformation::SubRange { referenced_type, .. } =&gt; referenced_type,
+                <span class="kw">_ </span>=&gt; initial_type.get_name(),
             }
+        }
+        <span class="kw">match </span>initial_type {
+            DataTypeInformation::SubRange { .. } | DataTypeInformation::Alias { .. } =&gt; <span class="self">self
+                </span>.find_effective_type_info(get_inner_type_name(initial_type))
+                .map(|it| <span class="self">self</span>.get_intrinsic_type_information(it))
+                .unwrap_or(initial_type),
             DataTypeInformation::Enum { referenced_type, .. } =&gt; {
                 <span class="self">self</span>.find_effective_type_info(referenced_type).unwrap_or(initial_type)
+            }
+            <span class="kw">_ </span>=&gt; initial_type,
+        }
+    }
+
+    <span class="doccomment">/// returns the intrinsic (built-in) [DataType] represented by the given type
+    /// this will return the built-in type behind alias / range-types
+    </span><span class="kw">pub fn </span>get_intrinsic_type&lt;<span class="lifetime">'idx</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>, initial_type: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType {
+        <span class="kw">fn </span>get_inner_type_name(initial_type: <span class="kw-2">&amp;</span>DataTypeInformation) -&gt; <span class="kw-2">&amp;</span>str {
+            <span class="kw">match </span>initial_type {
+                DataTypeInformation::SubRange { referenced_type, .. } =&gt; referenced_type,
+                <span class="kw">_ </span>=&gt; initial_type.get_name(),
+            }
+        }
+
+        <span class="kw">let </span>ty_info = initial_type.get_type_information();
+        <span class="kw">match </span>ty_info {
+            DataTypeInformation::SubRange { .. } | DataTypeInformation::Alias { .. } =&gt; <span class="self">self
+                </span>.find_effective_type_by_name(get_inner_type_name(ty_info))
+                .map(|it| <span class="self">self</span>.get_intrinsic_type(it))
+                .unwrap_or(initial_type),
+            DataTypeInformation::Enum { referenced_type, .. } =&gt; {
+                <span class="self">self</span>.find_effective_type_by_name(referenced_type).unwrap_or(initial_type)
             }
             <span class="kw">_ </span>=&gt; initial_type,
         }
@@ -3695,7 +3727,7 @@
     ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataTypeInformation {
         <span class="kw">if let </span>DataTypeInformation::Pointer { inner_type_name, .. } = initial_type {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(ty) = <span class="self">self</span>.find_effective_type_info(inner_type_name) {
-                <span class="kw">return </span><span class="self">self</span>.find_elementary_pointer_type(<span class="self">self</span>.find_intrinsic_type(ty));
+                <span class="kw">return </span><span class="self">self</span>.find_elementary_pointer_type(<span class="self">self</span>.get_intrinsic_type_information(ty));
             } <span class="kw">else </span>{
                 <span class="comment">// the inner type can't be found, return VOID as placeholder
                 </span><span class="kw">return </span><span class="self">self</span>.get_void_type().get_type_information();

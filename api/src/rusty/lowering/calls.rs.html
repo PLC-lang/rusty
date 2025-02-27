@@ -1191,7 +1191,11 @@
 <a href="#1190" id="1190">1190</a>
 <a href="#1191" id="1191">1191</a>
 <a href="#1192" id="1192">1192</a>
-<a href="#1193" id="1193">1193</a></pre></div><pre class="rust"><code><span class="doccomment">//! Changes the calls to aggregate return types
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a></pre></div><pre class="rust"><code><span class="doccomment">//! Changes the calls to aggregate return types
 //! to make them VAR_IN_OUT calls, allowing them
 //! to be called from C_APIs and simplifying code generation
 //!
@@ -1374,6 +1378,11 @@
         }
         unit.walk(<span class="self">self</span>);
     }
+
+    <span class="kw">fn </span>visit_interface(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interface: <span class="kw-2">&amp;mut </span>plc_ast::ast::Interface) {
+        interface.methods.iter_mut().for_each(|m| <span class="self">self</span>.visit_pou(m));
+    }
+
     <span class="comment">// Change the signature for functions/methods with aggregate returns
     </span><span class="kw">fn </span>visit_pou(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;mut </span>Pou) {
         <span class="kw">if </span>pou.is_aggregate() || pou.is_generic() {
@@ -1381,7 +1390,6 @@
             </span><span class="kw">return</span>;
         }
         <span class="kw">let </span>index = <span class="self">self</span>.index.as_ref().expect(<span class="string">"Can't get here without an index"</span>);
-
         <span class="comment">// Check if POU has a return type
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(return_type_name) = pou
             .return_type

@@ -1453,7 +1453,14 @@
 <a href="#1452" id="1452">1452</a>
 <a href="#1453" id="1453">1453</a>
 <a href="#1454" id="1454">1454</a>
-<a href="#1455" id="1455">1455</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
     mem::size_of,
@@ -1984,7 +1991,7 @@
         </span>)
     }
 
-    <span class="kw">pub fn </span>get_dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+    <span class="kw">pub fn </span>get_dimension_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             DataTypeInformation::Array { dimensions, .. } =&gt; <span class="prelude-val">Some</span>(dimensions.len()),
             DataTypeInformation::Struct {
@@ -1992,6 +1999,13 @@
                 ..
             } =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>ndims),
 
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>get_dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;Dimension&gt;&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            DataTypeInformation::Array { dimensions, .. } =&gt; <span class="prelude-val">Some</span>(dimensions),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2758,8 +2772,8 @@
 <span class="doccomment">/// Returns true if provided types have the same type nature
 /// i.e. Both are numeric or both are floats
 </span><span class="kw">pub fn </span>is_same_type_class(ltype: <span class="kw-2">&amp;</span>DataTypeInformation, rtype: <span class="kw-2">&amp;</span>DataTypeInformation, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
-    <span class="kw">let </span>ltype = index.find_intrinsic_type(ltype);
-    <span class="kw">let </span>rtype = index.find_intrinsic_type(rtype);
+    <span class="kw">let </span>ltype = index.get_intrinsic_type_information(ltype);
+    <span class="kw">let </span>rtype = index.get_intrinsic_type_information(rtype);
 
     <span class="kw">match </span>ltype {
         DataTypeInformation::Integer { .. } =&gt; <span class="macro">matches!</span>(rtype, DataTypeInformation::Integer { .. }),

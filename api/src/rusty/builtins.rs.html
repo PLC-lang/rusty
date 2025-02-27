@@ -1747,7 +1747,7 @@
                 <span class="kw">let </span>dimension_idx = <span class="kw-2">*</span>dimension_idx <span class="kw">as </span>usize;
 
                 <span class="kw">let </span><span class="prelude-val">Some</span>(n_dimensions) =
-                    annotations.get_type_or_void(vla, index).get_type_information().get_dimensions()
+                    annotations.get_type_or_void(vla, index).get_type_information().get_dimension_count()
                 <span class="kw">else </span>{
                     <span class="comment">// not a vla, validated via type nature
                     </span><span class="kw">return</span>;

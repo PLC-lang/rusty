@@ -2493,7 +2493,8 @@
 <a href="#2492" id="2492">2492</a>
 <a href="#2493" id="2493">2493</a>
 <a href="#2494" id="2494">2494</a>
-<a href="#2495" id="2495">2495</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2495" id="2495">2495</a>
+<a href="#2496" id="2496">2496</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -3921,7 +3922,8 @@
                     <span class="self">self</span>.get_datatype_dependencies(inner_type_name, resolved_names)
                 }
                 <span class="kw">_ </span>=&gt; {
-                    <span class="kw">let </span>name = <span class="self">self</span>.index.find_intrinsic_type(datatype.get_type_information()).get_name();
+                    <span class="kw">let </span>name =
+                        <span class="self">self</span>.index.get_intrinsic_type_information(datatype.get_type_information()).get_name();
                     <span class="self">self</span>.get_datatype_dependencies(name, resolved_names)
                 }
             }

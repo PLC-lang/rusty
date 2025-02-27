@@ -1978,7 +1978,7 @@
 
         <span class="comment">// Annotate
         </span><span class="kw">let </span>annotations = AstAnnotations::new(
-            annotate_with_ids(<span class="kw-2">&amp;mut </span>unit, <span class="kw-2">&amp;mut </span>index, id_provider.clone()),
+            annotate_with_ids(<span class="kw-2">&amp;</span>unit, <span class="kw-2">&amp;mut </span>index, id_provider.clone()),
             id_provider.next_id(),
         );
 

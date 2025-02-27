@@ -900,7 +900,7 @@
                                     DataTypeInformation::String {
                                         encoding: StringEncoding::Utf16, ..
                                     } =&gt; <span class="self">self</span>.index.find_effective_type_info(WSTRING_TYPE).unwrap_or(it),
-                                    <span class="kw">_ </span>=&gt; <span class="self">self</span>.index.find_intrinsic_type(it),
+                                    <span class="kw">_ </span>=&gt; <span class="self">self</span>.index.get_intrinsic_type_information(it),
                                 }
                             });
 
