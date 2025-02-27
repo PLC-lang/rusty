@@ -2471,7 +2471,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // get lengths of dimensions
         let type_ = self.index.get_type_information_or_void(reference_type);
-        let Some(ndims) = type_.get_type_information().get_dimensions() else { unreachable!() };
+        let Some(ndims) = type_.get_type_information().get_dimension_count() else { unreachable!() };
 
         // get the start/end offsets for each dimension ( ARRAY[4..10, -4..4] ...)
         let index_offsets = get_indices(self.llvm, ndims, dim_arr_gep);

@@ -420,7 +420,7 @@ mod tests {
 
         // Annotate
         let annotations = AstAnnotations::new(
-            annotate_with_ids(&mut unit, &mut index, id_provider.clone()),
+            annotate_with_ids(&unit, &mut index, id_provider.clone()),
             id_provider.next_id(),
         );
 

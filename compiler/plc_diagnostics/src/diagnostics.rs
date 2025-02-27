@@ -169,8 +169,13 @@ impl Diagnostic {
         self.error_code
     }
 
-    pub fn get_sub_diagnostics(&self) -> &[Diagnostic] {
-        &self.sub_diagnostics
+    pub fn get_sub_diagnostics(&self) -> Vec<&Diagnostic> {
+        let mut diagnostics = vec![];
+        self.sub_diagnostics.iter().for_each(|d| {
+            diagnostics.push(d);
+            diagnostics.extend(d.get_sub_diagnostics());
+        });
+        diagnostics
     }
 }
 

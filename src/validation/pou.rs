@@ -1,14 +1,12 @@
 use itertools::Itertools;
 use plc_ast::ast::{Identifier, Implementation, LinkageType, Pou, PouType, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
+use signature_validation::validate_method_signature;
 
 use super::{
     statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
 };
-use crate::{
-    index::PouIndexEntry,
-    resolver::{AnnotationMap, StatementAnnotation},
-};
+use crate::resolver::{AnnotationMap, StatementAnnotation};
 
 pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
     if pou.linkage != LinkageType::External {
@@ -46,7 +44,7 @@ fn validate_implemented_methods<T: AnnotationMap>(
             .flat_map(|it| context.index.find_pou(it.get_qualified_name()));
         //XXX(ghha) should this not be combinations instead of tuple_windows?
         for (method1, method2) in methods.tuple_windows() {
-            let diagnostics = validate_method_signature(context, method1, method2);
+            let diagnostics = validate_method_signature(context.index, method1, method2);
             if !diagnostics.is_empty() {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
@@ -81,7 +79,7 @@ fn validate_implemented_methods<T: AnnotationMap>(
         // Validate that each concrete method that has an abstract counterpart has the same signature
         if let Some(method_impl) = concrete {
             abstracts.for_each(|(_, method_ref)| {
-                let diagnostics = validate_method_signature(context, method_ref, method_impl);
+                let diagnostics = validate_method_signature(context.index, method_ref, method_impl);
                 for diagnostic in diagnostics {
                     validator.push_diagnostic(diagnostic);
                 }
@@ -123,7 +121,7 @@ fn validate_method<T: AnnotationMap>(
         .flat_map(|it| context.index.find_pou(it.get_qualified_name()))
         .collect::<Vec<_>>();
     interface_methods.iter().for_each(|method_ref| {
-        let diagnostics = validate_method_signature(context, method_ref, method_impl);
+        let diagnostics = validate_method_signature(context.index, method_ref, method_impl);
         for diagnostic in diagnostics {
             validator.push_diagnostic(diagnostic);
         }
@@ -197,126 +195,6 @@ where
             }
         }
     }
-}
-
-pub fn validate_method_signature<T>(
-    ctxt: &ValidationContext<'_, T>,
-    method_ref: &PouIndexEntry,
-    method_impl: &PouIndexEntry,
-) -> Vec<Diagnostic>
-where
-    T: AnnotationMap,
-{
-    let mut diagnostics = Vec::new();
-    let method_name = method_ref.get_qualified_name().into_iter().last().unwrap_or_default();
-
-    // Check if the return type matches
-    let return_type_ref = ctxt.index.get_return_type_or_void(method_ref.get_name());
-    let return_type_impl = ctxt.index.get_return_type_or_void(method_impl.get_name());
-
-    if return_type_impl != return_type_ref {
-        diagnostics.push(
-            Diagnostic::new(format!(
-                "Return type of `{}` does not match the return type of the method defined in `{}`, expected `{}` but got `{}` instead",
-                method_name,
-                method_ref.get_parent_pou_name(),
-                return_type_ref.get_name(),
-                return_type_impl.get_name(),
-            ))
-            .with_error_code("E112")
-            .with_location(method_impl)
-            .with_secondary_location(method_ref),
-        );
-    }
-
-    // Check if the parameters match; note that the order of the parameters is important due to implicit calls
-    let parameters_ref = ctxt.index.get_declared_parameters(method_ref.get_name());
-    let parameters_impl = ctxt.index.get_declared_parameters(method_impl.get_name());
-
-    for (idx, parameter_ref) in parameters_ref.iter().enumerate() {
-        match parameters_impl.get(idx) {
-            Some(parameter_impl) => {
-                // Name
-                if parameter_impl.get_name() != parameter_ref.get_name() {
-                    diagnostics.push(
-                        Diagnostic::new(format!(
-                            "Interface implementation mismatch: expected parameter `{}` but got `{}`",
-                            parameter_ref.get_name(),
-                            parameter_impl.get_name()
-                        ))
-                        .with_error_code("E112")
-                        .with_location(&parameter_ref.source_location)
-                        .with_secondary_location(&parameter_impl.source_location),
-                    );
-                }
-
-                // Type
-                if parameter_impl.get_type_name() != parameter_ref.get_type_name() {
-                    diagnostics.push(
-                        Diagnostic::new(format!(
-                            "Interface implementation mismatch: Expected parameter `{}` to have `{}` as its type but got `{}`",
-                            parameter_ref.get_name(),
-                            parameter_ref.get_type_name(),
-                            parameter_impl.get_type_name(),
-                        ))
-                        .with_error_code("E112")
-                        .with_location(method_impl)
-                        .with_secondary_location(&parameter_ref.source_location),
-                    );
-                }
-
-                // Declaration Type (VAR_INPUT, VAR_OUTPUT, VAR_IN_OUT)
-                if parameter_impl.get_declaration_type() != parameter_ref.get_declaration_type() {
-                    diagnostics.push(
-                        Diagnostic::new(format!(
-                            "Interface implementation mismatch: Expected parameter `{}` to have `{}` as its declaration type but got `{}`",
-                            parameter_impl.get_name(),
-                            parameter_ref.get_declaration_type().get_inner(),
-                            parameter_impl.get_declaration_type().get_inner(),
-                        ))
-                        .with_error_code("E112")
-                        .with_location(method_impl)
-                        .with_secondary_location(&parameter_ref.source_location),
-                    );
-                }
-            }
-
-            // Method did not implement the parameter
-            None => {
-                diagnostics.push(
-                    Diagnostic::new(format!(
-                        "Parameter `{} : {}` missing in method `{}`",
-                        parameter_ref.get_name(),
-                        parameter_ref.get_type_name(),
-                        method_name,
-                    ))
-                    .with_error_code("E112")
-                    .with_location(method_impl)
-                    .with_secondary_location(&parameter_ref.source_location),
-                );
-            }
-        }
-    }
-
-    // Exceeding parameters in the POU, which we did not catch in the for loop above because we were only
-    // iterating over the interface parameters; anyhow any exceeding parameter is considered an error because
-    // the function signature no longer holds
-    if parameters_impl.len() > parameters_ref.len() {
-        for parameter in parameters_impl.into_iter().skip(parameters_ref.len()) {
-            diagnostics.push(
-                Diagnostic::new(format!(
-                    "Parameter count mismatch: `{}` has more parameters than the method defined in `{}`",
-                    method_name,
-                    method_ref.get_parent_pou_name(),
-                ))
-                .with_error_code("E112")
-                .with_location(&parameter.source_location)
-                .with_secondary_location(method_ref),
-            );
-        }
-    }
-
-    diagnostics
 }
 
 pub fn visit_implementation<T: AnnotationMap>(
@@ -400,5 +278,365 @@ pub fn validate_action_container(validator: &mut Validator, implementation: &Imp
                 .with_error_code("E022")
                 .with_location(&implementation.location),
         );
+    }
+}
+
+pub(super) mod signature_validation {
+    use itertools::Itertools;
+    use plc_diagnostics::diagnostics::Diagnostic;
+
+    use crate::{
+        index::{Index, PouIndexEntry},
+        typesystem::{DataType, DataTypeInformation},
+    };
+
+    pub fn validate_method_signature(
+        index: &Index,
+        method_ref: &PouIndexEntry,
+        method_impl: &PouIndexEntry,
+    ) -> Vec<Diagnostic> {
+        let ctxt = Context::new(index, method_ref, method_impl);
+        let mut validator = SignatureValidator::new(&ctxt);
+        validator.validate();
+        validator.diagnostics
+    }
+
+    struct Context<'idx> {
+        index: &'idx Index,
+        method_ref: &'idx PouIndexEntry,
+        method_impl: &'idx PouIndexEntry,
+    }
+
+    impl<'idx> Context<'idx> {
+        fn new(
+            index: &'idx Index,
+            method_ref: &'idx PouIndexEntry,
+            method_impl: &'idx PouIndexEntry,
+        ) -> Self {
+            Self { index, method_ref, method_impl }
+        }
+
+        /// Returns a tuple of the return [DataType]s of the method reference and the method implementation
+        fn get_return_types(&self) -> (&DataType, &DataType) {
+            let method_ref_return_type_name = self.method_ref.get_return_type().unwrap_or_default();
+            let method_impl_return_type_name = self.method_impl.get_return_type().unwrap_or_default();
+            let return_type_ref = self.index.get_effective_type_or_void_by_name(method_ref_return_type_name);
+            let return_type_impl =
+                self.index.get_effective_type_or_void_by_name(method_impl_return_type_name);
+
+            (return_type_ref, return_type_impl)
+        }
+    }
+
+    struct SignatureValidator<'b, 'idx> {
+        context: &'b Context<'idx>,
+        diagnostics: Vec<Diagnostic>,
+    }
+
+    impl<'b, 'idx> SignatureValidator<'b, 'idx> {
+        fn new(context: &'b Context<'idx>) -> Self {
+            Self { context, diagnostics: Vec::new() }
+        }
+
+        fn validate(&mut self) {
+            // Check if the return types match
+            self.validate_return_types();
+
+            // Check if the parameters match; note that the order of the parameters is important due to implicit calls.
+            self.validate_parameters();
+        }
+
+        fn validate_return_types(&mut self) {
+            let (return_type_ref, return_type_impl) = self.context.get_return_types();
+            if let Some(sub_diagnostics) = self.validate_types(return_type_impl, return_type_ref) {
+                self.diagnostics.push(
+                    Diagnostic::new("Return types do not match:")
+                        .with_error_code("E112")
+                        .with_sub_diagnostics(sub_diagnostics),
+                );
+            }
+        }
+
+        fn validate_parameters(&mut self) {
+            let context = self.context;
+            let method_impl = context.method_impl;
+            let method_ref = context.method_ref;
+            let method_name = context.method_ref.get_flat_reference_name();
+            let parameters_ref = context.index.get_declared_parameters(method_ref.get_name());
+            let parameters_impl = context.index.get_declared_parameters(method_impl.get_name());
+
+            // Conditionally skip the first parameter if the return type is aggregate.
+            // Return types have already been validated and we don't want to show errors
+            // for internally modified code.
+            let (return_type_ref, return_type_impl) = context.get_return_types();
+            parameters_ref
+                .iter()
+                .skip(return_type_ref.get_type_information().is_aggregate() as usize)
+                .zip_longest(parameters_impl.iter().skip(return_type_impl.get_type_information().is_aggregate() as usize))
+                .for_each(|pair|
+            {
+                match pair {
+                    itertools::EitherOrBoth::Both(parameter_ref, parameter_impl) => {
+                        // Name
+                        if parameter_impl.get_name() != parameter_ref.get_name() {
+                            self.diagnostics.push(
+                                Diagnostic::new(format!(
+                                    "Expected parameter `{}` but got `{}`",
+                                    parameter_ref.get_name(),
+                                    parameter_impl.get_name()
+                                ))
+                                .with_error_code("E112")
+                                .with_location(&parameter_ref.source_location)
+                                .with_secondary_location(&parameter_impl.source_location),
+                            );
+                        }
+
+                        // Type
+                        let impl_ty = context
+                            .index
+                            .get_effective_type_or_void_by_name(parameter_impl.get_type_name());
+                        let ref_ty = context
+                            .index
+                            .get_effective_type_or_void_by_name(parameter_ref.get_type_name());
+
+                        if let Some(sub_diagnostics) = self.validate_types(impl_ty, ref_ty) {
+                            self.diagnostics.push(
+                                Diagnostic::new(format!(
+                                    "Parameter `{}` has different types in declaration and implemenation:",
+                                    parameter_ref.get_name(),
+                                ))
+                                .with_error_code("E112")
+                                .with_sub_diagnostics(sub_diagnostics)
+                                .with_location(method_impl)
+                                .with_secondary_location(&parameter_ref.source_location)
+                            );
+                        }
+
+                        // Declaration Type (VAR_INPUT, VAR_OUTPUT, VAR_IN_OUT)
+                        if parameter_impl.get_declaration_type() != parameter_ref.get_declaration_type() {
+                            self.diagnostics.push(
+                                Diagnostic::new(format!(
+                                    "Expected parameter `{}` to have `{}` as its declaration type but got `{}`",
+                                    parameter_impl.get_name(),
+                                    parameter_ref.get_declaration_type().get_inner(),
+                                    parameter_impl.get_declaration_type().get_inner(),
+                                ))
+                                .with_error_code("E112")
+                                .with_location(method_impl)
+                                .with_secondary_location(&parameter_ref.source_location),
+                            );
+                        }
+                    }
+                    itertools::EitherOrBoth::Left(parameter_ref) => {
+                        self.diagnostics.push(
+                            Diagnostic::new(format!(
+                                "Parameter `{} : {}` missing in method `{}`",
+                                parameter_ref.get_name(),
+                                parameter_ref.get_type_name(),
+                                method_name,
+                            ))
+                            .with_error_code("E112")
+                            .with_location(method_impl)
+                            .with_secondary_location(&parameter_ref.source_location),
+                        );
+                    }
+                    // Exceeding parameters in the POU, which we did not catch in the for loop above because we were only
+                    // iterating over the interface parameters; anyhow any exceeding parameter is considered an error because
+                    // the function signature no longer holds
+                    itertools::EitherOrBoth::Right(parameter_impl) => {
+                        self.diagnostics.push(
+                            Diagnostic::new(format!(
+                                "`{}` has more parameters than the method defined in `{}`",
+                                method_name,
+                                method_ref.get_parent_pou_name(),
+                            ))
+                            .with_error_code("E112")
+                            .with_location(&parameter_impl.source_location)
+                            .with_secondary_location(method_ref),
+                        );
+                    }
+                }
+            })
+        }
+
+        fn validate_types(&self, left: &DataType, right: &DataType) -> Option<Vec<Diagnostic>> {
+            let l_type_info = left.get_type_information();
+            let r_type_info = right.get_type_information();
+            if l_type_info == r_type_info {
+                return None;
+            }
+            let context = self.context;
+            match (l_type_info, r_type_info) {
+                (DataTypeInformation::Array { .. }, DataTypeInformation::Array { .. }) => {
+                    self.validate_array_types(left, right)
+                }
+                (
+                    DataTypeInformation::Pointer { inner_type_name: l_inner, auto_deref: l_auto, .. },
+                    DataTypeInformation::Pointer { inner_type_name: r_inner, auto_deref: r_auto, .. },
+                ) => {
+                    if l_auto.is_some() || r_auto.is_some() {
+                        let left = l_auto
+                            .map(|_| context.index.get_effective_type_or_void_by_name(l_inner))
+                            .unwrap_or(left);
+                        let right = r_auto
+                            .map(|_| context.index.get_effective_type_or_void_by_name(r_inner))
+                            .unwrap_or(right);
+                        return self.validate_types(left, right);
+                    }
+                    self.validate_types(
+                        context.index.get_effective_type_or_void_by_name(l_inner),
+                        context.index.get_effective_type_or_void_by_name(r_inner),
+                    )
+                }
+                (DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. }, _) => {
+                    let inner_type = context.index.get_effective_type_or_void_by_name(inner_type_name);
+                    self.validate_types(inner_type, right)
+                }
+                (_, DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. }) => {
+                    let inner_type = context.index.get_effective_type_or_void_by_name(inner_type_name);
+                    self.validate_types(left, inner_type)
+                }
+                (DataTypeInformation::String { .. }, DataTypeInformation::String { .. }) => {
+                    self.validate_string_types(l_type_info, r_type_info)
+                }
+                (
+                    DataTypeInformation::SubRange { sub_range: _l_range, .. },
+                    DataTypeInformation::SubRange { sub_range: _r_range, .. },
+                ) => {
+                    self.validate_types(
+                        context.index.get_intrinsic_type(left),
+                        context.index.get_intrinsic_type(right),
+                    )
+
+                    // FIXME: properly validate the ranges (folded constants are problematic)
+                }
+                _ => Some(vec![self.create_diagnostic(l_type_info.get_name(), r_type_info.get_name())]),
+            }
+        }
+
+        fn create_diagnostic(&self, left: &str, right: &str) -> Diagnostic {
+            Diagnostic::new(format!(
+                "Type `{right}` declared in `{}` but `{}` implemented type `{left}`",
+                self.context.method_ref.get_name(),
+                self.context.method_impl.get_name()
+            ))
+            .with_error_code("E112")
+            .with_location(self.context.method_impl)
+            .with_secondary_location(self.context.method_ref)
+        }
+
+        fn validate_array_types(&self, left: &DataType, right: &DataType) -> Option<Vec<Diagnostic>> {
+            let context = self.context;
+            let method_impl = context.method_impl;
+            let method_ref = context.method_ref;
+
+            let mut sub_diagnostics = vec![];
+            let mut left_type = left;
+            let mut right_type = right;
+
+            while let (Some(l_inner), Some(r_inner)) = (
+                left_type.get_type_information().get_inner_array_type_name(),
+                right_type.get_type_information().get_inner_array_type_name(),
+            ) {
+                // we found two inner types, so the previous iteration was array types. check their dimensions
+                sub_diagnostics.extend(self.validate_array_dimensions(left_type, right));
+                left_type = context.index.get_effective_type_or_void_by_name(l_inner);
+                right_type = context.index.get_effective_type_or_void_by_name(r_inner);
+            }
+
+            let left_name = left_type.get_name();
+            let right_name = right_type.get_name();
+            if left_name != right_name {
+                sub_diagnostics.push(
+                    Diagnostic::new(format!(
+                        "Expected array of type `{}` but got `{}`",
+                        right_name, left_name
+                    ))
+                    .with_error_code("E112")
+                    .with_location(method_impl)
+                    .with_secondary_location(method_ref),
+                )
+            };
+
+            (!sub_diagnostics.is_empty()).then_some(sub_diagnostics)
+        }
+
+        fn validate_array_dimensions(&self, left: &DataType, right: &DataType) -> Vec<Diagnostic> {
+            let context = self.context;
+            let left_type = left.get_type_information();
+            let right_type = right.get_type_information();
+            let l_dims = left_type.get_dimensions().expect("Array type without dimensions");
+            let r_dims = right_type.get_dimensions().expect("Array type without dimensions");
+
+            l_dims
+                .iter()
+                .zip_longest(r_dims.iter())
+                .filter_map(|pair| {
+                    match pair {
+                        itertools::EitherOrBoth::Both(l, r) => {
+                            match (l.get_range(context.index), r.get_range(context.index)) {
+                                (Ok(l_range), Ok(r_range)) => (l_range != r_range).then_some(
+                                    Diagnostic::new(format!(
+                                        "Array range declared as `[{}..{}]` but implemented as `[{}..{}]`",
+                                        r_range.start, r_range.end, l_range.start, l_range.end
+                                    ))
+                                    .with_error_code("E112")
+                                    .with_secondary_location(left.location.clone())
+                                    .with_secondary_location(right.location.clone()),
+                                ),
+                                _ => {
+                                    // Expression in array dimension could not be evaluated. this should already have raised an error elsewhere
+                                    None
+                                }
+                            }
+                        }
+                        itertools::EitherOrBoth::Left(_) | itertools::EitherOrBoth::Right(_) => Some(
+                            Diagnostic::new(format!(
+                                "Array declared with `{}` dimension{} but implemented with `{}`",
+                                l_dims.len(),
+                                if l_dims.len() == 1 { "" } else { "s" },
+                                r_dims.len()
+                            ))
+                            .with_error_code("E112")
+                            .with_location(right.location.clone())
+                            .with_secondary_location(context.method_impl)
+                            .with_secondary_location(left.location.clone())
+                            .with_secondary_location(context.method_ref),
+                        ),
+                    }
+                })
+                .collect()
+        }
+
+        fn validate_string_types(
+            &self,
+            left: &DataTypeInformation,
+            right: &DataTypeInformation,
+        ) -> Option<Vec<Diagnostic>> {
+            let ctxt = self.context;
+            let method_impl = ctxt.method_impl;
+            let method_ref = ctxt.method_ref;
+            let l_encoding = left.get_string_character_width(ctxt.index);
+            let r_encoding = right.get_string_character_width(ctxt.index);
+            let left_length = left.get_size(ctxt.index).bits() / l_encoding.bits();
+            let right_length = right.get_size(ctxt.index).bits() / r_encoding.bits();
+            let mut sub_diagnostics = vec![];
+            (left_length != right_length).then(|| {
+                sub_diagnostics.push(
+                    Diagnostic::new(format!(
+                        "Expected string of length `{}` but got string of length `{}`",
+                        right_length, left_length
+                    ))
+                    .with_error_code("E112")
+                    .with_location(method_impl)
+                    .with_secondary_location(method_ref),
+                );
+            });
+            (l_encoding != r_encoding).then(|| {
+                sub_diagnostics.push(self.create_diagnostic(left.get_name(), right.get_name()));
+            });
+
+            (!sub_diagnostics.is_empty()).then_some(sub_diagnostics)
+        }
     }
 }

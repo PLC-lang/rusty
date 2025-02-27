@@ -1426,7 +1426,8 @@ impl<'i> TypeAnnotator<'i> {
                     self.get_datatype_dependencies(inner_type_name, resolved_names)
                 }
                 _ => {
-                    let name = self.index.find_intrinsic_type(datatype.get_type_information()).get_name();
+                    let name =
+                        self.index.get_intrinsic_type_information(datatype.get_type_information()).get_name();
                     self.get_datatype_dependencies(name, resolved_names)
                 }
             }

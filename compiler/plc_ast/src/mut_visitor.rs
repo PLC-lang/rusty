@@ -5,7 +5,7 @@ use std::borrow::BorrowMut;
 
 use crate::ast::{
     flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
-    CompilationUnit, DataType, DataTypeDeclaration, DirectAccess, HardwareAccess, Implementation,
+    CompilationUnit, DataType, DataTypeDeclaration, DirectAccess, HardwareAccess, Implementation, Interface,
     JumpStatement, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
     UserTypeDeclaration, Variable, VariableBlock,
 };
@@ -206,6 +206,8 @@ pub trait AstVisitorMut: Sized {
     /// * `stmt` - The unwrapedyped `Allocation` node to visit.
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
     fn visit_allocation(&mut self, _node: &mut AstNode) {}
+
+    fn visit_interface(&mut self, _interface: &mut Interface) {}
 }
 
 impl WalkerMut for AstLiteral {
@@ -423,6 +425,10 @@ impl WalkerMut for CompilationUnit {
 
         for i in &mut self.implementations {
             visitor.visit_implementation(i);
+        }
+
+        for i in &mut self.interfaces {
+            visitor.visit_interface(i);
         }
     }
 }
