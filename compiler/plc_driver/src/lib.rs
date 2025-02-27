@@ -83,6 +83,7 @@ pub struct LinkOptions {
     pub lib_location: Option<PathBuf>,
     pub build_location: Option<PathBuf>,
     pub linker_script: LinkerScript,
+    pub module_name: Option<String>,
 }
 
 #[derive(Clone, Default, Debug)]
@@ -146,7 +147,13 @@ pub struct CompilationContext {
 
 pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     //Parse the arguments
-    let mut pipeline = BuildPipeline::new(args)?;
+    let pipeline = BuildPipeline::new(args)?;
+    compile_with_pipeline(pipeline)
+}
+
+pub fn compile_with_pipeline<T: SourceContainer + Clone + 'static>(
+    mut pipeline: BuildPipeline<T>,
+) -> Result<()> {
     //register participants
     pipeline.register_default_participants();
     let target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
@@ -207,6 +214,7 @@ pub fn parse_and_annotate_with_diagnostics<T: SourceContainer + Clone>(
         linker: LinkerType::Internal,
         mutable_participants: Vec::default(),
         participants: Vec::default(),
+        module_name: Some("<internal>".to_string()),
     };
     pipeline.register_default_participants();
     let Ok(project) = pipeline.parse() else { return Err(pipeline.diagnostician) };
@@ -244,7 +252,7 @@ fn generate_to_string_internal<T: SourceContainer>(
     let project = Project::new(name.to_string()).with_sources(src);
     let context = GlobalContext::new().with_source(project.get_sources(), None)?;
     let diagnostician = Diagnostician::default();
-    let mut params = cli::CompileParameters::parse(&["--ir", "--single-module", "-O", "none"])
+    let mut params = cli::CompileParameters::parse(&["plc", "--ir", "--single-module", "-O", "none"])
         .map_err(|e| Diagnostic::new(e.to_string()))?;
     params.generate_debug = debug;
     let mut pipeline = BuildPipeline {
@@ -255,6 +263,7 @@ fn generate_to_string_internal<T: SourceContainer>(
         linker: LinkerType::Internal,
         mutable_participants: Vec::default(),
         participants: Vec::default(),
+        module_name: Some("<internal>".to_string()),
     };
     pipeline.register_default_participants();
     let project = pipeline.parse()?;

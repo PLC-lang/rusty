@@ -109,6 +109,7 @@ impl<'ink> CodeGen<'ink> {
     pub fn generate_llvm_index(
         &mut self,
         context: &'ink CodegenContext,
+
         annotations: &AstAnnotations,
         literals: &StringLiterals,
         dependencies: &FxIndexSet<Dependency>,
@@ -288,12 +289,12 @@ impl<'ink> CodeGen<'ink> {
 
     /// generates all TYPEs, GLOBAL-sections and POUs of the given CompilationUnit
     pub fn generate(
-        self,
+        mut self,
         context: &'ink CodegenContext,
         unit: &CompilationUnit,
         annotations: &AstAnnotations,
         global_index: &Index,
-        llvm_index: LlvmTypedIndex,
+        llvm_index: LlvmTypedIndex<'ink>,
     ) -> Result<GeneratedModule<'ink>, Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
@@ -305,7 +306,7 @@ impl<'ink> CodeGen<'ink> {
             //Don't generate external or generic functions
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
                 if !entry.is_generic() && entry.get_linkage() != &LinkageType::External {
-                    pou_generator.generate_implementation(implementation, &self.debug)?;
+                    pou_generator.generate_implementation(implementation, &mut self.debug)?;
                 }
             }
         }
@@ -624,6 +625,11 @@ impl<'ink> GeneratedModule<'ink> {
         let engine = self.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
         *self.engine.borrow_mut() = Some(engine.clone());
         engine
+    }
+
+    pub fn set_name(&self, name: &str) {
+        self.module.set_name(name);
+        self.module.set_source_file_name(name);
     }
 }
 
