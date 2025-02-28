@@ -44,12 +44,13 @@ fn validate_implemented_methods<T: AnnotationMap>(
             .flat_map(|it| context.index.find_pou(it.get_qualified_name()));
         //XXX(ghha) should this not be combinations instead of tuple_windows?
         for (method1, method2) in methods.tuple_windows() {
-            let diagnostics = validate_method_signature(context.index, method1, method2);
+            let diagnostics = validate_method_signature(context.index, method1, method2, &pou.name_location);
             if !diagnostics.is_empty() {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
-                        "Method `{}` is defined with different signatures in interfaces `{}` and `{}`",
+                        "Method `{}` in `{}` is declared with conflicting signatures in `{}` and `{}`",
                         method_name,
+                        pou.name,
                         method1.get_parent_pou_name(),
                         method2.get_parent_pou_name()
                     ))
@@ -76,10 +77,11 @@ fn validate_implemented_methods<T: AnnotationMap>(
             .filter(|it| it.is_concrete())
             .map(|it| context.index.find_pou(it.get_qualified_name()).unwrap())
             .next();
-        // Validate that each concrete method that has an abstract counterpart has the same signature
+        // Validate that each concrete method which has an abstract counterpart has the same signature
         if let Some(method_impl) = concrete {
             abstracts.for_each(|(_, method_ref)| {
-                let diagnostics = validate_method_signature(context.index, method_ref, method_impl);
+                let diagnostics =
+                    validate_method_signature(context.index, method_ref, method_impl, &pou.name_location);
                 for diagnostic in diagnostics {
                     validator.push_diagnostic(diagnostic);
                 }
@@ -121,7 +123,8 @@ fn validate_method<T: AnnotationMap>(
         .flat_map(|it| context.index.find_pou(it.get_qualified_name()))
         .collect::<Vec<_>>();
     interface_methods.iter().for_each(|method_ref| {
-        let diagnostics = validate_method_signature(context.index, method_ref, method_impl);
+        let diagnostics =
+            validate_method_signature(context.index, method_ref, method_impl, &pou.name_location);
         for diagnostic in diagnostics {
             validator.push_diagnostic(diagnostic);
         }
@@ -284,6 +287,7 @@ pub fn validate_action_container(validator: &mut Validator, implementation: &Imp
 pub(super) mod signature_validation {
     use itertools::Itertools;
     use plc_diagnostics::diagnostics::Diagnostic;
+    use plc_source::source_location::SourceLocation;
 
     use crate::{
         index::{Index, PouIndexEntry},
@@ -294,8 +298,9 @@ pub(super) mod signature_validation {
         index: &Index,
         method_ref: &PouIndexEntry,
         method_impl: &PouIndexEntry,
+        primary_location: &SourceLocation,
     ) -> Vec<Diagnostic> {
-        let ctxt = Context::new(index, method_ref, method_impl);
+        let ctxt = Context::new(index, method_ref, method_impl, primary_location);
         let mut validator = SignatureValidator::new(&ctxt);
         validator.validate();
         validator.diagnostics
@@ -305,6 +310,7 @@ pub(super) mod signature_validation {
         index: &'idx Index,
         method_ref: &'idx PouIndexEntry,
         method_impl: &'idx PouIndexEntry,
+        primary_location: &'idx SourceLocation,
     }
 
     impl<'idx> Context<'idx> {
@@ -312,8 +318,9 @@ pub(super) mod signature_validation {
             index: &'idx Index,
             method_ref: &'idx PouIndexEntry,
             method_impl: &'idx PouIndexEntry,
+            primary_location: &'idx SourceLocation,
         ) -> Self {
-            Self { index, method_ref, method_impl }
+            Self { index, method_ref, method_impl, primary_location }
         }
 
         /// Returns a tuple of the return [DataType]s of the method reference and the method implementation
@@ -350,9 +357,12 @@ pub(super) mod signature_validation {
             let (return_type_ref, return_type_impl) = self.context.get_return_types();
             if let Some(sub_diagnostics) = self.validate_types(return_type_impl, return_type_ref) {
                 self.diagnostics.push(
-                    Diagnostic::new("Return types do not match:")
-                        .with_error_code("E112")
-                        .with_sub_diagnostics(sub_diagnostics),
+                    Diagnostic::new(
+                        "Derived methods with conflicting signatures, return types do not match:",
+                    )
+                    .with_location(self.context.primary_location)
+                    .with_error_code("E112")
+                    .with_sub_diagnostics(sub_diagnostics),
                 );
             }
         }
@@ -364,7 +374,7 @@ pub(super) mod signature_validation {
             let method_name = context.method_ref.get_flat_reference_name();
             let parameters_ref = context.index.get_declared_parameters(method_ref.get_name());
             let parameters_impl = context.index.get_declared_parameters(method_impl.get_name());
-
+            let mut diagnostics = vec![];
             // Conditionally skip the first parameter if the return type is aggregate.
             // Return types have already been validated and we don't want to show errors
             // for internally modified code.
@@ -379,14 +389,14 @@ pub(super) mod signature_validation {
                     itertools::EitherOrBoth::Both(parameter_ref, parameter_impl) => {
                         // Name
                         if parameter_impl.get_name() != parameter_ref.get_name() {
-                            self.diagnostics.push(
+                            diagnostics.push(
                                 Diagnostic::new(format!(
                                     "Expected parameter `{}` but got `{}`",
                                     parameter_ref.get_name(),
                                     parameter_impl.get_name()
                                 ))
-                                .with_error_code("E112")
-                                .with_location(&parameter_ref.source_location)
+                                .with_error_code("E118")
+                                .with_secondary_location(&parameter_ref.source_location)
                                 .with_secondary_location(&parameter_impl.source_location),
                             );
                         }
@@ -400,43 +410,43 @@ pub(super) mod signature_validation {
                             .get_effective_type_or_void_by_name(parameter_ref.get_type_name());
 
                         if let Some(sub_diagnostics) = self.validate_types(impl_ty, ref_ty) {
-                            self.diagnostics.push(
+                            diagnostics.push(
                                 Diagnostic::new(format!(
-                                    "Parameter `{}` has different types in declaration and implemenation:",
+                                    "Parameter `{}` has conflicting type declarations:",
                                     parameter_ref.get_name(),
                                 ))
-                                .with_error_code("E112")
+                                .with_error_code("E118")
                                 .with_sub_diagnostics(sub_diagnostics)
-                                .with_location(method_impl)
+                                .with_secondary_location(method_impl)
                                 .with_secondary_location(&parameter_ref.source_location)
                             );
                         }
 
                         // Declaration Type (VAR_INPUT, VAR_OUTPUT, VAR_IN_OUT)
                         if parameter_impl.get_declaration_type() != parameter_ref.get_declaration_type() {
-                            self.diagnostics.push(
+                            diagnostics.push(
                                 Diagnostic::new(format!(
                                     "Expected parameter `{}` to have `{}` as its declaration type but got `{}`",
                                     parameter_impl.get_name(),
                                     parameter_ref.get_declaration_type().get_inner(),
                                     parameter_impl.get_declaration_type().get_inner(),
                                 ))
-                                .with_error_code("E112")
-                                .with_location(method_impl)
+                                .with_error_code("E118")
+                                .with_secondary_location(method_impl)
                                 .with_secondary_location(&parameter_ref.source_location),
                             );
                         }
                     }
                     itertools::EitherOrBoth::Left(parameter_ref) => {
-                        self.diagnostics.push(
+                        diagnostics.push(
                             Diagnostic::new(format!(
                                 "Parameter `{} : {}` missing in method `{}`",
                                 parameter_ref.get_name(),
                                 parameter_ref.get_type_name(),
                                 method_name,
                             ))
-                            .with_error_code("E112")
-                            .with_location(method_impl)
+                            .with_error_code("E118")
+                            .with_secondary_location(method_impl)
                             .with_secondary_location(&parameter_ref.source_location),
                         );
                     }
@@ -444,19 +454,27 @@ pub(super) mod signature_validation {
                     // iterating over the interface parameters; anyhow any exceeding parameter is considered an error because
                     // the function signature no longer holds
                     itertools::EitherOrBoth::Right(parameter_impl) => {
-                        self.diagnostics.push(
+                        diagnostics.push(
                             Diagnostic::new(format!(
                                 "`{}` has more parameters than the method defined in `{}`",
                                 method_name,
                                 method_ref.get_parent_pou_name(),
                             ))
-                            .with_error_code("E112")
-                            .with_location(&parameter_impl.source_location)
+                            .with_error_code("E118")
+                            .with_secondary_location(&parameter_impl.source_location)
                             .with_secondary_location(method_ref),
                         );
                     }
                 }
-            })
+            });
+            if !diagnostics.is_empty() {
+                self.diagnostics.push(
+                    Diagnostic::new("Derived methods with conflicting signatures, parameters do not match:")
+                        .with_error_code("E112")
+                        .with_location(self.context.primary_location)
+                        .with_sub_diagnostics(diagnostics),
+                );
+            }
         }
 
         fn validate_types(&self, left: &DataType, right: &DataType) -> Option<Vec<Diagnostic>> {
@@ -516,12 +534,12 @@ pub(super) mod signature_validation {
 
         fn create_diagnostic(&self, left: &str, right: &str) -> Diagnostic {
             Diagnostic::new(format!(
-                "Type `{right}` declared in `{}` but `{}` implemented type `{left}`",
+                "Type `{right}` declared in `{}` but `{}` declared type `{left}`",
                 self.context.method_ref.get_name(),
                 self.context.method_impl.get_name()
             ))
-            .with_error_code("E112")
-            .with_location(self.context.method_impl)
+            .with_error_code("E118")
+            .with_secondary_location(self.context.method_impl)
             .with_secondary_location(self.context.method_ref)
         }
 
@@ -552,8 +570,8 @@ pub(super) mod signature_validation {
                         "Expected array of type `{}` but got `{}`",
                         right_name, left_name
                     ))
-                    .with_error_code("E112")
-                    .with_location(method_impl)
+                    .with_error_code("E118")
+                    .with_secondary_location(method_impl)
                     .with_secondary_location(method_ref),
                 )
             };
@@ -580,7 +598,7 @@ pub(super) mod signature_validation {
                                         "Array range declared as `[{}..{}]` but implemented as `[{}..{}]`",
                                         r_range.start, r_range.end, l_range.start, l_range.end
                                     ))
-                                    .with_error_code("E112")
+                                    .with_error_code("E118")
                                     .with_secondary_location(left.location.clone())
                                     .with_secondary_location(right.location.clone()),
                                 ),
@@ -597,8 +615,8 @@ pub(super) mod signature_validation {
                                 if l_dims.len() == 1 { "" } else { "s" },
                                 r_dims.len()
                             ))
-                            .with_error_code("E112")
-                            .with_location(right.location.clone())
+                            .with_error_code("E118")
+                            .with_secondary_location(right.location.clone())
                             .with_secondary_location(context.method_impl)
                             .with_secondary_location(left.location.clone())
                             .with_secondary_location(context.method_ref),
@@ -627,8 +645,8 @@ pub(super) mod signature_validation {
                         "Expected string of length `{}` but got string of length `{}`",
                         right_length, left_length
                     ))
-                    .with_error_code("E112")
-                    .with_location(method_impl)
+                    .with_error_code("E118")
+                    .with_secondary_location(method_impl)
                     .with_secondary_location(method_ref),
                 );
             });
