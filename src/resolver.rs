@@ -54,12 +54,18 @@ macro_rules! visit_all_statements {
      };
    }
 
+#[derive(Clone, Debug)]
+enum AssignmentPosition {
+    Left,
+    Right,
+}
+
 /// Context object passed by the visitor
 /// Denotes the current context of expressions (e.g. the current pou, a defined context, etc.)
 ///
 /// Helper methods `qualifier`, `current_pou` and `lhs_pou` copy the current context and
 /// change one field.
-#[derive(Clone)]
+#[derive(Clone, Debug, Default)]
 pub struct VisitorContext<'s> {
     /// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
     qualifier: Option<String>,
@@ -69,6 +75,7 @@ pub struct VisitorContext<'s> {
     /// Inside the left hand side of an assignment is in the context of the call's POU
     /// `foo(a := a)` actually means: `foo(foo.a := POU.a)`
     lhs: Option<&'s str>,
+    assignment: Option<AssignmentPosition>,
 
     /// true if the expression passed a constant-variable on the way
     /// e.g. true for `x` if x is declared in a constant block
@@ -142,6 +149,12 @@ impl<'s> VisitorContext<'s> {
 
     fn is_in_a_body(&self) -> bool {
         self.in_body
+    }
+
+    fn with_assignment_position(&self, pos: AssignmentPosition) -> Self {
+        let mut ctx = self.clone();
+        ctx.assignment = Some(pos);
+        ctx
     }
 }
 
@@ -478,6 +491,9 @@ pub enum StatementAnnotation {
     MethodDeclarations {
         declarations: FxHashMap<String, Vec<MethodDeclarationType>>,
     },
+    Property {
+        name: String,
+    },
     #[default]
     None,
 }
@@ -577,16 +593,14 @@ impl StatementAnnotation {
     }
 
     pub fn is_property(&self) -> bool {
-        matches!(
-            self,
-            StatementAnnotation::Variable { argument_type: ArgumentType::ByVal(VariableType::Property), .. }
-        )
+        matches!(self, StatementAnnotation::Property { .. })
     }
 
     pub fn qualified_name(&self) -> Option<&str> {
         match self {
             StatementAnnotation::Variable { qualified_name, .. }
             | StatementAnnotation::Function { qualified_name, .. }
+            | StatementAnnotation::Property { name: qualified_name }
             | StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
 
             _ => None,
@@ -695,6 +709,7 @@ pub trait AnnotationMap {
             | StatementAnnotation::Label { .. }
             | StatementAnnotation::Override { .. }
             | StatementAnnotation::MethodDeclarations { .. }
+            | StatementAnnotation::Property { .. }
             | StatementAnnotation::None => None,
         }
     }
@@ -913,14 +928,9 @@ impl<'i> TypeAnnotator<'i> {
     ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
-            pou: None,
-            qualifier: None,
-            lhs: None,
-            constant: false,
-            in_body: false,
-            id_provider,
             resolve_strategy: ResolvingStrategy::default_scopes(),
-            in_control: false,
+            id_provider,
+            ..Default::default()
         };
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
@@ -1694,12 +1704,19 @@ impl<'i> TypeAnnotator<'i> {
                 visit_all_statements!(self, ctx, &data.start, &data.end);
             }
             AstStatement::Assignment(data, ..) | AstStatement::RefAssignment(data, ..) => {
-                self.visit_statement(&ctx.enter_control(), &data.right);
+                self.visit_statement(
+                    &ctx.enter_control().with_assignment_position(AssignmentPosition::Right),
+                    &data.right,
+                );
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
-                    self.visit_statement(&ctx.with_pou(lhs).with_lhs(lhs), &data.left);
+                    self.visit_statement(
+                        &ctx.with_pou(lhs).with_lhs(lhs).with_assignment_position(AssignmentPosition::Left),
+                        &data.left,
+                    );
+                    // TODO: check if calls with properties are now problematic, e.g. foo(someProp)
                 } else {
-                    self.visit_statement(ctx, &data.left);
+                    self.visit_statement(&ctx.with_assignment_position(AssignmentPosition::Left), &data.left);
                 }
 
                 // give a type hint that we want the right side to be stored in the left's type
@@ -2319,7 +2336,7 @@ impl Scope {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum ResolvingStrategy {
     Variable,      //try to resolve a variable
     POU,           //try to resolve a POU
@@ -2364,6 +2381,21 @@ impl ResolvingStrategy {
                         .find_member(index, qualifier, name)
                         .or_else(|| index.find_enum_variant(qualifier, name))
                         .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
+                        .or_else(|| {
+                            let prefix = ctx
+                                .assignment
+                                .as_ref()
+                                .map(|side| match side {
+                                    AssignmentPosition::Left => "__set_",
+                                    AssignmentPosition::Right => "__get_",
+                                })
+                                .unwrap_or("__get_");
+                            let prop_name = format!("{prefix}{name}");
+                            index.find_method(qualifier, &prop_name).map(|method|
+                                        // annotate as property
+                                        StatementAnnotation::Property { name: method.get_name().to_string() 
+                                        })
+                        })
                 } else {
                     // look for member variable with name "pou.name"
                     // then try fopr a global variable called "name"

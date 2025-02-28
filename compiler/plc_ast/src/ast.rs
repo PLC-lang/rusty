@@ -437,9 +437,6 @@ pub enum VariableBlockType {
     Global,
     InOut,
     External,
-
-    /// A compiler internal variable block representing all properties defined within a stateful POU
-    Property,
 }
 
 impl Display for VariableBlockType {
@@ -452,7 +449,6 @@ impl Display for VariableBlockType {
             VariableBlockType::Global => write!(f, "Global"),
             VariableBlockType::InOut => write!(f, "InOut"),
             VariableBlockType::External => write!(f, "External"),
-            VariableBlockType::Property => write!(f, "Property"),
         }
     }
 }
@@ -483,19 +479,6 @@ impl VariableBlock {
     pub fn with_variables(mut self, variables: Vec<Variable>) -> Self {
         self.variables = variables;
         self
-    }
-
-    /// Creates a new (internal) variable block with a block type of [`Property`]
-    pub fn property(variables: Vec<Variable>) -> VariableBlock {
-        VariableBlock {
-            access: AccessModifier::Internal,
-            constant: false,
-            retain: false,
-            variables,
-            variable_block_type: VariableBlockType::Property,
-            linkage: LinkageType::Internal,
-            location: SourceLocation::internal(),
-        }
     }
 }
 
