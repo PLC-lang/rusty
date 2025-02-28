@@ -155,7 +155,7 @@ impl DataType {
 
     /// returns true if this type is an internal, auto-generated type
     pub fn is_internal(&self) -> bool {
-        self.location.is_internal()
+        self.location.is_builtin_internal()
     }
 
     pub fn is_struct(&self) -> bool {

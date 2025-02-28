@@ -140,7 +140,7 @@ fn initializing_a_struct() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -178,19 +178,6 @@ fn initializing_a_struct() {
       ret void
     }
 
-    define void @__init_rect(%Rect* %0) {
-    entry:
-      %self = alloca %Rect*, align 8
-      store %Rect* %0, %Rect** %self, align 8
-      %deref = load %Rect*, %Rect** %self, align 8
-      %topLeft = getelementptr inbounds %Rect, %Rect* %deref, i32 0, i32 0
-      call void @__init_point(%Point* %topLeft)
-      %deref1 = load %Rect*, %Rect** %self, align 8
-      %bottomRight = getelementptr inbounds %Rect, %Rect* %deref1, i32 0, i32 1
-      call void @__init_point(%Point* %bottomRight)
-      ret void
-    }
-
     define void @__init_prg(%prg* %0) {
     entry:
       %self = alloca %prg*, align 8
@@ -201,6 +188,19 @@ fn initializing_a_struct() {
       %deref1 = load %prg*, %prg** %self, align 8
       %rect2 = getelementptr inbounds %prg, %prg* %deref1, i32 0, i32 1
       call void @__init_rect(%Rect* %rect2)
+      ret void
+    }
+
+    define void @__init_rect(%Rect* %0) {
+    entry:
+      %self = alloca %Rect*, align 8
+      store %Rect* %0, %Rect** %self, align 8
+      %deref = load %Rect*, %Rect** %self, align 8
+      %topLeft = getelementptr inbounds %Rect, %Rect* %deref, i32 0, i32 0
+      call void @__init_point(%Point* %topLeft)
+      %deref1 = load %Rect*, %Rect** %self, align 8
+      %bottomRight = getelementptr inbounds %Rect, %Rect* %deref1, i32 0, i32 1
+      call void @__init_point(%Point* %bottomRight)
       ret void
     }
 
@@ -226,7 +226,7 @@ fn initializing_a_struct() {
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+    "#);
 }
 
 /// Structs are aggregate types. This means that passing them to functions and assigning them
@@ -358,7 +358,7 @@ fn accessing_struct_members() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -400,19 +400,6 @@ fn accessing_struct_members() {
       ret void
     }
 
-    define void @__init_rect(%Rect* %0) {
-    entry:
-      %self = alloca %Rect*, align 8
-      store %Rect* %0, %Rect** %self, align 8
-      %deref = load %Rect*, %Rect** %self, align 8
-      %topLeft = getelementptr inbounds %Rect, %Rect* %deref, i32 0, i32 0
-      call void @__init_point(%Point* %topLeft)
-      %deref1 = load %Rect*, %Rect** %self, align 8
-      %bottomRight = getelementptr inbounds %Rect, %Rect* %deref1, i32 0, i32 1
-      call void @__init_point(%Point* %bottomRight)
-      ret void
-    }
-
     define void @__init_prg(%prg* %0) {
     entry:
       %self = alloca %prg*, align 8
@@ -423,6 +410,19 @@ fn accessing_struct_members() {
       %deref1 = load %prg*, %prg** %self, align 8
       %rect2 = getelementptr inbounds %prg, %prg* %deref1, i32 0, i32 1
       call void @__init_rect(%Rect* %rect2)
+      ret void
+    }
+
+    define void @__init_rect(%Rect* %0) {
+    entry:
+      %self = alloca %Rect*, align 8
+      store %Rect* %0, %Rect** %self, align 8
+      %deref = load %Rect*, %Rect** %self, align 8
+      %topLeft = getelementptr inbounds %Rect, %Rect* %deref, i32 0, i32 0
+      call void @__init_point(%Point* %topLeft)
+      %deref1 = load %Rect*, %Rect** %self, align 8
+      %bottomRight = getelementptr inbounds %Rect, %Rect* %deref1, i32 0, i32 1
+      call void @__init_point(%Point* %bottomRight)
       ret void
     }
 
@@ -448,5 +448,5 @@ fn accessing_struct_members() {
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+    "#);
 }

@@ -42,7 +42,7 @@ use inkwell::{
 };
 use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_source::source_location::SourceLocation;
+use plc_source::source_location::{FileMarker, SourceLocation};
 
 mod debug;
 pub(crate) mod generators;
@@ -95,13 +95,15 @@ impl<'ink> CodeGen<'ink> {
     pub fn new(
         context: &'ink CodegenContext,
         root: Option<&Path>,
-        module_location: &str,
+        file_marker: FileMarker,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
         online_change: OnlineChange,
     ) -> CodeGen<'ink> {
+        let module_location = file_marker.get_name().unwrap_or_default();
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
+        let debug_level = if file_marker.is_internal() { DebugLevel::None } else { debug_level };
         let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
         CodeGen { module, debug, module_location: module_location.to_string(), online_change }
     }
@@ -311,7 +313,7 @@ impl<'ink> CodeGen<'ink> {
             }
         }
 
-        let location = PathBuf::from(&unit.file_name);
+        let location = (&unit.file).into();
 
         self.debug.finalize();
         log::debug!("{}", self.module.to_string());

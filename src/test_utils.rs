@@ -146,7 +146,7 @@ pub mod tests {
             index,
             unresolvables,
             id_provider.clone(),
-            &get_project_init_symbol(),
+            get_project_init_symbol(),
         );
 
         let mut index = Index::default();
@@ -277,7 +277,7 @@ pub mod tests {
                 let mut code_generator = crate::codegen::CodeGen::new(
                     &context,
                     path.as_deref(),
-                    &unit.file_name,
+                    unit.file,
                     crate::OptimizationLevel::None,
                     debug_level,
                     online_change.clone(),
@@ -364,7 +364,7 @@ pub mod tests {
                 let mut code_generator = crate::codegen::CodeGen::new(
                     context,
                     path.as_deref(),
-                    &unit.file_name,
+                    unit.file,
                     crate::OptimizationLevel::None,
                     debug_level,
                     crate::OnlineChange::Disabled,
@@ -402,7 +402,7 @@ pub mod tests {
         codegen(source.as_str())
     }
 
-    fn get_project_init_symbol() -> String {
-        "__init___testproject".to_string()
+    fn get_project_init_symbol() -> &'static str {
+        "__init___testproject"
     }
 }

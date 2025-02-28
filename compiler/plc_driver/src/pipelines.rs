@@ -266,7 +266,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
 
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
             Box::new(PropertyLowerer::new(self.context.provider())),
-            // Box::new(InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider())),
+            Box::new(InitParticipant::new(&self.project.get_init_symbol_name(), self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
         ];
@@ -606,7 +606,11 @@ impl IndexedProject {
     /// in order to initialize pointers before first cycle.
     ///
     /// This method will consume the provided indexed project, modify the AST and re-index each unit
-    pub fn extend_with_init_units(self, symbol_name: &str, id_provider: IdProvider) -> IndexedProject {
+    pub fn extend_with_init_units(
+        self,
+        symbol_name: &'static str,
+        id_provider: IdProvider,
+    ) -> IndexedProject {
         let units = self.project.units;
         let lowered =
             InitVisitor::visit(units, self.index, self.unresolvables, id_provider.clone(), symbol_name);
@@ -730,7 +734,7 @@ impl AnnotatedProject {
         let mut code_generator = plc::codegen::CodeGen::new(
             context,
             compile_options.root.as_deref(),
-            &unit.file_name,
+            unit.file,
             compile_options.optimization,
             compile_options.debug_level,
             //FIXME don't clone here

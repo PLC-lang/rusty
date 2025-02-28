@@ -141,7 +141,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
         ",
     );
 
-    assert_snapshot!(ir, @r###"
+    assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -155,6 +155,8 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       %Y = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
       ret void
     }
+
+    declare void @__init_foo(%FOO*)
 
     define i32 @main() {
     entry:
@@ -215,8 +217,6 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       ret i32 %main_ret
     }
 
-    declare void @__init_foo(%FOO*)
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
@@ -228,14 +228,14 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     @__FOO__init = external global %FOO
 
+    declare void @FOO(%FOO*)
+
     define void @__init_foo(%FOO* %0) {
     entry:
       %self = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %self, align 8
       ret void
     }
-
-    declare void @FOO(%FOO*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -245,7 +245,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -269,7 +269,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
         ",
     );
 
-    assert_snapshot!(ir, @r###"
+    assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -282,6 +282,8 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
       %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       ret void
     }
+
+    declare void @__init_foo(%FOO*)
 
     define i32 @main() {
     entry:
@@ -305,8 +307,6 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
       ret i32 %main_ret
     }
 
-    declare void @__init_foo(%FOO*)
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
@@ -318,14 +318,14 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
 
     @__FOO__init = external global %FOO
 
+    declare void @FOO(%FOO*)
+
     define void @__init_foo(%FOO* %0) {
     entry:
       %self = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %self, align 8
       ret void
     }
-
-    declare void @FOO(%FOO*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -335,7 +335,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -359,7 +359,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
         ",
     );
 
-    assert_snapshot!(ir, @r###"
+    assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -372,6 +372,8 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
       %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       ret void
     }
+
+    declare void @__init_foo(%FOO*)
 
     define i32 @main() {
     entry:
@@ -395,8 +397,6 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
       ret i32 %main_ret
     }
 
-    declare void @__init_foo(%FOO*)
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
@@ -408,14 +408,14 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 
     @__FOO__init = external global %FOO
 
+    declare void @FOO(%FOO*)
+
     define void @__init_foo(%FOO* %0) {
     entry:
       %self = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %self, align 8
       ret void
     }
-
-    declare void @FOO(%FOO*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -425,7 +425,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -458,7 +458,7 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
         ",
     );
 
-    assert_snapshot!(ir, @r###"
+    assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -475,6 +475,10 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       %Q = getelementptr inbounds %QUUX, %QUUX* %0, i32 0, i32 0
       ret void
     }
+
+    declare void @__init_foo_struct(%foo_struct*)
+
+    declare void @__init_quux(%QUUX*)
 
     define i32 @main() {
     entry:
@@ -514,10 +518,6 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       ret i32 %main_ret
     }
 
-    declare void @__init_foo_struct(%foo_struct*)
-
-    declare void @__init_quux(%QUUX*)
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
@@ -533,6 +533,15 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     @__bar_struct__init = external global %bar_struct
     @__QUUX__init = external global %QUUX
 
+    declare void @QUUX(%QUUX*)
+
+    define void @__init_bar_struct(%bar_struct* %0) {
+    entry:
+      %self = alloca %bar_struct*, align 8
+      store %bar_struct* %0, %bar_struct** %self, align 8
+      ret void
+    }
+
     define void @__init_foo_struct(%foo_struct* %0) {
     entry:
       %self = alloca %foo_struct*, align 8
@@ -543,21 +552,12 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       ret void
     }
 
-    define void @__init_bar_struct(%bar_struct* %0) {
-    entry:
-      %self = alloca %bar_struct*, align 8
-      store %bar_struct* %0, %bar_struct** %self, align 8
-      ret void
-    }
-
     define void @__init_quux(%QUUX* %0) {
     entry:
       %self = alloca %QUUX*, align 8
       store %QUUX* %0, %QUUX** %self, align 8
       ret void
     }
-
-    declare void @QUUX(%QUUX*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -567,5 +567,5 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }

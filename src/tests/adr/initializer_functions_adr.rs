@@ -477,7 +477,7 @@ fn generating_init_functions() {
         ";
 
     let res = codegen(src);
-    assert_snapshot!(res, @r###"
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -495,17 +495,17 @@ fn generating_init_functions() {
     @__myStruct__init = external global %myStruct
     @__myRefStruct__init = external global %myRefStruct
 
-    define void @__init_mystruct(%myStruct* %0) {
-    entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
-      ret void
-    }
-
     define void @__init_myrefstruct(%myRefStruct* %0) {
     entry:
       %self = alloca %myRefStruct*, align 8
       store %myRefStruct* %0, %myRefStruct** %self, align 8
+      ret void
+    }
+
+    define void @__init_mystruct(%myStruct* %0) {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
       ret void
     }
     ; ModuleID = '__init___testproject'
@@ -517,7 +517,7 @@ fn generating_init_functions() {
     entry:
       ret void
     }
-    "###);
+    "#);
 
     // The second example shows how each initializer function delegates member-initialization to the respective member-init-function
     // The wrapping init function contains a single call-statement to `__init_baz`, since `baz` is the only global instance in need of
@@ -708,7 +708,7 @@ fn intializing_temporary_variables() {
         ";
 
     let res = codegen(src);
-    assert_snapshot!(res, @r##"
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -717,6 +717,8 @@ fn intializing_temporary_variables() {
     @ps = global [81 x i8] zeroinitializer
     @ps2 = global [81 x i8] zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
+
+    declare void @__init_foo(%foo*)
 
     define void @foo(%foo* %0) {
     entry:
@@ -745,8 +747,6 @@ fn intializing_temporary_variables() {
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
-
-    declare void @__init_foo(%foo*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -780,7 +780,7 @@ fn intializing_temporary_variables() {
     entry:
       ret void
     }
-    "##)
+    "#)
 }
 
 /// Initializing method variables behaves very similar to stack local variables from the previous example.

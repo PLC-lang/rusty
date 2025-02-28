@@ -882,7 +882,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
 
     // Assert that the right-hand side is a reference
-    if !(assignment.right.is_reference() || assignment_location.is_internal()) {
+    if !(assignment.right.is_reference() || assignment_location.is_builtin_internal()) {
         validator.push_diagnostic(
             Diagnostic::new("Invalid assignment, expected a reference")
                 .with_location(&assignment.right.location)
@@ -912,7 +912,7 @@ fn validate_alias_assignment<T: AnnotationMap>(
         if context
             .annotations
             .get(left)
-            .is_some_and(|opt| opt.is_alias() && !ref_assignment.location.is_internal())
+            .is_some_and(|opt| opt.is_alias() && !ref_assignment.location.is_builtin_internal())
         {
             validator.push_diagnostic(
                 Diagnostic::new(format!(

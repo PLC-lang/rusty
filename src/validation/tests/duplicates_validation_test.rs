@@ -404,7 +404,7 @@ fn automatically_generated_output_types_in_different_files_dont_cause_duplicatio
 fn duplicate_with_generic() {
     // a version of the test-util function that does not import the built-in and std-types
     // (or they will cause a duplication issue)
-    fn do_index(src: &str, id_provider: IdProvider, file_name: &str) -> (Index, CompilationUnit) {
+    fn do_index(src: &str, id_provider: IdProvider, file_name: &'static str) -> (Index, CompilationUnit) {
         let mut index = Index::default();
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone(), SourceLocationFactory::internal(src)),
@@ -576,7 +576,7 @@ fn duplicate_enum_inline_variants() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E004]: __main_foo.a: Duplicate symbol.
       ┌─ <internal>:4:24
       │
@@ -592,8 +592,7 @@ fn duplicate_enum_inline_variants() {
       │                        -        ^ __main_foo.a: Duplicate symbol.
       │                        │         
       │                        see also
-
-    "###);
+    ");
 }
 
 // https://github.com/PLC-lang/rusty/issues/1156
@@ -695,7 +694,7 @@ fn duplicate_method_names_should_return_an_error() {
         "
         PROGRAM prg
             // This shouldn't be fine
-            METHOD foo 
+            METHOD foo
             END_METHOD
 
             METHOD foo
@@ -712,7 +711,7 @@ fn duplicate_method_names_should_return_an_error() {
             END_METHOD
 
             // This shouldnt
-            METHOD bar 
+            METHOD bar
             END_METHOD
 
             METHOD bar
@@ -725,7 +724,7 @@ fn duplicate_method_names_should_return_an_error() {
     error[E004]: prg.foo: Ambiguous callable symbol.
       ┌─ <internal>:4:20
       │
-    4 │             METHOD foo 
+    4 │             METHOD foo
       │                    ^^^ prg.foo: Ambiguous callable symbol.
       ·
     7 │             METHOD foo
@@ -734,7 +733,7 @@ fn duplicate_method_names_should_return_an_error() {
     error[E004]: prg.foo: Ambiguous callable symbol.
       ┌─ <internal>:7:20
       │
-    4 │             METHOD foo 
+    4 │             METHOD foo
       │                    --- see also
       ·
     7 │             METHOD foo
@@ -743,7 +742,7 @@ fn duplicate_method_names_should_return_an_error() {
     error[E004]: fb.bar: Ambiguous callable symbol.
        ┌─ <internal>:21:20
        │
-    21 │             METHOD bar 
+    21 │             METHOD bar
        │                    ^^^ fb.bar: Ambiguous callable symbol.
        ·
     24 │             METHOD bar
@@ -752,7 +751,7 @@ fn duplicate_method_names_should_return_an_error() {
     error[E004]: fb.bar: Ambiguous callable symbol.
        ┌─ <internal>:24:20
        │
-    21 │             METHOD bar 
+    21 │             METHOD bar
        │                    --- see also
        ·
     24 │             METHOD bar

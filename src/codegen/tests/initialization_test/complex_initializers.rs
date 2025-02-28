@@ -114,7 +114,7 @@ fn init_functions_generated_for_programs() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -136,6 +136,8 @@ fn init_functions_generated_for_programs() {
     @PLC_PRG_instance = external global %PLC_PRG
     @s = external global [81 x i8]
 
+    declare void @PLC_PRG(%PLC_PRG*)
+
     define void @__init_plc_prg(%PLC_PRG* %0) {
     entry:
       %self = alloca %PLC_PRG*, align 8
@@ -145,8 +147,6 @@ fn init_functions_generated_for_programs() {
       store [81 x i8]* @s, [81 x i8]** %to_init, align 8
       ret void
     }
-
-    declare void @PLC_PRG(%PLC_PRG*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -155,6 +155,8 @@ fn init_functions_generated_for_programs() {
     @PLC_PRG_instance = external global %PLC_PRG
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
+    declare void @PLC_PRG(%PLC_PRG*)
+
     define void @__init___testproject() {
     entry:
       call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
@@ -162,9 +164,7 @@ fn init_functions_generated_for_programs() {
     }
 
     declare void @__init_plc_prg(%PLC_PRG*)
-
-    declare void @PLC_PRG(%PLC_PRG*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -183,7 +183,7 @@ fn init_functions_work_with_adr() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -205,6 +205,8 @@ fn init_functions_work_with_adr() {
     @PLC_PRG_instance = external global %PLC_PRG
     @s = external global [81 x i8]
 
+    declare void @PLC_PRG(%PLC_PRG*)
+
     define void @__init_plc_prg(%PLC_PRG* %0) {
     entry:
       %self = alloca %PLC_PRG*, align 8
@@ -214,8 +216,6 @@ fn init_functions_work_with_adr() {
       store [81 x i8]* @s, [81 x i8]** %to_init, align 8
       ret void
     }
-
-    declare void @PLC_PRG(%PLC_PRG*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -224,6 +224,8 @@ fn init_functions_work_with_adr() {
     @PLC_PRG_instance = external global %PLC_PRG
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
+    declare void @PLC_PRG(%PLC_PRG*)
+
     define void @__init___testproject() {
     entry:
       call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
@@ -231,9 +233,7 @@ fn init_functions_work_with_adr() {
     }
 
     declare void @__init_plc_prg(%PLC_PRG*)
-
-    declare void @PLC_PRG(%PLC_PRG*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -358,7 +358,7 @@ fn nested_initializer_pous() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -375,6 +375,31 @@ fn nested_initializer_pous() {
     @mainProg_instance = global %mainProg zeroinitializer
     @sideProg_instance = global %sideProg zeroinitializer
 
+    define void @bar(%bar* %0) {
+    entry:
+      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      call void @baz.print(%baz* %b)
+      ret void
+    }
+
+    define void @bar.print(%bar* %0) {
+    entry:
+      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @baz(%baz* %0) {
+    entry:
+      %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @baz.print(%baz* %0) {
+    entry:
+      %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
+      ret void
+    }
+
     define void @foo(%foo* %0) {
     entry:
       %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
@@ -384,16 +409,10 @@ fn nested_initializer_pous() {
       ret void
     }
 
-    define void @bar(%bar* %0) {
+    define void @foo.print(%foo* %0) {
     entry:
-      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      call void @baz.print(%baz* %b)
-      ret void
-    }
-
-    define void @baz(%baz* %0) {
-    entry:
-      %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
+      %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
     }
 
@@ -412,25 +431,6 @@ fn nested_initializer_pous() {
       call void @foo.print(%foo* %f)
       ret void
     }
-
-    define void @bar.print(%bar* %0) {
-    entry:
-      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      ret void
-    }
-
-    define void @foo.print(%foo* %0) {
-    entry:
-      %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      ret void
-    }
-
-    define void @baz.print(%baz* %0) {
-    entry:
-      %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
-      ret void
-    }
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
 
@@ -446,25 +446,6 @@ fn nested_initializer_pous() {
     @mainProg_instance = external global %mainProg
     @sideProg_instance = external global %sideProg
     @str = external global [81 x i8]
-
-    define void @__init_foo(%foo* %0) {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
-      %str_ref = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
-      store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
-      %deref1 = load %foo*, %foo** %self, align 8
-      %b = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
-      call void @__init_bar(%bar* %b)
-      ret void
-    }
-
-    declare void @foo(%foo*)
-
-    declare void @bar(%bar*)
-
-    declare void @baz(%baz*)
 
     define void @__init_bar(%bar* %0) {
     entry:
@@ -486,6 +467,19 @@ fn nested_initializer_pous() {
       ret void
     }
 
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %str_ref = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
+      %deref1 = load %foo*, %foo** %self, align 8
+      %b = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
+      call void @__init_bar(%bar* %b)
+      ret void
+    }
+
     define void @__init_mainprog(%mainProg* %0) {
     entry:
       %self = alloca %mainProg*, align 8
@@ -499,8 +493,6 @@ fn nested_initializer_pous() {
       ret void
     }
 
-    declare void @mainProg(%mainProg*)
-
     define void @__init_sideprog(%sideProg* %0) {
     entry:
       %self = alloca %sideProg*, align 8
@@ -513,6 +505,14 @@ fn nested_initializer_pous() {
       call void @__init_foo(%foo* %f)
       ret void
     }
+
+    declare void @bar(%bar*)
+
+    declare void @baz(%baz*)
+
+    declare void @foo(%foo*)
+
+    declare void @mainProg(%mainProg*)
 
     declare void @sideProg(%sideProg*)
     ; ModuleID = '__init___testproject'
@@ -540,18 +540,18 @@ fn nested_initializer_pous() {
 
     declare void @__init_mainprog(%mainProg*)
 
-    declare void @mainProg(%mainProg*)
-
-    declare void @foo(%foo*)
+    declare void @__init_sideprog(%sideProg*)
 
     declare void @bar(%bar*)
 
     declare void @baz(%baz*)
 
-    declare void @__init_sideprog(%sideProg*)
+    declare void @foo(%foo*)
+
+    declare void @mainProg(%mainProg*)
 
     declare void @sideProg(%sideProg*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -796,21 +796,6 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     @__cl__init = unnamed_addr constant %cl zeroinitializer
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
-    define void @prog(%prog* %0) {
-    entry:
-      ret void
-    }
-
-    define void @foo(%foo* %0) {
-    entry:
-      ret void
-    }
-
-    define void @foo.m(%foo* %0) {
-    entry:
-      ret void
-    }
-
     define void @cl(%cl* %0) {
     entry:
       ret void
@@ -821,7 +806,22 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
+    define void @foo(%foo* %0) {
+    entry:
+      ret void
+    }
+
     define void @foo.act(%foo* %0) {
+    entry:
+      ret void
+    }
+
+    define void @foo.m(%foo* %0) {
+    entry:
+      ret void
+    }
+
+    define void @prog(%prog* %0) {
     entry:
       ret void
     }
@@ -838,10 +838,10 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     @prog_instance = external global %prog
     @__cl__init = external global %cl
 
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_cl(%cl* %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca %cl*, align 8
+      store %cl* %0, %cl** %self, align 8
       ret void
     }
 
@@ -852,7 +852,12 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    declare void @foo(%foo*)
+    define void @__init_mystruct(%myStruct* %0) {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
 
     define void @__init_prog(%prog* %0) {
     entry:
@@ -861,16 +866,11 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    declare void @prog(%prog*)
-
-    define void @__init_cl(%cl* %0) {
-    entry:
-      %self = alloca %cl*, align 8
-      store %cl* %0, %cl** %self, align 8
-      ret void
-    }
-
     declare void @cl(%cl*)
+
+    declare void @foo(%foo*)
+
+    declare void @prog(%prog*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -912,7 +912,7 @@ fn global_instance() {
       "#,
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -955,14 +955,14 @@ fn global_instance() {
       ret void
     }
 
-    declare void @foo(%foo*)
-
     define void @__init_prog(%prog* %0) {
     entry:
       %self = alloca %prog*, align 8
       store %prog* %0, %prog** %self, align 8
       ret void
     }
+
+    declare void @foo(%foo*)
 
     declare void @prog(%prog*)
     ; ModuleID = '__init___testproject'
@@ -983,14 +983,14 @@ fn global_instance() {
       ret void
     }
 
-    declare void @__init_prog(%prog*)
-
-    declare void @prog(%prog*)
-
     declare void @__init_foo(%foo*)
 
+    declare void @__init_prog(%prog*)
+
     declare void @foo(%foo*)
-    "###);
+
+    declare void @prog(%prog*)
+    "#);
 }
 
 #[test]
@@ -1019,7 +1019,7 @@ fn aliased_types() {
       "#,
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1063,8 +1063,6 @@ fn aliased_types() {
       ret void
     }
 
-    declare void @foo(%foo*)
-
     define void @__init_prog(%prog* %0) {
     entry:
       %self = alloca %prog*, align 8
@@ -1074,6 +1072,8 @@ fn aliased_types() {
       call void @__init_foo(%foo* %fb)
       ret void
     }
+
+    declare void @foo(%foo*)
 
     declare void @prog(%prog*)
     ; ModuleID = '__init___testproject'
@@ -1094,14 +1094,14 @@ fn aliased_types() {
       ret void
     }
 
-    declare void @__init_prog(%prog*)
+    declare void @__init_foo(%foo*)
 
-    declare void @prog(%prog*)
+    declare void @__init_prog(%prog*)
 
     declare void @foo(%foo*)
 
-    declare void @__init_foo(%foo*)
-    "###);
+    declare void @prog(%prog*)
+    "#);
 }
 
 #[test]
@@ -1187,7 +1187,7 @@ fn var_config_aliased_variables_initialized() {
         ",
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1220,14 +1220,14 @@ fn var_config_aliased_variables_initialized() {
     @__FB__init = external global %FB
     @prog_instance = external global %prog
 
+    declare void @FB(%FB*)
+
     define void @__init_fb(%FB* %0) {
     entry:
       %self = alloca %FB*, align 8
       store %FB* %0, %FB** %self, align 8
       ret void
     }
-
-    declare void @FB(%FB*)
 
     define void @__init_prog(%prog* %0) {
     entry:
@@ -1255,6 +1255,8 @@ fn var_config_aliased_variables_initialized() {
     @__PI_1_2_2 = external global i32
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
+    declare void @FB(%FB*)
+
     define void @__init___testproject() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
@@ -1272,9 +1274,7 @@ fn var_config_aliased_variables_initialized() {
     declare void @__init_prog(%prog*)
 
     declare void @prog(%prog*)
-
-    declare void @FB(%FB*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -1300,7 +1300,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
         ",
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1310,12 +1310,12 @@ fn var_external_blocks_are_ignored_in_init_functions() {
     @refString = global [81 x i8]* null
     @__foo__init = unnamed_addr constant %foo zeroinitializer
 
-    define void @foo(%foo* %0) {
+    define void @bar() {
     entry:
       ret void
     }
 
-    define void @bar() {
+    define void @foo(%foo* %0) {
     entry:
       ret void
     }
@@ -1346,7 +1346,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
       store [81 x i8]* @s, [81 x i8]** @refString, align 8
       ret void
     }
-    "###)
+    "#)
 }
 
 #[test]
@@ -2033,12 +2033,7 @@ fn methods_call_init_functions_for_their_members() {
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__bar__init = unnamed_addr constant %bar zeroinitializer
 
-    define void @foo(%foo* %0) {
-    entry:
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      ret void
-    }
+    declare void @__init_foo(%foo*)
 
     define void @bar(%bar* %0) {
     entry:
@@ -2054,7 +2049,12 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    declare void @__init_foo(%foo*)
+    define void @foo(%foo* %0) {
+    entry:
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      ret void
+    }
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -2069,6 +2069,13 @@ fn methods_call_init_functions_for_their_members() {
     @__foo__init = external global %foo
     @__bar__init = external global %bar
 
+    define void @__init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      ret void
+    }
+
     define void @__init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
@@ -2081,16 +2088,9 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    declare void @foo(%foo*)
-
-    define void @__init_bar(%bar* %0) {
-    entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      ret void
-    }
-
     declare void @bar(%bar*)
+
+    declare void @foo(%foo*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 

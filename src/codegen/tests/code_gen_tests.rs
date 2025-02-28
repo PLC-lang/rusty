@@ -1112,6 +1112,8 @@ fn fb_method_called_locally() {
 
     @__foo__init = unnamed_addr constant %foo { i32 42 }
 
+    declare void @__init_foo(%foo*)
+
     define void @foo(%foo* %0) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
@@ -1149,8 +1151,6 @@ fn fb_method_called_locally() {
       store i32 %call, i32* %x, align 4
       ret void
     }
-
-    declare void @__init_foo(%foo*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -1222,6 +1222,8 @@ fn fb_local_method_var_shadows_parent_var() {
 
     @__foo__init = unnamed_addr constant %foo { i32 42 }
 
+    declare void @__init_foo(%foo*)
+
     define void @foo(%foo* %0) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
@@ -1261,8 +1263,6 @@ fn fb_local_method_var_shadows_parent_var() {
       store i32 %call, i32* %x, align 4
       ret void
     }
-
-    declare void @__init_foo(%foo*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -4108,7 +4108,7 @@ fn variables_in_var_external_block_are_not_generated() {
         ",
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -4121,17 +4121,17 @@ fn variables_in_var_external_block_are_not_generated() {
     @baz_instance = global %baz zeroinitializer
     @__qux__init = unnamed_addr constant %qux zeroinitializer
 
-    define void @foo() {
-    entry:
-      ret void
-    }
-
     define void @bar(%bar* %0) {
     entry:
       ret void
     }
 
     define void @baz(%baz* %0) {
+    entry:
+      ret void
+    }
+
+    define void @foo() {
     entry:
       ret void
     }
@@ -4151,15 +4151,6 @@ fn variables_in_var_external_block_are_not_generated() {
     @__bar__init = external global %bar
     @__qux__init = external global %qux
 
-    define void @__init_baz(%baz* %0) {
-    entry:
-      %self = alloca %baz*, align 8
-      store %baz* %0, %baz** %self, align 8
-      ret void
-    }
-
-    declare void @baz(%baz*)
-
     define void @__init_bar(%bar* %0) {
     entry:
       %self = alloca %bar*, align 8
@@ -4167,7 +4158,12 @@ fn variables_in_var_external_block_are_not_generated() {
       ret void
     }
 
-    declare void @bar(%bar*)
+    define void @__init_baz(%baz* %0) {
+    entry:
+      %self = alloca %baz*, align 8
+      store %baz* %0, %baz** %self, align 8
+      ret void
+    }
 
     define void @__init_qux(%qux* %0) {
     entry:
@@ -4175,6 +4171,10 @@ fn variables_in_var_external_block_are_not_generated() {
       store %qux* %0, %qux** %self, align 8
       ret void
     }
+
+    declare void @bar(%bar*)
+
+    declare void @baz(%baz*)
 
     declare void @qux(%qux*)
     ; ModuleID = '__init___testproject'
@@ -4194,7 +4194,7 @@ fn variables_in_var_external_block_are_not_generated() {
     declare void @__init_baz(%baz*)
 
     declare void @baz(%baz*)
-    "###);
+    "#);
 }
 
 #[test]

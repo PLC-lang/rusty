@@ -459,7 +459,7 @@ fn calling_a_function_block() {
         {DEFAULT_FB}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r###"
+    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -514,16 +514,16 @@ fn calling_a_function_block() {
       ret void
     }
 
-    declare void @foo(%foo*)
-
-    declare void @main_fb(%main_fb*)
-
     define void @__init_main_fb(%main_fb* %0) {
     entry:
       %self = alloca %main_fb*, align 8
       store %main_fb* %0, %main_fb** %self, align 8
       ret void
     }
+
+    declare void @foo(%foo*)
+
+    declare void @main_fb(%main_fb*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -545,7 +545,7 @@ fn calling_a_function_block() {
     declare void @foo(%foo*)
 
     declare void @main_fb(%main_fb*)
-    "###);
+    "#);
 }
 
 /// # FUNCTION
@@ -618,23 +618,13 @@ fn calling_a_function() {
         {DEFAULT_FUNC}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r###"
+    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %prg = type { i16, i8 }
 
     @prg_instance = global %prg zeroinitializer
-
-    define void @prg(%prg* %0) {
-    entry:
-      %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %load_x = load i16, i16* %x, align 2
-      %1 = alloca i64, align 8
-      %call = call i32 @main_fun(i16 %load_x, i8* %z, i64* %1)
-      ret void
-    }
 
     define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
     entry:
@@ -652,6 +642,16 @@ fn calling_a_function() {
       store i32 0, i32* %main_fun, align 4
       %main_fun_ret = load i32, i32* %main_fun, align 4
       ret i32 %main_fun_ret
+    }
+
+    define void @prg(%prg* %0) {
+    entry:
+      %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+      %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+      %load_x = load i16, i16* %x, align 2
+      %1 = alloca i64, align 8
+      %call = call i32 @main_fun(i16 %load_x, i8* %z, i64* %1)
+      ret void
     }
     ; ModuleID = '__initializers'
     source_filename = "__initializers"
@@ -685,7 +685,7 @@ fn calling_a_function() {
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+    "#);
 }
 
 /// Returning complex/aggregate types (string, array, struct) from a function cost a lot of compile-performance. complex types
@@ -825,7 +825,7 @@ fn passing_aggregate_types_to_functions_by_value() {
     "###;
 
     //internally we pass the two strings str1, and str2 as pointers to StrEqual because of the {ref}
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -890,13 +890,6 @@ fn passing_aggregate_types_to_functions_by_value() {
     @__myStruct__init = external global %myStruct
     @main_instance = external global %main
 
-    define void @__init_mystruct(%myStruct* %0) {
-    entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
-      ret void
-    }
-
     define void @__init_main(%main* %0) {
     entry:
       %self = alloca %main*, align 8
@@ -904,6 +897,13 @@ fn passing_aggregate_types_to_functions_by_value() {
       %deref = load %main*, %main** %self, align 8
       %struct1 = getelementptr inbounds %main, %main* %deref, i32 0, i32 3
       call void @__init_mystruct(%myStruct* %struct1)
+      ret void
+    }
+
+    define void @__init_mystruct(%myStruct* %0) {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
       ret void
     }
 
@@ -927,7 +927,7 @@ fn passing_aggregate_types_to_functions_by_value() {
     declare void @__init_main(%main*)
 
     declare void @main(%main*)
-    "###);
+    "#);
 }
 
 /// Passing aggregate types to a function is an expensive operation, this is why the compiler offers

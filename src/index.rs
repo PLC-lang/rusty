@@ -1919,7 +1919,7 @@ impl Index {
                 .get_pous()
                 .values()
                 .filter(|it| it.is_method())
-                .filter(|it| it.get_parent_pou_name() == container)
+                .filter(|it| it.get_parent_pou_name().unwrap() == container)
                 .filter(|it| {
                     !current_methods
                         .iter()

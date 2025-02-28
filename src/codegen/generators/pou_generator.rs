@@ -79,8 +79,6 @@ pub fn generate_implementation_stubs<'ink>(
         .dedup()
         .filter_map(|name| index.find_implementation_by_name(name).map(|it| (name, it)))
         .collect::<FxIndexMap<_, _>>();
-    println!("Module: {}", module.get_name().to_str().unwrap());
-    dbg!(&implementations.keys());
     for (name, implementation) in implementations {
         if !implementation.is_generic() {
             let curr_f =
@@ -88,7 +86,6 @@ pub fn generate_implementation_stubs<'ink>(
             llvm_index.associate_implementation(name, curr_f)?;
         }
     }
-    println!("------------------------------------");
 
     Ok(llvm_index)
 }
@@ -107,13 +104,13 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     location: &str,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut local_llvm_index = LlvmTypedIndex::default();
-    let implementations = dependencies.into_iter().filter_map(|it| {
-        if let Dependency::Call(name) | Dependency::Datatype(name) = it {
-            index.find_implementation_by_name(name).filter(|it| it.is_in_unit(location))
-        } else {
-            None
-        }
-    });
+    let implementations = dependencies
+        .into_iter()
+        .filter_map(|it| match it {
+            Dependency::Call(name) | Dependency::Datatype(name) => index.find_implementation_by_name(name),
+            _ => None,
+        })
+        .filter(|it| it.is_in_unit(location));
     for implementation in implementations {
         let type_name = implementation.get_type_name();
         if implementation.is_init() {
@@ -294,42 +291,38 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             self.add_global_constructor(module, curr_f)?;
         }
 
-        let pou_name = implementation.get_call_name();
-        if let Some(pou) = self.index.find_pou(pou_name) {
-            let mut parameter_types = declared_parameters
-                .iter()
-                .map(|v| self.index.get_effective_type_or_void_by_name(v.get_type_name()))
-                .collect::<Vec<&DataType>>();
+        let mut parameter_types = declared_parameters
+            .iter()
+            .map(|v| self.index.get_effective_type_or_void_by_name(v.get_type_name()))
+            .collect::<Vec<&DataType>>();
 
-            // If the implementation is a method, the first parameter is the instance
-            if let Some(class_name) = implementation.get_associated_class_name() {
-                if let Some(class_type) = self.index.find_type(class_name) {
-                    parameter_types.insert(0, class_type);
-                }
-            } else if !implementation.get_implementation_type().is_function_method_or_init() {
-                //For non functions or methods, the first parameter is self
-                if let Some(type_name) = self.index.find_type(implementation.get_type_name()) {
-                    parameter_types.insert(0, type_name);
-                }
+        // If the implementation is a method, the first parameter is the instance
+        if let Some(class_name) = implementation.get_associated_class_name() {
+            if let Some(class_type) = self.index.find_type(class_name) {
+                parameter_types.insert(0, class_type);
             }
-
-            let parent_function =
-                implementation.get_associated_class_name().and_then(|it| module.get_function(it));
-            let function_context = FunctionContext {
-                linking_context: implementation,
-                function: curr_f,
-                blocks: FxHashMap::default(),
-            };
-            debug.register_function(
-                self.index,
-                &function_context,
-                pou,
-                return_type,
-                parent_function,
-                parameter_types.as_slice(),
-                implementation.get_location().get_line(),
-            );
+        } else if !implementation.get_implementation_type().is_function_method_or_init() {
+            //For non functions or methods, the first parameter is self
+            if let Some(type_name) = self.index.find_type(implementation.get_type_name()) {
+                parameter_types.insert(0, type_name);
+            }
         }
+
+        let parent_function =
+            implementation.get_associated_class_name().and_then(|it| module.get_function(it));
+        let function_context = FunctionContext {
+            linking_context: implementation,
+            function: curr_f,
+            blocks: FxHashMap::default(),
+        };
+        debug.register_function(
+            self.index,
+            &function_context,
+            return_type,
+            parent_function,
+            parameter_types.as_slice(),
+            implementation.get_location().get_line(),
+        );
         Ok(curr_f)
     }
 
@@ -591,9 +584,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         // eagerly handle the return-variable
         let mut params_iter = function_context.function.get_param_iter();
-        dbg!(type_name);
-        dbg!(function_context.function.get_params().len());
-        dbg!(members.iter().filter(|it| !(it.is_return() || it.is_var_external())).count());
         // if we are in a method, skip the first parameter (the instance)
         if matches!(function_context.linking_context.get_implementation_type(), ImplementationType::Method) {
             params_iter.next();
