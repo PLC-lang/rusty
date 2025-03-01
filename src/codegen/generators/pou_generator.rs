@@ -689,11 +689,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         let mut var_count = 0;
         for m in members.iter().filter(|it| !it.is_var_external()) {
-            if m.is_property() {
-                // We want to ignore properties
-                continue;
-            }
-
             let parameter_name = m.get_name();
             let (name, variable) = if m.is_temp() || m.is_return() {
                 let temp_type = index.get_associated_type(m.get_type_name())?;

@@ -264,10 +264,6 @@ impl VariableIndexEntry {
         self.get_variable_type() == VariableType::InOut
     }
 
-    pub fn is_property(&self) -> bool {
-        self.get_variable_type() == VariableType::Property
-    }
-
     pub fn is_constant(&self) -> bool {
         self.is_constant
     }
