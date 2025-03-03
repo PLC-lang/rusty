@@ -477,9 +477,9 @@ fn generating_init_functions() {
         ";
 
     let res = codegen(src);
-    assert_snapshot!(res, @r#"
-    ; ModuleID = '<test>'
-    source_filename = "<test>"
+    assert_snapshot!(res, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %myStruct = type { i8, i8 }
     %myRefStruct = type { %myStruct* }
@@ -517,7 +517,7 @@ fn generating_init_functions() {
     entry:
       ret void
     }
-    "#);
+    "###);
 
     // The second example shows how each initializer function delegates member-initialization to the respective member-init-function
     // The wrapping init function contains a single call-statement to `__init_baz`, since `baz` is the only global instance in need of
@@ -708,9 +708,9 @@ fn intializing_temporary_variables() {
         ";
 
     let res = codegen(src);
-    assert_snapshot!(res, @r#"
-    ; ModuleID = '<test>'
-    source_filename = "<test>"
+    assert_snapshot!(res, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %foo = type { [81 x i8]* }
 
@@ -780,7 +780,7 @@ fn intializing_temporary_variables() {
     entry:
       ret void
     }
-    "#)
+    "###)
 }
 
 /// Initializing method variables behaves very similar to stack local variables from the previous example.
@@ -802,9 +802,9 @@ fn initializing_method_variables() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(codegen(src), @r#"
-    ; ModuleID = '<test>'
-    source_filename = "<test>"
+    insta::assert_snapshot!(codegen(src), @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %foo = type {}
 
@@ -848,7 +848,7 @@ fn initializing_method_variables() {
     entry:
       ret void
     }
-    "#);
+    "###);
 
     // When no local reference is found, the parent variable is used if present. Otherwise we look for a
     // global variable.

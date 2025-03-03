@@ -17,7 +17,6 @@ pub fn codegen_with_debug(src: &str) -> String {
 }
 pub fn codegen_with_debug_version(src: &str, version: usize) -> String {
     codegen_debug_without_unwrap(src, DebugLevel::Full(version)).map_err(|it| panic!("{it}")).unwrap()
-
 }
 pub fn codegen_without_unwrap(src: &str) -> Result<String, String> {
     codegen_debug_without_unwrap(src, DebugLevel::None)
@@ -48,19 +47,13 @@ pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Resul
     let context =
         GlobalContext::new().with_source(project.get_sources(), None).map_err(|it| it.to_string())?;
     let diagnostician = Diagnostician::default();
-    let mut args = vec![
-        "plc",
-        "--ir",
-        "--single-module",
-        "-o",
-        output.path().to_str().unwrap(),
-    ];
-    let debug_level = get_debug_param(debug_level );
+    let mut args =
+        vec!["plc", "--ir", "--single-module", "-O", "none", "-o", output.path().to_str().unwrap()];
+    let debug_level = get_debug_param(debug_level);
     if let Some(debug) = &debug_level {
         args.push(debug);
     };
-    let params = cli::CompileParameters::parse(dbg!(&args))
-    .map_err(|e| e.to_string())?;
+    let params = cli::CompileParameters::parse(dbg!(&args)).map_err(|e| e.to_string())?;
     let pipeline = BuildPipeline {
         context,
         project,

@@ -521,10 +521,11 @@ fn validate_reference<T: AnnotationMap>(
                         !qualified_name.starts_with(pou)
                             && !qualified_name.starts_with(container)
                             && !context.index.is_init_function(pou)
+                            //Hack: Avoid internal check here because of the super call
+                            && !location.is_internal()
                     })
             {
                 validator.push_diagnostic(
-                    //TODO: maybe default to warning?
                     Diagnostic::new(format!("Illegal access to private member {qualified_name}"))
                         .with_error_code("E049")
                         .with_location(location),

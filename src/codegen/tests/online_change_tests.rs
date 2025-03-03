@@ -14,9 +14,9 @@ fn generate_function_with_online_change() {
         END_FUNCTION
         ",
     );
-    assert_snapshot!(src, @r#"
-    ; ModuleID = '<test>'
-    source_filename = "<test>"
+    assert_snapshot!(src, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @__custom_got = weak_odr global [4 x i8*] zeroinitializer
 
@@ -39,7 +39,7 @@ fn generate_function_with_online_change() {
     entry:
       ret void
     }
-    "#)
+    "###)
 }
 
 #[test]
@@ -54,9 +54,9 @@ fn generate_program_with_online_change() {
         END_PROGRAM
         ",
     );
-    assert_snapshot!(src, @r#"
-    ; ModuleID = '<test>'
-    source_filename = "<test>"
+    assert_snapshot!(src, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %prg = type { i32 }
 
@@ -103,7 +103,7 @@ fn generate_program_with_online_change() {
     declare void @__init_prg(%prg*) section "$RUSTY$fn-__init_prg:v[pr1i32]"
 
     declare void @prg(%prg*) section "$RUSTY$fn-prg:v[]"
-    "#)
+    "###)
 }
 
 #[test]
@@ -122,9 +122,9 @@ fn generate_program_and_var_with_online_change() {
         END_VAR
         ",
     );
-    assert_snapshot!(src, @r#"
-    ; ModuleID = '<test>'
-    source_filename = "<test>"
+    assert_snapshot!(src, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %prg = type { i32 }
 
@@ -175,7 +175,7 @@ fn generate_program_and_var_with_online_change() {
     declare void @__init_prg(%prg*) section "$RUSTY$fn-__init_prg:v[pr1i32]"
 
     declare void @prg(%prg*) section "$RUSTY$fn-prg:v[]"
-    "#)
+    "###)
 }
 
 #[test]
@@ -194,9 +194,9 @@ fn generate_function_and_var_with_online_change() {
         END_VAR
         ",
     );
-    assert_snapshot!(src, @r#"
-    ; ModuleID = '<test>'
-    source_filename = "<test>"
+    assert_snapshot!(src, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     @gV = global i32 0, section "$RUSTY$var-gv:i32"
     @__custom_got = weak_odr global [6 x i8*] zeroinitializer
@@ -223,5 +223,5 @@ fn generate_function_and_var_with_online_change() {
     entry:
       ret void
     }
-    "#)
+    "###)
 }

@@ -1,7 +1,4 @@
-use std::{
-    ops::Range,
-    path::Path,
-};
+use std::{ops::Range, path::Path};
 
 use inkwell::{
     basic_block::BasicBlock,
@@ -145,21 +142,6 @@ impl<'ink> From<DebugType<'ink>> for DIType<'ink> {
         }
     }
 }
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct SubRoutineTypeKey {
-    return_type: Option<DataType>,
-    parameter_types: Vec<DataType>,
-}
-
-impl SubRoutineTypeKey {
-    pub fn new(return_type: Option<&DataType>, parameter_types: &[&DataType]) -> Self {
-        let return_type = return_type.cloned();
-        let parameter_types = parameter_types.iter().map(|it| (*it).clone()).collect();
-        Self { return_type, parameter_types }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct VariableKey {
     name: String,
@@ -178,7 +160,6 @@ pub struct DebugBuilder<'ink> {
     debug_info: DebugInfoBuilder<'ink>,
     compile_unit: DICompileUnit<'ink>,
     types: FxHashMap<String, DebugType<'ink>>,
-    subroutines: FxHashMap<SubRoutineTypeKey, DISubroutineType<'ink>>,
     variables: FxHashMap<VariableKey, DILocalVariable<'ink>>,
     optimization: OptimizationLevel,
     files: FxHashMap<&'static str, DIFile<'ink>>,
@@ -250,7 +231,6 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     debug_info,
                     compile_unit,
                     types: Default::default(),
-                    subroutines: Default::default(),
                     variables: Default::default(),
                     optimization,
                     files: Default::default(),
@@ -486,37 +466,26 @@ impl<'ink> DebugBuilder<'ink> {
         parameter_types: &[&DataType],
         file: DIFile<'ink>,
     ) -> DISubroutineType<'ink> {
-        let subroutine_type = SubRoutineTypeKey::new(return_type, parameter_types);
-        // *self.subroutines.entry(subroutine_type).or_insert_with_key(|subroutine_type| {
-            let SubRoutineTypeKey { return_type, parameter_types } = subroutine_type;
-            let return_type = return_type
-                .as_ref()
-                .filter(|return_type| !return_type.is_aggregate_type())
-                .and_then(|dt| self.types.get(dt.get_name()))
-                .map(|return_type| return_type.to_owned())
-                .map(Into::into);
+        let return_type = return_type
+            .as_ref()
+            .filter(|return_type| !return_type.is_aggregate_type())
+            .and_then(|dt| self.types.get(dt.get_name()))
+            .map(|return_type| return_type.to_owned())
+            .map(Into::into);
 
-            let parameter_types = parameter_types
-                .iter()
-                .map(|dt| {
-                    self.types
-                        .get(dt.get_name().to_lowercase().as_str())
-                        .copied()
-                        .map(Into::into)
-                        .unwrap_or_else(|| {
-                            panic!("Cound not find debug type information for {}", dt.get_name())
-                        })
-                    //Types should be created by this stage
-                })
-                .collect::<Vec<DIType>>();
+        let parameter_types = parameter_types
+            .iter()
+            .map(|dt| {
+                self.types
+                    .get(dt.get_name().to_lowercase().as_str())
+                    .copied()
+                    .map(Into::into)
+                    .unwrap_or_else(|| panic!("Cound not find debug type information for {}", dt.get_name()))
+                //Types should be created by this stage
+            })
+            .collect::<Vec<DIType>>();
 
-            self.debug_info.create_subroutine_type(
-                file,
-                return_type,
-                &parameter_types,
-                DIFlagsConstants::PUBLIC,
-            )
-        // })
+        self.debug_info.create_subroutine_type(file, return_type, &parameter_types, DIFlagsConstants::PUBLIC)
     }
 
     fn create_function(
@@ -527,7 +496,6 @@ impl<'ink> DebugBuilder<'ink> {
         parameter_types: &[&DataType],
         implementation_start: usize,
     ) -> DISubprogram {
-        println!("Creating function for {}", pou.get_name());
         let location = pou.get_location();
         let file = location
             .get_file_name()
@@ -583,7 +551,6 @@ impl<'ink> DebugBuilder<'ink> {
         }
         if implementation.get_implementation_type().is_function_method_or_init() {
             let declared_params = index.get_declared_parameters(implementation.get_call_name());
-            println!("Declared params: {:?}", declared_params);
             // Register all parameters for debugging
             for (index, variable) in declared_params.iter().enumerate() {
                 self.register_parameter(variable, index + param_offset, func);
@@ -634,7 +601,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         implementation_start: usize,
     ) {
         let pou = index.find_pou(func.linking_context.get_call_name()).expect("POU is available");
-        println!("Registering function: {} with location {:?}", pou.get_name(), pou.get_location());
         if matches!(pou.get_linkage(), LinkageType::External) || pou.get_location().is_internal() {
             return;
         }
@@ -777,7 +743,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 variable.get_qualified_name(),
                 Some(function_scope.linking_context.get_call_name()),
             );
-            println!("Registering local variable: {:?}", variable_key);
             self.variables.insert(variable_key, debug_variable);
         }
     }
@@ -817,7 +782,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 variable.get_qualified_name(),
                 Some(function_scope.linking_context.get_call_name()),
             );
-            println!("Registering parameter: {:?}", variable_key);
             self.variables.insert(variable_key, debug_variable);
         }
     }
@@ -835,7 +799,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| file.as_debug_info_scope());
         let variable_key = VariableKey::new(name, Some(function_scope.linking_context.get_call_name()));
-        println!("Registering struct parameter: {:?}", variable_key);
         if let Some(debug_type) = self.types.get(&name.to_lowercase()) {
             let debug_type = *debug_type;
             let line = function_scope.linking_context.get_location().get_line_plus_one() as u32;
@@ -849,7 +812,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 false,
                 DIFlagsConstants::ZERO,
             );
-            println!("Registering struct parameter: {}", name);
             self.variables.insert(variable_key, debug_variable);
         }
     }
@@ -884,7 +846,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         );
         let key = VariableKey::new(name, Some(function_scope.linking_context.get_call_name()));
         let variable = self.variables.get(&key);
-        println!("Adding variable declaration: {:?}->{:?}", key, variable);
         self.debug_info.insert_declare_at_end(value, variable.copied(), None, location, block);
     }
 

@@ -16,7 +16,7 @@ fn members_from_base_class_are_available_in_subclasses() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -75,7 +75,7 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
-    !2 = !DIFile(filename: "<test>", directory: "")
+    !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 7792, align: 64, flags: DIFlagPublic, elements: !4, identifier: "foo")
     !4 = !{!5, !7, !12}
     !5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !6, size: 16, align: 16, flags: DIFlagPublic)
@@ -96,20 +96,20 @@ fn members_from_base_class_are_available_in_subclasses() {
     !20 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !3, size: 7792, align: 64, flags: DIFlagPublic)
     !21 = !{i32 2, !"Dwarf Version", i32 5}
     !22 = !{i32 2, !"Debug Info Version", i32 3}
-    !23 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, globals: !24, splitDebugInlining: false)
+    !23 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !24, splitDebugInlining: false)
     !24 = !{!0, !16}
-    !25 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !26, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !23, retainedNodes: !28)
+    !25 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !26, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !23, retainedNodes: !28)
     !26 = !DISubroutineType(flags: DIFlagPublic, types: !27)
     !27 = !{null, !3}
     !28 = !{}
     !29 = !DILocalVariable(name: "foo", scope: !25, file: !2, line: 8, type: !3)
     !30 = !DILocation(line: 8, column: 8, scope: !25)
-    !31 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 10, type: !32, scopeLine: 11, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !23, retainedNodes: !28)
+    !31 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 10, type: !32, scopeLine: 11, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !23, retainedNodes: !28)
     !32 = !DISubroutineType(flags: DIFlagPublic, types: !33)
     !33 = !{null, !18}
     !34 = !DILocalVariable(name: "bar", scope: !31, file: !2, line: 11, type: !18)
     !35 = !DILocation(line: 11, column: 8, scope: !31)
-    "#);
+    "###);
 }
 
 #[test]
@@ -135,7 +135,7 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -215,7 +215,7 @@ fn write_to_parent_variable_qualified_access() {
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__fb2__init", scope: !2, file: !2, line: 9, type: !3, isLocal: false, isDefinition: true)
-    !2 = !DIFile(filename: "<test>", directory: "")
+    !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb2", scope: !2, file: !2, line: 9, size: 32, align: 64, flags: DIFlagPublic, elements: !4, identifier: "fb2")
     !4 = !{!5}
     !5 = !DIDerivedType(tag: DW_TAG_member, name: "__fb", scope: !2, file: !2, baseType: !6, size: 32, align: 64, flags: DIFlagPublic)
@@ -233,25 +233,25 @@ fn write_to_parent_variable_qualified_access() {
     !17 = !DIDerivedType(tag: DW_TAG_member, name: "myFb", scope: !2, file: !2, line: 14, baseType: !3, size: 32, align: 64, flags: DIFlagPublic)
     !18 = !{i32 2, !"Dwarf Version", i32 5}
     !19 = !{i32 2, !"Debug Info Version", i32 3}
-    !20 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, globals: !21, splitDebugInlining: false)
+    !20 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !21, splitDebugInlining: false)
     !21 = !{!11, !0, !13}
-    !22 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 2, type: !23, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !20, retainedNodes: !25)
+    !22 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 2, type: !23, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !20, retainedNodes: !25)
     !23 = !DISubroutineType(flags: DIFlagPublic, types: !24)
     !24 = !{null, !6}
     !25 = !{}
     !26 = !DILocalVariable(name: "fb", scope: !22, file: !2, line: 7, type: !6)
     !27 = !DILocation(line: 7, column: 8, scope: !22)
-    !28 = distinct !DISubprogram(name: "fb2", linkageName: "fb2", scope: !2, file: !2, line: 9, type: !29, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !20, retainedNodes: !25)
+    !28 = distinct !DISubprogram(name: "fb2", linkageName: "fb2", scope: !2, file: !2, line: 9, type: !29, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !20, retainedNodes: !25)
     !29 = !DISubroutineType(flags: DIFlagPublic, types: !30)
     !30 = !{null, !3}
     !31 = !DILocalVariable(name: "fb2", scope: !28, file: !2, line: 10, type: !3)
     !32 = !DILocation(line: 10, column: 8, scope: !28)
-    !33 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 12, type: !34, scopeLine: 16, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !20, retainedNodes: !25)
+    !33 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 12, type: !34, scopeLine: 16, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !20, retainedNodes: !25)
     !34 = !DISubroutineType(flags: DIFlagPublic, types: !35)
     !35 = !{null, !15}
     !36 = !DILocalVariable(name: "foo", scope: !33, file: !2, line: 16, type: !15)
     !37 = !DILocation(line: 16, column: 12, scope: !33)
-    "#);
+    "###);
 }
 
 #[test]
@@ -281,7 +281,7 @@ fn write_to_parent_variable_in_instance() {
         END_FUNCTION
     "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -380,7 +380,7 @@ fn write_to_parent_variable_in_instance() {
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 11, type: !3, isLocal: false, isDefinition: true)
-    !2 = !DIFile(filename: "<test>", directory: "")
+    !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 11, size: 648, align: 64, flags: DIFlagPublic, elements: !4, identifier: "bar")
     !4 = !{!5}
     !5 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !6, size: 648, align: 64, flags: DIFlagPublic)
@@ -395,23 +395,23 @@ fn write_to_parent_variable_in_instance() {
     !14 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !6, isLocal: false, isDefinition: true)
     !15 = !{i32 2, !"Dwarf Version", i32 5}
     !16 = !{i32 2, !"Debug Info Version", i32 3}
-    !17 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, globals: !18, splitDebugInlining: false)
+    !17 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !18, splitDebugInlining: false)
     !18 = !{!13, !0}
-    !19 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !20, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !17, retainedNodes: !22)
+    !19 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !20, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !22)
     !20 = !DISubroutineType(flags: DIFlagPublic, types: !21)
     !21 = !{null, !6}
     !22 = !{}
     !23 = !DILocalVariable(name: "foo", scope: !19, file: !2, line: 9, type: !6)
     !24 = !DILocation(line: 9, column: 8, scope: !19)
-    !25 = distinct !DISubprogram(name: "foo.baz", linkageName: "foo.baz", scope: !19, file: !2, line: 6, type: !20, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !17, retainedNodes: !22)
+    !25 = distinct !DISubprogram(name: "foo.baz", linkageName: "foo.baz", scope: !19, file: !2, line: 6, type: !20, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !22)
     !26 = !DILocalVariable(name: "foo", scope: !25, file: !2, line: 7, type: !6)
     !27 = !DILocation(line: 7, column: 12, scope: !25)
-    !28 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 11, type: !29, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !17, retainedNodes: !22)
+    !28 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 11, type: !29, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !22)
     !29 = !DISubroutineType(flags: DIFlagPublic, types: !30)
     !30 = !{null, !3}
     !31 = !DILocalVariable(name: "bar", scope: !28, file: !2, line: 12, type: !3)
     !32 = !DILocation(line: 12, column: 12, scope: !28)
-    !33 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 15, type: !34, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !17, retainedNodes: !22)
+    !33 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 15, type: !34, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !22)
     !34 = !DISubroutineType(flags: DIFlagPublic, types: !35)
     !35 = !{null}
     !36 = !DILocation(line: 15, column: 17, scope: !33)
@@ -422,7 +422,7 @@ fn write_to_parent_variable_in_instance() {
     !41 = !DILocation(line: 0, scope: !33)
     !42 = !DILocation(line: 20, column: 12, scope: !33)
     !43 = !DILocation(line: 21, column: 12, scope: !33)
-    "#);
+    "###);
 }
 
 #[test]
@@ -461,7 +461,7 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -578,7 +578,7 @@ fn array_in_parent_generated() {
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__child__init", scope: !2, file: !2, line: 16, type: !3, isLocal: false, isDefinition: true)
-    !2 = !DIFile(filename: "<test>", directory: "")
+    !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 480, align: 64, flags: DIFlagPublic, elements: !4, identifier: "child")
     !4 = !{!5, !22}
     !5 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !6, size: 304, align: 64, flags: DIFlagPublic)
@@ -605,25 +605,25 @@ fn array_in_parent_generated() {
     !26 = distinct !DIGlobalVariable(name: "__grandparent__init", scope: !2, file: !2, line: 2, type: !9, isLocal: false, isDefinition: true)
     !27 = !{i32 2, !"Dwarf Version", i32 5}
     !28 = !{i32 2, !"Debug Info Version", i32 3}
-    !29 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, globals: !30, splitDebugInlining: false)
+    !29 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !30, splitDebugInlining: false)
     !30 = !{!25, !23, !0}
-    !31 = distinct !DISubprogram(name: "grandparent", linkageName: "grandparent", scope: !2, file: !2, line: 2, type: !32, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !29, retainedNodes: !34)
+    !31 = distinct !DISubprogram(name: "grandparent", linkageName: "grandparent", scope: !2, file: !2, line: 2, type: !32, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !29, retainedNodes: !34)
     !32 = !DISubroutineType(flags: DIFlagPublic, types: !33)
     !33 = !{null, !9}
     !34 = !{}
     !35 = !DILocalVariable(name: "grandparent", scope: !31, file: !2, line: 7, type: !9)
     !36 = !DILocation(line: 7, column: 8, scope: !31)
-    !37 = distinct !DISubprogram(name: "parent", linkageName: "parent", scope: !2, file: !2, line: 9, type: !38, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !29, retainedNodes: !34)
+    !37 = distinct !DISubprogram(name: "parent", linkageName: "parent", scope: !2, file: !2, line: 9, type: !38, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !29, retainedNodes: !34)
     !38 = !DISubroutineType(flags: DIFlagPublic, types: !39)
     !39 = !{null, !6}
     !40 = !DILocalVariable(name: "parent", scope: !37, file: !2, line: 14, type: !6)
     !41 = !DILocation(line: 14, column: 8, scope: !37)
-    !42 = distinct !DISubprogram(name: "child", linkageName: "child", scope: !2, file: !2, line: 16, type: !43, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !29, retainedNodes: !34)
+    !42 = distinct !DISubprogram(name: "child", linkageName: "child", scope: !2, file: !2, line: 16, type: !43, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !29, retainedNodes: !34)
     !43 = !DISubroutineType(flags: DIFlagPublic, types: !44)
     !44 = !{null, !3}
     !45 = !DILocalVariable(name: "child", scope: !42, file: !2, line: 20, type: !3)
     !46 = !DILocation(line: 20, column: 8, scope: !42)
-    !47 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 22, type: !48, scopeLine: 26, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !29, retainedNodes: !34)
+    !47 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 22, type: !48, scopeLine: 26, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !29, retainedNodes: !34)
     !48 = !DISubroutineType(flags: DIFlagPublic, types: !49)
     !49 = !{null}
     !50 = !DILocation(line: 26, column: 12, scope: !47)
@@ -634,7 +634,7 @@ fn array_in_parent_generated() {
     !55 = !DILocation(line: 28, column: 12, scope: !47)
     !56 = !DILocation(line: 29, column: 12, scope: !47)
     !57 = !DILocation(line: 30, column: 12, scope: !47)
-    "#);
+    "###);
 }
 
 #[test]
@@ -664,7 +664,7 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -768,7 +768,7 @@ fn complex_array_access_generated() {
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__parent__init", scope: !2, file: !2, line: 9, type: !3, isLocal: false, isDefinition: true)
-    !2 = !DIFile(filename: "<test>", directory: "")
+    !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 304, align: 64, flags: DIFlagPublic, elements: !4, identifier: "parent")
     !4 = !{!5, !14, !18}
     !5 = !DIDerivedType(tag: DW_TAG_member, name: "__grandparent", scope: !2, file: !2, baseType: !6, size: 112, align: 64, flags: DIFlagPublic)
@@ -795,25 +795,25 @@ fn complex_array_access_generated() {
     !26 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !15, size: 176, align: 16, offset: 304, flags: DIFlagPublic)
     !27 = !{i32 2, !"Dwarf Version", i32 5}
     !28 = !{i32 2, !"Debug Info Version", i32 3}
-    !29 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, globals: !30, splitDebugInlining: false)
+    !29 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !30, splitDebugInlining: false)
     !30 = !{!19, !0, !21}
-    !31 = distinct !DISubprogram(name: "grandparent", linkageName: "grandparent", scope: !2, file: !2, line: 2, type: !32, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !29, retainedNodes: !34)
+    !31 = distinct !DISubprogram(name: "grandparent", linkageName: "grandparent", scope: !2, file: !2, line: 2, type: !32, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !29, retainedNodes: !34)
     !32 = !DISubroutineType(flags: DIFlagPublic, types: !33)
     !33 = !{null, !6}
     !34 = !{}
     !35 = !DILocalVariable(name: "grandparent", scope: !31, file: !2, line: 7, type: !6)
     !36 = !DILocation(line: 7, column: 8, scope: !31)
-    !37 = distinct !DISubprogram(name: "parent", linkageName: "parent", scope: !2, file: !2, line: 9, type: !38, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !29, retainedNodes: !34)
+    !37 = distinct !DISubprogram(name: "parent", linkageName: "parent", scope: !2, file: !2, line: 9, type: !38, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !29, retainedNodes: !34)
     !38 = !DISubroutineType(flags: DIFlagPublic, types: !39)
     !39 = !{null, !3}
     !40 = !DILocalVariable(name: "parent", scope: !37, file: !2, line: 14, type: !3)
     !41 = !DILocation(line: 14, column: 8, scope: !37)
-    !42 = distinct !DISubprogram(name: "child", linkageName: "child", scope: !2, file: !2, line: 16, type: !43, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !29, retainedNodes: !34)
+    !42 = distinct !DISubprogram(name: "child", linkageName: "child", scope: !2, file: !2, line: 16, type: !43, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !29, retainedNodes: !34)
     !43 = !DISubroutineType(flags: DIFlagPublic, types: !44)
     !44 = !{null, !23}
     !45 = !DILocalVariable(name: "child", scope: !42, file: !2, line: 20, type: !23)
     !46 = !DILocation(line: 20, column: 12, scope: !42)
-    "#);
+    "###);
 }
 
 #[test]
@@ -829,7 +829,7 @@ fn function_block_method_debug_info() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -891,7 +891,7 @@ fn function_block_method_debug_info() {
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
-    !2 = !DIFile(filename: "<test>", directory: "")
+    !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, flags: DIFlagPublic, elements: !4, identifier: "foo")
     !4 = !{}
     !5 = !DIGlobalVariableExpression(var: !6, expr: !DIExpression())
@@ -901,20 +901,20 @@ fn function_block_method_debug_info() {
     !9 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !3, flags: DIFlagPublic)
     !10 = !{i32 2, !"Dwarf Version", i32 5}
     !11 = !{i32 2, !"Debug Info Version", i32 3}
-    !12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, globals: !13, splitDebugInlining: false)
+    !12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !13, splitDebugInlining: false)
     !13 = !{!0, !5}
-    !14 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !15, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !12, retainedNodes: !4)
+    !14 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !15, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !4)
     !15 = !DISubroutineType(flags: DIFlagPublic, types: !16)
     !16 = !{null, !3}
     !17 = !DILocalVariable(name: "foo", scope: !14, file: !2, line: 5, type: !3)
     !18 = !DILocation(line: 5, column: 8, scope: !14)
-    !19 = distinct !DISubprogram(name: "foo.baz", linkageName: "foo.baz", scope: !14, file: !2, line: 3, type: !15, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !12, retainedNodes: !4)
+    !19 = distinct !DISubprogram(name: "foo.baz", linkageName: "foo.baz", scope: !14, file: !2, line: 3, type: !15, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !4)
     !20 = !DILocalVariable(name: "foo", scope: !19, file: !2, line: 4, type: !3)
     !21 = !DILocation(line: 4, column: 8, scope: !19)
-    !22 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 7, type: !23, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !12, retainedNodes: !4)
+    !22 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 7, type: !23, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !4)
     !23 = !DISubroutineType(flags: DIFlagPublic, types: !24)
     !24 = !{null, !7}
     !25 = !DILocalVariable(name: "bar", scope: !22, file: !2, line: 8, type: !7)
     !26 = !DILocation(line: 8, column: 8, scope: !22)
-    "#);
+    "###);
 }

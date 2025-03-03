@@ -41,7 +41,7 @@ fn interface_with_single_method() {
     }
     "###);
 
-    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r#"
+    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r###"
     Method {
         name: "myInterface.foo",
         parent_pou_name: "myInterface",
@@ -61,11 +61,11 @@ fn interface_with_single_method() {
                 },
             ),
             file: Some(
-                "<test>",
+                "<internal>",
             ),
         },
     }
-    "#);
+    "###);
 
     insta::assert_debug_snapshot!(index.get_pou_members("myInterface.foo"), @r###"
     [
@@ -93,6 +93,9 @@ fn interface_with_single_method() {
                         column: 17,
                         offset: 91,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,
@@ -122,6 +125,9 @@ fn interface_with_single_method() {
                         offset: 116,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -149,6 +155,9 @@ fn interface_with_single_method() {
                         column: 18,
                         offset: 45,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,
@@ -183,7 +192,7 @@ fn get_interface_methods() {
     let (_, index) = index(source);
     let entry = index.find_interface("myInterface").unwrap();
 
-    insta::assert_debug_snapshot!(entry.get_methods(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_methods(&index), @r###"
     [
         Method {
             name: "myInterface.foo",
@@ -204,7 +213,7 @@ fn get_interface_methods() {
                     },
                 ),
                 file: Some(
-                    "<test>",
+                    "<internal>",
                 ),
             },
         },
@@ -227,7 +236,7 @@ fn get_interface_methods() {
                     },
                 ),
                 file: Some(
-                    "<test>",
+                    "<internal>",
                 ),
             },
         },
@@ -250,10 +259,10 @@ fn get_interface_methods() {
                     },
                 ),
                 file: Some(
-                    "<test>",
+                    "<internal>",
                 ),
             },
         },
     ]
-    "#);
+    "###);
 }

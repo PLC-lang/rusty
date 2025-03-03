@@ -181,10 +181,11 @@ pub enum FileMarker {
 
 impl From<&'static str> for FileMarker {
     fn from(value: &'static str) -> Self {
-        match value {
-            "<internal>" => Self::Internal(value),
-            _ => Self::File(value),
-        }
+        Self::File(value)
+        // match value {
+        //     "<internal>" => Self::Internal(value),
+        //     _ => Self::File(value),
+        // }
     }
 }
 

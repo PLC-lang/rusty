@@ -141,9 +141,9 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
-    ; ModuleID = '<test>'
-    source_filename = "<test>"
+    assert_snapshot!(ir, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %FOO = type { i8, i8 }
 
@@ -245,7 +245,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -269,9 +269,9 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
-    ; ModuleID = '<test>'
-    source_filename = "<test>"
+    assert_snapshot!(ir, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %FOO = type { i8 }
 
@@ -335,7 +335,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -359,9 +359,9 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
-    ; ModuleID = '<test>'
-    source_filename = "<test>"
+    assert_snapshot!(ir, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %FOO = type { i8 }
 
@@ -425,7 +425,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -458,9 +458,9 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
-    ; ModuleID = '<test>'
-    source_filename = "<test>"
+    assert_snapshot!(ir, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
 
     %QUUX = type { i8 }
     %foo_struct = type { %bar_struct }
@@ -567,5 +567,5 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }

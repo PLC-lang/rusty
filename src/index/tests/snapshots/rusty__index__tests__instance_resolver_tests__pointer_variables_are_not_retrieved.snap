@@ -36,6 +36,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         offset: 106,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -75,6 +78,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         column: 11,
                         offset: 126,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,

@@ -69,6 +69,9 @@ Implementation {
                 offset: 203,
             },
         ),
+        file: Some(
+            "<internal>",
+        ),
     },
     name_location: SourceLocation {
         span: Range(
@@ -81,6 +84,9 @@ Implementation {
                 column: 21,
                 offset: 22,
             },
+        ),
+        file: Some(
+            "<internal>",
         ),
     },
     overriding: false,
