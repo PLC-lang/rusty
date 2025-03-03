@@ -41,7 +41,7 @@ fn interface_with_single_method() {
     }
     "###);
 
-    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r###"
+    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r#"
     Method {
         name: "myInterface.foo",
         parent_pou_name: "myInterface",
@@ -60,9 +60,12 @@ fn interface_with_single_method() {
                     offset: 45,
                 },
             ),
+            file: Some(
+                "<test>",
+            ),
         },
     }
-    "###);
+    "#);
 
     insta::assert_debug_snapshot!(index.get_pou_members("myInterface.foo"), @r###"
     [
@@ -180,7 +183,7 @@ fn get_interface_methods() {
     let (_, index) = index(source);
     let entry = index.find_interface("myInterface").unwrap();
 
-    insta::assert_debug_snapshot!(entry.get_methods(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_methods(&index), @r#"
     [
         Method {
             name: "myInterface.foo",
@@ -199,6 +202,9 @@ fn get_interface_methods() {
                         column: 18,
                         offset: 45,
                     },
+                ),
+                file: Some(
+                    "<test>",
                 ),
             },
         },
@@ -220,6 +226,9 @@ fn get_interface_methods() {
                         offset: 159,
                     },
                 ),
+                file: Some(
+                    "<test>",
+                ),
             },
         },
         Method {
@@ -240,8 +249,11 @@ fn get_interface_methods() {
                         offset: 271,
                     },
                 ),
+                file: Some(
+                    "<test>",
+                ),
             },
         },
     ]
-    "###);
+    "#);
 }

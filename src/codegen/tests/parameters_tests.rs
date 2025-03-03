@@ -707,9 +707,21 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+
+    define i32 @foo(i8* %0) {
+    entry:
+      %foo = alloca i32, align 4
+      %val = alloca [81 x i8], align 1
+      %bitcast = bitcast [81 x i8]* %val to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast, i8 0, i64 81, i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast, i8* align 1 %0, i64 80, i1 false)
+      store i32 0, i32* %foo, align 4
+      %foo_ret = load i32, i32* %foo, align 4
+      ret i32 %foo_ret
+    }
 
     define i32 @main() {
     entry:
@@ -722,18 +734,6 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
       %call = call i32 @foo(i8* %1)
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
-    }
-
-    define i32 @foo(i8* %0) {
-    entry:
-      %foo = alloca i32, align 4
-      %val = alloca [81 x i8], align 1
-      %bitcast = bitcast [81 x i8]* %val to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast, i8 0, i64 81, i1 false)
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast, i8* align 1 %0, i64 80, i1 false)
-      store i32 0, i32* %foo, align 4
-      %foo_ret = load i32, i32* %foo, align 4
-      ret i32 %foo_ret
     }
 
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
@@ -753,7 +753,7 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -775,9 +775,21 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+
+    define i32 @foo(i8* %0) {
+    entry:
+      %foo = alloca i32, align 4
+      %val = alloca [65537 x i8], align 1
+      %bitcast = bitcast [65537 x i8]* %val to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast, i8 0, i64 65537, i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast, i8* align 1 %0, i64 65536, i1 false)
+      store i32 0, i32* %foo, align 4
+      %foo_ret = load i32, i32* %foo, align 4
+      ret i32 %foo_ret
+    }
 
     define i32 @main() {
     entry:
@@ -790,18 +802,6 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
       %call = call i32 @foo(i8* %1)
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
-    }
-
-    define i32 @foo(i8* %0) {
-    entry:
-      %foo = alloca i32, align 4
-      %val = alloca [65537 x i8], align 1
-      %bitcast = bitcast [65537 x i8]* %val to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast, i8 0, i64 65537, i1 false)
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast, i8* align 1 %0, i64 65536, i1 false)
-      store i32 0, i32* %foo, align 4
-      %foo_ret = load i32, i32* %foo, align 4
-      ret i32 %foo_ret
     }
 
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
@@ -821,7 +821,7 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -843,22 +843,9 @@ fn by_value_function_arg_arrays_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-
-    define i32 @main() {
-    entry:
-      %main = alloca i32, align 4
-      %arr = alloca [65537 x i32], align 4
-      %0 = bitcast [65537 x i32]* %arr to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([65537 x i32]* getelementptr ([65537 x i32], [65537 x i32]* null, i32 1) to i64), i1 false)
-      store i32 0, i32* %main, align 4
-      %1 = bitcast [65537 x i32]* %arr to i32*
-      %call = call i32 @foo(i32* %1)
-      %main_ret = load i32, i32* %main, align 4
-      ret i32 %main_ret
-    }
 
     define i32 @foo(i32* %0) {
     entry:
@@ -871,6 +858,19 @@ fn by_value_function_arg_arrays_are_memcopied() {
       store i32 0, i32* %foo, align 4
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
+    }
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align 4
+      %arr = alloca [65537 x i32], align 4
+      %0 = bitcast [65537 x i32]* %arr to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([65537 x i32]* getelementptr ([65537 x i32], [65537 x i32]* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %main, align 4
+      %1 = bitcast [65537 x i32]* %arr to i32*
+      %call = call i32 @foo(i32* %1)
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
     }
 
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
@@ -890,7 +890,7 @@ fn by_value_function_arg_arrays_are_memcopied() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -918,13 +918,15 @@ fn by_value_function_arg_structs_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %S_TY = type { i8, i8 }
 
     @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer
+
+    declare void @__init_s_ty(%S_TY*)
 
     define i32 @foo(%S_TY* %0) {
     entry:
@@ -950,8 +952,6 @@ fn by_value_function_arg_structs_are_memcopied() {
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
-
-    declare void @__init_s_ty(%S_TY*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -979,7 +979,7 @@ fn by_value_function_arg_structs_are_memcopied() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1014,7 +1014,7 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1023,6 +1023,8 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
 
     @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer
     @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer
+
+    declare void @__init_aggregate_collector_ty(%AGGREGATE_COLLECTOR_TY*)
 
     define i32 @foo(%AGGREGATE_COLLECTOR_TY* %0) {
     entry:
@@ -1049,8 +1051,6 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
       ret i32 %main_ret
     }
 
-    declare void @__init_aggregate_collector_ty(%AGGREGATE_COLLECTOR_TY*)
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
@@ -1064,13 +1064,6 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     @__S_TY__init = external global %S_TY
     @__AGGREGATE_COLLECTOR_TY__init = external global %AGGREGATE_COLLECTOR_TY
 
-    define void @__init_s_ty(%S_TY* %0) {
-    entry:
-      %self = alloca %S_TY*, align 8
-      store %S_TY* %0, %S_TY** %self, align 8
-      ret void
-    }
-
     define void @__init_aggregate_collector_ty(%AGGREGATE_COLLECTOR_TY* %0) {
     entry:
       %self = alloca %AGGREGATE_COLLECTOR_TY*, align 8
@@ -1078,6 +1071,13 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
       %deref = load %AGGREGATE_COLLECTOR_TY*, %AGGREGATE_COLLECTOR_TY** %self, align 8
       %v3 = getelementptr inbounds %AGGREGATE_COLLECTOR_TY, %AGGREGATE_COLLECTOR_TY* %deref, i32 0, i32 2
       call void @__init_s_ty(%S_TY* %v3)
+      ret void
+    }
+
+    define void @__init_s_ty(%S_TY* %0) {
+    entry:
+      %self = alloca %S_TY*, align 8
+      store %S_TY* %0, %S_TY** %self, align 8
       ret void
     }
     ; ModuleID = '__init___testproject'
@@ -1089,7 +1089,7 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1114,13 +1114,22 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %FOO = type { [65537 x i8], [1024 x i32] }
 
     @__FOO__init = unnamed_addr constant %FOO zeroinitializer
+
+    define void @FOO(%FOO* %0) {
+    entry:
+      %val = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
+      ret void
+    }
+
+    declare void @__init_foo(%FOO*)
 
     define i32 @main() {
     entry:
@@ -1149,15 +1158,6 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
       ret i32 %main_ret
     }
 
-    define void @FOO(%FOO* %0) {
-    entry:
-      %val = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
-      %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
-      ret void
-    }
-
-    declare void @__init_foo(%FOO*)
-
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
@@ -1176,14 +1176,14 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     @__FOO__init = external global %FOO
 
+    declare void @FOO(%FOO*)
+
     define void @__init_foo(%FOO* %0) {
     entry:
       %self = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %self, align 8
       ret void
     }
-
-    declare void @FOO(%FOO*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1193,7 +1193,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1229,7 +1229,7 @@ fn var_output_aggregate_types_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1301,12 +1301,9 @@ fn var_output_aggregate_types_are_memcopied() {
     @__FB__init = external global %FB
     @PRG_instance = external global %PRG
 
-    define void @__init_out_type(%OUT_TYPE* %0) {
-    entry:
-      %self = alloca %OUT_TYPE*, align 8
-      store %OUT_TYPE* %0, %OUT_TYPE** %self, align 8
-      ret void
-    }
+    declare void @FB(%FB*)
+
+    declare void @PRG(%PRG*)
 
     define void @__init_fb(%FB* %0) {
     entry:
@@ -1318,7 +1315,12 @@ fn var_output_aggregate_types_are_memcopied() {
       ret void
     }
 
-    declare void @FB(%FB*)
+    define void @__init_out_type(%OUT_TYPE* %0) {
+    entry:
+      %self = alloca %OUT_TYPE*, align 8
+      store %OUT_TYPE* %0, %OUT_TYPE** %self, align 8
+      ret void
+    }
 
     define void @__init_prg(%PRG* %0) {
     entry:
@@ -1332,8 +1334,6 @@ fn var_output_aggregate_types_are_memcopied() {
       call void @__init_fb(%FB* %station)
       ret void
     }
-
-    declare void @PRG(%PRG*)
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1346,6 +1346,10 @@ fn var_output_aggregate_types_are_memcopied() {
     @__FB__init = external global %FB
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
+    declare void @FB(%FB*)
+
+    declare void @PRG(%PRG*)
+
     define void @__init___testproject() {
     entry:
       call void @__init_prg(%PRG* @PRG_instance)
@@ -1353,9 +1357,5 @@ fn var_output_aggregate_types_are_memcopied() {
     }
 
     declare void @__init_prg(%PRG*)
-
-    declare void @PRG(%PRG*)
-
-    declare void @FB(%FB*)
-    "###);
+    "#);
 }

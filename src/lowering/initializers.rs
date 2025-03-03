@@ -10,7 +10,7 @@ use plc_ast::{
     },
     provider::IdProvider,
 };
-use plc_source::source_location::SourceLocation;
+use plc_source::source_location::{FileMarker, SourceLocation};
 
 use super::InitVisitor;
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
@@ -106,7 +106,7 @@ impl InitVisitor {
     pub fn extend_ast(
         mut self,
         mut units: Vec<CompilationUnit>,
-        init_symbol_name: &str,
+        init_symbol_name: &'static str,
     ) -> Vec<CompilationUnit> {
         let new_units = create_init_units(&self);
 
@@ -128,7 +128,7 @@ impl InitVisitor {
 fn create_var_config_init(statements: Vec<AstNode>, mut id_provider: IdProvider) -> CompilationUnit {
     let loc = SourceLocation::internal_in_unit(Some(INIT_COMPILATION_UNIT));
     let pou = new_pou(VAR_CONFIG_INIT, id_provider.next_id(), vec![], PouType::Init, &loc); // this can probably just be internal
-    let implementation = new_implementation(VAR_CONFIG_INIT, statements, PouType::Init, &loc);
+    let implementation = new_implementation(VAR_CONFIG_INIT, statements, PouType::Init, loc);
     new_unit(pou, implementation, INIT_COMPILATION_UNIT)
 }
 
@@ -168,6 +168,8 @@ fn create_init_unit(
         return None;
     };
 
+    let location = location.clone().into_internal();
+
     let (param, ident) = (
         vec![VariableBlock::default().with_block_type(VariableBlockType::InOut).with_variables(vec![
             Variable {
@@ -184,7 +186,7 @@ fn create_init_unit(
         "self".to_string(),
     );
 
-    let init_pou = new_pou(&init_fn_name, id_provider.next_id(), param, PouType::Init, location);
+    let init_pou = new_pou(&init_fn_name, id_provider.next_id(), param, PouType::Init, &location);
 
     let mut statements = assignments
         .iter()
@@ -212,7 +214,7 @@ fn create_init_unit(
                     member.get_name(),
                     Some("self"),
                     id_provider.clone(),
-                    location,
+                    &location,
                 ))
             } else {
                 None
@@ -228,7 +230,7 @@ fn create_init_unit(
 
 fn create_init_wrapper_function(
     lowerer: &mut InitVisitor,
-    init_symbol_name: &str,
+    init_symbol_name: &'static str,
 ) -> Option<CompilationUnit> {
     let skip_var_config = lowerer.var_config_initializers.is_empty();
     if skip_var_config && lowerer.unresolved_initializers.is_empty() {
@@ -308,7 +310,7 @@ fn create_init_wrapper_function(
     };
 
     let implementation =
-        new_implementation(init_symbol_name, assignments, PouType::ProjectInit, &SourceLocation::internal());
+        new_implementation(init_symbol_name, assignments, PouType::ProjectInit, SourceLocation::internal());
     let mut global_init = new_unit(init_pou, implementation, init_symbol_name);
 
     if skip_var_config {
@@ -349,7 +351,7 @@ fn new_implementation(
     name: &str,
     statements: Vec<AstNode>,
     pou_type: PouType,
-    location: &SourceLocation,
+    location: SourceLocation,
 ) -> Implementation {
     Implementation {
         name: name.into(),
@@ -358,14 +360,14 @@ fn new_implementation(
         pou_type,
         statements,
         location: location.clone(),
-        name_location: location.to_owned(),
+        name_location: location,
         overriding: false,
         generic: false,
         access: None,
     }
 }
 
-fn new_unit(pou: Pou, implementation: Implementation, file_name: &str) -> CompilationUnit {
+fn new_unit(pou: Pou, implementation: Implementation, file_name: &'static str) -> CompilationUnit {
     CompilationUnit {
         global_vars: vec![],
         var_config: Default::default(),
@@ -373,7 +375,7 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &str) -> Compil
         implementations: vec![implementation],
         interfaces: vec![],
         user_types: vec![],
-        file_name: file_name.into(),
+        file: FileMarker::Internal(file_name),
         properties: vec![],
     }
 }

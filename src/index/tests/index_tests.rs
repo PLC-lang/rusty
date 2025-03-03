@@ -1702,7 +1702,7 @@ fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
     );
 
     // Although foo has no initial value in its declaration, we inject one in the pre-processor
-    assert_debug_snapshot!(index.find_global_variable("foo").unwrap(), @r###"
+    assert_debug_snapshot!(index.find_global_variable("foo").unwrap(), @r#"
     VariableIndexEntry {
         name: "foo",
         qualified_name: "foo",
@@ -1754,6 +1754,9 @@ fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
                             offset: 53,
                         },
                     ),
+                    file: Some(
+                        "<test>",
+                    ),
                 },
             },
         ),
@@ -1769,10 +1772,13 @@ fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
                     offset: 39,
                 },
             ),
+            file: Some(
+                "<test>",
+            ),
         },
         varargs: None,
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1788,7 +1794,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
         ",
     );
 
-    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r###"
+    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r#"
     VariableIndexEntry {
         name: "__PI_1_2_3_4",
         qualified_name: "__PI_1_2_3_4",
@@ -1814,10 +1820,13 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
                     offset: 53,
                 },
             ),
+            file: Some(
+                "<test>",
+            ),
         },
         varargs: None,
     }
-    "###);
+    "#);
 
     assert_debug_snapshot!(index.find_type("__global_foo"), @r###"
     Some(
@@ -1894,7 +1903,7 @@ fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
         ",
     );
 
-    assert_debug_snapshot!(index.find_type("__global_foo"), @r###"
+    assert_debug_snapshot!(index.find_type("__global_foo"), @r#"
     Some(
         DataType {
             name: "__global_foo",
@@ -1919,10 +1928,13 @@ fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
                         offset: 60,
                     },
                 ),
+                file: Some(
+                    "<test>",
+                ),
             },
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -1939,7 +1951,7 @@ fn address_used_in_2_aliases_only_created_once() {
         ",
     );
 
-    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r#"
     Some(
         VariableIndexEntry {
             name: "__PI_1_2_3_4",
@@ -1966,11 +1978,14 @@ fn address_used_in_2_aliases_only_created_once() {
                         offset: 53,
                     },
                 ),
+                file: Some(
+                    "<test>",
+                ),
             },
             varargs: None,
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -1989,7 +2004,7 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
         ",
     );
 
-    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r#"
     Some(
         VariableIndexEntry {
             name: "__PI_1_2_3_4",
@@ -2016,11 +2031,14 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
                         offset: 53,
                     },
                 ),
+                file: Some(
+                    "<test>",
+                ),
             },
             varargs: None,
         },
     )
-    "###);
+    "#);
     assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_5"), @r###"
     Some(
         VariableIndexEntry {
@@ -2069,7 +2087,7 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
         ",
     );
 
-    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r#"
     Some(
         VariableIndexEntry {
             name: "__PI_1_2_3_4",
@@ -2096,11 +2114,14 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
                         offset: 53,
                     },
                 ),
+                file: Some(
+                    "<test>",
+                ),
             },
             varargs: None,
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -2115,7 +2136,7 @@ fn var_config_hardware_address_creates_global_variable() {
         ",
     );
 
-    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r###"
+    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r#"
     VariableIndexEntry {
         name: "__PI_1_2_3_4",
         qualified_name: "__PI_1_2_3_4",
@@ -2141,10 +2162,13 @@ fn var_config_hardware_address_creates_global_variable() {
                     offset: 61,
                 },
             ),
+            file: Some(
+                "<test>",
+            ),
         },
         varargs: None,
     }
-    "###);
+    "#);
 }
 
 #[test]

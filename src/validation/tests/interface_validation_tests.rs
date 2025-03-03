@@ -8,25 +8,25 @@ fn pou_implementing_non_existing_interfaces() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E048]: Interface `delulu` does not exist
-      ┌─ <internal>:2:39
+      ┌─ <test>:2:39
       │
     2 │         FUNCTION_BLOCK foo IMPLEMENTS delulu /* ... */ END_FUNCTION_BLOCK
       │                                       ^^^^^^ Interface `delulu` does not exist
 
     error[E048]: Interface `delulu` does not exist
-      ┌─ <internal>:3:39
+      ┌─ <test>:3:39
       │
     3 │         FUNCTION_BLOCK bar IMPLEMENTS delulu, delululu /* ... */ END_FUNCTION_BLOCK
       │                                       ^^^^^^ Interface `delulu` does not exist
 
     error[E048]: Interface `delululu` does not exist
-      ┌─ <internal>:3:47
+      ┌─ <test>:3:47
       │
     3 │         FUNCTION_BLOCK bar IMPLEMENTS delulu, delululu /* ... */ END_FUNCTION_BLOCK
       │                                               ^^^^^^^^ Interface `delululu` does not exist
-    "###);
+    ");
 }
 
 #[test]
@@ -56,19 +56,19 @@ fn not_supported_pou_type_implements_interface() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E110]: Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`
-       ┌─ <internal>:10:36
+       ┌─ <test>:10:36
        │
     10 │         PROGRAM     baz IMPLEMENTS interfaceA            /* ... */ END_PROGRAM
        │                                    ^^^^^^^^^^ Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`
 
     error[E110]: Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`
-       ┌─ <internal>:11:36
+       ┌─ <test>:11:36
        │
     11 │         FUNCTION    qux IMPLEMENTS interfaceA, interfaceB /* ... */ END_FUNCTION
        │                                    ^^^^^^^^^^^^^^^^^^^^^^ Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`
-    "###);
+    ");
 }
 
 #[test]
@@ -84,18 +84,18 @@ fn pou_implements_method_with_wrong_return_type() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
-      ┌─ <internal>:7:20
+      ┌─ <test>:7:20
       │
     3 │             METHOD methodA : DINT /* ... */ END_METHOD
       │                    ------- see also
       ·
     7 │             METHOD methodA : BOOL /* ... */ END_METHOD
       │                    ^^^^^^^ Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
-    "###);
+    ");
 }
 
 #[test]
@@ -111,16 +111,16 @@ fn pou_does_not_implement_interface_methods() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Method `methodA` defined in interface `interfaceA` is missing in POU `fb`
-      ┌─ <internal>:6:24
+      ┌─ <test>:6:24
       │
     3 │             METHOD methodA /* ... */ END_METHOD
       │                    ------- see also
       ·
     6 │         FUNCTION_BLOCK fb IMPLEMENTS interfaceA
       │                        ^^ Method `methodA` defined in interface `interfaceA` is missing in POU `fb`
-    "###);
+    ");
 }
 
 #[test]
@@ -147,16 +147,16 @@ fn pou_with_missing_parameter_in_interface_implementation() {
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Parameter `c : DINT` missing in method `methodA`
-       ┌─ <internal>:13:16
+       ┌─ <test>:13:16
        │
      7 │             c : DINT;
        │             - see also
        ·
     13 │         METHOD methodA
        │                ^^^^^^^ Parameter `c : DINT` missing in method `methodA`
-    "###);
+    ");
 }
 
 #[test]
@@ -184,9 +184,9 @@ fn pou_with_unordered_parameters_in_interface_implementation() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Expected parameter `b` but got `a`
-       ┌─ <internal>:5:13
+       ┌─ <test>:5:13
        │
      5 │             b : DINT;
        │             ^ Expected parameter `b` but got `a`
@@ -195,14 +195,14 @@ fn pou_with_unordered_parameters_in_interface_implementation() {
        │             - see also
 
     error[E112]: Expected parameter `a` but got `b`
-       ┌─ <internal>:6:13
+       ┌─ <test>:6:13
        │
      6 │             a : DINT;
        │             ^ Expected parameter `a` but got `b`
        ·
     16 │             b : DINT;
        │             - see also
-    "###);
+    ");
 }
 
 #[test]
@@ -226,9 +226,9 @@ fn pou_with_incorrect_parameter_type_in_interface_implementation() {
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Parameter `a` has different types in declaration and implemenation:
-       ┌─ <internal>:11:16
+       ┌─ <test>:11:16
        │
      5 │             a : DINT;
        │             - see also
@@ -237,14 +237,14 @@ fn pou_with_incorrect_parameter_type_in_interface_implementation() {
        │                ^^^^^^^ Parameter `a` has different types in declaration and implemenation:
 
     error[E112]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
-       ┌─ <internal>:11:16
+       ┌─ <test>:11:16
        │
      3 │         METHOD methodA
        │                ------- see also
        ·
     11 │         METHOD methodA
        │                ^^^^^^^ Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
-    "###);
+    ");
 }
 
 #[test]
@@ -268,16 +268,16 @@ fn pou_with_incorrect_parameter_declaration_type_in_interface_implementation() {
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Expected parameter `a` to have `Input` as its declaration type but got `InOut`
-       ┌─ <internal>:11:16
+       ┌─ <test>:11:16
        │
      5 │             a : DINT;
        │             - see also
        ·
     11 │         METHOD methodA
        │                ^^^^^^^ Expected parameter `a` to have `Input` as its declaration type but got `InOut`
-    "###);
+    ");
 }
 
 #[test]
@@ -310,9 +310,9 @@ fn pou_with_more_parameters_than_defined_in_interface() {
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Expected parameter `a` but got `d`
-       ┌─ <internal>:5:13
+       ┌─ <test>:5:13
        │
      5 │             a : DINT;
        │             ^ Expected parameter `a` but got `d`
@@ -321,7 +321,7 @@ fn pou_with_more_parameters_than_defined_in_interface() {
        │             - see also
 
     error[E112]: Expected parameter `b` but got `e`
-       ┌─ <internal>:6:13
+       ┌─ <test>:6:13
        │
      6 │             b : DINT;
        │             ^ Expected parameter `b` but got `e`
@@ -330,7 +330,7 @@ fn pou_with_more_parameters_than_defined_in_interface() {
        │             - see also
 
     error[E112]: Expected parameter `c` but got `f`
-       ┌─ <internal>:7:13
+       ┌─ <test>:7:13
        │
      7 │             c : DINT;
        │             ^ Expected parameter `c` but got `f`
@@ -339,7 +339,7 @@ fn pou_with_more_parameters_than_defined_in_interface() {
        │             - see also
 
     error[E112]: `methodA` has more parameters than the method defined in `interfaceA`
-       ┌─ <internal>:20:13
+       ┌─ <test>:20:13
        │
      3 │         METHOD methodA
        │                ------- see also
@@ -348,7 +348,7 @@ fn pou_with_more_parameters_than_defined_in_interface() {
        │             ^ `methodA` has more parameters than the method defined in `interfaceA`
 
     error[E112]: `methodA` has more parameters than the method defined in `interfaceA`
-       ┌─ <internal>:21:13
+       ┌─ <test>:21:13
        │
      3 │         METHOD methodA
        │                ------- see also
@@ -357,14 +357,14 @@ fn pou_with_more_parameters_than_defined_in_interface() {
        │             ^ `methodA` has more parameters than the method defined in `interfaceA`
 
     error[E112]: `methodA` has more parameters than the method defined in `interfaceA`
-       ┌─ <internal>:22:13
+       ┌─ <test>:22:13
        │
      3 │         METHOD methodA
        │                ------- see also
        ·
     22 │             c : DINT;
        │             ^ `methodA` has more parameters than the method defined in `interfaceA`
-    "###);
+    ");
 }
 
 #[test]
@@ -399,9 +399,9 @@ fn interfaces_with_same_method_name_but_different_signatures_return_type() {
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
-       ┌─ <internal>:20:20
+       ┌─ <test>:20:20
        │
      3 │     METHOD foo : INT
        │            --- see also
@@ -415,14 +415,14 @@ fn interfaces_with_same_method_name_but_different_signatures_return_type() {
     error[E112]: Return types do not match:
 
     error[E112]: Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
-       ┌─ <internal>:12:16
+       ┌─ <test>:12:16
        │
      3 │     METHOD foo : INT
        │            --- see also
        ·
     12 │         METHOD foo : DINT
        │                ^^^ Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
-    "###);
+    ");
 }
 
 #[test]
@@ -457,9 +457,9 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
-       ┌─ <internal>:20:24
+       ┌─ <test>:20:24
        │
      3 │             METHOD foo : INT
        │                    --- see also
@@ -471,7 +471,7 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
        │                        ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
 
     error[E112]: Parameter `b` has different types in declaration and implemenation:
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      6 │                 b : INT;
        │                 - see also
@@ -480,14 +480,14 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
        │                    ^^^ Parameter `b` has different types in declaration and implemenation:
 
     error[E112]: Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      3 │             METHOD foo : INT
        │                    --- see also
        ·
     12 │             METHOD foo : INT
        │                    ^^^ Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
-    "###);
+    ");
 }
 
 #[test]
@@ -520,9 +520,9 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
-       ┌─ <internal>:19:24
+       ┌─ <test>:19:24
        │
      3 │             METHOD foo : INT
        │                    --- see also
@@ -534,7 +534,7 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
        │                        ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
 
     error[E112]: Expected parameter `a` to have `Input` as its declaration type but got `Output`
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      5 │                 a : INT;
        │                 - see also
@@ -543,14 +543,14 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
        │                    ^^^ Expected parameter `a` to have `Input` as its declaration type but got `Output`
 
     error[E112]: Parameter `b : INT` missing in method `foo`
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      6 │                 b : INT;
        │                 - see also
        ·
     12 │             METHOD foo : INT
        │                    ^^^ Parameter `b : INT` missing in method `foo`
-    "###);
+    ");
 }
 
 #[test]
@@ -586,18 +586,18 @@ fn interface_with_aggregate_return_type_string_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `WSTRING`
-      ┌─ <internal>:8:20
+      ┌─ <test>:8:20
       │
     3 │             METHOD bar : STRING
       │                    --- see also
       ·
     8 │             METHOD bar : WSTRING
       │                    ^^^ Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `WSTRING`
-    "###);
+    ");
 }
 
 #[test]
@@ -616,18 +616,18 @@ fn interface_with_aliased_aggregate_return_type_string() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Expected string of length `11` but got string of length `81`
-      ┌─ <internal>:9:20
+      ┌─ <test>:9:20
       │
     4 │             METHOD bar : myString
       │                    --- see also
       ·
     9 │             METHOD bar : STRING
       │                    ^^^ Expected string of length `11` but got string of length `81`
-    "###);
+    ");
 }
 
 #[test]
@@ -663,18 +663,18 @@ fn interface_with_aggregate_return_type_array_length_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Array range declared as `[1..6]` but implemented as `[1..5]`
-      ┌─ <internal>:3:26
+      ┌─ <test>:3:26
       │
     3 │             METHOD bar : ARRAY[1..6] OF STRING
       │                          --------------------- see also
       ·
     8 │             METHOD bar : ARRAY[1..5] OF STRING
       │                          --------------------- see also
-    "###);
+    ");
 }
 
 #[test]
@@ -696,11 +696,11 @@ fn interface_with_aggregate_return_type_array_dimension_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Array declared with `1` dimension but implemented with `2`
-       ┌─ <internal>:3:26
+       ┌─ <test>:3:26
        │
      3 │             METHOD bar : ARRAY[1..5, 1..5] OF STRING
        │                    ---   ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array declared with `1` dimension but implemented with `2`
@@ -715,7 +715,7 @@ fn interface_with_aggregate_return_type_array_dimension_mismatch() {
     error[E112]: Return types do not match:
 
     error[E112]: Array declared with `2` dimensions but implemented with `1`
-       ┌─ <internal>:5:26
+       ┌─ <test>:5:26
        │
      5 │             METHOD baz : ARRAY[1..5] OF STRING
        │                    ---   ^^^^^^^^^^^^^^^^^^^^^ Array declared with `2` dimensions but implemented with `1`
@@ -726,7 +726,7 @@ fn interface_with_aggregate_return_type_array_dimension_mismatch() {
        │                    ---   --------------------------- see also
        │                    │      
        │                    see also
-    "###);
+    ");
 }
 
 #[test]
@@ -744,18 +744,18 @@ fn interface_with_aggregate_return_type_array_inner_type_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Expected array of type `STRING` but got `WSTRING`
-      ┌─ <internal>:8:20
+      ┌─ <test>:8:20
       │
     3 │             METHOD bar : ARRAY[1..5] OF STRING
       │                    --- see also
       ·
     8 │             METHOD bar : ARRAY[1..5] OF WSTRING
       │                    ^^^ Expected array of type `STRING` but got `WSTRING`
-    "###);
+    ");
 }
 
 #[test]
@@ -795,11 +795,11 @@ fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Array declared with `2` dimensions but implemented with `1`
-      ┌─ <internal>:3:26
+      ┌─ <test>:3:26
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..5] OF STRING
       │                    ---   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array declared with `2` dimensions but implemented with `1`
@@ -812,14 +812,14 @@ fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
       │                    see also
 
     error[E112]: Expected array of type `foo.bar_` but got `STRING`
-      ┌─ <internal>:8:20
+      ┌─ <test>:8:20
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..5] OF STRING
       │                    --- see also
       ·
     8 │             METHOD bar : ARRAY[1..5, 1..5] OF STRING
       │                    ^^^ Expected array of type `foo.bar_` but got `STRING`
-    "###);
+    ");
 }
 
 #[test]
@@ -838,11 +838,11 @@ fn interface_with_aggregate_return_type_nested_arrays_dimension_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Array range declared as `[1..5]` but implemented as `[1..100]`
-      ┌─ <internal>:3:26
+      ┌─ <test>:3:26
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[2..20] OF ARRAY[3..10] OF ARRAY[1..5] OF STRING
       │                          -------------------------------------------------------------------- see also
@@ -851,14 +851,14 @@ fn interface_with_aggregate_return_type_nested_arrays_dimension_mismatch() {
       │                          --------------------------------------------------------------------- see also
 
     error[E112]: Array range declared as `[1..5]` but implemented as `[-2..5]`
-      ┌─ <internal>:3:26
+      ┌─ <test>:3:26
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[2..20] OF ARRAY[3..10] OF ARRAY[1..5] OF STRING
       │                          -------------------------------------------------------------------- see also
       ·
     8 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..100] OF ARRAY[-2..5] OF ARRAY[1..5] OF STRING
       │                                         ------------------------------------------------------ see also
-    "###);
+    ");
 }
 
 #[test]
@@ -926,18 +926,18 @@ fn interface_with_aggregate_return_type_non_aggregate_impl() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-      ┌─ <internal>:8:20
+      ┌─ <test>:8:20
       │
     3 │             METHOD bar : STRING
       │                    --- see also
       ·
     8 │             METHOD bar : DINT
       │                    ^^^ Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-    "###);
+    ");
 }
 
 #[test]
@@ -955,18 +955,18 @@ fn interface_with_non_aggregate_return_type_aggregate_impl() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
-      ┌─ <internal>:8:20
+      ┌─ <test>:8:20
       │
     3 │             METHOD bar : DINT
       │                    --- see also
       ·
     8 │             METHOD bar : STRING
       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
-    "###);
+    ");
 }
 
 #[test]
@@ -1004,11 +1004,11 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-       ┌─ <internal>:18:20
+       ┌─ <test>:18:20
        │
      3 │             METHOD bar : STRING
        │                    --- see also
@@ -1017,7 +1017,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
        │                    ^^^ Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
 
     error[E112]: Parameter `b : DINT` missing in method `bar`
-       ┌─ <internal>:18:20
+       ┌─ <test>:18:20
        │
      6 │                 b : DINT;
        │                 - see also
@@ -1028,7 +1028,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
     error[E112]: Return types do not match:
 
     error[E112]: Type `STRING` declared in `foo.baz` but `fb.baz` implemented type `DINT`
-       ┌─ <internal>:24:20
+       ┌─ <test>:24:20
        │
     10 │             METHOD baz : STRING 
        │                    --- see also
@@ -1037,14 +1037,14 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
        │                    ^^^ Type `STRING` declared in `foo.baz` but `fb.baz` implemented type `DINT`
 
     error[E112]: `baz` has more parameters than the method defined in `foo`
-       ┌─ <internal>:27:17
+       ┌─ <test>:27:17
        │
     10 │             METHOD baz : STRING 
        │                    --- see also
        ·
     27 │                 b : DINT;
        │                 ^ `baz` has more parameters than the method defined in `foo`
-    "###);
+    ");
 }
 
 #[test]
@@ -1082,11 +1082,11 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
-       ┌─ <internal>:18:20
+       ┌─ <test>:18:20
        │
      3 │             METHOD bar : DINT
        │                    --- see also
@@ -1095,7 +1095,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
        │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
 
     error[E112]: Parameter `b : DINT` missing in method `bar`
-       ┌─ <internal>:18:20
+       ┌─ <test>:18:20
        │
      6 │                 b : DINT;
        │                 - see also
@@ -1106,7 +1106,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
     error[E112]: Return types do not match:
 
     error[E112]: Type `DINT` declared in `foo.baz` but `fb.baz` implemented type `STRING`
-       ┌─ <internal>:24:20
+       ┌─ <test>:24:20
        │
     10 │             METHOD baz : DINT 
        │                    --- see also
@@ -1115,14 +1115,14 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
        │                    ^^^ Type `DINT` declared in `foo.baz` but `fb.baz` implemented type `STRING`
 
     error[E112]: `baz` has more parameters than the method defined in `foo`
-       ┌─ <internal>:27:17
+       ┌─ <test>:27:17
        │
     10 │             METHOD baz : DINT 
        │                    --- see also
        ·
     27 │                 b : DINT;
        │                 ^ `baz` has more parameters than the method defined in `foo`
-    "###);
+    ");
 }
 
 #[test]
@@ -1158,18 +1158,18 @@ fn pointer_return_type_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Type `INT` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-      ┌─ <internal>:8:20
+      ┌─ <test>:8:20
       │
     3 │             METHOD bar : REF_TO INT
       │                    --- see also
       ·
     8 │             METHOD bar : REF_TO DINT
       │                    ^^^ Type `INT` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-    "###);
+    ");
 }
 
 #[test]
@@ -1205,18 +1205,18 @@ fn pointer_to_pointer_return_inner_type_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-      ┌─ <internal>:8:20
+      ┌─ <test>:8:20
       │
     3 │             METHOD bar : REF_TO REF_TO DINT
       │                    --- see also
       ·
     8 │             METHOD bar : REF_TO REF_TO INT
       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-    "###);
+    ");
 }
 
 #[test]
@@ -1234,18 +1234,18 @@ fn pointer_to_pointer_return_indirection_level_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Return types do not match:
 
     error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `fb.bar_`
-      ┌─ <internal>:8:20
+      ┌─ <test>:8:20
       │
     3 │             METHOD bar : REF_TO DINT
       │                    --- see also
       ·
     8 │             METHOD bar : REF_TO REF_TO DINT
       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `fb.bar_`
-    "###);
+    ");
 }
 
 #[test]
@@ -1305,9 +1305,9 @@ fn pointer_fields_type_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Parameter `a` has different types in declaration and implemenation:
-       ┌─ <internal>:14:20
+       ┌─ <test>:14:20
        │
      5 │                 a : REF_TO DINT;
        │                 - see also
@@ -1316,7 +1316,7 @@ fn pointer_fields_type_mismatch() {
        │                    ^^^ Parameter `a` has different types in declaration and implemenation:
 
     error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-       ┌─ <internal>:14:20
+       ┌─ <test>:14:20
        │
      3 │             METHOD bar
        │                    --- see also
@@ -1325,7 +1325,7 @@ fn pointer_fields_type_mismatch() {
        │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
 
     error[E112]: Parameter `b` has different types in declaration and implemenation:
-       ┌─ <internal>:14:20
+       ┌─ <test>:14:20
        │
      6 │                 b : REF_TO REF_TO DINT;
        │                 - see also
@@ -1334,7 +1334,7 @@ fn pointer_fields_type_mismatch() {
        │                    ^^^ Parameter `b` has different types in declaration and implemenation:
 
     error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-       ┌─ <internal>:14:20
+       ┌─ <test>:14:20
        │
      3 │             METHOD bar
        │                    --- see also
@@ -1343,7 +1343,7 @@ fn pointer_fields_type_mismatch() {
        │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
 
     error[E112]: Parameter `c` has different types in declaration and implemenation:
-       ┌─ <internal>:14:20
+       ┌─ <test>:14:20
        │
      7 │                 c : REFERENCE TO DINT;
        │                 - see also
@@ -1352,7 +1352,7 @@ fn pointer_fields_type_mismatch() {
        │                    ^^^ Parameter `c` has different types in declaration and implemenation:
 
     error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-       ┌─ <internal>:14:20
+       ┌─ <test>:14:20
        │
      3 │             METHOD bar
        │                    --- see also
@@ -1361,7 +1361,7 @@ fn pointer_fields_type_mismatch() {
        │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
 
     error[E112]: Parameter `d` has different types in declaration and implemenation:
-       ┌─ <internal>:14:20
+       ┌─ <test>:14:20
        │
      8 │                 d AT a : DINT;
        │                 - see also
@@ -1370,14 +1370,14 @@ fn pointer_fields_type_mismatch() {
        │                    ^^^ Parameter `d` has different types in declaration and implemenation:
 
     error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-       ┌─ <internal>:14:20
+       ┌─ <test>:14:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     14 │             METHOD bar
        │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-    "###);
+    ");
 }
 
 #[test]
@@ -1403,9 +1403,9 @@ fn pointer_fields_indirection_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Parameter `a` has different types in declaration and implemenation:
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      5 │                 a : REF_TO DINT;
        │                 - see also
@@ -1414,7 +1414,7 @@ fn pointer_fields_indirection_mismatch() {
        │                    ^^^ Parameter `a` has different types in declaration and implemenation:
 
     error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      3 │             METHOD bar
        │                    --- see also
@@ -1423,7 +1423,7 @@ fn pointer_fields_indirection_mismatch() {
        │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
 
     error[E112]: Parameter `b` has different types in declaration and implemenation:
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      6 │                 b : REF_TO REF_TO DINT;
        │                 - see also
@@ -1432,14 +1432,14 @@ fn pointer_fields_indirection_mismatch() {
        │                    ^^^ Parameter `b` has different types in declaration and implemenation:
 
     error[E112]: Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     12 │             METHOD bar
        │                    ^^^ Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-    "###);
+    ");
 }
 
 #[test]
@@ -1487,9 +1487,9 @@ fn subranges_type_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Parameter `a` has different types in declaration and implemenation:
-       ┌─ <internal>:11:20
+       ┌─ <test>:11:20
        │
      5 │                 a : UINT(1..10);
        │                 - see also
@@ -1498,14 +1498,14 @@ fn subranges_type_mismatch() {
        │                    ^^^ Parameter `a` has different types in declaration and implemenation:
 
     error[E112]: Type `UINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-       ┌─ <internal>:11:20
+       ┌─ <test>:11:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     11 │             METHOD bar
        │                    ^^^ Type `UINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-    "###);
+    ");
 }
 
 #[test]
@@ -1531,9 +1531,9 @@ fn pointer_to_array_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Parameter `a` has different types in declaration and implemenation:
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      5 │                 a : REF_TO ARRAY[1..5] OF STRING;
        │                 - see also
@@ -1542,7 +1542,7 @@ fn pointer_to_array_mismatch() {
        │                    ^^^ Parameter `a` has different types in declaration and implemenation:
 
     error[E112]: Type `__foo.bar_a_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      3 │             METHOD bar
        │                    --- see also
@@ -1551,7 +1551,7 @@ fn pointer_to_array_mismatch() {
        │                    ^^^ Type `__foo.bar_a_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
 
     error[E112]: Parameter `b` has different types in declaration and implemenation:
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      6 │                 b : REF_TO ARRAY[1..5] OF ARRAY[1..5] OF STRING;
        │                 - see also
@@ -1560,12 +1560,12 @@ fn pointer_to_array_mismatch() {
        │                    ^^^ Parameter `b` has different types in declaration and implemenation:
 
     error[E112]: Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_b_`
-       ┌─ <internal>:12:20
+       ┌─ <test>:12:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     12 │             METHOD bar
        │                    ^^^ Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_b_`
-    "###);
+    ");
 }

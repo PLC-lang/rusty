@@ -334,13 +334,23 @@ fn pass() {
     // 2. GEP the structs array and dimension field
     // 3. Populate them based on the information we have on `local`, i.e. 1D and (start, end)-offset = (0, 5)
     insta::assert_snapshot!(codegen(src),
-    @r###"
+    @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %__foo_arr = type { i32*, [2 x i32] }
 
     @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
+
+    define i32 @foo(%__foo_arr* %0) {
+    entry:
+      %foo = alloca i32, align 4
+      %arr = alloca %__foo_arr*, align 8
+      store %__foo_arr* %0, %__foo_arr** %arr, align 8
+      store i32 0, i32* %foo, align 4
+      %foo_ret = load i32, i32* %foo, align 4
+      ret i32 %foo_ret
+    }
 
     define i32 @main() {
     entry:
@@ -364,16 +374,6 @@ fn pass() {
       ret i32 %main_ret
     }
 
-    define i32 @foo(%__foo_arr* %0) {
-    entry:
-      %foo = alloca i32, align 4
-      %arr = alloca %__foo_arr*, align 8
-      store %__foo_arr* %0, %__foo_arr** %arr, align 8
-      store i32 0, i32* %foo, align 4
-      %foo_ret = load i32, i32* %foo, align 4
-      ret i32 %foo_ret
-    }
-
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
@@ -387,7 +387,7 @@ fn pass() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 /// Accessing arrays for read- / write-operations works by gepping the structs array and dimension fields,

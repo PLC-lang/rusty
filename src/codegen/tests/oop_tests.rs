@@ -1,5 +1,7 @@
 use test_utils::codegen;
 
+mod debug_tests;
+
 #[test]
 fn members_from_base_class_are_available_in_subclasses() {
     let result = codegen(
@@ -11,12 +13,12 @@ fn members_from_base_class_are_available_in_subclasses() {
             c : ARRAY[0..10] OF STRING;
         END_VAR
         END_FUNCTION_BLOCK
-      
+
         FUNCTION_BLOCK bar EXTENDS foo
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -27,24 +29,17 @@ fn members_from_base_class_are_available_in_subclasses() {
     @__bar__init = constant %bar zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
-    define void @foo(%foo* %0) {
-    entry:
-      %a = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %c = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
-      ret void
-    }
-
     define void @bar(%bar* %0) {
     entry:
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 
-    define void @__init_foo(%foo* %0) {
+    define void @foo(%foo* %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
+      %a = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %c = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       ret void
     }
 
@@ -58,11 +53,18 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void
     }
 
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -78,9 +80,9 @@ fn write_to_parent_variable_qualified_access() {
 
         FUNCTION_BLOCK fb2 EXTENDS fb
         END_FUNCTION_BLOCK
-        
+
         FUNCTION_BLOCK foo
-        VAR 
+        VAR
             myFb : fb2;
         END_VAR
             myFb.x := 1;
@@ -88,7 +90,7 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -123,6 +125,13 @@ fn write_to_parent_variable_qualified_access() {
       ret void
     }
 
+    define void @__init_fb(%fb* %0) {
+    entry:
+      %self = alloca %fb*, align 8
+      store %fb* %0, %fb** %self, align 8
+      ret void
+    }
+
     define void @__init_fb2(%fb2* %0) {
     entry:
       %self = alloca %fb2*, align 8
@@ -130,13 +139,6 @@ fn write_to_parent_variable_qualified_access() {
       %deref = load %fb2*, %fb2** %self, align 8
       %__fb = getelementptr inbounds %fb2, %fb2* %deref, i32 0, i32 0
       call void @__init_fb(%fb* %__fb)
-      ret void
-    }
-
-    define void @__init_fb(%fb* %0) {
-    entry:
-      %self = alloca %fb*, align 8
-      store %fb* %0, %fb** %self, align 8
       ret void
     }
 
@@ -154,7 +156,7 @@ fn write_to_parent_variable_qualified_access() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -162,7 +164,7 @@ fn write_to_parent_variable_in_instance() {
     let result = codegen(
         r#"
         FUNCTION_BLOCK foo
-        VAR 
+        VAR
             s : STRING;
         END_VAR
         METHOD baz
@@ -170,12 +172,12 @@ fn write_to_parent_variable_in_instance() {
         END_METHOD
         END_FUNCTION_BLOCK
 
-        FUNCTION_BLOCK bar EXTENDS foo 
+        FUNCTION_BLOCK bar EXTENDS foo
             s := 'world';
         END_FUNCTION_BLOCK
 
         FUNCTION main
-        VAR 
+        VAR
             s: STRING;
             fb: bar;
         END_VAR
@@ -184,7 +186,7 @@ fn write_to_parent_variable_in_instance() {
         END_FUNCTION
     "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -197,6 +199,15 @@ fn write_to_parent_variable_in_instance() {
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
+    define void @bar(%bar* %0) {
+    entry:
+      %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 0
+      %1 = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
+      ret void
+    }
+
     define void @foo(%foo* %0) {
     entry:
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
@@ -208,15 +219,6 @@ fn write_to_parent_variable_in_instance() {
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %1 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-      ret void
-    }
-
-    define void @bar(%bar* %0) {
-    entry:
-      %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 0
-      %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
       ret void
     }
 
@@ -268,7 +270,7 @@ fn write_to_parent_variable_in_instance() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
     attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-    "###);
+    "#);
 }
 
 #[test]
@@ -307,7 +309,7 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -320,25 +322,17 @@ fn array_in_parent_generated() {
     @__grandparent__init = constant %grandparent zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
-    define void @grandparent(%grandparent* %0) {
-    entry:
-      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
-      ret void
-    }
-
-    define void @parent(%parent* %0) {
-    entry:
-      %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
-      ret void
-    }
-
     define void @child(%child* %0) {
     entry:
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @grandparent(%grandparent* %0) {
+    entry:
+      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
+      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
       ret void
     }
 
@@ -371,6 +365,14 @@ fn array_in_parent_generated() {
       %z = getelementptr inbounds %child, %child* %tmpVar10, i32 0, i32 1
       %tmpVar11 = getelementptr inbounds [11 x i16], [11 x i16]* %z, i32 0, i32 2
       store i16 50, i16* %tmpVar11, align 2
+      ret void
+    }
+
+    define void @parent(%parent* %0) {
+    entry:
+      %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
       ret void
     }
 
@@ -410,7 +412,7 @@ fn array_in_parent_generated() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    "###);
+    "#);
 }
 
 #[test]
@@ -440,7 +442,7 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -452,21 +454,6 @@ fn complex_array_access_generated() {
     @__grandparent__init = constant %grandparent zeroinitializer
     @__child__init = constant %child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-
-    define void @grandparent(%grandparent* %0) {
-    entry:
-      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
-      ret void
-    }
-
-    define void @parent(%parent* %0) {
-    entry:
-      %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
-      ret void
-    }
 
     define void @child(%child* %0) {
     entry:
@@ -499,6 +486,31 @@ fn complex_array_access_generated() {
       ret void
     }
 
+    define void @grandparent(%grandparent* %0) {
+    entry:
+      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
+      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @parent(%parent* %0) {
+    entry:
+      %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
+      ret void
+    }
+
+    define void @__init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__init_parent(%parent* %__parent)
+      ret void
+    }
+
     define void @__init_parent(%parent* %0) {
     entry:
       %self = alloca %parent*, align 8
@@ -516,19 +528,9 @@ fn complex_array_access_generated() {
       ret void
     }
 
-    define void @__init_child(%child* %0) {
-    entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
-      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
-      call void @__init_parent(%parent* %__parent)
-      ret void
-    }
-
     define void @__init___Test() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
