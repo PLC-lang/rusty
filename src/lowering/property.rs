@@ -88,18 +88,25 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
+use rustc_hash::FxHashSet;
 
-use crate::resolver::{AnnotationMap, AstAnnotations};
+use crate::{
+    index::Index,
+    resolver::{AnnotationMap, AstAnnotations},
+};
 
+#[derive(Default)]
 pub struct PropertyLowerer {
     pub id_provider: IdProvider,
     pub annotations: Option<AstAnnotations>,
+    pub index: Option<Index>,
     context: Option<String>,
+    inherited_prop_methods: FxHashSet<String>,
 }
 
 impl PropertyLowerer {
     pub fn new(id_provider: IdProvider) -> PropertyLowerer {
-        PropertyLowerer { id_provider, annotations: None, context: None }
+        PropertyLowerer { id_provider, ..Default::default() }
     }
 }
 
@@ -234,6 +241,68 @@ impl PropertyLowerer {
                 pou.variable_blocks.push(VariableBlock::property(variables));
             }
         }
+    }
+
+    /// Deduplicates re-declared backing fields by removing them from the property block if they are already
+    /// present in the super class and should be inherited instead.
+    ///
+    /// If a backing field is removed in this fashion, the ordering of the remaining backing-fields in their variable block is **_not_** preserved.
+    ///
+    /// Additionally, the visitor collects possibly re-declared `GET` and `SET` methods. These methods are
+    /// later checked for overridden implementations in [PropertyLowerer::dedup_redeclared_prop_methods].
+    pub fn dedup_inherited_backing_fields(&mut self, unit: &mut CompilationUnit) {
+        let Some(index) = self.index.as_ref() else {
+            panic!("This method should be called in the `post_index` stage, where a valid index is present");
+        };
+        unit.units.iter_mut().filter(|pou| pou.super_class.is_some()).for_each(|pou| {
+            let Some(super_class) = pou.super_class.as_ref().and_then(|id| index.find_pou(&id.name)) else {
+                unreachable!("exists due to previous filtering");
+            };
+
+            pou.variable_blocks
+                .iter_mut()
+                .filter(|it| it.variable_block_type == VariableBlockType::Property)
+                .for_each(|block| {
+                    let to_remove = block
+                        .variables
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(idx, var)| {
+                            let getter = format!("__get_{prop}", prop = var.name);
+                            let setter = format!("__set_{prop}", prop = var.name);
+                            index
+                                .find_method(super_class.get_name(), &getter)
+                                .or_else(|| index.find_method(super_class.get_name(), &setter))
+                                .map(|_|{                            
+                                self.inherited_prop_methods.insert(format!("{}.{getter}", pou.name));
+                                self.inherited_prop_methods.insert(format!("{}.{setter}", pou.name));
+                                idx
+                            })
+                        })
+                        .collect::<Vec<usize>>();
+                    to_remove.into_iter().for_each(|idx| {
+                        block.variables.swap_remove(idx);
+                    });
+                });
+        });
+    }
+
+    /// Deduplicates re-declared property methods by removing their declaration and implementation if they are
+    /// are not overridden by the sub-class
+    pub fn dedup_redeclared_prop_methods(&mut self, unit: &mut CompilationUnit) {
+        let mut to_remove = vec![];
+        unit.implementations.iter_mut().for_each(|implementation| {
+            if self.inherited_prop_methods.contains(&implementation.name)
+                && implementation.statements.is_empty()
+            {
+                to_remove.push(implementation.name.to_owned());
+            }
+        });
+
+        to_remove.iter().for_each(|name| {
+            unit.implementations.retain(|implementation| implementation.name != *name);
+            unit.units.retain(|pou| pou.name != *name);
+        });
     }
 }
 

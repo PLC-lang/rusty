@@ -17,6 +17,22 @@ impl PipelineParticipantMut for PropertyLowerer {
         ParsedProject { units }
     }
 
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { project, index, .. } = indexed_project;
+        self.index = Some(index);
+
+        let mut units = project.units;
+        units.iter_mut().for_each(|unit| {
+            self.dedup_inherited_backing_fields(unit);
+        });
+
+        units.iter_mut().for_each(|unit| {
+            self.dedup_redeclared_prop_methods(unit);
+        });
+
+        ParsedProject { units }.index(self.id_provider.clone())
+    }
+
     fn post_annotate(&mut self, project: AnnotatedProject) -> AnnotatedProject {
         let AnnotatedProject { mut units, index, annotations } = project;
         self.annotations = Some(annotations);

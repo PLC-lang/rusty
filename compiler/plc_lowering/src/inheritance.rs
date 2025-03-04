@@ -260,6 +260,8 @@ impl AstVisitorMut for InheritanceLowerer {
 #[cfg(test)]
 mod units_tests {
     use insta::assert_debug_snapshot;
+    use plc::index::Index;
+    use plc_ast::ast::CompilationUnit;
     use plc_driver::parse_and_annotate;
     use plc_source::SourceCode;
 
@@ -2058,6 +2060,260 @@ mod units_tests {
             ),
         }
         "###);
+    }
+
+    #[test]
+    fn property_is_inherited() {
+        let src: SourceCode = r#"
+        FUNCTION_BLOCK foo
+        PROPERTY baz : INT
+            GET END_GET
+            SET END_SET
+        END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK bar EXTENDS foo
+            baz := baz + 42;
+        END_FUNCTION_BLOCK
+        "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let index: &Index = &project.index;
+        let unit: &CompilationUnit = &project.units[0].get_unit();
+
+        // we expect the property to be inherited, not redefined
+        // i.e. bar should not declare a backing field named baz
+        let bar = &unit.units[1];
+        assert_debug_snapshot!(bar, @r#"
+        POU {
+            name: "bar",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "__foo",
+                            data_type: DataTypeReference {
+                                referenced_type: "foo",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+            ],
+            pou_type: FunctionBlock,
+            return_type: None,
+            interfaces: [],
+        }
+        "#);
+
+        // likewise we don't expect the child-class to declare its own getter and setter methods
+        // for the inherited property
+        assert!(index.find_pou("bar.__get_baz").is_none());
+        assert!(index.find_pou("bar.__set_baz").is_none());
+
+        let implementation = &unit.implementations[1];
+        assert_debug_snapshot!(implementation, @r#"
+        Implementation {
+            name: "bar",
+            type_name: "bar",
+            linkage: Internal,
+            pou_type: FunctionBlock,
+            statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__set_baz",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__foo",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    parameters: Some(
+                        BinaryExpression {
+                            operator: Plus,
+                            left: CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__get_baz",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__foo",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                                parameters: None,
+                            },
+                            right: LiteralInteger {
+                                value: 42,
+                            },
+                        },
+                    ),
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 9,
+                        column: 12,
+                        offset: 203,
+                    }..TextLocation {
+                        line: 9,
+                        column: 28,
+                        offset: 219,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 8,
+                        column: 23,
+                        offset: 175,
+                    }..TextLocation {
+                        line: 8,
+                        column: 26,
+                        offset: 178,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "#);
+    }
+
+    #[test]
+    fn inherited_property_can_be_extended() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK foo
+            PROPERTY baz : INT
+                GET END_GET
+            END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK bar EXTENDS foo
+            PROPERTY baz : INT
+                SET END_SET
+            END_PROPERTY
+                baz := baz + 1;
+            END_FUNCTION_BLOCK
+        "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let index: &Index = &project.index;
+        let unit: &CompilationUnit = &project.units[0].get_unit();
+
+        // we expect `foo` to have a getter method for the property, but no setter.
+        assert!(index.find_pou("foo.__get_baz").is_some());
+        assert!(index.find_pou("foo.__set_baz").is_none());
+
+        // we expect `bar` to have a setter method for the property, but no getter (it is inherited)
+        assert!(index.find_pou("bar.__get_baz").is_none());
+        assert!(index.find_pou("bar.__set_baz").is_some());
+
+        // we expect the overriden setter method to be called. the getter method should be inherited
+        let bar = &unit.implementations[1];
+        assert_debug_snapshot!(bar, @r#"
+        Implementation {
+            name: "bar",
+            type_name: "bar",
+            linkage: Internal,
+            pou_type: FunctionBlock,
+            statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__set_baz",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        BinaryExpression {
+                            operator: Plus,
+                            left: CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__get_baz",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__foo",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                                parameters: None,
+                            },
+                            right: LiteralInteger {
+                                value: 1,
+                            },
+                        },
+                    ),
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 11,
+                        column: 16,
+                        offset: 291,
+                    }..TextLocation {
+                        line: 11,
+                        column: 31,
+                        offset: 306,
+                    },
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 7,
+                        column: 27,
+                        offset: 175,
+                    }..TextLocation {
+                        line: 7,
+                        column: 30,
+                        offset: 178,
+                    },
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "#);
+
+        // the added `__set_baz` method should access the backing field of the parent-pou
+        let setter = &unit.implementations[3];
+        dbg!(setter);
     }
 }
 

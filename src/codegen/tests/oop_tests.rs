@@ -1,3 +1,4 @@
+use insta::assert_snapshot;
 use test_utils::codegen;
 
 #[test]
@@ -531,4 +532,112 @@ fn complex_array_access_generated() {
       ret void
     }
     "###);
+}
+
+#[test]
+fn inherited_get_set_use_parent_backing_field() {
+    let result = codegen(r#"
+    FUNCTION_BLOCK foo
+    PROPERTY baz : INT
+        GET END_GET
+        SET END_SET
+    END_PROPERTY
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK bar EXTENDS foo
+        baz := baz + 42;
+    END_FUNCTION_BLOCK
+    "#);
+
+    assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { i16 }
+    %bar = type { %foo }
+
+    @__foo__init = constant %foo zeroinitializer
+    @__bar__init = constant %bar zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define void @foo(%foo* %0) {
+    entry:
+      %baz = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @bar(%bar* %0) {
+    entry:
+      %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      %call = call i16 @foo.__get_baz(%foo* %__foo)
+      %1 = sext i16 %call to i32
+      %tmpVar = add i32 %1, 42
+      %2 = trunc i32 %tmpVar to i16
+      call void @foo.__set_baz(%foo* %__foo, i16 %2)
+      ret void
+    }
+
+    define i16 @foo.__get_baz(%foo* %0) {
+    entry:
+      %baz = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %foo.__get_baz = alloca i16, align 2
+      store i16 0, i16* %foo.__get_baz, align 2
+      %load_baz = load i16, i16* %baz, align 2
+      store i16 %load_baz, i16* %foo.__get_baz, align 2
+      %foo.__get_baz_ret = load i16, i16* %foo.__get_baz, align 2
+      ret i16 %foo.__get_baz_ret
+    }
+
+    define void @foo.__set_baz(%foo* %0, i16 %1) {
+    entry:
+      %baz = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__in = alloca i16, align 2
+      store i16 %1, i16* %__in, align 2
+      %load___in = load i16, i16* %__in, align 2
+      store i16 %load___in, i16* %baz, align 2
+      ret void
+    }
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__init_foo(%foo* %__foo)
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+    "#);
+}
+
+#[test]
+fn overridden_get_set_uses_parent_backing_field() {
+    let result = codegen(r#"
+    FUNCTION_BLOCK foo
+    PROPERTY baz : INT
+        GET END_GET
+    END_PROPERTY
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK bar EXTENDS foo
+    PROPERTY baz : INT
+        SET END_SET
+    END_PROPERTY
+        baz := baz + 42;
+    END_FUNCTION_BLOCK
+    "#);
+
+    assert_snapshot!(result, @r#""#);
 }
