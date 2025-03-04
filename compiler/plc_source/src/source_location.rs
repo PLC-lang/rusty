@@ -182,10 +182,6 @@ pub enum FileMarker {
 impl From<&'static str> for FileMarker {
     fn from(value: &'static str) -> Self {
         Self::File(value)
-        // match value {
-        //     "<internal>" => Self::Internal(value),
-        //     _ => Self::File(value),
-        // }
     }
 }
 
@@ -198,8 +194,7 @@ impl From<Option<&'static str>> for FileMarker {
 impl From<&FileMarker> for PathBuf {
     fn from(val: &FileMarker) -> Self {
         match val {
-            FileMarker::File(f) => Path::new(f).to_path_buf(),
-            FileMarker::Internal(f) => Path::new(f).to_path_buf(),
+            FileMarker::File(f) | FileMarker::Internal(f) => f.replace(['<', '>'], "__").into(),
             FileMarker::Undefined => Path::new("").to_path_buf(),
         }
     }
@@ -208,8 +203,7 @@ impl From<&FileMarker> for PathBuf {
 impl FileMarker {
     pub fn get_name(&self) -> Option<&'static str> {
         match self {
-            FileMarker::File(f) => Some(f),
-            FileMarker::Internal(f) => Some(f),
+            FileMarker::File(f) | FileMarker::Internal(f) => Some(f),
             FileMarker::Undefined => None,
         }
     }
