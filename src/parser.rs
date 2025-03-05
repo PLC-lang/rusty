@@ -202,10 +202,17 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
         }
     };
 
+    let mut extensions = Vec::new();
     let mut methods = Vec::new();
     let mut implementations = Vec::new();
     loop {
         match lexer.token {
+            KeywordExtends | KeywordComma => {
+                lexer.advance();
+                if let Some((name, location)) = parse_identifier(lexer) {
+                    extensions.push(Identifier { name, location });
+                }
+            }
             KeywordMethod => {
                 if let Some((method, imp)) = parse_method(lexer, &name, LinkageType::Internal, false) {
                     // This is temporary? At some point we'll support them but for now it's a diagnostic
@@ -235,6 +242,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
         Interface {
             name,
             methods,
+            inherits: extensions,
             location: lexer.source_range_factory.create_range(location_start..location_end),
             location_name,
         },
