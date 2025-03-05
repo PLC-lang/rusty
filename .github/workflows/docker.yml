@@ -27,6 +27,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Download plc
+        uses: actions/download-artifact@v2
+        with:
+          name: plc
+
+      - name: Download stdlib
+        uses: actions/download-artifact@v2
+        with:
+          name: stdlib
+
       - name: Build image
         shell: bash
         run: docker buildx build . --platform ${{matrix.config.version}}/${{matrix.config.arch}}  --file Dockerfile --tag $IMAGE_NAME
