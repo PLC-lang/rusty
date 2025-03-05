@@ -728,14 +728,6 @@ impl DataTypeInformation {
         }
     }
 
-    // fn get_alignment_recursive<'b>(
-    //     &'b self,
-    //     index: &'b Index,
-    //     seen: &mut FxHashSet<&'b str>,
-    // ) -> Bytes {
-
-    // }
-
     pub fn get_inner_array_type_name(&self) -> Option<&str> {
         match self {
             DataTypeInformation::Array { inner_type_name, .. } => Some(inner_type_name),

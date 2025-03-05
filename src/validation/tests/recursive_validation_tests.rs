@@ -739,7 +739,7 @@ mod inheritance {
             ",
         );
 
-        assert_snapshot!(diagnostics, @r"
+        assert_snapshot!(diagnostics, @r###"
         error[E029]: Recursive data structure `foo -> bar -> foo` has infinite size
           ┌─ <internal>:2:28
           │
@@ -751,10 +751,43 @@ mod inheritance {
           ·
         5 │             FUNCTION_BLOCK bar EXTENDS foo
           │                            --- see also
+        "###);
+    }
 
-        error[E021]: Variable `__bar` is already declared in parent POU `foo`
+    #[test]
+    fn inheritance_cycle_with_struct_indirection() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            FUNCTION_BLOCK foo
+            VAR
+                x : X;
+            END_VAR
+            END_FUNCTION_BLOCK
+            
+            FUNCTION_BLOCK bar EXTENDS foo
+            END_FUNCTION_BLOCK
 
-        error[E021]: Variable `__foo` is already declared in parent POU `bar`
-        ");
+            TYPE X : STRUCT
+                fb : bar;
+            END_STRUCT END_TYPE
+            ",
+        );
+
+        assert_snapshot!(diagnostics, @r###"
+        error[E029]: Recursive data structure `X -> bar -> foo -> X` has infinite size
+           ┌─ <internal>:11:18
+           │
+         2 │             FUNCTION_BLOCK foo
+           │                            --- see also
+           ·
+         8 │             FUNCTION_BLOCK bar EXTENDS foo
+           │                            --- see also
+           ·
+        11 │             TYPE X : STRUCT
+           │                  ^
+           │                  │
+           │                  Recursive data structure `X -> bar -> foo -> X` has infinite size
+           │                  see also
+        "###);
     }
 }
