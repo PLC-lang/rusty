@@ -1,8 +1,10 @@
 name: Docker Image CI
 
 on:
-  push:
-    branches: [ '*' ]
+  workflow_run:
+    workflows: ["Build Linux"]
+    types:
+      - completed
 
 env:
   IMAGE_NAME: rusty
@@ -26,6 +28,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Download plc
+        uses: actions/download-artifact@v4
+        with:
+          name: plc
+
+      - name: Download stdlib
+        uses: actions/download-artifact@v4
+        with:
+          name: stdlib
 
       - name: Build image
         shell: bash
