@@ -583,7 +583,7 @@ fn property_in_interface_must_not_have_an_implementation() {
 
     let (_, diagnostics) = parse_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
-    warning[E113]: Interfaces can not have a default implementation in a Property
+    warning[E118]: Interfaces can not have a default implementation in a Property
       ┌─ <internal>:5:24
       │
     3 │                 PROPERTY foo : DINT
@@ -592,7 +592,7 @@ fn property_in_interface_must_not_have_an_implementation() {
     5 │                        foo := 5;
       │                        ^^^^^^^^ Interfaces can not have a default implementation in a Property
 
-    warning[E113]: Interfaces can not have a default implementation in a Property
+    warning[E118]: Interfaces can not have a default implementation in a Property
       ┌─ <internal>:8:24
       │
     3 │                 PROPERTY foo : DINT
