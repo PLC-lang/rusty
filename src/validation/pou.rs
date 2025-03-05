@@ -618,8 +618,8 @@ pub(super) mod signature_validation {
             let method_ref = ctxt.method_ref;
             let l_encoding = left.get_string_character_width(ctxt.index);
             let r_encoding = right.get_string_character_width(ctxt.index);
-            let left_length = left.get_size(ctxt.index).bits() / l_encoding.bits();
-            let right_length = right.get_size(ctxt.index).bits() / r_encoding.bits();
+            let left_length = left.get_size_in_bits(ctxt.index).unwrap() / l_encoding.bits();
+            let right_length = right.get_size_in_bits(ctxt.index).unwrap() / r_encoding.bits();
             let mut sub_diagnostics = vec![];
             (left_length != right_length).then(|| {
                 sub_diagnostics.push(

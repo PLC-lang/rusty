@@ -151,7 +151,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
     fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        let lsize = cast_data.target_type.get_size_in_bits(cast_data.index);
+        let lsize = cast_data.target_type.get_size_in_bits(cast_data.index).unwrap();
         match cast_data.target_type {
             DataTypeInformation::Integer { .. } => {
                 //its important to use the real type's size here, because we may have an i1 which is annotated as BOOL (8 bit)
@@ -191,7 +191,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
     fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        let rsize = &cast_data.value_type.get_size_in_bits(cast_data.index);
+        let rsize = &cast_data.value_type.get_size_in_bits(cast_data.index).unwrap();
         match cast_data.target_type {
             DataTypeInformation::Float { size: lsize, .. } => {
                 if lsize < rsize {

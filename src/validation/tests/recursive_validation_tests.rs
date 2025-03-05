@@ -722,3 +722,39 @@ mod enums {
         assert!(diagnostics.is_empty());
     }
 }
+
+mod inheritance {
+    use insta::assert_snapshot;
+    use test_utils::parse_and_validate_buffered;
+
+    #[test]
+    fn inheritance_cycle() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            FUNCTION_BLOCK foo EXTENDS bar
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK bar EXTENDS foo
+            END_FUNCTION_BLOCK
+            ",
+        );
+
+        assert_snapshot!(diagnostics, @r"
+        error[E029]: Recursive data structure `foo -> bar -> foo` has infinite size
+          ┌─ <internal>:2:28
+          │
+        2 │             FUNCTION_BLOCK foo EXTENDS bar
+          │                            ^^^
+          │                            │
+          │                            Recursive data structure `foo -> bar -> foo` has infinite size
+          │                            see also
+          ·
+        5 │             FUNCTION_BLOCK bar EXTENDS foo
+          │                            --- see also
+
+        error[E021]: Variable `__bar` is already declared in parent POU `foo`
+
+        error[E021]: Variable `__foo` is already declared in parent POU `bar`
+        ");
+    }
+}
