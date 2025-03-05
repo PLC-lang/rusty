@@ -491,7 +491,7 @@ impl ImplementationType {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq)]
 pub struct InterfaceIndexEntry {
     /// The interface name
     pub name: String,
@@ -505,6 +505,9 @@ pub struct InterfaceIndexEntry {
     /// A list of qualified names of the methods in this interface; the actual methods are located in
     /// [`Index::pous`]
     pub methods: Vec<String>,
+
+    /// A list of other interfaces this interface extends
+    pub extensions: Vec<Identifier>, // TODO: Vec<String> might be enough here
 }
 
 impl InterfaceIndexEntry {
@@ -515,6 +518,16 @@ impl InterfaceIndexEntry {
             .map(|name| index.find_pou(name).expect("must exist because of present InterfaceIndexEntry"))
             .collect()
     }
+
+    pub fn get_derived_interfaces<'idx>(
+        &self,
+        index: &'idx Index,
+    ) -> Vec<Result<&'idx InterfaceIndexEntry, Identifier>> {
+        self.extensions
+            .iter()
+            .flat_map(|id| index.find_interface(&id.name).map(Result::Ok).or(Some(Err(id.to_owned()))))
+            .collect()
+    }
 }
 
 impl std::fmt::Debug for InterfaceIndexEntry {
@@ -522,6 +535,7 @@ impl std::fmt::Debug for InterfaceIndexEntry {
         f.debug_struct("InterfaceIndexEntry")
             .field("name", &self.name)
             .field("methods", &self.methods)
+            .field("extensions", &self.extensions)
             .finish()
     }
 }
@@ -533,6 +547,7 @@ impl From<&Interface> for InterfaceIndexEntry {
             location: interface.location.clone(),
             location_name: interface.location_name.clone(),
             methods: interface.methods.iter().map(|method| method.name.clone()).collect(),
+            extensions: interface.extensions.clone(),
         }
     }
 }

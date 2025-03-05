@@ -13,6 +13,7 @@ fn empty_interface() {
     InterfaceIndexEntry {
         name: "myInterface",
         methods: [],
+        extensions: [],
     }
     "###);
 }
@@ -38,6 +39,7 @@ fn interface_with_single_method() {
         methods: [
             "myInterface.foo",
         ],
+        extensions: [],
     }
     "###);
 
@@ -263,6 +265,254 @@ fn get_interface_methods() {
                 ),
             },
         },
+    ]
+    "###);
+}
+
+#[test]
+fn extended_interfaces() {
+    let source = r"
+        INTERFACE foo
+        METHOD m_foo
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE bar EXTENDS foo
+        END_INTERFACE
+
+        INTERFACE baz
+        METHOD m_baz
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE qux EXTENDS foo, baz
+        END_INTERFACE
+    ";
+
+    let (_, index) = index(source);
+    let entry = index.find_interface("bar").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "foo",
+                methods: [
+                    "foo.m_foo",
+                ],
+                extensions: [],
+            },
+        ),
+    ]
+    "###);
+
+    let entry = index.find_interface("qux").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "foo",
+                methods: [
+                    "foo.m_foo",
+                ],
+                extensions: [],
+            },
+        ),
+        Ok(
+            InterfaceIndexEntry {
+                name: "baz",
+                methods: [
+                    "baz.m_baz",
+                ],
+                extensions: [],
+            },
+        ),
+    ]
+    "###);
+}
+
+#[test]
+fn nested_extended_interfaces() {
+    let source = r"
+        INTERFACE foo
+        METHOD m_foo
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE bar EXTENDS foo
+        METHOD m_bar
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE baz EXTENDS bar
+        METHOD m_baz
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE qux EXTENDS baz
+        END_INTERFACE
+    ";
+
+    let (_, index) = index(source);
+    let entry = index.find_interface("bar").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "foo",
+                methods: [
+                    "foo.m_foo",
+                ],
+                extensions: [],
+            },
+        ),
+    ]
+    "###);
+
+    let entry = index.find_interface("baz").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "bar",
+                methods: [
+                    "bar.m_bar",
+                ],
+                extensions: [
+                    Identifier {
+                        name: "foo",
+                        location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 6,
+                                    column: 30,
+                                    offset: 116,
+                                }..TextLocation {
+                                    line: 6,
+                                    column: 33,
+                                    offset: 119,
+                                },
+                            ),
+                        },
+                    },
+                ],
+            },
+        ),
+    ]
+    "###);
+
+    let entry = index.find_interface("qux").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "baz",
+                methods: [
+                    "baz.m_baz",
+                ],
+                extensions: [
+                    Identifier {
+                        name: "bar",
+                        location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 11,
+                                    column: 30,
+                                    offset: 213,
+                                }..TextLocation {
+                                    line: 11,
+                                    column: 33,
+                                    offset: 216,
+                                },
+                            ),
+                        },
+                    },
+                ],
+            },
+        ),
+    ]
+    "###);
+}
+
+#[test]
+fn deriving_from_undeclared_interface() {
+    let source = r"
+        INTERFACE foo EXTENDS bar
+        END_INTERFACE
+
+        INTERFACE baz EXTENDS foo, bar
+        END_INTERFACE
+    ";
+
+    let (_, index) = index(source);
+    let entry = index.find_interface("foo").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    [
+        Err(
+            Identifier {
+                name: "bar",
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 1,
+                            column: 30,
+                            offset: 31,
+                        }..TextLocation {
+                            line: 1,
+                            column: 33,
+                            offset: 34,
+                        },
+                    ),
+                },
+            },
+        ),
+    ]
+    "###);
+
+    let entry = index.find_interface("baz").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "foo",
+                methods: [],
+                extensions: [
+                    Identifier {
+                        name: "bar",
+                        location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 1,
+                                    column: 30,
+                                    offset: 31,
+                                }..TextLocation {
+                                    line: 1,
+                                    column: 33,
+                                    offset: 34,
+                                },
+                            ),
+                        },
+                    },
+                ],
+            },
+        ),
+        Err(
+            Identifier {
+                name: "bar",
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 4,
+                            column: 35,
+                            offset: 93,
+                        }..TextLocation {
+                            line: 4,
+                            column: 38,
+                            offset: 96,
+                        },
+                    ),
+                },
+            },
+        ),
     ]
     "###);
 }

@@ -41,6 +41,7 @@ fn empty_interface() {
                     },
                 ),
             },
+            extensions: [],
         },
     ]
     "###);
@@ -62,7 +63,7 @@ fn interface_with_single_method() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
             name: "myInterface",
@@ -128,9 +129,10 @@ fn interface_with_single_method() {
                     },
                 ),
             },
+            extensions: [],
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -159,7 +161,7 @@ fn interface_with_multiple_methods() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
             name: "myInterface",
@@ -264,9 +266,10 @@ fn interface_with_multiple_methods() {
                     },
                 ),
             },
+            extensions: [],
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -396,7 +399,6 @@ fn interface_deriving_from_other_interface() {
     [
         Interface {
             name: "foo",
-            inherits: [],
             methods: [
                 POU {
                     name: "foo.baz",
@@ -435,27 +437,10 @@ fn interface_deriving_from_other_interface() {
                     },
                 ),
             },
+            extensions: [],
         },
         Interface {
             name: "bar",
-            inherits: [
-                Identifier {
-                    name: "foo",
-                    location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 6,
-                                column: 30,
-                                offset: 114,
-                            }..TextLocation {
-                                line: 6,
-                                column: 33,
-                                offset: 117,
-                            },
-                        ),
-                    },
-                },
-            ],
             methods: [
                 POU {
                     name: "bar.qux",
@@ -494,6 +479,24 @@ fn interface_deriving_from_other_interface() {
                     },
                 ),
             },
+            extensions: [
+                Identifier {
+                    name: "foo",
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 6,
+                                column: 30,
+                                offset: 114,
+                            }..TextLocation {
+                                line: 6,
+                                column: 33,
+                                offset: 117,
+                            },
+                        ),
+                    },
+                },
+            ],
         },
     ]
     "###);
@@ -523,7 +526,6 @@ fn interface_deriving_from_multiple_interfaces() {
     [
         Interface {
             name: "foo",
-            inherits: [],
             methods: [
                 POU {
                     name: "foo.baz",
@@ -562,10 +564,10 @@ fn interface_deriving_from_multiple_interfaces() {
                     },
                 ),
             },
+            extensions: [],
         },
         Interface {
             name: "bar",
-            inherits: [],
             methods: [
                 POU {
                     name: "bar.qux",
@@ -604,10 +606,38 @@ fn interface_deriving_from_multiple_interfaces() {
                     },
                 ),
             },
+            extensions: [],
         },
         Interface {
             name: "quux",
-            inherits: [
+            methods: [],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 11,
+                        column: 4,
+                        offset: 139,
+                    }..TextLocation {
+                        line: 13,
+                        column: 4,
+                        offset: 193,
+                    },
+                ),
+            },
+            location_name: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 11,
+                        column: 14,
+                        offset: 149,
+                    }..TextLocation {
+                        line: 11,
+                        column: 18,
+                        offset: 153,
+                    },
+                ),
+            },
+            extensions: [
                 Identifier {
                     name: "foo",
                     location: SourceLocation {
@@ -641,33 +671,6 @@ fn interface_deriving_from_multiple_interfaces() {
                     },
                 },
             ],
-            methods: [],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 11,
-                        column: 4,
-                        offset: 139,
-                    }..TextLocation {
-                        line: 13,
-                        column: 4,
-                        offset: 193,
-                    },
-                ),
-            },
-            location_name: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 11,
-                        column: 14,
-                        offset: 149,
-                    }..TextLocation {
-                        line: 11,
-                        column: 18,
-                        offset: 153,
-                    },
-                ),
-            },
         },
     ]
     "###);

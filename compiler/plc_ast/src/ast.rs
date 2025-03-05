@@ -51,10 +51,10 @@ pub struct Pou {
 #[derive(Debug, PartialEq)]
 pub struct Interface {
     pub name: String,
-    pub inherits: Vec<Identifier>,
     pub methods: Vec<Pou>,
     pub location: SourceLocation,
     pub location_name: SourceLocation,
+    pub extensions: Vec<Identifier>,
 }
 
 #[derive(Debug, PartialEq, Clone)]

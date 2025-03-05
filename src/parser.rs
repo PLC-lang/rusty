@@ -242,7 +242,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
         Interface {
             name,
             methods,
-            inherits: extensions,
+            extensions,
             location: lexer.source_range_factory.create_range(location_start..location_end),
             location_name,
         },
