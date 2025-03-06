@@ -518,13 +518,11 @@ fn validate_reference<T: AnnotationMap>(
                     .and_then(|qualifier| context.index.find_pou(qualifier))
                     .map(|pou| (pou.get_name(), pou.get_container()))
                     .is_some_and(|(pou, container)| {
-                        !(
-                            qualified_name.starts_with(pou)
+                        !(qualified_name.starts_with(pou)
                                 || qualified_name.starts_with(container)
                                 || context.index.is_init_function(pou)
                                 //Hack: Avoid internal check here because of the super call
-                                || location.is_internal()
-                         )
+                                || location.is_internal())
                     })
             {
                 validator.push_diagnostic(
