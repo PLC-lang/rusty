@@ -245,3 +245,92 @@ fn all_available_methods_of_container_are_annotated() {
     )
     "#);
 }
+
+#[test]
+fn all_available_methods_of_interface_are_annotated() {
+    let id_provider = IdProvider::default();
+    let (unit, index, _) = index_and_lower(
+        r#"
+        INTERFACE foo
+            METHOD bar
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE baz EXTENDS foo
+            METHOD qux
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quux
+            METHOD corge
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quuz EXTENDS quux
+            METHOD grault
+            END_METHOD
+
+            METHOD garply
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quxat
+            METHOD waldo
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quxar EXTENDS quuz, baz, quxat
+            METHOD fred
+            END_METHOD
+        END_INTERFACE
+    "#,
+        id_provider.clone(),
+    );
+
+    let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
+
+    let intf = &units[0].0.interfaces.last().unwrap();
+    assert_debug_snapshot!(annotations.get_with_id(intf.id), @r###"
+    Some(
+        MethodDeclarations {
+            declarations: {
+                "fred": [
+                    Abstract(
+                        "quxar.fred",
+                    ),
+                ],
+                "garply": [
+                    Abstract(
+                        "quuz.garply",
+                    ),
+                ],
+                "corge": [
+                    Abstract(
+                        "quux.corge",
+                    ),
+                ],
+                "waldo": [
+                    Abstract(
+                        "quxat.waldo",
+                    ),
+                ],
+                "grault": [
+                    Abstract(
+                        "quuz.grault",
+                    ),
+                ],
+                "bar": [
+                    Abstract(
+                        "foo.bar",
+                    ),
+                ],
+                "qux": [
+                    Abstract(
+                        "baz.qux",
+                    ),
+                ],
+            },
+        },
+    )
+    "###);
+}
