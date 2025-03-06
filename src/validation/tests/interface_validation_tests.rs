@@ -1735,3 +1735,317 @@ fn pointer_to_array_mismatch() {
        │                    --- see also
     ");
 }
+
+#[test]
+fn pou_implementing_all_methods_of_extended_interface_does_not_err() {
+    let source = r"
+        INTERFACE foo
+            METHOD bar
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE baz EXTENDS foo
+            METHOD qux
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS baz
+            METHOD bar
+            END_METHOD
+
+            METHOD qux
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    assert!(diagnostics.is_empty(), "{:?}", diagnostics);
+}
+
+#[test]
+fn pou_missing_methods_of_extended_interface() {
+    let source = r"
+        INTERFACE foo
+            METHOD bar
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE baz EXTENDS foo
+            METHOD qux
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS baz
+        END_FUNCTION_BLOCK
+        ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E112]: Method `bar` defined in interface `foo` is missing in POU `fb`
+       ┌─ <internal>:12:24
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    12 │         FUNCTION_BLOCK fb IMPLEMENTS baz
+       │                        ^^ Method `bar` defined in interface `foo` is missing in POU `fb`
+
+    error[E112]: Method `qux` defined in interface `baz` is missing in POU `fb`
+       ┌─ <internal>:12:24
+       │
+     8 │             METHOD qux
+       │                    --- see also
+       ·
+    12 │         FUNCTION_BLOCK fb IMPLEMENTS baz
+       │                        ^^ Method `qux` defined in interface `baz` is missing in POU `fb`
+    "###);
+}
+
+#[test]
+fn pou_missing_methods_of_nested_extended_interface() {
+    let source = r"
+        INTERFACE foo
+            METHOD bar
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE baz EXTENDS foo
+            METHOD qux
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quux EXTENDS baz
+            METHOD corge
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS quux
+        END_FUNCTION_BLOCK
+        ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E112]: Method `corge` defined in interface `quux` is missing in POU `fb`
+       ┌─ <internal>:17:24
+       │
+    13 │             METHOD corge
+       │                    ----- see also
+       ·
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS quux
+       │                        ^^ Method `corge` defined in interface `quux` is missing in POU `fb`
+
+    error[E112]: Method `bar` defined in interface `foo` is missing in POU `fb`
+       ┌─ <internal>:17:24
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS quux
+       │                        ^^ Method `bar` defined in interface `foo` is missing in POU `fb`
+
+    error[E112]: Method `qux` defined in interface `baz` is missing in POU `fb`
+       ┌─ <internal>:17:24
+       │
+     8 │             METHOD qux
+       │                    --- see also
+       ·
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS quux
+       │                        ^^ Method `qux` defined in interface `baz` is missing in POU `fb`
+    "###);
+}
+
+#[test]
+fn pou_missing_methods_of_multiple_nested_interfaces() {
+    let source = r"
+        INTERFACE foo
+            METHOD bar
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE baz EXTENDS foo
+            METHOD qux
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quux
+            METHOD corge
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quuz EXTENDS quux
+            METHOD grault
+            END_METHOD
+
+            METHOD garply
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quxat
+            METHOD waldo
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quxar EXTENDS quuz, baz, quxat
+            METHOD fred
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS quxar
+        END_FUNCTION_BLOCK
+        ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E112]: Method `fred` defined in interface `quxar` is missing in POU `fb`
+       ┌─ <internal>:35:24
+       │
+    31 │             METHOD fred
+       │                    ---- see also
+       ·
+    35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
+       │                        ^^ Method `fred` defined in interface `quxar` is missing in POU `fb`
+
+    error[E112]: Method `garply` defined in interface `quuz` is missing in POU `fb`
+       ┌─ <internal>:35:24
+       │
+    21 │             METHOD garply
+       │                    ------ see also
+       ·
+    35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
+       │                        ^^ Method `garply` defined in interface `quuz` is missing in POU `fb`
+
+    error[E112]: Method `corge` defined in interface `quux` is missing in POU `fb`
+       ┌─ <internal>:35:24
+       │
+    13 │             METHOD corge
+       │                    ----- see also
+       ·
+    35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
+       │                        ^^ Method `corge` defined in interface `quux` is missing in POU `fb`
+
+    error[E112]: Method `waldo` defined in interface `quxat` is missing in POU `fb`
+       ┌─ <internal>:35:24
+       │
+    26 │             METHOD waldo
+       │                    ----- see also
+       ·
+    35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
+       │                        ^^ Method `waldo` defined in interface `quxat` is missing in POU `fb`
+
+    error[E112]: Method `grault` defined in interface `quuz` is missing in POU `fb`
+       ┌─ <internal>:35:24
+       │
+    18 │             METHOD grault
+       │                    ------ see also
+       ·
+    35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
+       │                        ^^ Method `grault` defined in interface `quuz` is missing in POU `fb`
+
+    error[E112]: Method `bar` defined in interface `foo` is missing in POU `fb`
+       ┌─ <internal>:35:24
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
+       │                        ^^ Method `bar` defined in interface `foo` is missing in POU `fb`
+
+    error[E112]: Method `qux` defined in interface `baz` is missing in POU `fb`
+       ┌─ <internal>:35:24
+       │
+     8 │             METHOD qux
+       │                    --- see also
+       ·
+    35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
+       │                        ^^ Method `qux` defined in interface `baz` is missing in POU `fb`
+    "###);
+}
+#[test]
+fn pou_implementing_methods_of_multiple_nested_interfaces_does_not_err() {
+    let source = r"
+        INTERFACE foo
+            METHOD bar
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE baz EXTENDS foo
+            METHOD qux
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quux
+            METHOD corge
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quuz EXTENDS quux
+            METHOD grault
+            END_METHOD
+
+            METHOD garply
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quxat
+            METHOD waldo
+            END_METHOD
+        END_INTERFACE
+
+        INTERFACE quxar EXTENDS quuz, baz, quxat
+            METHOD fred
+            END_METHOD
+        END_INTERFACE
+                
+        FUNCTION_BLOCK fb IMPLEMENTS quxar
+            METHOD bar
+            END_METHOD
+            METHOD qux
+            END_METHOD
+            METHOD corge
+            END_METHOD
+            METHOD grault
+            END_METHOD
+            METHOD garply
+            END_METHOD
+            METHOD waldo
+            END_METHOD
+            METHOD fred
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    assert!(diagnostics.is_empty(), "{:?}", diagnostics);
+}
+
+#[test]
+fn interface_inheriting_undefined_interface() {
+    let source = r"
+        INTERFACE foo EXTENDS bar
+            METHOD baz
+            END_METHOD
+        END_INTERFACE
+        ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r#""#);
+    panic!("expected snapshot to fail")
+}
+
+#[test]
+fn extended_interface_method_signature_mismatch() {
+    let source = r"
+        INTERFACE foo
+            METHOD baz : DINT
+            END_METHOD
+        END_INTERFACE
+        INTERFACE bar EXTENDS foo
+            METHOD baz : STRING
+            END_METHOD
+        END_INTERFACE
+        ";
+
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r#""#);
+    panic!("expected snapshot to fail")
+}

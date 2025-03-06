@@ -516,6 +516,12 @@ impl InterfaceIndexEntry {
         self.methods
             .iter()
             .map(|name| index.find_pou(name).expect("must exist because of present InterfaceIndexEntry"))
+            .chain(
+                self.get_derived_interfaces(index)
+                    .iter()
+                    .filter_map(|it| it.as_ref().ok())
+                    .flat_map(|it| index.find_interface(&it.name).unwrap().get_methods(index)),
+            )
             .collect()
     }
 
