@@ -234,6 +234,8 @@ fn property_with_variable_block() {
     error[E007]: Variable blocks may only be defined within a GET or SET block in the context of properties
       ┌─ <internal>:4:17
       │
+    3 │             PROPERTY bar : DINT
+      │             -------- see also
     4 │                 VAR
       │                 ^^^ Variable blocks may only be defined within a GET or SET block in the context of properties
     ");

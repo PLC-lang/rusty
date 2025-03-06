@@ -1,0 +1,13 @@
+{"run_id":"1741177019-716717627","line":585,"new":{"module_name":"rusty__parser__tests__interface_parser_tests","snapshot_name":"property_in_interface_must_not_have_an_implementation","metadata":{"source":"src/parser/tests/interface_parser_tests.rs","assertion_line":585,"expression":"diagnostics"},"snapshot":"warning[E118]: Interfaces can not have a default implementation in a Property\n  ┌─ <internal>:5:24\n  │\n3 │                 PROPERTY foo : DINT\n  │                 -------- see also\n4 │                     GET\n5 │                        foo := 5;\n  │                        ^^^^^^^^ Interfaces can not have a default implementation in a Property\n\nwarning[E118]: Interfaces can not have a default implementation in a Property\n  ┌─ <internal>:8:24\n  │\n3 │                 PROPERTY foo : DINT\n  │                 -------- see also\n  ·\n8 │                        foo := 5;\n  │                        ^^^^^^^^ Interfaces can not have a default implementation in a Property"},"old":{"module_name":"rusty__parser__tests__interface_parser_tests","metadata":{},"snapshot":"warning[E113]: Interfaces can not have a default implementation in a Property\n  ┌─ <internal>:5:24\n  │\n3 │                 PROPERTY foo : DINT\n  │                 -------- see also\n4 │                     GET\n5 │                        foo := 5;\n  │                        ^^^^^^^^ Interfaces can not have a default implementation in a Property\n\nwarning[E113]: Interfaces can not have a default implementation in a Property\n  ┌─ <internal>:8:24\n  │\n3 │                 PROPERTY foo : DINT\n  │                 -------- see also\n  ·\n8 │                        foo := 5;\n  │                        ^^^^^^^^ Interfaces can not have a default implementation in a Property"}}
+{"run_id":"1741177108-471343108","line":13,"new":null,"old":null}
+{"run_id":"1741177108-471343108","line":509,"new":null,"old":null}
+{"run_id":"1741177108-471343108","line":352,"new":null,"old":null}
+{"run_id":"1741177108-471343108","line":472,"new":null,"old":null}
+{"run_id":"1741177108-471343108","line":70,"new":null,"old":null}
+{"run_id":"1741177108-471343108","line":585,"new":null,"old":null}
+{"run_id":"1741177108-471343108","line":254,"new":null,"old":null}
+{"run_id":"1741177108-471343108","line":620,"new":null,"old":null}
+{"run_id":"1741177108-471343108","line":146,"new":null,"old":null}
+{"run_id":"1741177108-471343108","line":770,"new":null,"old":null}
+{"run_id":"1741177108-471343108","line":793,"new":null,"old":null}
+{"run_id":"1741177108-471343108","line":745,"new":null,"old":null}

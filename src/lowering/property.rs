@@ -116,6 +116,51 @@ impl PropertyLowerer {
         // block
         let mut parents: HashMap<String, Vec<Property>> = HashMap::new();
 
+        for interface in &mut unit.interfaces {
+            for property in interface.properties.drain(..) {
+                for property_impl in property.implementations {
+                    let name = format!(
+                        "{parent}.__{kind}_{name}",
+                        parent = property.parent_name,
+                        kind = property_impl.kind,
+                        name = property.name
+                    );
+
+                    let mut pou = Pou {
+                        name: name.clone(),
+                        kind: PouType::Method {
+                            parent: property.parent_name.clone(),
+                            property: Some(qualified_name(&property.parent_name, &property.name)),
+                        },
+                        variable_blocks: Vec::new(),
+                        return_type: Some(property.datatype.clone()),
+                        location: property.name_location.clone(),
+                        name_location: property.name_location.clone(),
+                        poly_mode: None,
+                        generics: Vec::new(),
+                        linkage: LinkageType::Internal,
+                        super_class: None,
+                        interfaces: Vec::new(),
+                        is_const: false,
+                        id: self.id_provider.next_id(),
+                    };
+                    //
+                    match property_impl.kind {
+                        PropertyKind::Set => {
+                            pou.return_type = None;
+                        }
+                        _ => {}
+                    }
+
+                    interface.methods.push(pou);
+
+                    // NOTE: Is this TODO still relevant?
+                    // TODO: Implementation and validation checks for proeprties, specifically default impl warning
+                    // let mut implementation = Pou {}
+                }
+            }
+        }
+
         for property in &mut unit.properties.drain(..) {
             match parents.get_mut(&property.parent_name) {
                 Some(values) => values.push(property.clone()),
@@ -178,10 +223,11 @@ impl PropertyLowerer {
                         ));
                     }
 
-                    // We have to do two things when dealing with setters:
-                    // 1. Patch a variable block of type `VAR_INPUT` with a single variable named
-                    //    `__in : <property_type>`
+                    // We have to do three things when dealing with setters:
+                    // 1. Patch a variable block of type `VAR_INPUT` with a single variable named `__in : <property_type>`
                     // 2. Prepend a `<property_name> := __in` assignment to the implementation
+                    // 3. change the return type to void because the setter does not return
+                    //    anything
                     PropertyKind::Set => {
                         let parameter_name = "__in";
 
