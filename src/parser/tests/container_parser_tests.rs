@@ -74,6 +74,30 @@ fn actions_with_no_container_inherits_previous_pou() {
 }
 
 #[test]
+fn actions_with_no_container_inherits_previous_pou_excluding_methods_and_actions() {
+    let src = "PROGRAM buz END_PROGRAM PROGRAM foo METHOD x END_METHOD END_PROGRAM ACTIONS ACTION bar END_ACTION END_ACTIONS ACTIONS ACTION baz END_ACTION END_ACTIONS";
+    let (result, diagnostic) = parse(src);
+    let prg = &result.implementations[0];
+    assert_eq!(prg.name, "buz");
+    assert_eq!(prg.type_name, "buz");
+
+    let prg = &result.implementations[2];
+    assert_eq!(prg.name, "foo");
+    assert_eq!(prg.type_name, "foo");
+
+    let prg = &result.implementations[3];
+    assert_eq!(prg.name, "foo.bar");
+    assert_eq!(prg.type_name, "foo");
+
+    let prg = &result.implementations[4];
+    assert_eq!(prg.name, "foo.baz");
+    assert_eq!(prg.type_name, "foo");
+
+    //Expect no diagnostic, actions container name is optional
+    assert_eq!(diagnostic, []);
+}
+
+#[test]
 fn actions_with_invalid_token() {
     let src = "ACTIONS LIMA BRAVO END_ACTIONS";
     let errors = parse(src).1;
