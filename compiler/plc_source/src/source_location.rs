@@ -194,6 +194,7 @@ impl From<Option<&'static str>> for FileMarker {
 impl From<&FileMarker> for PathBuf {
     fn from(val: &FileMarker) -> Self {
         match val {
+            // Windows has problems with `<` and `>` in paths, hence we replace these symbols with `__`
             FileMarker::File(f) | FileMarker::Internal(f) => f.replace(['<', '>'], "__").into(),
             FileMarker::Undefined => Path::new("").to_path_buf(),
         }

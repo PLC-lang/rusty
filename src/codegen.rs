@@ -111,7 +111,6 @@ impl<'ink> CodeGen<'ink> {
     pub fn generate_llvm_index(
         &mut self,
         context: &'ink CodegenContext,
-
         annotations: &AstAnnotations,
         literals: &StringLiterals,
         dependencies: &FxIndexSet<Dependency>,
