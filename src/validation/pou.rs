@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use plc_ast::ast::{Identifier, Implementation, LinkageType, Pou, PouType, VariableBlockType};
+use plc_ast::ast::{Identifier, Implementation, Interface, LinkageType, Pou, PouType, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use signature_validation::validate_method_signature;
 
@@ -182,20 +182,13 @@ where
     }
 
     // Check if the declared interfaces exist, i.e. the comma seperated identifiers after `[...] IMPLEMENTS`
-    let mut interfaces = Vec::new();
     for declaration in &pou.interfaces {
-        match ctxt.index.find_interface(&declaration.name) {
-            Some(interface) => {
-                interfaces.push(interface);
-            }
-
-            None => {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!("Interface `{}` does not exist", declaration.name))
-                        .with_error_code("E048")
-                        .with_location(&declaration.location),
-                );
-            }
+        if ctxt.index.find_interface(&declaration.name).is_none() {
+            validator.push_diagnostic(
+                Diagnostic::new(format!("Interface `{}` does not exist", declaration.name))
+                    .with_error_code("E048")
+                    .with_location(&declaration.location),
+            );
         }
     }
 }
@@ -282,6 +275,13 @@ pub fn validate_action_container(validator: &mut Validator, implementation: &Imp
                 .with_location(&implementation.location),
         );
     }
+}
+
+pub fn visit_interface<T: AnnotationMap>(
+    validator: &mut Validator,
+    interface: &Interface,
+    context: &ValidationContext<'_, T>,
+) {
 }
 
 pub(super) mod signature_validation {

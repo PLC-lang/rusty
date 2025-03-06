@@ -18,7 +18,7 @@ use crate::{
 
 use self::{
     global::GlobalValidator,
-    pou::{visit_implementation, visit_pou},
+    pou::{visit_implementation, visit_interface, visit_pou},
     recursive::RecursiveValidator,
     types::visit_user_type_declaration,
     variable::visit_variable_block,
@@ -196,6 +196,10 @@ impl<'a> Validator<'a> {
         // Validate implementations
         for implementation in &unit.implementations {
             visit_implementation(self, implementation, &context);
+        }
+
+        for interface in &unit.interfaces {
+            visit_interface(self, interface, &context);
         }
     }
 

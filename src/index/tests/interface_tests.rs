@@ -369,7 +369,7 @@ fn nested_extended_interfaces() {
     "###);
 
     let entry = index.find_interface("baz").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -392,16 +392,19 @@ fn nested_extended_interfaces() {
                                     offset: 119,
                                 },
                             ),
+                            file: Some(
+                                "<internal>",
+                            ),
                         },
                     },
                 ],
             },
         ),
     ]
-    "###);
+    "#);
 
     let entry = index.find_interface("qux").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -424,13 +427,16 @@ fn nested_extended_interfaces() {
                                     offset: 216,
                                 },
                             ),
+                            file: Some(
+                                "<internal>",
+                            ),
                         },
                     },
                 ],
             },
         ),
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -445,7 +451,7 @@ fn deriving_from_undeclared_interface() {
 
     let (_, index) = index(source);
     let entry = index.find_interface("foo").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
     [
         Err(
             Identifier {
@@ -462,14 +468,17 @@ fn deriving_from_undeclared_interface() {
                             offset: 34,
                         },
                     ),
+                    file: Some(
+                        "<internal>",
+                    ),
                 },
             },
         ),
     ]
-    "###);
+    "#);
 
     let entry = index.find_interface("baz").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -489,6 +498,9 @@ fn deriving_from_undeclared_interface() {
                                     column: 33,
                                     offset: 34,
                                 },
+                            ),
+                            file: Some(
+                                "<internal>",
                             ),
                         },
                     },
@@ -510,9 +522,12 @@ fn deriving_from_undeclared_interface() {
                             offset: 96,
                         },
                     ),
+                    file: Some(
+                        "<internal>",
+                    ),
                 },
             },
         ),
     ]
-    "###);
+    "#);
 }
