@@ -13,6 +13,7 @@ fn empty_interface() {
     insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
+            id: 1,
             name: "myInterface",
             methods: [],
             location: SourceLocation {
@@ -66,6 +67,7 @@ fn interface_with_single_method() {
     insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
+            id: 2,
             name: "myInterface",
             methods: [
                 POU {
@@ -164,6 +166,7 @@ fn interface_with_multiple_methods() {
     insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
+            id: 3,
             name: "myInterface",
             methods: [
                 POU {
@@ -398,6 +401,7 @@ fn interface_deriving_from_other_interface() {
     insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
+            id: 2,
             name: "foo",
             methods: [
                 POU {
@@ -440,6 +444,7 @@ fn interface_deriving_from_other_interface() {
             extensions: [],
         },
         Interface {
+            id: 4,
             name: "bar",
             methods: [
                 POU {
@@ -525,6 +530,7 @@ fn interface_deriving_from_multiple_interfaces() {
     insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
+            id: 2,
             name: "foo",
             methods: [
                 POU {
@@ -567,6 +573,7 @@ fn interface_deriving_from_multiple_interfaces() {
             extensions: [],
         },
         Interface {
+            id: 4,
             name: "bar",
             methods: [
                 POU {
@@ -609,6 +616,7 @@ fn interface_deriving_from_multiple_interfaces() {
             extensions: [],
         },
         Interface {
+            id: 5,
             name: "quux",
             methods: [],
             location: SourceLocation {

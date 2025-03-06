@@ -50,6 +50,7 @@ pub struct Pou {
 
 #[derive(Debug, PartialEq)]
 pub struct Interface {
+    pub id: AstId,
     pub name: String,
     pub methods: Vec<Pou>,
     pub location: SourceLocation,

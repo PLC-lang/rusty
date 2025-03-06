@@ -240,6 +240,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
 
     (
         Interface {
+            id: lexer.next_id(),
             name,
             methods,
             extensions,
