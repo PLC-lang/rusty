@@ -12,8 +12,8 @@ use plc_ast::{
     ast::{
         self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Identifier,
-        JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
-        Variable,
+        Interface, JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature,
+        UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -59,7 +59,7 @@ macro_rules! visit_all_statements {
 ///
 /// Helper methods `qualifier`, `current_pou` and `lhs_pou` copy the current context and
 /// change one field.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct VisitorContext<'s> {
     /// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
     qualifier: Option<String>,
@@ -524,7 +524,7 @@ impl MethodDeclarationType {
 }
 
 trait InheritanceAnnotationConverter {
-    fn to_declaration_annotation(&self, index: &Index) -> Option<StatementAnnotation> {
+    fn get_method_declarations_annotation(&self, index: &Index) -> Option<StatementAnnotation> {
         let mut declarations = FxHashMap::<String, Vec<MethodDeclarationType>>::default();
         self.get_method_declaration_types(index).into_iter().for_each(|method| {
             declarations.entry(method.get_flat_name().to_string()).or_default().push(method)
@@ -532,7 +532,7 @@ trait InheritanceAnnotationConverter {
         (!declarations.is_empty()).then_some(StatementAnnotation::MethodDeclarations { declarations })
     }
 
-    fn to_override_annotation(&self, index: &Index) -> Option<StatementAnnotation> {
+    fn get_method_overrides_annotation(&self, index: &Index) -> Option<StatementAnnotation> {
         // TODO: lazy inheritance iterator
         let definitions = self.get_method_overrides(index);
         (!definitions.is_empty()).then_some(StatementAnnotation::create_override(definitions))
@@ -543,7 +543,6 @@ trait InheritanceAnnotationConverter {
     fn get_method_overrides(&self, index: &Index) -> Vec<MethodDeclarationType>;
 }
 
-// let mut declarations = FxHashMap::<String, Vec<MethodDeclarationType>>::default();
 impl InheritanceAnnotationConverter for &InterfaceIndexEntry {
     fn get_method_declaration_types(&self, index: &Index) -> Vec<MethodDeclarationType> {
         self.get_methods(index)
@@ -591,25 +590,27 @@ impl InheritanceAnnotationConverter for &PouIndexEntry {
     }
 
     fn get_method_overrides(&self, index: &Index) -> Vec<MethodDeclarationType> {
-        debug_assert!(matches!(self, PouIndexEntry::Method { .. }));
-        let Some(base_pou) = self.get_parent_pou_name().and_then(|it| index.find_pou(it)) else {
-            return vec![];
-        };
+        let PouIndexEntry::Method { ref parent_name, kind, .. } = self else { return vec![] };
 
         let mut overrides = vec![];
         let method_name = self.get_flat_reference_name();
 
-        // Annotate as override if the super-class also defines this method
-        if let Some(inherited_method) = base_pou
-            .get_super_class()
-            .and_then(|super_name| index.find_pou(super_name))
-            .and_then(|super_pou| index.find_method(super_pou.get_name(), method_name))
+        // Annotate as concrete override if a super-class also defines this method
+        if let Some(inherited_method) = index
+            .find_pou(parent_name)
+            .and_then(|pou| pou.get_super_class())
+            .and_then(|super_name| index.find_method(super_name, method_name))
         {
             overrides.push(MethodDeclarationType::concrete_method(inherited_method.get_name()));
         };
 
+        let interfaces = match kind {
+            ast::DeclarationKind::Abstract => index.find_interface(parent_name).map(|it| it.get_extensions()),
+            ast::DeclarationKind::Concrete => index.find_pou(parent_name).map(|it| it.get_interfaces()),
+        }
+        .unwrap_or_default();
         // Annotate all implemented methods which were inherited from interfaces
-        base_pou.get_interfaces().iter().for_each(|interface| {
+        interfaces.iter().for_each(|interface| {
             if let Some(interface) = index.find_interface(interface) {
                 interface
                     .get_methods(index)
@@ -1006,14 +1007,9 @@ impl<'i> TypeAnnotator<'i> {
     ) -> (AnnotationMapImpl, FxIndexSet<Dependency>, StringLiterals) {
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
-            pou: None,
-            qualifier: None,
-            lhs: None,
-            constant: false,
-            in_body: false,
             id_provider,
             resolve_strategy: ResolvingStrategy::default_scopes(),
-            in_control: false,
+            ..Default::default()
         };
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
@@ -1026,7 +1022,7 @@ impl<'i> TypeAnnotator<'i> {
         }
 
         for interface in &unit.interfaces {
-            visitor.visit_interface(ctx, interface);
+            visitor.visit_interface(interface);
         }
 
         for t in &unit.user_types {
@@ -1113,59 +1109,49 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn visit_interface(&mut self, _ctx: &VisitorContext<'_>, interface: &ast::Interface) {
+    fn visit_interface(&mut self, interface: &Interface) {
         self.annotate_interface(interface);
     }
 
     fn annotate_pou(&mut self, pou: &Pou) {
         if let Some(pou_entry) = self.index.find_pou(&pou.name) {
-            match pou_entry {
-                PouIndexEntry::Method { parent_pou_name, .. } => {
-                    self.annotate_method(pou.id, parent_pou_name, pou_entry.get_flat_reference_name());
-                }
-                _ => {
-                    let Some(annotation) = pou_entry.to_declaration_annotation(self.index) else {
-                        return;
-                    };
+            if pou_entry.is_method() {
+                self.annotate_method(pou_entry, pou.id);
+            } else {
+                let Some(annotation) = pou_entry.get_method_declarations_annotation(self.index) else {
+                    return;
+                };
 
-                    self.annotation_map.annotate_with_id(pou.id, annotation);
-                }
-            };
+                self.annotation_map.annotate_with_id(pou.id, annotation);
+            }
         }
     }
 
-    fn annotate_method(&mut self, id: AstId, parent_pou_name: &str, method_name: &str) {
-        self.dependencies.insert(Dependency::Datatype(parent_pou_name.into()));
-        let Some(method) = self.index.find_method(parent_pou_name, method_name) else {
-            return;
-        };
+    fn annotate_method(&mut self, method: &PouIndexEntry, id: AstId) {
+        let Some(parent_pou_name) = method.get_parent_pou_name() else { return };
+
+        if method.get_declaration_kind().is_some_and(|it| it.is_concrete()) {
+            self.dependencies.insert(Dependency::Datatype(parent_pou_name.into()));
+        }
+
         // If the method is overridden, annotate the method with every inherited method
-        if let Some(annotation) = method.to_override_annotation(self.index) {
+        if let Some(annotation) = method.get_method_overrides_annotation(self.index) {
             self.annotation_map.annotate_with_id(id, annotation);
         };
     }
 
-    fn annotate_interface(&mut self, interface: &ast::Interface) {
-        if let Some(itf) = self.index.find_interface(&interface.name) {
-            let Some(annotation) = itf.to_declaration_annotation(self.index) else {
-                return;
-            };
+    fn annotate_interface(&mut self, interface: &Interface) {
+        let Some(itf) = self.index.find_interface(&interface.name) else { return };
 
+        // annotate overrides of each method declared in the interface
+        interface.methods.iter().for_each(|method| {
+            self.annotate_pou(method);
+        });
+
+        // annotate all methods (declared and derived) in the interface
+        if let Some(annotation) = itf.get_method_declarations_annotation(self.index) {
             self.annotation_map.annotate_with_id(interface.id, annotation);
-        }
-    }
-
-    fn annotate_abstract_method(&mut self, id: AstId, parent_interface: &str, method_name: &str) {
-        if let Some(itf) = self.index.find_interface(parent_interface) {
-            let mut overrides = vec![];
-            if let Some(method) = self.index.find_method(parent_interface, method_name) {
-                overrides.push(MethodDeclarationType::concrete_method(method.get_name()));
-            }
-
-            if !overrides.is_empty() {
-                self.annotation_map.annotate_with_id(id, StatementAnnotation::create_override(overrides));
-            }
-        }
+        };
     }
 
     /// updates the expected types of statement on the right side of an assignment
@@ -2267,12 +2253,14 @@ fn to_pou_annotation(p: &PouIndexEntry, index: &Index) -> Option<StatementAnnota
         PouIndexEntry::FunctionBlock { name, .. } => {
             Some(StatementAnnotation::Type { type_name: name.into() })
         }
-        PouIndexEntry::Action { name, parent_pou_name, .. } => match index.find_pou(parent_pou_name) {
-            Some(PouIndexEntry::Program { .. }) => {
-                Some(StatementAnnotation::Program { qualified_name: name.into() })
+        PouIndexEntry::Action { name, parent_name: parent_pou_name, .. } => {
+            match index.find_pou(parent_pou_name) {
+                Some(PouIndexEntry::Program { .. }) => {
+                    Some(StatementAnnotation::Program { qualified_name: name.into() })
+                }
+                _ => None,
             }
-            _ => None,
-        },
+        }
         _ => None,
     }
 }

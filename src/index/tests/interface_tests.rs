@@ -43,10 +43,11 @@ fn interface_with_single_method() {
     }
     "###);
 
-    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r###"
+    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r#"
     Method {
         name: "myInterface.foo",
-        parent_pou_name: "myInterface",
+        parent_name: "myInterface",
+        kind: Abstract,
         return_type: "INT",
         instance_struct_name: "myInterface.foo",
         linkage: Internal,
@@ -67,7 +68,7 @@ fn interface_with_single_method() {
             ),
         },
     }
-    "###);
+    "#);
 
     insta::assert_debug_snapshot!(index.get_pou_members("myInterface.foo"), @r###"
     [
@@ -194,11 +195,12 @@ fn get_interface_methods() {
     let (_, index) = index(source);
     let entry = index.find_interface("myInterface").unwrap();
 
-    insta::assert_debug_snapshot!(entry.get_methods(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_methods(&index), @r#"
     [
         Method {
             name: "myInterface.foo",
-            parent_pou_name: "myInterface",
+            parent_name: "myInterface",
+            kind: Abstract,
             return_type: "SINT",
             instance_struct_name: "myInterface.foo",
             linkage: Internal,
@@ -221,7 +223,8 @@ fn get_interface_methods() {
         },
         Method {
             name: "myInterface.bar",
-            parent_pou_name: "myInterface",
+            parent_name: "myInterface",
+            kind: Abstract,
             return_type: "INT",
             instance_struct_name: "myInterface.bar",
             linkage: Internal,
@@ -244,7 +247,8 @@ fn get_interface_methods() {
         },
         Method {
             name: "myInterface.baz",
-            parent_pou_name: "myInterface",
+            parent_name: "myInterface",
+            kind: Abstract,
             return_type: "DINT",
             instance_struct_name: "myInterface.baz",
             linkage: Internal,
@@ -266,7 +270,7 @@ fn get_interface_methods() {
             },
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]

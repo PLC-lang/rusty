@@ -64,7 +64,7 @@ fn interface_with_single_method() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
             id: 2,
@@ -96,6 +96,7 @@ fn interface_with_single_method() {
                     pou_type: Method {
                         parent: "myInterface",
                         property: None,
+                        kind: Abstract,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -134,7 +135,7 @@ fn interface_with_single_method() {
             extensions: [],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -163,7 +164,7 @@ fn interface_with_multiple_methods() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
             id: 3,
@@ -195,6 +196,7 @@ fn interface_with_multiple_methods() {
                     pou_type: Method {
                         parent: "myInterface",
                         property: None,
+                        kind: Abstract,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -234,6 +236,7 @@ fn interface_with_multiple_methods() {
                     pou_type: Method {
                         parent: "myInterface",
                         property: None,
+                        kind: Abstract,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -272,7 +275,7 @@ fn interface_with_multiple_methods() {
             extensions: [],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -398,7 +401,7 @@ fn interface_deriving_from_other_interface() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
             id: 2,
@@ -410,6 +413,7 @@ fn interface_deriving_from_other_interface() {
                     pou_type: Method {
                         parent: "foo",
                         property: None,
+                        kind: Abstract,
                     },
                     return_type: None,
                     interfaces: [],
@@ -453,6 +457,7 @@ fn interface_deriving_from_other_interface() {
                     pou_type: Method {
                         parent: "bar",
                         property: None,
+                        kind: Abstract,
                     },
                     return_type: None,
                     interfaces: [],
@@ -504,7 +509,7 @@ fn interface_deriving_from_other_interface() {
             ],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -527,7 +532,7 @@ fn interface_deriving_from_multiple_interfaces() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
             id: 2,
@@ -539,6 +544,7 @@ fn interface_deriving_from_multiple_interfaces() {
                     pou_type: Method {
                         parent: "foo",
                         property: None,
+                        kind: Abstract,
                     },
                     return_type: None,
                     interfaces: [],
@@ -582,6 +588,7 @@ fn interface_deriving_from_multiple_interfaces() {
                     pou_type: Method {
                         parent: "bar",
                         property: None,
+                        kind: Abstract,
                     },
                     return_type: None,
                     interfaces: [],
@@ -681,7 +688,7 @@ fn interface_deriving_from_multiple_interfaces() {
             ],
         },
     ]
-    "###);
+    "#);
 }
 mod error_handling {
     use crate::test_utils::tests::{parse, parse_and_validate_buffered};

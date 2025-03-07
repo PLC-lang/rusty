@@ -6,8 +6,8 @@ use itertools::Itertools;
 use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
-    AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
-    Identifier, Interface, LinkageType, PouType, TypeNature,
+    AstId, AstNode, AstStatement, ConfigVariable, DeclarationKind, DirectAccessType, GenericBinding,
+    HardwareAccessType, Identifier, Interface, LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -520,6 +520,11 @@ impl InterfaceIndexEntry {
             .collect()
     }
 
+    /// Returns a list of interfaces this interface implements
+    pub fn get_extensions<'idx>(&self) -> Vec<&str> {
+        self.extensions.iter().map(|it| it.name.as_str()).collect()
+    }
+
     /// Returns a list of methods this interface inherited
     pub fn get_derived_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
         self.get_derived_interfaces(index)
@@ -600,7 +605,8 @@ pub enum PouIndexEntry {
     },
     Method {
         name: String,
-        parent_pou_name: String,
+        parent_name: String,
+        kind: DeclarationKind,
         return_type: String,
         instance_struct_name: String,
         linkage: LinkageType,
@@ -608,7 +614,7 @@ pub enum PouIndexEntry {
     },
     Action {
         name: String,
-        parent_pou_name: String,
+        parent_name: String,
         instance_struct_name: String,
         linkage: LinkageType,
         location: SourceLocation,
@@ -719,7 +725,7 @@ impl PouIndexEntry {
     ) -> PouIndexEntry {
         PouIndexEntry::Action {
             name: qualified_name.into(),
-            parent_pou_name: pou_name.into(),
+            parent_name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
@@ -755,12 +761,14 @@ impl PouIndexEntry {
         name: &str,
         return_type: &str,
         owner_class: &str,
+        declaration_kind: DeclarationKind,
         linkage: LinkageType,
         location: SourceLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Method {
             name: name.into(),
-            parent_pou_name: owner_class.into(),
+            parent_name: owner_class.into(),
+            kind: declaration_kind,
             instance_struct_name: name.into(),
             return_type: return_type.into(),
             linkage,
@@ -801,12 +809,17 @@ impl PouIndexEntry {
 
     pub fn get_parent_pou_name(&self) -> Option<&str> {
         match self {
-            PouIndexEntry::Method { parent_pou_name, .. } | PouIndexEntry::Action { parent_pou_name, .. } => {
-                Some(parent_pou_name.as_str())
+            PouIndexEntry::Method { parent_name, .. } | PouIndexEntry::Action { parent_name, .. } => {
+                Some(parent_name.as_str())
             }
 
             _ => None,
         }
+    }
+
+    pub fn get_declaration_kind(&self) -> Option<DeclarationKind> {
+        let PouIndexEntry::Method { kind, .. } = self else { return None };
+        Some(*kind)
     }
 
     /// returns the name of the struct-type used to store the POUs state
@@ -845,8 +858,8 @@ impl PouIndexEntry {
             | PouIndexEntry::FunctionBlock { .. }
             | PouIndexEntry::Class { .. }
             | PouIndexEntry::Function { .. } => self.get_name(),
-            PouIndexEntry::Action { parent_pou_name, .. } | PouIndexEntry::Method { parent_pou_name, .. } => {
-                parent_pou_name.as_str()
+            PouIndexEntry::Action { parent_name, .. } | PouIndexEntry::Method { parent_name, .. } => {
+                parent_name.as_str()
             }
         }
     }
