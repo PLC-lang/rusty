@@ -1,18 +1,50 @@
 name: Docker Image CI
 
 on:
-  workflow_run:
-    workflows: ["Build Linux"]
-    types:
-      - completed
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: rusty
 
 jobs:
+  # Build the compiler and standard lib
+  package-linux:
+    name: Package Linux
+    runs-on: ubuntu-latest
+    container: ghcr.io/plc-lang/rust-llvm:latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Release Build
+        shell: bash
+        run: |
+          echo "Build command : ./scripts/build.sh --build --release"
+          ./scripts/build.sh --build --release --package \
+          --target x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: plc
+          path: target/release/plc
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: schema
+          path: compiler/plc_project/schema
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: stdlib
+          path: output
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
-  build-linux:
+  build-image:
     runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
@@ -74,7 +106,7 @@ jobs:
 
   push-multiplatform:
     name: Push multi platform
-    needs: build-linux
+    needs: build-image
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' }}
     steps:
