@@ -2096,5 +2096,106 @@ fn interface_extending_multiple_interfaces_with_incompatible_method_signatures()
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r#""#);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E111]: Method `baz` in `qux` is declared with conflicting signatures in `foo` and `bar`
+       ┌─ <internal>:10:15
+       │
+     3 │         METHOD baz : DINT
+       │                --- see also
+       ·
+     7 │         METHOD baz : STRING
+       │                --- see also
+       ·
+    10 │     INTERFACE qux EXTENDS foo, bar
+       │               ^^^ Method `baz` in `qux` is declared with conflicting signatures in `foo` and `bar`
+
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+       ┌─ <internal>:10:15
+       │
+    10 │     INTERFACE qux EXTENDS foo, bar
+       │               ^^^ Derived methods with conflicting signatures, return types do not match:
+
+    note[E118]: Type `DINT` declared in `foo.baz` but `bar.baz` declared type `STRING`
+      ┌─ <internal>:3:16
+      │
+    3 │         METHOD baz : DINT
+      │                --- see also
+      ·
+    7 │         METHOD baz : STRING
+      │                --- see also
+    ");
+}
+
+#[test]
+fn function_block_implementing_erroneous_interface() {
+    let source = r"
+    INTERFACE foo
+        METHOD baz : DINT
+        END_METHOD
+    END_INTERFACE
+    INTERFACE bar
+        METHOD baz : STRING
+        END_METHOD
+    END_INTERFACE
+    INTERFACE qux EXTENDS foo, bar
+    END_INTERFACE
+    FUNCTION_BLOCK quux IMPLEMENTS qux
+    END_FUNCTION_BLOCK
+    ";
+    let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E111]: Method `baz` in `quux` is declared with conflicting signatures in `foo` and `bar`
+       ┌─ <internal>:12:20
+       │
+     3 │         METHOD baz : DINT
+       │                --- see also
+       ·
+     7 │         METHOD baz : STRING
+       │                --- see also
+       ·
+    12 │     FUNCTION_BLOCK quux IMPLEMENTS qux
+       │                    ^^^^ Method `baz` in `quux` is declared with conflicting signatures in `foo` and `bar`
+
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+       ┌─ <internal>:12:20
+       │
+    12 │     FUNCTION_BLOCK quux IMPLEMENTS qux
+       │                    ^^^^ Derived methods with conflicting signatures, return types do not match:
+
+    note[E118]: Type `DINT` declared in `foo.baz` but `bar.baz` declared type `STRING`
+      ┌─ <internal>:3:16
+      │
+    3 │         METHOD baz : DINT
+      │                --- see also
+      ·
+    7 │         METHOD baz : STRING
+      │                --- see also
+
+    error[E111]: Method `baz` in `qux` is declared with conflicting signatures in `foo` and `bar`
+       ┌─ <internal>:10:15
+       │
+     3 │         METHOD baz : DINT
+       │                --- see also
+       ·
+     7 │         METHOD baz : STRING
+       │                --- see also
+       ·
+    10 │     INTERFACE qux EXTENDS foo, bar
+       │               ^^^ Method `baz` in `qux` is declared with conflicting signatures in `foo` and `bar`
+
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+       ┌─ <internal>:10:15
+       │
+    10 │     INTERFACE qux EXTENDS foo, bar
+       │               ^^^ Derived methods with conflicting signatures, return types do not match:
+
+    note[E118]: Type `DINT` declared in `foo.baz` but `bar.baz` declared type `STRING`
+      ┌─ <internal>:3:16
+      │
+    3 │         METHOD baz : DINT
+      │                --- see also
+      ·
+    7 │         METHOD baz : STRING
+      │                --- see also
+    ");
 }

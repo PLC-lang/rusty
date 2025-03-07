@@ -67,6 +67,8 @@ fn validate_methods_overrides<T: AnnotationMap>(
                 return;
             }
         }
+
+        // we only want to validate existing concrete implementations for POUs, not interfaces
         if context.index.find_pou(container_name).is_some() {
             // validate that each abstract method has at least one concrete implementation
             let abstracts = decl

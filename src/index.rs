@@ -534,7 +534,7 @@ impl InterfaceIndexEntry {
     }
 
     /// Returns a list of interfaces this interface implements
-    pub fn get_extensions<'idx>(&self) -> Vec<&Identifier> {
+    pub fn get_extensions(&self) -> Vec<&Identifier> {
         self.extensions.iter().collect()
     }
 
