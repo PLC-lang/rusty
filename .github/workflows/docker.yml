@@ -46,6 +46,7 @@ jobs:
   # See also https://docs.docker.com/docker-hub/builds/
   build-image:
     runs-on: ${{ matrix.config.os }}
+    needs: package-linux
     strategy:
       matrix:
         config:
