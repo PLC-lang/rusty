@@ -111,7 +111,20 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
                 }
             }
             KeywordActions => {
-                let last_pou = unit.units.last().map(|it| it.name.as_str()).unwrap_or("__unknown__");
+                let last_pou = unit
+                    .units
+                    .iter()
+                    .filter(|it| {
+                        // Only consider the last POU that is a program, function, function block
+                        // or class
+                        matches!(
+                            it.kind,
+                            PouType::Program | PouType::Function | PouType::FunctionBlock | PouType::Class
+                        )
+                    })
+                    .last()
+                    .map(|it| it.name.as_str())
+                    .unwrap_or("__unknown__");
                 let mut actions = parse_actions(&mut lexer, linkage, last_pou);
                 unit.implementations.append(&mut actions);
             }
