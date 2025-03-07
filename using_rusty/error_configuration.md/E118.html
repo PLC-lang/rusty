@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>E117 - RuSTy User Documentation</title>
+        <title>E118 - RuSTy User Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -152,37 +152,18 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="property-with-invalid-number-of-get-andor-set-blocks"><a class="header" href="#property-with-invalid-number-of-get-andor-set-blocks">Property with invalid number of GET and/or SET blocks</a></h1>
-<p>Properties must be non empty and <em>at most</em> contain one block of type GET or SET.</p>
-<p>Errouneus code example:</p>
-<pre><code>FUNCTION foo
-    PROPERTY bar : DINT 
-        // Invalid, empty (no GET or SET block)
-    END_PROPERTY
-
-    PROPERTY baz : DINT 
-        // Invalid, two GET blocks
-        GET END_GET
-        GET END_GET
-    END_PROPERTY
-
-    PROPERTY qux : DINT 
-        // Invalid, two SET blocks
-        SET END_SET
-        SET END_SET
-    END_PROPERTY
-END_FUNCTION
-</code></pre>
+                        <h1 id="signature-mismatch"><a class="header" href="#signature-mismatch">Signature mismatch</a></h1>
+<p>This error is generally a follow-up error to "E112" to give more detailed information about why the error occured. Please use <code>plc explain E112</code> get more information about the general causes of these errors.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../using_rusty/error_configuration.md/E116.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../using_rusty/error_configuration.md/E117.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E118.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../libraries.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -192,11 +173,11 @@ END_FUNCTION
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../using_rusty/error_configuration.md/E116.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../using_rusty/error_configuration.md/E117.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E118.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../libraries.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
