@@ -803,6 +803,18 @@ mod inheritance {
             ",
         );
 
-        assert_snapshot!(diagnostics, @r#""#);
+        assert_snapshot!(diagnostics, @r"
+        error[E029]: Recursive inheritance `foo -> bar -> foo` has infinite size
+          ┌─ <internal>:2:23
+          │
+        2 │             INTERFACE foo EXTENDS bar
+          │                       ^^^
+          │                       │
+          │                       Recursive inheritance `foo -> bar -> foo` has infinite size
+          │                       see also
+          ·
+        5 │             INTERFACE bar EXTENDS foo
+          │                       --- see also
+        ");
     }
 }

@@ -520,17 +520,13 @@ impl InterfaceIndexEntry {
     }
 
     /// Returns a list of methods this interface inherited
-    pub fn get_derived_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
-        self.get_derived_interfaces(index)
-            .iter()
-            .filter_map(|it| it.as_ref().ok())
-            .flat_map(|it| it.find_methods(index))
-            .collect()
+    pub fn get_derived_methods<'idx>(&'idx self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
+        self.get_derived_methods_recursive(index, &mut FxHashSet::default())
     }
 
     /// Returns a list of methods defined in this interface, including inherited methods from derived interfaces
-    pub fn find_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
-        self.get_declared_methods(index).into_iter().chain(self.get_derived_methods(index)).collect()
+    pub fn find_methods<'idx>(&'idx self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
+        self.find_methods_recursive(index, &mut FxHashSet::default())
     }
 
     /// Returns a list of interfaces this interface implements
@@ -546,6 +542,37 @@ impl InterfaceIndexEntry {
         self.extensions
             .iter()
             .flat_map(|id| index.find_interface(&id.name).map(Result::Ok).or(Some(Err(id.to_owned()))))
+            .collect()
+    }
+
+    fn find_methods_recursive<'idx>(
+        &'idx self,
+        index: &'idx Index,
+        seen: &mut FxHashSet<&'idx str>,
+    ) -> Vec<&'idx PouIndexEntry> {
+        self.get_declared_methods(index)
+            .into_iter()
+            .chain(self.get_derived_methods_recursive(index, seen))
+            .collect()
+    }
+
+    fn get_derived_methods_recursive<'idx>(
+        &'idx self,
+        index: &'idx Index,
+        seen: &mut FxHashSet<&'idx str>,
+    ) -> Vec<&'idx PouIndexEntry> {
+        self.get_derived_interfaces(index)
+            .iter()
+            .filter_map(|it| it.as_ref().ok())
+            .flat_map(
+                |it| {
+                    if seen.insert(&it.name) {
+                        it.find_methods_recursive(index, seen)
+                    } else {
+                        vec![]
+                    }
+                },
+            )
             .collect()
     }
 }

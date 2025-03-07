@@ -5,6 +5,7 @@ use itertools::Itertools;
 
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
 
 use crate::index::{FxIndexSet, InterfaceIndexEntry};
 use crate::{
@@ -120,8 +121,16 @@ impl<T> CycleInvestigator<T> {
         }
     }
 }
+trait DiagnosticCollector {
+    fn collect(&mut self, diagnostic: Diagnostic);
+}
+impl<T> DiagnosticCollector for CycleInvestigator<T> {
+    fn collect(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
+    }
+}
 
-trait CycleDetector {
+trait CycleDetector: DiagnosticCollector {
     type Item;
     /// Finds cycles for the given nodes.
     fn find_cycle<'idx>(
@@ -156,7 +165,33 @@ trait CycleDetector {
     /// Generates and reports the minimal path of a cycle. Specifically `path` contains all nodes visited up
     /// until a cycle, e.g. `A -> B -> C -> B`. We are only interested in `B -> C -> B` as such this method
     /// finds the first occurence of `B` to create a vector slice of `B -> C -> B` for the diagnostician.
-    fn report<'idx>(&mut self, node: &'idx Self::Item, path: &mut FxIndexSet<&'idx Self::Item>);
+    fn report<'idx>(&mut self, node: &'idx Self::Item, path: &mut FxIndexSet<&'idx Self::Item>)
+    where
+        Self::Item: DataProvider,
+        Self::Item: Hash + Eq,
+    {
+        let idx = path.get_index_of(node).expect("Node has to be in the IndexSet");
+
+        let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
+        let ranges = slice.iter().map(|node| node.get_location()).collect::<Vec<_>>();
+
+        slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
+        let error = slice.iter().map(|it| it.get_name()).join(" -> ");
+        let diagnostic =
+            Diagnostic::new(format!("Recursive {} `{}` has infinite size", node.get_category_name(), error))
+                .with_error_code("E029");
+
+        let diagnostic =
+            if let Some(first) = ranges.first() { diagnostic.with_location(first) } else { diagnostic };
+
+        let diagnostic = if ranges.len() > 1 {
+            ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it))
+        } else {
+            diagnostic
+        };
+
+        self.collect(diagnostic);
+    }
 }
 
 impl CycleDetector for CycleInvestigator<DataType> {
@@ -182,29 +217,6 @@ impl CycleDetector for CycleInvestigator<DataType> {
             }
         }
         path.pop();
-    }
-
-    fn report<'idx>(&mut self, node: &'idx Self::Item, path: &mut FxIndexSet<&'idx Self::Item>) {
-        let idx = path.get_index_of(node).expect("Node has to be in the IndexSet");
-
-        let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
-        let ranges = slice.iter().map(|node| node.location.to_owned()).collect::<Vec<_>>();
-
-        slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
-        let error = slice.iter().map(|it| it.get_name()).join(" -> ");
-        let diagnostic = Diagnostic::new(format!("Recursive data structure `{}` has infinite size", error))
-            .with_error_code("E029");
-
-        let diagnostic =
-            if let Some(first) = ranges.first() { diagnostic.with_location(first) } else { diagnostic };
-
-        let diagnostic = if ranges.len() > 1 {
-            ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it))
-        } else {
-            diagnostic
-        };
-
-        self.diagnostics.push(diagnostic);
     }
 }
 
@@ -235,26 +247,38 @@ impl CycleDetector for CycleInvestigator<InterfaceIndexEntry> {
         }
         path.pop();
     }
+}
 
-    fn report<'idx>(&mut self, node: &'idx Self::Item, path: &mut FxIndexSet<&'idx Self::Item>) {
-        let idx = path.get_index_of(node).expect("Node has to be in the IndexSet");
+trait DataProvider {
+    fn get_location(&self) -> SourceLocation;
+    fn get_name(&self) -> &str;
+    fn get_category_name(&self) -> &str;
+}
 
-        let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
-        let ranges = slice.iter().map(|node| node.location.to_owned()).collect::<Vec<_>>();
+impl DataProvider for DataType {
+    fn get_location(&self) -> SourceLocation {
+        self.location.to_owned()
+    }
 
-        slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
-        let error = slice.iter().map(|it| &it.name).join(" -> ");
-        let diagnostic = Diagnostic::new(format!("Recursive data structure `{}` has infinite size", error))
-            .with_error_code("E029");
+    fn get_name(&self) -> &str {
+        self.get_name()
+    }
 
-        let diagnostic =
-            if let Some(first) = ranges.first() { diagnostic.with_location(first) } else { diagnostic };
+    fn get_category_name(&self) -> &str {
+        "data structure"
+    }
+}
 
-        let diagnostic = if ranges.len() > 1 {
-            ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it))
-        } else {
-            diagnostic
-        };
-        self.diagnostics.push(diagnostic);
+impl DataProvider for InterfaceIndexEntry {
+    fn get_location(&self) -> SourceLocation {
+        self.location_name.to_owned()
+    }
+
+    fn get_name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    fn get_category_name(&self) -> &str {
+        "inheritance"
     }
 }
