@@ -214,7 +214,7 @@ lazy_static! {
         E110,   Error,      include_str!("./error_codes/E110.md"),  // Invalid POU Type for Interface Implementation
         E111,   Error,      include_str!("./error_codes/E111.md"),  // Duplicate interface methods with different signatures
         E112,   Error,      include_str!("./error_codes/E112.md"),  // Incomplete interface implementation
-        E113,   Warning,    include_str!("./error_codes/E113.md"),  // Interface default method implementation
+        E113,   Error,      include_str!("./error_codes/E113.md"),  // Interface default method implementation
         E114,   Error,      include_str!("./error_codes/E114.md"),  // Multiple extensions of same POU
         E115,   Error,      include_str!("./error_codes/E115.md"),  // Property in unsupported POU type
         E116,   Error,      include_str!("./error_codes/E116.md"),  // Property defined in unsupported variable block
