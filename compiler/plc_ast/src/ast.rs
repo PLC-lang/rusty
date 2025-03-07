@@ -58,7 +58,7 @@ pub struct Interface {
     pub extensions: Vec<Identifier>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Identifier {
     pub name: String,
     pub location: SourceLocation,

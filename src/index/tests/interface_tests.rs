@@ -195,7 +195,7 @@ fn get_interface_methods() {
     let (_, index) = index(source);
     let entry = index.find_interface("myInterface").unwrap();
 
-    insta::assert_debug_snapshot!(entry.get_methods(&index), @r#"
+    insta::assert_debug_snapshot!(entry.find_methods(&index), @r#"
     [
         Method {
             name: "myInterface.foo",

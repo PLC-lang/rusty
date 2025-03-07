@@ -491,7 +491,7 @@ impl ImplementationType {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq, Hash)]
 pub struct InterfaceIndexEntry {
     /// The interface name
     pub name: String,
@@ -524,12 +524,12 @@ impl InterfaceIndexEntry {
         self.get_derived_interfaces(index)
             .iter()
             .filter_map(|it| it.as_ref().ok())
-            .flat_map(|it| it.get_methods(index))
+            .flat_map(|it| it.find_methods(index))
             .collect()
     }
 
     /// Returns a list of methods defined in this interface, including inherited methods from derived interfaces
-    pub fn get_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
+    pub fn find_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
         self.get_declared_methods(index).into_iter().chain(self.get_derived_methods(index)).collect()
     }
 

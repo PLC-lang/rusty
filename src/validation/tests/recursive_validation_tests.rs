@@ -792,7 +792,6 @@ mod inheritance {
     }
 
     #[test]
-    #[ignore = "not yet implemented"]
     fn cyclic_interface_inheritance() {
         let diagnostics = parse_and_validate_buffered(
             "

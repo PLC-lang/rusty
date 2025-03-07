@@ -545,7 +545,7 @@ trait InheritanceAnnotationConverter {
 
 impl InheritanceAnnotationConverter for &InterfaceIndexEntry {
     fn get_method_declaration_types(&self, index: &Index) -> Vec<MethodDeclarationType> {
-        self.get_methods(index)
+        self.find_methods(index)
             .iter()
             .map(|method| MethodDeclarationType::abstract_method(method.get_name()))
             .collect()
@@ -615,7 +615,7 @@ impl InheritanceAnnotationConverter for &PouIndexEntry {
         interfaces.iter().for_each(|interface| {
             if let Some(interface) = index.find_interface(interface) {
                 interface
-                    .get_methods(index)
+                    .find_methods(index)
                     .iter()
                     .filter(|it| it.get_flat_reference_name() == method_name)
                     .for_each(|it| overrides.push(MethodDeclarationType::abstract_method(it.get_name())));

@@ -1,9 +1,12 @@
+use std::hash::Hash;
+use std::marker::PhantomData;
+
 use itertools::Itertools;
 
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::index::FxIndexSet;
+use crate::index::{FxIndexSet, InterfaceIndexEntry};
 use crate::{
     index::{Index, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, DataTypeInformationProvider, StructSource},
@@ -39,7 +42,25 @@ impl RecursiveValidator {
 
     /// Entry point of finding and reporting all recursive data structures.
     pub fn validate(&mut self, index: &Index) {
-        let mut nodes_all: FxIndexSet<&DataType> = FxIndexSet::default();
+        self.diagnostics.extend(CycleInvestigator::<DataType>::investigate_datatypes(index));
+        self.diagnostics.extend(CycleInvestigator::<InterfaceIndexEntry>::investigate_interfaces(index));
+    }
+}
+
+// XXX: needs a better name. scooby dooby doo
+struct CycleInvestigator<T> {
+    diagnostics: Vec<Diagnostic>,
+    _marker: PhantomData<T>,
+}
+
+impl<T> CycleInvestigator<T> {
+    fn new() -> Self {
+        Self { diagnostics: vec![], _marker: PhantomData }
+    }
+
+    fn investigate_datatypes(index: &Index) -> Vec<Diagnostic> {
+        let mut detective = CycleInvestigator::<DataType>::new();
+        let mut nodes_all = FxIndexSet::default();
         let mut nodes_visited = FxIndexSet::default();
 
         // Structs (includes arrays defined in structs)
@@ -53,83 +74,23 @@ impl RecursiveValidator {
             )
         }));
 
-        self.find_cycle(index, nodes_all, &mut nodes_visited);
+        detective.find_cycle(index, nodes_all, &mut nodes_visited);
+        detective.report()
     }
 
-    /// Finds cycles for the given nodes.
-    fn find_cycle<'idx>(
-        &mut self,
-        index: &'idx Index,
-        nodes_all: FxIndexSet<&'idx DataType>,
-        nodes_visited: &mut FxIndexSet<&'idx DataType>,
-    ) {
-        let mut path = FxIndexSet::default();
+    fn investigate_interfaces(index: &Index) -> Vec<Diagnostic> {
+        let mut detective = CycleInvestigator::<InterfaceIndexEntry>::new();
+        let mut nodes_all = FxIndexSet::default();
+        let mut nodes_visited = FxIndexSet::default();
 
-        for node in &nodes_all {
-            if !nodes_visited.contains(node) {
-                self.dfs(index, &mut path, node, nodes_visited);
-            }
-        }
+        nodes_all.extend(index.get_interfaces().values());
+
+        detective.find_cycle(index, nodes_all, &mut nodes_visited);
+        detective.report()
     }
 
-    /// In DFS manner recursively visits a node and all its child nodes while simultaneously creating a path
-    /// of it. Ends either by detecting a cycle, i.e. re-visting a node that is already present in our path,
-    /// or by reaching a node with no further child nodes. In both cases the function goes back one recursion
-    /// depth repeating itself for the remaining child nodes until all nodes have been visited. All detected
-    /// cycles are added to the diagnostician.
-    fn dfs<'idx>(
-        &mut self,
-        index: &'idx Index,
-        path: &mut FxIndexSet<&'idx DataType>,
-        node_curr: &'idx DataType,
-        nodes_visited: &mut FxIndexSet<&'idx DataType>,
-    ) {
-        nodes_visited.insert(node_curr);
-        path.insert(node_curr);
-
-        for node in
-            node_curr.get_struct_members().iter().map(|x| self.get_type(index, x)).collect::<FxIndexSet<_>>()
-        {
-            if path.contains(node) {
-                self.report(node, path);
-            } else if !nodes_visited.contains(node) {
-                self.dfs(index, path, node, nodes_visited);
-            }
-        }
-        path.pop();
-    }
-
-    /// Generates and reports the minimal path of a cycle. Specifically `path` contains all nodes visited up
-    /// until a cycle, e.g. `A -> B -> C -> B`. We are only interested in `B -> C -> B` as such this method
-    /// finds the first occurence of `B` to create a vector slice of `B -> C -> B` for the diagnostician.
-    fn report<'idx>(&mut self, node: &'idx DataType, path: &mut FxIndexSet<&'idx DataType>) {
-        match path.get_index_of(node) {
-            Some(idx) => {
-                let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
-                let ranges = slice.iter().map(|node| node.location.to_owned()).collect::<Vec<_>>();
-
-                slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
-                let error = slice.iter().map(|it| it.get_name()).join(" -> ");
-                let diagnostic =
-                    Diagnostic::new(format!("Recursive data structure `{}` has infinite size", error))
-                        .with_error_code("E029");
-
-                let diagnostic = if let Some(first) = ranges.first() {
-                    diagnostic.with_location(first)
-                } else {
-                    diagnostic
-                };
-
-                let diagnostic = if ranges.len() > 1 {
-                    ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it))
-                } else {
-                    diagnostic
-                };
-                self.diagnostics.push(diagnostic);
-            }
-
-            None => unreachable!("Node has to be in the FxIndexSet"),
-        }
+    fn report(self) -> Vec<Diagnostic> {
+        self.diagnostics
     }
 
     /// Returns the data type of `entry` distinguishing between two cases:
@@ -157,5 +118,143 @@ impl RecursiveValidator {
         } else {
             dt
         }
+    }
+}
+
+trait CycleDetector {
+    type Item;
+    /// Finds cycles for the given nodes.
+    fn find_cycle<'idx>(
+        &mut self,
+        index: &'idx Index,
+        nodes_all: FxIndexSet<&'idx Self::Item>,
+        nodes_visited: &mut FxIndexSet<&'idx Self::Item>,
+    ) where
+        Self::Item: Hash + Eq,
+    {
+        let mut path = FxIndexSet::default();
+
+        for node in &nodes_all {
+            if !nodes_visited.contains(node) {
+                self.dfs(index, &mut path, node, nodes_visited);
+            }
+        }
+    }
+    /// In DFS manner recursively visits a node and all its child nodes while simultaneously creating a path
+    /// of it. Ends either by detecting a cycle, i.e. re-visting a node that is already present in our path,
+    /// or by reaching a node with no further child nodes. In both cases the function goes back one recursion
+    /// depth repeating itself for the remaining child nodes until all nodes have been visited. All detected
+    /// cycles are added to the diagnostician.
+    fn dfs<'idx>(
+        &mut self,
+        index: &'idx Index,
+        path: &mut FxIndexSet<&'idx Self::Item>,
+        node_curr: &'idx Self::Item,
+        nodes_visited: &mut FxIndexSet<&'idx Self::Item>,
+    );
+
+    /// Generates and reports the minimal path of a cycle. Specifically `path` contains all nodes visited up
+    /// until a cycle, e.g. `A -> B -> C -> B`. We are only interested in `B -> C -> B` as such this method
+    /// finds the first occurence of `B` to create a vector slice of `B -> C -> B` for the diagnostician.
+    fn report<'idx>(&mut self, node: &'idx Self::Item, path: &mut FxIndexSet<&'idx Self::Item>);
+}
+
+impl CycleDetector for CycleInvestigator<DataType> {
+    type Item = DataType;
+
+    fn dfs<'idx>(
+        &mut self,
+        index: &'idx Index,
+        path: &mut FxIndexSet<&'idx Self::Item>,
+        node_curr: &'idx Self::Item,
+        nodes_visited: &mut FxIndexSet<&'idx Self::Item>,
+    ) {
+        nodes_visited.insert(node_curr);
+        path.insert(node_curr);
+
+        for node in
+            node_curr.get_struct_members().iter().map(|x| self.get_type(index, x)).collect::<FxIndexSet<_>>()
+        {
+            if path.contains(node) {
+                self.report(node, path);
+            } else if !nodes_visited.contains(node) {
+                self.dfs(index, path, node, nodes_visited);
+            }
+        }
+        path.pop();
+    }
+
+    fn report<'idx>(&mut self, node: &'idx Self::Item, path: &mut FxIndexSet<&'idx Self::Item>) {
+        let idx = path.get_index_of(node).expect("Node has to be in the IndexSet");
+
+        let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
+        let ranges = slice.iter().map(|node| node.location.to_owned()).collect::<Vec<_>>();
+
+        slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
+        let error = slice.iter().map(|it| it.get_name()).join(" -> ");
+        let diagnostic = Diagnostic::new(format!("Recursive data structure `{}` has infinite size", error))
+            .with_error_code("E029");
+
+        let diagnostic =
+            if let Some(first) = ranges.first() { diagnostic.with_location(first) } else { diagnostic };
+
+        let diagnostic = if ranges.len() > 1 {
+            ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it))
+        } else {
+            diagnostic
+        };
+
+        self.diagnostics.push(diagnostic);
+    }
+}
+
+impl CycleDetector for CycleInvestigator<InterfaceIndexEntry> {
+    type Item = InterfaceIndexEntry;
+
+    fn dfs<'idx>(
+        &mut self,
+        index: &'idx Index,
+        path: &mut FxIndexSet<&'idx Self::Item>,
+        node_curr: &'idx Self::Item,
+        nodes_visited: &mut FxIndexSet<&'idx Self::Item>,
+    ) {
+        nodes_visited.insert(node_curr);
+        path.insert(node_curr);
+
+        for node in node_curr
+            .get_extensions()
+            .iter()
+            .filter_map(|id| index.find_interface(&id.name))
+            .collect::<FxIndexSet<_>>()
+        {
+            if path.contains(node) {
+                self.report(node, path);
+            } else if !nodes_visited.contains(node) {
+                self.dfs(index, path, node, nodes_visited);
+            }
+        }
+        path.pop();
+    }
+
+    fn report<'idx>(&mut self, node: &'idx Self::Item, path: &mut FxIndexSet<&'idx Self::Item>) {
+        let idx = path.get_index_of(node).expect("Node has to be in the IndexSet");
+
+        let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
+        let ranges = slice.iter().map(|node| node.location.to_owned()).collect::<Vec<_>>();
+
+        slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
+        let error = slice.iter().map(|it| &it.name).join(" -> ");
+        let diagnostic = Diagnostic::new(format!("Recursive data structure `{}` has infinite size", error))
+            .with_error_code("E029");
+
+        let diagnostic =
+            if let Some(first) = ranges.first() { diagnostic.with_location(first) } else { diagnostic };
+
+        let diagnostic = if ranges.len() > 1 {
+            ranges.iter().fold(diagnostic, |prev, it| prev.with_secondary_location(it))
+        } else {
+            diagnostic
+        };
+        self.diagnostics.push(diagnostic);
     }
 }
