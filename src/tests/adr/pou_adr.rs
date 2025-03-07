@@ -84,6 +84,9 @@ fn programs_state_is_stored_in_a_struct() {
                                     offset: 43,
                                 },
                             ),
+                            file: Some(
+                                "<internal>",
+                            ),
                         },
                         varargs: None,
                     },
@@ -111,6 +114,9 @@ fn programs_state_is_stored_in_a_struct() {
                                     column: 22,
                                     offset: 84,
                                 },
+                            ),
+                            file: Some(
+                                "<internal>",
                             ),
                         },
                         varargs: None,
@@ -140,6 +146,9 @@ fn programs_state_is_stored_in_a_struct() {
                                     offset: 123,
                                 },
                             ),
+                            file: Some(
+                                "<internal>",
+                            ),
                         },
                         varargs: None,
                     },
@@ -167,6 +176,9 @@ fn programs_state_is_stored_in_a_struct() {
                                     column: 21,
                                     offset: 163,
                                 },
+                            ),
+                            file: Some(
+                                "<internal>",
                             ),
                         },
                         varargs: None,
@@ -196,6 +208,9 @@ fn programs_state_is_stored_in_a_struct() {
                                     offset: 204,
                                 },
                             ),
+                            file: Some(
+                                "<internal>",
+                            ),
                         },
                         varargs: None,
                     },
@@ -216,6 +231,9 @@ fn programs_state_is_stored_in_a_struct() {
                         column: 20,
                         offset: 21,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
         },

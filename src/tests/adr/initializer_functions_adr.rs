@@ -708,7 +708,7 @@ fn intializing_temporary_variables() {
         ";
 
     let res = codegen(src);
-    assert_snapshot!(res, @r##"
+    assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -780,7 +780,7 @@ fn intializing_temporary_variables() {
     entry:
       ret void
     }
-    "##)
+    "###)
 }
 
 /// Initializing method variables behaves very similar to stack local variables from the previous example.
@@ -802,7 +802,7 @@ fn initializing_method_variables() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(codegen(src), @r#"
+    insta::assert_snapshot!(codegen(src), @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -848,7 +848,7 @@ fn initializing_method_variables() {
     entry:
       ret void
     }
-    "#);
+    "###);
 
     // When no local reference is found, the parent variable is used if present. Otherwise we look for a
     // global variable.

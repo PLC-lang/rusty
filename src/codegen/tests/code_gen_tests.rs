@@ -1714,7 +1714,7 @@ fn for_statement_with_binary_expressions() {
         ",
     );
 
-    insta::assert_snapshot!(result,  @r###"
+    insta::assert_snapshot!(result,  @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1797,7 +1797,7 @@ fn for_statement_with_binary_expressions() {
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -1813,7 +1813,7 @@ fn for_statement_type_casting() {
             END_FOR
         END_FUNCTION",
     );
-    insta::assert_snapshot!(result,  @r###"
+    insta::assert_snapshot!(result,  @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1873,7 +1873,7 @@ fn for_statement_type_casting() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -4108,7 +4108,7 @@ fn variables_in_var_external_block_are_not_generated() {
         ",
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -4194,7 +4194,7 @@ fn variables_in_var_external_block_are_not_generated() {
     declare void @__init_baz(%baz*)
 
     declare void @baz(%baz*)
-    "###);
+    "#);
 }
 
 #[test]

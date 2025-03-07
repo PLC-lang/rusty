@@ -50,8 +50,8 @@ fn validate_implemented_methods<T: AnnotationMap>(
                     Diagnostic::new(format!(
                         "Method `{}` is defined with different signatures in interfaces `{}` and `{}`",
                         method_name,
-                        method1.get_parent_pou_name(),
-                        method2.get_parent_pou_name()
+                        method1.get_parent_pou_name().unwrap(),
+                        method2.get_parent_pou_name().unwrap()
                     ))
                     .with_error_code("E111")
                     .with_location(&pou.name_location)
@@ -448,7 +448,7 @@ pub(super) mod signature_validation {
                             Diagnostic::new(format!(
                                 "`{}` has more parameters than the method defined in `{}`",
                                 method_name,
-                                method_ref.get_parent_pou_name(),
+                                method_ref.get_parent_pou_name().unwrap(),
                             ))
                             .with_error_code("E112")
                             .with_location(&parameter_impl.source_location)
