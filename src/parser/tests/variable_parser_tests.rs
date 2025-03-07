@@ -406,7 +406,9 @@ fn var_config_test() {
         implementations: [],
         interfaces: [],
         user_types: [],
-        file_name: "test.st",
+        file: File(
+            "test.st",
+        ),
         properties: [],
     }
     "#);
@@ -546,7 +548,9 @@ fn var_external() {
         ],
         interfaces: [],
         user_types: [],
-        file_name: "test.st",
+        file: File(
+            "test.st",
+        ),
         properties: [],
     }
     "#);
@@ -673,7 +677,9 @@ fn var_external_constant() {
         ],
         interfaces: [],
         user_types: [],
-        file_name: "test.st",
+        file: File(
+            "test.st",
+        ),
         properties: [],
     }
     "#);

@@ -39,9 +39,15 @@ CompilationUnit {
             ],
             location: SourceLocation {
                 span: None,
+                file: Some(
+                    "<internal>",
+                ),
             },
             name_location: SourceLocation {
                 span: None,
+                file: Some(
+                    "<internal>",
+                ),
             },
             overriding: false,
             generic: false,
@@ -50,6 +56,8 @@ CompilationUnit {
     ],
     interfaces: [],
     user_types: [],
-    file_name: "<internal>",
+    file: File(
+        "<internal>",
+    ),
     properties: [],
 }

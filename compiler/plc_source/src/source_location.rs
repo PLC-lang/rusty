@@ -1,6 +1,7 @@
 use std::{
     fmt::{Debug, Display, Formatter},
     ops::Range,
+    path::{Path, PathBuf},
 };
 
 use crate::{SourceCode, SourceContainer};
@@ -170,20 +171,17 @@ impl CodeSpan {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Default, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Default, Debug)]
 pub enum FileMarker {
     File(&'static str),
     #[default]
     Undefined,
-    Internal,
+    Internal(&'static str),
 }
 
 impl From<&'static str> for FileMarker {
     fn from(value: &'static str) -> Self {
-        match value {
-            "<internal>" => Self::Internal,
-            _ => Self::File(value),
-        }
+        Self::File(value)
     }
 }
 
@@ -193,21 +191,30 @@ impl From<Option<&'static str>> for FileMarker {
     }
 }
 
+impl From<&FileMarker> for PathBuf {
+    fn from(val: &FileMarker) -> Self {
+        match val {
+            // Windows has problems with `<` and `>` in paths, hence we replace these symbols with `__`
+            FileMarker::File(f) | FileMarker::Internal(f) => f.replace(['<', '>'], "__").into(),
+            FileMarker::Undefined => Path::new("").to_path_buf(),
+        }
+    }
+}
+
 impl FileMarker {
-    fn get_name(&self) -> Option<&'static str> {
+    pub fn get_name(&self) -> Option<&'static str> {
         match self {
-            FileMarker::File(f) => Some(f),
-            FileMarker::Internal => Some("<internal>"),
+            FileMarker::File(f) | FileMarker::Internal(f) => Some(f),
             FileMarker::Undefined => None,
         }
     }
 
-    fn is_undefined(&self) -> bool {
+    pub fn is_undefined(&self) -> bool {
         matches!(self, Self::Undefined)
     }
 
-    fn is_internal(&self) -> bool {
-        matches!(self, Self::Internal)
+    pub fn is_internal(&self) -> bool {
+        matches!(self, Self::Internal(_))
     }
 }
 
@@ -253,6 +260,10 @@ impl Default for SourceLocation {
 }
 
 impl SourceLocation {
+    pub fn into_internal(self) -> Self {
+        let SourceLocation { span, file } = self;
+        SourceLocation { span, file: FileMarker::Internal(file.get_name().unwrap_or_default()) }
+    }
     /// Constructs an undefined SourceRange with a 0..0 range and no filename
     pub fn undefined() -> SourceLocation {
         SourceLocation { span: CodeSpan::None, file: FileMarker::default() }
@@ -336,7 +347,7 @@ impl SourceLocation {
                 CodeSpan::Combined(data)
             }
         };
-        SourceLocation { span, file: self.file.clone() }
+        SourceLocation { span, file: self.file }
     }
 
     /// converts this SourceRange into a Range
@@ -365,7 +376,7 @@ impl SourceLocation {
     /// creates a SymbolLocation with undefined source_range used for
     /// symbols that are created by the compiler on-the-fly.
     pub fn internal() -> Self {
-        SourceLocation { span: CodeSpan::None, file: FileMarker::Internal }
+        SourceLocation { span: CodeSpan::None, file: FileMarker::Internal("<internal>") }
     }
 
     /// creates an internal SymbolLocation but specifies the CompilationUnit/File it was encountered in.
@@ -377,6 +388,10 @@ impl SourceLocation {
     }
 
     pub fn is_internal(&self) -> bool {
+        self.file.is_internal()
+    }
+
+    pub fn is_builtin_internal(&self) -> bool {
         self.file.is_internal() && self.span == CodeSpan::None
     }
 

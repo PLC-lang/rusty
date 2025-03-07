@@ -1,7 +1,6 @@
 ---
 source: src/lowering/calls.rs
 expression: "unit.implementations[1]"
-snapshot_kind: text
 ---
 Implementation {
     name: "main",
@@ -122,6 +121,9 @@ Implementation {
                 offset: 584,
             },
         ),
+        file: Some(
+            "<internal>",
+        ),
     },
     name_location: SourceLocation {
         span: Range(
@@ -134,6 +136,9 @@ Implementation {
                 column: 21,
                 offset: 170,
             },
+        ),
+        file: Some(
+            "<internal>",
         ),
     },
     overriding: false,

@@ -14,12 +14,12 @@ fn declaring_an_array() {
         "#;
 
     // ... just translates to a llvm array type
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     @d = global [10 x i32] zeroinitializer
-    "###);
+    "#);
 }
 
 /// Arrays can have a default value by initializing it. Variables of this
@@ -36,13 +36,13 @@ fn initializing_an_array() {
         "#;
 
     // ... Instances of this struct will be initialized accordingly
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
     @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
-    "###);
+    "#);
 }
 
 /// Arrays are aggregate types. This means that passing them to functions and assigning them
@@ -64,7 +64,7 @@ fn assigning_full_arrays() {
         "#;
 
     // ... the assignment a := b will be performed as a memcpy
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -121,7 +121,7 @@ fn assigning_full_arrays() {
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+    "#);
 }
 
 /// Accessing ARRAY's members uses the LLVM GEP statement to get a pointer
@@ -150,7 +150,7 @@ fn accessing_array_elements() {
     // ... note that the b[4] access is generated as a gep-expression at index 1
     // .   %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %b, i32 0, i32 1
     // .                                                                      ^^^^^
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -204,5 +204,5 @@ fn accessing_array_elements() {
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+    "#);
 }

@@ -34,7 +34,7 @@ impl InitVisitor {
         index: Index,
         unresolvables: Vec<UnresolvableConstant>,
         id_provider: IdProvider,
-        init_symbol_name: &str,
+        init_symbol_name: &'static str,
     ) -> Vec<CompilationUnit> {
         let mut visitor = Self::new(index, unresolvables, id_provider);
         // visit all units

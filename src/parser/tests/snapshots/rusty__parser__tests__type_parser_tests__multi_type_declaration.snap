@@ -62,6 +62,8 @@ CompilationUnit {
             scope: None,
         },
     ],
-    file_name: "test.st",
+    file: File(
+        "test.st",
+    ),
     properties: [],
 }

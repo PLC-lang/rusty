@@ -40,7 +40,7 @@ impl GlobalValidator {
 
             // If the SourceRange of `v` is undefined, we can assume the user choose a name which clashes
             // with an (internal) built-in datatype, hence the undefined location.
-            if v.is_internal() || v.is_undefined() {
+            if v.is_builtin_internal() || v.is_undefined() {
                 for other in others {
                     self.diagnostics.push(
                         Diagnostic::new(format!(

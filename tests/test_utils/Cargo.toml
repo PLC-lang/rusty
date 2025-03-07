@@ -15,3 +15,4 @@ plc_ast = { path = "../../compiler/plc_ast" }
 plc_util = { path = "../../compiler/plc_util" }
 plc_diagnostics = { path = "../../compiler/plc_diagnostics" }
 plc_index = { path = "../../compiler/plc_index" }
+tempfile = "3.17.0"
