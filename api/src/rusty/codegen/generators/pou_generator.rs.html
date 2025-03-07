@@ -840,7 +840,29 @@
 <a href="#839" id="839">839</a>
 <a href="#840" id="840">840</a>
 <a href="#841" id="841">841</a>
-<a href="#842" id="842">842</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use super</span>::{
     expression_generator::ExpressionCodeGenerator,
@@ -912,13 +934,11 @@
     <span class="kw">let </span>pou_generator = PouGenerator::new(llvm, index, annotations, types_index, online_change);
     <span class="kw">let </span>implementations = dependencies
         .into_iter()
-        .filter_map(|it| {
-            <span class="kw">if let </span>Dependency::Call(name) | Dependency::Datatype(name) = it {
-                index.find_implementation_by_name(name).map(|it| (name.as_str(), it))
-            } <span class="kw">else </span>{
-                <span class="prelude-val">None
-            </span>}
+        .filter_map(|it| <span class="kw">match </span>it {
+            Dependency::Call(name) | Dependency::Datatype(name) =&gt; <span class="prelude-val">Some</span>(name),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
+        .filter_map(|name| index.find_implementation_by_name(name).map(|it| (name, it)))
         .collect::&lt;FxIndexMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;();
     <span class="kw">for </span>(name, implementation) <span class="kw">in </span>implementations {
         <span class="kw">if </span>!implementation.is_generic() {
@@ -945,13 +965,13 @@
     location: <span class="kw-2">&amp;</span>str,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>local_llvm_index = LlvmTypedIndex::default();
-    <span class="kw">let </span>implementations = dependencies.into_iter().filter_map(|it| {
-        <span class="kw">if let </span>Dependency::Call(name) | Dependency::Datatype(name) = it {
-            index.find_implementation_by_name(name).filter(|it| it.is_in_unit(location))
-        } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>}
-    });
+    <span class="kw">let </span>implementations = dependencies
+        .into_iter()
+        .filter_map(|it| <span class="kw">match </span>it {
+            Dependency::Call(name) | Dependency::Datatype(name) =&gt; index.find_implementation_by_name(name),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        })
+        .filter(|it| it.is_in_unit(location));
     <span class="kw">for </span>implementation <span class="kw">in </span>implementations {
         <span class="kw">let </span>type_name = implementation.get_type_name();
         <span class="kw">if </span>implementation.is_init() {
@@ -1132,22 +1152,38 @@
             <span class="self">self</span>.add_global_constructor(module, curr_f)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">let </span>pou_name = implementation.get_call_name();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = <span class="self">self</span>.index.find_pou(pou_name) {
-            <span class="kw">let </span>parameter_types = declared_parameters
-                .iter()
-                .map(|v| <span class="self">self</span>.index.get_effective_type_or_void_by_name(v.get_type_name()))
-                .collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>DataType&gt;&gt;();
+        <span class="kw">let </span><span class="kw-2">mut </span>parameter_types = declared_parameters
+            .iter()
+            .map(|v| <span class="self">self</span>.index.get_effective_type_or_void_by_name(v.get_type_name()))
+            .collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>DataType&gt;&gt;();
 
-            debug.register_function(
-                <span class="self">self</span>.index,
-                curr_f,
-                pou,
-                return_type,
-                parameter_types.as_slice(),
-                implementation.get_location().get_line(),
-            );
+        <span class="comment">// If the implementation is a method, the first parameter is the instance
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(class_name) = implementation.get_associated_class_name() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(class_type) = <span class="self">self</span>.index.find_type(class_name) {
+                parameter_types.insert(<span class="number">0</span>, class_type);
+            }
+        } <span class="kw">else if </span>!implementation.get_implementation_type().is_function_method_or_init() {
+            <span class="comment">//For non functions or methods, the first parameter is self
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(type_name) = <span class="self">self</span>.index.find_type(implementation.get_type_name()) {
+                parameter_types.insert(<span class="number">0</span>, type_name);
+            }
         }
+
+        <span class="kw">let </span>parent_function =
+            implementation.get_associated_class_name().and_then(|it| module.get_function(it));
+        <span class="kw">let </span>function_context = FunctionContext {
+            linking_context: implementation,
+            function: curr_f,
+            blocks: FxHashMap::default(),
+        };
+        debug.register_function(
+            <span class="self">self</span>.index,
+            <span class="kw-2">&amp;</span>function_context,
+            return_type,
+            parent_function,
+            parameter_types.as_slice(),
+            implementation.get_location().get_line(),
+        );
         <span class="prelude-val">Ok</span>(curr_f)
     }
 
@@ -1203,7 +1239,6 @@
                 .get_associated_pou_type(implementation.get_type_name())
                 .map(|it| it.into_struct_type())<span class="question-mark">?</span>;
             parameters.push(instance_struct_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
-
             <span class="prelude-val">Ok</span>(parameters)
         } <span class="kw">else </span>{
             <span class="kw">let </span>declared_params = <span class="self">self</span>.index.get_declared_parameters(implementation.get_call_name());
@@ -1255,7 +1290,19 @@
             })
             <span class="comment">// .or_else(|| Some(implementation.location.get_start()))
             </span>.unwrap();
-        debug.set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>.llvm, <span class="kw-2">&amp;</span>current_function, line, column);
+        <span class="kw">let </span>function_context = FunctionContext {
+            linking_context: <span class="self">self</span>.index.find_implementation_by_name(<span class="kw-2">&amp;</span>implementation.name).ok_or_else(
+                || {
+                    Diagnostic::codegen_error(
+                        <span class="macro">format!</span>(<span class="string">"Could not find implementation for {}"</span>, <span class="kw-2">&amp;</span>implementation.name),
+                        <span class="kw-2">&amp;</span>implementation.location,
+                    )
+                },
+            )<span class="question-mark">?</span>,
+            function: current_function,
+            blocks: FxHashMap::default(),
+        };
+        debug.set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>.llvm, <span class="kw-2">&amp;</span>function_context, line, column);
 
         <span class="comment">//generate the body
         </span><span class="kw">let </span>block = context.append_basic_block(current_function, <span class="string">"entry"</span>);
@@ -1283,18 +1330,15 @@
             blocks,
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>param_index = <span class="number">0</span>;
         <span class="kw">if let </span>PouType::Method { .. } = implementation.pou_type {
             <span class="kw">let </span>class_name = implementation.type_name.split(<span class="string">'.'</span>).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;()[<span class="number">0</span>];
             <span class="self">self</span>.generate_local_pou_variable_accessors(
-                param_index,
                 <span class="kw-2">&amp;mut </span>local_index,
                 class_name,
                 <span class="kw-2">&amp;</span>function_context,
                 <span class="kw-2">&amp;</span>implementation.location,
                 debug,
             )<span class="question-mark">?</span>;
-            param_index += <span class="number">1</span>;
         }
 
         <span class="comment">// generate local variables
@@ -1307,7 +1351,6 @@
             )<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
             <span class="self">self</span>.generate_local_pou_variable_accessors(
-                param_index,
                 <span class="kw-2">&amp;mut </span>local_index,
                 <span class="kw-2">&amp;</span>implementation.type_name,
                 <span class="kw-2">&amp;</span>function_context,
@@ -1427,7 +1470,7 @@
                     debug.add_variable_declaration(
                         m.get_qualified_name(),
                         ptr,
-                        function_context.function,
+                        function_context,
                         block,
                         m.source_location.get_line(),
                         m.source_location.get_column(),
@@ -1500,10 +1543,9 @@
     }
 
     <span class="doccomment">/// generates a load-statement for the given members
-    /// for pous that take a struct-state-variable (or two for methods)
+    /// for pous that take a struct-state-variable
     </span><span class="kw">fn </span>generate_local_pou_variable_accessors(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        arg_index: u32,
         index: <span class="kw-2">&amp;mut </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
         type_name: <span class="kw-2">&amp;</span>str,
         function_context: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
@@ -1513,15 +1555,16 @@
         <span class="kw">let </span>members = <span class="self">self</span>.index.get_pou_members(type_name);
         <span class="kw">let </span>param_pointer = function_context
             .function
-            .get_nth_param(arg_index)
+            .get_nth_param(<span class="number">0</span>)
             .map(BasicValueEnum::into_pointer_value)
             .ok_or_else(|| Diagnostic::missing_function(location))<span class="question-mark">?</span>;
         <span class="comment">//Generate POU struct declaration for debug
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(block) = <span class="self">self</span>.llvm.builder.get_insert_block() {
-            debug.add_variable_declaration(
+            <span class="comment">// debug.register_struct_parameter(type_name, function_context);
+            </span>debug.add_variable_declaration(
                 type_name,
                 param_pointer,
-                function_context.function,
+                function_context,
                 block,
                 location.get_line(),
                 location.get_column(),
@@ -1532,7 +1575,8 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>var_count = <span class="number">0</span>;
         <span class="kw">for </span>m <span class="kw">in </span>members.iter().filter(|it| !it.is_var_external()) {
             <span class="kw">let </span>parameter_name = m.get_name();
-            <span class="kw">let </span>(name, variable) = <span class="kw">if </span>m.is_temp() || m.is_return() {
+            <span class="comment">//TODO: this is not creating local variables
+            </span><span class="kw">let </span>(name, variable) = <span class="kw">if </span>m.is_temp() || m.is_return() {
                 <span class="kw">let </span>temp_type = index.get_associated_type(m.get_type_name())<span class="question-mark">?</span>;
                 (parameter_name, <span class="self">self</span>.llvm.create_local_variable(parameter_name, <span class="kw-2">&amp;</span>temp_type))
             } <span class="kw">else </span>{
@@ -1582,7 +1626,7 @@
                     debug.add_variable_declaration(
                         variable.get_qualified_name(),
                         left,
-                        function_context.function,
+                        function_context,
                         block,
                         variable.source_location.get_line(),
                         variable.source_location.get_column(),

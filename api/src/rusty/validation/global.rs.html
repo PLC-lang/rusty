@@ -298,7 +298,7 @@
 
             <span class="comment">// If the SourceRange of `v` is undefined, we can assume the user choose a name which clashes
             // with an (internal) built-in datatype, hence the undefined location.
-            </span><span class="kw">if </span>v.is_internal() || v.is_undefined() {
+            </span><span class="kw">if </span>v.is_builtin_internal() || v.is_undefined() {
                 <span class="kw">for </span>other <span class="kw">in </span>others {
                     <span class="self">self</span>.diagnostics.push(
                         Diagnostic::new(<span class="macro">format!</span>(

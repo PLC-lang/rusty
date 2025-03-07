@@ -1939,7 +1939,14 @@
 <a href="#1938" id="1938">1938</a>
 <a href="#1939" id="1939">1939</a>
 <a href="#1940" id="1940">1940</a>
-<a href="#1941" id="1941">1941</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1941" id="1941">1941</a>
+<a href="#1942" id="1942">1942</a>
+<a href="#1943" id="1943">1943</a>
+<a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
+<a href="#1947" id="1947">1947</a>
+<a href="#1948" id="1948">1948</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
 
@@ -2385,7 +2392,7 @@
         <span class="self">self</span>.get_location().is_in_unit(unit)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">pub fn </span>is_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
     }
 
@@ -2422,6 +2429,13 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_project_init(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, ImplementationType::ProjectInit)
+    }
+
+    <span class="kw">pub fn </span>has_self_parameter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        !<span class="macro">matches!</span>(
+            <span class="self">self</span>,
+            ImplementationType::Function | ImplementationType::ProjectInit | ImplementationType::Class
+        )
     }
 }
 
@@ -2707,13 +2721,13 @@
         }
     }
 
-    <span class="kw">pub fn </span>get_parent_pou_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+    <span class="kw">pub fn </span>get_parent_pou_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             PouIndexEntry::Method { parent_pou_name, .. } | PouIndexEntry::Action { parent_pou_name, .. } =&gt; {
-                parent_pou_name.as_str()
+                <span class="prelude-val">Some</span>(parent_pou_name.as_str())
             }
 
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"invalid function call, only methods and actions have a parent POU"</span>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -3853,7 +3867,7 @@
                 </span>.get_pous()
                 .values()
                 .filter(|it| it.is_method())
-                .filter(|it| it.get_parent_pou_name() == container)
+                .filter(|it| it.get_parent_pou_name().is_some_and(|it| it == container))
                 .filter(|it| {
                     !current_methods
                         .iter()

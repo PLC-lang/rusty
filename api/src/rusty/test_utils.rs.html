@@ -402,11 +402,7 @@
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
 <a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a></pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
+<a href="#404" id="404">404</a></pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">pub mod </span>tests {
 
     <span class="kw">use </span>std::{collections::HashMap, path::PathBuf, str::FromStr, sync::Mutex};
@@ -554,7 +550,7 @@
             index,
             unresolvables,
             id_provider.clone(),
-            <span class="kw-2">&amp;</span>get_project_init_symbol(),
+            get_project_init_symbol(),
         );
 
         <span class="kw">let </span><span class="kw-2">mut </span>index = Index::default();
@@ -685,7 +681,7 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>code_generator = <span class="kw">crate</span>::codegen::CodeGen::new(
                     <span class="kw-2">&amp;</span>context,
                     path.as_deref(),
-                    <span class="kw-2">&amp;</span>unit.file_name,
+                    unit.file,
                     <span class="kw">crate</span>::OptimizationLevel::None,
                     debug_level,
                     online_change.clone(),
@@ -724,10 +720,6 @@
 
     <span class="kw">pub fn </span>codegen_with_debug(src: <span class="kw-2">&amp;</span>str) -&gt; String {
         codegen_debug_without_unwrap(src, DebugLevel::Full(<span class="kw">crate</span>::DEFAULT_DWARF_VERSION)).unwrap()
-    }
-
-    <span class="kw">pub fn </span>codegen_with_debug_version(src: <span class="kw-2">&amp;</span>str, dwarf_version: usize) -&gt; String {
-        codegen_debug_without_unwrap(src, DebugLevel::Full(dwarf_version)).unwrap()
     }
 
     <span class="kw">pub fn </span>codegen(src: <span class="kw-2">&amp;</span>str) -&gt; String {
@@ -772,7 +764,7 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>code_generator = <span class="kw">crate</span>::codegen::CodeGen::new(
                     context,
                     path.as_deref(),
-                    <span class="kw-2">&amp;</span>unit.file_name,
+                    unit.file,
                     <span class="kw">crate</span>::OptimizationLevel::None,
                     debug_level,
                     <span class="kw">crate</span>::OnlineChange::Disabled,
@@ -810,8 +802,8 @@
         codegen(source.as_str())
     }
 
-    <span class="kw">fn </span>get_project_init_symbol() -&gt; String {
-        <span class="string">"__init___testproject"</span>.to_string()
-    }
+    <span class="kw">fn </span>get_project_init_symbol() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+        <span class="string">"__init___testproject"
+    </span>}
 }
 </code></pre></div></section></main></body></html>

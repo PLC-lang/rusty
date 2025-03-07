@@ -640,7 +640,14 @@
 <a href="#639" id="639">639</a>
 <a href="#640" id="640">640</a>
 <a href="#641" id="641">641</a>
-<a href="#642" id="642">642</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     cell::RefCell,
     collections::HashMap,
@@ -684,7 +691,7 @@
 };
 <span class="kw">use </span>plc_ast::ast::{CompilationUnit, LinkageType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
-<span class="kw">use </span>plc_source::source_location::SourceLocation;
+<span class="kw">use </span>plc_source::source_location::{FileMarker, SourceLocation};
 
 <span class="kw">mod </span>debug;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>generators;
@@ -737,13 +744,15 @@
     </span><span class="kw">pub fn </span>new(
         context: <span class="kw-2">&amp;</span><span class="lifetime">'ink </span>CodegenContext,
         root: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;,
-        module_location: <span class="kw-2">&amp;</span>str,
+        file_marker: FileMarker,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
         online_change: OnlineChange,
     ) -&gt; CodeGen&lt;<span class="lifetime">'ink</span>&gt; {
+        <span class="kw">let </span>module_location = file_marker.get_name().unwrap_or_default();
         <span class="kw">let </span>module = context.create_module(module_location);
         module.set_source_file_name(module_location);
+        <span class="kw">let </span>debug_level = <span class="kw">if </span>file_marker.is_internal() { DebugLevel::None } <span class="kw">else </span>{ debug_level };
         <span class="kw">let </span>debug = debug::DebugBuilderEnum::new(context, <span class="kw-2">&amp;</span>module, root, optimization_level, debug_level);
         CodeGen { module, debug, module_location: module_location.to_string(), online_change }
     }
@@ -935,7 +944,7 @@
         unit: <span class="kw-2">&amp;</span>CompilationUnit,
         annotations: <span class="kw-2">&amp;</span>AstAnnotations,
         global_index: <span class="kw-2">&amp;</span>Index,
-        llvm_index: LlvmTypedIndex,
+        llvm_index: LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;GeneratedModule&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">//generate all pous
         </span><span class="kw">let </span>llvm = Llvm::new(context, context.create_builder());
@@ -952,7 +961,7 @@
             }
         }
 
-        <span class="kw">let </span>location = PathBuf::from(<span class="kw-2">&amp;</span>unit.file_name);
+        <span class="kw">let </span>location = (<span class="kw-2">&amp;</span>unit.file).into();
 
         <span class="self">self</span>.debug.finalize();
         <span class="macro">log::debug!</span>(<span class="string">"{}"</span>, <span class="self">self</span>.module.to_string());
@@ -1266,6 +1275,11 @@
         </span><span class="kw">let </span>engine = <span class="self">self</span>.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
         <span class="kw-2">*</span><span class="self">self</span>.engine.borrow_mut() = <span class="prelude-val">Some</span>(engine.clone());
         engine
+    }
+
+    <span class="kw">pub fn </span>set_name(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) {
+        <span class="self">self</span>.module.set_name(name);
+        <span class="self">self</span>.module.set_source_file_name(name);
     }
 }
 

@@ -952,15 +952,27 @@
 <a href="#951" id="951">951</a>
 <a href="#952" id="952">952</a>
 <a href="#953" id="953">953</a>
-<a href="#954" id="954">954</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
     context::Context,
     debug_info::{
         AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFile, DIFlags,
-        DIFlagsConstants, DILocalVariable, DISubprogram, DISubroutineType, DIType, DWARFEmissionKind,
-        DebugInfoBuilder,
+        DIFlagsConstants, DILocalVariable, DIScope, DISubprogram, DISubroutineType, DIType,
+        DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
@@ -972,13 +984,13 @@
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use crate</span>::{
-    datalayout::{Bytes, DataLayout, MemoryLocation},
+    datalayout::{Bytes, MemoryLocation},
     index::{Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::generators::{llvm::Llvm, ADDRESS_SPACE_GLOBAL};
+<span class="kw">use </span><span class="kw">super</span>::generators::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_GLOBAL};
 
 <span class="attr">#[derive(PartialEq, Eq)]
 #[allow(non_camel_case_types)]
@@ -1009,7 +1021,7 @@
     </span><span class="kw">fn </span>set_debug_location(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         llvm: <span class="kw-2">&amp;</span>Llvm,
-        scope: <span class="kw-2">&amp;</span>FunctionValue,
+        scope: <span class="kw-2">&amp;</span>FunctionContext,
         <span class="comment">//Current line starts with 0
         </span>line: usize,
         column: usize,
@@ -1020,9 +1032,9 @@
     </span><span class="kw">fn </span>register_function&lt;<span class="lifetime">'idx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         index: <span class="kw-2">&amp;</span>Index,
-        func: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
-        pou: <span class="kw-2">&amp;</span>PouIndexEntry,
+        func: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'idx</span>&gt;,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
+        parent_function: <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
         parameter_types: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType],
         implementation_start: usize,
     );
@@ -1049,7 +1061,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
         alignment: u32,
-        scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
+        scope: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
     );
 
     <span class="doccomment">/// Creates a debug entry for a function parameter
@@ -1057,17 +1069,17 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
         arg_no: usize,
-        scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
+        scope: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
     );
 
     <span class="doccomment">/// Create the debug entry for an Function POU entry
-    </span><span class="kw">fn </span>register_struct_parameter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>PouIndexEntry, scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;);
+    </span><span class="kw">fn </span>register_struct_parameter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>str, scope: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;);
 
     <span class="kw">fn </span>add_variable_declaration(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
         value: PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
-        scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
+        scope: <span class="kw-2">&amp;</span>FunctionContext,
         block: BasicBlock&lt;<span class="lifetime">'ink</span>&gt;,
         line: usize,
         column: usize,
@@ -1096,6 +1108,17 @@
         }
     }
 }
+<span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+</span><span class="kw">pub struct </span>VariableKey {
+    name: String,
+    parent: <span class="prelude-ty">Option</span>&lt;String&gt;,
+}
+
+<span class="kw">impl </span>VariableKey {
+    <span class="kw">pub fn </span>new(name: <span class="kw-2">&amp;</span>str, parent: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ name: name.to_string(), parent: parent.map(|it| it.to_string()) }
+    }
+}
 
 <span class="doccomment">/// Represents the debug builder and information for a compilation unit.
 </span><span class="kw">pub struct </span>DebugBuilder&lt;<span class="lifetime">'ink</span>&gt; {
@@ -1103,7 +1126,7 @@
     debug_info: DebugInfoBuilder&lt;<span class="lifetime">'ink</span>&gt;,
     compile_unit: DICompileUnit&lt;<span class="lifetime">'ink</span>&gt;,
     types: FxHashMap&lt;String, DebugType&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    variables: FxHashMap&lt;String, DILocalVariable&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    variables: FxHashMap&lt;VariableKey, DILocalVariable&lt;<span class="lifetime">'ink</span>&gt;&gt;,
     optimization: OptimizationLevel,
     files: FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, DIFile&lt;<span class="lifetime">'ink</span>&gt;&gt;,
 }
@@ -1148,9 +1171,9 @@
                     context.metadata_node(<span class="kw-2">&amp;</span>[dwarf_version]),
                 );
 
-                <span class="kw">let </span>path = Path::new(module.get_source_file_name().to_str().unwrap_or(<span class="string">""</span>));
+                <span class="kw">let </span>path = Path::new(module.get_source_file_name().to_str().unwrap_or(<span class="string">""</span>)).to_path_buf();
                 <span class="kw">let </span>root = root.unwrap_or_else(|| Path::new(<span class="string">""</span>));
-                <span class="kw">let </span>filename = path.strip_prefix(root).unwrap_or(path).to_str().unwrap_or_default();
+                <span class="kw">let </span>filename = <span class="kw-2">&amp;</span>path.strip_prefix(root).unwrap_or(<span class="kw-2">&amp;</span>path).to_str().unwrap_or_default();
                 <span class="kw">let </span>(debug_info, compile_unit) = module.create_debug_info_builder(
                     <span class="bool-val">true</span>,
                     inkwell::debug_info::DWARFSourceLanguage::C, <span class="comment">//TODO: Own lang
@@ -1404,15 +1427,16 @@
     }
 
     <span class="kw">fn </span>create_subroutine_type(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DataType&gt;,
         parameter_types: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>DataType],
         file: DIFile&lt;<span class="lifetime">'ink</span>&gt;,
-    ) -&gt; DISubroutineType {
+    ) -&gt; DISubroutineType&lt;<span class="lifetime">'ink</span>&gt; {
         <span class="kw">let </span>return_type = return_type
-            .filter(|it| !it.is_aggregate_type())
+            .as_ref()
+            .filter(|return_type| !return_type.is_aggregate_type())
             .and_then(|dt| <span class="self">self</span>.types.get(dt.get_name()))
-            .map(|it| it.to_owned())
+            .map(|return_type| return_type.to_owned())
             .map(Into::into);
 
         <span class="kw">let </span>parameter_types = parameter_types
@@ -1432,6 +1456,7 @@
 
     <span class="kw">fn </span>create_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        scope: DIScope&lt;<span class="lifetime">'ink</span>&gt;,
         pou: <span class="kw-2">&amp;</span>PouIndexEntry,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DataType&gt;,
         parameter_types: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>DataType],
@@ -1445,15 +1470,15 @@
         <span class="kw">let </span>is_external = <span class="macro">matches!</span>(pou.get_linkage(), LinkageType::External);
         <span class="kw">let </span>ditype = <span class="self">self</span>.create_subroutine_type(return_type, parameter_types, file);
         <span class="self">self</span>.debug_info.create_function(
-            file.as_debug_info_scope(),
+            scope,
             pou.get_name(),
             <span class="prelude-val">Some</span>(pou.get_name()), <span class="comment">// for generics e.g. NAME__TYPE
             </span>file,
             location.get_line_plus_one() <span class="kw">as </span>u32,
             <span class="comment">// entry for the function
             </span>ditype,
-            <span class="bool-val">false</span>, <span class="comment">// TODO: what is this
-            </span>!is_external,
+            <span class="bool-val">false</span>,
+            !is_external,
             (implementation_start + <span class="number">1</span>) <span class="kw">as </span>u32,
             DIFlagsConstants::PUBLIC,
             <span class="self">self</span>.optimization.is_optimized(),
@@ -1465,7 +1490,12 @@
     ///entries for VAR and VAR_TEMP
     ///For other POUs we create enties in VAR_TEMP and an additional single parameter at position 0
     ///(the struct)
-    </span><span class="kw">fn </span>create_function_variables(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>PouIndexEntry, func: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;, index: <span class="kw-2">&amp;</span>Index) {
+    </span><span class="kw">fn </span>create_function_variables(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        pou: <span class="kw-2">&amp;</span>PouIndexEntry,
+        func: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
+        index: <span class="kw-2">&amp;</span>Index,
+    ) {
         <span class="kw">let </span><span class="kw-2">mut </span>param_offset = <span class="number">0</span>;
         <span class="comment">//Register the return and local variables for debugging
         </span><span class="kw">for </span>variable <span class="kw">in </span>index
@@ -1477,70 +1507,21 @@
                 .find_effective_type_by_name(variable.get_type_name())
                 .expect(<span class="string">"Type should exist at this stage"</span>);
             <span class="kw">let </span>alignment = var_type.get_type_information().get_alignment(index).bits();
-            <span class="comment">//If the variable is an aggregate return type, register it as first parameter, and
-            //increase the param count
-            </span><span class="kw">if </span>variable.is_return() &amp;&amp; var_type.is_aggregate_type() {
-                <span class="self">self</span>.register_aggregate_return(variable, var_type, func);
-                param_offset += <span class="number">1</span>;
-            } <span class="kw">else </span>{
-                <span class="self">self</span>.register_local_variable(variable, alignment, func);
-            }
+            <span class="self">self</span>.register_local_variable(variable, alignment, func);
         }
 
         <span class="kw">let </span>implementation = pou.find_implementation(index).expect(<span class="string">"A POU will have an impl at this stage"</span>);
-        <span class="kw">if </span>!implementation.get_implementation_type().is_function_method_or_init() {
-            <span class="self">self</span>.register_struct_parameter(pou, func);
-        } <span class="kw">else </span>{
+        <span class="kw">if </span>implementation.get_implementation_type().has_self_parameter() {
+            <span class="self">self</span>.register_struct_parameter(pou.get_parent_pou_name().unwrap_or_else(|| pou.get_name()), func);
+            param_offset += <span class="number">1</span>;
+        }
+        <span class="kw">if </span>implementation.get_implementation_type().is_function_method_or_init() {
             <span class="kw">let </span>declared_params = index.get_declared_parameters(implementation.get_call_name());
-
             <span class="comment">// Register all parameters for debugging
             </span><span class="kw">for </span>(index, variable) <span class="kw">in </span>declared_params.iter().enumerate() {
                 <span class="self">self</span>.register_parameter(variable, index + param_offset, func);
             }
         }
-    }
-
-    <span class="kw">fn </span>register_aggregate_return(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
-        var_type: <span class="kw-2">&amp;</span>DataType,
-        scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
-    ) {
-        <span class="kw">let </span>original_type = <span class="self">self
-            </span>.types
-            .get(<span class="kw-2">&amp;</span>var_type.get_name().to_lowercase())
-            .copied()
-            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"Cannot find type {} in debug types"</span>, variable.get_name()))
-            .into();
-        <span class="kw">let </span>data_layout = DataLayout::default();
-        <span class="kw">let </span>debug_type = <span class="self">self</span>.debug_info.create_pointer_type(
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"__ref_to_{}"</span>, variable.get_type_name()), <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
-            </span>original_type,
-            data_layout.p64.bits().into(),
-            data_layout.p64.bits(),
-            inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
-        );
-        <span class="kw">let </span>location = <span class="kw-2">&amp;</span>variable.source_location;
-        <span class="kw">let </span>file = location
-            .get_file_name()
-            .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
-            .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
-        <span class="kw">let </span>line = location.get_line_plus_one() <span class="kw">as </span>u32;
-        <span class="kw">let </span>scope = scope
-            .get_subprogram()
-            .map(|it| it.as_debug_info_scope())
-            .unwrap_or_else(|| <span class="self">self</span>.compile_unit.as_debug_info_scope());
-        <span class="kw">let </span>debug_variable = <span class="self">self</span>.debug_info.create_parameter_variable(
-            scope,
-            variable.get_name(),
-            <span class="number">0</span>,
-            file,
-            line,
-            debug_type.as_type(),
-            <span class="bool-val">false</span>,
-            DIFlagsConstants::ZERO,
-        );
-        <span class="self">self</span>.variables.insert(variable.get_qualified_name().to_string(), debug_variable);
     }
 
     <span class="kw">fn </span>get_or_create_debug_file(<span class="kw-2">&amp;mut </span><span class="self">self</span>, location: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; DIFile&lt;<span class="lifetime">'ink</span>&gt; {
@@ -1552,14 +1533,25 @@
             </span><span class="self">self</span>.debug_info.create_file(filename, directory)
         })
     }
+
+    <span class="kw">fn </span>get_debug_file(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Option</span>&lt;DIFile&lt;<span class="lifetime">'ink</span>&gt;&gt; {
+        <span class="self">self</span>.files.get(location).copied()
+    }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>&gt; Debug&lt;<span class="lifetime">'ink</span>&gt; <span class="kw">for </span>DebugBuilder&lt;<span class="lifetime">'ink</span>&gt; {
-    <span class="kw">fn </span>set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, llvm: <span class="kw-2">&amp;</span>Llvm, scope: <span class="kw-2">&amp;</span>FunctionValue, line: usize, column: usize) {
+    <span class="kw">fn </span>set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, llvm: <span class="kw-2">&amp;</span>Llvm, scope: <span class="kw-2">&amp;</span>FunctionContext, line: usize, column: usize) {
+        <span class="kw">let </span>file = scope
+            .linking_context
+            .get_location()
+            .get_file_name()
+            .and_then(|it| <span class="self">self</span>.get_debug_file(it))
+            .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
         <span class="kw">let </span>scope = scope
+            .function
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
-            .unwrap_or_else(|| <span class="self">self</span>.compile_unit.as_debug_info_scope());
+            .unwrap_or_else(|| file.as_debug_info_scope());
         <span class="kw">let </span>location =
             <span class="self">self</span>.debug_info.create_debug_location(<span class="self">self</span>.context, line <span class="kw">as </span>u32, column <span class="kw">as </span>u32, scope, <span class="prelude-val">None</span>);
         llvm.builder.set_current_debug_location(location);
@@ -1568,17 +1560,28 @@
     <span class="kw">fn </span>register_function&lt;<span class="lifetime">'idx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         index: <span class="kw-2">&amp;</span>Index,
-        func: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
-        pou: <span class="kw-2">&amp;</span>PouIndexEntry,
+        func: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'idx</span>&gt;,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
+        parent_function: <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
         parameter_types: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType],
         implementation_start: usize,
     ) {
-        <span class="kw">if </span><span class="macro">matches!</span>(pou.get_linkage(), LinkageType::External) {
+        <span class="kw">let </span>pou = index.find_pou(func.linking_context.get_call_name()).expect(<span class="string">"POU is available"</span>);
+        <span class="kw">if </span><span class="macro">matches!</span>(pou.get_linkage(), LinkageType::External) || pou.get_location().is_internal() {
             <span class="kw">return</span>;
         }
-        <span class="kw">let </span>subprogram = <span class="self">self</span>.create_function(pou, return_type, parameter_types, implementation_start);
-        func.set_subprogram(subprogram);
+        <span class="kw">let </span>file = pou
+            .get_location()
+            .get_file_name()
+            .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
+            .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
+        <span class="kw">let </span>scope = <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = parent_function.and_then(|it| it.get_subprogram()) {
+            function.as_debug_info_scope()
+        } <span class="kw">else </span>{
+            file.as_debug_info_scope()
+        };
+        <span class="kw">let </span>subprogram = <span class="self">self</span>.create_function(scope, pou, return_type, parameter_types, implementation_start);
+        func.function.set_subprogram(subprogram);
         <span class="comment">//Create function parameters
         </span><span class="self">self</span>.create_function_variables(pou, func, index);
     }
@@ -1675,7 +1678,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
         alignment: u32,
-        scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
+        function_scope: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
     ) {
         <span class="kw">let </span>type_name = variable.get_type_name();
         <span class="kw">let </span>location = <span class="kw-2">&amp;</span>variable.source_location;
@@ -1685,10 +1688,11 @@
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
         <span class="kw">let </span>line = location.get_line_plus_one() <span class="kw">as </span>u32;
 
-        <span class="kw">let </span>scope = scope
+        <span class="kw">let </span>scope = function_scope
+            .function
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
-            .unwrap_or_else(|| <span class="self">self</span>.compile_unit.as_debug_info_scope());
+            .unwrap_or_else(|| file.as_debug_info_scope());
         <span class="kw">if let </span><span class="prelude-val">Some</span>(debug_type) = <span class="self">self</span>.types.get(<span class="kw-2">&amp;</span>type_name.to_lowercase()) {
             <span class="kw">let </span>debug_variable = <span class="self">self</span>.debug_info.create_auto_variable(
                 scope,
@@ -1701,7 +1705,11 @@
                 alignment,
             );
 
-            <span class="self">self</span>.variables.insert(variable.get_qualified_name().to_string(), debug_variable);
+            <span class="kw">let </span>variable_key = VariableKey::new(
+                variable.get_qualified_name(),
+                <span class="prelude-val">Some</span>(function_scope.linking_context.get_call_name()),
+            );
+            <span class="self">self</span>.variables.insert(variable_key, debug_variable);
         }
     }
 
@@ -1709,7 +1717,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
         arg_no: usize,
-        scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
+        function_scope: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
     ) {
         <span class="kw">let </span>type_name = variable.get_type_name();
         <span class="kw">let </span>location = <span class="kw-2">&amp;</span>variable.source_location;
@@ -1718,10 +1726,11 @@
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
         <span class="kw">let </span>line = location.get_line_plus_one() <span class="kw">as </span>u32;
-        <span class="kw">let </span>scope = scope
+        <span class="kw">let </span>scope = function_scope
+            .function
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
-            .unwrap_or_else(|| <span class="self">self</span>.compile_unit.as_debug_info_scope());
+            .unwrap_or_else(|| file.as_debug_info_scope());
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(debug_type) = <span class="self">self</span>.types.get(<span class="kw-2">&amp;</span>type_name.to_lowercase()) {
             <span class="kw">let </span>debug_variable = <span class="self">self</span>.debug_info.create_parameter_variable(
@@ -1735,26 +1744,33 @@
                 DIFlagsConstants::ZERO,
             );
 
-            <span class="self">self</span>.variables.insert(variable.get_qualified_name().to_string(), debug_variable);
+            <span class="kw">let </span>variable_key = VariableKey::new(
+                variable.get_qualified_name(),
+                <span class="prelude-val">Some</span>(function_scope.linking_context.get_call_name()),
+            );
+            <span class="self">self</span>.variables.insert(variable_key, debug_variable);
         }
     }
 
-    <span class="kw">fn </span>register_struct_parameter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>PouIndexEntry, scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;) {
-        <span class="kw">let </span>scope = scope
+    <span class="kw">fn </span>register_struct_parameter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, function_scope: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;) {
+        <span class="kw">let </span>file = function_scope
+            .linking_context
+            .get_location()
+            .get_file_name()
+            .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
+            .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
+        <span class="kw">let </span>scope = function_scope
+            .function
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
-            .unwrap_or_else(|| <span class="self">self</span>.compile_unit.as_debug_info_scope());
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(debug_type) = <span class="self">self</span>.types.get(<span class="kw-2">&amp;</span>pou.get_name().to_lowercase()) {
+            .unwrap_or_else(|| file.as_debug_info_scope());
+        <span class="kw">let </span>variable_key = VariableKey::new(name, <span class="prelude-val">Some</span>(function_scope.linking_context.get_call_name()));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(debug_type) = <span class="self">self</span>.types.get(<span class="kw-2">&amp;</span>name.to_lowercase()) {
             <span class="kw">let </span>debug_type = <span class="kw-2">*</span>debug_type;
-            <span class="kw">let </span>file = pou
-                .get_location()
-                .get_file_name()
-                .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
-                .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
-            <span class="kw">let </span>line = pou.get_location().get_line_plus_one() <span class="kw">as </span>u32;
+            <span class="kw">let </span>line = function_scope.linking_context.get_location().get_line_plus_one() <span class="kw">as </span>u32;
             <span class="kw">let </span>debug_variable = <span class="self">self</span>.debug_info.create_parameter_variable(
                 scope,
-                pou.get_name(),
+                name,
                 <span class="number">0</span>,
                 file,
                 line,
@@ -1762,7 +1778,7 @@
                 <span class="bool-val">false</span>,
                 DIFlagsConstants::ZERO,
             );
-            <span class="self">self</span>.variables.insert(pou.get_name().to_string(), debug_variable);
+            <span class="self">self</span>.variables.insert(variable_key, debug_variable);
         }
     }
 
@@ -1770,15 +1786,22 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
         value: PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
-        scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
+        function_scope: <span class="kw-2">&amp;</span>FunctionContext,
         block: BasicBlock&lt;<span class="lifetime">'ink</span>&gt;,
         line: usize,
         column: usize,
     ) {
-        <span class="kw">let </span>scope = scope
+        <span class="kw">let </span>file = function_scope
+            .linking_context
+            .get_location()
+            .get_file_name()
+            .and_then(|it| <span class="self">self</span>.get_debug_file(it))
+            .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
+        <span class="kw">let </span>scope = function_scope
+            .function
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
-            .unwrap_or_else(|| <span class="self">self</span>.compile_unit.as_debug_info_scope());
+            .unwrap_or_else(|| file.as_debug_info_scope());
 
         <span class="kw">let </span>location = <span class="self">self</span>.debug_info.create_debug_location(
             <span class="self">self</span>.context,
@@ -1787,13 +1810,9 @@
             scope,
             <span class="prelude-val">None</span>,
         );
-        <span class="self">self</span>.debug_info.insert_declare_at_end(
-            value,
-            <span class="self">self</span>.variables.get(name).copied(),
-            <span class="prelude-val">None</span>,
-            location,
-            block,
-        );
+        <span class="kw">let </span>key = VariableKey::new(name, <span class="prelude-val">Some</span>(function_scope.linking_context.get_call_name()));
+        <span class="kw">let </span>variable = <span class="self">self</span>.variables.get(<span class="kw-2">&amp;</span>key);
+        <span class="self">self</span>.debug_info.insert_declare_at_end(value, variable.copied(), <span class="prelude-val">None</span>, location, block);
     }
 
     <span class="kw">fn </span>finalize(<span class="kw-2">&amp;</span><span class="self">self</span>) {
@@ -1802,7 +1821,7 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>&gt; Debug&lt;<span class="lifetime">'ink</span>&gt; <span class="kw">for </span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt; {
-    <span class="kw">fn </span>set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, llvm: <span class="kw-2">&amp;</span>Llvm, scope: <span class="kw-2">&amp;</span>FunctionValue, line: usize, column: usize) {
+    <span class="kw">fn </span>set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, llvm: <span class="kw-2">&amp;</span>Llvm, scope: <span class="kw-2">&amp;</span>FunctionContext, line: usize, column: usize) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None | <span class="self">Self</span>::VariablesOnly(..) =&gt; {}
             <span class="self">Self</span>::Full(obj) =&gt; obj.set_debug_location(llvm, scope, line, column),
@@ -1812,17 +1831,22 @@
     <span class="kw">fn </span>register_function&lt;<span class="lifetime">'idx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         index: <span class="kw-2">&amp;</span>Index,
-        func: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
-        pou: <span class="kw-2">&amp;</span>PouIndexEntry,
+        func: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'idx</span>&gt;,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
+        parent_function: <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
         parameter_types: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType],
         implementation_start: usize,
     ) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None | <span class="self">Self</span>::VariablesOnly(..) =&gt; {}
-            <span class="self">Self</span>::Full(obj) =&gt; {
-                obj.register_function(index, func, pou, return_type, parameter_types, implementation_start)
-            }
+            <span class="self">Self</span>::Full(obj) =&gt; obj.register_function(
+                index,
+                func,
+                return_type,
+                parent_function,
+                parameter_types,
+                implementation_start,
+            ),
         };
     }
 
@@ -1857,7 +1881,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
         alignment: u32,
-        scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
+        scope: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
     ) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None | <span class="self">Self</span>::VariablesOnly(<span class="kw">_</span>) =&gt; {}
@@ -1869,7 +1893,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
         arg_no: usize,
-        scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
+        scope: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
     ) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None | <span class="self">Self</span>::VariablesOnly(<span class="kw">_</span>) =&gt; {}
@@ -1877,7 +1901,7 @@
         }
     }
 
-    <span class="kw">fn </span>register_struct_parameter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>PouIndexEntry, scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;) {
+    <span class="kw">fn </span>register_struct_parameter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>str, scope: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None | <span class="self">Self</span>::VariablesOnly(<span class="kw">_</span>) =&gt; {}
             <span class="self">Self</span>::Full(obj) =&gt; obj.register_struct_parameter(pou, scope),
@@ -1888,7 +1912,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
         value: PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
-        scope: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
+        scope: <span class="kw-2">&amp;</span>FunctionContext,
         block: BasicBlock&lt;<span class="lifetime">'ink</span>&gt;,
         line: usize,
         column: usize,

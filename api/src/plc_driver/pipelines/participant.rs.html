@@ -492,19 +492,19 @@
 }
 
 <span class="kw">pub struct </span>InitParticipant {
-    symbol_name: String,
+    symbol_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     id_provider: IdProvider,
 }
 
 <span class="kw">impl </span>InitParticipant {
-    <span class="kw">pub fn </span>new(symbol_name: <span class="kw-2">&amp;</span>str, id_provider: IdProvider) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ symbol_name: symbol_name.into(), id_provider }
+    <span class="kw">pub fn </span>new(symbol_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, id_provider: IdProvider) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ symbol_name, id_provider }
     }
 }
 
 <span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>InitParticipant {
     <span class="kw">fn </span>pre_annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, indexed_project: IndexedProject) -&gt; IndexedProject {
-        indexed_project.extend_with_init_units(<span class="kw-2">&amp;</span><span class="self">self</span>.symbol_name, <span class="self">self</span>.id_provider.clone())
+        indexed_project.extend_with_init_units(<span class="self">self</span>.symbol_name, <span class="self">self</span>.id_provider.clone())
     }
 }
 

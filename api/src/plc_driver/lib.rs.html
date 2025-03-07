@@ -307,7 +307,16 @@
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a></pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a></pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
 //!
 //! This crates offers the main methods to interact with the PLC Compiler
 //! It can be used to verify a project or to produce:
@@ -392,6 +401,7 @@
     <span class="kw">pub </span>lib_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
     <span class="kw">pub </span>build_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
     <span class="kw">pub </span>linker_script: LinkerScript,
+    <span class="kw">pub </span>module_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
 <span class="attr">#[derive(Clone, Default, Debug)]
@@ -455,7 +465,13 @@
 
 <span class="kw">pub fn </span>compile&lt;T: AsRef&lt;str&gt; + AsRef&lt;OsStr&gt; + Debug&gt;(args: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="comment">//Parse the arguments
-    </span><span class="kw">let </span><span class="kw-2">mut </span>pipeline = BuildPipeline::new(args)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>pipeline = BuildPipeline::new(args)<span class="question-mark">?</span>;
+    compile_with_pipeline(pipeline)
+}
+
+<span class="kw">pub fn </span>compile_with_pipeline&lt;T: SourceContainer + Clone + <span class="lifetime">'static</span>&gt;(
+    <span class="kw-2">mut </span>pipeline: BuildPipeline&lt;T&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="comment">//register participants
     </span>pipeline.register_default_participants();
     <span class="kw">let </span>target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
@@ -516,6 +532,7 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
         linker: LinkerType::Internal,
         mutable_participants: Vec::default(),
         participants: Vec::default(),
+        module_name: <span class="prelude-val">Some</span>(<span class="string">"&lt;internal&gt;"</span>.to_string()),
     };
     pipeline.register_default_participants();
     <span class="kw">let </span><span class="prelude-val">Ok</span>(project) = pipeline.parse() <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Err</span>(pipeline.diagnostician) };
@@ -553,7 +570,7 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
     </span><span class="kw">let </span>project = Project::new(name.to_string()).with_sources(src);
     <span class="kw">let </span>context = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>diagnostician = Diagnostician::default();
-    <span class="kw">let </span><span class="kw-2">mut </span>params = cli::CompileParameters::parse(<span class="kw-2">&amp;</span>[<span class="string">"--ir"</span>, <span class="string">"--single-module"</span>, <span class="string">"-O"</span>, <span class="string">"none"</span>])
+    <span class="kw">let </span><span class="kw-2">mut </span>params = cli::CompileParameters::parse(<span class="kw-2">&amp;</span>[<span class="string">"plc"</span>, <span class="string">"--ir"</span>, <span class="string">"--single-module"</span>, <span class="string">"-O"</span>, <span class="string">"none"</span>])
         .map_err(|e| Diagnostic::new(e.to_string()))<span class="question-mark">?</span>;
     params.generate_debug = debug;
     <span class="kw">let </span><span class="kw-2">mut </span>pipeline = BuildPipeline {
@@ -564,6 +581,7 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
         linker: LinkerType::Internal,
         mutable_participants: Vec::default(),
         participants: Vec::default(),
+        module_name: <span class="prelude-val">Some</span>(<span class="string">"&lt;internal&gt;"</span>.to_string()),
     };
     pipeline.register_default_participants();
     <span class="kw">let </span>project = pipeline.parse()<span class="question-mark">?</span>;

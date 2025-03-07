@@ -1211,7 +1211,7 @@
     <span class="kw">fn </span>register_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>AstNode) {
         <span class="kw">let </span>line = statement.get_location().get_line_plus_one();
         <span class="kw">let </span>column = statement.get_location().get_column();
-        <span class="self">self</span>.debug.set_debug_location(<span class="self">self</span>.llvm, <span class="kw-2">&amp;</span><span class="self">self</span>.function_context.function, line, column);
+        <span class="self">self</span>.debug.set_debug_location(<span class="self">self</span>.llvm, <span class="self">self</span>.function_context, line, column);
     }
 
     <span class="kw">fn </span>generate_assignment_statement_direct_access(

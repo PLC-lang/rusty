@@ -1586,7 +1586,7 @@
     }
 }
 
-<span class="kw">pub fn </span>parse(<span class="kw-2">mut </span>lexer: ParseSession, lnk: LinkageType, file_name: <span class="kw-2">&amp;</span>str) -&gt; ParsedAst {
+<span class="kw">pub fn </span>parse(<span class="kw-2">mut </span>lexer: ParseSession, lnk: LinkageType, file_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; ParsedAst {
     <span class="kw">let </span><span class="kw-2">mut </span>unit = CompilationUnit::new(file_name);
 
     <span class="kw">let </span><span class="kw-2">mut </span>linkage = lnk;

@@ -489,7 +489,7 @@
         index: Index,
         unresolvables: Vec&lt;UnresolvableConstant&gt;,
         id_provider: IdProvider,
-        init_symbol_name: <span class="kw-2">&amp;</span>str,
+        init_symbol_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     ) -&gt; Vec&lt;CompilationUnit&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>visitor = <span class="self">Self</span>::new(index, unresolvables, id_provider);
         <span class="comment">// visit all units

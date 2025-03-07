@@ -2491,10 +2491,7 @@
 <a href="#2490" id="2490">2490</a>
 <a href="#2491" id="2491">2491</a>
 <a href="#2492" id="2492">2492</a>
-<a href="#2493" id="2493">2493</a>
-<a href="#2494" id="2494">2494</a>
-<a href="#2495" id="2495">2495</a>
-<a href="#2496" id="2496">2496</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2493" id="2493">2493</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -2687,13 +2684,7 @@
                 }
             }
             StatementAnnotation::Value { resulting_type } =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(dt) = <span class="self">self
-                    </span>.index
-                    .find_type(resulting_type)
-                    .or_else(|| <span class="self">self</span>.annotation_map.new_index.find_type(resulting_type))
-                {
-                    <span class="self">self</span>.dependencies.insert(Dependency::Datatype(dt.get_name().to_string()));
-                }
+                <span class="self">self</span>.dependencies.insert(Dependency::Datatype(resulting_type.to_string()));
             }
             <span class="kw">_ </span>=&gt; (),
         };
@@ -3122,7 +3113,6 @@
 }
 
 <span class="attr">#[derive(Hash, Eq, PartialEq, Debug, Clone)]
-</span><span class="comment">//TODO: Maybe refactor to struct
 </span><span class="kw">pub enum </span>Dependency {
     Datatype(String),
     Call(String),
@@ -3132,7 +3122,7 @@
 <span class="kw">impl </span>Dependency {
     <span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">match </span><span class="self">self </span>{
-            Dependency::Datatype(name) | Dependency::Call(name) | Dependency::Variable(name) =&gt; name.as_str(),
+            Dependency::Datatype(name) | Dependency::Call(name) | Dependency::Variable(name) =&gt; name,
         }
     }
 }
@@ -3449,7 +3439,11 @@
 
         <span class="comment">// enum initializers may have been introduced by the visitor (indexer)
         // so we should try to resolve and type-annotate them here as well
-        </span><span class="kw">for </span>enum_element <span class="kw">in </span>index.get_all_enum_variants().iter().filter(|it| it.is_in_unit(<span class="kw-2">&amp;</span>unit.file_name)) {
+        </span><span class="kw">for </span>enum_element <span class="kw">in </span>index
+            .get_all_enum_variants()
+            .iter()
+            .filter(|it| it.is_in_unit(unit.file.get_name().unwrap_or_default()))
+        {
             <span class="comment">//Add to dependency map
             </span>visitor.dependencies.insert(Dependency::Variable(enum_element.get_qualified_name().to_string()));
             <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="prelude-val">Some</span>(statement), scope)) =

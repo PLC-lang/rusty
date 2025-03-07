@@ -79,7 +79,8 @@
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     pipelines::{BuildPipeline, Pipeline},
     CompileOptions,
 };
@@ -120,6 +121,7 @@
         linker: plc::linker::LinkerType::Internal,
         mutable_participants: Default::default(),
         participants: Default::default(),
+        module_name: <span class="prelude-val">Some</span>(<span class="string">"&lt;internal&gt;"</span>.to_string()),
     };
 
     pipeline.register_default_participants();

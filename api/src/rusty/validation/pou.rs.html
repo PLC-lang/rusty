@@ -692,8 +692,8 @@
                     Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">"Method `{}` is defined with different signatures in interfaces `{}` and `{}`"</span>,
                         method_name,
-                        method1.get_parent_pou_name(),
-                        method2.get_parent_pou_name()
+                        method1.get_parent_pou_name().unwrap(),
+                        method2.get_parent_pou_name().unwrap()
                     ))
                     .with_error_code(<span class="string">"E111"</span>)
                     .with_location(<span class="kw-2">&amp;</span>pou.name_location)
@@ -1090,7 +1090,7 @@
                             Diagnostic::new(<span class="macro">format!</span>(
                                 <span class="string">"`{}` has more parameters than the method defined in `{}`"</span>,
                                 method_name,
-                                method_ref.get_parent_pou_name(),
+                                method_ref.get_parent_pou_name().unwrap(),
                             ))
                             .with_error_code(<span class="string">"E112"</span>)
                             .with_location(<span class="kw-2">&amp;</span>parameter_impl.source_location)

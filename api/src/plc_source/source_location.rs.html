@@ -587,9 +587,25 @@
 <a href="#586" id="586">586</a>
 <a href="#587" id="587">587</a>
 <a href="#588" id="588">588</a>
-<a href="#589" id="589">589</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
     ops::Range,
+    path::{Path, PathBuf},
 };
 
 <span class="kw">use crate</span>::{SourceCode, SourceContainer};
@@ -759,20 +775,17 @@
     }
 }
 
-<span class="attr">#[derive(Clone, PartialEq, Eq, Hash, Default, Debug)]
+<span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Hash, Default, Debug)]
 </span><span class="kw">pub enum </span>FileMarker {
     File(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str),
     <span class="attr">#[default]
     </span>Undefined,
-    Internal,
+    Internal(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str),
 }
 
 <span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; <span class="kw">for </span>FileMarker {
     <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span>value {
-            <span class="string">"&lt;internal&gt;" </span>=&gt; <span class="self">Self</span>::Internal,
-            <span class="kw">_ </span>=&gt; <span class="self">Self</span>::File(value),
-        }
+        <span class="self">Self</span>::File(value)
     }
 }
 
@@ -782,21 +795,30 @@
     }
 }
 
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>FileMarker&gt; <span class="kw">for </span>PathBuf {
+    <span class="kw">fn </span>from(val: <span class="kw-2">&amp;</span>FileMarker) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>val {
+            <span class="comment">// Windows has problems with `&lt;` and `&gt;` in paths, hence we replace these symbols with `__`
+            </span>FileMarker::File(f) | FileMarker::Internal(f) =&gt; f.replace([<span class="string">'&lt;'</span>, <span class="string">'&gt;'</span>], <span class="string">"__"</span>).into(),
+            FileMarker::Undefined =&gt; Path::new(<span class="string">""</span>).to_path_buf(),
+        }
+    }
+}
+
 <span class="kw">impl </span>FileMarker {
-    <span class="kw">fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
+    <span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            FileMarker::File(f) =&gt; <span class="prelude-val">Some</span>(f),
-            FileMarker::Internal =&gt; <span class="prelude-val">Some</span>(<span class="string">"&lt;internal&gt;"</span>),
+            FileMarker::File(f) | FileMarker::Internal(f) =&gt; <span class="prelude-val">Some</span>(f),
             FileMarker::Undefined =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">pub fn </span>is_undefined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Undefined)
     }
 
-    <span class="kw">fn </span>is_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Internal)
+    <span class="kw">pub fn </span>is_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Internal(<span class="kw">_</span>))
     }
 }
 
@@ -842,6 +864,10 @@
 }
 
 <span class="kw">impl </span>SourceLocation {
+    <span class="kw">pub fn </span>into_internal(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>SourceLocation { span, file } = <span class="self">self</span>;
+        SourceLocation { span, file: FileMarker::Internal(file.get_name().unwrap_or_default()) }
+    }
     <span class="doccomment">/// Constructs an undefined SourceRange with a 0..0 range and no filename
     </span><span class="kw">pub fn </span>undefined() -&gt; SourceLocation {
         SourceLocation { span: CodeSpan::None, file: FileMarker::default() }
@@ -925,7 +951,7 @@
                 CodeSpan::Combined(data)
             }
         };
-        SourceLocation { span, file: <span class="self">self</span>.file.clone() }
+        SourceLocation { span, file: <span class="self">self</span>.file }
     }
 
     <span class="doccomment">/// converts this SourceRange into a Range
@@ -954,7 +980,7 @@
     <span class="doccomment">/// creates a SymbolLocation with undefined source_range used for
     /// symbols that are created by the compiler on-the-fly.
     </span><span class="kw">pub fn </span>internal() -&gt; <span class="self">Self </span>{
-        SourceLocation { span: CodeSpan::None, file: FileMarker::Internal }
+        SourceLocation { span: CodeSpan::None, file: FileMarker::Internal(<span class="string">"&lt;internal&gt;"</span>) }
     }
 
     <span class="doccomment">/// creates an internal SymbolLocation but specifies the CompilationUnit/File it was encountered in.
@@ -966,6 +992,10 @@
     }
 
     <span class="kw">pub fn </span>is_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.file.is_internal()
+    }
+
+    <span class="kw">pub fn </span>is_builtin_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.file.is_internal() &amp;&amp; <span class="self">self</span>.span == CodeSpan::None
     }
 

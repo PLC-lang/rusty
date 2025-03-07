@@ -377,7 +377,9 @@
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
     lowering::{create_assignment_if_necessary, create_call_statement, create_member_reference},
     resolver::const_evaluator::UnresolvableConstant,
@@ -389,7 +391,7 @@
     },
     provider::IdProvider,
 };
-<span class="kw">use </span>plc_source::source_location::SourceLocation;
+<span class="kw">use </span>plc_source::source_location::{FileMarker, SourceLocation};
 
 <span class="kw">use </span><span class="kw">super</span>::InitVisitor;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>GLOBAL_SCOPE: <span class="kw-2">&amp;</span>str = <span class="string">"__global"</span>;
@@ -485,7 +487,7 @@
     <span class="kw">pub fn </span>extend_ast(
         <span class="kw-2">mut </span><span class="self">self</span>,
         <span class="kw-2">mut </span>units: Vec&lt;CompilationUnit&gt;,
-        init_symbol_name: <span class="kw-2">&amp;</span>str,
+        init_symbol_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     ) -&gt; Vec&lt;CompilationUnit&gt; {
         <span class="kw">let </span>new_units = create_init_units(<span class="kw-2">&amp;</span><span class="self">self</span>);
 
@@ -507,7 +509,7 @@
 <span class="kw">fn </span>create_var_config_init(statements: Vec&lt;AstNode&gt;, <span class="kw-2">mut </span>id_provider: IdProvider) -&gt; CompilationUnit {
     <span class="kw">let </span>loc = SourceLocation::internal_in_unit(<span class="prelude-val">Some</span>(INIT_COMPILATION_UNIT));
     <span class="kw">let </span>pou = new_pou(VAR_CONFIG_INIT, id_provider.next_id(), <span class="macro">vec!</span>[], PouType::Init, <span class="kw-2">&amp;</span>loc); <span class="comment">// this can probably just be internal
-    </span><span class="kw">let </span>implementation = new_implementation(VAR_CONFIG_INIT, statements, PouType::Init, <span class="kw-2">&amp;</span>loc);
+    </span><span class="kw">let </span>implementation = new_implementation(VAR_CONFIG_INIT, statements, PouType::Init, loc);
     new_unit(pou, implementation, INIT_COMPILATION_UNIT)
 }
 
@@ -547,6 +549,8 @@
         </span><span class="kw">return </span><span class="prelude-val">None</span>;
     };
 
+    <span class="kw">let </span>location = location.clone().into_internal();
+
     <span class="kw">let </span>(param, ident) = (
         <span class="macro">vec!</span>[VariableBlock::default().with_block_type(VariableBlockType::InOut).with_variables(<span class="macro">vec!</span>[
             Variable {
@@ -563,7 +567,7 @@
         <span class="string">"self"</span>.to_string(),
     );
 
-    <span class="kw">let </span>init_pou = new_pou(<span class="kw-2">&amp;</span>init_fn_name, id_provider.next_id(), param, PouType::Init, location);
+    <span class="kw">let </span>init_pou = new_pou(<span class="kw-2">&amp;</span>init_fn_name, id_provider.next_id(), param, PouType::Init, <span class="kw-2">&amp;</span>location);
 
     <span class="kw">let </span><span class="kw-2">mut </span>statements = assignments
         .iter()
@@ -591,7 +595,7 @@
                     member.get_name(),
                     <span class="prelude-val">Some</span>(<span class="string">"self"</span>),
                     id_provider.clone(),
-                    location,
+                    <span class="kw-2">&amp;</span>location,
                 ))
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
@@ -607,7 +611,7 @@
 
 <span class="kw">fn </span>create_init_wrapper_function(
     lowerer: <span class="kw-2">&amp;mut </span>InitVisitor,
-    init_symbol_name: <span class="kw-2">&amp;</span>str,
+    init_symbol_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;CompilationUnit&gt; {
     <span class="kw">let </span>skip_var_config = lowerer.var_config_initializers.is_empty();
     <span class="kw">if </span>skip_var_config &amp;&amp; lowerer.unresolved_initializers.is_empty() {
@@ -687,7 +691,7 @@
     };
 
     <span class="kw">let </span>implementation =
-        new_implementation(init_symbol_name, assignments, PouType::ProjectInit, <span class="kw-2">&amp;</span>SourceLocation::internal());
+        new_implementation(init_symbol_name, assignments, PouType::ProjectInit, SourceLocation::internal());
     <span class="kw">let </span><span class="kw-2">mut </span>global_init = new_unit(init_pou, implementation, init_symbol_name);
 
     <span class="kw">if </span>skip_var_config {
@@ -728,7 +732,7 @@
     name: <span class="kw-2">&amp;</span>str,
     statements: Vec&lt;AstNode&gt;,
     pou_type: PouType,
-    location: <span class="kw-2">&amp;</span>SourceLocation,
+    location: SourceLocation,
 ) -&gt; Implementation {
     Implementation {
         name: name.into(),
@@ -737,14 +741,14 @@
         pou_type,
         statements,
         location: location.clone(),
-        name_location: location.to_owned(),
+        name_location: location,
         overriding: <span class="bool-val">false</span>,
         generic: <span class="bool-val">false</span>,
         access: <span class="prelude-val">None</span>,
     }
 }
 
-<span class="kw">fn </span>new_unit(pou: Pou, implementation: Implementation, file_name: <span class="kw-2">&amp;</span>str) -&gt; CompilationUnit {
+<span class="kw">fn </span>new_unit(pou: Pou, implementation: Implementation, file_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; CompilationUnit {
     CompilationUnit {
         global_vars: <span class="macro">vec!</span>[],
         var_config: Default::default(),
@@ -752,7 +756,7 @@
         implementations: <span class="macro">vec!</span>[implementation],
         interfaces: <span class="macro">vec!</span>[],
         user_types: <span class="macro">vec!</span>[],
-        file_name: file_name.into(),
+        file: FileMarker::Internal(file_name),
         properties: <span class="macro">vec!</span>[],
     }
 }

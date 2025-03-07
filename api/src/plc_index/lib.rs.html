@@ -223,7 +223,8 @@
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a></pre></div><pre class="rust"><code><span class="kw">use </span>annotate_snippets::Renderer;
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a></pre></div><pre class="rust"><code><span class="kw">use </span>annotate_snippets::Renderer;
 <span class="kw">use </span>encoding_rs::Encoding;
 <span class="kw">use </span>plc_ast::provider::IdProvider;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
@@ -345,7 +346,8 @@
     </span><span class="kw">fn </span>handle_inner(<span class="kw-2">&amp;</span><span class="self">self</span>, diagnostic: <span class="kw-2">&amp;</span>Diagnostic) -&gt; String {
         <span class="comment">// NOTE: We need to properly error handle these unwraps, for now they should never panic because we
         //       (assume) we always have a valid file name and location
-        </span><span class="kw">let </span>name = diagnostic.get_location().get_file_name().unwrap_or(<span class="string">"&lt;internal&gt;"</span>);
+        </span><span class="kw">let </span>location = diagnostic.get_location();
+        <span class="kw">let </span>name = location.get_file_name().unwrap_or(<span class="string">"&lt;internal&gt;"</span>);
         <span class="kw">let </span><span class="prelude-val">Some</span>(code) = <span class="kw-2">&amp;</span><span class="self">self</span>.sources.get(name) <span class="kw">else </span>{ <span class="kw">return </span>String::new() };
         <span class="kw">let </span><span class="prelude-val">Some</span>(location) = <span class="kw-2">&amp;</span>diagnostic.get_location().get_span().to_range() <span class="kw">else </span>{ <span class="kw">return </span>String::new() };
         <span class="kw">let </span>secondary_locations = diagnostic

@@ -2333,12 +2333,12 @@
     </span><span class="kw">pub </span>implementations: Vec&lt;Implementation&gt;,
     <span class="kw">pub </span>interfaces: Vec&lt;Interface&gt;,
     <span class="kw">pub </span>user_types: Vec&lt;UserTypeDeclaration&gt;,
-    <span class="kw">pub </span>file_name: String,
+    <span class="kw">pub </span>file: FileMarker,
     <span class="kw">pub </span>properties: Vec&lt;Property&gt;,
 }
 
 <span class="kw">impl </span>CompilationUnit {
-    <span class="kw">pub fn </span>new(file_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new(file_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="self">Self </span>{
         CompilationUnit {
             global_vars: Vec::new(),
             var_config: Vec::new(),
@@ -2346,7 +2346,7 @@
             implementations: Vec::new(),
             interfaces: Vec::new(),
             user_types: Vec::new(),
-            file_name: file_name.to_string(),
+            file: FileMarker::File(file_name),
             properties: Vec::new(),
         }
     }

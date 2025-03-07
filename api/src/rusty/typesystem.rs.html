@@ -1617,7 +1617,7 @@
 
     <span class="doccomment">/// returns true if this type is an internal, auto-generated type
     </span><span class="kw">pub fn </span>is_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.location.is_internal()
+        <span class="self">self</span>.location.is_builtin_internal()
     }
 
     <span class="kw">pub fn </span>is_struct(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {

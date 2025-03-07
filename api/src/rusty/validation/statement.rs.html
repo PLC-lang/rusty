@@ -1766,7 +1766,8 @@
 <a href="#1765" id="1765">1765</a>
 <a href="#1766" id="1766">1766</a>
 <a href="#1767" id="1767">1767</a>
-<a href="#1768" id="1768">1768</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<a href="#1768" id="1768">1768</a>
+<a href="#1769" id="1769">1769</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
 <span class="kw">use </span>plc_ast::ast::Assignment;
@@ -2286,14 +2287,15 @@
                     .and_then(|qualifier| context.index.find_pou(qualifier))
                     .map(|pou| (pou.get_name(), pou.get_container()))
                     .is_some_and(|(pou, container)| {
-                        !qualified_name.starts_with(pou)
-                            &amp;&amp; !qualified_name.starts_with(container)
-                            &amp;&amp; !context.index.is_init_function(pou)
+                        !(qualified_name.starts_with(pou)
+                                || qualified_name.starts_with(container)
+                                || context.index.is_init_function(pou)
+                                <span class="comment">//Hack: Avoid internal check here because of the super call
+                                </span>|| location.is_internal())
                     })
             {
                 validator.push_diagnostic(
-                    <span class="comment">//TODO: maybe default to warning?
-                    </span>Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Illegal access to private member {qualified_name}"</span>))
+                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Illegal access to private member {qualified_name}"</span>))
                         .with_error_code(<span class="string">"E049"</span>)
                         .with_location(location),
                 );
@@ -2650,7 +2652,7 @@
     <span class="kw">let </span>type_rhs = context.annotations.get_type_or_void(<span class="kw-2">&amp;</span>assignment.right, context.index);
 
     <span class="comment">// Assert that the right-hand side is a reference
-    </span><span class="kw">if </span>!(assignment.right.is_reference() || assignment_location.is_internal()) {
+    </span><span class="kw">if </span>!(assignment.right.is_reference() || assignment_location.is_builtin_internal()) {
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"Invalid assignment, expected a reference"</span>)
                 .with_location(<span class="kw-2">&amp;</span>assignment.right.location)
@@ -2680,7 +2682,7 @@
         <span class="kw">if </span>context
             .annotations
             .get(left)
-            .is_some_and(|opt| opt.is_alias() &amp;&amp; !ref_assignment.location.is_internal())
+            .is_some_and(|opt| opt.is_alias() &amp;&amp; !ref_assignment.location.is_builtin_internal())
         {
             validator.push_diagnostic(
                 Diagnostic::new(<span class="macro">format!</span>(
