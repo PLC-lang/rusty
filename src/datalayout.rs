@@ -35,7 +35,7 @@ impl Default for DataLayout {
 }
 
 /// An representation of a Byte unit, used to represent sizes, and alignments
-#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Default)]
 pub struct Bytes(u32);
 
 impl Add for Bytes {
@@ -186,7 +186,7 @@ mod tests {
 
         let struct_type = index.get_effective_type_by_name("MyStruct").unwrap().get_type_information();
         // And the struct size takes the alignment into account
-        assert_eq!(struct_type.get_size(&index).bits(), 192);
+        assert_eq!(struct_type.get_size(&index).unwrap().bits(), 192);
         assert_eq!(struct_type.get_alignment(&index), Bytes::new(8)) //Struct alignment is 64 by default
     }
 }

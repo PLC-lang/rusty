@@ -5,11 +5,13 @@ use std::{
     ops::{Range, RangeInclusive},
 };
 
+use anyhow::{anyhow, Result};
 use plc_ast::{
     ast::{AstNode, AutoDerefType, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashSet;
 
 use crate::{
     datalayout::{Bytes, MemoryLocation},
@@ -613,52 +615,59 @@ impl DataTypeInformation {
         if let DataTypeInformation::Integer { semantic_size: Some(s), .. } = self {
             return *s;
         }
-        self.get_size_in_bits(index)
+        self.get_size_in_bits(index).unwrap_or_default()
     }
 
     /// returns the number of bits used to store this type
-    pub fn get_size_in_bits(&self, index: &Index) -> u32 {
-        self.get_size(index).bits()
+    pub fn get_size_in_bits(&self, index: &Index) -> Result<u32> {
+        self.get_size(index).map(|it| it.bits())
     }
 
-    pub fn get_size(&self, index: &Index) -> Bytes {
+    pub fn get_size(&self, index: &Index) -> Result<Bytes> {
+        self.get_size_recursive(index, &mut FxHashSet::default())
+    }
+
+    fn get_size_recursive<'b>(&'b self, index: &'b Index, seen: &mut FxHashSet<&'b str>) -> Result<Bytes> {
+        if self.is_struct() && !seen.insert(self.get_name()) {
+            return Err(anyhow!("Recursive type detected: {}", self.get_name()));
+        }
         match self {
-            DataTypeInformation::Integer { size, .. } => Bytes::from_bits(*size),
-            DataTypeInformation::Float { size, .. } => Bytes::from_bits(*size),
-            DataTypeInformation::String { size, encoding } => size
+            DataTypeInformation::Integer { size, .. } => Ok(Bytes::from_bits(*size)),
+            DataTypeInformation::Float { size, .. } => Ok(Bytes::from_bits(*size)),
+            DataTypeInformation::String { size, encoding } => Ok(size
                 .as_int_value(index)
                 .map(|size| encoding.get_bytes_per_char() * size as u32)
                 .map(Bytes::new)
-                .unwrap(),
+                .unwrap()),
             DataTypeInformation::Struct { members, .. } => members
                 .iter()
                 .map(|it| it.get_type_name())
-                .fold(MemoryLocation::new(0), |prev, it| {
-                    let type_info = index.get_type_information_or_void(it);
-                    let size = type_info.get_size(index).value();
+                .try_fold(MemoryLocation::new(0), |prev, it| {
+                    let type_info: &DataTypeInformation = index.get_type_information_or_void(it);
+                    let size = type_info.get_size_recursive(index, seen)?.value();
                     let after_align = prev.align_to(type_info.get_alignment(index)).value();
                     let res = after_align + size;
-                    MemoryLocation::new(res)
+                    Ok(MemoryLocation::new(res))
                 })
-                .into(),
+                .map(Into::into),
             DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
                 let inner_type = index.get_type_information_or_void(inner_type_name);
-                let inner_size = inner_type.get_size_in_bits(index);
+                let inner_size = inner_type.get_size_in_bits(index)?;
                 let element_count: u32 =
                     dimensions.iter().map(|dim| dim.get_length(index).unwrap()).product();
-                Bytes::from_bits(inner_size * element_count)
+                Ok(Bytes::from_bits(inner_size * element_count))
             }
-            DataTypeInformation::Pointer { .. } => Bytes::from_bits(POINTER_SIZE),
+            DataTypeInformation::Pointer { .. } => Ok(Bytes::from_bits(POINTER_SIZE)),
             DataTypeInformation::Alias { referenced_type, .. }
             | DataTypeInformation::SubRange { referenced_type, .. } => {
                 let inner_type = index.get_type_information_or_void(referenced_type);
-                inner_type.get_size(index)
+                inner_type.get_size_recursive(index, seen)
             }
             DataTypeInformation::Enum { referenced_type, .. } => index
                 .find_effective_type_info(referenced_type)
                 .map(|it| it.get_size(index))
-                .unwrap_or_else(|| Bytes::from_bits(DINT_SIZE)),
-            DataTypeInformation::Generic { .. } | DataTypeInformation::Void => Bytes::from_bits(0),
+                .unwrap_or_else(|| Ok(Bytes::from_bits(DINT_SIZE))),
+            DataTypeInformation::Generic { .. } | DataTypeInformation::Void => Ok(Bytes::from_bits(0)),
         }
     }
 
@@ -673,7 +682,7 @@ impl DataTypeInformation {
     }
 
     pub fn get_alignment(&self, index: &Index) -> Bytes {
-        if self.get_size(index).value() == 0 {
+        if self.get_size(index).unwrap_or_default().value() == 0 {
             return Bytes::new(0);
         }
 
@@ -783,8 +792,8 @@ impl DataTypeInformation {
 
         let DataTypeInformation::Array { inner_type_name, .. } = self else { return None };
         let inner_type_info = intrinsic_array_type(index, inner_type_name).get_type_information();
-        let inner_type_size = inner_type_info.get_size_in_bits(index);
-        let arr_size = self.get_size_in_bits(index);
+        let inner_type_size = inner_type_info.get_size_in_bits(index).ok()?;
+        let arr_size = self.get_size_in_bits(index).ok()?;
 
         if inner_type_size == 0 {
             return None;
@@ -1303,7 +1312,7 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
         DataTypeInformation::SubRange { name, .. } | DataTypeInformation::Alias { name, .. } => {
             get_rank(index.get_intrinsic_type_by_name(name).get_type_information(), index)
         }
-        _ => type_information.get_size_in_bits(index),
+        _ => type_information.get_size_in_bits(index).unwrap_or_default(),
     }
 }
 
@@ -1344,7 +1353,7 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
                 let l_inner_type = index.get_type_information_or_void(l_inner_type_name);
                 let r_inner_type = index.get_type_information_or_void(r_inner_type_name);
                 is_same_type_class(l_inner_type, r_inner_type, index)
-                    && ltype.get_size(index) == rtype.get_size(index)
+                    && ltype.get_size(index).unwrap_or_default() == rtype.get_size(index).unwrap_or_default()
             }
             _ => false,
         },
@@ -1373,8 +1382,10 @@ pub fn get_bigger_type<'t, T: DataTypeInformationProvider<'t> + std::convert::Fr
         // check is_numerical() on TypeNature e.g. DataTypeInformation::Integer is numerical but also used for CHARS which are not considered as numerical
         if (ldt.is_numerical() && rdt.is_numerical()) && (ldt.is_real() || rdt.is_real()) {
             let real_type = index.get_type_or_panic(REAL_TYPE);
-            let real_size = real_type.get_type_information().get_size_in_bits(index);
-            if lt.get_size_in_bits(index) > real_size || rt.get_size_in_bits(index) > real_size {
+            let real_size = real_type.get_type_information().get_size_in_bits(index).unwrap();
+            if lt.get_size_in_bits(index).unwrap_or_default() > real_size
+                || rt.get_size_in_bits(index).unwrap_or_default() > real_size
+            {
                 return index.get_type_or_panic(LREAL_TYPE).into();
             } else {
                 return real_type.into();

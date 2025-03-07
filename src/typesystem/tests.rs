@@ -537,7 +537,7 @@ fn array_size_single_dim_tests() {
         location: SourceLocation::internal(),
     };
     //the size of the array is 20*size(int)
-    assert_eq!(320, array_20.get_type_information().get_size_in_bits(&index));
+    assert_eq!(320, array_20.get_type_information().get_size_in_bits(&index).unwrap());
 }
 
 #[test]
@@ -565,7 +565,7 @@ fn array_size_multi_dim_tests() {
         location: SourceLocation::internal(),
     };
     //the size of the array is 20*size(int)
-    assert_eq!(6400, array_20_20.get_type_information().get_size_in_bits(&index));
+    assert_eq!(6400, array_20_20.get_type_information().get_size_in_bits(&index).unwrap());
 }
 
 #[test]
@@ -603,5 +603,5 @@ fn array_size_nested_tests() {
     };
 
     //the size of the array is 20*size(int)
-    assert_eq!(6400, nested_array.get_type_information().get_size_in_bits(&index));
+    assert_eq!(6400, nested_array.get_type_information().get_size_in_bits(&index).unwrap());
 }

@@ -1223,13 +1223,13 @@ fn is_invalid_pointer_assignment(
     //check if Datatype can hold a Pointer (u64)
     else if (right_type.is_pointer() && !right_type.is_auto_deref())
         && !left_type.is_pointer()
-        && left_type.get_size_in_bits(index) < POINTER_SIZE
+        && left_type.get_size_in_bits(index).unwrap_or_default() < POINTER_SIZE
     {
         validator.push_diagnostic(
             Diagnostic::new(format!(
                 "The type {} {} is too small to hold a Pointer",
                 left_type.get_name(),
-                left_type.get_size_in_bits(index)
+                left_type.get_size_in_bits(index).unwrap_or_default()
             ))
             .with_error_code("E065")
             .with_location(location),
@@ -1239,13 +1239,13 @@ fn is_invalid_pointer_assignment(
     //check if size allocated to Pointer is standart pointer size (u64)
     else if left_type.is_pointer()
         && !right_type.is_pointer()
-        && right_type.get_size_in_bits(index) < POINTER_SIZE
+        && right_type.get_size_in_bits(index).unwrap_or_default() < POINTER_SIZE
     {
         validator.push_diagnostic(
             Diagnostic::new(format!(
                 "The type {} {} is too small to be stored in a Pointer",
                 right_type.get_name(),
-                right_type.get_size_in_bits(index)
+                right_type.get_size_in_bits(index).unwrap_or_default()
             ))
             .with_error_code("E065")
             .with_location(location),
@@ -1632,10 +1632,10 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
     }
 
     let lhs = left.get_type_information();
-    let lhs_size = lhs.get_size(context.index);
+    let Ok(lhs_size) = lhs.get_size(context.index) else { return };
     let results_in_truncation = |rhs: &DataType| {
         let rhs = rhs.get_type_information();
-        let rhs_size = rhs.get_size(context.index);
+        let Ok(rhs_size) = rhs.get_size(context.index) else { return false };
         lhs_size < rhs_size
             || (lhs_size == rhs_size
                 && ((lhs.is_signed_int() && rhs.is_unsigned_int()) || (lhs.is_int() && rhs.is_float())))
@@ -1713,7 +1713,7 @@ pub(crate) mod helper {
         data_type: &DataTypeInformation,
         index: &Index,
     ) -> bool {
-        (access.get_bit_width() * access_index) < data_type.get_size_in_bits(index) as u64
+        (access.get_bit_width() * access_index) < data_type.get_size_in_bits(index).unwrap_or_default() as u64
     }
 
     /// Returns the range from 0 for the given data type
@@ -1722,7 +1722,7 @@ pub(crate) mod helper {
         data_type: &DataTypeInformation,
         index: &Index,
     ) -> Range<u64> {
-        0..((data_type.get_size_in_bits(index) as u64 / access.get_bit_width()) - 1)
+        0..((data_type.get_size_in_bits(index).unwrap_or_default() as u64 / access.get_bit_width()) - 1)
     }
 
     /// Returns true if the direct access can be used for the given type

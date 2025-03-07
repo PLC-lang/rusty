@@ -294,7 +294,7 @@ impl<'ink> DebugBuilder<'ink> {
             //Adjust the offset based on the field alignment
             let type_info = dt.get_type_information();
             let alignment = type_info.get_alignment(index);
-            let size = type_info.get_size(index);
+            let size = type_info.get_size(index).unwrap();
             running_offset = running_offset.align_to(alignment);
 
             types.push(
@@ -629,7 +629,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         //check if the type is currently registered
         if !self.types.contains_key(&name.to_lowercase()) {
             let type_info = datatype.get_type_information();
-            let size = type_info.get_size(index);
+            let size = type_info.get_size(index).unwrap();
             let alignment = type_info.get_alignment(index);
             let location = &datatype.location;
             match type_info {
