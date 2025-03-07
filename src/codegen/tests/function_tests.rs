@@ -403,3 +403,38 @@ fn argument_fed_by_ref_then_by_val() {
 
     insta::assert_snapshot!(result)
 }
+
+#[test]
+fn properties_are_not_registered_as_variables_in_a_pou() {
+    // When dealing with properties, we currently create an internal variable named after the property into
+    // the POU during the lowering stage. We do this because of ease of implementation. However, technically
+    // properties aren't variables hence we want to make sure the generated IR does not contain any property
+    // variable member.
+    let result = codegen(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                privateVariable : STRING;
+            END_VAR
+
+            // Internally the compiler will also create the following variable block:
+            // VAR_PROPERTY
+            //   foo : INT;
+            //   bar : DINT;
+            // END_VAR
+
+            PROPERTY foo : INT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+
+            PROPERTY bar : DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+    ",
+    );
+
+    assert_eq!(result.lines().nth(3).unwrap(), "%fb = type { [81 x i8] }");
+}
