@@ -84,18 +84,22 @@ fn pou_implements_method_with_wrong_return_type() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:6:24
+      │
+    6 │         FUNCTION_BLOCK fb IMPLEMENTS interfaceA
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
-      ┌─ <internal>:7:20
+    note[E118]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` declared type `BOOL`
+      ┌─ <internal>:3:20
       │
     3 │             METHOD methodA : DINT /* ... */ END_METHOD
       │                    ------- see also
       ·
     7 │             METHOD methodA : BOOL /* ... */ END_METHOD
-      │                    ^^^^^^^ Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
-    "###);
+      │                    ------- see also
+    ");
 }
 
 #[test]
@@ -147,16 +151,22 @@ fn pou_with_missing_parameter_in_interface_implementation() {
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Parameter `c : DINT` missing in method `methodA`
-       ┌─ <internal>:13:16
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:12:20
+       │
+    12 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA
+       │                    ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Parameter `c : DINT` missing in method `methodA`
+       ┌─ <internal>:7:13
        │
      7 │             c : DINT;
        │             - see also
        ·
     13 │         METHOD methodA
-       │                ^^^^^^^ Parameter `c : DINT` missing in method `methodA`
-    "###);
+       │                ------- see also
+    ");
 }
 
 #[test]
@@ -184,25 +194,31 @@ fn pou_with_unordered_parameters_in_interface_implementation() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Expected parameter `b` but got `a`
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:12:20
+       │
+    12 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA
+       │                    ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Expected parameter `b` but got `a`
        ┌─ <internal>:5:13
        │
      5 │             b : DINT;
-       │             ^ Expected parameter `b` but got `a`
+       │             - see also
        ·
     15 │             a : DINT;
        │             - see also
 
-    error[E112]: Expected parameter `a` but got `b`
+    note[E118]: Expected parameter `a` but got `b`
        ┌─ <internal>:6:13
        │
      6 │             a : DINT;
-       │             ^ Expected parameter `a` but got `b`
+       │             - see also
        ·
     16 │             b : DINT;
        │             - see also
-    "###);
+    ");
 }
 
 #[test]
@@ -226,25 +242,31 @@ fn pou_with_incorrect_parameter_type_in_interface_implementation() {
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Parameter `a` has different types in declaration and implemenation:
-       ┌─ <internal>:11:16
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:10:20
+       │
+    10 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA
+       │                    ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Parameter `a` has conflicting type declarations:
+       ┌─ <internal>:5:13
        │
      5 │             a : DINT;
        │             - see also
        ·
     11 │         METHOD methodA
-       │                ^^^^^^^ Parameter `a` has different types in declaration and implemenation:
+       │                ------- see also
 
-    error[E112]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
-       ┌─ <internal>:11:16
+    note[E118]: Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` declared type `BOOL`
+       ┌─ <internal>:3:16
        │
      3 │         METHOD methodA
        │                ------- see also
        ·
     11 │         METHOD methodA
-       │                ^^^^^^^ Type `DINT` declared in `interfaceA.methodA` but `fb.methodA` implemented type `BOOL`
-    "###);
+       │                ------- see also
+    ");
 }
 
 #[test]
@@ -268,16 +290,22 @@ fn pou_with_incorrect_parameter_declaration_type_in_interface_implementation() {
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Expected parameter `a` to have `Input` as its declaration type but got `InOut`
-       ┌─ <internal>:11:16
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:10:20
+       │
+    10 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA
+       │                    ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Expected parameter `a` to have `Input` as its declaration type but got `InOut`
+       ┌─ <internal>:5:13
        │
      5 │             a : DINT;
        │             - see also
        ·
     11 │         METHOD methodA
-       │                ^^^^^^^ Expected parameter `a` to have `Input` as its declaration type but got `InOut`
-    "###);
+       │                ------- see also
+    ");
 }
 
 #[test]
@@ -310,61 +338,67 @@ fn pou_with_more_parameters_than_defined_in_interface() {
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Expected parameter `a` but got `d`
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:12:20
+       │
+    12 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA
+       │                    ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Expected parameter `a` but got `d`
        ┌─ <internal>:5:13
        │
      5 │             a : DINT;
-       │             ^ Expected parameter `a` but got `d`
+       │             - see also
        ·
     16 │             d : DINT;
        │             - see also
 
-    error[E112]: Expected parameter `b` but got `e`
+    note[E118]: Expected parameter `b` but got `e`
        ┌─ <internal>:6:13
        │
      6 │             b : DINT;
-       │             ^ Expected parameter `b` but got `e`
+       │             - see also
        ·
     17 │             e : DINT;
        │             - see also
 
-    error[E112]: Expected parameter `c` but got `f`
+    note[E118]: Expected parameter `c` but got `f`
        ┌─ <internal>:7:13
        │
      7 │             c : DINT;
-       │             ^ Expected parameter `c` but got `f`
+       │             - see also
        ·
     18 │             f : DINT;
        │             - see also
 
-    error[E112]: `methodA` has more parameters than the method defined in `interfaceA`
-       ┌─ <internal>:20:13
+    note[E118]: `methodA` has more parameters than the method defined in `interfaceA`
+       ┌─ <internal>:3:16
        │
      3 │         METHOD methodA
        │                ------- see also
        ·
     20 │             a : DINT;
-       │             ^ `methodA` has more parameters than the method defined in `interfaceA`
+       │             - see also
 
-    error[E112]: `methodA` has more parameters than the method defined in `interfaceA`
-       ┌─ <internal>:21:13
+    note[E118]: `methodA` has more parameters than the method defined in `interfaceA`
+       ┌─ <internal>:3:16
        │
      3 │         METHOD methodA
        │                ------- see also
        ·
     21 │             b : DINT;
-       │             ^ `methodA` has more parameters than the method defined in `interfaceA`
+       │             - see also
 
-    error[E112]: `methodA` has more parameters than the method defined in `interfaceA`
-       ┌─ <internal>:22:13
+    note[E118]: `methodA` has more parameters than the method defined in `interfaceA`
+       ┌─ <internal>:3:16
        │
      3 │         METHOD methodA
        │                ------- see also
        ·
     22 │             c : DINT;
-       │             ^ `methodA` has more parameters than the method defined in `interfaceA`
-    "###);
+       │             - see also
+    ");
 }
 
 #[test]
@@ -399,8 +433,8 @@ fn interfaces_with_same_method_name_but_different_signatures_return_type() {
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E111]: Method `foo` in `fb` is declared with conflicting signatures in `interfaceA` and `interfaceB`
        ┌─ <internal>:20:20
        │
      3 │     METHOD foo : INT
@@ -410,19 +444,23 @@ fn interfaces_with_same_method_name_but_different_signatures_return_type() {
        │                --- see also
        ·
     20 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
-       │                    ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+       │                    ^^ Method `foo` in `fb` is declared with conflicting signatures in `interfaceA` and `interfaceB`
 
-    error[E112]: Return types do not match:
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+       ┌─ <internal>:20:20
+       │
+    20 │     FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
+       │                    ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
-       ┌─ <internal>:12:16
+    note[E118]: Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` declared type `DINT`
+       ┌─ <internal>:3:12
        │
      3 │     METHOD foo : INT
        │            --- see also
        ·
     12 │         METHOD foo : DINT
-       │                ^^^ Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
-    "###);
+       │                --- see also
+    ");
 }
 
 #[test]
@@ -457,8 +495,8 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E111]: Method `foo` in `fb` is declared with conflicting signatures in `interfaceA` and `interfaceB`
        ┌─ <internal>:20:24
        │
      3 │             METHOD foo : INT
@@ -468,26 +506,32 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
        │                    --- see also
        ·
     20 │         FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
-       │                        ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+       │                        ^^ Method `foo` in `fb` is declared with conflicting signatures in `interfaceA` and `interfaceB`
 
-    error[E112]: Parameter `b` has different types in declaration and implemenation:
-       ┌─ <internal>:12:20
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:20:24
+       │
+    20 │         FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Parameter `b` has conflicting type declarations:
+       ┌─ <internal>:6:17
        │
      6 │                 b : INT;
        │                 - see also
        ·
     12 │             METHOD foo : INT
-       │                    ^^^ Parameter `b` has different types in declaration and implemenation:
+       │                    --- see also
 
-    error[E112]: Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
-       ┌─ <internal>:12:20
+    note[E118]: Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` declared type `DINT`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD foo : INT
        │                    --- see also
        ·
     12 │             METHOD foo : INT
-       │                    ^^^ Type `INT` declared in `interfaceA.foo` but `interfaceB.foo` implemented type `DINT`
-    "###);
+       │                    --- see also
+    ");
 }
 
 #[test]
@@ -520,8 +564,8 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E111]: Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E111]: Method `foo` in `fb` is declared with conflicting signatures in `interfaceA` and `interfaceB`
        ┌─ <internal>:19:24
        │
      3 │             METHOD foo : INT
@@ -531,26 +575,32 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
        │                    --- see also
        ·
     19 │         FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
-       │                        ^^ Method `foo` is defined with different signatures in interfaces `interfaceA` and `interfaceB`
+       │                        ^^ Method `foo` in `fb` is declared with conflicting signatures in `interfaceA` and `interfaceB`
 
-    error[E112]: Expected parameter `a` to have `Input` as its declaration type but got `Output`
-       ┌─ <internal>:12:20
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:19:24
+       │
+    19 │         FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Expected parameter `a` to have `Input` as its declaration type but got `Output`
+       ┌─ <internal>:5:17
        │
      5 │                 a : INT;
        │                 - see also
        ·
     12 │             METHOD foo : INT
-       │                    ^^^ Expected parameter `a` to have `Input` as its declaration type but got `Output`
+       │                    --- see also
 
-    error[E112]: Parameter `b : INT` missing in method `foo`
-       ┌─ <internal>:12:20
+    note[E118]: Parameter `b : INT` missing in method `foo`
+       ┌─ <internal>:6:17
        │
      6 │                 b : INT;
        │                 - see also
        ·
     12 │             METHOD foo : INT
-       │                    ^^^ Parameter `b : INT` missing in method `foo`
-    "###);
+       │                    --- see also
+    ");
 }
 
 #[test]
@@ -586,18 +636,22 @@ fn interface_with_aggregate_return_type_string_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:7:24
+      │
+    7 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `WSTRING`
-      ┌─ <internal>:8:20
+    note[E118]: Type `STRING` declared in `foo.bar` but `fb.bar` declared type `WSTRING`
+      ┌─ <internal>:3:20
       │
     3 │             METHOD bar : STRING
       │                    --- see also
       ·
     8 │             METHOD bar : WSTRING
-      │                    ^^^ Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `WSTRING`
-    "###);
+      │                    --- see also
+    ");
 }
 
 #[test]
@@ -616,18 +670,22 @@ fn interface_with_aliased_aggregate_return_type_string() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:8:24
+      │
+    8 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Expected string of length `11` but got string of length `81`
-      ┌─ <internal>:9:20
+    note[E118]: Expected string of length `11` but got string of length `81`
+      ┌─ <internal>:4:20
       │
     4 │             METHOD bar : myString
       │                    --- see also
       ·
     9 │             METHOD bar : STRING
-      │                    ^^^ Expected string of length `11` but got string of length `81`
-    "###);
+      │                    --- see also
+    ");
 }
 
 #[test]
@@ -663,10 +721,14 @@ fn interface_with_aggregate_return_type_array_length_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:7:24
+      │
+    7 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Array range declared as `[1..6]` but implemented as `[1..5]`
+    note[E118]: Array range declared as `[1..6]` but implemented as `[1..5]`
       ┌─ <internal>:3:26
       │
     3 │             METHOD bar : ARRAY[1..6] OF STRING
@@ -674,7 +736,7 @@ fn interface_with_aggregate_return_type_array_length_mismatch() {
       ·
     8 │             METHOD bar : ARRAY[1..5] OF STRING
       │                          --------------------- see also
-    "###);
+    ");
 }
 
 #[test]
@@ -696,14 +758,18 @@ fn interface_with_aggregate_return_type_array_dimension_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:9:24
+      │
+    9 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Array declared with `1` dimension but implemented with `2`
-       ┌─ <internal>:3:26
+    note[E118]: Array declared with `1` dimension but implemented with `2`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar : ARRAY[1..5, 1..5] OF STRING
-       │                    ---   ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array declared with `1` dimension but implemented with `2`
+       │                    ---   --------------------------- see also
        │                    │      
        │                    see also
        ·
@@ -712,13 +778,17 @@ fn interface_with_aggregate_return_type_array_dimension_mismatch() {
        │                    │      
        │                    see also
 
-    error[E112]: Return types do not match:
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:9:24
+      │
+    9 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Array declared with `2` dimensions but implemented with `1`
-       ┌─ <internal>:5:26
+    note[E118]: Array declared with `2` dimensions but implemented with `1`
+       ┌─ <internal>:5:20
        │
      5 │             METHOD baz : ARRAY[1..5] OF STRING
-       │                    ---   ^^^^^^^^^^^^^^^^^^^^^ Array declared with `2` dimensions but implemented with `1`
+       │                    ---   --------------------- see also
        │                    │      
        │                    see also
        ·
@@ -726,7 +796,7 @@ fn interface_with_aggregate_return_type_array_dimension_mismatch() {
        │                    ---   --------------------------- see also
        │                    │      
        │                    see also
-    "###);
+    ");
 }
 
 #[test]
@@ -744,18 +814,22 @@ fn interface_with_aggregate_return_type_array_inner_type_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:7:24
+      │
+    7 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Expected array of type `STRING` but got `WSTRING`
-      ┌─ <internal>:8:20
+    note[E118]: Expected array of type `STRING` but got `WSTRING`
+      ┌─ <internal>:3:20
       │
     3 │             METHOD bar : ARRAY[1..5] OF STRING
       │                    --- see also
       ·
     8 │             METHOD bar : ARRAY[1..5] OF WSTRING
-      │                    ^^^ Expected array of type `STRING` but got `WSTRING`
-    "###);
+      │                    --- see also
+    ");
 }
 
 #[test]
@@ -795,14 +869,18 @@ fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:7:24
+      │
+    7 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Array declared with `2` dimensions but implemented with `1`
-      ┌─ <internal>:3:26
+    note[E118]: Array declared with `2` dimensions but implemented with `1`
+      ┌─ <internal>:3:20
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..5] OF STRING
-      │                    ---   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array declared with `2` dimensions but implemented with `1`
+      │                    ---   ------------------------------------ see also
       │                    │      
       │                    see also
       ·
@@ -811,15 +889,15 @@ fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
       │                    │      
       │                    see also
 
-    error[E112]: Expected array of type `foo.bar_` but got `STRING`
-      ┌─ <internal>:8:20
+    note[E118]: Expected array of type `foo.bar_` but got `STRING`
+      ┌─ <internal>:3:20
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..5] OF STRING
       │                    --- see also
       ·
     8 │             METHOD bar : ARRAY[1..5, 1..5] OF STRING
-      │                    ^^^ Expected array of type `foo.bar_` but got `STRING`
-    "###);
+      │                    --- see also
+    ");
 }
 
 #[test]
@@ -838,10 +916,14 @@ fn interface_with_aggregate_return_type_nested_arrays_dimension_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:7:24
+      │
+    7 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Array range declared as `[1..5]` but implemented as `[1..100]`
+    note[E118]: Array range declared as `[1..5]` but implemented as `[1..100]`
       ┌─ <internal>:3:26
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[2..20] OF ARRAY[3..10] OF ARRAY[1..5] OF STRING
@@ -850,7 +932,7 @@ fn interface_with_aggregate_return_type_nested_arrays_dimension_mismatch() {
     8 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..100] OF ARRAY[-2..5] OF ARRAY[1..5] OF STRING
       │                          --------------------------------------------------------------------- see also
 
-    error[E112]: Array range declared as `[1..5]` but implemented as `[-2..5]`
+    note[E118]: Array range declared as `[1..5]` but implemented as `[-2..5]`
       ┌─ <internal>:3:26
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[2..20] OF ARRAY[3..10] OF ARRAY[1..5] OF STRING
@@ -858,7 +940,7 @@ fn interface_with_aggregate_return_type_nested_arrays_dimension_mismatch() {
       ·
     8 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..100] OF ARRAY[-2..5] OF ARRAY[1..5] OF STRING
       │                                         ------------------------------------------------------ see also
-    "###);
+    ");
 }
 
 #[test]
@@ -926,18 +1008,22 @@ fn interface_with_aggregate_return_type_non_aggregate_impl() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:7:24
+      │
+    7 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-      ┌─ <internal>:8:20
+    note[E118]: Type `STRING` declared in `foo.bar` but `fb.bar` declared type `DINT`
+      ┌─ <internal>:3:20
       │
     3 │             METHOD bar : STRING
       │                    --- see also
       ·
     8 │             METHOD bar : DINT
-      │                    ^^^ Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-    "###);
+      │                    --- see also
+    ");
 }
 
 #[test]
@@ -955,18 +1041,22 @@ fn interface_with_non_aggregate_return_type_aggregate_impl() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:7:24
+      │
+    7 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
-      ┌─ <internal>:8:20
+    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `STRING`
+      ┌─ <internal>:3:20
       │
     3 │             METHOD bar : DINT
       │                    --- see also
       ·
     8 │             METHOD bar : STRING
-      │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
-    "###);
+      │                    --- see also
+    ");
 }
 
 #[test]
@@ -1004,47 +1094,67 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-       ┌─ <internal>:18:20
+    note[E118]: Type `STRING` declared in `foo.bar` but `fb.bar` declared type `DINT`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar : STRING
        │                    --- see also
        ·
     18 │             METHOD bar : DINT
-       │                    ^^^ Type `STRING` declared in `foo.bar` but `fb.bar` implemented type `DINT`
+       │                    --- see also
 
-    error[E112]: Parameter `b : DINT` missing in method `bar`
-       ┌─ <internal>:18:20
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Parameter `b : DINT` missing in method `bar`
+       ┌─ <internal>:6:17
        │
      6 │                 b : DINT;
        │                 - see also
        ·
     18 │             METHOD bar : DINT
-       │                    ^^^ Parameter `b : DINT` missing in method `bar`
+       │                    --- see also
 
-    error[E112]: Return types do not match:
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `STRING` declared in `foo.baz` but `fb.baz` implemented type `DINT`
-       ┌─ <internal>:24:20
+    note[E118]: Type `STRING` declared in `foo.baz` but `fb.baz` declared type `DINT`
+       ┌─ <internal>:10:20
        │
     10 │             METHOD baz : STRING 
        │                    --- see also
        ·
     24 │             METHOD baz : DINT 
-       │                    ^^^ Type `STRING` declared in `foo.baz` but `fb.baz` implemented type `DINT`
+       │                    --- see also
 
-    error[E112]: `baz` has more parameters than the method defined in `foo`
-       ┌─ <internal>:27:17
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: `baz` has more parameters than the method defined in `foo`
+       ┌─ <internal>:10:20
        │
     10 │             METHOD baz : STRING 
        │                    --- see also
        ·
     27 │                 b : DINT;
-       │                 ^ `baz` has more parameters than the method defined in `foo`
-    "###);
+       │                 - see also
+    ");
 }
 
 #[test]
@@ -1082,47 +1192,67 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
-       ┌─ <internal>:18:20
+    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `STRING`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar : DINT
        │                    --- see also
        ·
     18 │             METHOD bar : STRING
-       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `STRING`
+       │                    --- see also
 
-    error[E112]: Parameter `b : DINT` missing in method `bar`
-       ┌─ <internal>:18:20
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Parameter `b : DINT` missing in method `bar`
+       ┌─ <internal>:6:17
        │
      6 │                 b : DINT;
        │                 - see also
        ·
     18 │             METHOD bar : STRING
-       │                    ^^^ Parameter `b : DINT` missing in method `bar`
+       │                    --- see also
 
-    error[E112]: Return types do not match:
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `DINT` declared in `foo.baz` but `fb.baz` implemented type `STRING`
-       ┌─ <internal>:24:20
+    note[E118]: Type `DINT` declared in `foo.baz` but `fb.baz` declared type `STRING`
+       ┌─ <internal>:10:20
        │
     10 │             METHOD baz : DINT 
        │                    --- see also
        ·
     24 │             METHOD baz : STRING 
-       │                    ^^^ Type `DINT` declared in `foo.baz` but `fb.baz` implemented type `STRING`
+       │                    --- see also
 
-    error[E112]: `baz` has more parameters than the method defined in `foo`
-       ┌─ <internal>:27:17
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: `baz` has more parameters than the method defined in `foo`
+       ┌─ <internal>:10:20
        │
     10 │             METHOD baz : DINT 
        │                    --- see also
        ·
     27 │                 b : DINT;
-       │                 ^ `baz` has more parameters than the method defined in `foo`
-    "###);
+       │                 - see also
+    ");
 }
 
 #[test]
@@ -1158,18 +1288,22 @@ fn pointer_return_type_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:7:24
+      │
+    7 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `INT` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-      ┌─ <internal>:8:20
+    note[E118]: Type `INT` declared in `foo.bar` but `fb.bar` declared type `DINT`
+      ┌─ <internal>:3:20
       │
     3 │             METHOD bar : REF_TO INT
       │                    --- see also
       ·
     8 │             METHOD bar : REF_TO DINT
-      │                    ^^^ Type `INT` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-    "###);
+      │                    --- see also
+    ");
 }
 
 #[test]
@@ -1205,18 +1339,22 @@ fn pointer_to_pointer_return_inner_type_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:7:24
+      │
+    7 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-      ┌─ <internal>:8:20
+    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `INT`
+      ┌─ <internal>:3:20
       │
     3 │             METHOD bar : REF_TO REF_TO DINT
       │                    --- see also
       ·
     8 │             METHOD bar : REF_TO REF_TO INT
-      │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-    "###);
+      │                    --- see also
+    ");
 }
 
 #[test]
@@ -1234,18 +1372,22 @@ fn pointer_to_pointer_return_indirection_level_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Return types do not match:
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:7:24
+      │
+    7 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `fb.bar_`
-      ┌─ <internal>:8:20
+    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `fb.bar_`
+      ┌─ <internal>:3:20
       │
     3 │             METHOD bar : REF_TO DINT
       │                    --- see also
       ·
     8 │             METHOD bar : REF_TO REF_TO DINT
-      │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `fb.bar_`
-    "###);
+      │                    --- see also
+    ");
 }
 
 #[test]
@@ -1305,79 +1447,85 @@ fn pointer_fields_type_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Parameter `a` has different types in declaration and implemenation:
-       ┌─ <internal>:14:20
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:13:24
+       │
+    13 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Parameter `a` has conflicting type declarations:
+       ┌─ <internal>:5:17
        │
      5 │                 a : REF_TO DINT;
        │                 - see also
        ·
     14 │             METHOD bar
-       │                    ^^^ Parameter `a` has different types in declaration and implemenation:
+       │                    --- see also
 
-    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-       ┌─ <internal>:14:20
+    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `INT`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     14 │             METHOD bar
-       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+       │                    --- see also
 
-    error[E112]: Parameter `b` has different types in declaration and implemenation:
-       ┌─ <internal>:14:20
+    note[E118]: Parameter `b` has conflicting type declarations:
+       ┌─ <internal>:6:17
        │
      6 │                 b : REF_TO REF_TO DINT;
        │                 - see also
        ·
     14 │             METHOD bar
-       │                    ^^^ Parameter `b` has different types in declaration and implemenation:
+       │                    --- see also
 
-    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-       ┌─ <internal>:14:20
+    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `INT`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     14 │             METHOD bar
-       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+       │                    --- see also
 
-    error[E112]: Parameter `c` has different types in declaration and implemenation:
-       ┌─ <internal>:14:20
+    note[E118]: Parameter `c` has conflicting type declarations:
+       ┌─ <internal>:7:17
        │
      7 │                 c : REFERENCE TO DINT;
        │                 - see also
        ·
     14 │             METHOD bar
-       │                    ^^^ Parameter `c` has different types in declaration and implemenation:
+       │                    --- see also
 
-    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-       ┌─ <internal>:14:20
+    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `INT`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     14 │             METHOD bar
-       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
+       │                    --- see also
 
-    error[E112]: Parameter `d` has different types in declaration and implemenation:
-       ┌─ <internal>:14:20
+    note[E118]: Parameter `d` has conflicting type declarations:
+       ┌─ <internal>:8:17
        │
      8 │                 d AT a : DINT;
        │                 - see also
        ·
     14 │             METHOD bar
-       │                    ^^^ Parameter `d` has different types in declaration and implemenation:
+       │                    --- see also
 
-    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-       ┌─ <internal>:14:20
+    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `INT`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     14 │             METHOD bar
-       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-    "###);
+       │                    --- see also
+    ");
 }
 
 #[test]
@@ -1403,43 +1551,49 @@ fn pointer_fields_indirection_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Parameter `a` has different types in declaration and implemenation:
-       ┌─ <internal>:12:20
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:11:24
+       │
+    11 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Parameter `a` has conflicting type declarations:
+       ┌─ <internal>:5:17
        │
      5 │                 a : REF_TO DINT;
        │                 - see also
        ·
     12 │             METHOD bar
-       │                    ^^^ Parameter `a` has different types in declaration and implemenation:
+       │                    --- see also
 
-    error[E112]: Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
-       ┌─ <internal>:12:20
+    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `__fb.bar_a_`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     12 │             METHOD bar
-       │                    ^^^ Type `DINT` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
+       │                    --- see also
 
-    error[E112]: Parameter `b` has different types in declaration and implemenation:
-       ┌─ <internal>:12:20
+    note[E118]: Parameter `b` has conflicting type declarations:
+       ┌─ <internal>:6:17
        │
      6 │                 b : REF_TO REF_TO DINT;
        │                 - see also
        ·
     12 │             METHOD bar
-       │                    ^^^ Parameter `b` has different types in declaration and implemenation:
+       │                    --- see also
 
-    error[E112]: Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-       ┌─ <internal>:12:20
+    note[E118]: Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` declared type `DINT`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     12 │             METHOD bar
-       │                    ^^^ Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `DINT`
-    "###);
+       │                    --- see also
+    ");
 }
 
 #[test]
@@ -1487,25 +1641,31 @@ fn subranges_type_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Parameter `a` has different types in declaration and implemenation:
-       ┌─ <internal>:11:20
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:10:24
+       │
+    10 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Parameter `a` has conflicting type declarations:
+       ┌─ <internal>:5:17
        │
      5 │                 a : UINT(1..10);
        │                 - see also
        ·
     11 │             METHOD bar
-       │                    ^^^ Parameter `a` has different types in declaration and implemenation:
+       │                    --- see also
 
-    error[E112]: Type `UINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-       ┌─ <internal>:11:20
+    note[E118]: Type `UINT` declared in `foo.bar` but `fb.bar` declared type `INT`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     11 │             METHOD bar
-       │                    ^^^ Type `UINT` declared in `foo.bar` but `fb.bar` implemented type `INT`
-    "###);
+       │                    --- see also
+    ");
 }
 
 #[test]
@@ -1531,41 +1691,47 @@ fn pointer_to_array_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E112]: Parameter `a` has different types in declaration and implemenation:
-       ┌─ <internal>:12:20
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:11:24
+       │
+    11 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Parameter `a` has conflicting type declarations:
+       ┌─ <internal>:5:17
        │
      5 │                 a : REF_TO ARRAY[1..5] OF STRING;
        │                 - see also
        ·
     12 │             METHOD bar
-       │                    ^^^ Parameter `a` has different types in declaration and implemenation:
+       │                    --- see also
 
-    error[E112]: Type `__foo.bar_a_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
-       ┌─ <internal>:12:20
+    note[E118]: Type `__foo.bar_a_` declared in `foo.bar` but `fb.bar` declared type `__fb.bar_a_`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     12 │             METHOD bar
-       │                    ^^^ Type `__foo.bar_a_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_a_`
+       │                    --- see also
 
-    error[E112]: Parameter `b` has different types in declaration and implemenation:
-       ┌─ <internal>:12:20
+    note[E118]: Parameter `b` has conflicting type declarations:
+       ┌─ <internal>:6:17
        │
      6 │                 b : REF_TO ARRAY[1..5] OF ARRAY[1..5] OF STRING;
        │                 - see also
        ·
     12 │             METHOD bar
-       │                    ^^^ Parameter `b` has different types in declaration and implemenation:
+       │                    --- see also
 
-    error[E112]: Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_b_`
-       ┌─ <internal>:12:20
+    note[E118]: Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` declared type `__fb.bar_b_`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD bar
        │                    --- see also
        ·
     12 │             METHOD bar
-       │                    ^^^ Type `__foo.bar_b_` declared in `foo.bar` but `fb.bar` implemented type `__fb.bar_b_`
-    "###);
+       │                    --- see also
+    ");
 }

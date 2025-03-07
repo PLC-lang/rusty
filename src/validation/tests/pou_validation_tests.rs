@@ -346,16 +346,22 @@ fn methods_in_function_blocks_need_to_match_base() {
         ",
     );
     // THEN there should be one diagnostic -> Method foo in function block fb2 does not match base method
-    assert_snapshot!(diagnostics, @r###"
-    error[E112]: `foo` has more parameters than the method defined in `fb`
-       ┌─ <internal>:10:21
+    assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+      ┌─ <internal>:8:20
+      │
+    8 │             METHOD foo
+      │                    ^^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: `foo` has more parameters than the method defined in `fb`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD foo
        │                    --- see also
        ·
     10 │                     in1 : BOOL;
-       │                     ^^^ `foo` has more parameters than the method defined in `fb`
-    "###);
+       │                     --- see also
+    ");
 }
 
 #[test]
@@ -466,16 +472,22 @@ fn signature_mismatch_between_base_and_interface() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
-    error[E112]: `foo` has more parameters than the method defined in `intf`
-       ┌─ <internal>:10:21
+    assert_snapshot!(diagnostics, @r"
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:15:24
+       │
+    15 │         FUNCTION_BLOCK fb3 EXTENDS fb IMPLEMENTS intf
+       │                        ^^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: `foo` has more parameters than the method defined in `intf`
+       ┌─ <internal>:3:20
        │
      3 │             METHOD foo
        │                    --- see also
        ·
     10 │                     in1 : BOOL;
-       │                     ^^^ `foo` has more parameters than the method defined in `intf`
-    "###);
+       │                     --- see also
+    ");
 }
 
 #[test]
