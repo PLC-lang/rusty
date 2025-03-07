@@ -6,11 +6,11 @@ ENV STDLIBLOC="/opt/rusty/stdlib"
 ENV PATH="${PLCLOC}:${PATH}"
 
 # Install the local RuSTy version
-COPY plc /opt/rusty/plc
+COPY artifacts/plc /opt/rusty/plc
 # Make the binary executable
 RUN chmod +x /opt/rusty/plc
 # Copy the standard library
-COPY stdlib /opt/rusty/stdlib
+COPY artifacts/stdlib /opt/rusty/stdlib
 
 ENTRYPOINT [ "/bin/bash", "-c" ]
 CMD ["plc", "--help"]

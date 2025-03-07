@@ -1,6 +1,6 @@
 ---
 source: src/lowering/calls.rs
-expression: "lowerer.index.as_ref().unwrap().find_pou_type(\"foo\").unwrap()"
+expression: "index.find_pou_type(\"foo\").unwrap()"
 ---
 DataType {
     name: "foo",
@@ -33,6 +33,9 @@ DataType {
                             offset: 21,
                         },
                     ),
+                    file: Some(
+                        "<internal>",
+                    ),
                 },
                 varargs: None,
             },
@@ -53,6 +56,9 @@ DataType {
                 column: 20,
                 offset: 21,
             },
+        ),
+        file: Some(
+            "<internal>",
         ),
     },
 }

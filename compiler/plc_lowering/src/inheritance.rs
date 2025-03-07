@@ -389,6 +389,9 @@ mod units_tests {
                         offset: 418,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             name_location: SourceLocation {
                 span: Range(
@@ -401,6 +404,9 @@ mod units_tests {
                         column: 30,
                         offset: 253,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             overriding: false,
@@ -470,6 +476,9 @@ mod units_tests {
                         offset: 200,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             name_location: SourceLocation {
                 span: Range(
@@ -482,6 +491,9 @@ mod units_tests {
                         column: 30,
                         offset: 158,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             overriding: false,
@@ -563,6 +575,9 @@ mod units_tests {
                         offset: 298,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             name_location: SourceLocation {
                 span: Range(
@@ -575,6 +590,9 @@ mod units_tests {
                         column: 32,
                         offset: 257,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             overriding: false,
@@ -964,6 +982,9 @@ mod units_tests {
                         offset: 949,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             name_location: SourceLocation {
                 span: Range(
@@ -976,6 +997,9 @@ mod units_tests {
                         column: 36,
                         offset: 461,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             overriding: false,
@@ -1076,6 +1100,9 @@ mod units_tests {
                         offset: 482,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             name_location: SourceLocation {
                 span: Range(
@@ -1088,6 +1115,9 @@ mod units_tests {
                         column: 30,
                         offset: 380,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             overriding: false,
@@ -1391,6 +1421,9 @@ mod units_tests {
                         offset: 820,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             name_location: SourceLocation {
                 span: Range(
@@ -1403,6 +1436,9 @@ mod units_tests {
                         column: 25,
                         offset: 571,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             overriding: false,
@@ -1583,6 +1619,9 @@ mod units_tests {
                         offset: 554,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             name_location: SourceLocation {
                 span: Range(
@@ -1595,6 +1634,9 @@ mod units_tests {
                         column: 32,
                         offset: 409,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             overriding: false,
@@ -1786,6 +1828,9 @@ mod units_tests {
                         offset: 705,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             name_location: SourceLocation {
                 span: Range(
@@ -1798,6 +1843,9 @@ mod units_tests {
                         column: 29,
                         offset: 531,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             overriding: false,
@@ -2037,6 +2085,9 @@ mod units_tests {
                         offset: 253,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             name_location: SourceLocation {
                 span: Range(
@@ -2049,6 +2100,9 @@ mod units_tests {
                         column: 19,
                         offset: 170,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             overriding: false,

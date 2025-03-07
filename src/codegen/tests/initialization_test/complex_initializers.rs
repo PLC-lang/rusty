@@ -13,7 +13,7 @@ fn simple_global() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -31,7 +31,7 @@ fn simple_global() {
       store [81 x i8]* @s, [81 x i8]** @ps, align 8
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -45,7 +45,7 @@ fn global_alias() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -63,7 +63,7 @@ fn global_alias() {
       store [81 x i8]* @s, [81 x i8]** @ps, align 8
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn global_reference_to() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -95,7 +95,7 @@ fn global_reference_to() {
       store [81 x i8]* @s, [81 x i8]** @ps, align 8
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -114,7 +114,7 @@ fn init_functions_generated_for_programs() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -164,7 +164,7 @@ fn init_functions_generated_for_programs() {
     declare void @__init_plc_prg(%PLC_PRG*)
 
     declare void @PLC_PRG(%PLC_PRG*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -183,7 +183,7 @@ fn init_functions_work_with_adr() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -233,7 +233,7 @@ fn init_functions_work_with_adr() {
     declare void @__init_plc_prg(%PLC_PRG*)
 
     declare void @PLC_PRG(%PLC_PRG*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -252,7 +252,7 @@ fn init_functions_generated_for_function_blocks() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -294,7 +294,7 @@ fn init_functions_generated_for_function_blocks() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -358,7 +358,7 @@ fn nested_initializer_pous() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -551,7 +551,7 @@ fn nested_initializer_pous() {
     declare void @__init_sideprog(%sideProg*)
 
     declare void @sideProg(%sideProg*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -679,7 +679,7 @@ fn struct_types() {
         "#,
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -750,7 +750,7 @@ fn struct_types() {
     declare void @__init_prog(%prog*)
 
     declare void @prog(%prog*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -912,7 +912,7 @@ fn global_instance() {
       "#,
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -990,7 +990,7 @@ fn global_instance() {
     declare void @__init_foo(%foo*)
 
     declare void @foo(%foo*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -1019,7 +1019,7 @@ fn aliased_types() {
       "#,
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1101,7 +1101,7 @@ fn aliased_types() {
     declare void @foo(%foo*)
 
     declare void @__init_foo(%foo*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -1187,7 +1187,7 @@ fn var_config_aliased_variables_initialized() {
         ",
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1274,7 +1274,7 @@ fn var_config_aliased_variables_initialized() {
     declare void @prog(%prog*)
 
     declare void @FB(%FB*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -1300,7 +1300,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
         ",
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1346,7 +1346,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
       store [81 x i8]* @s, [81 x i8]** @refString, align 8
       ret void
     }
-    "###)
+    "#)
 }
 
 #[test]
@@ -1583,7 +1583,7 @@ fn temporary_variable_ref_to_temporary_variable() {
         ",
     );
 
-    insta::assert_snapshot!(res, @r##"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1618,7 +1618,7 @@ fn temporary_variable_ref_to_temporary_variable() {
     entry:
       ret void
     }
-    "##)
+    "#)
 }
 
 #[test]
