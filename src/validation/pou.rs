@@ -1,19 +1,25 @@
 use itertools::Itertools;
 use plc_ast::ast::{Identifier, Implementation, Interface, LinkageType, Pou, PouType, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 use signature_validation::validate_method_signature;
 
 use super::{
     statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
 };
-use crate::resolver::{AnnotationMap, StatementAnnotation};
+use crate::resolver::{AnnotationMap, MethodDeclarationType, StatementAnnotation};
 
 pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
     if pou.linkage != LinkageType::External {
         validate_pou(validator, pou);
         validate_interface_impl(validator, context, pou);
         validate_base_class(validator, context, pou);
-        validate_implemented_methods(validator, context, pou);
+        if let Some(StatementAnnotation::MethodDeclarations { declarations }) =
+            context.annotations.get_with_id(pou.id)
+        {
+            validate_methods_overrides(validator, context, declarations, &pou.name, &pou.name_location);
+        }
         if let PouType::Method { .. } = pou.kind {
             validate_method(validator, pou, context);
         }
@@ -24,17 +30,13 @@ pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context
     }
 }
 
-fn validate_implemented_methods<T: AnnotationMap>(
+fn validate_methods_overrides<T: AnnotationMap>(
     validator: &mut Validator,
     context: &ValidationContext<'_, T>,
-    pou: &Pou,
+    declarations: &FxHashMap<String, Vec<MethodDeclarationType>>,
+    container_name: &str,
+    primary_location: &SourceLocation,
 ) {
-    let Some(StatementAnnotation::MethodDeclarations { declarations }) =
-        context.annotations.get_with_id(pou.id)
-    else {
-        return;
-    };
-
     declarations.iter().for_each(|(method_name, decl)| {
         // validate that abstract signatures all match
         // Concrete to abstract methods are checked at a different stage
@@ -44,18 +46,18 @@ fn validate_implemented_methods<T: AnnotationMap>(
             .flat_map(|it| context.index.find_pou(it.get_qualified_name()));
         //XXX(ghha) should this not be combinations instead of tuple_windows?
         for (method1, method2) in methods.tuple_windows() {
-            let diagnostics = validate_method_signature(context.index, method1, method2, &pou.name_location);
+            let diagnostics = validate_method_signature(context.index, method1, method2, primary_location);
             if !diagnostics.is_empty() {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "Method `{}` in `{}` is declared with conflicting signatures in `{}` and `{}`",
                         method_name,
-                        pou.name,
+                        container_name,
                         method1.get_parent_pou_name().unwrap(),
                         method2.get_parent_pou_name().unwrap()
                     ))
                     .with_error_code("E111")
-                    .with_location(&pou.name_location)
+                    .with_location(primary_location)
                     .with_secondary_location(method1.get_location())
                     .with_secondary_location(method2.get_location())
                     .with_sub_diagnostics(diagnostics),
@@ -65,40 +67,41 @@ fn validate_implemented_methods<T: AnnotationMap>(
                 return;
             }
         }
-
-        // validate that each abstract method has at least one concrete implementation
-        let abstracts = decl
-            .iter()
-            .filter(|it| it.is_abstract())
-            .map(|it| (it.get_qualifier(), context.index.find_pou(it.get_qualified_name()).unwrap()));
-        // Expecting only one concrete implementation
-        let concrete = decl
-            .iter()
-            .filter(|it| it.is_concrete())
-            .map(|it| context.index.find_pou(it.get_qualified_name()).unwrap())
-            .next();
-        // Validate that each concrete method which has an abstract counterpart has the same signature
-        if let Some(method_impl) = concrete {
-            abstracts.for_each(|(_, method_ref)| {
-                let diagnostics =
-                    validate_method_signature(context.index, method_ref, method_impl, &pou.name_location);
-                for diagnostic in diagnostics {
-                    validator.push_diagnostic(diagnostic);
-                }
-            });
-        } else {
-            abstracts.for_each(|(name, intf)| {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Method `{}` defined in interface `{}` is missing in POU `{}`",
-                        method_name, name, pou.name
-                    ))
-                    .with_error_code("E112")
-                    .with_location(&pou.name_location)
-                    .with_secondary_location(intf.get_location()),
-                );
-            })
-        };
+        if context.index.find_pou(container_name).is_some() {
+            // validate that each abstract method has at least one concrete implementation
+            let abstracts = decl
+                .iter()
+                .filter(|it| it.is_abstract())
+                .map(|it| (it.get_qualifier(), context.index.find_pou(it.get_qualified_name()).unwrap()));
+            // Expecting only one concrete implementation
+            let concrete = decl
+                .iter()
+                .filter(|it| it.is_concrete())
+                .map(|it| context.index.find_pou(it.get_qualified_name()).unwrap())
+                .next();
+            // Validate that each concrete method which has an abstract counterpart has the same signature
+            if let Some(method_impl) = concrete {
+                abstracts.for_each(|(_, method_ref)| {
+                    let diagnostics =
+                        validate_method_signature(context.index, method_ref, method_impl, primary_location);
+                    for diagnostic in diagnostics {
+                        validator.push_diagnostic(diagnostic);
+                    }
+                });
+            } else {
+                abstracts.for_each(|(name, intf)| {
+                    validator.push_diagnostic(
+                        Diagnostic::new(format!(
+                            "Method `{}` defined in interface `{}` is missing in POU `{}`",
+                            method_name, name, container_name
+                        ))
+                        .with_error_code("E112")
+                        .with_location(primary_location)
+                        .with_secondary_location(intf.get_location()),
+                    );
+                })
+            };
+        }
     });
 }
 
@@ -117,12 +120,12 @@ fn validate_method<T: AnnotationMap>(
     };
 
     //Only validate methods that are not abstract, abstract methods are validated in validate_implemented_methods
-    let interface_methods = definitions
+    let overridden_concrete_methods = definitions
         .iter()
         .filter(|it| it.is_concrete())
         .flat_map(|it| context.index.find_pou(it.get_qualified_name()))
         .collect::<Vec<_>>();
-    interface_methods.iter().for_each(|method_ref| {
+    overridden_concrete_methods.iter().for_each(|method_ref| {
         let diagnostics =
             validate_method_signature(context.index, method_ref, method_impl, &pou.name_location);
         for diagnostic in diagnostics {
@@ -282,6 +285,27 @@ pub fn visit_interface<T: AnnotationMap>(
     interface: &Interface,
     context: &ValidationContext<'_, T>,
 ) {
+    let Some(entry) = context.index.find_interface(&interface.name) else { unreachable!("Must exist") };
+    entry.get_extensions().iter().for_each(|declaration| {
+        if context.index.find_interface(&declaration.name).is_none() {
+            validator.push_diagnostic(
+                Diagnostic::new(format!("Interface `{}` does not exist", declaration.name))
+                    .with_error_code("E048")
+                    .with_location(&declaration.location),
+            );
+        }
+    });
+    if let Some(StatementAnnotation::MethodDeclarations { declarations }) =
+        context.annotations.get_with_id(interface.id)
+    {
+        validate_methods_overrides(
+            validator,
+            context,
+            declarations,
+            &interface.name,
+            &interface.location_name,
+        );
+    }
 }
 
 pub(super) mod signature_validation {

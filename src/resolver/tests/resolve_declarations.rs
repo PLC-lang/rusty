@@ -393,7 +393,7 @@ fn extended_interface_has_overridden_method_annotated() {
         },
     )
     "#);
-    // for grauply, we expect all 3 methods to be overrides at different inheritance levels. 
+    // for grauply, we expect all 3 methods to be overrides at different inheritance levels.
     let intf_grauply = &units[0].0.interfaces[4];
     let method = &intf_grauply.methods[0];
     assert_debug_snapshot!(annotations.get_with_id(method.id), @r#"

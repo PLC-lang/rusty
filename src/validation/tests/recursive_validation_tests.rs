@@ -790,4 +790,18 @@ mod inheritance {
            │                  see also
         "###);
     }
+
+    #[test]
+    fn cyclic_interface_inheritance() {
+        let diagnostics = parse_and_validate_buffered("
+            INTERFACE foo EXTENDS bar
+            END_INTERFACE
+
+            INTERFACE bar EXTENDS foo
+            END_INTERFACE
+            ",
+        );
+
+        assert_snapshot!(diagnostics, @r#""#);
+    }
 }

@@ -511,18 +511,12 @@ pub struct InterfaceIndexEntry {
 }
 
 impl InterfaceIndexEntry {
-    /// Returns a list of methods defined in this interface, including inherited methods from derived interfaces
-    pub fn get_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
+    /// Returns a list of methods this interface declared
+    pub fn get_declared_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
         self.methods
             .iter()
             .map(|name| index.find_pou(name).expect("must exist because of present InterfaceIndexEntry"))
-            .chain(self.get_derived_methods(index))
             .collect()
-    }
-
-    /// Returns a list of interfaces this interface implements
-    pub fn get_extensions<'idx>(&self) -> Vec<&str> {
-        self.extensions.iter().map(|it| it.name.as_str()).collect()
     }
 
     /// Returns a list of methods this interface inherited
@@ -532,6 +526,16 @@ impl InterfaceIndexEntry {
             .filter_map(|it| it.as_ref().ok())
             .flat_map(|it| it.get_methods(index))
             .collect()
+    }
+
+    /// Returns a list of methods defined in this interface, including inherited methods from derived interfaces
+    pub fn get_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
+        self.get_declared_methods(index).into_iter().chain(self.get_derived_methods(index)).collect()
+    }
+
+    /// Returns a list of interfaces this interface implements
+    pub fn get_extensions<'idx>(&self) -> Vec<&Identifier> {
+        self.extensions.iter().collect()
     }
 
     /// Returns a list of interfaces this interface inherited

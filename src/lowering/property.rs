@@ -1179,6 +1179,7 @@ mod tests {
                 property: Some(
                     "fb.foo",
                 ),
+                kind: Concrete,
             },
             statements: [
                 Assignment {
@@ -1257,6 +1258,7 @@ mod tests {
                 property: Some(
                     "fb.foo",
                 ),
+                kind: Concrete,
             },
             statements: [
                 Assignment {

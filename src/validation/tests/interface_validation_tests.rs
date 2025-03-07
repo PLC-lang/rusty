@@ -2028,8 +2028,13 @@ fn interface_inheriting_undefined_interface() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r#""#);
-    panic!("expected snapshot to fail")
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E048]: Interface `bar` does not exist
+      ┌─ <internal>:2:31
+      │
+    2 │         INTERFACE foo EXTENDS bar
+      │                               ^^^ Interface `bar` does not exist
+    ");
 }
 
 #[test]
@@ -2046,6 +2051,50 @@ fn extended_interface_method_signature_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E111]: Method `baz` in `bar` is declared with conflicting signatures in `bar` and `foo`
+      ┌─ <internal>:6:19
+      │
+    3 │             METHOD baz : DINT
+      │                    --- see also
+      ·
+    6 │         INTERFACE bar EXTENDS foo
+      │                   ^^^ Method `baz` in `bar` is declared with conflicting signatures in `bar` and `foo`
+    7 │             METHOD baz : STRING
+      │                    --- see also
+
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:6:19
+      │
+    6 │         INTERFACE bar EXTENDS foo
+      │                   ^^^ Derived methods with conflicting signatures, return types do not match:
+
+    note[E118]: Type `STRING` declared in `bar.baz` but `foo.baz` declared type `DINT`
+      ┌─ <internal>:3:20
+      │
+    3 │             METHOD baz : DINT
+      │                    --- see also
+      ·
+    7 │             METHOD baz : STRING
+      │                    --- see also
+    ");
+}
+
+#[test]
+fn interface_extending_multiple_interfaces_with_incompatible_method_signatures() {
+    let source = r"
+    INTERFACE foo
+        METHOD baz : DINT
+        END_METHOD
+    END_INTERFACE
+    INTERFACE bar
+        METHOD baz : STRING
+        END_METHOD
+    END_INTERFACE
+    INTERFACE qux EXTENDS foo, bar
+    END_INTERFACE
+    ";
+
+    let diagnostics = parse_and_validate_buffered(source);
     insta::assert_snapshot!(diagnostics, @r#""#);
-    panic!("expected snapshot to fail")
 }

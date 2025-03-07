@@ -605,7 +605,9 @@ impl InheritanceAnnotationConverter for &PouIndexEntry {
         };
 
         let interfaces = match kind {
-            ast::DeclarationKind::Abstract => index.find_interface(parent_name).map(|it| it.get_extensions()),
+            ast::DeclarationKind::Abstract => index
+                .find_interface(parent_name)
+                .map(|it| it.get_extensions().iter().map(|it| it.name.as_str()).collect()),
             ast::DeclarationKind::Concrete => index.find_pou(parent_name).map(|it| it.get_interfaces()),
         }
         .unwrap_or_default();
