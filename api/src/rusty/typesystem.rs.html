@@ -1460,18 +1460,31 @@
 <a href="#1459" id="1459">1459</a>
 <a href="#1460" id="1460">1460</a>
 <a href="#1461" id="1461">1461</a>
-<a href="#1462" id="1462">1462</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
     mem::size_of,
     ops::{Range, RangeInclusive},
 };
 
+<span class="kw">use </span>anyhow::{anyhow, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>plc_ast::{
     ast::{AstNode, AutoDerefType, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
+<span class="kw">use </span>rustc_hash::FxHashSet;
 
 <span class="kw">use crate</span>::{
     datalayout::{Bytes, MemoryLocation},
@@ -2075,52 +2088,59 @@
         <span class="kw">if let </span>DataTypeInformation::Integer { semantic_size: <span class="prelude-val">Some</span>(s), .. } = <span class="self">self </span>{
             <span class="kw">return </span><span class="kw-2">*</span>s;
         }
-        <span class="self">self</span>.get_size_in_bits(index)
+        <span class="self">self</span>.get_size_in_bits(index).unwrap_or_default()
     }
 
     <span class="doccomment">/// returns the number of bits used to store this type
-    </span><span class="kw">pub fn </span>get_size_in_bits(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; u32 {
-        <span class="self">self</span>.get_size(index).bits()
+    </span><span class="kw">pub fn </span>get_size_in_bits(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; <span class="prelude-ty">Result</span>&lt;u32&gt; {
+        <span class="self">self</span>.get_size(index).map(|it| it.bits())
     }
 
-    <span class="kw">pub fn </span>get_size(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; Bytes {
+    <span class="kw">pub fn </span>get_size(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; <span class="prelude-ty">Result</span>&lt;Bytes&gt; {
+        <span class="self">self</span>.get_size_recursive(index, <span class="kw-2">&amp;mut </span>FxHashSet::default())
+    }
+
+    <span class="kw">fn </span>get_size_recursive&lt;<span class="lifetime">'b</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Index, seen: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>str&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Bytes&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is_struct() &amp;&amp; !seen.insert(<span class="self">self</span>.get_name()) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">"Recursive type detected: {}"</span>, <span class="self">self</span>.get_name()));
+        }
         <span class="kw">match </span><span class="self">self </span>{
-            DataTypeInformation::Integer { size, .. } =&gt; Bytes::from_bits(<span class="kw-2">*</span>size),
-            DataTypeInformation::Float { size, .. } =&gt; Bytes::from_bits(<span class="kw-2">*</span>size),
-            DataTypeInformation::String { size, encoding } =&gt; size
+            DataTypeInformation::Integer { size, .. } =&gt; <span class="prelude-val">Ok</span>(Bytes::from_bits(<span class="kw-2">*</span>size)),
+            DataTypeInformation::Float { size, .. } =&gt; <span class="prelude-val">Ok</span>(Bytes::from_bits(<span class="kw-2">*</span>size)),
+            DataTypeInformation::String { size, encoding } =&gt; <span class="prelude-val">Ok</span>(size
                 .as_int_value(index)
                 .map(|size| encoding.get_bytes_per_char() * size <span class="kw">as </span>u32)
                 .map(Bytes::new)
-                .unwrap(),
+                .unwrap()),
             DataTypeInformation::Struct { members, .. } =&gt; members
                 .iter()
                 .map(|it| it.get_type_name())
-                .fold(MemoryLocation::new(<span class="number">0</span>), |prev, it| {
-                    <span class="kw">let </span>type_info = index.get_type_information_or_void(it);
-                    <span class="kw">let </span>size = type_info.get_size(index).value();
+                .try_fold(MemoryLocation::new(<span class="number">0</span>), |prev, it| {
+                    <span class="kw">let </span>type_info: <span class="kw-2">&amp;</span>DataTypeInformation = index.get_type_information_or_void(it);
+                    <span class="kw">let </span>size = type_info.get_size_recursive(index, seen)<span class="question-mark">?</span>.value();
                     <span class="kw">let </span>after_align = prev.align_to(type_info.get_alignment(index)).value();
                     <span class="kw">let </span>res = after_align + size;
-                    MemoryLocation::new(res)
+                    <span class="prelude-val">Ok</span>(MemoryLocation::new(res))
                 })
-                .into(),
+                .map(Into::into),
             DataTypeInformation::Array { inner_type_name, dimensions, .. } =&gt; {
                 <span class="kw">let </span>inner_type = index.get_type_information_or_void(inner_type_name);
-                <span class="kw">let </span>inner_size = inner_type.get_size_in_bits(index);
+                <span class="kw">let </span>inner_size = inner_type.get_size_in_bits(index)<span class="question-mark">?</span>;
                 <span class="kw">let </span>element_count: u32 =
                     dimensions.iter().map(|dim| dim.get_length(index).unwrap()).product();
-                Bytes::from_bits(inner_size * element_count)
+                <span class="prelude-val">Ok</span>(Bytes::from_bits(inner_size * element_count))
             }
-            DataTypeInformation::Pointer { .. } =&gt; Bytes::from_bits(POINTER_SIZE),
+            DataTypeInformation::Pointer { .. } =&gt; <span class="prelude-val">Ok</span>(Bytes::from_bits(POINTER_SIZE)),
             DataTypeInformation::Alias { referenced_type, .. }
             | DataTypeInformation::SubRange { referenced_type, .. } =&gt; {
                 <span class="kw">let </span>inner_type = index.get_type_information_or_void(referenced_type);
-                inner_type.get_size(index)
+                inner_type.get_size_recursive(index, seen)
             }
             DataTypeInformation::Enum { referenced_type, .. } =&gt; index
                 .find_effective_type_info(referenced_type)
                 .map(|it| it.get_size(index))
-                .unwrap_or_else(|| Bytes::from_bits(DINT_SIZE)),
-            DataTypeInformation::Generic { .. } | DataTypeInformation::Void =&gt; Bytes::from_bits(<span class="number">0</span>),
+                .unwrap_or_else(|| <span class="prelude-val">Ok</span>(Bytes::from_bits(DINT_SIZE))),
+            DataTypeInformation::Generic { .. } | DataTypeInformation::Void =&gt; <span class="prelude-val">Ok</span>(Bytes::from_bits(<span class="number">0</span>)),
         }
     }
 
@@ -2135,7 +2155,7 @@
     }
 
     <span class="kw">pub fn </span>get_alignment(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; Bytes {
-        <span class="kw">if </span><span class="self">self</span>.get_size(index).value() == <span class="number">0 </span>{
+        <span class="kw">if </span><span class="self">self</span>.get_size(index).unwrap_or_default().value() == <span class="number">0 </span>{
             <span class="kw">return </span>Bytes::new(<span class="number">0</span>);
         }
 
@@ -2245,8 +2265,8 @@
 
         <span class="kw">let </span>DataTypeInformation::Array { inner_type_name, .. } = <span class="self">self </span><span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
         <span class="kw">let </span>inner_type_info = intrinsic_array_type(index, inner_type_name).get_type_information();
-        <span class="kw">let </span>inner_type_size = inner_type_info.get_size_in_bits(index);
-        <span class="kw">let </span>arr_size = <span class="self">self</span>.get_size_in_bits(index);
+        <span class="kw">let </span>inner_type_size = inner_type_info.get_size_in_bits(index).ok()<span class="question-mark">?</span>;
+        <span class="kw">let </span>arr_size = <span class="self">self</span>.get_size_in_bits(index).ok()<span class="question-mark">?</span>;
 
         <span class="kw">if </span>inner_type_size == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -2765,7 +2785,7 @@
         DataTypeInformation::SubRange { name, .. } | DataTypeInformation::Alias { name, .. } =&gt; {
             get_rank(index.get_intrinsic_type_by_name(name).get_type_information(), index)
         }
-        <span class="kw">_ </span>=&gt; type_information.get_size_in_bits(index),
+        <span class="kw">_ </span>=&gt; type_information.get_size_in_bits(index).unwrap_or_default(),
     }
 }
 
@@ -2806,7 +2826,7 @@
                 <span class="kw">let </span>l_inner_type = index.get_type_information_or_void(l_inner_type_name);
                 <span class="kw">let </span>r_inner_type = index.get_type_information_or_void(r_inner_type_name);
                 is_same_type_class(l_inner_type, r_inner_type, index)
-                    &amp;&amp; ltype.get_size(index) == rtype.get_size(index)
+                    &amp;&amp; ltype.get_size(index).unwrap_or_default() == rtype.get_size(index).unwrap_or_default()
             }
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         },
@@ -2835,8 +2855,10 @@
         <span class="comment">// check is_numerical() on TypeNature e.g. DataTypeInformation::Integer is numerical but also used for CHARS which are not considered as numerical
         </span><span class="kw">if </span>(ldt.is_numerical() &amp;&amp; rdt.is_numerical()) &amp;&amp; (ldt.is_real() || rdt.is_real()) {
             <span class="kw">let </span>real_type = index.get_type_or_panic(REAL_TYPE);
-            <span class="kw">let </span>real_size = real_type.get_type_information().get_size_in_bits(index);
-            <span class="kw">if </span>lt.get_size_in_bits(index) &gt; real_size || rt.get_size_in_bits(index) &gt; real_size {
+            <span class="kw">let </span>real_size = real_type.get_type_information().get_size_in_bits(index).unwrap();
+            <span class="kw">if </span>lt.get_size_in_bits(index).unwrap_or_default() &gt; real_size
+                || rt.get_size_in_bits(index).unwrap_or_default() &gt; real_size
+            {
                 <span class="kw">return </span>index.get_type_or_panic(LREAL_TYPE).into();
             } <span class="kw">else </span>{
                 <span class="kw">return </span>real_type.into();

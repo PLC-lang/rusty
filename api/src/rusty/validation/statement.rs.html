@@ -2992,13 +2992,13 @@
     <span class="comment">//check if Datatype can hold a Pointer (u64)
     </span><span class="kw">else if </span>(right_type.is_pointer() &amp;&amp; !right_type.is_auto_deref())
         &amp;&amp; !left_type.is_pointer()
-        &amp;&amp; left_type.get_size_in_bits(index) &lt; POINTER_SIZE
+        &amp;&amp; left_type.get_size_in_bits(index).unwrap_or_default() &lt; POINTER_SIZE
     {
         validator.push_diagnostic(
             Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">"The type {} {} is too small to hold a Pointer"</span>,
                 left_type.get_name(),
-                left_type.get_size_in_bits(index)
+                left_type.get_size_in_bits(index).unwrap_or_default()
             ))
             .with_error_code(<span class="string">"E065"</span>)
             .with_location(location),
@@ -3008,13 +3008,13 @@
     <span class="comment">//check if size allocated to Pointer is standart pointer size (u64)
     </span><span class="kw">else if </span>left_type.is_pointer()
         &amp;&amp; !right_type.is_pointer()
-        &amp;&amp; right_type.get_size_in_bits(index) &lt; POINTER_SIZE
+        &amp;&amp; right_type.get_size_in_bits(index).unwrap_or_default() &lt; POINTER_SIZE
     {
         validator.push_diagnostic(
             Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">"The type {} {} is too small to be stored in a Pointer"</span>,
                 right_type.get_name(),
-                right_type.get_size_in_bits(index)
+                right_type.get_size_in_bits(index).unwrap_or_default()
             ))
             .with_error_code(<span class="string">"E065"</span>)
             .with_location(location),
@@ -3401,10 +3401,10 @@
     }
 
     <span class="kw">let </span>lhs = left.get_type_information();
-    <span class="kw">let </span>lhs_size = lhs.get_size(context.index);
+    <span class="kw">let </span><span class="prelude-val">Ok</span>(lhs_size) = lhs.get_size(context.index) <span class="kw">else </span>{ <span class="kw">return </span>};
     <span class="kw">let </span>results_in_truncation = |rhs: <span class="kw-2">&amp;</span>DataType| {
         <span class="kw">let </span>rhs = rhs.get_type_information();
-        <span class="kw">let </span>rhs_size = rhs.get_size(context.index);
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(rhs_size) = rhs.get_size(context.index) <span class="kw">else </span>{ <span class="kw">return </span><span class="bool-val">false </span>};
         lhs_size &lt; rhs_size
             || (lhs_size == rhs_size
                 &amp;&amp; ((lhs.is_signed_int() &amp;&amp; rhs.is_unsigned_int()) || (lhs.is_int() &amp;&amp; rhs.is_float())))
@@ -3482,7 +3482,7 @@
         data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
         index: <span class="kw-2">&amp;</span>Index,
     ) -&gt; bool {
-        (access.get_bit_width() * access_index) &lt; data_type.get_size_in_bits(index) <span class="kw">as </span>u64
+        (access.get_bit_width() * access_index) &lt; data_type.get_size_in_bits(index).unwrap_or_default() <span class="kw">as </span>u64
     }
 
     <span class="doccomment">/// Returns the range from 0 for the given data type
@@ -3491,7 +3491,7 @@
         data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
         index: <span class="kw-2">&amp;</span>Index,
     ) -&gt; Range&lt;u64&gt; {
-        <span class="number">0</span>..((data_type.get_size_in_bits(index) <span class="kw">as </span>u64 / access.get_bit_width()) - <span class="number">1</span>)
+        <span class="number">0</span>..((data_type.get_size_in_bits(index).unwrap_or_default() <span class="kw">as </span>u64 / access.get_bit_width()) - <span class="number">1</span>)
     }
 
     <span class="doccomment">/// Returns true if the direct access can be used for the given type

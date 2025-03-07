@@ -1260,7 +1260,7 @@
             <span class="comment">//Adjust the offset based on the field alignment
             </span><span class="kw">let </span>type_info = dt.get_type_information();
             <span class="kw">let </span>alignment = type_info.get_alignment(index);
-            <span class="kw">let </span>size = type_info.get_size(index);
+            <span class="kw">let </span>size = type_info.get_size(index).unwrap();
             running_offset = running_offset.align_to(alignment);
 
             types.push(
@@ -1595,7 +1595,7 @@
         <span class="comment">//check if the type is currently registered
         </span><span class="kw">if </span>!<span class="self">self</span>.types.contains_key(<span class="kw-2">&amp;</span>name.to_lowercase()) {
             <span class="kw">let </span>type_info = datatype.get_type_information();
-            <span class="kw">let </span>size = type_info.get_size(index);
+            <span class="kw">let </span>size = type_info.get_size(index).unwrap();
             <span class="kw">let </span>alignment = type_info.get_alignment(index);
             <span class="kw">let </span>location = <span class="kw-2">&amp;</span>datatype.location;
             <span class="kw">match </span>type_info {

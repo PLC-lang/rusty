@@ -517,7 +517,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; Castable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; <span class="kw">for </span>IntValue&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
-        <span class="kw">let </span>lsize = cast_data.target_type.get_size_in_bits(cast_data.index);
+        <span class="kw">let </span>lsize = cast_data.target_type.get_size_in_bits(cast_data.index).unwrap();
         <span class="kw">match </span>cast_data.target_type {
             DataTypeInformation::Integer { .. } =&gt; {
                 <span class="comment">//its important to use the real type's size here, because we may have an i1 which is annotated as BOOL (8 bit)
@@ -557,7 +557,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; Castable&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt; <span class="kw">for </span>FloatValue&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">fn </span>cast(<span class="self">self</span>, cast_data: <span class="kw-2">&amp;</span>CastInstructionData&lt;<span class="lifetime">'ctx</span>, <span class="lifetime">'cast</span>&gt;) -&gt; BasicValueEnum&lt;<span class="lifetime">'ctx</span>&gt; {
-        <span class="kw">let </span>rsize = <span class="kw-2">&amp;</span>cast_data.value_type.get_size_in_bits(cast_data.index);
+        <span class="kw">let </span>rsize = <span class="kw-2">&amp;</span>cast_data.value_type.get_size_in_bits(cast_data.index).unwrap();
         <span class="kw">match </span>cast_data.target_type {
             DataTypeInformation::Float { size: lsize, .. } =&gt; {
                 <span class="kw">if </span>lsize &lt; rsize {

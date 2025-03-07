@@ -1946,7 +1946,23 @@
 <a href="#1945" id="1945">1945</a>
 <a href="#1946" id="1946">1946</a>
 <a href="#1947" id="1947">1947</a>
-<a href="#1948" id="1948">1948</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1948" id="1948">1948</a>
+<a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
+<a href="#1951" id="1951">1951</a>
+<a href="#1952" id="1952">1952</a>
+<a href="#1953" id="1953">1953</a>
+<a href="#1954" id="1954">1954</a>
+<a href="#1955" id="1955">1955</a>
+<a href="#1956" id="1956">1956</a>
+<a href="#1957" id="1957">1957</a>
+<a href="#1958" id="1958">1958</a>
+<a href="#1959" id="1959">1959</a>
+<a href="#1960" id="1960">1960</a>
+<a href="#1961" id="1961">1961</a>
+<a href="#1962" id="1962">1962</a>
+<a href="#1963" id="1963">1963</a>
+<a href="#1964" id="1964">1964</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
 
@@ -3235,11 +3251,23 @@
 
     <span class="doccomment">/// Searches for variable name in the given container, if not found, attempts to search for it in super classes
     </span><span class="kw">pub fn </span>find_member(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str, variable_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="self">self</span>.find_member_recursive(container_name, variable_name, <span class="kw-2">&amp;mut </span>FxHashSet::default())
+    }
+
+    <span class="kw">fn </span>find_member_recursive&lt;<span class="lifetime">'b</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="self">self</span>,
+        container_name: <span class="kw-2">&amp;</span>str,
+        variable_name: <span class="kw-2">&amp;</span>str,
+        seen: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>str&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>VariableIndexEntry&gt; {
         <span class="comment">// Find pou in index
         </span><span class="self">self</span>.find_local_member(container_name, variable_name)
             .or_else(|| {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(class) = <span class="self">self</span>.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                    <span class="self">self</span>.find_member(class, variable_name).filter(|it| !(it.is_temp()))
+                    <span class="kw">if </span>!seen.insert(class) {
+                        <span class="kw">return </span><span class="prelude-val">None</span>;
+                    }
+                    <span class="self">self</span>.find_member_recursive(class, variable_name, seen).filter(|it| !(it.is_temp()))
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>}
@@ -3854,14 +3882,15 @@
     <span class="doccomment">/// Returns all methods declared on container, or its parents.
     /// If a method is declared in the container the parent method is not included
     </span><span class="kw">pub fn </span>find_methods(<span class="kw-2">&amp;</span><span class="self">self</span>, container: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
-        <span class="self">self</span>.find_method_recursive(container, <span class="macro">vec!</span>[])
+        <span class="self">self</span>.find_method_recursive(container, <span class="macro">vec!</span>[], <span class="kw-2">&amp;mut </span>FxHashSet::default())
     }
 
-    <span class="kw">fn </span>find_method_recursive&lt;<span class="lifetime">'a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
+    <span class="kw">fn </span>find_method_recursive&lt;<span class="lifetime">'b</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="self">self</span>,
         container: <span class="kw-2">&amp;</span>str,
-        current_methods: Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>PouIndexEntry&gt;,
-    ) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>PouIndexEntry&gt; {
+        current_methods: Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>PouIndexEntry&gt;,
+        seen: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>str&gt;,
+    ) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>PouIndexEntry&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = <span class="self">self</span>.find_pou(container) {
             <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="self">self
                 </span>.get_pous()
@@ -3876,7 +3905,10 @@
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
             res.extend(current_methods);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(super_class) = pou.get_super_class() {
-                <span class="self">self</span>.find_method_recursive(super_class, res)
+                <span class="kw">if </span>!seen.insert(super_class) {
+                    <span class="kw">return </span>res;
+                };
+                <span class="self">self</span>.find_method_recursive(super_class, res, seen)
             } <span class="kw">else </span>{
                 res
             }

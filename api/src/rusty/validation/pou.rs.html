@@ -1296,8 +1296,8 @@
             <span class="kw">let </span>method_ref = ctxt.method_ref;
             <span class="kw">let </span>l_encoding = left.get_string_character_width(ctxt.index);
             <span class="kw">let </span>r_encoding = right.get_string_character_width(ctxt.index);
-            <span class="kw">let </span>left_length = left.get_size(ctxt.index).bits() / l_encoding.bits();
-            <span class="kw">let </span>right_length = right.get_size(ctxt.index).bits() / r_encoding.bits();
+            <span class="kw">let </span>left_length = left.get_size_in_bits(ctxt.index).unwrap() / l_encoding.bits();
+            <span class="kw">let </span>right_length = right.get_size_in_bits(ctxt.index).unwrap() / r_encoding.bits();
             <span class="kw">let </span><span class="kw-2">mut </span>sub_diagnostics = <span class="macro">vec!</span>[];
             (left_length != right_length).then(|| {
                 sub_diagnostics.push(

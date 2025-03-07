@@ -518,7 +518,9 @@
 <a href="#517" id="517">517</a>
 <a href="#518" id="518">518</a>
 <a href="#519" id="519">519</a>
-<a href="#520" id="520">520</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
     ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Pou, PouType, Variable,
     VariableBlock, VariableBlockType,
 };
@@ -788,16 +790,18 @@
                 .find_member(parent_pou.get_name(), variable.name.as_str())
                 .filter(|v| !v.is_temp())
             {
-                validator.push_diagnostic(
-                    Diagnostic::new(<span class="macro">format!</span>(
-                        <span class="string">"Variable `{}` is already declared in parent POU `{}`"</span>,
-                        variable.get_name(),
-                        shadowed_variable.get_qualifier().unwrap_or_default()
-                    ))
-                    .with_error_code(<span class="string">"E021"</span>)
-                    .with_location(<span class="kw-2">&amp;</span>variable.location)
-                    .with_secondary_location(<span class="kw-2">&amp;</span>shadowed_variable.source_location),
-                );
+                (!variable.location.is_internal()).then(|| {
+                    validator.push_diagnostic(
+                        Diagnostic::new(<span class="macro">format!</span>(
+                            <span class="string">"Variable `{}` is already declared in parent POU `{}`"</span>,
+                            variable.get_name(),
+                            shadowed_variable.get_qualifier().unwrap_or_default()
+                        ))
+                        .with_error_code(<span class="string">"E021"</span>)
+                        .with_location(<span class="kw-2">&amp;</span>variable.location)
+                        .with_secondary_location(<span class="kw-2">&amp;</span>shadowed_variable.source_location),
+                    )
+                });
                 <span class="kw">break</span>;
             }
 

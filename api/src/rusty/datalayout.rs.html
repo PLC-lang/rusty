@@ -227,7 +227,7 @@
 }
 
 <span class="doccomment">/// An representation of a Byte unit, used to represent sizes, and alignments
-</span><span class="attr">#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd)]
+</span><span class="attr">#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Default)]
 </span><span class="kw">pub struct </span>Bytes(u32);
 
 <span class="kw">impl </span>Add <span class="kw">for </span>Bytes {
@@ -378,7 +378,7 @@
 
         <span class="kw">let </span>struct_type = index.get_effective_type_by_name(<span class="string">"MyStruct"</span>).unwrap().get_type_information();
         <span class="comment">// And the struct size takes the alignment into account
-        </span><span class="macro">assert_eq!</span>(struct_type.get_size(<span class="kw-2">&amp;</span>index).bits(), <span class="number">192</span>);
+        </span><span class="macro">assert_eq!</span>(struct_type.get_size(<span class="kw-2">&amp;</span>index).unwrap().bits(), <span class="number">192</span>);
         <span class="macro">assert_eq!</span>(struct_type.get_alignment(<span class="kw-2">&amp;</span>index), Bytes::new(<span class="number">8</span>)) <span class="comment">//Struct alignment is 64 by default
     </span>}
 }
