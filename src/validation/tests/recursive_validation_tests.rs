@@ -790,4 +790,31 @@ mod inheritance {
            │                  see also
         "###);
     }
+
+    #[test]
+    fn cyclic_interface_inheritance() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            INTERFACE foo EXTENDS bar
+            END_INTERFACE
+
+            INTERFACE bar EXTENDS foo
+            END_INTERFACE
+            ",
+        );
+
+        assert_snapshot!(diagnostics, @r"
+        error[E029]: Recursive inheritance `foo -> bar -> foo` has infinite size
+          ┌─ <internal>:2:23
+          │
+        2 │             INTERFACE foo EXTENDS bar
+          │                       ^^^
+          │                       │
+          │                       Recursive inheritance `foo -> bar -> foo` has infinite size
+          │                       see also
+          ·
+        5 │             INTERFACE bar EXTENDS foo
+          │                       --- see also
+        ");
+    }
 }

@@ -13,6 +13,7 @@ fn empty_interface() {
     insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
+            id: 1,
             name: "myInterface",
             methods: [],
             location: SourceLocation {
@@ -41,6 +42,7 @@ fn empty_interface() {
                     },
                 ),
             },
+            extensions: [],
         },
     ]
     "###);
@@ -65,6 +67,7 @@ fn interface_with_single_method() {
     insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
+            id: 2,
             name: "myInterface",
             methods: [
                 POU {
@@ -93,6 +96,7 @@ fn interface_with_single_method() {
                     pou_type: Method {
                         parent: "myInterface",
                         property: None,
+                        kind: Abstract,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -128,6 +132,7 @@ fn interface_with_single_method() {
                     },
                 ),
             },
+            extensions: [],
         },
     ]
     "#);
@@ -162,6 +167,7 @@ fn interface_with_multiple_methods() {
     insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
+            id: 3,
             name: "myInterface",
             methods: [
                 POU {
@@ -190,6 +196,7 @@ fn interface_with_multiple_methods() {
                     pou_type: Method {
                         parent: "myInterface",
                         property: None,
+                        kind: Abstract,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -229,6 +236,7 @@ fn interface_with_multiple_methods() {
                     pou_type: Method {
                         parent: "myInterface",
                         property: None,
+                        kind: Abstract,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -264,6 +272,7 @@ fn interface_with_multiple_methods() {
                     },
                 ),
             },
+            extensions: [],
         },
     ]
     "#);
@@ -375,6 +384,312 @@ fn pou_implementing_multiple_interfaces() {
     "###);
 }
 
+#[test]
+fn interface_deriving_from_other_interface() {
+    let source = r#"
+        INTERFACE foo
+        METHOD baz
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE bar EXTENDS foo
+        METHOD qux
+        END_METHOD
+        END_INTERFACE
+    "#;
+
+    let (unit, diagnostics) = parse(source);
+
+    assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    [
+        Interface {
+            id: 2,
+            name: "foo",
+            methods: [
+                POU {
+                    name: "foo.baz",
+                    variable_blocks: [],
+                    pou_type: Method {
+                        parent: "foo",
+                        property: None,
+                        kind: Abstract,
+                    },
+                    return_type: None,
+                    interfaces: [],
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 8,
+                        offset: 9,
+                    }..TextLocation {
+                        line: 6,
+                        column: 8,
+                        offset: 92,
+                    },
+                ),
+            },
+            location_name: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 18,
+                        offset: 19,
+                    }..TextLocation {
+                        line: 1,
+                        column: 21,
+                        offset: 22,
+                    },
+                ),
+            },
+            extensions: [],
+        },
+        Interface {
+            id: 4,
+            name: "bar",
+            methods: [
+                POU {
+                    name: "bar.qux",
+                    variable_blocks: [],
+                    pou_type: Method {
+                        parent: "bar",
+                        property: None,
+                        kind: Abstract,
+                    },
+                    return_type: None,
+                    interfaces: [],
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 8,
+                        offset: 92,
+                    }..TextLocation {
+                        line: 10,
+                        column: 4,
+                        offset: 182,
+                    },
+                ),
+            },
+            location_name: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 18,
+                        offset: 102,
+                    }..TextLocation {
+                        line: 6,
+                        column: 21,
+                        offset: 105,
+                    },
+                ),
+            },
+            extensions: [
+                Identifier {
+                    name: "foo",
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 6,
+                                column: 30,
+                                offset: 114,
+                            }..TextLocation {
+                                line: 6,
+                                column: 33,
+                                offset: 117,
+                            },
+                        ),
+                    },
+                },
+            ],
+        },
+    ]
+    "#);
+}
+
+#[test]
+fn interface_deriving_from_multiple_interfaces() {
+    let source = r#"
+    INTERFACE foo
+    METHOD baz
+    END_METHOD
+    END_INTERFACE
+
+    INTERFACE bar
+    METHOD qux
+    END_METHOD
+    END_INTERFACE
+
+    INTERFACE quux EXTENDS foo, bar
+    END_INTERFACE
+    "#;
+
+    let (unit, diagnostics) = parse(source);
+
+    assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    [
+        Interface {
+            id: 2,
+            name: "foo",
+            methods: [
+                POU {
+                    name: "foo.baz",
+                    variable_blocks: [],
+                    pou_type: Method {
+                        parent: "foo",
+                        property: None,
+                        kind: Abstract,
+                    },
+                    return_type: None,
+                    interfaces: [],
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 4,
+                        offset: 5,
+                    }..TextLocation {
+                        line: 6,
+                        column: 4,
+                        offset: 72,
+                    },
+                ),
+            },
+            location_name: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 14,
+                        offset: 15,
+                    }..TextLocation {
+                        line: 1,
+                        column: 17,
+                        offset: 18,
+                    },
+                ),
+            },
+            extensions: [],
+        },
+        Interface {
+            id: 4,
+            name: "bar",
+            methods: [
+                POU {
+                    name: "bar.qux",
+                    variable_blocks: [],
+                    pou_type: Method {
+                        parent: "bar",
+                        property: None,
+                        kind: Abstract,
+                    },
+                    return_type: None,
+                    interfaces: [],
+                },
+            ],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 4,
+                        offset: 72,
+                    }..TextLocation {
+                        line: 11,
+                        column: 4,
+                        offset: 139,
+                    },
+                ),
+            },
+            location_name: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 6,
+                        column: 14,
+                        offset: 82,
+                    }..TextLocation {
+                        line: 6,
+                        column: 17,
+                        offset: 85,
+                    },
+                ),
+            },
+            extensions: [],
+        },
+        Interface {
+            id: 5,
+            name: "quux",
+            methods: [],
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 11,
+                        column: 4,
+                        offset: 139,
+                    }..TextLocation {
+                        line: 13,
+                        column: 4,
+                        offset: 193,
+                    },
+                ),
+            },
+            location_name: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 11,
+                        column: 14,
+                        offset: 149,
+                    }..TextLocation {
+                        line: 11,
+                        column: 18,
+                        offset: 153,
+                    },
+                ),
+            },
+            extensions: [
+                Identifier {
+                    name: "foo",
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 11,
+                                column: 27,
+                                offset: 162,
+                            }..TextLocation {
+                                line: 11,
+                                column: 30,
+                                offset: 165,
+                            },
+                        ),
+                    },
+                },
+                Identifier {
+                    name: "bar",
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 11,
+                                column: 32,
+                                offset: 167,
+                            }..TextLocation {
+                                line: 11,
+                                column: 35,
+                                offset: 170,
+                            },
+                        ),
+                    },
+                },
+            ],
+        },
+    ]
+    "#);
+}
 mod error_handling {
     use crate::test_utils::tests::{parse, parse_and_validate_buffered};
 
