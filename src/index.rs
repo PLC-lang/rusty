@@ -444,7 +444,7 @@ impl ImplementationIndexEntry {
         self.get_location().is_in_unit(unit)
     }
 
-    pub(crate) fn is_init(&self) -> bool {
+    pub fn is_init(&self) -> bool {
         matches!(self.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
     }
 
@@ -481,6 +481,13 @@ impl ImplementationType {
 
     pub(crate) fn is_project_init(&self) -> bool {
         matches!(self, ImplementationType::ProjectInit)
+    }
+
+    pub fn has_self_parameter(&self) -> bool {
+        !matches!(
+            self,
+            ImplementationType::Function | ImplementationType::ProjectInit | ImplementationType::Class
+        )
     }
 }
 
@@ -766,13 +773,13 @@ impl PouIndexEntry {
         }
     }
 
-    pub fn get_parent_pou_name(&self) -> &str {
+    pub fn get_parent_pou_name(&self) -> Option<&str> {
         match self {
             PouIndexEntry::Method { parent_pou_name, .. } | PouIndexEntry::Action { parent_pou_name, .. } => {
-                parent_pou_name.as_str()
+                Some(parent_pou_name.as_str())
             }
 
-            _ => unreachable!("invalid function call, only methods and actions have a parent POU"),
+            _ => None,
         }
     }
 
@@ -1925,7 +1932,7 @@ impl Index {
                 .get_pous()
                 .values()
                 .filter(|it| it.is_method())
-                .filter(|it| it.get_parent_pou_name() == container)
+                .filter(|it| it.get_parent_pou_name().is_some_and(|it| it == container))
                 .filter(|it| {
                     !current_methods
                         .iter()

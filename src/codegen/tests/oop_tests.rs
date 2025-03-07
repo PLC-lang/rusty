@@ -1,5 +1,7 @@
 use test_utils::codegen;
 
+mod debug_tests;
+
 #[test]
 fn members_from_base_class_are_available_in_subclasses() {
     let result = codegen(
@@ -11,7 +13,7 @@ fn members_from_base_class_are_available_in_subclasses() {
             c : ARRAY[0..10] OF STRING;
         END_VAR
         END_FUNCTION_BLOCK
-      
+
         FUNCTION_BLOCK bar EXTENDS foo
         END_FUNCTION_BLOCK
         "#,
@@ -78,9 +80,9 @@ fn write_to_parent_variable_qualified_access() {
 
         FUNCTION_BLOCK fb2 EXTENDS fb
         END_FUNCTION_BLOCK
-        
+
         FUNCTION_BLOCK foo
-        VAR 
+        VAR
             myFb : fb2;
         END_VAR
             myFb.x := 1;
@@ -162,7 +164,7 @@ fn write_to_parent_variable_in_instance() {
     let result = codegen(
         r#"
         FUNCTION_BLOCK foo
-        VAR 
+        VAR
             s : STRING;
         END_VAR
         METHOD baz
@@ -170,12 +172,12 @@ fn write_to_parent_variable_in_instance() {
         END_METHOD
         END_FUNCTION_BLOCK
 
-        FUNCTION_BLOCK bar EXTENDS foo 
+        FUNCTION_BLOCK bar EXTENDS foo
             s := 'world';
         END_FUNCTION_BLOCK
 
         FUNCTION main
-        VAR 
+        VAR
             s: STRING;
             fb: bar;
         END_VAR
