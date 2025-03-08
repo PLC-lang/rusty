@@ -73,14 +73,12 @@
 //! left hand side of an assignment however, the node as a whole will instead be lowered into a
 //! `__set_<property name>(<complete right hand side>)` call instead.
 
-use std::collections::HashMap;
-
 use helper::{create_internal_assignment, patch_prefix_to_name};
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, Implementation,
-        LinkageType, Pou, PouType, Property, PropertyKind, ReferenceAccess, ReferenceExpr, Variable,
-        VariableBlock, VariableBlockType,
+        LinkageType, Pou, PouType, PropertyKind, ReferenceAccess, ReferenceExpr, Variable, VariableBlock,
+        VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -111,19 +109,7 @@ impl PropertyLowerer {
     /// Lowers [`CompilationUnit::properties`] into [`CompilationUnit::units`] and
     /// [`CompilationUnit::implementations`]
     pub fn lower_properties_to_pous(&mut self, unit: &mut CompilationUnit) {
-        // Properties are internally represented as a variable, hence we keep track of all encountered
-        // properties and their respective parent POUs to later patch these variables into a `VAR_PROPERTY`
-        // block
-        let mut parents: HashMap<String, Vec<Property>> = HashMap::new();
-
         for property in &mut unit.properties.drain(..) {
-            match parents.get_mut(&property.parent_name) {
-                Some(values) => values.push(property.clone()),
-                None => {
-                    parents.insert(property.parent_name.clone(), vec![property.clone()]);
-                }
-            }
-
             for property_impl in property.implementations {
                 let name = format!(
                     "{parent}.__{kind}_{name}",
@@ -171,6 +157,22 @@ impl PropertyLowerer {
                         let name_lhs = format!("__{}_{}", property_impl.kind, property.name);
                         let name_rhs = &property.name;
 
+                        pou.variable_blocks.push(VariableBlock {
+                            access: AccessModifier::Public,
+                            constant: false,
+                            retain: false,
+                            variables: vec![Variable {
+                                name: name_rhs.clone(),
+                                data_type_declaration: property.datatype.clone(),
+                                initializer: None,
+                                address: None,
+                                location: SourceLocation::internal(),
+                            }],
+                            variable_block_type: VariableBlockType::Local,
+                            linkage: LinkageType::Internal,
+                            location: SourceLocation::internal(),
+                        });
+
                         implementation.statements.push(create_internal_assignment(
                             &mut self.id_provider,
                             name_lhs,
@@ -183,7 +185,7 @@ impl PropertyLowerer {
                     //    `__in : <property_type>`
                     // 2. Prepend a `<property_name> := __in` assignment to the implementation
                     PropertyKind::Set => {
-                        let parameter_name = "__in";
+                        let parameter_name = format!("{}", property.name);
 
                         pou.variable_blocks.push(VariableBlock {
                             access: AccessModifier::Public,
@@ -201,37 +203,11 @@ impl PropertyLowerer {
                             location: SourceLocation::internal(),
                         });
                         pou.return_type = None;
-
-                        let name_lhs = &property.name;
-                        let name_rhs = parameter_name;
-
-                        implementation
-                            .statements
-                            .insert(0, create_internal_assignment(&mut self.id_provider, name_lhs, name_rhs));
                     }
                 };
 
                 unit.units.push(pou);
                 unit.implementations.push(implementation);
-            }
-        }
-
-        // Iterate over all POUs, check if they have one or more properties defined and if so, add a
-        // variable block of type `Property` consisting of all the properties.
-        for pou in &mut unit.units {
-            if let Some(properties) = parents.get(&pou.name) {
-                let mut variables = Vec::new();
-                for property in properties {
-                    variables.push(Variable {
-                        name: property.name.clone(),
-                        data_type_declaration: property.datatype.clone(),
-                        initializer: None,
-                        address: None,
-                        location: property.name_location.clone(),
-                    });
-                }
-
-                pou.variable_blocks.push(VariableBlock::property(variables));
             }
         }
     }
@@ -309,7 +285,7 @@ impl AstVisitorMut for PropertyLowerer {
             _ => (),
         };
 
-        // ...and otherwise check the node as a whole
+        // check the node as a whole
         if let Some(annotation) = self.annotations.as_ref().unwrap().get(node) {
             if !annotation.is_property() {
                 return;
@@ -385,9 +361,11 @@ mod helper {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_debug_snapshot;
     use plc_ast::{
-        ast::{CompilationUnit, LinkageType},
+        ast::{Assignment, AstNode, CallStatement, CompilationUnit, LinkageType},
         provider::IdProvider,
+        try_from,
     };
     use plc_source::source_location::SourceLocationFactory;
 
@@ -395,12 +373,12 @@ mod tests {
         lexer::lex_with_ids,
         lowering::property::PropertyLowerer,
         parser::parse,
-        resolver::AstAnnotations,
+        resolver::{AnnotationMap, AstAnnotations},
         test_utils::tests::{annotate_with_ids, index_unit_with_id},
     };
 
     // Parse -> Lower -> Index -> Annotate -> Lower -> Snapshot
-    fn lower(source: &str) -> CompilationUnit {
+    fn lower(source: &str) -> (CompilationUnit, AstAnnotations) {
         let mut id_provider = IdProvider::default();
         let mut lowerer = PropertyLowerer::new(id_provider.clone());
 
@@ -428,7 +406,245 @@ mod tests {
         lowerer.annotations = Some(annotations);
         lowerer.lower_references_to_calls(&mut unit);
 
-        unit
+        (unit, lowerer.annotations.unwrap())
+    }
+
+    #[test]
+    fn properties_are_transformed_to_methods() {
+        let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET
+                    END_GET
+
+                    SET
+                    END_SET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+            ";
+        let (unit, _) = lower(source);
+
+        insta::assert_debug_snapshot!(unit.units[1], @r#"
+        POU {
+            name: "fb.__get_foo",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "foo",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+            ],
+            pou_type: Method {
+                parent: "fb",
+                property: Some(
+                    "fb.foo",
+                ),
+            },
+            return_type: Some(
+                DataTypeReference {
+                    referenced_type: "DINT",
+                },
+            ),
+            interfaces: [],
+        }
+        "#);
+        insta::assert_debug_snapshot!(unit.units[2], @r#"
+        POU {
+            name: "fb.__set_foo",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "foo",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Input(
+                        ByVal,
+                    ),
+                },
+            ],
+            pou_type: Method {
+                parent: "fb",
+                property: Some(
+                    "fb.foo",
+                ),
+            },
+            return_type: None,
+            interfaces: [],
+        }
+        "#);
+    }
+
+    #[test]
+    fn property_assignments_resolved_and_annotated_correctly() {
+        let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET
+                    END_GET
+
+                    SET
+                    END_SET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    fbInstance : fb;
+                    local: DINT;
+                END_VAR
+
+                // fbInstance.foo := 5;
+                local := fbInstance.foo;
+            END_FUNCTION
+            ";
+
+        let (unit, annotations) = lower(source);
+        let Assignment { left, .. } = try_from!(unit.implementations[1].statements[0], Assignment).unwrap();
+        let Assignment { right, .. } = try_from!(unit.implementations[1].statements[1], Assignment).unwrap();
+
+        let set_annotation = annotations.get(&left).unwrap();
+        let get_annotation = annotations.get(&right).unwrap();
+
+        assert_debug_snapshot!(set_annotation, @r#"
+        Property {
+            name: "fb.__set_foo",
+        }
+        "#);
+        assert_debug_snapshot!(get_annotation, @r#"
+        Property {
+            name: "fb.__get_foo",
+        }
+        "#);
+    }
+
+    #[test]
+    fn property_as_argument_resolved_and_annotated_correctly() {
+        let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET
+                    END_GET
+
+                    SET
+                    END_SET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION qux : DINT
+                VAR_INPUT
+                    in : DINT;
+                END_VAR
+            END_FUNCTION            
+
+            FUNCTION main
+                VAR
+                    fbInstance : fb;
+                    local: DINT;
+                END_VAR
+                local := qux(fbInstance.foo);
+                local := qux(in := fbInstance.foo);
+            END_FUNCTION
+            ";
+
+        let (unit, annotations) = lower(source);
+        let Assignment { right, .. } = try_from!(unit.implementations[2].statements[0], Assignment).unwrap();
+        let CallStatement { parameters, .. } = try_from!(right, CallStatement).unwrap();
+        let param = &parameters.as_ref().unwrap();
+        let get_annotation = annotations.get(&param).unwrap();
+        assert_debug_snapshot!(get_annotation, @r#"
+        Property {
+            name: "fb.__get_foo",
+        }
+        "#);
+
+        let Assignment { right, .. } = try_from!(unit.implementations[2].statements[1], Assignment).unwrap();
+        let CallStatement { parameters, .. } = try_from!(right, CallStatement).unwrap();
+        let Assignment { right, .. } = try_from!(parameters.as_ref().unwrap(), Assignment).unwrap();
+        let get_annotation = annotations.get(&right).unwrap();
+        assert_debug_snapshot!(get_annotation, @r#"
+        Property {
+            name: "fb.__get_foo",
+        }
+        "#);
+    }
+
+    #[test]
+    fn property_as_ref_argument_resolved_and_annotated_correctly() {
+        let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET
+                    END_GET
+
+                    SET
+                    END_SET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION qux : DINT
+                VAR_IN_OUT
+                    inout : DINT;
+                END_VAR
+                VAR_OUTPUT
+                    out : DINT;
+                END_VAR
+            END_FUNCTION            
+
+            FUNCTION main
+                VAR
+                    fbInstance : fb;
+                    local: DINT;
+                END_VAR
+                local := qux(fbInstance.foo, fbInstance.foo);
+                local := qux(inout := fbInstance.foo, out := fbInstance.foo);
+            END_FUNCTION
+            ";
+
+        let (unit, annotations) = lower(source);
+        let Assignment { right, .. } = try_from!(unit.implementations[2].statements[0], Assignment).unwrap();
+        let CallStatement { parameters, .. } = try_from!(right, CallStatement).unwrap();
+        let parameters = try_from!(parameters.as_ref().unwrap(), Vec<AstNode>).unwrap();
+        let get_annotation = annotations.get(&parameters[0]).unwrap();
+        assert_debug_snapshot!(get_annotation, @r#"
+        Property {
+            name: "fb.__get_foo",
+        }
+        "#);
+        let get_annotation = annotations.get(&parameters[1]).unwrap();
+        assert_debug_snapshot!(get_annotation, @r#"
+        Property {
+            name: "fb.__get_foo",
+        }
+        "#);
+
+        let Assignment { right, .. } = try_from!(unit.implementations[2].statements[1], Assignment).unwrap();
+        let CallStatement { parameters, .. } = try_from!(right, CallStatement).unwrap();
+        let parameters = try_from!(parameters.as_ref().unwrap(), Vec<AstNode>).unwrap();
+        dbg!(&parameters);
+        let Assignment { right, .. } = try_from!(&parameters[0], Assignment).unwrap();
+        let get_annotation = annotations.get(&right).unwrap();
+        assert_debug_snapshot!(get_annotation, @r#"
+        Property {
+            name: "fb.__get_foo",
+        }
+        "#);
+        let Assignment { right, .. } = try_from!(&parameters[1], Assignment).unwrap();
+        let get_annotation = annotations.get(&right).unwrap();
+        assert_debug_snapshot!(get_annotation, @r#"
+        Property {
+            name: "fb.__get_foo",
+        }
+        "#);
     }
 
     #[test]
@@ -457,7 +673,7 @@ mod tests {
         END_FUNCTION_BLOCK
         ";
 
-        let unit = lower(source);
+        let (unit, _) = lower(source);
         insta::assert_debug_snapshot!(unit.implementations, @r#"
         [
             Implementation {
@@ -845,7 +1061,7 @@ mod tests {
         END_FUNCTION_BLOCK
         ";
 
-        let unit = lower(source);
+        let (unit, _) = lower(source);
         insta::assert_debug_snapshot!(unit.implementations, @r#"
         [
             Implementation {
@@ -1110,7 +1326,7 @@ mod tests {
         END_FUNCTION_BLOCK
     ";
 
-        let unit = lower(source);
+        let (unit, _) = lower(source);
         insta::assert_debug_snapshot!(unit.units[1], @r#"
         POU {
             name: "fb.__get_foo",
@@ -1351,7 +1567,7 @@ mod tests {
         ";
 
         // fbInstance.__get_foo()[1]
-        let unit = lower(source);
+        let (unit, _) = lower(source);
         insta::assert_debug_snapshot!(unit.implementations[2].statements[0], @r###"
         ReferenceExpr {
             kind: Index(
@@ -1476,7 +1692,7 @@ mod tests {
         ";
 
         // fbInstance.__get_foo()[1]
-        let unit = lower(source);
+        let (unit, _) = lower(source);
         insta::assert_debug_snapshot!(unit.implementations[1].statements[0], @r###"
         CallStatement {
             operator: ReferenceExpr {
