@@ -13,6 +13,9 @@ expression: diagnostics
                 ),
                 inner_range: None,
             },
+            file: Some(
+                "<internal>",
+            ),
         },
         secondary_locations: None,
         error_code: "E081",

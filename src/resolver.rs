@@ -204,13 +204,7 @@ impl TypeAnnotator<'_> {
                 }
             }
             StatementAnnotation::Value { resulting_type } => {
-                if let Some(dt) = self
-                    .index
-                    .find_type(resulting_type)
-                    .or_else(|| self.annotation_map.new_index.find_type(resulting_type))
-                {
-                    self.dependencies.insert(Dependency::Datatype(dt.get_name().to_string()));
-                }
+                self.dependencies.insert(Dependency::Datatype(resulting_type.to_string()));
             }
             _ => (),
         };
@@ -640,7 +634,6 @@ impl From<&PouIndexEntry> for StatementAnnotation {
 }
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
-//TODO: Maybe refactor to struct
 pub enum Dependency {
     Datatype(String),
     Call(String),
@@ -650,7 +643,7 @@ pub enum Dependency {
 impl Dependency {
     pub fn get_name(&self) -> &str {
         match self {
-            Dependency::Datatype(name) | Dependency::Call(name) | Dependency::Variable(name) => name.as_str(),
+            Dependency::Datatype(name) | Dependency::Call(name) | Dependency::Variable(name) => name,
         }
     }
 }
@@ -963,7 +956,11 @@ impl<'i> TypeAnnotator<'i> {
 
         // enum initializers may have been introduced by the visitor (indexer)
         // so we should try to resolve and type-annotate them here as well
-        for enum_element in index.get_all_enum_variants().iter().filter(|it| it.is_in_unit(&unit.file_name)) {
+        for enum_element in index
+            .get_all_enum_variants()
+            .iter()
+            .filter(|it| it.is_in_unit(unit.file.get_name().unwrap_or_default()))
+        {
             //Add to dependency map
             visitor.dependencies.insert(Dependency::Variable(enum_element.get_qualified_name().to_string()));
             if let Some((Some(statement), scope)) =

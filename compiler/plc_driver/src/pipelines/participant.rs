@@ -209,19 +209,19 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
 }
 
 pub struct InitParticipant {
-    symbol_name: String,
+    symbol_name: &'static str,
     id_provider: IdProvider,
 }
 
 impl InitParticipant {
-    pub fn new(symbol_name: &str, id_provider: IdProvider) -> Self {
-        Self { symbol_name: symbol_name.into(), id_provider }
+    pub fn new(symbol_name: &'static str, id_provider: IdProvider) -> Self {
+        Self { symbol_name, id_provider }
     }
 }
 
 impl PipelineParticipantMut for InitParticipant {
     fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        indexed_project.extend_with_init_units(&self.symbol_name, self.id_provider.clone())
+        indexed_project.extend_with_init_units(self.symbol_name, self.id_provider.clone())
     }
 }
 

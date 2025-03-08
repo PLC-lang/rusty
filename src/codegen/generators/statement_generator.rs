@@ -357,7 +357,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     fn register_debug_location(&self, statement: &AstNode) {
         let line = statement.get_location().get_line_plus_one();
         let column = statement.get_location().get_column();
-        self.debug.set_debug_location(self.llvm, &self.function_context.function, line, column);
+        self.debug.set_debug_location(self.llvm, self.function_context, line, column);
     }
 
     fn generate_assignment_statement_direct_access(

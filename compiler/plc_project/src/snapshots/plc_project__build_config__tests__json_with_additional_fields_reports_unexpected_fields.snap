@@ -2,4 +2,4 @@
 source: compiler/plc_project/src/build_config.rs
 expression: diag.to_string()
 ---
-unknown field `additional_field`, expected one of `name`, `files`, `compile_type`, `output`, `libraries`, `package_commands`, `version`, `format-version`, `format_version`  at: :9:27:{9:27-9:215}: 
+unknown field `additional_field`, expected one of `name`, `files`, `compile_type`, `output`, `libraries`, `package_commands`, `version`, `format-version`, `format_version`  at: <internal>:9:27:{9:27-9:215}:

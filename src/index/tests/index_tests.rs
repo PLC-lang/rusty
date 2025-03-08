@@ -1754,6 +1754,9 @@ fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
                             offset: 53,
                         },
                     ),
+                    file: Some(
+                        "<internal>",
+                    ),
                 },
             },
         ),
@@ -1768,6 +1771,9 @@ fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
                     column: 15,
                     offset: 39,
                 },
+            ),
+            file: Some(
+                "<internal>",
             ),
         },
         varargs: None,
@@ -1814,6 +1820,9 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
                     offset: 53,
                 },
             ),
+            file: Some(
+                "<internal>",
+            ),
         },
         varargs: None,
     }
@@ -1843,6 +1852,9 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
                         column: 36,
                         offset: 60,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
         },
@@ -1919,6 +1931,9 @@ fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
                         offset: 60,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
         },
     )
@@ -1965,6 +1980,9 @@ fn address_used_in_2_aliases_only_created_once() {
                         column: 29,
                         offset: 53,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,
@@ -2016,6 +2034,9 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
                         offset: 53,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -2047,6 +2068,9 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
                         column: 30,
                         offset: 130,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,
@@ -2096,6 +2120,9 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
                         offset: 53,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -2140,6 +2167,9 @@ fn var_config_hardware_address_creates_global_variable() {
                     column: 37,
                     offset: 61,
                 },
+            ),
+            file: Some(
+                "<internal>",
             ),
         },
         varargs: None,

@@ -120,7 +120,8 @@ impl GlobalContext {
     fn handle_inner(&self, diagnostic: &Diagnostic) -> String {
         // NOTE: We need to properly error handle these unwraps, for now they should never panic because we
         //       (assume) we always have a valid file name and location
-        let name = diagnostic.get_location().get_file_name().unwrap_or("<internal>");
+        let location = diagnostic.get_location();
+        let name = location.get_file_name().unwrap_or("<internal>");
         let Some(code) = &self.sources.get(name) else { return String::new() };
         let Some(location) = &diagnostic.get_location().get_span().to_range() else { return String::new() };
         let secondary_locations = diagnostic

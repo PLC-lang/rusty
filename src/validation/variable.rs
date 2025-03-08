@@ -268,16 +268,18 @@ fn validate_variable<T: AnnotationMap>(
                 .find_member(parent_pou.get_name(), variable.name.as_str())
                 .filter(|v| !v.is_temp())
             {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Variable `{}` is already declared in parent POU `{}`",
-                        variable.get_name(),
-                        shadowed_variable.get_qualifier().unwrap_or_default()
-                    ))
-                    .with_error_code("E021")
-                    .with_location(&variable.location)
-                    .with_secondary_location(&shadowed_variable.source_location),
-                );
+                (!variable.location.is_internal()).then(|| {
+                    validator.push_diagnostic(
+                        Diagnostic::new(format!(
+                            "Variable `{}` is already declared in parent POU `{}`",
+                            variable.get_name(),
+                            shadowed_variable.get_qualifier().unwrap_or_default()
+                        ))
+                        .with_error_code("E021")
+                        .with_location(&variable.location)
+                        .with_secondary_location(&shadowed_variable.source_location),
+                    )
+                });
                 break;
             }
 

@@ -1,6 +1,6 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-expression: "index.filter_instances(|it, _|\n            !it.is_constant()).collect::<Vec<Instance<'_>>>()"
+expression: "index.filter_instances(|it, _|\n!it.is_constant()).collect::<Vec<Instance<'_>>>()"
 ---
 [
     (
@@ -41,6 +41,9 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
                         offset: 196,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -77,6 +80,9 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
                         column: 20,
                         offset: 106,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,
@@ -117,6 +123,9 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
                         column: 11,
                         offset: 126,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,
@@ -161,6 +170,9 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
                         offset: 40,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -203,6 +215,9 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
                         column: 11,
                         offset: 42,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,

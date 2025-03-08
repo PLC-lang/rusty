@@ -1,7 +1,6 @@
 ---
 source: src/lowering/calls.rs
 expression: "units[0].0.implementations[1]"
-snapshot_kind: text
 ---
 Implementation {
     name: "MID",
@@ -21,6 +20,9 @@ Implementation {
                 offset: 201,
             },
         ),
+        file: Some(
+            "<internal>",
+        ),
     },
     name_location: SourceLocation {
         span: Range(
@@ -33,6 +35,9 @@ Implementation {
                 column: 20,
                 offset: 127,
             },
+        ),
+        file: Some(
+            "<internal>",
         ),
     },
     overriding: false,

@@ -391,12 +391,12 @@ pub struct CompilationUnit {
     pub implementations: Vec<Implementation>,
     pub interfaces: Vec<Interface>,
     pub user_types: Vec<UserTypeDeclaration>,
-    pub file_name: String,
+    pub file: FileMarker,
     pub properties: Vec<Property>,
 }
 
 impl CompilationUnit {
-    pub fn new(file_name: &str) -> Self {
+    pub fn new(file_name: &'static str) -> Self {
         CompilationUnit {
             global_vars: Vec::new(),
             var_config: Vec::new(),
@@ -404,7 +404,7 @@ impl CompilationUnit {
             implementations: Vec::new(),
             interfaces: Vec::new(),
             user_types: Vec::new(),
-            file_name: file_name.to_string(),
+            file: FileMarker::File(file_name),
             properties: Vec::new(),
         }
     }

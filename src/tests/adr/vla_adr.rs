@@ -92,6 +92,9 @@ fn representation() {
                     offset: 95,
                 },
             ),
+            file: Some(
+                "<internal>",
+            ),
         },
     }
     "###);
@@ -119,6 +122,9 @@ fn representation() {
                     column: 38,
                     offset: 95,
                 },
+            ),
+            file: Some(
+                "<internal>",
             ),
         },
     }
@@ -185,6 +191,9 @@ fn representation() {
                     column: 38,
                     offset: 95,
                 },
+            ),
+            file: Some(
+                "<internal>",
             ),
         },
     }
@@ -270,6 +279,9 @@ fn pass() {
                     column: 43,
                     offset: 89,
                 },
+            ),
+            file: Some(
+                "<internal>",
             ),
         },
     }

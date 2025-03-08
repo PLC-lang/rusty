@@ -12,7 +12,7 @@ fn aliased_address_in_global_generated() {
         ",
     );
 
-    assert_snapshot!(res, @r###"
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -30,7 +30,7 @@ fn aliased_address_in_global_generated() {
       store i8* @__PI_1_2_3_4, i8** @foo, align 8
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -44,7 +44,7 @@ fn duplicate_aliased_address_in_global_generated() {
         ",
     );
 
-    assert_snapshot!(res, @r###"
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -65,7 +65,7 @@ fn duplicate_aliased_address_in_global_generated() {
       store i8* @__PI_1_2_3_4, i8** @baz, align 8
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -84,7 +84,7 @@ fn address_variable_used_with_symbolic_name() {
         ",
     );
 
-    assert_snapshot!(res, @r###"
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -140,7 +140,7 @@ fn address_variable_used_with_symbolic_name() {
     declare void @__init_mainprog(%mainProg*)
 
     declare void @mainProg(%mainProg*)
-    "###);
+    "#);
 }
 
 #[test]
@@ -160,7 +160,7 @@ fn address_used_in_body() {
         ",
     );
 
-    assert_snapshot!(res, @r###"
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -218,5 +218,5 @@ fn address_used_in_body() {
     declare void @__init_mainprog(%mainProg*)
 
     declare void @mainProg(%mainProg*)
-    "###);
+    "#);
 }

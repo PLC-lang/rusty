@@ -43,7 +43,7 @@
                 }
             },
             "program": "target/debug/plc",
-            "args": ["target/demo.st"],
+            "args": ["target/demo.st", "-g", "-c"],
             "cwd": "${workspaceFolder}",
             "env": {
                 "RUST_LOG": "rusty"

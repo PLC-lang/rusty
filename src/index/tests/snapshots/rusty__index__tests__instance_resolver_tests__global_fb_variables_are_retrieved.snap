@@ -36,6 +36,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         offset: 112,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -75,6 +78,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         column: 9,
                         offset: 40,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,
@@ -116,6 +122,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         offset: 42,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -152,6 +161,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         column: 20,
                         offset: 151,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,
@@ -193,6 +205,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         offset: 171,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -236,6 +251,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         offset: 40,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -278,6 +296,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         column: 11,
                         offset: 42,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,

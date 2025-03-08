@@ -722,3 +722,72 @@ mod enums {
         assert!(diagnostics.is_empty());
     }
 }
+
+mod inheritance {
+    use insta::assert_snapshot;
+    use test_utils::parse_and_validate_buffered;
+
+    #[test]
+    fn inheritance_cycle() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            FUNCTION_BLOCK foo EXTENDS bar
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK bar EXTENDS foo
+            END_FUNCTION_BLOCK
+            ",
+        );
+
+        assert_snapshot!(diagnostics, @r###"
+        error[E029]: Recursive data structure `foo -> bar -> foo` has infinite size
+          ┌─ <internal>:2:28
+          │
+        2 │             FUNCTION_BLOCK foo EXTENDS bar
+          │                            ^^^
+          │                            │
+          │                            Recursive data structure `foo -> bar -> foo` has infinite size
+          │                            see also
+          ·
+        5 │             FUNCTION_BLOCK bar EXTENDS foo
+          │                            --- see also
+        "###);
+    }
+
+    #[test]
+    fn inheritance_cycle_with_struct_indirection() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            FUNCTION_BLOCK foo
+            VAR
+                x : X;
+            END_VAR
+            END_FUNCTION_BLOCK
+            
+            FUNCTION_BLOCK bar EXTENDS foo
+            END_FUNCTION_BLOCK
+
+            TYPE X : STRUCT
+                fb : bar;
+            END_STRUCT END_TYPE
+            ",
+        );
+
+        assert_snapshot!(diagnostics, @r###"
+        error[E029]: Recursive data structure `X -> bar -> foo -> X` has infinite size
+           ┌─ <internal>:11:18
+           │
+         2 │             FUNCTION_BLOCK foo
+           │                            --- see also
+           ·
+         8 │             FUNCTION_BLOCK bar EXTENDS foo
+           │                            --- see also
+           ·
+        11 │             TYPE X : STRUCT
+           │                  ^
+           │                  │
+           │                  Recursive data structure `X -> bar -> foo -> X` has infinite size
+           │                  see also
+        "###);
+    }
+}

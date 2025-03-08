@@ -442,7 +442,7 @@ impl ImplementationIndexEntry {
         self.get_location().is_in_unit(unit)
     }
 
-    pub(crate) fn is_init(&self) -> bool {
+    pub fn is_init(&self) -> bool {
         matches!(self.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
     }
 
@@ -479,6 +479,13 @@ impl ImplementationType {
 
     pub(crate) fn is_project_init(&self) -> bool {
         matches!(self, ImplementationType::ProjectInit)
+    }
+
+    pub fn has_self_parameter(&self) -> bool {
+        !matches!(
+            self,
+            ImplementationType::Function | ImplementationType::ProjectInit | ImplementationType::Class
+        )
     }
 }
 
@@ -764,13 +771,13 @@ impl PouIndexEntry {
         }
     }
 
-    pub fn get_parent_pou_name(&self) -> &str {
+    pub fn get_parent_pou_name(&self) -> Option<&str> {
         match self {
             PouIndexEntry::Method { parent_pou_name, .. } | PouIndexEntry::Action { parent_pou_name, .. } => {
-                parent_pou_name.as_str()
+                Some(parent_pou_name.as_str())
             }
 
-            _ => unreachable!("invalid function call, only methods and actions have a parent POU"),
+            _ => None,
         }
     }
 
@@ -1278,11 +1285,23 @@ impl Index {
 
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
     pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
+        self.find_member_recursive(container_name, variable_name, &mut FxHashSet::default())
+    }
+
+    fn find_member_recursive<'b>(
+        &'b self,
+        container_name: &str,
+        variable_name: &str,
+        seen: &mut FxHashSet<&'b str>,
+    ) -> Option<&'b VariableIndexEntry> {
         // Find pou in index
         self.find_local_member(container_name, variable_name)
             .or_else(|| {
                 if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                    self.find_member(class, variable_name).filter(|it| !(it.is_temp()))
+                    if !seen.insert(class) {
+                        return None;
+                    }
+                    self.find_member_recursive(class, variable_name, seen).filter(|it| !(it.is_temp()))
                 } else {
                     None
                 }
@@ -1897,20 +1916,21 @@ impl Index {
     /// Returns all methods declared on container, or its parents.
     /// If a method is declared in the container the parent method is not included
     pub fn find_methods(&self, container: &str) -> Vec<&PouIndexEntry> {
-        self.find_method_recursive(container, vec![])
+        self.find_method_recursive(container, vec![], &mut FxHashSet::default())
     }
 
-    fn find_method_recursive<'a>(
-        &'a self,
+    fn find_method_recursive<'b>(
+        &'b self,
         container: &str,
-        current_methods: Vec<&'a PouIndexEntry>,
-    ) -> Vec<&'a PouIndexEntry> {
+        current_methods: Vec<&'b PouIndexEntry>,
+        seen: &mut FxHashSet<&'b str>,
+    ) -> Vec<&'b PouIndexEntry> {
         if let Some(pou) = self.find_pou(container) {
             let mut res = self
                 .get_pous()
                 .values()
                 .filter(|it| it.is_method())
-                .filter(|it| it.get_parent_pou_name() == container)
+                .filter(|it| it.get_parent_pou_name().is_some_and(|it| it == container))
                 .filter(|it| {
                     !current_methods
                         .iter()
@@ -1919,7 +1939,10 @@ impl Index {
                 .collect::<Vec<_>>();
             res.extend(current_methods);
             if let Some(super_class) = pou.get_super_class() {
-                self.find_method_recursive(super_class, res)
+                if !seen.insert(super_class) {
+                    return res;
+                };
+                self.find_method_recursive(super_class, res, seen)
             } else {
                 res
             }

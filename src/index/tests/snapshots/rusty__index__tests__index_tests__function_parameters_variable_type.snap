@@ -28,6 +28,9 @@ expression: members
                     offset: 64,
                 },
             ),
+            file: Some(
+                "<internal>",
+            ),
         },
         varargs: None,
     },
@@ -55,6 +58,9 @@ expression: members
                     column: 19,
                     offset: 126,
                 },
+            ),
+            file: Some(
+                "<internal>",
             ),
         },
         varargs: None,
@@ -84,6 +90,9 @@ expression: members
                     offset: 187,
                 },
             ),
+            file: Some(
+                "<internal>",
+            ),
         },
         varargs: None,
     },
@@ -111,6 +120,9 @@ expression: members
                     column: 20,
                     offset: 21,
                 },
+            ),
+            file: Some(
+                "<internal>",
             ),
         },
         varargs: None,

@@ -60,6 +60,9 @@ fn interface_with_single_method() {
                     offset: 45,
                 },
             ),
+            file: Some(
+                "<internal>",
+            ),
         },
     }
     "###);
@@ -91,6 +94,9 @@ fn interface_with_single_method() {
                         offset: 91,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -119,6 +125,9 @@ fn interface_with_single_method() {
                         offset: 116,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
             varargs: None,
         },
@@ -146,6 +155,9 @@ fn interface_with_single_method() {
                         column: 18,
                         offset: 45,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
             varargs: None,
@@ -200,6 +212,9 @@ fn get_interface_methods() {
                         offset: 45,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
         },
         Method {
@@ -220,6 +235,9 @@ fn get_interface_methods() {
                         offset: 159,
                     },
                 ),
+                file: Some(
+                    "<internal>",
+                ),
             },
         },
         Method {
@@ -239,6 +257,9 @@ fn get_interface_methods() {
                         column: 18,
                         offset: 271,
                     },
+                ),
+                file: Some(
+                    "<internal>",
                 ),
             },
         },

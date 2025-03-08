@@ -33,6 +33,9 @@ DataType {
                             offset: 55,
                         },
                     ),
+                    file: Some(
+                        "<internal>",
+                    ),
                 },
                 varargs: None,
             },
@@ -56,6 +59,9 @@ DataType {
                 column: 28,
                 offset: 55,
             },
+        ),
+        file: Some(
+            "<internal>",
         ),
     },
 }
