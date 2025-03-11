@@ -1413,6 +1413,14 @@ impl Index {
             .unwrap_or_else(|| &[])
     }
 
+    pub fn get_variables_for_pou(&self, pou: &PouIndexEntry) -> &[VariableIndexEntry] {
+        if pou.is_action() {
+            self.get_pou_members(pou.get_container())
+        } else {
+            self.get_pou_members(pou.get_name())
+        }
+    }
+
     pub fn find_pou_type(&self, pou_name: &str) -> Option<&DataType> {
         self.get_pou_types().get(&pou_name.to_lowercase())
     }

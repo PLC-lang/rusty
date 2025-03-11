@@ -275,6 +275,7 @@ impl<'ink> DebugBuilder<'ink> {
         //Create each type
         let index_types = members
             .iter()
+            .filter(|it| !(it.is_temp() || it.is_variadic() || it.is_var_external()))
             .map(|it| (it.get_name(), it.get_type_name(), &it.source_location))
             .map(|(name, type_name, location)| {
                 index.get_type(type_name.as_ref()).map(|dt| (name, dt, location))
@@ -522,7 +523,7 @@ impl<'ink> DebugBuilder<'ink> {
     ///Creates the debug information for function variables
     ///For a `Function` these will be all VAR_INPUT, VAR_OUTPUT and VAR_IN_OUT in addition to
     ///entries for VAR and VAR_TEMP
-    ///For other POUs we create enties in VAR_TEMP and an additional single parameter at position 0
+    ///For other POUs we create entries in VAR_TEMP and an additional single parameter at position 0
     ///(the struct)
     fn create_function_variables(
         &mut self,
@@ -533,7 +534,7 @@ impl<'ink> DebugBuilder<'ink> {
         let mut param_offset = 0;
         //Register the return and local variables for debugging
         for variable in index
-            .get_pou_members(pou.get_name())
+            .get_variables_for_pou(pou)
             .iter()
             .filter(|it| it.is_local() || it.is_temp() || it.is_return())
         {
