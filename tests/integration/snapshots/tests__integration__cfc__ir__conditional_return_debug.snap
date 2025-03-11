@@ -6,19 +6,19 @@ expression: output_file_content_without_headers
 
 define i32 @foo(i32 %0) !dbg !4 {
 entry:
-  %foo = alloca i32, align 4, !dbg !9
-  %val = alloca i32, align 4, !dbg !9
-  call void @llvm.dbg.declare(metadata i32* %val, metadata !10, metadata !DIExpression()), !dbg !11
-  store i32 %0, i32* %val, align 4, !dbg !9
-  call void @llvm.dbg.declare(metadata i32* %foo, metadata !12, metadata !DIExpression()), !dbg !13
-  store i32 0, i32* %foo, align 4, !dbg !9
-  %load_val = load i32, i32* %val, align 4, !dbg !14
-  %tmpVar = icmp eq i32 %load_val, 5, !dbg !14
-  br i1 %tmpVar, label %then_block, label %else_block, !dbg !14
+  %foo = alloca i32, align 4
+  %val = alloca i32, align 4
+  call void @llvm.dbg.declare(metadata i32* %val, metadata !9, metadata !DIExpression()), !dbg !10
+  store i32 %0, i32* %val, align 4
+  call void @llvm.dbg.declare(metadata i32* %foo, metadata !11, metadata !DIExpression()), !dbg !12
+  store i32 0, i32* %foo, align 4
+  %load_val = load i32, i32* %val, align 4, !dbg !13
+  %tmpVar = icmp eq i32 %load_val, 5, !dbg !13
+  br i1 %tmpVar, label %then_block, label %else_block, !dbg !13
 
 then_block:                                       ; preds = %entry
-  %foo_ret = load i32, i32* %foo, align 4, !dbg !9
-  ret i32 %foo_ret, !dbg !9
+  %foo_ret = load i32, i32* %foo, align 4, !dbg !14
+  ret i32 %foo_ret, !dbg !14
 
 else_block:                                       ; preds = %entry
   store i32 10, i32* %val, align 4, !dbg !15
@@ -48,10 +48,10 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !6 = !{null, !7}
 !7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !8 = !{}
-!9 = !DILocation(line: 3, scope: !4)
-!10 = !DILocalVariable(name: "val", scope: !4, file: !3, line: 1, type: !7)
-!11 = !DILocation(line: 1, column: 30, scope: !4)
-!12 = !DILocalVariable(name: "foo", scope: !4, file: !3, line: 1, type: !7, align: 32)
-!13 = !DILocation(line: 1, column: 9, scope: !4)
-!14 = !DILocation(line: 2, scope: !4)
+!9 = !DILocalVariable(name: "val", scope: !4, file: !3, line: 1, type: !7)
+!10 = !DILocation(line: 1, column: 30, scope: !4)
+!11 = !DILocalVariable(name: "foo", scope: !4, file: !3, line: 1, type: !7, align: 32)
+!12 = !DILocation(line: 1, column: 9, scope: !4)
+!13 = !DILocation(line: 2, scope: !4)
+!14 = !DILocation(line: 3, scope: !4)
 !15 = !DILocation(line: 5, scope: !4)

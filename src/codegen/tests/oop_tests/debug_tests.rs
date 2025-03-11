@@ -30,16 +30,16 @@ fn members_from_base_class_are_available_in_subclasses() {
     define void @foo(%foo* %0) !dbg !25 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !29, metadata !DIExpression()), !dbg !30
-      %a = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0, !dbg !30
-      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1, !dbg !30
-      %c = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2, !dbg !30
+      %a = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %c = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       ret void, !dbg !30
     }
 
     define void @bar(%bar* %0) !dbg !31 {
     entry:
       call void @llvm.dbg.declare(metadata %bar* %0, metadata !34, metadata !DIExpression()), !dbg !35
-      %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0, !dbg !35
+      %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void, !dbg !35
     }
 
@@ -151,22 +151,22 @@ fn write_to_parent_variable_qualified_access() {
     define void @fb(%fb* %0) !dbg !22 {
     entry:
       call void @llvm.dbg.declare(metadata %fb* %0, metadata !26, metadata !DIExpression()), !dbg !27
-      %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0, !dbg !27
-      %y = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1, !dbg !27
+      %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+      %y = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
       ret void, !dbg !27
     }
 
     define void @fb2(%fb2* %0) !dbg !28 {
     entry:
       call void @llvm.dbg.declare(metadata %fb2* %0, metadata !31, metadata !DIExpression()), !dbg !32
-      %__fb = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0, !dbg !32
+      %__fb = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
       ret void, !dbg !32
     }
 
     define void @foo(%foo* %0) !dbg !33 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !36, metadata !DIExpression()), !dbg !37
-      %myFb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0, !dbg !37
+      %myFb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %__fb = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0, !dbg !37
       %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 0, !dbg !37
       store i16 1, i16* %x, align 2, !dbg !37
@@ -297,14 +297,14 @@ fn write_to_parent_variable_in_instance() {
     define void @foo(%foo* %0) !dbg !19 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !23, metadata !DIExpression()), !dbg !24
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0, !dbg !24
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void, !dbg !24
     }
 
     define void @foo.baz(%foo* %0) !dbg !25 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !26, metadata !DIExpression()), !dbg !27
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0, !dbg !27
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %1 = bitcast [81 x i8]* %s to i8*, !dbg !27
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false), !dbg !27
       ret void, !dbg !27
@@ -313,7 +313,7 @@ fn write_to_parent_variable_in_instance() {
     define void @bar(%bar* %0) !dbg !28 {
     entry:
       call void @llvm.dbg.declare(metadata %bar* %0, metadata !31, metadata !DIExpression()), !dbg !32
-      %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0, !dbg !32
+      %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 0, !dbg !32
       %1 = bitcast [81 x i8]* %s to i8*, !dbg !32
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false), !dbg !32
@@ -322,19 +322,19 @@ fn write_to_parent_variable_in_instance() {
 
     define void @main() !dbg !33 {
     entry:
-      %s = alloca [81 x i8], align 1, !dbg !36
-      %fb = alloca %bar, align 8, !dbg !36
-      call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !37, metadata !DIExpression()), !dbg !38
-      %0 = bitcast [81 x i8]* %s to i8*, !dbg !36
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false), !dbg !36
-      call void @llvm.dbg.declare(metadata %bar* %fb, metadata !39, metadata !DIExpression()), !dbg !40
-      %1 = bitcast %bar* %fb to i8*, !dbg !36
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%bar, %bar* @__bar__init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false), !dbg !36
-      call void @__init_bar(%bar* %fb), !dbg !41
-      %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !41
-      call void @foo.baz(%foo* %__foo), !dbg !42
-      call void @bar(%bar* %fb), !dbg !43
-      ret void, !dbg !43
+      %s = alloca [81 x i8], align 1
+      %fb = alloca %bar, align 8
+      call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !36, metadata !DIExpression()), !dbg !37
+      %0 = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      call void @llvm.dbg.declare(metadata %bar* %fb, metadata !38, metadata !DIExpression()), !dbg !39
+      %1 = bitcast %bar* %fb to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%bar, %bar* @__bar__init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
+      call void @__init_bar(%bar* %fb), !dbg !40
+      %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !40
+      call void @foo.baz(%foo* %__foo), !dbg !41
+      call void @bar(%bar* %fb), !dbg !42
+      ret void, !dbg !42
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -414,14 +414,13 @@ fn write_to_parent_variable_in_instance() {
     !33 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 15, type: !34, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !22)
     !34 = !DISubroutineType(flags: DIFlagPublic, types: !35)
     !35 = !{null}
-    !36 = !DILocation(line: 15, column: 17, scope: !33)
-    !37 = !DILocalVariable(name: "s", scope: !33, file: !2, line: 17, type: !9, align: 8)
-    !38 = !DILocation(line: 17, column: 12, scope: !33)
-    !39 = !DILocalVariable(name: "fb", scope: !33, file: !2, line: 18, type: !3, align: 64)
-    !40 = !DILocation(line: 18, column: 12, scope: !33)
-    !41 = !DILocation(line: 0, scope: !33)
-    !42 = !DILocation(line: 20, column: 12, scope: !33)
-    !43 = !DILocation(line: 21, column: 12, scope: !33)
+    !36 = !DILocalVariable(name: "s", scope: !33, file: !2, line: 17, type: !9, align: 8)
+    !37 = !DILocation(line: 17, column: 12, scope: !33)
+    !38 = !DILocalVariable(name: "fb", scope: !33, file: !2, line: 18, type: !3, align: 64)
+    !39 = !DILocation(line: 18, column: 12, scope: !33)
+    !40 = !DILocation(line: 0, scope: !33)
+    !41 = !DILocation(line: 20, column: 12, scope: !33)
+    !42 = !DILocation(line: 21, column: 12, scope: !33)
     "###);
 }
 
@@ -477,39 +476,39 @@ fn array_in_parent_generated() {
     define void @grandparent(%grandparent* %0) !dbg !31 {
     entry:
       call void @llvm.dbg.declare(metadata %grandparent* %0, metadata !35, metadata !DIExpression()), !dbg !36
-      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0, !dbg !36
-      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1, !dbg !36
+      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
+      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
       ret void, !dbg !36
     }
 
     define void @parent(%parent* %0) !dbg !37 {
     entry:
       call void @llvm.dbg.declare(metadata %parent* %0, metadata !40, metadata !DIExpression()), !dbg !41
-      %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0, !dbg !41
-      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1, !dbg !41
-      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2, !dbg !41
+      %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
       ret void, !dbg !41
     }
 
     define void @child(%child* %0) !dbg !42 {
     entry:
       call void @llvm.dbg.declare(metadata %child* %0, metadata !45, metadata !DIExpression()), !dbg !46
-      %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0, !dbg !46
-      %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1, !dbg !46
+      %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
+      %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       ret void, !dbg !46
     }
 
     define void @main() !dbg !47 {
     entry:
-      %arr = alloca [11 x %child], align 8, !dbg !50
-      call void @llvm.dbg.declare(metadata [11 x %child]* %arr, metadata !51, metadata !DIExpression()), !dbg !53
-      %0 = bitcast [11 x %child]* %arr to i8*, !dbg !50
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([11 x %child]* getelementptr ([11 x %child], [11 x %child]* null, i32 1) to i64), i1 false), !dbg !50
-      %tmpVar = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0, !dbg !50
-      %__parent = getelementptr inbounds %child, %child* %tmpVar, i32 0, i32 0, !dbg !50
-      %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !50
-      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 1, !dbg !50
-      store i16 10, i16* %a, align 2, !dbg !50
+      %arr = alloca [11 x %child], align 8
+      call void @llvm.dbg.declare(metadata [11 x %child]* %arr, metadata !50, metadata !DIExpression()), !dbg !52
+      %0 = bitcast [11 x %child]* %arr to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([11 x %child]* getelementptr ([11 x %child], [11 x %child]* null, i32 1) to i64), i1 false)
+      %tmpVar = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0, !dbg !53
+      %__parent = getelementptr inbounds %child, %child* %tmpVar, i32 0, i32 0, !dbg !53
+      %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !53
+      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 1, !dbg !53
+      store i16 10, i16* %a, align 2, !dbg !53
       %tmpVar1 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0, !dbg !54
       %__parent2 = getelementptr inbounds %child, %child* %tmpVar1, i32 0, i32 0, !dbg !54
       %__grandparent3 = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0, !dbg !54
@@ -626,10 +625,10 @@ fn array_in_parent_generated() {
     !47 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 22, type: !48, scopeLine: 26, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !29, retainedNodes: !34)
     !48 = !DISubroutineType(flags: DIFlagPublic, types: !49)
     !49 = !{null}
-    !50 = !DILocation(line: 26, column: 12, scope: !47)
-    !51 = !DILocalVariable(name: "arr", scope: !47, file: !2, line: 24, type: !52, align: 64)
-    !52 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 5280, align: 64, elements: !19)
-    !53 = !DILocation(line: 24, column: 12, scope: !47)
+    !50 = !DILocalVariable(name: "arr", scope: !47, file: !2, line: 24, type: !51, align: 64)
+    !51 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 5280, align: 64, elements: !19)
+    !52 = !DILocation(line: 24, column: 12, scope: !47)
+    !53 = !DILocation(line: 26, column: 12, scope: !47)
     !54 = !DILocation(line: 27, column: 12, scope: !47)
     !55 = !DILocation(line: 28, column: 12, scope: !47)
     !56 = !DILocation(line: 29, column: 12, scope: !47)
@@ -680,25 +679,25 @@ fn complex_array_access_generated() {
     define void @grandparent(%grandparent* %0) !dbg !31 {
     entry:
       call void @llvm.dbg.declare(metadata %grandparent* %0, metadata !35, metadata !DIExpression()), !dbg !36
-      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0, !dbg !36
-      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1, !dbg !36
+      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
+      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
       ret void, !dbg !36
     }
 
     define void @parent(%parent* %0) !dbg !37 {
     entry:
       call void @llvm.dbg.declare(metadata %parent* %0, metadata !40, metadata !DIExpression()), !dbg !41
-      %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0, !dbg !41
-      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1, !dbg !41
-      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2, !dbg !41
+      %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
       ret void, !dbg !41
     }
 
     define void @child(%child* %0) !dbg !42 {
     entry:
       call void @llvm.dbg.declare(metadata %child* %0, metadata !45, metadata !DIExpression()), !dbg !46
-      %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0, !dbg !46
-      %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1, !dbg !46
+      %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
+      %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !46
       %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 0, !dbg !46
       %b = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2, !dbg !46
@@ -855,7 +854,7 @@ fn function_block_method_debug_info() {
     define void @bar(%bar* %0) !dbg !22 {
     entry:
       call void @llvm.dbg.declare(metadata %bar* %0, metadata !25, metadata !DIExpression()), !dbg !26
-      %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0, !dbg !26
+      %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void, !dbg !26
     }
 

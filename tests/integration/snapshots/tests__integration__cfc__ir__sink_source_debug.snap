@@ -10,9 +10,9 @@ expression: output_file_content_without_headers
 define void @main(%main* %0) !dbg !11 {
 entry:
   call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !16
-  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0, !dbg !17
-  store i32 5, i32* %x, align 4, !dbg !18
-  ret void, !dbg !18
+  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  store i32 5, i32* %x, align 4, !dbg !17
+  ret void, !dbg !17
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -53,5 +53,4 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !14 = !{}
 !15 = !DILocalVariable(name: "main", scope: !11, file: !2, type: !3)
 !16 = !DILocation(line: 1, scope: !11)
-!17 = !DILocation(line: 0, scope: !11)
-!18 = !DILocation(line: 4, scope: !11)
+!17 = !DILocation(line: 4, scope: !11)

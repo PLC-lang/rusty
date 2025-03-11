@@ -14,7 +14,7 @@ source_filename = "<internal>"
 define void @myProg(%myProg* %0) !dbg !17 {
 entry:
   call void @llvm.dbg.declare(metadata %myProg* %0, metadata !21, metadata !DIExpression()), !dbg !22
-  %x = getelementptr inbounds %myProg, %myProg* %0, i32 0, i32 0, !dbg !22
+  %x = getelementptr inbounds %myProg, %myProg* %0, i32 0, i32 0
   %load_x = load i32, i32* %x, align 4, !dbg !22
   %tmpVar = add i32 %load_x, 2, !dbg !22
   store i32 %tmpVar, i32* %x, align 4, !dbg !22
@@ -24,7 +24,7 @@ entry:
 define void @fb(%fb* %0) !dbg !23 {
 entry:
   call void @llvm.dbg.declare(metadata %fb* %0, metadata !26, metadata !DIExpression()), !dbg !27
-  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0, !dbg !27
+  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   %load_x = load i32, i32* %x, align 4, !dbg !27
   %tmpVar = add i32 %load_x, 2, !dbg !27
   store i32 %tmpVar, i32* %x, align 4, !dbg !27

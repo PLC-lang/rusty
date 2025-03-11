@@ -10,7 +10,7 @@ expression: output_file_content_without_headers
 define void @foo(%foo* %0) !dbg !11 {
 entry:
   call void @llvm.dbg.declare(metadata %foo* %0, metadata !15, metadata !DIExpression()), !dbg !16
-  %val = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0, !dbg !17
+  %val = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   br label %lbl, !dbg !17
 
 lbl:                                              ; preds = %lbl, %entry

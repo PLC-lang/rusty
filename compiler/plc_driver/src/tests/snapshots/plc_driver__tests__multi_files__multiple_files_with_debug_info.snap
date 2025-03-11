@@ -11,12 +11,12 @@ source_filename = "file1.st"
 
 define i16 @main() !dbg !10 {
 entry:
-  %main = alloca i16, align 2, !dbg !14
-  call void @llvm.dbg.declare(metadata i16* %main, metadata !15, metadata !DIExpression()), !dbg !17
-  store i16 0, i16* %main, align 2, !dbg !14
-  call void @mainProg(%mainProg* @mainProg_instance), !dbg !14
-  %main_ret = load i16, i16* %main, align 2, !dbg !14
-  ret i16 %main_ret, !dbg !14
+  %main = alloca i16, align 2
+  call void @llvm.dbg.declare(metadata i16* %main, metadata !14, metadata !DIExpression()), !dbg !16
+  store i16 0, i16* %main, align 2
+  call void @mainProg(%mainProg* @mainProg_instance), !dbg !17
+  %main_ret = load i16, i16* %main, align 2, !dbg !17
+  ret i16 %main_ret, !dbg !17
 }
 
 declare !dbg !18 void @mainProg(%mainProg*)
@@ -43,10 +43,10 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !11 = !DIFile(filename: "file1.st", directory: "")
 !12 = !DISubroutineType(flags: DIFlagPublic, types: !13)
 !13 = !{null}
-!14 = !DILocation(line: 10, column: 4, scope: !10)
-!15 = !DILocalVariable(name: "main", scope: !10, file: !11, line: 2, type: !16, align: 16)
-!16 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!17 = !DILocation(line: 2, column: 13, scope: !10)
+!14 = !DILocalVariable(name: "main", scope: !10, file: !11, line: 2, type: !15, align: 16)
+!15 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!16 = !DILocation(line: 2, column: 13, scope: !10)
+!17 = !DILocation(line: 10, column: 4, scope: !10)
 !18 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !2, file: !2, line: 2, type: !19, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
 !19 = !DISubroutineType(flags: DIFlagPublic, types: !20)
 !20 = !{null, !3}
