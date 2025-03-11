@@ -697,7 +697,13 @@ fn parse_property(
                 PropertyKind::Set => vec![Token::KeywordEndSet],
             },
         );
-        implementations.push(PropertyImplementation { kind, variable_blocks, body: statements, location });
+        implementations.push(PropertyImplementation {
+            kind,
+            variable_blocks,
+            body: statements,
+            location,
+            end_location: lexer.last_location(),
+        });
     }
 
     lexer.try_consume_or_report(Token::KeywordEndProperty); // Move past `END_PROPERTY` keyword
@@ -761,6 +767,8 @@ fn parse_implementation(
 ) -> Implementation {
     let start = lexer.range().start;
     let statements = parse_body_standalone(lexer);
+    let end_location = lexer.location(); //Location of the current token, which shoudl be the
+                                         //end token
     Implementation {
         name: call_name.into(),
         type_name: type_name.into(),
@@ -769,6 +777,7 @@ fn parse_implementation(
         statements,
         location: lexer.source_range_factory.create_range(start..lexer.last_range.end),
         name_location,
+        end_location,
         overriding: false,
         generic,
         access: None,

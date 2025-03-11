@@ -15,29 +15,29 @@ entry:
   store i32 0, i32* %a, align 4, !dbg !18
   call void @main.newAction(%main* %0), !dbg !17
   call void @main.newAction2(%main* %0), !dbg !19
-  ret void, !dbg !19
+  ret void, !dbg !20
 }
 
-define void @main.newAction(%main* %0) !dbg !20 {
+define void @main.newAction(%main* %0) !dbg !21 {
 entry:
-  call void @llvm.dbg.declare(metadata %main* %0, metadata !21, metadata !DIExpression()), !dbg !22
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !22, metadata !DIExpression()), !dbg !23
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %load_a = load i32, i32* %a, align 4, !dbg !22
-  %tmpVar = add i32 %load_a, 1, !dbg !22
-  store i32 %tmpVar, i32* %a, align 4, !dbg !22
-  ret void, !dbg !22
+  %load_a = load i32, i32* %a, align 4, !dbg !23
+  %tmpVar = add i32 %load_a, 1, !dbg !23
+  store i32 %tmpVar, i32* %a, align 4, !dbg !23
+  ret void, !dbg !24
 }
 
-define void @main.newAction2(%main* %0) !dbg !23 {
+define void @main.newAction2(%main* %0) !dbg !25 {
 entry:
-  call void @llvm.dbg.declare(metadata %main* %0, metadata !24, metadata !DIExpression()), !dbg !25
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !26, metadata !DIExpression()), !dbg !27
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %load_b = load i32, i32* %b, align 4, !dbg !26
-  %tmpVar = add i32 %load_b, 2, !dbg !26
-  store i32 %tmpVar, i32* %b, align 4, !dbg !26
-  ret void, !dbg !26
+  %load_b = load i32, i32* %b, align 4, !dbg !28
+  %tmpVar = add i32 %load_b, 2, !dbg !28
+  store i32 %tmpVar, i32* %b, align 4, !dbg !28
+  ret void, !dbg !29
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -81,10 +81,13 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !17 = !DILocation(line: 1, scope: !12)
 !18 = !DILocation(line: 3, scope: !12)
 !19 = !DILocation(line: 2, scope: !12)
-!20 = distinct !DISubprogram(name: "main.newAction", linkageName: "main.newAction", scope: !2, file: !2, type: !13, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !10, retainedNodes: !15)
-!21 = !DILocalVariable(name: "main", scope: !20, file: !2, type: !3)
-!22 = !DILocation(line: 1, scope: !20)
-!23 = distinct !DISubprogram(name: "main.newAction2", linkageName: "main.newAction2", scope: !2, file: !2, type: !13, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !10, retainedNodes: !15)
-!24 = !DILocalVariable(name: "main", scope: !23, file: !2, type: !3)
-!25 = !DILocation(line: 1, scope: !23)
-!26 = !DILocation(line: 2, scope: !23)
+!20 = !DILocation(line: 0, scope: !12)
+!21 = distinct !DISubprogram(name: "main.newAction", linkageName: "main.newAction", scope: !2, file: !2, type: !13, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !10, retainedNodes: !15)
+!22 = !DILocalVariable(name: "main", scope: !21, file: !2, type: !3)
+!23 = !DILocation(line: 1, scope: !21)
+!24 = !DILocation(line: 0, scope: !21)
+!25 = distinct !DISubprogram(name: "main.newAction2", linkageName: "main.newAction2", scope: !2, file: !2, type: !13, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !10, retainedNodes: !15)
+!26 = !DILocalVariable(name: "main", scope: !25, file: !2, type: !3)
+!27 = !DILocation(line: 1, scope: !25)
+!28 = !DILocation(line: 2, scope: !25)
+!29 = !DILocation(line: 0, scope: !25)

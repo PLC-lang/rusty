@@ -11,7 +11,7 @@
 //!     VAR_INPUT
 //!         a: DINT;
 //!     END_VAR
-//!     END_FUNCTION        
+//!     END_FUNCTION
 //! ```
 //! ```iec61131
 //!     // lowered equivalent
@@ -22,7 +22,7 @@
 //!     VAR_INPUT
 //!         a: DINT;
 //!     END_VAR
-//!     END_FUNCTION        
+//!     END_FUNCTION
 //! ```
 //!
 //! Next, every call-statement to that POU has it's arguments updated, with a temporary
@@ -134,6 +134,7 @@ impl AggregateTypeLowerer {
             vec![ConditionalBlock { condition: Box::new(condition), body: vec![break_stmt] }],
             vec![],
             location.clone(),
+            SourceLocation::internal(),
             self.id_provider.next_id(),
         );
         //Insert the if statement at the start or end of the body

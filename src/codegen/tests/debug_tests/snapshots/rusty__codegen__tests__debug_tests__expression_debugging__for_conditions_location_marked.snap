@@ -25,17 +25,17 @@ predicate_sge:                                    ; preds = %increment, %entry
 
 loop:                                             ; preds = %predicate_sge, %predicate_sle
   store i32 1, i32* %myFunc, align 4, !dbg !13
-  br label %increment, !dbg !13
+  br label %increment, !dbg !14
 
 increment:                                        ; preds = %loop
-  %2 = load i32, i32* %myFunc, align 4, !dbg !13
-  %next = add i32 2, %2, !dbg !13
-  store i32 %next, i32* %myFunc, align 4, !dbg !13
-  br i1 true, label %predicate_sle, label %predicate_sge, !dbg !13
+  %2 = load i32, i32* %myFunc, align 4, !dbg !14
+  %next = add i32 2, %2, !dbg !14
+  store i32 %next, i32* %myFunc, align 4, !dbg !14
+  br i1 true, label %predicate_sle, label %predicate_sge, !dbg !14
 
 continue:                                         ; preds = %predicate_sge, %predicate_sle
-  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !13
-  ret i32 %myFunc_ret, !dbg !13
+  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !15
+  ret i32 %myFunc_ret, !dbg !15
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -60,6 +60,8 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !11 = !DILocation(line: 2, column: 17, scope: !4)
 !12 = !DILocation(line: 3, column: 16, scope: !4)
 !13 = !DILocation(line: 4, column: 16, scope: !4)
+!14 = !DILocation(line: 5, column: 12, scope: !4)
+!15 = !DILocation(line: 6, column: 8, scope: !4)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 

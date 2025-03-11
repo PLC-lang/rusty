@@ -170,7 +170,7 @@ fn write_to_parent_variable_qualified_access() {
       %__fb = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0, !dbg !37
       %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 0, !dbg !37
       store i16 1, i16* %x, align 2, !dbg !37
-      ret void, !dbg !37
+      ret void, !dbg !38
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -251,6 +251,7 @@ fn write_to_parent_variable_qualified_access() {
     !35 = !{null, !15}
     !36 = !DILocalVariable(name: "foo", scope: !33, file: !2, line: 16, type: !15)
     !37 = !DILocation(line: 16, column: 12, scope: !33)
+    !38 = !DILocation(line: 17, column: 8, scope: !33)
     "###);
 }
 
@@ -307,34 +308,34 @@ fn write_to_parent_variable_in_instance() {
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %1 = bitcast [81 x i8]* %s to i8*, !dbg !27
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false), !dbg !27
-      ret void, !dbg !27
+      ret void, !dbg !28
     }
 
-    define void @bar(%bar* %0) !dbg !28 {
+    define void @bar(%bar* %0) !dbg !29 {
     entry:
-      call void @llvm.dbg.declare(metadata %bar* %0, metadata !31, metadata !DIExpression()), !dbg !32
+      call void @llvm.dbg.declare(metadata %bar* %0, metadata !32, metadata !DIExpression()), !dbg !33
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 0, !dbg !32
-      %1 = bitcast [81 x i8]* %s to i8*, !dbg !32
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false), !dbg !32
-      ret void, !dbg !32
+      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 0, !dbg !33
+      %1 = bitcast [81 x i8]* %s to i8*, !dbg !33
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false), !dbg !33
+      ret void, !dbg !34
     }
 
-    define void @main() !dbg !33 {
+    define void @main() !dbg !35 {
     entry:
       %s = alloca [81 x i8], align 1
       %fb = alloca %bar, align 8
-      call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !36, metadata !DIExpression()), !dbg !37
+      call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !38, metadata !DIExpression()), !dbg !39
       %0 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata %bar* %fb, metadata !38, metadata !DIExpression()), !dbg !39
+      call void @llvm.dbg.declare(metadata %bar* %fb, metadata !40, metadata !DIExpression()), !dbg !41
       %1 = bitcast %bar* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%bar, %bar* @__bar__init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
-      call void @__init_bar(%bar* %fb), !dbg !40
-      %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !40
-      call void @foo.baz(%foo* %__foo), !dbg !41
-      call void @bar(%bar* %fb), !dbg !42
-      ret void, !dbg !42
+      call void @__init_bar(%bar* %fb), !dbg !42
+      %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !42
+      call void @foo.baz(%foo* %__foo), !dbg !43
+      call void @bar(%bar* %fb), !dbg !44
+      ret void, !dbg !45
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -406,21 +407,24 @@ fn write_to_parent_variable_in_instance() {
     !25 = distinct !DISubprogram(name: "foo.baz", linkageName: "foo.baz", scope: !19, file: !2, line: 6, type: !20, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !22)
     !26 = !DILocalVariable(name: "foo", scope: !25, file: !2, line: 7, type: !6)
     !27 = !DILocation(line: 7, column: 12, scope: !25)
-    !28 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 11, type: !29, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !22)
-    !29 = !DISubroutineType(flags: DIFlagPublic, types: !30)
-    !30 = !{null, !3}
-    !31 = !DILocalVariable(name: "bar", scope: !28, file: !2, line: 12, type: !3)
-    !32 = !DILocation(line: 12, column: 12, scope: !28)
-    !33 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 15, type: !34, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !22)
-    !34 = !DISubroutineType(flags: DIFlagPublic, types: !35)
-    !35 = !{null}
-    !36 = !DILocalVariable(name: "s", scope: !33, file: !2, line: 17, type: !9, align: 8)
-    !37 = !DILocation(line: 17, column: 12, scope: !33)
-    !38 = !DILocalVariable(name: "fb", scope: !33, file: !2, line: 18, type: !3, align: 64)
-    !39 = !DILocation(line: 18, column: 12, scope: !33)
-    !40 = !DILocation(line: 0, scope: !33)
-    !41 = !DILocation(line: 20, column: 12, scope: !33)
-    !42 = !DILocation(line: 21, column: 12, scope: !33)
+    !28 = !DILocation(line: 8, column: 8, scope: !25)
+    !29 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 11, type: !30, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !22)
+    !30 = !DISubroutineType(flags: DIFlagPublic, types: !31)
+    !31 = !{null, !3}
+    !32 = !DILocalVariable(name: "bar", scope: !29, file: !2, line: 12, type: !3)
+    !33 = !DILocation(line: 12, column: 12, scope: !29)
+    !34 = !DILocation(line: 13, column: 8, scope: !29)
+    !35 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 15, type: !36, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !22)
+    !36 = !DISubroutineType(flags: DIFlagPublic, types: !37)
+    !37 = !{null}
+    !38 = !DILocalVariable(name: "s", scope: !35, file: !2, line: 17, type: !9, align: 8)
+    !39 = !DILocation(line: 17, column: 12, scope: !35)
+    !40 = !DILocalVariable(name: "fb", scope: !35, file: !2, line: 18, type: !3, align: 64)
+    !41 = !DILocation(line: 18, column: 12, scope: !35)
+    !42 = !DILocation(line: 0, scope: !35)
+    !43 = !DILocation(line: 20, column: 12, scope: !35)
+    !44 = !DILocation(line: 21, column: 12, scope: !35)
+    !45 = !DILocation(line: 22, column: 8, scope: !35)
     "###);
 }
 
@@ -528,7 +532,7 @@ fn array_in_parent_generated() {
       %z = getelementptr inbounds %child, %child* %tmpVar10, i32 0, i32 1, !dbg !57
       %tmpVar11 = getelementptr inbounds [11 x i16], [11 x i16]* %z, i32 0, i32 2, !dbg !57
       store i16 50, i16* %tmpVar11, align 2, !dbg !57
-      ret void, !dbg !57
+      ret void, !dbg !58
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -633,6 +637,7 @@ fn array_in_parent_generated() {
     !55 = !DILocation(line: 28, column: 12, scope: !47)
     !56 = !DILocation(line: 29, column: 12, scope: !47)
     !57 = !DILocation(line: 30, column: 12, scope: !47)
+    !58 = !DILocation(line: 31, column: 8, scope: !47)
     "###);
 }
 
@@ -722,7 +727,7 @@ fn complex_array_access_generated() {
       %tmpVar10 = add i32 %tmpVar9, 0, !dbg !46
       %tmpVar11 = getelementptr inbounds [6 x i16], [6 x i16]* %y, i32 0, i32 %tmpVar10, !dbg !46
       store i16 20, i16* %tmpVar11, align 2, !dbg !46
-      ret void, !dbg !46
+      ret void, !dbg !47
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -812,6 +817,7 @@ fn complex_array_access_generated() {
     !44 = !{null, !23}
     !45 = !DILocalVariable(name: "child", scope: !42, file: !2, line: 20, type: !23)
     !46 = !DILocation(line: 20, column: 12, scope: !42)
+    !47 = !DILocation(line: 21, column: 8, scope: !42)
     "###);
 }
 

@@ -14,8 +14,8 @@ entry:
   ret i32 %myFunc_ret, !dbg !12
 
 buffer_block:                                     ; No predecessors!
-  %myFunc_ret1 = load i32, i32* %myFunc, align 4, !dbg !12
-  ret i32 %myFunc_ret1, !dbg !12
+  %myFunc_ret1 = load i32, i32* %myFunc, align 4, !dbg !13
+  ret i32 %myFunc_ret1, !dbg !13
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -39,6 +39,7 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !11 = !DILocation(line: 2, column: 17, scope: !4)
 !12 = !DILocation(line: 3, column: 12, scope: !4)
+!13 = !DILocation(line: 4, column: 8, scope: !4)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 

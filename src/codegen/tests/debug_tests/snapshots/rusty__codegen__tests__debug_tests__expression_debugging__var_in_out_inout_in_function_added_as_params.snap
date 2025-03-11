@@ -18,8 +18,8 @@ entry:
   %1 = sext i16 %load_x to i32, !dbg !16
   %tmpVar = add i32 %1, 2, !dbg !16
   store i32 %tmpVar, i32* %myFunc, align 4, !dbg !16
-  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !16
-  ret i32 %myFunc_ret, !dbg !16
+  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !17
+  ret i32 %myFunc_ret, !dbg !17
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -47,6 +47,7 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !14 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !15 = !DILocation(line: 2, column: 17, scope: !4)
 !16 = !DILocation(line: 6, column: 12, scope: !4)
+!17 = !DILocation(line: 7, column: 8, scope: !4)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 

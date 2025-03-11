@@ -80,6 +80,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> AstNode {
         conditional_blocks,
         else_block,
         lexer.source_range_factory.create_range(start..end),
+        lexer.last_location(),
         lexer.next_id(),
     )
 }
@@ -117,6 +118,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstNode {
         step,
         parse_body_in_region(lexer, vec![KeywordEndFor]),
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
+        lexer.last_location(),
         lexer.next_id(),
     )
 }
@@ -132,6 +134,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> AstNode {
         condition,
         parse_body_in_region(lexer, vec![KeywordEndWhile]),
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
+        lexer.last_location(),
         lexer.next_id(),
     )
 }
@@ -151,6 +154,7 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> AstNode {
         condition,
         body,
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
+        lexer.last_location(),
         lexer.next_id(),
     )
 }
@@ -211,6 +215,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstNode {
         case_blocks,
         else_block,
         lexer.source_range_factory.create_range(start..end),
+        lexer.last_location(),
         lexer.next_id(),
     )
 }

@@ -18,20 +18,20 @@ entry:
 
 case:                                             ; preds = %entry
   store i32 1, i32* %myFunc, align 4, !dbg !14
-  br label %continue, !dbg !14
+  br label %continue, !dbg !15
 
 case1:                                            ; preds = %entry
-  store i32 1, i32* %myFunc, align 4, !dbg !15
+  store i32 1, i32* %myFunc, align 4, !dbg !16
   br label %continue, !dbg !15
 
 else:                                             ; preds = %entry
-  store i32 1, i32* %myFunc, align 4, !dbg !16
-  br label %continue, !dbg !16
+  store i32 1, i32* %myFunc, align 4, !dbg !17
+  br label %continue, !dbg !15
 
 continue:                                         ; preds = %else, %case1, %case
-  store i32 1, i32* %myFunc, align 4, !dbg !17
-  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !17
-  ret i32 %myFunc_ret, !dbg !17
+  store i32 1, i32* %myFunc, align 4, !dbg !18
+  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !19
+  ret i32 %myFunc_ret, !dbg !19
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -57,9 +57,11 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !12 = !DILocation(line: 3, column: 12, scope: !4)
 !13 = !DILocation(line: 3, column: 17, scope: !4)
 !14 = !DILocation(line: 5, column: 16, scope: !4)
-!15 = !DILocation(line: 7, column: 16, scope: !4)
-!16 = !DILocation(line: 9, column: 16, scope: !4)
-!17 = !DILocation(line: 11, column: 12, scope: !4)
+!15 = !DILocation(line: 10, column: 12, scope: !4)
+!16 = !DILocation(line: 7, column: 16, scope: !4)
+!17 = !DILocation(line: 9, column: 16, scope: !4)
+!18 = !DILocation(line: 11, column: 12, scope: !4)
+!19 = !DILocation(line: 12, column: 8, scope: !4)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 

@@ -20,7 +20,7 @@ lbl:                                              ; preds = %lbl, %entry
 
 else_block:                                       ; preds = %lbl
   store i32 1, i32* %val, align 4, !dbg !19
-  ret void, !dbg !19
+  ret void, !dbg !20
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -64,3 +64,4 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !17 = !DILocation(line: 2, scope: !11)
 !18 = !DILocation(line: 3, scope: !11)
 !19 = !DILocation(line: 4, scope: !11)
+!20 = !DILocation(line: 0, scope: !11)

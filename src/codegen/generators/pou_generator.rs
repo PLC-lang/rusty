@@ -508,6 +508,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             //Set the debug location to the first statement in the body
             debug.set_debug_location(&self.llvm, &function_context, line, column);
             statement_gen.generate_body(&implementation.statements)?;
+            //TODO the return statement should be lowered
+            let line = implementation.end_location.get_line_plus_one();
+            let column = implementation.end_location.get_column();
+            debug.set_debug_location(&self.llvm, &function_context, line, column);
             statement_gen.generate_return_statement()?;
         }
 

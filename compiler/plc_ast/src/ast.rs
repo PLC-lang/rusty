@@ -79,6 +79,7 @@ pub struct PropertyImplementation {
     pub location: SourceLocation,
     pub variable_blocks: Vec<VariableBlock>,
     pub body: Vec<AstNode>,
+    pub end_location: SourceLocation,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -290,6 +291,7 @@ pub struct Implementation {
     pub statements: Vec<AstNode>,
     pub location: SourceLocation,
     pub name_location: SourceLocation,
+    pub end_location: SourceLocation,
     pub overriding: bool,
     pub generic: bool,
     pub access: Option<AccessModifier>,
@@ -1442,16 +1444,22 @@ impl AstFactory {
         blocks: Vec<ConditionalBlock>,
         else_block: Vec<AstNode>,
         location: SourceLocation,
+        end_location: SourceLocation,
         id: AstId,
     ) -> AstNode {
         AstNode {
-            stmt: AstStatement::ControlStatement(AstControlStatement::If(IfStatement { blocks, else_block })),
+            stmt: AstStatement::ControlStatement(AstControlStatement::If(IfStatement {
+                blocks,
+                else_block,
+                end_location,
+            })),
             location,
             id,
         }
     }
 
     ///  creates a new for loop statement
+    #[allow(clippy::too_many_arguments)]
     pub fn create_for_loop(
         counter: AstNode,
         start: AstNode,
@@ -1459,6 +1467,7 @@ impl AstFactory {
         by_step: Option<AstNode>,
         body: Vec<AstNode>,
         location: SourceLocation,
+        end_location: SourceLocation,
         id: AstId,
     ) -> AstNode {
         AstNode {
@@ -1468,6 +1477,7 @@ impl AstFactory {
                 end: Box::new(end),
                 by_step: by_step.map(Box::new),
                 body,
+                end_location,
             })),
             location,
             id,
@@ -1479,12 +1489,14 @@ impl AstFactory {
         condition: AstNode,
         body: Vec<AstNode>,
         location: SourceLocation,
+        end_location: SourceLocation,
         id: AstId,
     ) -> AstNode {
         AstNode {
             stmt: AstStatement::ControlStatement(AstControlStatement::WhileLoop(LoopStatement {
                 condition: Box::new(condition),
                 body,
+                end_location,
             })),
             id,
             location,
@@ -1496,12 +1508,14 @@ impl AstFactory {
         condition: AstNode,
         body: Vec<AstNode>,
         location: SourceLocation,
+        end_location: SourceLocation,
         id: AstId,
     ) -> AstNode {
         AstNode {
             stmt: AstStatement::ControlStatement(AstControlStatement::RepeatLoop(LoopStatement {
                 condition: Box::new(condition),
                 body,
+                end_location,
             })),
             id,
             location,
@@ -1514,6 +1528,7 @@ impl AstFactory {
         case_blocks: Vec<ConditionalBlock>,
         else_block: Vec<AstNode>,
         location: SourceLocation,
+        end_location: SourceLocation,
         id: AstId,
     ) -> AstNode {
         AstNode {
@@ -1521,6 +1536,7 @@ impl AstFactory {
                 selector: Box::new(selector),
                 case_blocks,
                 else_block,
+                end_location,
             })),
             id,
             location,

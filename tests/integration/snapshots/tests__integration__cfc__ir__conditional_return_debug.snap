@@ -22,8 +22,8 @@ then_block:                                       ; preds = %entry
 
 else_block:                                       ; preds = %entry
   store i32 10, i32* %val, align 4, !dbg !15
-  %foo_ret1 = load i32, i32* %foo, align 4, !dbg !15
-  ret i32 %foo_ret1, !dbg !15
+  %foo_ret1 = load i32, i32* %foo, align 4, !dbg !16
+  ret i32 %foo_ret1, !dbg !16
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -55,3 +55,4 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !13 = !DILocation(line: 2, scope: !4)
 !14 = !DILocation(line: 3, scope: !4)
 !15 = !DILocation(line: 5, scope: !4)
+!16 = !DILocation(line: 0, scope: !4)
