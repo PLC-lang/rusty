@@ -1962,7 +1962,15 @@
 <a href="#1961" id="1961">1961</a>
 <a href="#1962" id="1962">1962</a>
 <a href="#1963" id="1963">1963</a>
-<a href="#1964" id="1964">1964</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1964" id="1964">1964</a>
+<a href="#1965" id="1965">1965</a>
+<a href="#1966" id="1966">1966</a>
+<a href="#1967" id="1967">1967</a>
+<a href="#1968" id="1968">1968</a>
+<a href="#1969" id="1969">1969</a>
+<a href="#1970" id="1970">1970</a>
+<a href="#1971" id="1971">1971</a>
+<a href="#1972" id="1972">1972</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
 
@@ -3375,6 +3383,14 @@
             .get(<span class="kw-2">&amp;</span>container_name.to_lowercase())
             .map(|it| it.get_members())
             .unwrap_or_else(|| <span class="kw-2">&amp;</span>[])
+    }
+
+    <span class="kw">pub fn </span>get_variables_for_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>PouIndexEntry) -&gt; <span class="kw-2">&amp;</span>[VariableIndexEntry] {
+        <span class="kw">if </span>pou.is_action() {
+            <span class="self">self</span>.get_pou_members(pou.get_container())
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.get_pou_members(pou.get_name())
+        }
     }
 
     <span class="kw">pub fn </span>find_pou_type(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DataType&gt; {
