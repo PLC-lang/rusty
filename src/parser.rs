@@ -6,7 +6,7 @@ use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
-        Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou, PouType, Property,
+        Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou, PouType, PropertyBlock,
         PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr, TypeNature,
         UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
@@ -330,7 +330,7 @@ fn parse_pou(
                 }
 
                 if lexer.token == KeywordProperty {
-                    if let Some(property) = parse_property(lexer, &name, &name_location, &kind) {
+                    if let Some(property) = parse_property(lexer) {
                         properties.push(property);
                     }
                 } else {
@@ -368,10 +368,11 @@ fn parse_pou(
                 super_class,
                 interfaces,
                 is_const: constant,
+                properties,
             }];
             pous.append(&mut impl_pous);
 
-            (pous, implementations, properties)
+            (pous, implementations)
         })
     });
 
@@ -384,10 +385,9 @@ fn parse_pou(
         ));
     }
 
-    let (mut pous, mut implementations, mut properties) = result;
+    let (mut pous, mut implementations) = result;
     unit.units.append(&mut pous);
     unit.implementations.append(&mut implementations);
-    unit.properties.append(&mut properties);
 }
 
 fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
@@ -587,7 +587,7 @@ fn parse_method(
         lexer.advance(); // eat METHOD keyword
 
         let access = Some(parse_access_modifier(lexer));
-        let kind = PouType::Method { parent: parent.into(), property: None };
+        let kind = PouType::Method { parent: parent.into() };
         let poly_mode = parse_polymorphism_mode(lexer, &kind);
         let overriding = lexer.try_consume(KeywordOverride);
         let (name, name_location) = parse_identifier(lexer)?;
@@ -608,7 +608,7 @@ fn parse_method(
         let implementation = parse_implementation(
             lexer,
             linkage,
-            PouType::Method { parent: parent.into(), property: None },
+            PouType::Method { parent: parent.into() },
             &call_name,
             &call_name,
             !generics.is_empty(),
@@ -634,6 +634,7 @@ fn parse_method(
                 linkage,
                 super_class: None,
                 interfaces: Vec::new(),
+                properties: Vec::new(),
                 is_const: constant,
             },
             implementation,
@@ -641,12 +642,7 @@ fn parse_method(
     })
 }
 
-fn parse_property(
-    lexer: &mut ParseSession,
-    parent_name: &str,
-    parent_location: &SourceLocation,
-    kind: &PouType,
-) -> Option<Property> {
+fn parse_property(lexer: &mut ParseSession) -> Option<PropertyBlock> {
     lexer.advance(); // Move past `PROPERTY` keyword
 
     let mut has_error = false;
@@ -685,7 +681,7 @@ fn parse_property(
         let kind = if lexer.token == KeywordGet { PropertyKind::Get } else { PropertyKind::Set };
         lexer.advance(); // Move past `GET` or `SET` keyword
 
-        let mut variable_blocks = vec![];
+        let mut variable_blocks = Vec::new();
         while lexer.token.is_var() {
             variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
@@ -697,6 +693,7 @@ fn parse_property(
                 PropertyKind::Set => vec![Token::KeywordEndSet],
             },
         );
+
         implementations.push(PropertyImplementation { kind, variable_blocks, body: statements, location });
     }
 
@@ -708,13 +705,9 @@ fn parse_property(
 
     let (name, name_location) = identifier.expect("covered above");
     let datatype = datatype.expect("covered above");
-    Some(Property {
-        name,
-        name_location,
-        parent_name: parent_name.to_string(),
-        parent_kind: kind.clone(),
-        parent_name_location: parent_location.clone(),
-        datatype,
+    Some(PropertyBlock {
+        name: Identifier { name, location: name_location },
+        return_type: datatype,
         implementations,
     })
 }

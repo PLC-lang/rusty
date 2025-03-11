@@ -19,7 +19,6 @@ POU {
     ],
     pou_type: Method {
         parent: "fb",
-        property: None,
     },
     return_type: Some(
         Aggregate {

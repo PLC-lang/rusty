@@ -343,6 +343,7 @@ fn new_pou(
         linkage: LinkageType::Internal,
         super_class: None,
         interfaces: vec![],
+        properties: vec![],
         is_const: false,
     }
 }
@@ -376,6 +377,5 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &'static str) -
         interfaces: vec![],
         user_types: vec![],
         file: FileMarker::Internal(file_name),
-        properties: vec![],
     }
 }

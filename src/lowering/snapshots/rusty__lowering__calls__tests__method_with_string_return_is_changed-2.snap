@@ -43,7 +43,6 @@ DataType {
         source: Pou(
             Method {
                 parent: "fb",
-                property: None,
             },
         ),
     },

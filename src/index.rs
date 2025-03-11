@@ -1023,6 +1023,9 @@ pub struct Index {
     /// All interface definitions
     interfaces: SymbolMap<String, InterfaceIndexEntry>,
 
+    /// All property definitions `<container name, property identifier>`
+    properties: SymbolMap<String, Identifier>,
+
     /// All implementations
     /// We keep an IndexMap for implementations since duplication issues regarding implementations
     /// is handled by the `pous` SymbolMap
@@ -1140,6 +1143,9 @@ impl Index {
 
         // interfaces
         self.interfaces.extend(other.interfaces);
+
+        // properties
+        self.properties.extend(other.properties);
 
         //pous
         for (name, elements) in other.pous.drain(..) {
@@ -1316,10 +1322,22 @@ impl Index {
 
     /// Searches for method names in the given container, if not found, attempts to search for it in super class
     pub fn find_method(&self, container_name: &str, method_name: &str) -> Option<&PouIndexEntry> {
+        self.find_method_recursive(container_name, method_name, &mut FxHashSet::default())
+    }
+
+    fn find_method_recursive<'b>(
+        &'b self,
+        container_name: &str,
+        method_name: &str,
+        seen: &mut FxHashSet<&'b str>,
+    ) -> Option<&'b PouIndexEntry> {
         if let Some(local_method) = self.find_pou(&qualified_name(container_name, method_name)) {
             Some(local_method)
-        } else if let Some(super_method) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
-            self.find_method(super_method, method_name)
+        } else if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
+            if !seen.insert(class) {
+                return None;
+            }
+            self.find_method_recursive(class, method_name, seen)
         } else {
             None
         }
@@ -1328,6 +1346,10 @@ impl Index {
     /// Returns an interface with the given name or None if it does not exist
     pub fn find_interface(&self, name: &str) -> Option<&InterfaceIndexEntry> {
         self.interfaces.get(name)
+    }
+
+    pub fn get_properties_in_pou(&self, pou_name: &str) -> Vec<Identifier> {
+        self.properties.get_all(pou_name).unwrap_or(&vec![]).to_vec()
     }
 
     /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
@@ -1926,10 +1948,10 @@ impl Index {
     /// Returns all methods declared on container, or its parents.
     /// If a method is declared in the container the parent method is not included
     pub fn find_methods(&self, container: &str) -> Vec<&PouIndexEntry> {
-        self.find_method_recursive(container, vec![], &mut FxHashSet::default())
+        self.find_methods_recursive(container, vec![], &mut FxHashSet::default())
     }
 
-    fn find_method_recursive<'b>(
+    fn find_methods_recursive<'b>(
         &'b self,
         container: &str,
         current_methods: Vec<&'b PouIndexEntry>,
@@ -1952,7 +1974,7 @@ impl Index {
                 if !seen.insert(super_class) {
                     return res;
                 };
-                self.find_method_recursive(super_class, res, seen)
+                self.find_methods_recursive(super_class, res, seen)
             } else {
                 res
             }

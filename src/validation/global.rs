@@ -97,15 +97,20 @@ impl GlobalValidator {
 
         // Report name conflicts between any member variables in the VAR block
         for ty in index.get_types().values().chain(index.get_pou_types().values()) {
-            let mut groups: FxHashMap<&str, Vec<&VariableIndexEntry>> = FxHashMap::default();
-            for variable in ty.get_members() {
-                let group = groups.entry(variable.get_qualified_name()).or_default();
-                group.push(variable);
+            let mut groups: FxHashMap<&str, Vec<(&str, &SourceLocation)>> = FxHashMap::default();
+            let properties = index.get_properties_in_pou(ty.get_name());
+            let properties = properties.iter().map(|it| (it.name.as_str(), &it.location));
+
+            for (variable_name, location) in
+                ty.get_members().iter().map(|it| (it.get_name(), &it.source_location)).chain(properties)
+            {
+                let group = groups.entry(variable_name).or_default();
+                group.push((variable_name, location));
             }
 
             for duplicates in groups.values().filter(|it| it.len() > 1) {
-                let locations = duplicates.iter().map(|it| &it.source_location).collect::<Vec<_>>();
-                self.report_name_conflict(duplicates[0].get_qualified_name(), &locations, None);
+                let locations = duplicates.iter().map(|(_, location)| *location).collect::<Vec<_>>();
+                self.report_name_conflict(duplicates[0].0, &locations, None);
             }
         }
 

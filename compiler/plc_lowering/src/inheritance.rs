@@ -2013,7 +2013,6 @@ mod units_tests {
             ],
             pou_type: Method {
                 parent: "child",
-                property: None,
             },
             return_type: None,
             interfaces: [],
@@ -2047,7 +2046,6 @@ mod units_tests {
             linkage: Internal,
             pou_type: Method {
                 parent: "bar",
-                property: None,
             },
             statements: [
                 Assignment {
@@ -2214,6 +2212,191 @@ mod resolve_bases_tests {
                 Local,
             ),
             auto_deref: None,
+        }
+        "###);
+    }
+}
+
+#[cfg(test)]
+mod inherited_properties {
+    use insta::assert_debug_snapshot;
+    use plc_driver::{parse_and_annotate, pipelines::AnnotatedProject};
+    use plc_source::SourceCode;
+
+    #[test]
+    fn reference_to_property_declared_in_parent_is_called_correctly() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK fb
+            PROPERTY foo : INT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK fb2 EXTENDS fb
+                foo;
+            END_FUNCTION_BLOCK
+        "#
+        .into();
+
+        let (_, AnnotatedProject { units, .. }) = parse_and_annotate("test", vec![src]).unwrap();
+        let implementation = &units[0].get_unit().implementations[1];
+        let stmt = &dbg!(implementation).statements[0];
+        assert_debug_snapshot!(stmt, @r###"
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__get_foo",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__fb",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            parameters: None,
+        }
+        "###);
+    }
+
+    #[test]
+    fn reference_to_property_declared_in_grandparent_is_called_correctly() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK fb
+            PROPERTY foo : INT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK fb2 EXTENDS fb
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK fb3 EXTENDS fb2
+                foo;
+            END_FUNCTION_BLOCK
+        "#
+        .into();
+
+        let (_, AnnotatedProject { units, .. }) = parse_and_annotate("test", vec![src]).unwrap();
+        let implementation = &units[0].get_unit().implementations[2];
+        let stmt = &dbg!(implementation).statements[0];
+        assert_debug_snapshot!(stmt, @r###"
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__get_foo",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__fb",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__fb2",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+            parameters: None,
+        }
+        "###);
+    }
+
+    #[test]
+    fn extended_prop() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK fb
+            PROPERTY foo : INT
+                GET END_GET
+            END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK fb2 EXTENDS fb
+            PROPERTY FOO : INT
+                SET END_SET
+            END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK fb3 EXTENDS fb2
+                // we expect the RHS to call the getter defined in the grandparent and
+                // pass the result to the setter call in the grandparent
+                foo := foo;
+            END_FUNCTION_BLOCK
+        "#
+        .into();
+
+        let (_, AnnotatedProject { units, .. }) = parse_and_annotate("test", vec![src]).unwrap();
+        let implementation = dbg!(&units[0].get_unit().implementations[2]);
+        let stmt = &implementation.statements[0];
+        assert_debug_snapshot!(stmt, @r###"
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__set_foo",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__fb2",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            parameters: Some(
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__get_foo",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__fb",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__fb2",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    parameters: None,
+                },
+            ),
         }
         "###);
     }

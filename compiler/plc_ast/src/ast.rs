@@ -43,9 +43,13 @@ pub struct Pou {
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
     pub super_class: Option<Identifier>,
+    pub is_const: bool,
+
     /// A list of interfaces this POU implements
     pub interfaces: Vec<Identifier>,
-    pub is_const: bool,
+
+    /// A list of properties this POU contains
+    pub properties: Vec<PropertyBlock>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -62,17 +66,15 @@ pub struct Identifier {
     pub location: SourceLocation,
 }
 
+/// The property container as a whole, which contains [`PropertyImplementation`]s
 #[derive(Debug, PartialEq, Clone)]
-pub struct Property {
-    pub name: String,
-    pub name_location: SourceLocation,
-    pub parent_kind: PouType,
-    pub parent_name: String,
-    pub parent_name_location: SourceLocation,
-    pub datatype: DataTypeDeclaration,
+pub struct PropertyBlock {
+    pub name: Identifier,
+    pub return_type: DataTypeDeclaration,
     pub implementations: Vec<PropertyImplementation>,
 }
 
+/// The declaration and implementation of a properties accessor (GET or SET)
 #[derive(Debug, PartialEq, Clone)]
 pub struct PropertyImplementation {
     pub kind: PropertyKind,
@@ -320,9 +322,6 @@ pub enum PouType {
     Method {
         /// The parent of this method, i.e. a function block, class or an interface
         parent: String,
-
-        /// The fully qualified name of the property this GET or SET method represents
-        property: Option<String>,
     },
     Init,
     ProjectInit,
@@ -392,7 +391,6 @@ pub struct CompilationUnit {
     pub interfaces: Vec<Interface>,
     pub user_types: Vec<UserTypeDeclaration>,
     pub file: FileMarker,
-    pub properties: Vec<Property>,
 }
 
 impl CompilationUnit {
@@ -405,7 +403,6 @@ impl CompilationUnit {
             interfaces: Vec::new(),
             user_types: Vec::new(),
             file: FileMarker::File(file_name),
-            properties: Vec::new(),
         }
     }
 
@@ -437,9 +434,6 @@ pub enum VariableBlockType {
     Global,
     InOut,
     External,
-
-    /// A compiler internal variable block representing all properties defined within a stateful POU
-    Property,
 }
 
 impl Display for VariableBlockType {
@@ -452,7 +446,6 @@ impl Display for VariableBlockType {
             VariableBlockType::Global => write!(f, "Global"),
             VariableBlockType::InOut => write!(f, "InOut"),
             VariableBlockType::External => write!(f, "External"),
-            VariableBlockType::Property => write!(f, "Property"),
         }
     }
 }
@@ -483,19 +476,6 @@ impl VariableBlock {
     pub fn with_variables(mut self, variables: Vec<Variable>) -> Self {
         self.variables = variables;
         self
-    }
-
-    /// Creates a new (internal) variable block with a block type of [`Property`]
-    pub fn property(variables: Vec<Variable>) -> VariableBlock {
-        VariableBlock {
-            access: AccessModifier::Internal,
-            constant: false,
-            retain: false,
-            variables,
-            variable_block_type: VariableBlockType::Property,
-            linkage: LinkageType::Internal,
-            location: SourceLocation::internal(),
-        }
     }
 }
 
@@ -1127,6 +1107,13 @@ impl AstNode {
         matches!(self.stmt, AstStatement::ReferenceExpr(..))
     }
 
+    pub fn is_member_access(&self) -> bool {
+        matches!(
+            self.stmt,
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(..), .. }, ..)
+        )
+    }
+
     pub fn is_call(&self) -> bool {
         matches!(self.stmt, AstStatement::CallStatement(..))
     }
@@ -1359,7 +1346,7 @@ mod tests {
         assert_eq!(PouType::FunctionBlock.to_string(), "FunctionBlock");
         assert_eq!(PouType::Action.to_string(), "Action");
         assert_eq!(PouType::Class.to_string(), "Class");
-        assert_eq!(PouType::Method { parent: String::new(), property: None }.to_string(), "Method");
+        assert_eq!(PouType::Method { parent: String::new() }.to_string(), "Method");
     }
 
     #[test]
