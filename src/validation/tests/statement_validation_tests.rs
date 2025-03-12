@@ -2046,5 +2046,17 @@ fn unresolved_qualified_reference_in_array_access() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"");
+    assert_snapshot!(diagnostics, @r###"
+    warning[E049]: Illegal access to private member fb.val
+       ┌─ <internal>:13:20
+       │
+    13 │             foo[fb.val];
+       │                    ^^^ Illegal access to private member fb.val
+
+    error[E048]: Could not resolve reference to bar
+       ┌─ <internal>:15:20
+       │
+    15 │             foo[fb.bar];
+       │                    ^^^ Could not resolve reference to bar
+    "###);
 }

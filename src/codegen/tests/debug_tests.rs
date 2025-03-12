@@ -406,3 +406,123 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !16 = !DILocation(line: 4, column: 8, scope: !14)
     "###);
 }
+
+#[test]
+fn action_with_var_temp() {
+    let codegen = codegen(
+        r"
+        FUNCTION main : DINT
+            PLC_PRG();
+            PLC_PRG.act();
+        END_FUNCTION
+
+        PROGRAM PLC_PRG
+        VAR_TEMP
+            x : DINT;
+        END_VAR
+
+            x := 0;
+        END_PROGRAM
+
+        ACTIONS
+            ACTION act
+                x := x + 1;
+            END_ACTION
+        END_ACTIONS
+        ",
+    );
+
+    assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %PLC_PRG = type {}
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @PLC_PRG_instance = global %PLC_PRG zeroinitializer, !dbg !0
+
+    define i32 @main() !dbg !9 {
+    entry:
+      %main = alloca i32, align 4, !dbg !12
+      call void @llvm.dbg.declare(metadata i32* %main, metadata !13, metadata !DIExpression()), !dbg !15
+      store i32 0, i32* %main, align 4, !dbg !12
+      call void @PLC_PRG(%PLC_PRG* @PLC_PRG_instance), !dbg !12
+      call void @PLC_PRG.act(%PLC_PRG* @PLC_PRG_instance), !dbg !16
+      %main_ret = load i32, i32* %main, align 4, !dbg !16
+      ret i32 %main_ret, !dbg !16
+    }
+
+    define void @PLC_PRG(%PLC_PRG* %0) !dbg !17 {
+    entry:
+      call void @llvm.dbg.declare(metadata %PLC_PRG* %0, metadata !20, metadata !DIExpression()), !dbg !21
+      %x = alloca i32, align 4, !dbg !21
+      call void @llvm.dbg.declare(metadata i32* %x, metadata !22, metadata !DIExpression()), !dbg !23
+      store i32 0, i32* %x, align 4, !dbg !21
+      store i32 0, i32* %x, align 4, !dbg !21
+      ret void, !dbg !21
+    }
+
+    define void @PLC_PRG.act(%PLC_PRG* %0) !dbg !24 {
+    entry:
+      call void @llvm.dbg.declare(metadata %PLC_PRG* %0, metadata !25, metadata !DIExpression()), !dbg !26
+      %x = alloca i32, align 4, !dbg !26
+      call void @llvm.dbg.declare(metadata i32* %x, metadata !27, metadata !DIExpression()), !dbg !28
+      store i32 0, i32* %x, align 4, !dbg !26
+      %load_x = load i32, i32* %x, align 4, !dbg !26
+      %tmpVar = add i32 %load_x, 1, !dbg !26
+      store i32 %tmpVar, i32* %x, align 4, !dbg !26
+      ret void, !dbg !26
+    }
+
+    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+    define void @__init_plc_prg(%PLC_PRG* %0) {
+    entry:
+      %self = alloca %PLC_PRG*, align 8
+      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
+      ret void
+    }
+
+    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
+    !llvm.module.flags = !{!5, !6}
+    !llvm.dbg.cu = !{!7}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "PLC_PRG", scope: !2, file: !2, line: 7, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "PLC_PRG", scope: !2, file: !2, line: 7, align: 64, flags: DIFlagPublic, elements: !4, identifier: "PLC_PRG")
+    !4 = !{}
+    !5 = !{i32 2, !"Dwarf Version", i32 5}
+    !6 = !{i32 2, !"Debug Info Version", i32 3}
+    !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false)
+    !8 = !{!0}
+    !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 2, type: !10, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
+    !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
+    !11 = !{null}
+    !12 = !DILocation(line: 3, column: 12, scope: !9)
+    !13 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 2, type: !14, align: 32)
+    !14 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !15 = !DILocation(line: 2, column: 17, scope: !9)
+    !16 = !DILocation(line: 4, column: 12, scope: !9)
+    !17 = distinct !DISubprogram(name: "PLC_PRG", linkageName: "PLC_PRG", scope: !2, file: !2, line: 7, type: !18, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
+    !18 = !DISubroutineType(flags: DIFlagPublic, types: !19)
+    !19 = !{null, !3}
+    !20 = !DILocalVariable(name: "PLC_PRG", scope: !17, file: !2, line: 12, type: !3)
+    !21 = !DILocation(line: 12, column: 12, scope: !17)
+    !22 = !DILocalVariable(name: "x", scope: !17, file: !2, line: 9, type: !14, align: 32)
+    !23 = !DILocation(line: 9, column: 12, scope: !17)
+    !24 = distinct !DISubprogram(name: "PLC_PRG.act", linkageName: "PLC_PRG.act", scope: !2, file: !2, line: 16, type: !18, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
+    !25 = !DILocalVariable(name: "PLC_PRG", scope: !24, file: !2, line: 17, type: !3)
+    !26 = !DILocation(line: 17, column: 16, scope: !24)
+    !27 = !DILocalVariable(name: "x", scope: !24, file: !2, line: 9, type: !14, align: 32)
+    !28 = !DILocation(line: 9, column: 12, scope: !24)
+    "#);
+}

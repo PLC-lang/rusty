@@ -696,7 +696,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .ok_or_else(|| Diagnostic::missing_function(location))?;
         //Generate POU struct declaration for debug
         if let Some(block) = self.llvm.builder.get_insert_block() {
-            // debug.register_struct_parameter(type_name, function_context);
             debug.add_variable_declaration(
                 type_name,
                 param_pointer,

@@ -99,6 +99,15 @@
                 "RUST_LOG": "rusty"
             },
             "terminal": "integrated"
+        },
+        {
+            "type": "codelldb",
+            "request": "launch",
+            "name": "Debug st application demo",
+            "cwd": "${workspaceFolder}",
+            "program": "target/demo",
+            "terminal": "integrated"
+
         }
     ]
 }
