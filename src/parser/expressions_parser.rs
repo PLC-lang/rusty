@@ -376,7 +376,20 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Option<AstNode> {
                 )
             })
         };
-        Some(call_statement)
+
+        if lexer.try_consume(KeywordSquareParensOpen) {
+            let index = parse_any_in_region(lexer, vec![KeywordSquareParensClose], parse_expression);
+            let node = AstFactory::create_index_reference(
+                index,
+                Some(call_statement),
+                lexer.next_id(),
+                SourceLocation::undefined(),
+            );
+
+            Some(node)
+        } else {
+            Some(call_statement)
+        }
     } else {
         Some(reference)
     }

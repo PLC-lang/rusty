@@ -403,3 +403,24 @@ fn argument_fed_by_ref_then_by_val() {
 
     insta::assert_snapshot!(result)
 }
+
+#[test]
+fn function_call_with_array_access() {
+    let result = codegen(
+        "
+        FUNCTION foo : ARRAY[1..5] OF DINT
+            foo := [5, 4, 3, 2, 1];
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                value : DINT;
+            END_VAR
+
+            value := foo()[3];
+        END_FUNCTION
+    ",
+    );
+
+    insta::assert_snapshot!(result)
+}

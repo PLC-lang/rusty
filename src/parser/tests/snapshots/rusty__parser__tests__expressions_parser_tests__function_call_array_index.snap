@@ -1,0 +1,116 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: "parse_result.implementations[0].statements"
+---
+[
+    ReferenceExpr {
+        kind: Index(
+            LiteralInteger {
+                value: 1,
+            },
+        ),
+        base: Some(
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: None,
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Index(
+            BinaryExpression {
+                operator: Plus,
+                left: LiteralInteger {
+                    value: 1,
+                },
+                right: LiteralInteger {
+                    value: 2,
+                },
+            },
+        ),
+        base: Some(
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: None,
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Index(
+            BinaryExpression {
+                operator: Plus,
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "one",
+                        },
+                    ),
+                    base: None,
+                },
+                right: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "two",
+                        },
+                    ),
+                    base: None,
+                },
+            },
+        ),
+        base: Some(
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: None,
+            },
+        ),
+    },
+    ReferenceExpr {
+        kind: Index(
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "bar",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: None,
+            },
+        ),
+        base: Some(
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: None,
+            },
+        ),
+    },
+]
