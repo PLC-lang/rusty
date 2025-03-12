@@ -5786,3 +5786,43 @@ fn reference_to_alloca_nested_resolved() {
         unreachable!("Must be an assignment");
     }
 }
+
+#[test]
+fn reference_inside_array_access_index_is_resolved() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION main : DINT
+            VAR
+                arr : ARRAY[1..5] OF DINT;
+                idx : DINT;
+            END_VAR
+
+            arr[idx];
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[0].statements[0];
+    if let AstNode {
+        stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Index(idx), .. }),
+        ..
+    } = stmt
+    {
+        insta::assert_debug_snapshot!(annotations.get(idx).unwrap(), @r###"
+        Variable {
+            resulting_type: "DINT",
+            qualified_name: "main.idx",
+            constant: false,
+            argument_type: ByVal(
+                Local,
+            ),
+            auto_deref: None,
+        }
+        "###);
+    } else {
+        unreachable!("Expected a reference expression")
+    }
+}
