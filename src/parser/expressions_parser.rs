@@ -359,40 +359,45 @@ fn parse_null_literal(lexer: &mut ParseSession) -> Option<AstNode> {
 
 pub fn parse_call_statement(lexer: &mut ParseSession) -> Option<AstNode> {
     let reference = parse_qualified_reference(lexer)?;
+    let reference_loc = reference.get_location();
 
-    // is this a callstatement?
-    if lexer.try_consume(KeywordParensOpen) {
-        let start = reference.get_location();
-        // Call Statement
-        let call_statement = if lexer.try_consume(KeywordParensClose) {
-            AstFactory::create_call_statement(reference, None, lexer.next_id(), start.span(&lexer.location()))
-        } else {
-            parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
-                AstFactory::create_call_statement(
-                    reference,
-                    Some(parse_expression_list(lexer)),
-                    lexer.next_id(),
-                    start.span(&lexer.location()),
-                )
-            })
-        };
-
-        if lexer.try_consume(KeywordSquareParensOpen) {
-            let index = parse_any_in_region(lexer, vec![KeywordSquareParensClose], parse_expression);
-            let node = AstFactory::create_index_reference(
-                index,
-                Some(call_statement),
-                lexer.next_id(),
-                SourceLocation::undefined(),
-            );
-
-            Some(node)
-        } else {
-            Some(call_statement)
-        }
-    } else {
-        Some(reference)
+    // We're not dealing with a call statement here
+    if !lexer.try_consume(KeywordParensOpen) {
+        return Some(reference);
     }
+
+    let call = if lexer.try_consume(KeywordParensClose) {
+        AstFactory::create_call_statement(
+            reference,
+            None,
+            lexer.next_id(),
+            reference_loc.span(&lexer.location()),
+        )
+    } else {
+        parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
+            AstFactory::create_call_statement(
+                reference,
+                Some(parse_expression_list(lexer)),
+                lexer.next_id(),
+                reference_loc.span(&lexer.location()),
+            )
+        })
+    };
+
+    // Are we dealing with an array-index access directly after the call, e.g. `foo()[...]`?
+    if lexer.try_consume(KeywordSquareParensOpen) {
+        let index = parse_any_in_region(lexer, vec![KeywordSquareParensClose], parse_expression);
+        let statement = AstFactory::create_index_reference(
+            index,
+            Some(call),
+            lexer.next_id(),
+            SourceLocation::undefined(),
+        );
+
+        return Some(statement);
+    }
+
+    Some(call)
 }
 
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Option<AstNode> {
