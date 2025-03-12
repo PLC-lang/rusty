@@ -1767,7 +1767,16 @@
 <a href="#1766" id="1766">1766</a>
 <a href="#1767" id="1767">1767</a>
 <a href="#1768" id="1768">1768</a>
-<a href="#1769" id="1769">1769</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<a href="#1769" id="1769">1769</a>
+<a href="#1770" id="1770">1770</a>
+<a href="#1771" id="1771">1771</a>
+<a href="#1772" id="1772">1772</a>
+<a href="#1773" id="1773">1773</a>
+<a href="#1774" id="1774">1774</a>
+<a href="#1775" id="1775">1775</a>
+<a href="#1776" id="1776">1776</a>
+<a href="#1777" id="1777">1777</a>
+<a href="#1778" id="1778">1778</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
 <span class="kw">use </span>plc_ast::ast::Assignment;
@@ -2205,7 +2214,7 @@
             }
         }
         AstStatement::ReferenceExpr(<span class="kw">_</span>) =&gt; {
-            <span class="kw">let </span>ref_type = context.annotations.get_type_or_void(access_index, context.index);
+            <span class="kw">let </span><span class="prelude-val">Some</span>(ref_type) = context.annotations.get_type(access_index, context.index) <span class="kw">else </span>{ <span class="kw">return </span>};
             <span class="kw">if </span>!ref_type.get_type_information().is_int() {
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Invalid type {} for direct variable access. Only variables of Integer types are allowed"</span>, ref_type.get_name()))
@@ -2326,7 +2335,11 @@
     access: <span class="kw-2">&amp;</span>AstNode,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
-    <span class="kw">let </span>target_type = context.annotations.get_type_or_void(reference, context.index).get_type_information();
+    <span class="kw">let </span><span class="prelude-val">Some</span>(target_type) =
+        context.annotations.get_type(reference, context.index).map(|it| it.get_type_information())
+    <span class="kw">else </span>{
+        <span class="kw">return</span>;
+    };
 
     <span class="kw">match </span>target_type {
         DataTypeInformation::Array { dimensions, .. } =&gt; <span class="kw">match </span>access.get_stmt() {
@@ -2384,6 +2397,7 @@
     dimension_index: usize,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
+    visit_statement(validator, access, context);
     <span class="kw">if let </span>AstStatement::Literal(AstLiteral::Integer(value)) = access.get_stmt() {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(dimension) = dimensions.get(dimension_index) {
             <span class="kw">if let </span><span class="prelude-val">Ok</span>(range) = dimension.get_range(context.index) {
@@ -2400,7 +2414,11 @@
             }
         }
     } <span class="kw">else </span>{
-        <span class="kw">let </span>type_info = context.annotations.get_type_or_void(access, context.index).get_type_information();
+        <span class="kw">let </span><span class="prelude-val">Some</span>(type_info) =
+            context.annotations.get_type(access, context.index).map(|it| it.get_type_information())
+        <span class="kw">else </span>{
+            <span class="kw">return</span>;
+        };
         <span class="kw">if </span>!type_info.is_int() {
             validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(
