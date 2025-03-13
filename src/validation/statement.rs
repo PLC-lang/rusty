@@ -436,7 +436,7 @@ fn validate_access_index<T: AnnotationMap>(
             }
         }
         AstStatement::ReferenceExpr(_) => {
-            let ref_type = context.annotations.get_type_or_void(access_index, context.index);
+            let Some(ref_type) = context.annotations.get_type(access_index, context.index) else { return };
             if !ref_type.get_type_information().is_int() {
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Invalid type {} for direct variable access. Only variables of Integer types are allowed", ref_type.get_name()))
@@ -557,7 +557,11 @@ fn visit_array_access<T: AnnotationMap>(
     access: &AstNode,
     context: &ValidationContext<T>,
 ) {
-    let target_type = context.annotations.get_type_or_void(reference, context.index).get_type_information();
+    let Some(target_type) =
+        context.annotations.get_type(reference, context.index).map(|it| it.get_type_information())
+    else {
+        return;
+    };
 
     match target_type {
         DataTypeInformation::Array { dimensions, .. } => match access.get_stmt() {
@@ -615,6 +619,7 @@ fn validate_array_access<T: AnnotationMap>(
     dimension_index: usize,
     context: &ValidationContext<T>,
 ) {
+    visit_statement(validator, access, context);
     if let AstStatement::Literal(AstLiteral::Integer(value)) = access.get_stmt() {
         if let Some(dimension) = dimensions.get(dimension_index) {
             if let Ok(range) = dimension.get_range(context.index) {
@@ -631,7 +636,11 @@ fn validate_array_access<T: AnnotationMap>(
             }
         }
     } else {
-        let type_info = context.annotations.get_type_or_void(access, context.index).get_type_information();
+        let Some(type_info) =
+            context.annotations.get_type(access, context.index).map(|it| it.get_type_information())
+        else {
+            return;
+        };
         if !type_info.is_int() {
             validator.push_diagnostic(
                     Diagnostic::new(format!(

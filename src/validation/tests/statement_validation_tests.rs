@@ -1997,3 +1997,66 @@ fn validate_property_call_with_braces() {
        │             ^^^^^^^^^^^^^^^ Properties cannot be called like functions. Remove `()`
     "###);
 }
+
+#[test]
+fn unresolved_reference_in_array_access() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM mainProg
+        VAR
+            foo: ARRAY[0..1] OF DINT;
+            val: DINT;
+        END_VAR
+            // OK
+            foo[val];
+            // unresolved reference
+            foo[bar];
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    error[E048]: Could not resolve reference to bar
+       ┌─ <internal>:10:17
+       │
+    10 │             foo[bar];
+       │                 ^^^ Could not resolve reference to bar
+    "###);
+}
+
+#[test]
+fn unresolved_qualified_reference_in_array_access() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+        VAR
+            val: DINT;
+        END_VAR
+        END_FUNCTION_BLOCK
+        PROGRAM mainProg
+        VAR
+            foo: ARRAY[0..1] OF DINT;
+            instance: fb;
+        END_VAR
+            // OK
+            foo[fb.val];
+            // unresolved reference
+            foo[fb.bar];
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r###"
+    warning[E049]: Illegal access to private member fb.val
+       ┌─ <internal>:13:20
+       │
+    13 │             foo[fb.val];
+       │                    ^^^ Illegal access to private member fb.val
+
+    error[E048]: Could not resolve reference to bar
+       ┌─ <internal>:15:20
+       │
+    15 │             foo[fb.bar];
+       │                    ^^^ Could not resolve reference to bar
+    "###);
+}
