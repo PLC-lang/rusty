@@ -218,7 +218,7 @@ fn switch_case_debug_info() {
         "#,
     );
 
-    assert_snapshot!(codegen, @r###"
+    assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -312,14 +312,14 @@ fn switch_case_debug_info() {
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
-    !8 = !DILocalVariable(name: "x1", scope: !4, file: !3, line: 4, type: !9, align: 16)
+    !8 = !DILocalVariable(name: "x1", scope: !4, file: !3, line: 4, type: !9)
     !9 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !10 = !DILocation(line: 4, column: 16, scope: !4)
-    !11 = !DILocalVariable(name: "x2", scope: !4, file: !3, line: 5, type: !9, align: 16)
+    !11 = !DILocalVariable(name: "x2", scope: !4, file: !3, line: 5, type: !9)
     !12 = !DILocation(line: 5, column: 16, scope: !4)
-    !13 = !DILocalVariable(name: "x3", scope: !4, file: !3, line: 6, type: !9, align: 16)
+    !13 = !DILocalVariable(name: "x3", scope: !4, file: !3, line: 6, type: !9)
     !14 = !DILocation(line: 6, column: 16, scope: !4)
-    !15 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 2, type: !16, align: 32)
+    !15 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 2, type: !16)
     !16 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !17 = !DILocation(line: 2, column: 17, scope: !4)
     !18 = !DILocation(line: 22, column: 12, scope: !4)
@@ -335,7 +335,7 @@ fn switch_case_debug_info() {
     !28 = !DILocation(line: 17, column: 20, scope: !4)
     !29 = !DILocation(line: 18, column: 20, scope: !4)
     !30 = !DILocation(line: 19, column: 20, scope: !4)
-    "###);
+    "#);
 }
 
 #[test]
@@ -435,7 +435,7 @@ fn action_with_var_temp() {
         ",
     );
 
-    assert_snapshot!(codegen, @r###"
+    assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -501,7 +501,7 @@ fn action_with_var_temp() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "PLC_PRG", scope: !2, file: !2, line: 7, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "PLC_PRG", scope: !2, file: !2, line: 7, align: 64, flags: DIFlagPublic, elements: !4, identifier: "PLC_PRG")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "PLC_PRG", scope: !2, file: !2, line: 7, flags: DIFlagPublic, elements: !4, identifier: "PLC_PRG")
     !4 = !{}
     !5 = !{i32 2, !"Dwarf Version", i32 5}
     !6 = !{i32 2, !"Debug Info Version", i32 3}
@@ -510,7 +510,7 @@ fn action_with_var_temp() {
     !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 2, type: !10, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
     !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
     !11 = !{null}
-    !12 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 2, type: !13, align: 32)
+    !12 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 2, type: !13)
     !13 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !14 = !DILocation(line: 2, column: 17, scope: !9)
     !15 = !DILocation(line: 3, column: 12, scope: !9)
@@ -521,14 +521,14 @@ fn action_with_var_temp() {
     !20 = !{null, !3}
     !21 = !DILocalVariable(name: "PLC_PRG", scope: !18, file: !2, line: 12, type: !3)
     !22 = !DILocation(line: 12, column: 12, scope: !18)
-    !23 = !DILocalVariable(name: "x", scope: !18, file: !2, line: 9, type: !13, align: 32)
+    !23 = !DILocalVariable(name: "x", scope: !18, file: !2, line: 9, type: !13)
     !24 = !DILocation(line: 9, column: 12, scope: !18)
     !25 = !DILocation(line: 13, column: 8, scope: !18)
     !26 = distinct !DISubprogram(name: "PLC_PRG.act", linkageName: "PLC_PRG.act", scope: !2, file: !2, line: 16, type: !19, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
     !27 = !DILocalVariable(name: "PLC_PRG", scope: !26, file: !2, line: 17, type: !3)
     !28 = !DILocation(line: 17, column: 16, scope: !26)
-    !29 = !DILocalVariable(name: "x", scope: !26, file: !2, line: 9, type: !13, align: 32)
+    !29 = !DILocalVariable(name: "x", scope: !26, file: !2, line: 9, type: !13)
     !30 = !DILocation(line: 9, column: 12, scope: !26)
     !31 = !DILocation(line: 18, column: 12, scope: !26)
-    "###);
+    "#);
 }
