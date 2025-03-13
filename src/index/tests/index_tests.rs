@@ -2256,3 +2256,36 @@ fn inheritance_chain_correctly_finds_parents() {
     let inheritance_chain = index.get_inheritance_chain("grandparent", "child");
     assert_eq!(inheritance_chain, Vec::<&PouIndexEntry>::new());
 }
+
+#[test]
+fn pou_with_two_types_not_consireded_recursive() {
+    let (_, index) = index(
+        "
+        FUNCTION_BLOCK fb
+        VAR x,y : DINT; END_VAR
+        END_FUNCTION_BLOCK
+        PROGRAM p
+        VAR
+            x : fb;
+            y : fb;
+        END_VAR
+        END_PROGRAM",
+    );
+
+    let pou_type = index.find_pou_type("p").unwrap();
+    assert_eq!(pou_type.get_type_information().get_size(&index).unwrap().bits(), 128);
+}
+
+#[test]
+fn pou_with_recursive_type_fails() {
+    let (_, index) = index(
+        "
+        FUNCTION_BLOCK fb
+        VAR x : fb; END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let pou_type = index.find_pou_type("fb").unwrap();
+    assert!(pou_type.get_type_information().get_size(&index).is_err());
+}
