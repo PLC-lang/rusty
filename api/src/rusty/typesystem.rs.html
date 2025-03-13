@@ -1471,7 +1471,9 @@
 <a href="#1470" id="1470">1470</a>
 <a href="#1471" id="1471">1471</a>
 <a href="#1472" id="1472">1472</a>
-<a href="#1473" id="1473">1473</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
     mem::size_of,
@@ -2104,7 +2106,7 @@
         <span class="kw">if </span><span class="self">self</span>.is_struct() &amp;&amp; !seen.insert(<span class="self">self</span>.get_name()) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">"Recursive type detected: {}"</span>, <span class="self">self</span>.get_name()));
         }
-        <span class="kw">match </span><span class="self">self </span>{
+        <span class="kw">let </span>res = <span class="kw">match </span><span class="self">self </span>{
             DataTypeInformation::Integer { size, .. } =&gt; <span class="prelude-val">Ok</span>(Bytes::from_bits(<span class="kw-2">*</span>size)),
             DataTypeInformation::Float { size, .. } =&gt; <span class="prelude-val">Ok</span>(Bytes::from_bits(<span class="kw-2">*</span>size)),
             DataTypeInformation::String { size, encoding } =&gt; <span class="prelude-val">Ok</span>(size
@@ -2141,7 +2143,9 @@
                 .map(|it| it.get_size(index))
                 .unwrap_or_else(|| <span class="prelude-val">Ok</span>(Bytes::from_bits(DINT_SIZE))),
             DataTypeInformation::Generic { .. } | DataTypeInformation::Void =&gt; <span class="prelude-val">Ok</span>(Bytes::from_bits(<span class="number">0</span>)),
-        }
+        };
+        seen.remove(<span class="self">self</span>.get_name());
+        res
     }
 
     <span class="doccomment">/// Returns the String encoding's alignment (character)
