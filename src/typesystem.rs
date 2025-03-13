@@ -631,7 +631,7 @@ impl DataTypeInformation {
         if self.is_struct() && !seen.insert(self.get_name()) {
             return Err(anyhow!("Recursive type detected: {}", self.get_name()));
         }
-        match self {
+        let res = match self {
             DataTypeInformation::Integer { size, .. } => Ok(Bytes::from_bits(*size)),
             DataTypeInformation::Float { size, .. } => Ok(Bytes::from_bits(*size)),
             DataTypeInformation::String { size, encoding } => Ok(size
@@ -668,7 +668,9 @@ impl DataTypeInformation {
                 .map(|it| it.get_size(index))
                 .unwrap_or_else(|| Ok(Bytes::from_bits(DINT_SIZE))),
             DataTypeInformation::Generic { .. } | DataTypeInformation::Void => Ok(Bytes::from_bits(0)),
-        }
+        };
+        seen.remove(self.get_name());
+        res
     }
 
     /// Returns the String encoding's alignment (character)
