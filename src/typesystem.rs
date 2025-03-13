@@ -642,12 +642,13 @@ impl DataTypeInformation {
             DataTypeInformation::Struct { members, .. } => members
                 .iter()
                 .map(|it| it.get_type_name())
-                .try_fold(MemoryLocation::new(0), |prev, it| {
+                .try_fold(MemoryLocation::new(0), |_, it| {
                     let type_info: &DataTypeInformation = index.get_type_information_or_void(it);
                     let size = type_info.get_size_recursive(index, seen)?.value();
-                    let after_align = prev.align_to(type_info.get_alignment(index)).value();
-                    let res = after_align + size;
-                    Ok(MemoryLocation::new(res))
+                    // TODO: alignment
+                    // let after_align = prev.align_to(type_info.get_alignment(index)).value();
+                    // let res = after_align + size;
+                    Ok(MemoryLocation::new(size))
                 })
                 .map(Into::into),
             DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
@@ -683,53 +684,57 @@ impl DataTypeInformation {
         }
     }
 
-    pub fn get_alignment(&self, index: &Index) -> Bytes {
-        if self.get_size(index).unwrap_or_default().value() == 0 {
-            return Bytes::new(0);
-        }
-
-        let type_layout = index.get_type_layout();
-        match self {
-            DataTypeInformation::Array { inner_type_name, .. } => {
-                index.get_type_information_or_void(inner_type_name).get_alignment(index)
-            }
-            DataTypeInformation::Struct { .. } => type_layout.aggregate,
-            DataTypeInformation::String { encoding, .. } => match encoding {
-                StringEncoding::Utf8 => Bytes::new(1),
-                StringEncoding::Utf16 => Bytes::new(2),
-            },
-            DataTypeInformation::Pointer { .. } => type_layout.p64,
-            DataTypeInformation::Integer { size, semantic_size, .. } => {
-                if let Some(1) = semantic_size {
-                    type_layout.i1
-                } else {
-                    match size {
-                        8 => type_layout.i8,
-                        16 => type_layout.i16,
-                        32 => type_layout.i32,
-                        64 => type_layout.i64,
-                        _ => type_layout.p64,
-                    }
-                }
-            }
-            DataTypeInformation::Enum { referenced_type, .. } => {
-                index.get_type_information_or_void(referenced_type).get_alignment(index)
-            }
-            DataTypeInformation::Float { size, .. } => match size {
-                32 => type_layout.f32,
-                64 => type_layout.f64,
-                _ => type_layout.p64,
-            },
-            DataTypeInformation::SubRange { referenced_type, .. } => {
-                index.get_type_information_or_void(referenced_type).get_alignment(index)
-            }
-            DataTypeInformation::Alias { referenced_type, .. } => {
-                index.get_type_information_or_void(referenced_type).get_alignment(index)
-            }
-            _ => type_layout.i8,
-        }
-    }
-
+    // TODO: alignment
+    // pub fn get_alignment(&self, index: &Index) -> Bytes {
+    //     if true {
+    //         return Bytes::new(0);
+    //     }
+    //     if self.get_size(index).unwrap_or_default().value() == 0 {
+    //         return Bytes::new(0);
+    //     }
+    //
+    //     let type_layout = index.get_type_layout();
+    //     match self {
+    //         DataTypeInformation::Array { inner_type_name, .. } => {
+    //             index.get_type_information_or_void(inner_type_name).get_alignment(index)
+    //         }
+    //         DataTypeInformation::Struct { .. } => type_layout.aggregate,
+    //         DataTypeInformation::String { encoding, .. } => match encoding {
+    //             StringEncoding::Utf8 => Bytes::new(1),
+    //             StringEncoding::Utf16 => Bytes::new(2),
+    //         },
+    //         DataTypeInformation::Pointer { .. } => type_layout.p64,
+    //         DataTypeInformation::Integer { size, semantic_size, .. } => {
+    //             if let Some(1) = semantic_size {
+    //                 type_layout.i1
+    //             } else {
+    //                 match size {
+    //                     8 => type_layout.i8,
+    //                     16 => type_layout.i16,
+    //                     32 => type_layout.i32,
+    //                     64 => type_layout.i64,
+    //                     _ => type_layout.p64,
+    //                 }
+    //             }
+    //         }
+    //         DataTypeInformation::Enum { referenced_type, .. } => {
+    //             index.get_type_information_or_void(referenced_type).get_alignment(index)
+    //         }
+    //         DataTypeInformation::Float { size, .. } => match size {
+    //             32 => type_layout.f32,
+    //             64 => type_layout.f64,
+    //             _ => type_layout.p64,
+    //         },
+    //         DataTypeInformation::SubRange { referenced_type, .. } => {
+    //             index.get_type_information_or_void(referenced_type).get_alignment(index)
+    //         }
+    //         DataTypeInformation::Alias { referenced_type, .. } => {
+    //             index.get_type_information_or_void(referenced_type).get_alignment(index)
+    //         }
+    //         _ => type_layout.i8,
+    //     }
+    // }
+    //
     pub fn get_inner_array_type_name(&self) -> Option<&str> {
         match self {
             DataTypeInformation::Array { inner_type_name, .. } => Some(inner_type_name),
