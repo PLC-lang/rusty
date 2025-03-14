@@ -30,43 +30,31 @@ fn properties_can_be_parsed() {
     assert_eq!(unit.units.len(), 1);
     assert_eq!(unit.units[0].name, "foo");
 
-    assert_eq!(unit.properties.len(), 1);
-    assert_eq!(unit.properties[0].name, "bar");
-    assert_eq!(unit.properties[0].implementations.len(), 2);
+    let properties = &unit.units[0].properties;
+    assert_eq!(properties.len(), 1);
+    assert_eq!(properties[0].name.name, "bar");
+    assert_eq!(properties[0].implementations.len(), 2);
 
-    insta::assert_debug_snapshot!(unit.properties, @r#"
+    insta::assert_debug_snapshot!(properties, @r###"
     [
-        Property {
-            name: "bar",
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 21,
-                        offset: 49,
-                    }..TextLocation {
-                        line: 2,
-                        column: 24,
-                        offset: 52,
-                    },
-                ),
+        PropertyBlock {
+            name: Identifier {
+                name: "bar",
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 2,
+                            column: 21,
+                            offset: 49,
+                        }..TextLocation {
+                            line: 2,
+                            column: 24,
+                            offset: 52,
+                        },
+                    ),
+                },
             },
-            parent_kind: FunctionBlock,
-            parent_name: "foo",
-            parent_name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 23,
-                        offset: 24,
-                    }..TextLocation {
-                        line: 1,
-                        column: 26,
-                        offset: 27,
-                    },
-                ),
-            },
-            datatype: DataTypeReference {
+            return_type: DataTypeReference {
                 referenced_type: "INT",
             },
             implementations: [
@@ -166,7 +154,7 @@ fn properties_can_be_parsed() {
             ],
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]

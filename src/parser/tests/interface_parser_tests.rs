@@ -62,7 +62,7 @@ fn interface_with_single_method() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
             name: "myInterface",
@@ -92,7 +92,6 @@ fn interface_with_single_method() {
                     ],
                     pou_type: Method {
                         parent: "myInterface",
-                        property: None,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -130,7 +129,7 @@ fn interface_with_single_method() {
             },
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -159,7 +158,7 @@ fn interface_with_multiple_methods() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
             name: "myInterface",
@@ -189,7 +188,6 @@ fn interface_with_multiple_methods() {
                     ],
                     pou_type: Method {
                         parent: "myInterface",
-                        property: None,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -228,7 +226,6 @@ fn interface_with_multiple_methods() {
                     ],
                     pou_type: Method {
                         parent: "myInterface",
-                        property: None,
                     },
                     return_type: Some(
                         DataTypeReference {
@@ -266,7 +263,7 @@ fn interface_with_multiple_methods() {
             },
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]

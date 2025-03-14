@@ -409,7 +409,6 @@ fn var_config_test() {
         file: File(
             "test.st",
         ),
-        properties: [],
     }
     "#);
 }
@@ -551,7 +550,6 @@ fn var_external() {
         file: File(
             "test.st",
         ),
-        properties: [],
     }
     "#);
 }
@@ -680,7 +678,6 @@ fn var_external_constant() {
         file: File(
             "test.st",
         ),
-        properties: [],
     }
     "#);
 }

@@ -577,19 +577,19 @@ fn duplicate_enum_inline_variants() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E004]: __main_foo.a: Duplicate symbol.
+    error[E004]: a: Duplicate symbol.
       ┌─ <internal>:4:24
       │
     4 │                 foo : (a, b, c, a);
       │                        ^        - see also
       │                        │         
-      │                        __main_foo.a: Duplicate symbol.
+      │                        a: Duplicate symbol.
 
-    error[E004]: __main_foo.a: Duplicate symbol.
+    error[E004]: a: Duplicate symbol.
       ┌─ <internal>:4:33
       │
     4 │                 foo : (a, b, c, a);
-      │                        -        ^ __main_foo.a: Duplicate symbol.
+      │                        -        ^ a: Duplicate symbol.
       │                        │         
       │                        see also
     ");

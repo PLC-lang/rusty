@@ -11,7 +11,9 @@ fn lower_and_validate(src: &str) -> String {
     let (unit, mut diagnostics) = parse(src);
 
     let mut validator = ParticipantValidator::new(&context, ErrorFormat::None);
-    validator.validate_properties(&unit.properties);
+    for pou in &unit.units {
+        validator.validate_properties(pou);
+    }
 
     diagnostics.extend(validator.diagnostics);
 
@@ -105,5 +107,46 @@ fn property_with_var_output_in_get_block() {
     6 |                   VAR_OUTPUT
       |                   ^^^^^^^^^^ see also
       |
+    ");
+}
+
+#[test]
+fn property_with_same_name_as_member_variable() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb
+        VAR
+            foo: DINT;
+        END_VAR
+        PROPERTY foo : DINT
+            GET
+                foo := 42;
+            END_GET
+            SET
+                foo := 3;
+            END_SET
+        END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E004]: foo: Duplicate symbol.
+      ┌─ <internal>:4:13
+      │
+    4 │             foo: DINT;
+      │             ^^^ foo: Duplicate symbol.
+    5 │         END_VAR
+    6 │         PROPERTY foo : DINT
+      │                  --- see also
+
+    error[E004]: foo: Duplicate symbol.
+      ┌─ <internal>:6:18
+      │
+    4 │             foo: DINT;
+      │             --- see also
+    5 │         END_VAR
+    6 │         PROPERTY foo : DINT
+      │                  ^^^ foo: Duplicate symbol.
     ");
 }

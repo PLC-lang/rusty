@@ -1,7 +1,7 @@
 use global_var_indexer::VarGlobalIndexer;
 use implementation_indexer::ImplementationIndexer;
 use plc_ast::{
-    ast::{CompilationUnit, Implementation, Interface, VariableBlockType},
+    ast::{CompilationUnit, Implementation, Interface, PropertyBlock, VariableBlockType},
     visitor::{AstVisitor, Walker},
 };
 use pou_indexer::PouIndexer;
@@ -22,10 +22,22 @@ pub fn index(unit: &CompilationUnit) -> Index {
     indexer.index
 }
 
+#[derive(Default, Clone)]
+struct Context {
+    pub pou: String,
+}
+
+impl Context {
+    pub fn replace_with_pou(&mut self, pou: impl Into<String>) -> Self {
+        std::mem::replace(self, Context { pou: pou.into() })
+    }
+}
+
 /// Indexer that registers all symbols in the index
 #[derive(Default)]
 pub struct SymbolIndexer {
     pub index: Index,
+    ctx: Context,
 }
 
 /// The SymbolIndexer is responsible for registering all delcared types and symbols in the index.
@@ -51,6 +63,9 @@ impl AstVisitor for SymbolIndexer {
     /// Also registers the pou's struct type in the index
     fn visit_pou(&mut self, pou: &plc_ast::ast::Pou) {
         PouIndexer::new(&mut self.index).visit_pou(pou);
+        let old_ctx = self.ctx.replace_with_pou(&pou.name);
+        pou.properties.iter().for_each(|property| self.visit_property(property));
+        self.ctx = old_ctx;
     }
 
     /// Visits an implementation and registers the implementation in the index
@@ -68,5 +83,9 @@ impl AstVisitor for SymbolIndexer {
         }
 
         self.index.interfaces.insert(interface.name.clone(), InterfaceIndexEntry::from(interface));
+    }
+
+    fn visit_property(&mut self, property: &PropertyBlock) {
+        self.index.properties.insert(self.ctx.pou.clone(), property.name.clone());
     }
 }

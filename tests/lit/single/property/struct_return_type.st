@@ -1,19 +1,19 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 
 TYPE
-    Transaction : STRUCT
-        id : DINT;
-        values : ARRAY[1..10] OF DINT;
+    Transaction: STRUCT
+        id: DINT;
+        values: ARRAY[1..10] OF DINT;
     END_STRUCT
 END_TYPE
 
 FUNCTION print_txn
     VAR_INPUT {ref}
-        value : Transaction;
+        value: Transaction;
     END_VAR
 
     VAR
-        idx : DINT;
+        idx: DINT;
     END_VAR
 
     printf('{ id: %d, values: [', value.id);
@@ -28,11 +28,11 @@ END_FUNCTION
 
 FUNCTION_BLOCK fb
     VAR
-        localPrivateVariable : DINT := 5;
-        returnValue : Transaction;
+        localPrivateVariable: DINT := 5;
+        returnValue: Transaction;
     END_VAR
 
-    PROPERTY foo : Transaction
+    PROPERTY foo: Transaction
         GET
             printf('Inside getter$N');
 
@@ -56,11 +56,10 @@ END_FUNCTION_BLOCK
 
 FUNCTION main
     VAR
-        instance : fb;
-        localTransaction : Transaction;
+        instance: fb;
+        localTransaction: Transaction;
     END_VAR
 
-    // CHECK: Inside getter
     // CHECK: Inside getter
     // CHECK: { id: 1, values: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512] }
     print_txn(instance.foo);
