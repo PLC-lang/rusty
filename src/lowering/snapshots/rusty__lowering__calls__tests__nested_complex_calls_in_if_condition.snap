@@ -164,6 +164,22 @@ Implementation {
             "<internal>",
         ),
     },
+    end_location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 11,
+                column: 12,
+                offset: 304,
+            }..TextLocation {
+                line: 11,
+                column: 24,
+                offset: 316,
+            },
+        ),
+        file: Some(
+            "<internal>",
+        ),
+    },
     overriding: false,
     generic: false,
     access: None,

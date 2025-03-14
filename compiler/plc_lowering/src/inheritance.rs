@@ -409,6 +409,22 @@ mod units_tests {
                     "<internal>",
                 ),
             },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 18,
+                        column: 12,
+                        offset: 471,
+                    }..TextLocation {
+                        line: 18,
+                        column: 30,
+                        offset: 489,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -490,6 +506,22 @@ mod units_tests {
                         line: 7,
                         column: 30,
                         offset: 158,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 9,
+                        column: 12,
+                        offset: 213,
+                    }..TextLocation {
+                        line: 9,
+                        column: 30,
+                        offset: 231,
                     },
                 ),
                 file: Some(
@@ -589,6 +621,22 @@ mod units_tests {
                         line: 10,
                         column: 32,
                         offset: 257,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 12,
+                        column: 12,
+                        offset: 311,
+                    }..TextLocation {
+                        line: 12,
+                        column: 30,
+                        offset: 329,
                     },
                 ),
                 file: Some(
@@ -1002,6 +1050,22 @@ mod units_tests {
                     "<internal>",
                 ),
             },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 25,
+                        column: 16,
+                        offset: 1008,
+                    }..TextLocation {
+                        line: 25,
+                        column: 34,
+                        offset: 1026,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -1114,6 +1178,22 @@ mod units_tests {
                         line: 17,
                         column: 30,
                         offset: 380,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 23,
+                        column: 12,
+                        offset: 537,
+                    }..TextLocation {
+                        line: 23,
+                        column: 30,
+                        offset: 555,
                     },
                 ),
                 file: Some(
@@ -1441,6 +1521,22 @@ mod units_tests {
                     "<internal>",
                 ),
             },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 30,
+                        column: 12,
+                        offset: 833,
+                    }..TextLocation {
+                        line: 30,
+                        column: 24,
+                        offset: 845,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -1633,6 +1729,22 @@ mod units_tests {
                         line: 15,
                         column: 32,
                         offset: 409,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 20,
+                        column: 12,
+                        offset: 567,
+                    }..TextLocation {
+                        line: 20,
+                        column: 30,
+                        offset: 585,
                     },
                 ),
                 file: Some(
@@ -1842,6 +1954,22 @@ mod units_tests {
                         line: 19,
                         column: 29,
                         offset: 531,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 26,
+                        column: 16,
+                        offset: 722,
+                    }..TextLocation {
+                        line: 26,
+                        column: 28,
+                        offset: 734,
                     },
                 ),
                 file: Some(
@@ -2099,6 +2227,22 @@ mod units_tests {
                         line: 8,
                         column: 19,
                         offset: 170,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 10,
+                        column: 8,
+                        offset: 262,
+                    }..TextLocation {
+                        line: 10,
+                        column: 18,
+                        offset: 272,
                     },
                 ),
                 file: Some(

@@ -443,7 +443,7 @@ fn var_external() {
 
     let (result, _) = parse(src);
 
-    insta::assert_debug_snapshot!(result, @r#"
+    insta::assert_debug_snapshot!(result, @r###"
     CompilationUnit {
         global_vars: [
             VariableBlock {
@@ -541,6 +541,19 @@ fn var_external() {
                         },
                     ),
                 },
+                end_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 9,
+                            column: 4,
+                            offset: 155,
+                        }..TextLocation {
+                            line: 9,
+                            column: 16,
+                            offset: 167,
+                        },
+                    ),
+                },
                 overriding: false,
                 generic: false,
                 access: None,
@@ -553,7 +566,7 @@ fn var_external() {
         ),
         properties: [],
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -572,7 +585,7 @@ fn var_external_constant() {
 
     let (result, _) = parse(src);
 
-    insta::assert_debug_snapshot!(result, @r#"
+    insta::assert_debug_snapshot!(result, @r###"
     CompilationUnit {
         global_vars: [
             VariableBlock {
@@ -670,6 +683,19 @@ fn var_external_constant() {
                         },
                     ),
                 },
+                end_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 9,
+                            column: 4,
+                            offset: 163,
+                        }..TextLocation {
+                            line: 9,
+                            column: 16,
+                            offset: 175,
+                        },
+                    ),
+                },
                 overriding: false,
                 generic: false,
                 access: None,
@@ -682,5 +708,5 @@ fn var_external_constant() {
         ),
         properties: [],
     }
-    "#);
+    "###);
 }
