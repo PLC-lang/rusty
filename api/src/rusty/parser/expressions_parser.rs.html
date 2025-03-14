@@ -943,7 +943,25 @@
 <a href="#942" id="942">942</a>
 <a href="#943" id="943">943</a>
 <a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{
     expect_token,
@@ -1304,27 +1322,45 @@
 
 <span class="kw">pub fn </span>parse_call_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
     <span class="kw">let </span>reference = parse_qualified_reference(lexer)<span class="question-mark">?</span>;
+    <span class="kw">let </span>reference_loc = reference.get_location();
 
-    <span class="comment">// is this a callstatement?
-    </span><span class="kw">if </span>lexer.try_consume(KeywordParensOpen) {
-        <span class="kw">let </span>start = reference.get_location();
-        <span class="comment">// Call Statement
-        </span><span class="kw">let </span>call_statement = <span class="kw">if </span>lexer.try_consume(KeywordParensClose) {
-            AstFactory::create_call_statement(reference, <span class="prelude-val">None</span>, lexer.next_id(), start.span(<span class="kw-2">&amp;</span>lexer.location()))
-        } <span class="kw">else </span>{
-            parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordParensClose], |lexer| {
-                AstFactory::create_call_statement(
-                    reference,
-                    <span class="prelude-val">Some</span>(parse_expression_list(lexer)),
-                    lexer.next_id(),
-                    start.span(<span class="kw-2">&amp;</span>lexer.location()),
-                )
-            })
-        };
-        <span class="prelude-val">Some</span>(call_statement)
-    } <span class="kw">else </span>{
-        <span class="prelude-val">Some</span>(reference)
+    <span class="comment">// We're not dealing with a call statement here
+    </span><span class="kw">if </span>!lexer.try_consume(KeywordParensOpen) {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(reference);
     }
+
+    <span class="kw">let </span>call = <span class="kw">if </span>lexer.try_consume(KeywordParensClose) {
+        AstFactory::create_call_statement(
+            reference,
+            <span class="prelude-val">None</span>,
+            lexer.next_id(),
+            reference_loc.span(<span class="kw-2">&amp;</span>lexer.location()),
+        )
+    } <span class="kw">else </span>{
+        parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordParensClose], |lexer| {
+            AstFactory::create_call_statement(
+                reference,
+                <span class="prelude-val">Some</span>(parse_expression_list(lexer)),
+                lexer.next_id(),
+                reference_loc.span(<span class="kw-2">&amp;</span>lexer.location()),
+            )
+        })
+    };
+
+    <span class="comment">// Are we dealing with an array-index access directly after the call, e.g. `foo()[...]`?
+    </span><span class="kw">if </span>lexer.try_consume(KeywordSquareParensOpen) {
+        <span class="kw">let </span>index = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordSquareParensClose], parse_expression);
+        <span class="kw">let </span>statement = AstFactory::create_index_reference(
+            index,
+            <span class="prelude-val">Some</span>(call),
+            lexer.next_id(),
+            SourceLocation::undefined(),
+        );
+
+        <span class="kw">return </span><span class="prelude-val">Some</span>(statement);
+    }
+
+    <span class="prelude-val">Some</span>(call)
 }
 
 <span class="kw">pub fn </span>parse_qualified_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
