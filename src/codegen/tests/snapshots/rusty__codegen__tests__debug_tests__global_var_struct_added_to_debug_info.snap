@@ -31,7 +31,7 @@ entry:
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, line: 12, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "<internal>", directory: "")
-!3 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 3872, elements: !12)
+!3 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 4928, elements: !12)
 !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 2, size: 448, flags: DIFlagPublic, elements: !5, identifier: "myStruct")
 !5 = !{!6, !8, !10}
 !6 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 3, baseType: !7, size: 32, flags: DIFlagPublic)

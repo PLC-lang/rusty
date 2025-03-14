@@ -2262,7 +2262,7 @@ fn pou_with_two_types_not_considered_recursive() {
     let (_, index) = index(
         "
         FUNCTION_BLOCK fb
-        VAR x,y : DINT; END_VAR
+        VAR x : DINT; END_VAR
         END_FUNCTION_BLOCK
         PROGRAM p
         VAR
@@ -2274,7 +2274,7 @@ fn pou_with_two_types_not_considered_recursive() {
 
     let pou_type = index.find_pou_type("p").unwrap();
     // TODO: why not 64 bytes?
-    assert_eq!(pou_type.get_type_information().get_size(&index).unwrap().bits(), 32);
+    assert_eq!(pou_type.get_type_information().get_size(&index).unwrap().bits(), 64);
 }
 
 #[test]

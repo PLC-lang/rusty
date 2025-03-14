@@ -642,13 +642,13 @@ impl DataTypeInformation {
             DataTypeInformation::Struct { members, .. } => members
                 .iter()
                 .map(|it| it.get_type_name())
-                .try_fold(MemoryLocation::new(0), |_, it| {
+                .try_fold(MemoryLocation::new(0), |prev, it| {
                     let type_info: &DataTypeInformation = index.get_type_information_or_void(it);
                     let size = type_info.get_size_recursive(index, seen)?.value();
                     // TODO: alignment
                     // let after_align = prev.align_to(type_info.get_alignment(index)).value();
-                    // let res = after_align + size;
-                    Ok(MemoryLocation::new(size))
+                    let res = prev.value() + size;
+                    Ok(MemoryLocation::new(res))
                 })
                 .map(Into::into),
             DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
