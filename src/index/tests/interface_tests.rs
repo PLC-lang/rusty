@@ -13,6 +13,7 @@ fn empty_interface() {
     InterfaceIndexEntry {
         name: "myInterface",
         methods: [],
+        extensions: [],
     }
     "###);
 }
@@ -38,13 +39,15 @@ fn interface_with_single_method() {
         methods: [
             "myInterface.foo",
         ],
+        extensions: [],
     }
     "###);
 
-    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r###"
+    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r#"
     Method {
         name: "myInterface.foo",
-        parent_pou_name: "myInterface",
+        parent_name: "myInterface",
+        declaration_kind: Abstract,
         return_type: "INT",
         instance_struct_name: "myInterface.foo",
         linkage: Internal,
@@ -65,7 +68,7 @@ fn interface_with_single_method() {
             ),
         },
     }
-    "###);
+    "#);
 
     insta::assert_debug_snapshot!(index.get_pou_members("myInterface.foo"), @r###"
     [
@@ -192,11 +195,12 @@ fn get_interface_methods() {
     let (_, index) = index(source);
     let entry = index.find_interface("myInterface").unwrap();
 
-    insta::assert_debug_snapshot!(entry.get_methods(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_methods(&index), @r#"
     [
         Method {
             name: "myInterface.foo",
-            parent_pou_name: "myInterface",
+            parent_name: "myInterface",
+            declaration_kind: Abstract,
             return_type: "SINT",
             instance_struct_name: "myInterface.foo",
             linkage: Internal,
@@ -219,7 +223,8 @@ fn get_interface_methods() {
         },
         Method {
             name: "myInterface.bar",
-            parent_pou_name: "myInterface",
+            parent_name: "myInterface",
+            declaration_kind: Abstract,
             return_type: "INT",
             instance_struct_name: "myInterface.bar",
             linkage: Internal,
@@ -242,7 +247,8 @@ fn get_interface_methods() {
         },
         Method {
             name: "myInterface.baz",
-            parent_pou_name: "myInterface",
+            parent_name: "myInterface",
+            declaration_kind: Abstract,
             return_type: "DINT",
             instance_struct_name: "myInterface.baz",
             linkage: Internal,
@@ -264,5 +270,339 @@ fn get_interface_methods() {
             },
         },
     ]
+    "#);
+}
+
+#[test]
+fn extended_interfaces() {
+    let source = r"
+        INTERFACE foo
+        METHOD m_foo
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE bar EXTENDS foo
+        END_INTERFACE
+
+        INTERFACE baz
+        METHOD m_baz
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE qux EXTENDS foo, baz
+        END_INTERFACE
+    ";
+
+    let (_, index) = index(source);
+    let entry = index.find_interface("bar").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "foo",
+                methods: [
+                    "foo.m_foo",
+                ],
+                extensions: [],
+            },
+        ),
+    ]
     "###);
+
+    let entry = index.find_interface("qux").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "foo",
+                methods: [
+                    "foo.m_foo",
+                ],
+                extensions: [],
+            },
+        ),
+        Ok(
+            InterfaceIndexEntry {
+                name: "baz",
+                methods: [
+                    "baz.m_baz",
+                ],
+                extensions: [],
+            },
+        ),
+    ]
+    "###);
+}
+
+#[test]
+fn nested_extended_interfaces() {
+    let source = r"
+        INTERFACE foo
+        METHOD m_foo
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE bar EXTENDS foo
+        METHOD m_bar
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE baz EXTENDS bar
+        METHOD m_baz
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE qux EXTENDS baz
+        END_INTERFACE
+    ";
+
+    let (_, index) = index(source);
+    let entry = index.find_interface("bar").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "foo",
+                methods: [
+                    "foo.m_foo",
+                ],
+                extensions: [],
+            },
+        ),
+    ]
+    "###);
+
+    let entry = index.find_interface("baz").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "bar",
+                methods: [
+                    "bar.m_bar",
+                ],
+                extensions: [
+                    Identifier {
+                        name: "foo",
+                        location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 6,
+                                    column: 30,
+                                    offset: 116,
+                                }..TextLocation {
+                                    line: 6,
+                                    column: 33,
+                                    offset: 119,
+                                },
+                            ),
+                            file: Some(
+                                "<internal>",
+                            ),
+                        },
+                    },
+                ],
+            },
+        ),
+    ]
+    "#);
+
+    let entry = index.find_interface("qux").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "baz",
+                methods: [
+                    "baz.m_baz",
+                ],
+                extensions: [
+                    Identifier {
+                        name: "bar",
+                        location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 11,
+                                    column: 30,
+                                    offset: 213,
+                                }..TextLocation {
+                                    line: 11,
+                                    column: 33,
+                                    offset: 216,
+                                },
+                            ),
+                            file: Some(
+                                "<internal>",
+                            ),
+                        },
+                    },
+                ],
+            },
+        ),
+    ]
+    "#);
+}
+
+#[test]
+fn deriving_from_undeclared_interface() {
+    let source = r"
+        INTERFACE foo EXTENDS bar
+        END_INTERFACE
+
+        INTERFACE baz EXTENDS foo, bar
+        END_INTERFACE
+    ";
+
+    let (_, index) = index(source);
+    let entry = index.find_interface("foo").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    [
+        Err(
+            Identifier {
+                name: "bar",
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 1,
+                            column: 30,
+                            offset: 31,
+                        }..TextLocation {
+                            line: 1,
+                            column: 33,
+                            offset: 34,
+                        },
+                    ),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+            },
+        ),
+    ]
+    "#);
+
+    let entry = index.find_interface("baz").unwrap();
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    [
+        Ok(
+            InterfaceIndexEntry {
+                name: "foo",
+                methods: [],
+                extensions: [
+                    Identifier {
+                        name: "bar",
+                        location: SourceLocation {
+                            span: Range(
+                                TextLocation {
+                                    line: 1,
+                                    column: 30,
+                                    offset: 31,
+                                }..TextLocation {
+                                    line: 1,
+                                    column: 33,
+                                    offset: 34,
+                                },
+                            ),
+                            file: Some(
+                                "<internal>",
+                            ),
+                        },
+                    },
+                ],
+            },
+        ),
+        Err(
+            Identifier {
+                name: "bar",
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 4,
+                            column: 35,
+                            offset: 93,
+                        }..TextLocation {
+                            line: 4,
+                            column: 38,
+                            offset: 96,
+                        },
+                    ),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+            },
+        ),
+    ]
+    "#);
+}
+
+#[test]
+fn recursive_interfaces_do_not_overflow_the_stack_when_getting_all_methods() {
+    let source = r"
+        INTERFACE foo EXTENDS bar
+        METHOD bar
+        END_METHOD
+        END_INTERFACE
+
+        INTERFACE bar EXTENDS foo
+        METHOD foo
+        END_METHOD
+        END_INTERFACE
+    ";
+
+    let (_, index) = index(source);
+
+    let entry = index.find_interface("bar").unwrap();
+    insta::assert_debug_snapshot!(entry.get_methods(&index), @r#"
+    [
+        Method {
+            name: "bar.foo",
+            parent_name: "bar",
+            declaration_kind: Abstract,
+            return_type: "VOID",
+            instance_struct_name: "bar.foo",
+            linkage: Internal,
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 7,
+                        column: 15,
+                        offset: 145,
+                    }..TextLocation {
+                        line: 7,
+                        column: 18,
+                        offset: 148,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+        },
+        Method {
+            name: "foo.bar",
+            parent_name: "foo",
+            declaration_kind: Abstract,
+            return_type: "VOID",
+            instance_struct_name: "foo.bar",
+            linkage: Internal,
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 2,
+                        column: 15,
+                        offset: 50,
+                    }..TextLocation {
+                        line: 2,
+                        column: 18,
+                        offset: 53,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+        },
+    ]
+    "#);
 }

@@ -226,7 +226,7 @@ impl GlobalValidator {
         let interfaces = index
             .get_interfaces()
             .values()
-            .map(|interface| (interface.name.as_str(), &interface.location_name));
+            .map(|interface| (interface.get_name(), interface.get_name_location()));
 
         self.check_uniqueness_of_cluster(interfaces, Some("Ambiguous interface"));
     }

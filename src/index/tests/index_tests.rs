@@ -1412,7 +1412,7 @@ fn a_program_pou_is_indexed() {
     assert_eq!(
         Some(&PouIndexEntry::Action {
             name: "myProgram.act".into(),
-            parent_pou_name: "myProgram".into(),
+            parent_name: "myProgram".into(),
             linkage: LinkageType::Internal,
             instance_struct_name: "myProgram".into(),
             location: source_location_factory.create_range(269..272),
