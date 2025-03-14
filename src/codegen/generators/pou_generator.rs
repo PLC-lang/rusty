@@ -417,28 +417,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             )
         })?;
 
-        let (line, column) = implementation
-            .statements
-            .first()
-            .map(|it| (it.get_location().get_line_plus_one(), it.get_location().get_column()))
-            .or_else(|| {
-                Some((implementation.location.get_line_plus_one(), implementation.location.get_column()))
-            })
-            // .or_else(|| Some(implementation.location.get_start()))
-            .unwrap();
-        let function_context = FunctionContext {
-            linking_context: self.index.find_implementation_by_name(&implementation.name).ok_or_else(
-                || {
-                    Diagnostic::codegen_error(
-                        format!("Could not find implementation for {}", &implementation.name),
-                        &implementation.location,
-                    )
-                },
-            )?,
-            function: current_function,
-            blocks: FxHashMap::default(),
-        };
-        debug.set_debug_location(&self.llvm, &function_context, line, column);
+        //Unset the debug location so we ignore initialization logic
+        debug.unset_debug_location(&self.llvm);
 
         //generate the body
         let block = context.append_basic_block(current_function, "entry");
@@ -518,7 +498,20 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &function_context,
                 debug,
             );
+            let (line, column) = implementation
+                .statements
+                .first()
+                .map(|it| (it.get_location().get_line_plus_one(), it.get_location().get_column()))
+                .unwrap_or_else(|| {
+                    (implementation.location.get_line_plus_one(), implementation.location.get_column())
+                });
+            //Set the debug location to the first statement in the body
+            debug.set_debug_location(&self.llvm, &function_context, line, column);
             statement_gen.generate_body(&implementation.statements)?;
+            //TODO the return statement should be lowered
+            let line = implementation.end_location.get_line_plus_one();
+            let column = implementation.end_location.get_column();
+            debug.set_debug_location(&self.llvm, &function_context, line, column);
             statement_gen.generate_return_statement()?;
         }
 

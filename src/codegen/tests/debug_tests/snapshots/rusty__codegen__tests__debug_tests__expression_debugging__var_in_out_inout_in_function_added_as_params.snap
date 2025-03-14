@@ -7,19 +7,19 @@ source_filename = "<internal>"
 
 define i32 @myFunc(i16* %0) !dbg !4 {
 entry:
-  %myFunc = alloca i32, align 4, !dbg !11
-  %x = alloca i16*, align 8, !dbg !11
-  call void @llvm.dbg.declare(metadata i16** %x, metadata !12, metadata !DIExpression()), !dbg !13
-  store i16* %0, i16** %x, align 8, !dbg !11
-  call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !14, metadata !DIExpression()), !dbg !16
-  store i32 0, i32* %myFunc, align 4, !dbg !11
-  %deref = load i16*, i16** %x, align 8, !dbg !11
-  %load_x = load i16, i16* %deref, align 2, !dbg !11
-  %1 = sext i16 %load_x to i32, !dbg !11
-  %tmpVar = add i32 %1, 2, !dbg !11
-  store i32 %tmpVar, i32* %myFunc, align 4, !dbg !11
-  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !11
-  ret i32 %myFunc_ret, !dbg !11
+  %myFunc = alloca i32, align 4
+  %x = alloca i16*, align 8
+  call void @llvm.dbg.declare(metadata i16** %x, metadata !11, metadata !DIExpression()), !dbg !12
+  store i16* %0, i16** %x, align 8
+  call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !13, metadata !DIExpression()), !dbg !15
+  store i32 0, i32* %myFunc, align 4
+  %deref = load i16*, i16** %x, align 8, !dbg !16
+  %load_x = load i16, i16* %deref, align 2, !dbg !16
+  %1 = sext i16 %load_x to i32, !dbg !16
+  %tmpVar = add i32 %1, 2, !dbg !16
+  store i32 %tmpVar, i32* %myFunc, align 4, !dbg !16
+  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !17
+  ret i32 %myFunc_ret, !dbg !17
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -41,12 +41,13 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_INT", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
 !9 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !10 = !{}
-!11 = !DILocation(line: 6, column: 12, scope: !4)
-!12 = !DILocalVariable(name: "x", scope: !4, file: !5, line: 4, type: !8)
-!13 = !DILocation(line: 4, column: 12, scope: !4)
-!14 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !15, align: 32)
-!15 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!16 = !DILocation(line: 2, column: 17, scope: !4)
+!11 = !DILocalVariable(name: "x", scope: !4, file: !5, line: 4, type: !8)
+!12 = !DILocation(line: 4, column: 12, scope: !4)
+!13 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !14, align: 32)
+!14 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!15 = !DILocation(line: 2, column: 17, scope: !4)
+!16 = !DILocation(line: 6, column: 12, scope: !4)
+!17 = !DILocation(line: 7, column: 8, scope: !4)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
