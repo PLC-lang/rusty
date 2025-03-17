@@ -24,7 +24,9 @@ use plc_ast::{
         flatten_expression_list, Allocation, AstNode, AstStatement, JumpStatement, LabelStatement, Operator,
         ReferenceAccess, ReferenceExpr,
     },
-    control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement},
+    control_statements::{
+        AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement, ReturnStatement,
+    },
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
@@ -252,31 +254,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         statement: &AstControlStatement,
     ) -> Result<(), Diagnostic> {
         match statement {
-            AstControlStatement::If(ifstmt) => self.generate_if_statement(
-                llvm_index,
-                &ifstmt.blocks,
-                &ifstmt.else_block,
-                &ifstmt.end_location,
-            ),
-            AstControlStatement::ForLoop(for_stmt) => self.generate_for_statement(
-                llvm_index,
-                &for_stmt.counter,
-                &for_stmt.start,
-                &for_stmt.end,
-                &for_stmt.by_step,
-                &for_stmt.body,
-                &for_stmt.end_location,
-            ),
+            AstControlStatement::If(ifstmt) => self.generate_if_statement(llvm_index, ifstmt),
+            AstControlStatement::ForLoop(for_stmt) => self.generate_for_statement(llvm_index, for_stmt),
             AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
-                self.generate_loop_statement(llvm_index, &stmt.condition, &stmt.body, &stmt.end_location)
+                self.generate_loop_statement(llvm_index, stmt)
             }
-            AstControlStatement::Case(stmt) => self.generate_case_statement(
-                llvm_index,
-                &stmt.selector,
-                &stmt.case_blocks,
-                &stmt.else_block,
-                &stmt.end_location,
-            ),
+            AstControlStatement::Case(stmt) => self.generate_case_statement(llvm_index, stmt),
         }
     }
 
@@ -406,26 +389,20 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// - `end` the value indicating the end of the for loop
     /// - `by_step` the step of the loop
     /// - `body` the statements inside the for-loop
-    #[allow(clippy::too_many_arguments)]
     fn generate_for_statement(
         &self,
         llvm_index: &'a LlvmTypedIndex<'b>,
-        counter: &AstNode,
-        start: &AstNode,
-        end: &AstNode,
-        by_step: &Option<Box<AstNode>>,
-        body: &[AstNode],
-        end_location: &SourceLocation,
+        stmt: &ForLoopStatement,
     ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let exp_gen = self.create_expr_generator(llvm_index);
 
-        let end_ty = self.annotations.get_type_or_void(end, self.index);
-        let counter_ty = self.annotations.get_type_or_void(counter, self.index);
+        let end_ty = self.annotations.get_type_or_void(&stmt.end, self.index);
+        let counter_ty = self.annotations.get_type_or_void(&stmt.counter, self.index);
         let cast_target_ty = get_bigger_type(self.index.get_type_or_panic(DINT_TYPE), counter_ty, self.index);
         let cast_target_llty = llvm_index.find_associated_type(cast_target_ty.get_name()).unwrap();
 
-        let step_ty = by_step.as_ref().map(|it| {
+        let step_ty = stmt.by_step.as_ref().map(|it| {
             self.register_debug_location(it);
             self.annotations.get_type_or_void(it, self.index)
         });
@@ -434,7 +411,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             step_ty.map_or_else(
                 || self.llvm.create_const_numeric(&cast_target_llty, "1", SourceLocation::internal()),
                 |step_ty| {
-                    let step = exp_gen.generate_expression(by_step.as_ref().unwrap())?;
+                    let step = exp_gen.generate_expression(stmt.by_step.as_ref().unwrap())?;
                     Ok(cast_if_needed!(exp_gen, cast_target_ty, step_ty, step, None))
                 },
             )
@@ -446,8 +423,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let increment = context.append_basic_block(current_function, "increment");
         let afterloop = context.append_basic_block(current_function, "continue");
 
-        self.generate_assignment_statement(llvm_index, counter, start)?;
-        let counter = exp_gen.generate_lvalue(counter)?;
+        self.generate_assignment_statement(llvm_index, &stmt.counter, &stmt.start)?;
+        let counter = exp_gen.generate_lvalue(&stmt.counter)?;
 
         // generate loop predicate selector. since `STEP` can be a reference, this needs to be a runtime eval
         // XXX(mhasel): IR could possibly be improved by generating phi instructions.
@@ -470,7 +447,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 _ => unreachable!(),
             });
 
-            let end = exp_gen.generate_expression_value(end).unwrap();
+            let end = exp_gen.generate_expression_value(&stmt.end).unwrap();
             let end_value = match end {
                 ExpressionValue::LValue(ptr) => builder.build_load(ptr, ""),
                 ExpressionValue::RValue(val) => val,
@@ -496,13 +473,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             load_suffix: self.load_suffix.clone(),
             ..*self
         };
-        body_builder.generate_body(body)?;
+        body_builder.generate_body(&stmt.body)?;
         // Place debug location to end of loop
         self.debug.set_debug_location(
             self.llvm,
             self.function_context,
-            end_location.get_line_plus_one(),
-            end_location.get_column(),
+            stmt.end_location.get_line_plus_one(),
+            stmt.end_location.get_column(),
         );
 
         // increment counter
@@ -539,10 +516,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     fn generate_case_statement(
         &self,
         llvm_index: &'a LlvmTypedIndex<'b>,
-        selector: &AstNode,
-        conditional_blocks: &[ConditionalBlock],
-        else_body: &[AstNode],
-        end_location: &SourceLocation,
+        stmt: &CaseStatement,
     ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         //Continue
@@ -550,13 +524,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let exp_gen = self.create_expr_generator(llvm_index);
-        let selector_statement = exp_gen.generate_expression(selector)?;
+        let selector_statement = exp_gen.generate_expression(&stmt.selector)?;
 
         let mut cases = Vec::new();
         let else_block = context.append_basic_block(current_function, "else");
         let mut current_else_block = else_block;
 
-        for conditional_block in conditional_blocks {
+        for conditional_block in &stmt.case_blocks {
             //craete a block for the case's body
             let case_block = context.prepend_basic_block(else_block, "case");
 
@@ -569,7 +543,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     // since the if's generate additional blocks, we use the last one as the else-section
                     current_else_block = self.generate_case_range_condition(
                         llvm_index,
-                        selector,
+                        &stmt.selector,
                         data.start.as_ref(),
                         data.end.as_ref(),
                         case_block,
@@ -589,21 +563,21 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             self.debug.set_debug_location(
                 self.llvm,
                 self.function_context,
-                end_location.get_line_plus_one(),
-                end_location.get_column(),
+                stmt.end_location.get_line_plus_one(),
+                stmt.end_location.get_column(),
             );
             // skip all other case-bodies
             builder.build_unconditional_branch(continue_block);
         }
         // current-else is the last else-block generated by the range-expressions
         builder.position_at_end(current_else_block);
-        self.generate_body(else_body)?;
+        self.generate_body(&stmt.else_block)?;
         //Add debug location to the end of the case
         self.debug.set_debug_location(
             self.llvm,
             self.function_context,
-            end_location.get_line_plus_one(),
-            end_location.get_column(),
+            stmt.end_location.get_line_plus_one(),
+            stmt.end_location.get_column(),
         );
         builder.build_unconditional_branch(continue_block);
         continue_block.move_after(current_else_block).expect(INTERNAL_LLVM_ERROR);
@@ -611,7 +585,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         // now that we collected all cases, go back to the initial block and generate the switch-statement
         builder.position_at_end(basic_block);
 
-        self.register_debug_location(selector);
+        self.register_debug_location(&stmt.selector);
         builder.build_switch(selector_statement.into_int_value(), else_block, &cases);
 
         builder.position_at_end(continue_block);
@@ -676,14 +650,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     fn generate_loop_statement(
         &self,
         llvm_index: &'a LlvmTypedIndex<'b>,
-        condition: &AstNode,
-        body: &[AstNode],
-        end_location: &SourceLocation,
+        stmt: &LoopStatement,
     ) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let (condition_block, _) =
-            self.generate_base_while_statement(llvm_index, condition, body, end_location)?;
+            self.generate_base_while_statement(llvm_index, &stmt.condition, &stmt.body, &stmt.end_location)?;
 
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
@@ -749,17 +721,15 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     fn generate_if_statement(
         &self,
         llvm_index: &'a LlvmTypedIndex<'b>,
-        conditional_blocks: &[ConditionalBlock],
-        else_body: &[AstNode],
-        end_location: &SourceLocation,
+        stmt: &IfStatement,
     ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let mut blocks = vec![builder.get_insert_block().expect(INTERNAL_LLVM_ERROR)];
-        for _ in 1..conditional_blocks.len() {
+        for _ in 1..stmt.blocks.len() {
             blocks.push(context.append_basic_block(current_function, "branch"));
         }
 
-        let else_block = if !else_body.is_empty() {
+        let else_block = if !stmt.else_block.is_empty() {
             let result = context.append_basic_block(current_function, "else");
             blocks.push(result);
             Some(result)
@@ -770,7 +740,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let continue_block = context.append_basic_block(current_function, "continue");
         blocks.push(continue_block);
 
-        for (i, block) in conditional_blocks.iter().enumerate() {
+        for (i, block) in stmt.blocks.iter().enumerate() {
             let then_block = blocks[i];
             let else_block = blocks[i + 1];
 
@@ -795,8 +765,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             self.debug.set_debug_location(
                 self.llvm,
                 self.function_context,
-                end_location.get_line_plus_one(),
-                end_location.get_column(),
+                stmt.end_location.get_line_plus_one(),
+                stmt.end_location.get_column(),
             );
             builder.build_unconditional_branch(continue_block);
         }
@@ -804,13 +774,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         if let Some(else_block) = else_block {
             builder.position_at_end(else_block);
-            self.generate_body(else_body)?;
+            self.generate_body(&stmt.else_block)?;
             // Place debug location to end of if
             self.debug.set_debug_location(
                 self.llvm,
                 self.function_context,
-                end_location.get_line_plus_one(),
-                end_location.get_column(),
+                stmt.end_location.get_line_plus_one(),
+                stmt.end_location.get_column(),
             );
             builder.build_unconditional_branch(continue_block);
         }
