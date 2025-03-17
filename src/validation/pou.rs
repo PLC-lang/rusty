@@ -214,7 +214,7 @@ pub fn visit_implementation<T: AnnotationMap>(
     }
     if implementation.linkage != LinkageType::External {
         validate_action_container(validator, implementation);
-        //Validate the label uniqueness
+        // Validate the label uniqueness
 
         if let Some(labels) = context.index.get_labels(&implementation.name) {
             for (_, labels) in labels.entries() {

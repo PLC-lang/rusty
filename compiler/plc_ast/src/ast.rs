@@ -56,9 +56,10 @@ pub struct Pou {
 pub struct Interface {
     pub id: AstId,
     pub identifier: Identifier,
-    pub methods: Vec<Pou>,
     pub location: SourceLocation,
+    pub methods: Vec<Pou>,
     pub extensions: Vec<Identifier>,
+    pub properties: Vec<PropertyBlock>,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]

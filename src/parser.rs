@@ -205,6 +205,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
     let mut extensions = Vec::new();
     let mut methods = Vec::new();
     let mut implementations = Vec::new();
+    let mut properties = Vec::new();
 
     if lexer.try_consume(KeywordExtends) {
         while let Identifier = lexer.token {
@@ -233,7 +234,11 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
                 }
             }
 
-            KeywordProperty => unimplemented!("not yet supported"),
+            KeywordProperty => {
+                if let Some(property) = parse_property(lexer) {
+                    properties.push(property);
+                }
+            }
 
             _ => break,
         }
@@ -249,6 +254,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
             methods,
             extensions,
             location: lexer.source_range_factory.create_range(location_start..location_end),
+            properties,
         },
         implementations,
     )

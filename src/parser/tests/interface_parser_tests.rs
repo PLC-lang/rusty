@@ -10,7 +10,7 @@ fn empty_interface() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
             id: 1,
@@ -30,7 +30,6 @@ fn empty_interface() {
                     ),
                 },
             },
-            methods: [],
             location: SourceLocation {
                 span: Range(
                     TextLocation {
@@ -44,10 +43,12 @@ fn empty_interface() {
                     },
                 ),
             },
+            methods: [],
             extensions: [],
+            properties: [],
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -86,6 +87,19 @@ fn interface_with_single_method() {
                     ),
                 },
             },
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 4,
+                        offset: 5,
+                    }..TextLocation {
+                        line: 9,
+                        column: 4,
+                        offset: 185,
+                    },
+                ),
+            },
             methods: [
                 POU {
                     name: "myInterface.foo",
@@ -122,20 +136,8 @@ fn interface_with_single_method() {
                     interfaces: [],
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 4,
-                        offset: 5,
-                    }..TextLocation {
-                        line: 9,
-                        column: 4,
-                        offset: 185,
-                    },
-                ),
-            },
             extensions: [],
+            properties: [],
         },
     ]
     "###);
@@ -186,6 +188,19 @@ fn interface_with_multiple_methods() {
                         },
                     ),
                 },
+            },
+            location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 1,
+                        column: 4,
+                        offset: 5,
+                    }..TextLocation {
+                        line: 19,
+                        column: 4,
+                        offset: 366,
+                    },
+                ),
             },
             methods: [
                 POU {
@@ -262,20 +277,8 @@ fn interface_with_multiple_methods() {
                     interfaces: [],
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 4,
-                        offset: 5,
-                    }..TextLocation {
-                        line: 19,
-                        column: 4,
-                        offset: 366,
-                    },
-                ),
-            },
             extensions: [],
+            properties: [],
         },
     ]
     "###);
@@ -423,18 +426,6 @@ fn interface_deriving_from_other_interface() {
                 ),
             },
         },
-        methods: [
-            POU {
-                name: "bar.qux",
-                variable_blocks: [],
-                pou_type: Method {
-                    parent: "bar",
-                    declaration_kind: Abstract,
-                },
-                return_type: None,
-                interfaces: [],
-            },
-        ],
         location: SourceLocation {
             span: Range(
                 TextLocation {
@@ -448,6 +439,18 @@ fn interface_deriving_from_other_interface() {
                 },
             ),
         },
+        methods: [
+            POU {
+                name: "bar.qux",
+                variable_blocks: [],
+                pou_type: Method {
+                    parent: "bar",
+                    declaration_kind: Abstract,
+                },
+                return_type: None,
+                interfaces: [],
+            },
+        ],
         extensions: [
             Identifier {
                 name: "foo",
@@ -466,6 +469,7 @@ fn interface_deriving_from_other_interface() {
                 },
             },
         ],
+        properties: [],
     }
     "###);
 }
@@ -490,7 +494,7 @@ fn interface_deriving_from_multiple_interfaces() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces[2], @r#"
+    insta::assert_debug_snapshot!(unit.interfaces[2], @r###"
     Interface {
         id: 5,
         identifier: Identifier {
@@ -509,7 +513,6 @@ fn interface_deriving_from_multiple_interfaces() {
                 ),
             },
         },
-        methods: [],
         location: SourceLocation {
             span: Range(
                 TextLocation {
@@ -523,6 +526,7 @@ fn interface_deriving_from_multiple_interfaces() {
                 },
             ),
         },
+        methods: [],
         extensions: [
             Identifier {
                 name: "foo",
@@ -557,9 +561,94 @@ fn interface_deriving_from_multiple_interfaces() {
                 },
             },
         ],
+        properties: [],
     }
-    "#);
+    "###);
 }
+
+#[test]
+fn interface_with_property() {
+    let source = r"
+    INTERFACE myInterface
+        PROPERTY foo : INT
+            GET END_GET
+            SET END_SET
+        END_PROPERTY
+    END_INTERFACE
+    ";
+
+    let (unit, diagnostics) = parse(source);
+
+    assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
+
+    assert_eq!(unit.interfaces.len(), 1);
+    assert_eq!(unit.interfaces[0].identifier.name, "myInterface");
+
+    insta::assert_debug_snapshot!(unit.interfaces[0].properties, @r###"
+    [
+        PropertyBlock {
+            name: Identifier {
+                name: "foo",
+                location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 2,
+                            column: 17,
+                            offset: 44,
+                        }..TextLocation {
+                            line: 2,
+                            column: 20,
+                            offset: 47,
+                        },
+                    ),
+                },
+            },
+            return_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+            implementations: [
+                PropertyImplementation {
+                    kind: Get,
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 3,
+                                column: 12,
+                                offset: 66,
+                            }..TextLocation {
+                                line: 3,
+                                column: 15,
+                                offset: 69,
+                            },
+                        ),
+                    },
+                    variable_blocks: [],
+                    body: [],
+                },
+                PropertyImplementation {
+                    kind: Set,
+                    location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 4,
+                                column: 12,
+                                offset: 90,
+                            }..TextLocation {
+                                line: 4,
+                                column: 15,
+                                offset: 93,
+                            },
+                        ),
+                    },
+                    variable_blocks: [],
+                    body: [],
+                },
+            ],
+        },
+    ]
+    "###);
+}
+
 mod error_handling {
     use crate::test_utils::tests::{parse, parse_and_validate_buffered};
 
