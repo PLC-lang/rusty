@@ -2095,7 +2095,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().units[3];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         POU {
             name: "child.foo",
             variable_blocks: [
@@ -2142,11 +2142,12 @@ mod units_tests {
             pou_type: Method {
                 parent: "child",
                 property: None,
+                declaration_kind: Concrete,
             },
             return_type: None,
             interfaces: [],
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -2168,7 +2169,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[1];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "bar.set0",
             type_name: "bar.set0",
@@ -2176,6 +2177,7 @@ mod units_tests {
             pou_type: Method {
                 parent: "bar",
                 property: None,
+                declaration_kind: Concrete,
             },
             statements: [
                 Assignment {
@@ -2255,7 +2257,7 @@ mod units_tests {
                 Protected,
             ),
         }
-        "###);
+        "#);
     }
 }
 

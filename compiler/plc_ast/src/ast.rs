@@ -10,8 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     control_statements::{
-        AstControlStatement, CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement,
-        ReturnStatement,
+        AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement, ReturnStatement,
     },
     literals::{AstLiteral, StringValue},
     pre_processor,
@@ -50,13 +49,14 @@ pub struct Pou {
 
 #[derive(Debug, PartialEq)]
 pub struct Interface {
-    pub name: String,
+    pub id: AstId,
+    pub identifier: Identifier,
     pub methods: Vec<Pou>,
     pub location: SourceLocation,
-    pub location_name: SourceLocation,
+    pub extensions: Vec<Identifier>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Identifier {
     pub name: String,
     pub location: SourceLocation,
@@ -312,6 +312,22 @@ pub enum AccessModifier {
     Internal,
 }
 
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]
+pub enum DeclarationKind {
+    Abstract,
+    Concrete,
+}
+
+impl DeclarationKind {
+    pub fn is_abstract(&self) -> bool {
+        matches!(self, DeclarationKind::Abstract)
+    }
+
+    pub fn is_concrete(&self) -> bool {
+        matches!(self, DeclarationKind::Concrete)
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub enum PouType {
     Program,
@@ -325,6 +341,8 @@ pub enum PouType {
 
         /// The fully qualified name of the property this GET or SET method represents
         property: Option<String>,
+
+        declaration_kind: DeclarationKind,
     },
     Init,
     ProjectInit,
@@ -1352,7 +1370,7 @@ impl Operator {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast::{ArgumentProperty, PouType, VariableBlockType};
+    use crate::ast::{ArgumentProperty, DeclarationKind, PouType, VariableBlockType};
 
     #[test]
     fn display_pou() {
@@ -1361,7 +1379,15 @@ mod tests {
         assert_eq!(PouType::FunctionBlock.to_string(), "FunctionBlock");
         assert_eq!(PouType::Action.to_string(), "Action");
         assert_eq!(PouType::Class.to_string(), "Class");
-        assert_eq!(PouType::Method { parent: String::new(), property: None }.to_string(), "Method");
+        assert_eq!(
+            PouType::Method {
+                parent: String::new(),
+                property: None,
+                declaration_kind: DeclarationKind::Concrete
+            }
+            .to_string(),
+            "Method"
+        );
     }
 
     #[test]
@@ -1440,107 +1466,28 @@ impl AstFactory {
     }
 
     /// creates a new if-statement
-    pub fn create_if_statement(
-        blocks: Vec<ConditionalBlock>,
-        else_block: Vec<AstNode>,
-        location: SourceLocation,
-        end_location: SourceLocation,
-        id: AstId,
-    ) -> AstNode {
-        AstNode {
-            stmt: AstStatement::ControlStatement(AstControlStatement::If(IfStatement {
-                blocks,
-                else_block,
-                end_location,
-            })),
-            location,
-            id,
-        }
+    pub fn create_if_statement(stmt: IfStatement, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::ControlStatement(AstControlStatement::If(stmt)), location, id }
     }
 
     ///  creates a new for loop statement
-    #[allow(clippy::too_many_arguments)]
-    pub fn create_for_loop(
-        counter: AstNode,
-        start: AstNode,
-        end: AstNode,
-        by_step: Option<AstNode>,
-        body: Vec<AstNode>,
-        location: SourceLocation,
-        end_location: SourceLocation,
-        id: AstId,
-    ) -> AstNode {
-        AstNode {
-            stmt: AstStatement::ControlStatement(AstControlStatement::ForLoop(ForLoopStatement {
-                counter: Box::new(counter),
-                start: Box::new(start),
-                end: Box::new(end),
-                by_step: by_step.map(Box::new),
-                body,
-                end_location,
-            })),
-            location,
-            id,
-        }
+    pub fn create_for_loop(stmt: ForLoopStatement, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::ControlStatement(AstControlStatement::ForLoop(stmt)), location, id }
     }
 
     /// creates a new while statement
-    pub fn create_while_statement(
-        condition: AstNode,
-        body: Vec<AstNode>,
-        location: SourceLocation,
-        end_location: SourceLocation,
-        id: AstId,
-    ) -> AstNode {
-        AstNode {
-            stmt: AstStatement::ControlStatement(AstControlStatement::WhileLoop(LoopStatement {
-                condition: Box::new(condition),
-                body,
-                end_location,
-            })),
-            id,
-            location,
-        }
+    pub fn create_while_statement(stmt: LoopStatement, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::ControlStatement(AstControlStatement::WhileLoop(stmt)), id, location }
     }
 
     /// creates a new repeat-statement
-    pub fn create_repeat_statement(
-        condition: AstNode,
-        body: Vec<AstNode>,
-        location: SourceLocation,
-        end_location: SourceLocation,
-        id: AstId,
-    ) -> AstNode {
-        AstNode {
-            stmt: AstStatement::ControlStatement(AstControlStatement::RepeatLoop(LoopStatement {
-                condition: Box::new(condition),
-                body,
-                end_location,
-            })),
-            id,
-            location,
-        }
+    pub fn create_repeat_statement(stmt: LoopStatement, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::ControlStatement(AstControlStatement::RepeatLoop(stmt)), id, location }
     }
 
     /// creates a new case-statement
-    pub fn create_case_statement(
-        selector: AstNode,
-        case_blocks: Vec<ConditionalBlock>,
-        else_block: Vec<AstNode>,
-        location: SourceLocation,
-        end_location: SourceLocation,
-        id: AstId,
-    ) -> AstNode {
-        AstNode {
-            stmt: AstStatement::ControlStatement(AstControlStatement::Case(CaseStatement {
-                selector: Box::new(selector),
-                case_blocks,
-                else_block,
-                end_location,
-            })),
-            id,
-            location,
-        }
+    pub fn create_case_statement(stmt: CaseStatement, location: SourceLocation, id: AstId) -> AstNode {
+        AstNode { stmt: AstStatement::ControlStatement(AstControlStatement::Case(stmt)), id, location }
     }
 
     /// creates an or-expression

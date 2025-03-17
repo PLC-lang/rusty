@@ -1,6 +1,6 @@
 use plc_ast::{
     ast::{AstFactory, AstNode, AstStatement},
-    control_statements::ConditionalBlock,
+    control_statements::{CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement},
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 
@@ -76,11 +76,10 @@ fn parse_if_statement(lexer: &mut ParseSession) -> AstNode {
 
     let end = lexer.last_range.end;
 
+    let stmt = IfStatement { blocks: conditional_blocks, else_block, end_location: lexer.last_location() };
     AstFactory::create_if_statement(
-        conditional_blocks,
-        else_block,
+        stmt,
         lexer.source_range_factory.create_range(start..end),
-        lexer.last_location(),
         lexer.next_id(),
     )
 }
@@ -111,14 +110,17 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstNode {
 
     lexer.try_consume_or_report(KeywordDo); // DO
 
+    let stmt = ForLoopStatement {
+        counter: Box::new(counter_expression),
+        start: Box::new(start_expression),
+        end: Box::new(end_expression),
+        by_step: step.map(Box::new),
+        body: parse_body_in_region(lexer, vec![KeywordEndFor]),
+        end_location: lexer.last_location(),
+    };
     AstFactory::create_for_loop(
-        counter_expression,
-        start_expression,
-        end_expression,
-        step,
-        parse_body_in_region(lexer, vec![KeywordEndFor]),
+        stmt,
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
-        lexer.last_location(),
         lexer.next_id(),
     )
 }
@@ -130,11 +132,14 @@ fn parse_while_statement(lexer: &mut ParseSession) -> AstNode {
     let condition = parse_expression(lexer);
     lexer.try_consume_or_report(KeywordDo);
 
+    let stmt = LoopStatement {
+        condition: Box::new(condition),
+        body: parse_body_in_region(lexer, vec![KeywordEndWhile]),
+        end_location: lexer.last_location(),
+    };
     AstFactory::create_while_statement(
-        condition,
-        parse_body_in_region(lexer, vec![KeywordEndWhile]),
+        stmt,
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
-        lexer.last_location(),
         lexer.next_id(),
     )
 }
@@ -150,11 +155,10 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> AstNode {
         AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
     };
 
+    let stmt = LoopStatement { condition: Box::new(condition), body, end_location: lexer.last_location() };
     AstFactory::create_repeat_statement(
-        condition,
-        body,
+        stmt,
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
-        lexer.last_location(),
         lexer.next_id(),
     )
 }
@@ -210,12 +214,15 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstNode {
     };
 
     let end = lexer.last_range.end;
-    AstFactory::create_case_statement(
-        selector,
+    let stmt = CaseStatement {
+        selector: Box::new(selector),
         case_blocks,
         else_block,
+        end_location: lexer.last_location(),
+    };
+    AstFactory::create_case_statement(
+        stmt,
         lexer.source_range_factory.create_range(start..end),
-        lexer.last_location(),
         lexer.next_id(),
     )
 }

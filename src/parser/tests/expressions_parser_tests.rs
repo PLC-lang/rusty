@@ -1740,3 +1740,19 @@ fn parenthesized_expression_span() {
     let range = array.elements().unwrap().get_location().get_span().to_range().unwrap();
     assert_eq!(&src[range.start..range.end], "(1 + 2)");
 }
+
+#[test]
+fn function_call_array_index() {
+    let src = "
+    PROGRAM prg
+        foo()[1];
+        foo()[1 + 2]
+        foo()[one];
+        foo()[one + two];
+        foo()[bar()];
+    END_PROGRAM
+    ";
+
+    let parse_result = parse(src).0;
+    assert_debug_snapshot!(parse_result.implementations[0].statements);
+}
