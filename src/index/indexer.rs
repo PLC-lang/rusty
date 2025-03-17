@@ -82,7 +82,9 @@ impl AstVisitor for SymbolIndexer {
             self.visit_pou(method);
         }
 
-        self.index.interfaces.insert(interface.name.clone(), InterfaceIndexEntry::from(interface));
+        self.index
+            .interfaces
+            .insert(interface.identifier.name.to_owned(), InterfaceIndexEntry::from(interface));
     }
 
     fn visit_property(&mut self, property: &PropertyBlock) {

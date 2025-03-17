@@ -73,9 +73,9 @@
 use helper::{create_internal_assignment, patch_prefix_to_name};
 use plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, Identifier,
-        Implementation, LinkageType, Pou, PouType, PropertyKind, ReferenceAccess, ReferenceExpr, Variable,
-        VariableBlock, VariableBlockType,
+        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit,
+        DeclarationKind, Identifier, Implementation, LinkageType, Pou, PouType, PropertyKind,
+        ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -117,7 +117,10 @@ impl PropertyLowerer {
 
                     let mut pou = Pou {
                         name,
-                        kind: PouType::Method { parent: parent.to_string() },
+                        kind: PouType::Method {
+                            parent: parent.to_string(),
+                            declaration_kind: DeclarationKind::Concrete,
+                        },
                         variable_blocks: property_impl.variable_blocks,
                         return_type: None,
                         location: location.clone(),
@@ -415,6 +418,7 @@ mod tests {
                 ],
                 pou_type: Method {
                     parent: "fb",
+                    declaration_kind: Concrete,
                 },
                 return_type: Some(
                     DataTypeReference {
@@ -480,6 +484,7 @@ mod tests {
                 ],
                 pou_type: Method {
                     parent: "fb",
+                    declaration_kind: Concrete,
                 },
                 return_type: None,
                 interfaces: [],

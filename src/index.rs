@@ -6,8 +6,8 @@ use itertools::Itertools;
 use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
-    AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
-    Identifier, Interface, LinkageType, PouType, TypeNature,
+    AstId, AstNode, AstStatement, ConfigVariable, DeclarationKind, DirectAccessType, GenericBinding,
+    HardwareAccessType, Identifier, Interface, LinkageType, PouType, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -491,28 +491,96 @@ impl ImplementationType {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Hash)]
 pub struct InterfaceIndexEntry {
-    /// The interface name
-    pub name: String,
+    /// The interface identifier, consisting of its name and name-location
+    pub identifier: Identifier,
 
     /// The location of the interface as a whole
     pub location: SourceLocation,
 
-    /// The location of the interface name
-    pub location_name: SourceLocation,
-
     /// A list of qualified names of the methods in this interface; the actual methods are located in
     /// [`Index::pous`]
     pub methods: Vec<String>,
+
+    /// A list of other interfaces this interface extends
+    pub extensions: Vec<Identifier>,
 }
 
 impl InterfaceIndexEntry {
-    /// Returns a list of methods defined in this interface
-    pub fn get_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
+    pub fn get_name(&self) -> &str {
+        self.identifier.name.as_str()
+    }
+
+    pub fn get_name_location(&self) -> &SourceLocation {
+        &self.identifier.location
+    }
+
+    pub fn get_location(&self) -> &SourceLocation {
+        &self.location
+    }
+
+    /// Returns a list of methods this interface declared
+    pub fn get_declared_methods<'idx>(&self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
         self.methods
             .iter()
             .map(|name| index.find_pou(name).expect("must exist because of present InterfaceIndexEntry"))
+            .collect()
+    }
+
+    /// Returns a list of methods this interface inherited
+    pub fn get_derived_methods<'idx>(&'idx self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
+        self.get_derived_methods_recursive(index, &mut FxHashSet::default())
+    }
+
+    /// Returns a list of methods defined in this interface, including inherited methods from derived interfaces
+    pub fn get_methods<'idx>(&'idx self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
+        self.get_methods_recursive(index, &mut FxHashSet::default())
+    }
+
+    /// Returns a list of interfaces this interface implements
+    pub fn get_extensions(&self) -> Vec<&Identifier> {
+        self.extensions.iter().collect()
+    }
+
+    /// Returns a list of interfaces this interface inherited
+    pub fn get_derived_interfaces<'idx>(
+        &self,
+        index: &'idx Index,
+    ) -> Vec<Result<&'idx InterfaceIndexEntry, Identifier>> {
+        self.extensions
+            .iter()
+            .flat_map(|id| index.find_interface(&id.name).map(Result::Ok).or(Some(Err(id.to_owned()))))
+            .collect()
+    }
+
+    fn get_methods_recursive<'idx>(
+        &'idx self,
+        index: &'idx Index,
+        seen: &mut FxHashSet<&'idx str>,
+    ) -> Vec<&'idx PouIndexEntry> {
+        seen.insert(self.get_name());
+        self.get_declared_methods(index)
+            .into_iter()
+            .chain(self.get_derived_methods_recursive(index, seen))
+            .collect_vec()
+    }
+
+    fn get_derived_methods_recursive<'idx>(
+        &'idx self,
+        index: &'idx Index,
+        seen: &mut FxHashSet<&'idx str>,
+    ) -> Vec<&'idx PouIndexEntry> {
+        self.get_derived_interfaces(index)
+            .iter()
+            .filter_map(|it| it.as_ref().ok())
+            .flat_map(|it| {
+                if !seen.contains(it.get_name()) {
+                    it.get_methods_recursive(index, seen)
+                } else {
+                    vec![]
+                }
+            })
             .collect()
     }
 }
@@ -520,8 +588,9 @@ impl InterfaceIndexEntry {
 impl std::fmt::Debug for InterfaceIndexEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("InterfaceIndexEntry")
-            .field("name", &self.name)
+            .field("name", &self.get_name())
             .field("methods", &self.methods)
+            .field("extensions", &self.extensions)
             .finish()
     }
 }
@@ -529,10 +598,10 @@ impl std::fmt::Debug for InterfaceIndexEntry {
 impl From<&Interface> for InterfaceIndexEntry {
     fn from(interface: &Interface) -> Self {
         InterfaceIndexEntry {
-            name: interface.name.clone(),
+            identifier: interface.identifier.clone(),
             location: interface.location.clone(),
-            location_name: interface.location_name.clone(),
             methods: interface.methods.iter().map(|method| method.name.clone()).collect(),
+            extensions: interface.extensions.clone(),
         }
     }
 }
@@ -574,7 +643,8 @@ pub enum PouIndexEntry {
     },
     Method {
         name: String,
-        parent_pou_name: String,
+        parent_name: String,
+        declaration_kind: DeclarationKind,
         return_type: String,
         instance_struct_name: String,
         linkage: LinkageType,
@@ -582,7 +652,7 @@ pub enum PouIndexEntry {
     },
     Action {
         name: String,
-        parent_pou_name: String,
+        parent_name: String,
         instance_struct_name: String,
         linkage: LinkageType,
         location: SourceLocation,
@@ -693,7 +763,7 @@ impl PouIndexEntry {
     ) -> PouIndexEntry {
         PouIndexEntry::Action {
             name: qualified_name.into(),
-            parent_pou_name: pou_name.into(),
+            parent_name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
@@ -729,12 +799,14 @@ impl PouIndexEntry {
         name: &str,
         return_type: &str,
         owner_class: &str,
+        declaration_kind: DeclarationKind,
         linkage: LinkageType,
         location: SourceLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Method {
             name: name.into(),
-            parent_pou_name: owner_class.into(),
+            parent_name: owner_class.into(),
+            declaration_kind,
             instance_struct_name: name.into(),
             return_type: return_type.into(),
             linkage,
@@ -775,10 +847,17 @@ impl PouIndexEntry {
 
     pub fn get_parent_pou_name(&self) -> Option<&str> {
         match self {
-            PouIndexEntry::Method { parent_pou_name, .. } | PouIndexEntry::Action { parent_pou_name, .. } => {
-                Some(parent_pou_name.as_str())
+            PouIndexEntry::Method { parent_name, .. } | PouIndexEntry::Action { parent_name, .. } => {
+                Some(parent_name.as_str())
             }
 
+            _ => None,
+        }
+    }
+
+    pub fn get_declaration_kind(&self) -> Option<DeclarationKind> {
+        match self {
+            PouIndexEntry::Method { declaration_kind, .. } => Some(*declaration_kind),
             _ => None,
         }
     }
@@ -819,8 +898,8 @@ impl PouIndexEntry {
             | PouIndexEntry::FunctionBlock { .. }
             | PouIndexEntry::Class { .. }
             | PouIndexEntry::Function { .. } => self.get_name(),
-            PouIndexEntry::Action { parent_pou_name, .. } | PouIndexEntry::Method { parent_pou_name, .. } => {
-                parent_pou_name.as_str()
+            PouIndexEntry::Action { parent_name, .. } | PouIndexEntry::Method { parent_name, .. } => {
+                parent_name.as_str()
             }
         }
     }
@@ -1947,11 +2026,11 @@ impl Index {
 
     /// Returns all methods declared on container, or its parents.
     /// If a method is declared in the container the parent method is not included
-    pub fn find_methods(&self, container: &str) -> Vec<&PouIndexEntry> {
-        self.find_methods_recursive(container, vec![], &mut FxHashSet::default())
+    pub fn get_methods(&self, container: &str) -> Vec<&PouIndexEntry> {
+        self.get_methods_recursive(container, vec![], &mut FxHashSet::default())
     }
 
-    fn find_methods_recursive<'b>(
+    fn get_methods_recursive<'b>(
         &'b self,
         container: &str,
         current_methods: Vec<&'b PouIndexEntry>,
@@ -1974,7 +2053,7 @@ impl Index {
                 if !seen.insert(super_class) {
                     return res;
                 };
-                self.find_methods_recursive(super_class, res, seen)
+                self.get_methods_recursive(super_class, res, seen)
             } else {
                 res
             }

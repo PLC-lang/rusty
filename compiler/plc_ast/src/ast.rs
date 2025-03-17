@@ -54,13 +54,14 @@ pub struct Pou {
 
 #[derive(Debug, PartialEq)]
 pub struct Interface {
-    pub name: String,
+    pub id: AstId,
+    pub identifier: Identifier,
     pub methods: Vec<Pou>,
     pub location: SourceLocation,
-    pub location_name: SourceLocation,
+    pub extensions: Vec<Identifier>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Identifier {
     pub name: String,
     pub location: SourceLocation,
@@ -312,6 +313,22 @@ pub enum AccessModifier {
     Internal,
 }
 
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]
+pub enum DeclarationKind {
+    Abstract,
+    Concrete,
+}
+
+impl DeclarationKind {
+    pub fn is_abstract(&self) -> bool {
+        matches!(self, DeclarationKind::Abstract)
+    }
+
+    pub fn is_concrete(&self) -> bool {
+        matches!(self, DeclarationKind::Concrete)
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub enum PouType {
     Program,
@@ -322,6 +339,8 @@ pub enum PouType {
     Method {
         /// The parent of this method, i.e. a function block, class or an interface
         parent: String,
+
+        declaration_kind: DeclarationKind,
     },
     Init,
     ProjectInit,
@@ -1337,7 +1356,7 @@ impl Operator {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast::{ArgumentProperty, PouType, VariableBlockType};
+    use crate::ast::{ArgumentProperty, DeclarationKind, PouType, VariableBlockType};
 
     #[test]
     fn display_pou() {
@@ -1346,7 +1365,11 @@ mod tests {
         assert_eq!(PouType::FunctionBlock.to_string(), "FunctionBlock");
         assert_eq!(PouType::Action.to_string(), "Action");
         assert_eq!(PouType::Class.to_string(), "Class");
-        assert_eq!(PouType::Method { parent: String::new() }.to_string(), "Method");
+        assert_eq!(
+            PouType::Method { parent: String::new(), declaration_kind: DeclarationKind::Concrete }
+                .to_string(),
+            "Method"
+        );
     }
 
     #[test]

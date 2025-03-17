@@ -1,5 +1,7 @@
 use insta::assert_snapshot;
-use plc_ast::ast::{AccessModifier, ArgumentProperty, PolymorphismMode, PouType, VariableBlockType};
+use plc_ast::ast::{
+    AccessModifier, ArgumentProperty, DeclarationKind, PolymorphismMode, PouType, VariableBlockType,
+};
 
 use crate::test_utils::tests::{parse, parse_and_validate_buffered};
 
@@ -74,7 +76,10 @@ fn method_with_defaults_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.kind, PouType::Method { parent: "MyClass".into() });
+    assert_eq!(
+        method_pou.kind,
+        PouType::Method { parent: "MyClass".into(), declaration_kind: DeclarationKind::Concrete }
+    );
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyClass.testMethod");
@@ -96,7 +101,10 @@ fn method_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.kind, PouType::Method { parent: "MyClass".into() });
+    assert_eq!(
+        method_pou.kind,
+        PouType::Method { parent: "MyClass".into(), declaration_kind: DeclarationKind::Concrete }
+    );
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyClass.testMethod2");
@@ -135,7 +143,10 @@ fn method_with_return_type_can_be_parsed() {
     assert_eq!(class.kind, PouType::Class);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.kind, PouType::Method { parent: "MyClass".into() });
+    assert_eq!(
+        method_pou.kind,
+        PouType::Method { parent: "MyClass".into(), declaration_kind: DeclarationKind::Concrete }
+    );
     let method = &unit.implementations[0];
 
     // classes have implementation because they are treated as other POUs
@@ -281,7 +292,10 @@ fn fb_method_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.kind, PouType::Method { parent: "MyFb".into() });
+    assert_eq!(
+        method_pou.kind,
+        PouType::Method { parent: "MyFb".into(), declaration_kind: DeclarationKind::Concrete }
+    );
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyFb.testMethod2");
@@ -329,7 +343,10 @@ fn fb_method_with_return_type_can_be_parsed() {
     assert_eq!(class.kind, PouType::FunctionBlock);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.kind, PouType::Method { parent: "MyShinyFb".into() });
+    assert_eq!(
+        method_pou.kind,
+        PouType::Method { parent: "MyShinyFb".into(), declaration_kind: DeclarationKind::Concrete }
+    );
     let method = &unit.implementations[0];
 
     // classes have implementation because they are treated as other POUs
@@ -358,7 +375,10 @@ fn program_methods_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.kind, PouType::Method { parent: "prog".into() });
+    assert_eq!(
+        method_pou.kind,
+        PouType::Method { parent: "prog".into(), declaration_kind: DeclarationKind::Concrete }
+    );
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "prog.testMethod2");
@@ -406,7 +426,10 @@ fn program_method_with_return_type_can_be_parsed() {
     assert_eq!(class.kind, PouType::Program);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.kind, PouType::Method { parent: "prog".into() });
+    assert_eq!(
+        method_pou.kind,
+        PouType::Method { parent: "prog".into(), declaration_kind: DeclarationKind::Concrete }
+    );
     let method = &unit.implementations[0];
 
     // classes have implementation because they are treated as other POUs
@@ -476,11 +499,17 @@ fn method_variable_blocks_can_be_parsed() {
     let (unit, _) = parse(src);
     let fb_mthd = &unit.units[1];
     assert_eq!(fb_mthd.name, "fb.mthd".to_string());
-    assert_eq!(fb_mthd.kind, PouType::Method { parent: "fb".into() });
+    assert_eq!(
+        fb_mthd.kind,
+        PouType::Method { parent: "fb".into(), declaration_kind: DeclarationKind::Concrete }
+    );
 
     let prg_mthd = &unit.units[3];
     assert_eq!(prg_mthd.name, "prg.mthd".to_string());
-    assert_eq!(prg_mthd.kind, PouType::Method { parent: "prg".into() });
+    assert_eq!(
+        prg_mthd.kind,
+        PouType::Method { parent: "prg".into(), declaration_kind: DeclarationKind::Concrete }
+    );
 
     // we expect one of each of these `VariableBlockType` to be parsed
     let expected_var_blocks = vec![
