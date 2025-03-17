@@ -790,4 +790,97 @@ mod inheritance {
            │                  see also
         "###);
     }
+
+    #[test]
+    fn cyclic_interface_inheritance() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            INTERFACE foo EXTENDS bar
+            END_INTERFACE
+
+            INTERFACE bar EXTENDS foo
+            END_INTERFACE
+            ",
+        );
+
+        assert_snapshot!(diagnostics, @r"
+        error[E029]: Recursive inheritance `foo -> bar -> foo` has infinite size
+          ┌─ <internal>:2:23
+          │
+        2 │             INTERFACE foo EXTENDS bar
+          │                       ^^^
+          │                       │
+          │                       Recursive inheritance `foo -> bar -> foo` has infinite size
+          │                       see also
+          ·
+        5 │             INTERFACE bar EXTENDS foo
+          │                       --- see also
+        ");
+    }
+
+    #[test]
+    fn cyclic_interface_inheritance_multiple_cycles() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            INTERFACE foo EXTENDS qux
+            END_INTERFACE
+
+            INTERFACE bar EXTENDS foo
+            END_INTERFACE
+
+            INTERFACE baz EXTENDS bar, foo
+            END_INTERFACE
+
+            INTERFACE qux EXTENDS baz, bar, foo
+            END_INTERFACE
+            ",
+        );
+
+        assert_snapshot!(diagnostics, @r"
+        error[E029]: Recursive inheritance `foo -> qux -> baz -> bar -> foo` has infinite size
+           ┌─ <internal>:2:23
+           │
+         2 │             INTERFACE foo EXTENDS qux
+           │                       ^^^
+           │                       │
+           │                       Recursive inheritance `foo -> qux -> baz -> bar -> foo` has infinite size
+           │                       see also
+           ·
+         5 │             INTERFACE bar EXTENDS foo
+           │                       --- see also
+           ·
+         8 │             INTERFACE baz EXTENDS bar, foo
+           │                       --- see also
+           ·
+        11 │             INTERFACE qux EXTENDS baz, bar, foo
+           │                       --- see also
+
+        error[E029]: Recursive inheritance `foo -> qux -> baz -> foo` has infinite size
+           ┌─ <internal>:2:23
+           │
+         2 │             INTERFACE foo EXTENDS qux
+           │                       ^^^
+           │                       │
+           │                       Recursive inheritance `foo -> qux -> baz -> foo` has infinite size
+           │                       see also
+           ·
+         8 │             INTERFACE baz EXTENDS bar, foo
+           │                       --- see also
+           ·
+        11 │             INTERFACE qux EXTENDS baz, bar, foo
+           │                       --- see also
+
+        error[E029]: Recursive inheritance `foo -> qux -> foo` has infinite size
+           ┌─ <internal>:2:23
+           │
+         2 │             INTERFACE foo EXTENDS qux
+           │                       ^^^
+           │                       │
+           │                       Recursive inheritance `foo -> qux -> foo` has infinite size
+           │                       see also
+           ·
+        11 │             INTERFACE qux EXTENDS baz, bar, foo
+           │                       --- see also
+        ");
+    }
 }

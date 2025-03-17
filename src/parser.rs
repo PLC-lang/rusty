@@ -5,9 +5,9 @@ use std::ops::Range;
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
-        ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
-        Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou, PouType, Property,
-        PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr, TypeNature,
+        ConfigVariable, DataType, DataTypeDeclaration, DeclarationKind, DirectAccessType, GenericBinding,
+        HardwareAccessType, Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou,
+        PouType, Property, PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr, TypeNature,
         UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
@@ -202,12 +202,23 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
         }
     };
 
+    let mut extensions = Vec::new();
     let mut methods = Vec::new();
     let mut implementations = Vec::new();
+
+    if lexer.try_consume(KeywordExtends) {
+        while let Identifier = lexer.token {
+            let (name, location) = parse_identifier(lexer).expect("unreachable, already matched here");
+            extensions.push(Identifier { name, location });
+            lexer.try_consume(KeywordComma);
+        }
+    }
     loop {
         match lexer.token {
             KeywordMethod => {
-                if let Some((method, imp)) = parse_method(lexer, &name, LinkageType::Internal, false) {
+                if let Some((method, imp)) =
+                    parse_method(lexer, &name, DeclarationKind::Abstract, LinkageType::Internal, false)
+                {
                     // This is temporary? At some point we'll support them but for now it's a diagnostic
                     if !imp.statements.is_empty() {
                         lexer.accept_diagnostic(
@@ -233,10 +244,11 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
 
     (
         Interface {
-            name,
+            id: lexer.next_id(),
+            identifier: Identifier { name, location: location_name },
             methods,
+            extensions,
             location: lexer.source_range_factory.create_range(location_start..location_end),
-            location_name,
         },
         implementations,
     )
@@ -335,7 +347,9 @@ fn parse_pou(
                     }
                 } else {
                     let is_const = lexer.try_consume(PropertyConstant);
-                    if let Some((pou, implementation)) = parse_method(lexer, &name, linkage, is_const) {
+                    if let Some((pou, implementation)) =
+                        parse_method(lexer, &name, DeclarationKind::Concrete, linkage, is_const)
+                    {
                         impl_pous.push(pou);
                         implementations.push(implementation);
                     }
@@ -567,6 +581,7 @@ fn parse_return_type(lexer: &mut ParseSession) -> Option<DataTypeDeclaration> {
 fn parse_method(
     lexer: &mut ParseSession,
     parent: &str,
+    declaration_kind: DeclarationKind,
     linkage: LinkageType,
     constant: bool,
 ) -> Option<(Pou, Implementation)> {
@@ -587,8 +602,8 @@ fn parse_method(
         lexer.advance(); // eat METHOD keyword
 
         let access = Some(parse_access_modifier(lexer));
-        let kind = PouType::Method { parent: parent.into(), property: None };
-        let poly_mode = parse_polymorphism_mode(lexer, &kind);
+        let pou_kind = PouType::Method { parent: parent.into(), property: None, declaration_kind };
+        let poly_mode = parse_polymorphism_mode(lexer, &pou_kind);
         let overriding = lexer.try_consume(KeywordOverride);
         let (name, name_location) = parse_identifier(lexer)?;
         let generics = parse_generics(lexer);
@@ -608,7 +623,7 @@ fn parse_method(
         let implementation = parse_implementation(
             lexer,
             linkage,
-            PouType::Method { parent: parent.into(), property: None },
+            pou_kind.clone(),
             &call_name,
             &call_name,
             !generics.is_empty(),
@@ -624,7 +639,7 @@ fn parse_method(
             Pou {
                 name: call_name,
                 id: lexer.next_id(),
-                kind,
+                kind: pou_kind,
                 variable_blocks,
                 return_type,
                 location: lexer.source_range_factory.create_range(method_start..method_end),
