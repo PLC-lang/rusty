@@ -1778,3 +1778,123 @@ fn global_namespace_operator() {
     assert_eq!(&src[result.implementations[0].statements[0].get_location().to_range().unwrap()], ".foo");
     assert_debug_snapshot!(result.implementations[0].statements);
 }
+
+#[test]
+fn super_keyword_can_be_parsed_in_expressions() {
+    let src = "
+    FUNCTION_BLOCK fb
+        super.x;
+        super^.y;
+        super;
+        super^.foo(super.x + super^.y);
+        super();
+        super := REF(fb2);
+    END_FUNCTION_BLOCK
+        ";
+
+    let parse_result = parse(src).0;
+    assert_debug_snapshot!(parse_result.implementations[0].statements, @r#"
+    [
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: Some(
+                Super,
+            ),
+        },
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "y",
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Deref,
+                    base: Some(
+                        Super,
+                    ),
+                },
+            ),
+        },
+        Super,
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "foo",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Deref,
+                        base: Some(
+                            Super,
+                        ),
+                    },
+                ),
+            },
+            parameters: Some(
+                BinaryExpression {
+                    operator: Plus,
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: Some(
+                            Super,
+                        ),
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "y",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Deref,
+                                base: Some(
+                                    Super,
+                                ),
+                            },
+                        ),
+                    },
+                },
+            ),
+        },
+        CallStatement {
+            operator: Super,
+            parameters: None,
+        },
+        Assignment {
+            left: Super,
+            right: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "REF",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "fb2",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        },
+    ]
+    "#);
+}
