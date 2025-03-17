@@ -160,6 +160,7 @@ impl PropertyLowerer {
                     statements: property_impl.body,
                     location: pou.location.clone(),
                     name_location: pou.name_location.clone(),
+                    end_location: property_impl.end_location.clone(),
                     overriding: false,
                     generic: false,
                     access: Some(AccessModifier::Public),
@@ -459,7 +460,7 @@ mod tests {
         ";
 
         let unit = lower(source);
-        insta::assert_debug_snapshot!(unit.implementations, @r#"
+        insta::assert_debug_snapshot!(unit.implementations, @r###"
         [
             Implementation {
                 name: "fb",
@@ -490,6 +491,19 @@ mod tests {
                             line: 1,
                             column: 25,
                             offset: 26,
+                        },
+                    ),
+                },
+                end_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 21,
+                            column: 8,
+                            offset: 486,
+                        }..TextLocation {
+                            line: 21,
+                            column: 26,
+                            offset: 504,
                         },
                     ),
                 },
@@ -569,6 +583,19 @@ mod tests {
                             line: 5,
                             column: 25,
                             offset: 108,
+                        },
+                    ),
+                },
+                end_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 8,
+                            column: 12,
+                            offset: 172,
+                        }..TextLocation {
+                            line: 8,
+                            column: 19,
+                            offset: 179,
                         },
                     ),
                 },
@@ -674,6 +701,19 @@ mod tests {
                         },
                     ),
                 },
+                end_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 12,
+                            column: 12,
+                            offset: 275,
+                        }..TextLocation {
+                            line: 12,
+                            column: 19,
+                            offset: 282,
+                        },
+                    ),
+                },
                 overriding: false,
                 generic: false,
                 access: Some(
@@ -758,6 +798,19 @@ mod tests {
                         },
                     ),
                 },
+                end_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 17,
+                            column: 12,
+                            offset: 411,
+                        }..TextLocation {
+                            line: 17,
+                            column: 19,
+                            offset: 418,
+                        },
+                    ),
+                },
                 overriding: false,
                 generic: false,
                 access: Some(
@@ -821,6 +874,19 @@ mod tests {
                         },
                     ),
                 },
+                end_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 19,
+                            column: 12,
+                            offset: 447,
+                        }..TextLocation {
+                            line: 19,
+                            column: 19,
+                            offset: 454,
+                        },
+                    ),
+                },
                 overriding: false,
                 generic: false,
                 access: Some(
@@ -828,7 +894,7 @@ mod tests {
                 ),
             },
         ]
-        "#);
+        "###);
     }
 
     #[test]
@@ -851,7 +917,7 @@ mod tests {
         ";
 
         let unit = lower(source);
-        insta::assert_debug_snapshot!(unit.implementations, @r#"
+        insta::assert_debug_snapshot!(unit.implementations, @r###"
         [
             Implementation {
                 name: "fb",
@@ -914,6 +980,19 @@ mod tests {
                             line: 1,
                             column: 25,
                             offset: 26,
+                        },
+                    ),
+                },
+                end_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 14,
+                            column: 8,
+                            offset: 306,
+                        }..TextLocation {
+                            line: 14,
+                            column: 26,
+                            offset: 324,
                         },
                     ),
                 },
@@ -993,6 +1072,19 @@ mod tests {
                             line: 5,
                             column: 25,
                             offset: 108,
+                        },
+                    ),
+                },
+                end_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 8,
+                            column: 12,
+                            offset: 172,
+                        }..TextLocation {
+                            line: 8,
+                            column: 19,
+                            offset: 179,
                         },
                     ),
                 },
@@ -1077,6 +1169,19 @@ mod tests {
                         },
                     ),
                 },
+                end_location: SourceLocation {
+                    span: Range(
+                        TextLocation {
+                            line: 11,
+                            column: 12,
+                            offset: 237,
+                        }..TextLocation {
+                            line: 11,
+                            column: 19,
+                            offset: 244,
+                        },
+                    ),
+                },
                 overriding: false,
                 generic: false,
                 access: Some(
@@ -1084,7 +1189,7 @@ mod tests {
                 ),
             },
         ]
-        "#);
+        "###);
     }
 
     #[test]
@@ -1169,7 +1274,7 @@ mod tests {
         "#);
 
         assert_eq!(unit.implementations.len(), 5);
-        insta::assert_debug_snapshot!(unit.implementations[1], @r#"
+        insta::assert_debug_snapshot!(unit.implementations[1], @r###"
         Implementation {
             name: "fb.__get_foo",
             type_name: "fb.__get_foo",
@@ -1240,15 +1345,28 @@ mod tests {
                     },
                 ),
             },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 9,
+                        column: 16,
+                        offset: 207,
+                    }..TextLocation {
+                        line: 9,
+                        column: 23,
+                        offset: 214,
+                    },
+                ),
+            },
             overriding: false,
             generic: false,
             access: Some(
                 Public,
             ),
         }
-        "#);
+        "###);
 
-        insta::assert_debug_snapshot!(unit.implementations[2], @r#"
+        insta::assert_debug_snapshot!(unit.implementations[2], @r###"
         Implementation {
             name: "fb.__set_foo",
             type_name: "fb.__set_foo",
@@ -1324,13 +1442,26 @@ mod tests {
                     },
                 ),
             },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 13,
+                        column: 16,
+                        offset: 301,
+                    }..TextLocation {
+                        line: 13,
+                        column: 23,
+                        offset: 308,
+                    },
+                ),
+            },
             overriding: false,
             generic: false,
             access: Some(
                 Public,
             ),
         }
-        "#);
+        "###);
     }
 
     #[test]

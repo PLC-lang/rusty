@@ -11,7 +11,7 @@
 //!     VAR_INPUT
 //!         a: DINT;
 //!     END_VAR
-//!     END_FUNCTION        
+//!     END_FUNCTION
 //! ```
 //! ```iec61131
 //!     // lowered equivalent
@@ -22,7 +22,7 @@
 //!     VAR_INPUT
 //!         a: DINT;
 //!     END_VAR
-//!     END_FUNCTION        
+//!     END_FUNCTION
 //! ```
 //!
 //! Next, every call-statement to that POU has it's arguments updated, with a temporary
@@ -53,7 +53,7 @@ use plc_ast::{
         AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock,
         VariableBlockType,
     },
-    control_statements::{AstControlStatement, ConditionalBlock, LoopStatement},
+    control_statements::{AstControlStatement, ConditionalBlock, IfStatement, LoopStatement},
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     try_from_mut,
@@ -131,8 +131,11 @@ impl AggregateTypeLowerer {
         //wrap in if statement
         let break_stmt = AstFactory::create_exit_statement(location.clone(), self.id_provider.next_id());
         let if_condition = AstFactory::create_if_statement(
-            vec![ConditionalBlock { condition: Box::new(condition), body: vec![break_stmt] }],
-            vec![],
+            IfStatement {
+                blocks: vec![ConditionalBlock { condition: Box::new(condition), body: vec![break_stmt] }],
+                else_block: vec![],
+                end_location: SourceLocation::internal(),
+            },
             location.clone(),
             self.id_provider.next_id(),
         );

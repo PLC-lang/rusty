@@ -1,11 +1,14 @@
 use std::fmt::Debug;
 
+use plc_source::source_location::SourceLocation;
+
 use crate::ast::AstNode;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct IfStatement {
     pub blocks: Vec<ConditionalBlock>,
     pub else_block: Vec<AstNode>,
+    pub end_location: SourceLocation,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -15,6 +18,7 @@ pub struct ForLoopStatement {
     pub end: Box<AstNode>,
     pub by_step: Option<Box<AstNode>>,
     pub body: Vec<AstNode>,
+    pub end_location: SourceLocation,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -22,6 +26,7 @@ pub struct ForLoopStatement {
 pub struct LoopStatement {
     pub condition: Box<AstNode>,
     pub body: Vec<AstNode>,
+    pub end_location: SourceLocation,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -29,6 +34,7 @@ pub struct CaseStatement {
     pub selector: Box<AstNode>,
     pub case_blocks: Vec<ConditionalBlock>,
     pub else_block: Vec<AstNode>,
+    pub end_location: SourceLocation,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -61,6 +61,10 @@ pub trait Debug<'ink> {
         column: usize,
     );
 
+    //Unsets the current debug location allowing the debug info to be skipped for variable
+    //initializations
+    fn unset_debug_location(&self, llvm: &Llvm);
+
     /// Registers a new function for debugging, this method is responsible for registering a
     /// function's stub as well as its interface (variables/parameters)
     fn register_function<'idx>(
@@ -592,6 +596,10 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         llvm.builder.set_current_debug_location(location);
     }
 
+    fn unset_debug_location(&self, llvm: &Llvm) {
+        llvm.builder.unset_current_debug_location();
+    }
+
     fn register_function<'idx>(
         &mut self,
         index: &Index,
@@ -860,6 +868,13 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         match self {
             Self::None | Self::VariablesOnly(..) => {}
             Self::Full(obj) => obj.set_debug_location(llvm, scope, line, column),
+        };
+    }
+
+    fn unset_debug_location(&self, llvm: &Llvm) {
+        match self {
+            Self::None | Self::VariablesOnly(..) => {}
+            Self::Full(obj) => obj.unset_debug_location(llvm),
         };
     }
 

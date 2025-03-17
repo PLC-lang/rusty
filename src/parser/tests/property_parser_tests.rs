@@ -34,7 +34,7 @@ fn properties_can_be_parsed() {
     assert_eq!(unit.properties[0].name, "bar");
     assert_eq!(unit.properties[0].implementations.len(), 2);
 
-    insta::assert_debug_snapshot!(unit.properties, @r#"
+    insta::assert_debug_snapshot!(unit.properties, @r###"
     [
         Property {
             name: "bar",
@@ -113,6 +113,19 @@ fn properties_can_be_parsed() {
                             },
                         },
                     ],
+                    end_location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 9,
+                                column: 16,
+                                offset: 227,
+                            }..TextLocation {
+                                line: 9,
+                                column: 23,
+                                offset: 234,
+                            },
+                        ),
+                    },
                 },
                 PropertyImplementation {
                     kind: Set,
@@ -162,11 +175,24 @@ fn properties_can_be_parsed() {
                             },
                         },
                     ],
+                    end_location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 16,
+                                column: 16,
+                                offset: 426,
+                            }..TextLocation {
+                                line: 16,
+                                column: 23,
+                                offset: 433,
+                            },
+                        ),
+                    },
                 },
             ],
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]
