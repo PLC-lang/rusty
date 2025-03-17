@@ -854,14 +854,7 @@
 <a href="#853" id="853">853</a>
 <a href="#854" id="854">854</a>
 <a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a>
-<a href="#857" id="857">857</a>
-<a href="#858" id="858">858</a>
-<a href="#859" id="859">859</a>
-<a href="#860" id="860">860</a>
-<a href="#861" id="861">861</a>
-<a href="#862" id="862">862</a>
-<a href="#863" id="863">863</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#856" id="856">856</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use super</span>::{
     expression_generator::ExpressionCodeGenerator,
@@ -1280,28 +1273,8 @@
             )
         })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>(line, column) = implementation
-            .statements
-            .first()
-            .map(|it| (it.get_location().get_line_plus_one(), it.get_location().get_column()))
-            .or_else(|| {
-                <span class="prelude-val">Some</span>((implementation.location.get_line_plus_one(), implementation.location.get_column()))
-            })
-            <span class="comment">// .or_else(|| Some(implementation.location.get_start()))
-            </span>.unwrap();
-        <span class="kw">let </span>function_context = FunctionContext {
-            linking_context: <span class="self">self</span>.index.find_implementation_by_name(<span class="kw-2">&amp;</span>implementation.name).ok_or_else(
-                || {
-                    Diagnostic::codegen_error(
-                        <span class="macro">format!</span>(<span class="string">"Could not find implementation for {}"</span>, <span class="kw-2">&amp;</span>implementation.name),
-                        <span class="kw-2">&amp;</span>implementation.location,
-                    )
-                },
-            )<span class="question-mark">?</span>,
-            function: current_function,
-            blocks: FxHashMap::default(),
-        };
-        debug.set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>.llvm, <span class="kw-2">&amp;</span>function_context, line, column);
+        <span class="comment">//Unset the debug location so we ignore initialization logic
+        </span>debug.unset_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>.llvm);
 
         <span class="comment">//generate the body
         </span><span class="kw">let </span>block = context.append_basic_block(current_function, <span class="string">"entry"</span>);
@@ -1381,7 +1354,20 @@
                 <span class="kw-2">&amp;</span>function_context,
                 debug,
             );
+            <span class="kw">let </span>(line, column) = implementation
+                .statements
+                .first()
+                .map(|it| (it.get_location().get_line_plus_one(), it.get_location().get_column()))
+                .unwrap_or_else(|| {
+                    (implementation.location.get_line_plus_one(), implementation.location.get_column())
+                });
+            <span class="comment">//Set the debug location to the first statement in the body
+            </span>debug.set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>.llvm, <span class="kw-2">&amp;</span>function_context, line, column);
             statement_gen.generate_body(<span class="kw-2">&amp;</span>implementation.statements)<span class="question-mark">?</span>;
+            <span class="comment">//TODO the return statement should be lowered
+            </span><span class="kw">let </span>line = implementation.end_location.get_line_plus_one();
+            <span class="kw">let </span>column = implementation.end_location.get_column();
+            debug.set_debug_location(<span class="kw-2">&amp;</span><span class="self">self</span>.llvm, <span class="kw-2">&amp;</span>function_context, line, column);
             statement_gen.generate_return_statement()<span class="question-mark">?</span>;
         }
 

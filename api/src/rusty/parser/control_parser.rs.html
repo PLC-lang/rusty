@@ -214,9 +214,21 @@
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
     ast::{AstFactory, AstNode, AstStatement},
-    control_statements::ConditionalBlock,
+    control_statements::{CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement},
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
@@ -292,9 +304,9 @@
 
     <span class="kw">let </span>end = lexer.last_range.end;
 
+    <span class="kw">let </span>stmt = IfStatement { blocks: conditional_blocks, else_block, end_location: lexer.last_location() };
     AstFactory::create_if_statement(
-        conditional_blocks,
-        else_block,
+        stmt,
         lexer.source_range_factory.create_range(start..end),
         lexer.next_id(),
     )
@@ -326,12 +338,16 @@
 
     lexer.try_consume_or_report(KeywordDo); <span class="comment">// DO
 
-    </span>AstFactory::create_for_loop(
-        counter_expression,
-        start_expression,
-        end_expression,
-        step,
-        parse_body_in_region(lexer, <span class="macro">vec!</span>[KeywordEndFor]),
+    </span><span class="kw">let </span>stmt = ForLoopStatement {
+        counter: Box::new(counter_expression),
+        start: Box::new(start_expression),
+        end: Box::new(end_expression),
+        by_step: step.map(Box::new),
+        body: parse_body_in_region(lexer, <span class="macro">vec!</span>[KeywordEndFor]),
+        end_location: lexer.last_location(),
+    };
+    AstFactory::create_for_loop(
+        stmt,
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
         lexer.next_id(),
     )
@@ -344,9 +360,13 @@
     </span><span class="kw">let </span>condition = parse_expression(lexer);
     lexer.try_consume_or_report(KeywordDo);
 
+    <span class="kw">let </span>stmt = LoopStatement {
+        condition: Box::new(condition),
+        body: parse_body_in_region(lexer, <span class="macro">vec!</span>[KeywordEndWhile]),
+        end_location: lexer.last_location(),
+    };
     AstFactory::create_while_statement(
-        condition,
-        parse_body_in_region(lexer, <span class="macro">vec!</span>[KeywordEndWhile]),
+        stmt,
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
         lexer.next_id(),
     )
@@ -363,9 +383,9 @@
         AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
     };
 
+    <span class="kw">let </span>stmt = LoopStatement { condition: Box::new(condition), body, end_location: lexer.last_location() };
     AstFactory::create_repeat_statement(
-        condition,
-        body,
+        stmt,
         lexer.source_range_factory.create_range(start..lexer.last_range.end),
         lexer.next_id(),
     )
@@ -422,10 +442,14 @@
     };
 
     <span class="kw">let </span>end = lexer.last_range.end;
-    AstFactory::create_case_statement(
-        selector,
+    <span class="kw">let </span>stmt = CaseStatement {
+        selector: Box::new(selector),
         case_blocks,
         else_block,
+        end_location: lexer.last_location(),
+    };
+    AstFactory::create_case_statement(
+        stmt,
         lexer.source_range_factory.create_range(start..end),
         lexer.next_id(),
     )

@@ -852,7 +852,34 @@
 <a href="#851" id="851">851</a>
 <a href="#852" id="852">852</a>
 <a href="#853" id="853">853</a>
-<a href="#854" id="854">854</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     expression_generator::{to_i1, ExpressionCodeGenerator, ExpressionValue},
     llvm::Llvm,
@@ -878,7 +905,9 @@
         flatten_expression_list, Allocation, AstNode, AstStatement, JumpStatement, LabelStatement, Operator,
         ReferenceAccess, ReferenceExpr,
     },
-    control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement},
+    control_statements::{
+        AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement, ReturnStatement,
+    },
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -1106,23 +1135,12 @@
         statement: <span class="kw-2">&amp;</span>AstControlStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">match </span>statement {
-            AstControlStatement::If(ifstmt) =&gt; {
-                <span class="self">self</span>.generate_if_statement(llvm_index, <span class="kw-2">&amp;</span>ifstmt.blocks, <span class="kw-2">&amp;</span>ifstmt.else_block)
-            }
-            AstControlStatement::ForLoop(for_stmt) =&gt; <span class="self">self</span>.generate_for_statement(
-                llvm_index,
-                <span class="kw-2">&amp;</span>for_stmt.counter,
-                <span class="kw-2">&amp;</span>for_stmt.start,
-                <span class="kw-2">&amp;</span>for_stmt.end,
-                <span class="kw-2">&amp;</span>for_stmt.by_step,
-                <span class="kw-2">&amp;</span>for_stmt.body,
-            ),
+            AstControlStatement::If(ifstmt) =&gt; <span class="self">self</span>.generate_if_statement(llvm_index, ifstmt),
+            AstControlStatement::ForLoop(for_stmt) =&gt; <span class="self">self</span>.generate_for_statement(llvm_index, for_stmt),
             AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) =&gt; {
-                <span class="self">self</span>.generate_loop_statement(llvm_index, <span class="kw-2">&amp;</span>stmt.condition, <span class="kw-2">&amp;</span>stmt.body)
+                <span class="self">self</span>.generate_loop_statement(llvm_index, stmt)
             }
-            AstControlStatement::Case(stmt) =&gt; {
-                <span class="self">self</span>.generate_case_statement(llvm_index, <span class="kw-2">&amp;</span>stmt.selector, <span class="kw-2">&amp;</span>stmt.case_blocks, <span class="kw-2">&amp;</span>stmt.else_block)
-            }
+            AstControlStatement::Case(stmt) =&gt; <span class="self">self</span>.generate_case_statement(llvm_index, stmt),
         }
     }
 
@@ -1255,21 +1273,17 @@
     </span><span class="kw">fn </span>generate_for_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>LlvmTypedIndex&lt;<span class="lifetime">'b</span>&gt;,
-        counter: <span class="kw-2">&amp;</span>AstNode,
-        start: <span class="kw-2">&amp;</span>AstNode,
-        end: <span class="kw-2">&amp;</span>AstNode,
-        by_step: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;AstNode&gt;&gt;,
-        body: <span class="kw-2">&amp;</span>[AstNode],
+        stmt: <span class="kw-2">&amp;</span>ForLoopStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>(builder, current_function, context) = <span class="self">self</span>.get_llvm_deps();
         <span class="kw">let </span>exp_gen = <span class="self">self</span>.create_expr_generator(llvm_index);
 
-        <span class="kw">let </span>end_ty = <span class="self">self</span>.annotations.get_type_or_void(end, <span class="self">self</span>.index);
-        <span class="kw">let </span>counter_ty = <span class="self">self</span>.annotations.get_type_or_void(counter, <span class="self">self</span>.index);
+        <span class="kw">let </span>end_ty = <span class="self">self</span>.annotations.get_type_or_void(<span class="kw-2">&amp;</span>stmt.end, <span class="self">self</span>.index);
+        <span class="kw">let </span>counter_ty = <span class="self">self</span>.annotations.get_type_or_void(<span class="kw-2">&amp;</span>stmt.counter, <span class="self">self</span>.index);
         <span class="kw">let </span>cast_target_ty = get_bigger_type(<span class="self">self</span>.index.get_type_or_panic(DINT_TYPE), counter_ty, <span class="self">self</span>.index);
         <span class="kw">let </span>cast_target_llty = llvm_index.find_associated_type(cast_target_ty.get_name()).unwrap();
 
-        <span class="kw">let </span>step_ty = by_step.as_ref().map(|it| {
+        <span class="kw">let </span>step_ty = stmt.by_step.as_ref().map(|it| {
             <span class="self">self</span>.register_debug_location(it);
             <span class="self">self</span>.annotations.get_type_or_void(it, <span class="self">self</span>.index)
         });
@@ -1278,7 +1292,7 @@
             step_ty.map_or_else(
                 || <span class="self">self</span>.llvm.create_const_numeric(<span class="kw-2">&amp;</span>cast_target_llty, <span class="string">"1"</span>, SourceLocation::internal()),
                 |step_ty| {
-                    <span class="kw">let </span>step = exp_gen.generate_expression(by_step.as_ref().unwrap())<span class="question-mark">?</span>;
+                    <span class="kw">let </span>step = exp_gen.generate_expression(stmt.by_step.as_ref().unwrap())<span class="question-mark">?</span>;
                     <span class="prelude-val">Ok</span>(<span class="macro">cast_if_needed!</span>(exp_gen, cast_target_ty, step_ty, step, <span class="prelude-val">None</span>))
                 },
             )
@@ -1290,8 +1304,8 @@
         <span class="kw">let </span>increment = context.append_basic_block(current_function, <span class="string">"increment"</span>);
         <span class="kw">let </span>afterloop = context.append_basic_block(current_function, <span class="string">"continue"</span>);
 
-        <span class="self">self</span>.generate_assignment_statement(llvm_index, counter, start)<span class="question-mark">?</span>;
-        <span class="kw">let </span>counter = exp_gen.generate_lvalue(counter)<span class="question-mark">?</span>;
+        <span class="self">self</span>.generate_assignment_statement(llvm_index, <span class="kw-2">&amp;</span>stmt.counter, <span class="kw-2">&amp;</span>stmt.start)<span class="question-mark">?</span>;
+        <span class="kw">let </span>counter = exp_gen.generate_lvalue(<span class="kw-2">&amp;</span>stmt.counter)<span class="question-mark">?</span>;
 
         <span class="comment">// generate loop predicate selector. since `STEP` can be a reference, this needs to be a runtime eval
         // XXX(mhasel): IR could possibly be improved by generating phi instructions.
@@ -1314,7 +1328,7 @@
                 <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             });
 
-            <span class="kw">let </span>end = exp_gen.generate_expression_value(end).unwrap();
+            <span class="kw">let </span>end = exp_gen.generate_expression_value(<span class="kw-2">&amp;</span>stmt.end).unwrap();
             <span class="kw">let </span>end_value = <span class="kw">match </span>end {
                 ExpressionValue::LValue(ptr) =&gt; builder.build_load(ptr, <span class="string">""</span>),
                 ExpressionValue::RValue(val) =&gt; val,
@@ -1340,7 +1354,14 @@
             load_suffix: <span class="self">self</span>.load_suffix.clone(),
             ..<span class="kw-2">*</span><span class="self">self
         </span>};
-        body_builder.generate_body(body)<span class="question-mark">?</span>;
+        body_builder.generate_body(<span class="kw-2">&amp;</span>stmt.body)<span class="question-mark">?</span>;
+        <span class="comment">// Place debug location to end of loop
+        </span><span class="self">self</span>.debug.set_debug_location(
+            <span class="self">self</span>.llvm,
+            <span class="self">self</span>.function_context,
+            stmt.end_location.get_line_plus_one(),
+            stmt.end_location.get_column(),
+        );
 
         <span class="comment">// increment counter
         </span>builder.build_unconditional_branch(increment);
@@ -1376,9 +1397,7 @@
     </span><span class="kw">fn </span>generate_case_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>LlvmTypedIndex&lt;<span class="lifetime">'b</span>&gt;,
-        selector: <span class="kw-2">&amp;</span>AstNode,
-        conditional_blocks: <span class="kw-2">&amp;</span>[ConditionalBlock],
-        else_body: <span class="kw-2">&amp;</span>[AstNode],
+        stmt: <span class="kw-2">&amp;</span>CaseStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>(builder, current_function, context) = <span class="self">self</span>.get_llvm_deps();
         <span class="comment">//Continue
@@ -1386,13 +1405,13 @@
 
         <span class="kw">let </span>basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         <span class="kw">let </span>exp_gen = <span class="self">self</span>.create_expr_generator(llvm_index);
-        <span class="kw">let </span>selector_statement = exp_gen.generate_expression(selector)<span class="question-mark">?</span>;
+        <span class="kw">let </span>selector_statement = exp_gen.generate_expression(<span class="kw-2">&amp;</span>stmt.selector)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>cases = Vec::new();
         <span class="kw">let </span>else_block = context.append_basic_block(current_function, <span class="string">"else"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>current_else_block = else_block;
 
-        <span class="kw">for </span>conditional_block <span class="kw">in </span>conditional_blocks {
+        <span class="kw">for </span>conditional_block <span class="kw">in </span><span class="kw-2">&amp;</span>stmt.case_blocks {
             <span class="comment">//craete a block for the case's body
             </span><span class="kw">let </span>case_block = context.prepend_basic_block(else_block, <span class="string">"case"</span>);
 
@@ -1405,7 +1424,7 @@
                     <span class="comment">// since the if's generate additional blocks, we use the last one as the else-section
                     </span>current_else_block = <span class="self">self</span>.generate_case_range_condition(
                         llvm_index,
-                        selector,
+                        <span class="kw-2">&amp;</span>stmt.selector,
                         data.start.as_ref(),
                         data.end.as_ref(),
                         case_block,
@@ -1421,19 +1440,33 @@
             <span class="comment">//generate the case's body
             </span>builder.position_at_end(case_block);
             <span class="self">self</span>.generate_body(<span class="kw-2">&amp;</span>conditional_block.body)<span class="question-mark">?</span>;
-            <span class="comment">// skiop all other case-bodies
+            <span class="comment">//Add debug location to the end of the case
+            </span><span class="self">self</span>.debug.set_debug_location(
+                <span class="self">self</span>.llvm,
+                <span class="self">self</span>.function_context,
+                stmt.end_location.get_line_plus_one(),
+                stmt.end_location.get_column(),
+            );
+            <span class="comment">// skip all other case-bodies
             </span>builder.build_unconditional_branch(continue_block);
         }
         <span class="comment">// current-else is the last else-block generated by the range-expressions
         </span>builder.position_at_end(current_else_block);
-        <span class="self">self</span>.generate_body(else_body)<span class="question-mark">?</span>;
+        <span class="self">self</span>.generate_body(<span class="kw-2">&amp;</span>stmt.else_block)<span class="question-mark">?</span>;
+        <span class="comment">//Add debug location to the end of the case
+        </span><span class="self">self</span>.debug.set_debug_location(
+            <span class="self">self</span>.llvm,
+            <span class="self">self</span>.function_context,
+            stmt.end_location.get_line_plus_one(),
+            stmt.end_location.get_column(),
+        );
         builder.build_unconditional_branch(continue_block);
         continue_block.move_after(current_else_block).expect(INTERNAL_LLVM_ERROR);
 
         <span class="comment">// now that we collected all cases, go back to the initial block and generate the switch-statement
         </span>builder.position_at_end(basic_block);
 
-        <span class="self">self</span>.register_debug_location(selector);
+        <span class="self">self</span>.register_debug_location(<span class="kw-2">&amp;</span>stmt.selector);
         builder.build_switch(selector_statement.into_int_value(), else_block, <span class="kw-2">&amp;</span>cases);
 
         builder.position_at_end(continue_block);
@@ -1498,12 +1531,12 @@
     </span><span class="kw">fn </span>generate_loop_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>LlvmTypedIndex&lt;<span class="lifetime">'b</span>&gt;,
-        condition: <span class="kw-2">&amp;</span>AstNode,
-        body: <span class="kw-2">&amp;</span>[AstNode],
+        stmt: <span class="kw-2">&amp;</span>LoopStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
         <span class="kw">let </span>basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        <span class="kw">let </span>(condition_block, <span class="kw">_</span>) = <span class="self">self</span>.generate_base_while_statement(llvm_index, condition, body)<span class="question-mark">?</span>;
+        <span class="kw">let </span>(condition_block, <span class="kw">_</span>) =
+            <span class="self">self</span>.generate_base_while_statement(llvm_index, <span class="kw-2">&amp;</span>stmt.condition, <span class="kw-2">&amp;</span>stmt.body, <span class="kw-2">&amp;</span>stmt.end_location)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
@@ -1520,6 +1553,7 @@
         llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>LlvmTypedIndex&lt;<span class="lifetime">'b</span>&gt;,
         condition: <span class="kw-2">&amp;</span>AstNode,
         body: <span class="kw-2">&amp;</span>[AstNode],
+        end_location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(BasicBlock, BasicBlock), Diagnostic&gt; {
         <span class="kw">let </span>(builder, current_function, context) = <span class="self">self</span>.get_llvm_deps();
         <span class="kw">let </span>condition_check = context.append_basic_block(current_function, <span class="string">"condition_check"</span>);
@@ -1546,6 +1580,13 @@
             ..<span class="kw-2">*</span><span class="self">self
         </span>};
         body_generator.generate_body(body)<span class="question-mark">?</span>;
+        <span class="comment">//Set the debug location to the end of the loop
+        </span><span class="self">self</span>.debug.set_debug_location(
+            <span class="self">self</span>.llvm,
+            <span class="self">self</span>.function_context,
+            end_location.get_line_plus_one(),
+            end_location.get_column(),
+        );
         <span class="comment">//Loop back
         </span>builder.build_unconditional_branch(condition_check);
 
@@ -1561,16 +1602,15 @@
     </span><span class="kw">fn </span>generate_if_statement(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         llvm_index: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>LlvmTypedIndex&lt;<span class="lifetime">'b</span>&gt;,
-        conditional_blocks: <span class="kw-2">&amp;</span>[ConditionalBlock],
-        else_body: <span class="kw-2">&amp;</span>[AstNode],
+        stmt: <span class="kw-2">&amp;</span>IfStatement,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>(builder, current_function, context) = <span class="self">self</span>.get_llvm_deps();
         <span class="kw">let </span><span class="kw-2">mut </span>blocks = <span class="macro">vec!</span>[builder.get_insert_block().expect(INTERNAL_LLVM_ERROR)];
-        <span class="kw">for _ in </span><span class="number">1</span>..conditional_blocks.len() {
+        <span class="kw">for _ in </span><span class="number">1</span>..stmt.blocks.len() {
             blocks.push(context.append_basic_block(current_function, <span class="string">"branch"</span>));
         }
 
-        <span class="kw">let </span>else_block = <span class="kw">if </span>!else_body.is_empty() {
+        <span class="kw">let </span>else_block = <span class="kw">if </span>!stmt.else_block.is_empty() {
             <span class="kw">let </span>result = context.append_basic_block(current_function, <span class="string">"else"</span>);
             blocks.push(result);
             <span class="prelude-val">Some</span>(result)
@@ -1581,7 +1621,7 @@
         </span><span class="kw">let </span>continue_block = context.append_basic_block(current_function, <span class="string">"continue"</span>);
         blocks.push(continue_block);
 
-        <span class="kw">for </span>(i, block) <span class="kw">in </span>conditional_blocks.iter().enumerate() {
+        <span class="kw">for </span>(i, block) <span class="kw">in </span>stmt.blocks.iter().enumerate() {
             <span class="kw">let </span>then_block = blocks[i];
             <span class="kw">let </span>else_block = blocks[i + <span class="number">1</span>];
 
@@ -1602,13 +1642,27 @@
 
             </span>builder.position_at_end(conditional_block);
             <span class="self">self</span>.generate_body(<span class="kw-2">&amp;</span>block.body)<span class="question-mark">?</span>;
+            <span class="comment">// Place debug location to end of if
+            </span><span class="self">self</span>.debug.set_debug_location(
+                <span class="self">self</span>.llvm,
+                <span class="self">self</span>.function_context,
+                stmt.end_location.get_line_plus_one(),
+                stmt.end_location.get_column(),
+            );
             builder.build_unconditional_branch(continue_block);
         }
         <span class="comment">//Else
 
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(else_block) = else_block {
             builder.position_at_end(else_block);
-            <span class="self">self</span>.generate_body(else_body)<span class="question-mark">?</span>;
+            <span class="self">self</span>.generate_body(<span class="kw-2">&amp;</span>stmt.else_block)<span class="question-mark">?</span>;
+            <span class="comment">// Place debug location to end of if
+            </span><span class="self">self</span>.debug.set_debug_location(
+                <span class="self">self</span>.llvm,
+                <span class="self">self</span>.function_context,
+                stmt.end_location.get_line_plus_one(),
+                stmt.end_location.get_column(),
+            );
             builder.build_unconditional_branch(continue_block);
         }
         <span class="comment">//Continue

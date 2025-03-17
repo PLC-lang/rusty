@@ -379,7 +379,8 @@
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
 <a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
     lowering::{create_assignment_if_necessary, create_call_statement, create_member_reference},
     resolver::const_evaluator::UnresolvableConstant,
@@ -741,7 +742,8 @@
         pou_type,
         statements,
         location: location.clone(),
-        name_location: location,
+        name_location: location.clone(),
+        end_location: location,
         overriding: <span class="bool-val">false</span>,
         generic: <span class="bool-val">false</span>,
         access: <span class="prelude-val">None</span>,

@@ -1534,7 +1534,16 @@
 <a href="#1533" id="1533">1533</a>
 <a href="#1534" id="1534">1534</a>
 <a href="#1535" id="1535">1535</a>
-<a href="#1536" id="1536">1536</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
 
@@ -2248,7 +2257,13 @@
                 PropertyKind::Set =&gt; <span class="macro">vec!</span>[Token::KeywordEndSet],
             },
         );
-        implementations.push(PropertyImplementation { kind, variable_blocks, body: statements, location });
+        implementations.push(PropertyImplementation {
+            kind,
+            variable_blocks,
+            body: statements,
+            location,
+            end_location: lexer.last_location(),
+        });
     }
 
     lexer.try_consume_or_report(Token::KeywordEndProperty); <span class="comment">// Move past `END_PROPERTY` keyword
@@ -2312,7 +2327,9 @@
 ) -&gt; Implementation {
     <span class="kw">let </span>start = lexer.range().start;
     <span class="kw">let </span>statements = parse_body_standalone(lexer);
-    Implementation {
+    <span class="kw">let </span>end_location = lexer.location(); <span class="comment">//Location of the current token, which shoudl be the
+                                         //end token
+    </span>Implementation {
         name: call_name.into(),
         type_name: type_name.into(),
         linkage,
@@ -2320,6 +2337,7 @@
         statements,
         location: lexer.source_range_factory.create_range(start..lexer.last_range.end),
         name_location,
+        end_location,
         overriding: <span class="bool-val">false</span>,
         generic,
         access: <span class="prelude-val">None</span>,

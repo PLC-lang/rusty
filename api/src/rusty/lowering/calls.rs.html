@@ -1195,7 +1195,10 @@
 <a href="#1194" id="1194">1194</a>
 <a href="#1195" id="1195">1195</a>
 <a href="#1196" id="1196">1196</a>
-<a href="#1197" id="1197">1197</a></pre></div><pre class="rust"><code><span class="doccomment">//! Changes the calls to aggregate return types
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a></pre></div><pre class="rust"><code><span class="doccomment">//! Changes the calls to aggregate return types
 //! to make them VAR_IN_OUT calls, allowing them
 //! to be called from C_APIs and simplifying code generation
 //!
@@ -1208,7 +1211,7 @@
 //!     VAR_INPUT
 //!         a: DINT;
 //!     END_VAR
-//!     END_FUNCTION        
+//!     END_FUNCTION
 //! ```
 //! ```iec61131
 //!     // lowered equivalent
@@ -1219,7 +1222,7 @@
 //!     VAR_INPUT
 //!         a: DINT;
 //!     END_VAR
-//!     END_FUNCTION        
+//!     END_FUNCTION
 //! ```
 //!
 //! Next, every call-statement to that POU has it's arguments updated, with a temporary
@@ -1250,7 +1253,7 @@
         AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock,
         VariableBlockType,
     },
-    control_statements::{AstControlStatement, ConditionalBlock, LoopStatement},
+    control_statements::{AstControlStatement, ConditionalBlock, IfStatement, LoopStatement},
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     try_from_mut,
@@ -1328,8 +1331,11 @@
         <span class="comment">//wrap in if statement
         </span><span class="kw">let </span>break_stmt = AstFactory::create_exit_statement(location.clone(), <span class="self">self</span>.id_provider.next_id());
         <span class="kw">let </span>if_condition = AstFactory::create_if_statement(
-            <span class="macro">vec!</span>[ConditionalBlock { condition: Box::new(condition), body: <span class="macro">vec!</span>[break_stmt] }],
-            <span class="macro">vec!</span>[],
+            IfStatement {
+                blocks: <span class="macro">vec!</span>[ConditionalBlock { condition: Box::new(condition), body: <span class="macro">vec!</span>[break_stmt] }],
+                else_block: <span class="macro">vec!</span>[],
+                end_location: SourceLocation::internal(),
+            },
             location.clone(),
             <span class="self">self</span>.id_provider.next_id(),
         );
