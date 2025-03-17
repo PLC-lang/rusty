@@ -76,6 +76,9 @@ pub enum Token {
     #[token("ENDMETHOD", ignore(case))]
     KeywordEndMethod,
 
+    #[token("SUPER", ignore(case))]
+    KeywordSuper,
+
     #[token("PROPERTY", ignore(case))]
     KeywordProperty,
 

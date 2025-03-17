@@ -279,6 +279,10 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Option<AstNode>
             })
         }
         Identifier => Some(parse_identifier(lexer)),
+        KeywordSuper => {
+            lexer.advance();
+            Some(AstFactory::create_super_reference(lexer.last_location(), lexer.next_id()))
+        }
         HardwareAccess((hw_type, access_type)) => parse_hardware_access(lexer, hw_type, access_type),
         LiteralInteger => parse_literal_number(lexer, false),
         LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, false),

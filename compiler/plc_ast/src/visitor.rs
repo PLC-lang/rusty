@@ -610,6 +610,7 @@ impl Walker for AstNode {
             AstStatement::JumpStatement(stmt) => visitor.visit_jump_statement(stmt, node),
             AstStatement::LabelStatement(stmt) => visitor.visit_label_statement(stmt, node),
             AstStatement::AllocationStatement(stmt) => visitor.visit_allocation(stmt, node),
+            AstStatement::Super => {}
         }
     }
 }
