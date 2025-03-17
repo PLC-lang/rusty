@@ -78,9 +78,9 @@ use std::collections::HashMap;
 use helper::{create_internal_assignment, patch_prefix_to_name};
 use plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, Implementation,
-        LinkageType, Pou, PouType, Property, PropertyKind, ReferenceAccess, ReferenceExpr, Variable,
-        VariableBlock, VariableBlockType,
+        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit,
+        DeclarationKind, Implementation, LinkageType, Pou, PouType, Property, PropertyKind, ReferenceAccess,
+        ReferenceExpr, Variable, VariableBlock, VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -137,6 +137,7 @@ impl PropertyLowerer {
                     kind: PouType::Method {
                         parent: property.parent_name.clone(),
                         property: Some(qualified_name(&property.parent_name, &property.name)),
+                        declaration_kind: DeclarationKind::Concrete,
                     },
                     variable_blocks: Vec::new(),
                     return_type: Some(property.datatype.clone()),
@@ -505,6 +506,7 @@ mod tests {
                     property: Some(
                         "fb.myProp",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -585,6 +587,7 @@ mod tests {
                     property: Some(
                         "fb.myProp",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -686,6 +689,7 @@ mod tests {
                     property: Some(
                         "fb.another_prop",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -769,6 +773,7 @@ mod tests {
                     property: Some(
                         "fb.another_prop",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -925,6 +930,7 @@ mod tests {
                     property: Some(
                         "fb.myProp",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -1005,6 +1011,7 @@ mod tests {
                     property: Some(
                         "fb.myProp",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -1120,6 +1127,7 @@ mod tests {
                 property: Some(
                     "fb.foo",
                 ),
+                declaration_kind: Concrete,
             },
             return_type: Some(
                 DataTypeReference {
@@ -1153,6 +1161,7 @@ mod tests {
                 property: Some(
                     "fb.foo",
                 ),
+                declaration_kind: Concrete,
             },
             return_type: None,
             interfaces: [],
@@ -1170,6 +1179,7 @@ mod tests {
                 property: Some(
                     "fb.foo",
                 ),
+                declaration_kind: Concrete,
             },
             statements: [
                 Assignment {
@@ -1248,6 +1258,7 @@ mod tests {
                 property: Some(
                     "fb.foo",
                 ),
+                declaration_kind: Concrete,
             },
             statements: [
                 Assignment {
