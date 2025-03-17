@@ -1556,7 +1556,18 @@
 <a href="#1555" id="1555">1555</a>
 <a href="#1556" id="1556">1556</a>
 <a href="#1557" id="1557">1557</a>
-<a href="#1558" id="1558">1558</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering any
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering any
 //! 1. [`CompilationUnit::properties`] into [`CompilationUnit::units`] and [`CompilationUnit::implementations`]
 //! 2. [`AstStatement::ReferenceExpr`] into [`AstStatement::CallStatement`] to trigger the GET or SET methods
 //!
@@ -1636,9 +1647,9 @@
 <span class="kw">use </span>helper::{create_internal_assignment, patch_prefix_to_name};
 <span class="kw">use </span>plc_ast::{
     ast::{
-        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit, Implementation,
-        LinkageType, Pou, PouType, Property, PropertyKind, ReferenceAccess, ReferenceExpr, Variable,
-        VariableBlock, VariableBlockType,
+        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit,
+        DeclarationKind, Implementation, LinkageType, Pou, PouType, Property, PropertyKind, ReferenceAccess,
+        ReferenceExpr, Variable, VariableBlock, VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -1695,6 +1706,7 @@
                     kind: PouType::Method {
                         parent: property.parent_name.clone(),
                         property: <span class="prelude-val">Some</span>(qualified_name(<span class="kw-2">&amp;</span>property.parent_name, <span class="kw-2">&amp;</span>property.name)),
+                        declaration_kind: DeclarationKind::Concrete,
                     },
                     variable_blocks: Vec::new(),
                     return_type: <span class="prelude-val">Some</span>(property.datatype.clone()),
@@ -2063,6 +2075,7 @@
                     property: Some(
                         "fb.myProp",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -2143,6 +2156,7 @@
                     property: Some(
                         "fb.myProp",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -2244,6 +2258,7 @@
                     property: Some(
                         "fb.another_prop",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -2327,6 +2342,7 @@
                     property: Some(
                         "fb.another_prop",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -2483,6 +2499,7 @@
                     property: Some(
                         "fb.myProp",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -2563,6 +2580,7 @@
                     property: Some(
                         "fb.myProp",
                     ),
+                    declaration_kind: Concrete,
                 },
                 statements: [
                     Assignment {
@@ -2678,6 +2696,7 @@
                 property: Some(
                     "fb.foo",
                 ),
+                declaration_kind: Concrete,
             },
             return_type: Some(
                 DataTypeReference {
@@ -2711,6 +2730,7 @@
                 property: Some(
                     "fb.foo",
                 ),
+                declaration_kind: Concrete,
             },
             return_type: None,
             interfaces: [],
@@ -2728,6 +2748,7 @@
                 property: Some(
                     "fb.foo",
                 ),
+                declaration_kind: Concrete,
             },
             statements: [
                 Assignment {
@@ -2806,6 +2827,7 @@
                 property: Some(
                     "fb.foo",
                 ),
+                declaration_kind: Concrete,
             },
             statements: [
                 Assignment {

@@ -1519,16 +1519,31 @@
 <a href="#1518" id="1518">1518</a>
 <a href="#1519" id="1519">1519</a>
 <a href="#1520" id="1520">1520</a>
-<a href="#1521" id="1521">1521</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
 
 <span class="kw">use </span>plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
-        ConfigVariable, DataType, DataTypeDeclaration, DirectAccessType, GenericBinding, HardwareAccessType,
-        Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou, PouType, Property,
-        PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr, TypeNature,
+        ConfigVariable, DataType, DataTypeDeclaration, DeclarationKind, DirectAccessType, GenericBinding,
+        HardwareAccessType, Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou,
+        PouType, Property, PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr, TypeNature,
         UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
@@ -1723,12 +1738,23 @@
         }
     };
 
+    <span class="kw">let </span><span class="kw-2">mut </span>extensions = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>methods = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>implementations = Vec::new();
+
+    <span class="kw">if </span>lexer.try_consume(KeywordExtends) {
+        <span class="kw">while let </span>Identifier = lexer.token {
+            <span class="kw">let </span>(name, location) = parse_identifier(lexer).expect(<span class="string">"unreachable, already matched here"</span>);
+            extensions.push(Identifier { name, location });
+            lexer.try_consume(KeywordComma);
+        }
+    }
     <span class="kw">loop </span>{
         <span class="kw">match </span>lexer.token {
             KeywordMethod =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((method, imp)) = parse_method(lexer, <span class="kw-2">&amp;</span>name, LinkageType::Internal, <span class="bool-val">false</span>) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((method, imp)) =
+                    parse_method(lexer, <span class="kw-2">&amp;</span>name, DeclarationKind::Abstract, LinkageType::Internal, <span class="bool-val">false</span>)
+                {
                     <span class="comment">// This is temporary? At some point we'll support them but for now it's a diagnostic
                     </span><span class="kw">if </span>!imp.statements.is_empty() {
                         lexer.accept_diagnostic(
@@ -1754,10 +1780,11 @@
 
     (
         Interface {
-            name,
+            id: lexer.next_id(),
+            identifier: Identifier { name, location: location_name },
             methods,
+            extensions,
             location: lexer.source_range_factory.create_range(location_start..location_end),
-            location_name,
         },
         implementations,
     )
@@ -1856,7 +1883,9 @@
                     }
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>is_const = lexer.try_consume(PropertyConstant);
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((pou, implementation)) = parse_method(lexer, <span class="kw-2">&amp;</span>name, linkage, is_const) {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>((pou, implementation)) =
+                        parse_method(lexer, <span class="kw-2">&amp;</span>name, DeclarationKind::Concrete, linkage, is_const)
+                    {
                         impl_pous.push(pou);
                         implementations.push(implementation);
                     }
@@ -2088,6 +2117,7 @@
 <span class="kw">fn </span>parse_method(
     lexer: <span class="kw-2">&amp;mut </span>ParseSession,
     parent: <span class="kw-2">&amp;</span>str,
+    declaration_kind: DeclarationKind,
     linkage: LinkageType,
     constant: bool,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(Pou, Implementation)&gt; {
@@ -2108,8 +2138,8 @@
         lexer.advance(); <span class="comment">// eat METHOD keyword
 
         </span><span class="kw">let </span>access = <span class="prelude-val">Some</span>(parse_access_modifier(lexer));
-        <span class="kw">let </span>kind = PouType::Method { parent: parent.into(), property: <span class="prelude-val">None </span>};
-        <span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>kind);
+        <span class="kw">let </span>pou_kind = PouType::Method { parent: parent.into(), property: <span class="prelude-val">None</span>, declaration_kind };
+        <span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>pou_kind);
         <span class="kw">let </span>overriding = lexer.try_consume(KeywordOverride);
         <span class="kw">let </span>(name, name_location) = parse_identifier(lexer)<span class="question-mark">?</span>;
         <span class="kw">let </span>generics = parse_generics(lexer);
@@ -2129,7 +2159,7 @@
         <span class="kw">let </span>implementation = parse_implementation(
             lexer,
             linkage,
-            PouType::Method { parent: parent.into(), property: <span class="prelude-val">None </span>},
+            pou_kind.clone(),
             <span class="kw-2">&amp;</span>call_name,
             <span class="kw-2">&amp;</span>call_name,
             !generics.is_empty(),
@@ -2145,7 +2175,7 @@
             Pou {
                 name: call_name,
                 id: lexer.next_id(),
-                kind,
+                kind: pou_kind,
                 variable_blocks,
                 return_type,
                 location: lexer.source_range_factory.create_range(method_start..method_end),

@@ -2218,7 +2218,9 @@
 <a href="#2217" id="2217">2217</a>
 <a href="#2218" id="2218">2218</a>
 <a href="#2219" id="2219">2219</a>
-<a href="#2220" id="2220">2220</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering inherited references.
+<a href="#2220" id="2220">2220</a>
+<a href="#2221" id="2221">2221</a>
+<a href="#2222" id="2222">2222</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering inherited references.
 //! Derived POUs can access members of their base class using the `__SUPER` qualifier,
 //! which is an implicit reference to an instance of the base class which
 //! is added as a member variable of the derived class in the 'pre_index' pass.
@@ -4187,7 +4189,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().units[<span class="number">3</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
         POU {
             name: "child.foo",
             variable_blocks: [
@@ -4234,11 +4236,12 @@
             pou_type: Method {
                 parent: "child",
                 property: None,
+                declaration_kind: Concrete,
             },
             return_type: None,
             interfaces: [],
         }
-        "###</span>);
+        "#</span>);
     }
 
     <span class="attr">#[test]
@@ -4260,7 +4263,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">1</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
         Implementation {
             name: "bar.set0",
             type_name: "bar.set0",
@@ -4268,6 +4271,7 @@
             pou_type: Method {
                 parent: "bar",
                 property: None,
+                declaration_kind: Concrete,
             },
             statements: [
                 Assignment {
@@ -4331,7 +4335,7 @@
                 Protected,
             ),
         }
-        "###</span>);
+        "#</span>);
     }
 }
 

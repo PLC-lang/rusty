@@ -1970,7 +1970,86 @@
 <a href="#1969" id="1969">1969</a>
 <a href="#1970" id="1970">1970</a>
 <a href="#1971" id="1971">1971</a>
-<a href="#1972" id="1972">1972</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1972" id="1972">1972</a>
+<a href="#1973" id="1973">1973</a>
+<a href="#1974" id="1974">1974</a>
+<a href="#1975" id="1975">1975</a>
+<a href="#1976" id="1976">1976</a>
+<a href="#1977" id="1977">1977</a>
+<a href="#1978" id="1978">1978</a>
+<a href="#1979" id="1979">1979</a>
+<a href="#1980" id="1980">1980</a>
+<a href="#1981" id="1981">1981</a>
+<a href="#1982" id="1982">1982</a>
+<a href="#1983" id="1983">1983</a>
+<a href="#1984" id="1984">1984</a>
+<a href="#1985" id="1985">1985</a>
+<a href="#1986" id="1986">1986</a>
+<a href="#1987" id="1987">1987</a>
+<a href="#1988" id="1988">1988</a>
+<a href="#1989" id="1989">1989</a>
+<a href="#1990" id="1990">1990</a>
+<a href="#1991" id="1991">1991</a>
+<a href="#1992" id="1992">1992</a>
+<a href="#1993" id="1993">1993</a>
+<a href="#1994" id="1994">1994</a>
+<a href="#1995" id="1995">1995</a>
+<a href="#1996" id="1996">1996</a>
+<a href="#1997" id="1997">1997</a>
+<a href="#1998" id="1998">1998</a>
+<a href="#1999" id="1999">1999</a>
+<a href="#2000" id="2000">2000</a>
+<a href="#2001" id="2001">2001</a>
+<a href="#2002" id="2002">2002</a>
+<a href="#2003" id="2003">2003</a>
+<a href="#2004" id="2004">2004</a>
+<a href="#2005" id="2005">2005</a>
+<a href="#2006" id="2006">2006</a>
+<a href="#2007" id="2007">2007</a>
+<a href="#2008" id="2008">2008</a>
+<a href="#2009" id="2009">2009</a>
+<a href="#2010" id="2010">2010</a>
+<a href="#2011" id="2011">2011</a>
+<a href="#2012" id="2012">2012</a>
+<a href="#2013" id="2013">2013</a>
+<a href="#2014" id="2014">2014</a>
+<a href="#2015" id="2015">2015</a>
+<a href="#2016" id="2016">2016</a>
+<a href="#2017" id="2017">2017</a>
+<a href="#2018" id="2018">2018</a>
+<a href="#2019" id="2019">2019</a>
+<a href="#2020" id="2020">2020</a>
+<a href="#2021" id="2021">2021</a>
+<a href="#2022" id="2022">2022</a>
+<a href="#2023" id="2023">2023</a>
+<a href="#2024" id="2024">2024</a>
+<a href="#2025" id="2025">2025</a>
+<a href="#2026" id="2026">2026</a>
+<a href="#2027" id="2027">2027</a>
+<a href="#2028" id="2028">2028</a>
+<a href="#2029" id="2029">2029</a>
+<a href="#2030" id="2030">2030</a>
+<a href="#2031" id="2031">2031</a>
+<a href="#2032" id="2032">2032</a>
+<a href="#2033" id="2033">2033</a>
+<a href="#2034" id="2034">2034</a>
+<a href="#2035" id="2035">2035</a>
+<a href="#2036" id="2036">2036</a>
+<a href="#2037" id="2037">2037</a>
+<a href="#2038" id="2038">2038</a>
+<a href="#2039" id="2039">2039</a>
+<a href="#2040" id="2040">2040</a>
+<a href="#2041" id="2041">2041</a>
+<a href="#2042" id="2042">2042</a>
+<a href="#2043" id="2043">2043</a>
+<a href="#2044" id="2044">2044</a>
+<a href="#2045" id="2045">2045</a>
+<a href="#2046" id="2046">2046</a>
+<a href="#2047" id="2047">2047</a>
+<a href="#2048" id="2048">2048</a>
+<a href="#2049" id="2049">2049</a>
+<a href="#2050" id="2050">2050</a>
+<a href="#2051" id="2051">2051</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
 
@@ -1978,8 +2057,8 @@
 <span class="kw">use </span>rustc_hash::{FxHashSet, FxHasher};
 
 <span class="kw">use </span>plc_ast::ast::{
-    AstId, AstNode, AstStatement, ConfigVariable, DirectAccessType, GenericBinding, HardwareAccessType,
-    Identifier, Interface, LinkageType, PouType, TypeNature,
+    AstId, AstNode, AstStatement, ConfigVariable, DeclarationKind, DirectAccessType, GenericBinding,
+    HardwareAccessType, Identifier, Interface, LinkageType, PouType, TypeNature,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -2463,28 +2542,96 @@
     }
 }
 
-<span class="attr">#[derive(PartialEq, Eq)]
+<span class="attr">#[derive(PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>InterfaceIndexEntry {
-    <span class="doccomment">/// The interface name
-    </span><span class="kw">pub </span>name: String,
+    <span class="doccomment">/// The interface identifier, consisting of its name and name-location
+    </span><span class="kw">pub </span>identifier: Identifier,
 
     <span class="doccomment">/// The location of the interface as a whole
     </span><span class="kw">pub </span>location: SourceLocation,
 
-    <span class="doccomment">/// The location of the interface name
-    </span><span class="kw">pub </span>location_name: SourceLocation,
-
     <span class="doccomment">/// A list of qualified names of the methods in this interface; the actual methods are located in
     /// [`Index::pous`]
     </span><span class="kw">pub </span>methods: Vec&lt;String&gt;,
+
+    <span class="doccomment">/// A list of other interfaces this interface extends
+    </span><span class="kw">pub </span>extensions: Vec&lt;Identifier&gt;,
 }
 
 <span class="kw">impl </span>InterfaceIndexEntry {
-    <span class="doccomment">/// Returns a list of methods defined in this interface
-    </span><span class="kw">pub fn </span>get_methods&lt;<span class="lifetime">'idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>PouIndexEntry&gt; {
+    <span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.identifier.name.as_str()
+    }
+
+    <span class="kw">pub fn </span>get_name_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SourceLocation {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.identifier.location
+    }
+
+    <span class="kw">pub fn </span>get_location(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SourceLocation {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.location
+    }
+
+    <span class="doccomment">/// Returns a list of methods this interface declared
+    </span><span class="kw">pub fn </span>get_declared_methods&lt;<span class="lifetime">'idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>PouIndexEntry&gt; {
         <span class="self">self</span>.methods
             .iter()
             .map(|name| index.find_pou(name).expect(<span class="string">"must exist because of present InterfaceIndexEntry"</span>))
+            .collect()
+    }
+
+    <span class="doccomment">/// Returns a list of methods this interface inherited
+    </span><span class="kw">pub fn </span>get_derived_methods&lt;<span class="lifetime">'idx</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>PouIndexEntry&gt; {
+        <span class="self">self</span>.get_derived_methods_recursive(index, <span class="kw-2">&amp;mut </span>FxHashSet::default())
+    }
+
+    <span class="doccomment">/// Returns a list of methods defined in this interface, including inherited methods from derived interfaces
+    </span><span class="kw">pub fn </span>get_methods&lt;<span class="lifetime">'idx</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>PouIndexEntry&gt; {
+        <span class="self">self</span>.get_methods_recursive(index, <span class="kw-2">&amp;mut </span>FxHashSet::default())
+    }
+
+    <span class="doccomment">/// Returns a list of interfaces this interface implements
+    </span><span class="kw">pub fn </span>get_extensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<span class="kw-2">&amp;</span>Identifier&gt; {
+        <span class="self">self</span>.extensions.iter().collect()
+    }
+
+    <span class="doccomment">/// Returns a list of interfaces this interface inherited
+    </span><span class="kw">pub fn </span>get_derived_interfaces&lt;<span class="lifetime">'idx</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+    ) -&gt; Vec&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>InterfaceIndexEntry, Identifier&gt;&gt; {
+        <span class="self">self</span>.extensions
+            .iter()
+            .flat_map(|id| index.find_interface(<span class="kw-2">&amp;</span>id.name).map(Result::Ok).or(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(id.to_owned()))))
+            .collect()
+    }
+
+    <span class="kw">fn </span>get_methods_recursive&lt;<span class="lifetime">'idx</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
+        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+        seen: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>str&gt;,
+    ) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>PouIndexEntry&gt; {
+        seen.insert(<span class="self">self</span>.get_name());
+        <span class="self">self</span>.get_declared_methods(index)
+            .into_iter()
+            .chain(<span class="self">self</span>.get_derived_methods_recursive(index, seen))
+            .collect_vec()
+    }
+
+    <span class="kw">fn </span>get_derived_methods_recursive&lt;<span class="lifetime">'idx</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
+        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+        seen: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>str&gt;,
+    ) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>PouIndexEntry&gt; {
+        <span class="self">self</span>.get_derived_interfaces(index)
+            .iter()
+            .filter_map(|it| it.as_ref().ok())
+            .flat_map(|it| {
+                <span class="kw">if </span>!seen.contains(it.get_name()) {
+                    it.get_methods_recursive(index, seen)
+                } <span class="kw">else </span>{
+                    <span class="macro">vec!</span>[]
+                }
+            })
             .collect()
     }
 }
@@ -2492,8 +2639,9 @@
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>InterfaceIndexEntry {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         f.debug_struct(<span class="string">"InterfaceIndexEntry"</span>)
-            .field(<span class="string">"name"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name)
+            .field(<span class="string">"name"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get_name())
             .field(<span class="string">"methods"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.methods)
+            .field(<span class="string">"extensions"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.extensions)
             .finish()
     }
 }
@@ -2501,10 +2649,10 @@
 <span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>Interface&gt; <span class="kw">for </span>InterfaceIndexEntry {
     <span class="kw">fn </span>from(interface: <span class="kw-2">&amp;</span>Interface) -&gt; <span class="self">Self </span>{
         InterfaceIndexEntry {
-            name: interface.name.clone(),
+            identifier: interface.identifier.clone(),
             location: interface.location.clone(),
-            location_name: interface.location_name.clone(),
             methods: interface.methods.iter().map(|method| method.name.clone()).collect(),
+            extensions: interface.extensions.clone(),
         }
     }
 }
@@ -2546,7 +2694,8 @@
     },
     Method {
         name: String,
-        parent_pou_name: String,
+        parent_name: String,
+        declaration_kind: DeclarationKind,
         return_type: String,
         instance_struct_name: String,
         linkage: LinkageType,
@@ -2554,7 +2703,7 @@
     },
     Action {
         name: String,
-        parent_pou_name: String,
+        parent_name: String,
         instance_struct_name: String,
         linkage: LinkageType,
         location: SourceLocation,
@@ -2665,7 +2814,7 @@
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Action {
             name: qualified_name.into(),
-            parent_pou_name: pou_name.into(),
+            parent_name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
@@ -2701,12 +2850,14 @@
         name: <span class="kw-2">&amp;</span>str,
         return_type: <span class="kw-2">&amp;</span>str,
         owner_class: <span class="kw-2">&amp;</span>str,
+        declaration_kind: DeclarationKind,
         linkage: LinkageType,
         location: SourceLocation,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Method {
             name: name.into(),
-            parent_pou_name: owner_class.into(),
+            parent_name: owner_class.into(),
+            declaration_kind,
             instance_struct_name: name.into(),
             return_type: return_type.into(),
             linkage,
@@ -2747,10 +2898,17 @@
 
     <span class="kw">pub fn </span>get_parent_pou_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            PouIndexEntry::Method { parent_pou_name, .. } | PouIndexEntry::Action { parent_pou_name, .. } =&gt; {
-                <span class="prelude-val">Some</span>(parent_pou_name.as_str())
+            PouIndexEntry::Method { parent_name, .. } | PouIndexEntry::Action { parent_name, .. } =&gt; {
+                <span class="prelude-val">Some</span>(parent_name.as_str())
             }
 
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>get_declaration_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;DeclarationKind&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            PouIndexEntry::Method { declaration_kind, .. } =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>declaration_kind),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2791,8 +2949,8 @@
             | PouIndexEntry::FunctionBlock { .. }
             | PouIndexEntry::Class { .. }
             | PouIndexEntry::Function { .. } =&gt; <span class="self">self</span>.get_name(),
-            PouIndexEntry::Action { parent_pou_name, .. } | PouIndexEntry::Method { parent_pou_name, .. } =&gt; {
-                parent_pou_name.as_str()
+            PouIndexEntry::Action { parent_name, .. } | PouIndexEntry::Method { parent_name, .. } =&gt; {
+                parent_name.as_str()
             }
         }
     }
@@ -3897,11 +4055,11 @@
 
     <span class="doccomment">/// Returns all methods declared on container, or its parents.
     /// If a method is declared in the container the parent method is not included
-    </span><span class="kw">pub fn </span>find_methods(<span class="kw-2">&amp;</span><span class="self">self</span>, container: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
-        <span class="self">self</span>.find_method_recursive(container, <span class="macro">vec!</span>[], <span class="kw-2">&amp;mut </span>FxHashSet::default())
+    </span><span class="kw">pub fn </span>get_methods(<span class="kw-2">&amp;</span><span class="self">self</span>, container: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
+        <span class="self">self</span>.get_methods_recursive(container, <span class="macro">vec!</span>[], <span class="kw-2">&amp;mut </span>FxHashSet::default())
     }
 
-    <span class="kw">fn </span>find_method_recursive&lt;<span class="lifetime">'b</span>&gt;(
+    <span class="kw">fn </span>get_methods_recursive&lt;<span class="lifetime">'b</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="self">self</span>,
         container: <span class="kw-2">&amp;</span>str,
         current_methods: Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>PouIndexEntry&gt;,
@@ -3924,7 +4082,7 @@
                 <span class="kw">if </span>!seen.insert(super_class) {
                     <span class="kw">return </span>res;
                 };
-                <span class="self">self</span>.find_method_recursive(super_class, res, seen)
+                <span class="self">self</span>.get_methods_recursive(super_class, res, seen)
             } <span class="kw">else </span>{
                 res
             }

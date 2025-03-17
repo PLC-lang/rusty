@@ -298,8 +298,12 @@
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
-    ArgumentProperty, DataTypeDeclaration, PouType, TypeNature, VariableBlock, VariableBlockType,
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
+    ArgumentProperty, DataTypeDeclaration, DeclarationKind, PouType, TypeNature, VariableBlock,
+    VariableBlockType,
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::internal_type_name;
@@ -374,8 +378,8 @@
             PouType::Function | PouType::Init | PouType::ProjectInit =&gt; {
                 <span class="self">self</span>.index_function(pou, return_type_name, member_varargs, pou_struct_type);
             }
-            PouType::Method { parent, .. } =&gt; {
-                <span class="self">self</span>.index_method(pou, return_type_name, parent, pou_struct_type);
+            PouType::Method { parent, declaration_kind, .. } =&gt; {
+                <span class="self">self</span>.index_method(pou, return_type_name, parent, <span class="kw-2">*</span>declaration_kind, pou_struct_type);
             }
             <span class="kw">_ </span>=&gt; {}
         };
@@ -393,12 +397,14 @@
         pou: <span class="kw-2">&amp;</span>plc_ast::ast::Pou,
         return_type_name: <span class="kw-2">&amp;</span>str,
         owner_class: <span class="kw-2">&amp;</span>str,
+        declaration_kind: DeclarationKind,
         pou_struct_type: typesystem::DataType,
     ) {
         <span class="self">self</span>.index.register_pou(PouIndexEntry::create_method_entry(
             <span class="kw-2">&amp;</span>pou.name,
             return_type_name,
             owner_class,
+            declaration_kind,
             pou.linkage,
             pou.name_location.clone(),
         ));

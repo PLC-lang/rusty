@@ -70,7 +70,9 @@
 <a href="#69" id="69">69</a>
 <a href="#70" id="70">70</a>
 <a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a></pre></div><pre class="rust"><code><span class="kw">use </span>global_var_indexer::VarGlobalIndexer;
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a></pre></div><pre class="rust"><code><span class="kw">use </span>global_var_indexer::VarGlobalIndexer;
 <span class="kw">use </span>implementation_indexer::ImplementationIndexer;
 <span class="kw">use </span>plc_ast::{
     ast::{CompilationUnit, Implementation, Interface, VariableBlockType},
@@ -139,7 +141,9 @@
             <span class="self">self</span>.visit_pou(method);
         }
 
-        <span class="self">self</span>.index.interfaces.insert(interface.name.clone(), InterfaceIndexEntry::from(interface));
+        <span class="self">self</span>.index
+            .interfaces
+            .insert(interface.identifier.name.to_owned(), InterfaceIndexEntry::from(interface));
     }
 }
 </code></pre></div></section></main></body></html>

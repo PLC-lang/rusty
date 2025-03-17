@@ -268,7 +268,11 @@
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
 <a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
 <span class="kw">use </span>plc_derive::Validators;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_index::GlobalContext;
@@ -288,7 +292,7 @@
 
 <span class="kw">use </span><span class="self">self</span>::{
     global::GlobalValidator,
-    pou::{visit_implementation, visit_pou},
+    pou::{visit_implementation, visit_interface, visit_pou},
     recursive::RecursiveValidator,
     types::visit_user_type_declaration,
     variable::visit_variable_block,
@@ -466,6 +470,10 @@
         <span class="comment">// Validate implementations
         </span><span class="kw">for </span>implementation <span class="kw">in </span><span class="kw-2">&amp;</span>unit.implementations {
             visit_implementation(<span class="self">self</span>, implementation, <span class="kw-2">&amp;</span>context);
+        }
+
+        <span class="kw">for </span>interface <span class="kw">in </span><span class="kw-2">&amp;</span>unit.interfaces {
+            visit_interface(<span class="self">self</span>, interface, <span class="kw-2">&amp;</span>context);
         }
     }
 

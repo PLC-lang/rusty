@@ -658,9 +658,31 @@
 <a href="#657" id="657">657</a>
 <a href="#658" id="658">658</a>
 <a href="#659" id="659">659</a>
-<a href="#660" id="660">660</a></pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
-<span class="kw">use </span>plc_ast::ast::{Identifier, Implementation, LinkageType, Pou, PouType, VariableBlockType};
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a></pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
+<span class="kw">use </span>plc_ast::ast::{
+    AstId, Identifier, Implementation, Interface, LinkageType, Pou, PouType, VariableBlockType,
+};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
+<span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>signature_validation::validate_method_signature;
 
 <span class="kw">use super</span>::{
@@ -673,7 +695,7 @@
         validate_pou(validator, pou);
         validate_interface_impl(validator, context, pou);
         validate_base_class(validator, context, pou);
-        validate_implemented_methods(validator, context, pou);
+        validate_methods_overrides(validator, context, pou.id, <span class="kw-2">&amp;</span>pou.name, <span class="kw-2">&amp;</span>pou.name_location);
         <span class="kw">if let </span>PouType::Method { .. } = pou.kind {
             validate_method(validator, pou, context);
         }
@@ -684,17 +706,18 @@
     }
 }
 
-<span class="kw">fn </span>validate_implemented_methods&lt;T: AnnotationMap&gt;(
+<span class="kw">fn </span>validate_methods_overrides&lt;T: AnnotationMap&gt;(
     validator: <span class="kw-2">&amp;mut </span>Validator,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">'_</span>, T&gt;,
-    pou: <span class="kw-2">&amp;</span>Pou,
+    ast_id: AstId,
+    container_name: <span class="kw-2">&amp;</span>str,
+    primary_location: <span class="kw-2">&amp;</span>SourceLocation,
 ) {
     <span class="kw">let </span><span class="prelude-val">Some</span>(StatementAnnotation::MethodDeclarations { declarations }) =
-        context.annotations.get_with_id(pou.id)
+        context.annotations.get_with_id(ast_id)
     <span class="kw">else </span>{
         <span class="kw">return</span>;
     };
-
     declarations.iter().for_each(|(method_name, decl)| {
         <span class="comment">// validate that abstract signatures all match
         // Concrete to abstract methods are checked at a different stage
@@ -704,18 +727,18 @@
             .flat_map(|it| context.index.find_pou(it.get_qualified_name()));
         <span class="comment">//XXX(ghha) should this not be combinations instead of tuple_windows?
         </span><span class="kw">for </span>(method1, method2) <span class="kw">in </span>methods.tuple_windows() {
-            <span class="kw">let </span>diagnostics = validate_method_signature(context.index, method1, method2, <span class="kw-2">&amp;</span>pou.name_location);
+            <span class="kw">let </span>diagnostics = validate_method_signature(context.index, method1, method2, primary_location);
             <span class="kw">if </span>!diagnostics.is_empty() {
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">"Method `{}` in `{}` is declared with conflicting signatures in `{}` and `{}`"</span>,
                         method_name,
-                        pou.name,
+                        container_name,
                         method1.get_parent_pou_name().unwrap(),
                         method2.get_parent_pou_name().unwrap()
                     ))
                     .with_error_code(<span class="string">"E111"</span>)
-                    .with_location(<span class="kw-2">&amp;</span>pou.name_location)
+                    .with_location(primary_location)
                     .with_secondary_location(method1.get_location())
                     .with_secondary_location(method2.get_location())
                     .with_sub_diagnostics(diagnostics),
@@ -726,39 +749,42 @@
             }
         }
 
-        <span class="comment">// validate that each abstract method has at least one concrete implementation
-        </span><span class="kw">let </span>abstracts = decl
-            .iter()
-            .filter(|it| it.is_abstract())
-            .map(|it| (it.get_qualifier(), context.index.find_pou(it.get_qualified_name()).unwrap()));
-        <span class="comment">// Expecting only one concrete implementation
-        </span><span class="kw">let </span>concrete = decl
-            .iter()
-            .filter(|it| it.is_concrete())
-            .map(|it| context.index.find_pou(it.get_qualified_name()).unwrap())
-            .next();
-        <span class="comment">// Validate that each concrete method which has an abstract counterpart has the same signature
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(method_impl) = concrete {
-            abstracts.for_each(|(<span class="kw">_</span>, method_ref)| {
-                <span class="kw">let </span>diagnostics =
-                    validate_method_signature(context.index, method_ref, method_impl, <span class="kw-2">&amp;</span>pou.name_location);
-                <span class="kw">for </span>diagnostic <span class="kw">in </span>diagnostics {
-                    validator.push_diagnostic(diagnostic);
-                }
-            });
-        } <span class="kw">else </span>{
-            abstracts.for_each(|(name, intf)| {
-                validator.push_diagnostic(
-                    Diagnostic::new(<span class="macro">format!</span>(
-                        <span class="string">"Method `{}` defined in interface `{}` is missing in POU `{}`"</span>,
-                        method_name, name, pou.name
-                    ))
-                    .with_error_code(<span class="string">"E112"</span>)
-                    .with_location(<span class="kw-2">&amp;</span>pou.name_location)
-                    .with_secondary_location(intf.get_location()),
-                );
-            })
-        };
+        <span class="comment">// we only want to validate existing concrete implementations for POUs, not interfaces
+        </span><span class="kw">if </span>context.index.find_pou(container_name).is_some() {
+            <span class="comment">// validate that each abstract method has at least one concrete implementation
+            </span><span class="kw">let </span>abstracts = decl
+                .iter()
+                .filter(|it| it.is_abstract())
+                .map(|it| (it.get_qualifier(), context.index.find_pou(it.get_qualified_name()).unwrap()));
+            <span class="comment">// Expecting only one concrete implementation
+            </span><span class="kw">let </span>concrete = decl
+                .iter()
+                .filter(|it| it.is_concrete())
+                .map(|it| context.index.find_pou(it.get_qualified_name()).unwrap())
+                .next();
+            <span class="comment">// Validate that each concrete method which has an abstract counterpart has the same signature
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(method_impl) = concrete {
+                abstracts.for_each(|(<span class="kw">_</span>, method_ref)| {
+                    <span class="kw">let </span>diagnostics =
+                        validate_method_signature(context.index, method_ref, method_impl, primary_location);
+                    <span class="kw">for </span>diagnostic <span class="kw">in </span>diagnostics {
+                        validator.push_diagnostic(diagnostic);
+                    }
+                });
+            } <span class="kw">else </span>{
+                abstracts.for_each(|(name, intf)| {
+                    validator.push_diagnostic(
+                        Diagnostic::new(<span class="macro">format!</span>(
+                            <span class="string">"Method `{}` defined in interface `{}` is missing in POU `{}`"</span>,
+                            method_name, name, container_name
+                        ))
+                        .with_error_code(<span class="string">"E112"</span>)
+                        .with_location(primary_location)
+                        .with_secondary_location(intf.get_location()),
+                    );
+                })
+            };
+        }
     });
 }
 
@@ -777,12 +803,12 @@
     };
 
     <span class="comment">//Only validate methods that are not abstract, abstract methods are validated in validate_implemented_methods
-    </span><span class="kw">let </span>interface_methods = definitions
+    </span><span class="kw">let </span>overridden_concrete_methods = definitions
         .iter()
         .filter(|it| it.is_concrete())
         .flat_map(|it| context.index.find_pou(it.get_qualified_name()))
         .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-    interface_methods.iter().for_each(|method_ref| {
+    overridden_concrete_methods.iter().for_each(|method_ref| {
         <span class="kw">let </span>diagnostics =
             validate_method_signature(context.index, method_ref, method_impl, <span class="kw-2">&amp;</span>pou.name_location);
         <span class="kw">for </span>diagnostic <span class="kw">in </span>diagnostics {
@@ -842,20 +868,13 @@
     }
 
     <span class="comment">// Check if the declared interfaces exist, i.e. the comma seperated identifiers after `[...] IMPLEMENTS`
-    </span><span class="kw">let </span><span class="kw-2">mut </span>interfaces = Vec::new();
-    <span class="kw">for </span>declaration <span class="kw">in </span><span class="kw-2">&amp;</span>pou.interfaces {
-        <span class="kw">match </span>ctxt.index.find_interface(<span class="kw-2">&amp;</span>declaration.name) {
-            <span class="prelude-val">Some</span>(interface) =&gt; {
-                interfaces.push(interface);
-            }
-
-            <span class="prelude-val">None </span>=&gt; {
-                validator.push_diagnostic(
-                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Interface `{}` does not exist"</span>, declaration.name))
-                        .with_error_code(<span class="string">"E048"</span>)
-                        .with_location(<span class="kw-2">&amp;</span>declaration.location),
-                );
-            }
+    </span><span class="kw">for </span>declaration <span class="kw">in </span><span class="kw-2">&amp;</span>pou.interfaces {
+        <span class="kw">if </span>ctxt.index.find_interface(<span class="kw-2">&amp;</span>declaration.name).is_none() {
+            validator.push_diagnostic(
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Interface `{}` does not exist"</span>, declaration.name))
+                    .with_error_code(<span class="string">"E048"</span>)
+                    .with_location(<span class="kw-2">&amp;</span>declaration.location),
+            );
         }
     }
 }
@@ -942,6 +961,25 @@
                 .with_location(<span class="kw-2">&amp;</span>implementation.location),
         );
     }
+}
+
+<span class="kw">pub fn </span>visit_interface&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    interface: <span class="kw-2">&amp;</span>Interface,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">'_</span>, T&gt;,
+) {
+    <span class="kw">let </span>Identifier { name, location } = <span class="kw-2">&amp;</span>interface.identifier;
+    <span class="kw">let </span><span class="prelude-val">Some</span>(entry) = context.index.find_interface(name) <span class="kw">else </span>{ <span class="macro">unreachable!</span>(<span class="string">"Must exist"</span>) };
+    entry.get_extensions().iter().for_each(|declaration| {
+        <span class="kw">if </span>context.index.find_interface(<span class="kw-2">&amp;</span>declaration.name).is_none() {
+            validator.push_diagnostic(
+                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Interface `{}` does not exist"</span>, declaration.name))
+                    .with_error_code(<span class="string">"E048"</span>)
+                    .with_location(<span class="kw-2">&amp;</span>declaration.location),
+            );
+        }
+    });
+    validate_methods_overrides(validator, context, interface.id, name, location);
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>signature_validation {

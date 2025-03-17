@@ -2491,7 +2491,79 @@
 <a href="#2490" id="2490">2490</a>
 <a href="#2491" id="2491">2491</a>
 <a href="#2492" id="2492">2492</a>
-<a href="#2493" id="2493">2493</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2493" id="2493">2493</a>
+<a href="#2494" id="2494">2494</a>
+<a href="#2495" id="2495">2495</a>
+<a href="#2496" id="2496">2496</a>
+<a href="#2497" id="2497">2497</a>
+<a href="#2498" id="2498">2498</a>
+<a href="#2499" id="2499">2499</a>
+<a href="#2500" id="2500">2500</a>
+<a href="#2501" id="2501">2501</a>
+<a href="#2502" id="2502">2502</a>
+<a href="#2503" id="2503">2503</a>
+<a href="#2504" id="2504">2504</a>
+<a href="#2505" id="2505">2505</a>
+<a href="#2506" id="2506">2506</a>
+<a href="#2507" id="2507">2507</a>
+<a href="#2508" id="2508">2508</a>
+<a href="#2509" id="2509">2509</a>
+<a href="#2510" id="2510">2510</a>
+<a href="#2511" id="2511">2511</a>
+<a href="#2512" id="2512">2512</a>
+<a href="#2513" id="2513">2513</a>
+<a href="#2514" id="2514">2514</a>
+<a href="#2515" id="2515">2515</a>
+<a href="#2516" id="2516">2516</a>
+<a href="#2517" id="2517">2517</a>
+<a href="#2518" id="2518">2518</a>
+<a href="#2519" id="2519">2519</a>
+<a href="#2520" id="2520">2520</a>
+<a href="#2521" id="2521">2521</a>
+<a href="#2522" id="2522">2522</a>
+<a href="#2523" id="2523">2523</a>
+<a href="#2524" id="2524">2524</a>
+<a href="#2525" id="2525">2525</a>
+<a href="#2526" id="2526">2526</a>
+<a href="#2527" id="2527">2527</a>
+<a href="#2528" id="2528">2528</a>
+<a href="#2529" id="2529">2529</a>
+<a href="#2530" id="2530">2530</a>
+<a href="#2531" id="2531">2531</a>
+<a href="#2532" id="2532">2532</a>
+<a href="#2533" id="2533">2533</a>
+<a href="#2534" id="2534">2534</a>
+<a href="#2535" id="2535">2535</a>
+<a href="#2536" id="2536">2536</a>
+<a href="#2537" id="2537">2537</a>
+<a href="#2538" id="2538">2538</a>
+<a href="#2539" id="2539">2539</a>
+<a href="#2540" id="2540">2540</a>
+<a href="#2541" id="2541">2541</a>
+<a href="#2542" id="2542">2542</a>
+<a href="#2543" id="2543">2543</a>
+<a href="#2544" id="2544">2544</a>
+<a href="#2545" id="2545">2545</a>
+<a href="#2546" id="2546">2546</a>
+<a href="#2547" id="2547">2547</a>
+<a href="#2548" id="2548">2548</a>
+<a href="#2549" id="2549">2549</a>
+<a href="#2550" id="2550">2550</a>
+<a href="#2551" id="2551">2551</a>
+<a href="#2552" id="2552">2552</a>
+<a href="#2553" id="2553">2553</a>
+<a href="#2554" id="2554">2554</a>
+<a href="#2555" id="2555">2555</a>
+<a href="#2556" id="2556">2556</a>
+<a href="#2557" id="2557">2557</a>
+<a href="#2558" id="2558">2558</a>
+<a href="#2559" id="2559">2559</a>
+<a href="#2560" id="2560">2560</a>
+<a href="#2561" id="2561">2561</a>
+<a href="#2562" id="2562">2562</a>
+<a href="#2563" id="2563">2563</a>
+<a href="#2564" id="2564">2564</a>
+<a href="#2565" id="2565">2565</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -2505,8 +2577,8 @@
     ast::{
         <span class="self">self</span>, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Identifier,
-        JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration,
-        Variable,
+        Interface, JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature,
+        UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -2516,7 +2588,7 @@
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::internal_type_name;
 
-<span class="kw">use </span><span class="kw">crate</span>::index::{FxIndexMap, FxIndexSet};
+<span class="kw">use </span><span class="kw">crate</span>::index::{FxIndexMap, FxIndexSet, InterfaceIndexEntry};
 <span class="kw">use </span><span class="kw">crate</span>::typesystem::VOID_INTERNAL_NAME;
 <span class="kw">use crate</span>::{
     builtins::{<span class="self">self</span>, BuiltIn},
@@ -2552,7 +2624,7 @@
 ///
 /// Helper methods `qualifier`, `current_pou` and `lhs_pou` copy the current context and
 /// change one field.
-</span><span class="attr">#[derive(Clone)]
+</span><span class="attr">#[derive(Clone, Default)]
 </span><span class="kw">pub struct </span>VisitorContext&lt;<span class="lifetime">'s</span>&gt; {
     <span class="doccomment">/// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
     </span>qualifier: <span class="prelude-ty">Option</span>&lt;String&gt;,
@@ -3016,6 +3088,117 @@
     }
 }
 
+<span class="kw">trait </span>InheritanceAnnotationConverter {
+    <span class="doccomment">/// Returns a [`StatementAnnotation::MethodDeclarations`] for all method declarations of this entry,
+    /// including all inherited methods.
+    </span><span class="kw">fn </span>get_method_declarations_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;StatementAnnotation&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>declarations = FxHashMap::&lt;String, Vec&lt;MethodDeclarationType&gt;&gt;::default();
+        <span class="self">self</span>.get_method_declaration_types(index).into_iter().for_each(|method| {
+            declarations.entry(method.get_flat_name().to_string()).or_default().push(method)
+        });
+        (!declarations.is_empty()).then_some(StatementAnnotation::MethodDeclarations { declarations })
+    }
+
+    <span class="doccomment">/// Returns a [`StatementAnnotation::Override`] for all method overrides of this entry,
+    /// including all inherited, overridden methods.
+    </span><span class="kw">fn </span>get_method_overrides_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;StatementAnnotation&gt; {
+        <span class="comment">// TODO: lazy inheritance iterator
+        </span><span class="kw">let </span>definitions = <span class="self">self</span>.get_method_overrides(index);
+        (!definitions.is_empty()).then_some(StatementAnnotation::create_override(definitions))
+    }
+
+    <span class="doccomment">/// Returns all method declaration-types (abstract/concrete) of this entry, including all inherited methods.
+    </span><span class="kw">fn </span>get_method_declaration_types(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; Vec&lt;MethodDeclarationType&gt;;
+
+    <span class="doccomment">/// Returns all overridden method declaration-types (abstract/concrete) of this entry, including all inherited methods.
+    </span><span class="kw">fn </span>get_method_overrides(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; Vec&lt;MethodDeclarationType&gt;;
+}
+
+<span class="kw">impl </span>InheritanceAnnotationConverter <span class="kw">for </span>InterfaceIndexEntry {
+    <span class="kw">fn </span>get_method_declaration_types(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; Vec&lt;MethodDeclarationType&gt; {
+        <span class="self">self</span>.get_methods(index)
+            .iter()
+            .map(|method| MethodDeclarationType::abstract_method(method.get_name()))
+            .collect()
+    }
+
+    <span class="kw">fn </span>get_method_overrides(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; Vec&lt;MethodDeclarationType&gt; {
+        <span class="kw">let </span>derived_methods = <span class="self">self</span>.get_derived_methods(index);
+        <span class="self">self</span>.methods
+            .iter()
+            .filter(|method_name| {
+                derived_methods.iter().any(|derived_method| {
+                    derived_method.get_flat_reference_name()
+                        == method_name.rsplit_once(<span class="string">"."</span>).map(|(<span class="kw">_</span>, it)| it).unwrap_or_default()
+                })
+            })
+            .map(|method_name| MethodDeclarationType::abstract_method(method_name))
+            .collect()
+    }
+}
+
+<span class="kw">impl </span>InheritanceAnnotationConverter <span class="kw">for </span>PouIndexEntry {
+    <span class="kw">fn </span>get_method_declaration_types(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; Vec&lt;MethodDeclarationType&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            PouIndexEntry::Program { name, .. }
+            | PouIndexEntry::FunctionBlock { name, .. }
+            | PouIndexEntry::Class { name, .. } =&gt; {
+                <span class="comment">//Find all declared methods
+                </span>index
+                    .get_methods(name)
+                    .into_iter()
+                    .map(|it| MethodDeclarationType::concrete_method(it.get_name()))
+                    .chain(<span class="self">self</span>.get_interfaces().iter().flat_map(|ident| {
+                        index
+                            .find_interface(ident)
+                            .into_iter()
+                            .flat_map(|interface| interface.get_method_declaration_types(index))
+                    }))
+                    .collect()
+            }
+            <span class="kw">_ </span>=&gt; <span class="macro">vec!</span>[],
+        }
+    }
+
+    <span class="kw">fn </span>get_method_overrides(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; Vec&lt;MethodDeclarationType&gt; {
+        <span class="kw">let </span>PouIndexEntry::Method { <span class="kw-2">ref </span>parent_name, declaration_kind: kind, .. } = <span class="self">self </span><span class="kw">else </span>{
+            <span class="kw">return </span><span class="macro">vec!</span>[];
+        };
+
+        <span class="kw">let </span><span class="kw-2">mut </span>overrides = <span class="macro">vec!</span>[];
+        <span class="kw">let </span>method_name = <span class="self">self</span>.get_flat_reference_name();
+
+        <span class="comment">// Annotate as concrete override if a super-class also defines this method
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(inherited_method) = index
+            .find_pou(parent_name)
+            .and_then(|pou| pou.get_super_class())
+            .and_then(|super_name| index.find_method(super_name, method_name))
+        {
+            overrides.push(MethodDeclarationType::concrete_method(inherited_method.get_name()));
+        };
+
+        <span class="kw">let </span>interfaces = <span class="kw">match </span>kind {
+            ast::DeclarationKind::Abstract =&gt; index
+                .find_interface(parent_name)
+                .map(|it| it.get_extensions().iter().map(|it| it.name.as_str()).collect()),
+            ast::DeclarationKind::Concrete =&gt; index.find_pou(parent_name).map(|it| it.get_interfaces()),
+        }
+        .unwrap_or_default();
+        <span class="comment">// Annotate all implemented methods which were inherited from interfaces
+        </span>interfaces.iter().for_each(|interface| {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(interface) = index.find_interface(interface) {
+                interface
+                    .get_methods(index)
+                    .iter()
+                    .filter(|it| it.get_flat_reference_name() == method_name)
+                    .for_each(|it| overrides.push(MethodDeclarationType::abstract_method(it.get_name())));
+            }
+        });
+
+        overrides
+    }
+}
+
 <span class="kw">impl </span>StatementAnnotation {
     <span class="doccomment">/// Constructs a new [`StatementAnnotation::Value`] with the given type name
     </span><span class="kw">pub fn </span>value(type_name: <span class="kw">impl </span>Into&lt;String&gt;) -&gt; <span class="self">Self </span>{
@@ -3399,14 +3582,9 @@
     ) -&gt; (AnnotationMapImpl, FxIndexSet&lt;Dependency&gt;, StringLiterals) {
         <span class="kw">let </span><span class="kw-2">mut </span>visitor = TypeAnnotator::new(index);
         <span class="kw">let </span>ctx = <span class="kw-2">&amp;</span>VisitorContext {
-            pou: <span class="prelude-val">None</span>,
-            qualifier: <span class="prelude-val">None</span>,
-            lhs: <span class="prelude-val">None</span>,
-            constant: <span class="bool-val">false</span>,
-            in_body: <span class="bool-val">false</span>,
             id_provider,
             resolve_strategy: ResolvingStrategy::default_scopes(),
-            in_control: <span class="bool-val">false</span>,
+            ..Default::default()
         };
 
         <span class="kw">for </span>global_variable <span class="kw">in </span>unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
@@ -3418,10 +3596,9 @@
             visitor.visit_pou(ctx, pou);
         }
 
-        <span class="kw">for _ in </span><span class="kw-2">&amp;</span>unit.interfaces {
-            <span class="comment">// Do nothing, mostly because POUs defined in interfaces are empty therefore there shouldn't be
-            // anything to annotate
-        </span>}
+        <span class="kw">for </span>interface <span class="kw">in </span><span class="kw-2">&amp;</span>unit.interfaces {
+            visitor.visit_interface(interface);
+        }
 
         <span class="kw">for </span>t <span class="kw">in </span><span class="kw-2">&amp;</span>unit.user_types {
             visitor.visit_user_type_declaration(t, ctx);
@@ -3507,82 +3684,49 @@
         }
     }
 
+    <span class="kw">fn </span>visit_interface(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interface: <span class="kw-2">&amp;</span>Interface) {
+        <span class="self">self</span>.annotate_interface(interface);
+    }
+
     <span class="kw">fn </span>annotate_pou(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>Pou) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(pou_entry) = <span class="self">self</span>.index.find_pou(<span class="kw-2">&amp;</span>pou.name) {
-            <span class="kw">match </span>pou_entry {
-                PouIndexEntry::Program { name, .. }
-                | PouIndexEntry::FunctionBlock { name, .. }
-                | PouIndexEntry::Class { name, .. } =&gt; {
-                    <span class="comment">//Find all declared methods
-                    </span><span class="kw">let </span><span class="kw-2">mut </span>methods = <span class="self">self
-                        </span>.index
-                        .find_methods(name)
-                        .into_iter()
-                        .map(|it| {
-                            (
-                                it.get_flat_reference_name().to_string(),
-                                MethodDeclarationType::Concrete(it.get_name().to_string()),
-                            )
-                        })
-                        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-                    <span class="comment">//Find all methods in interfaces (possibly undeclared)
-                    </span><span class="kw">for </span>interface <span class="kw">in </span>pou_entry.get_interfaces() {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(interface) = <span class="self">self</span>.index.find_interface(interface) {
-                            methods.extend(interface.get_methods(<span class="self">self</span>.index).into_iter().map(|it| {
-                                (
-                                    it.get_flat_reference_name().to_string(),
-                                    MethodDeclarationType::Abstract(it.get_name().to_string()),
-                                )
-                            }));
-                        }
-                    }
-                    <span class="kw">let </span><span class="kw-2">mut </span>declarations = FxHashMap::&lt;String, Vec&lt;MethodDeclarationType&gt;&gt;::default();
-                    methods.into_iter().for_each(|(key, value)| {
-                        <span class="kw">let </span>entry = declarations.entry(key).or_default();
-                        entry.push(value);
-                    });
-                    <span class="self">self</span>.annotation_map
-                        .annotate_with_id(pou.id, StatementAnnotation::MethodDeclarations { declarations });
-                }
-                PouIndexEntry::Method { parent_pou_name, .. } =&gt; {
-                    <span class="self">self</span>.annotate_method(pou.id, parent_pou_name, pou_entry.get_qualified_name());
-                }
-                <span class="kw">_ </span>=&gt; {}
-            };
+            <span class="kw">if </span>pou_entry.is_method() {
+                <span class="self">self</span>.annotate_method(pou_entry, pou.id);
+            } <span class="kw">else </span>{
+                <span class="kw">let </span><span class="prelude-val">Some</span>(annotation) = pou_entry.get_method_declarations_annotation(<span class="self">self</span>.index) <span class="kw">else </span>{
+                    <span class="kw">return</span>;
+                };
+
+                <span class="self">self</span>.annotation_map.annotate_with_id(pou.id, annotation);
+            }
         }
     }
 
-    <span class="kw">fn </span>annotate_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: AstId, parent_pou_name: <span class="kw-2">&amp;</span>str, qualified_name: Vec&lt;<span class="kw-2">&amp;</span>str&gt;) {
-        <span class="kw">let </span>method_name = qualified_name.last().expect(<span class="string">"Method has a name"</span>);
-        <span class="self">self</span>.dependencies.insert(Dependency::Datatype(parent_pou_name.into()));
-        <span class="comment">//If the method is overriden, annotate the method with the original method
-        //Get the method's pou index entry in the super class
-        // TODO: lazy inheritance iterator
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(base_pou) = <span class="self">self</span>.index.find_pou(parent_pou_name) {
-            <span class="kw">let </span><span class="kw-2">mut </span>overrides = <span class="macro">vec!</span>[];
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(super_class) = base_pou.get_super_class().and_then(|it| <span class="self">self</span>.index.find_pou(it)) {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(method) = <span class="self">self</span>.index.find_method(super_class.get_name(), method_name) {
-                    overrides.push(MethodDeclarationType::concrete_method(method.get_name()));
-                }
-            }
-            <span class="comment">// Annotate all methods with the interface methods
-            // TODO: once we implement inheritance for interfaces, we need to adjust this logic
-            </span>base_pou.get_interfaces().iter().for_each(|interface| {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(interface) = <span class="self">self</span>.index.find_interface(interface) {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = interface
-                        .methods
-                        .iter()
-                        .find(|it| it.rsplit_once(<span class="string">'.'</span>).map(|(<span class="kw">_</span>, it)| it).as_ref().unwrap() == method_name)
-                    {
-                        overrides.push(MethodDeclarationType::abstract_method(name));
-                    }
-                }
-            });
+    <span class="kw">fn </span>annotate_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, method: <span class="kw-2">&amp;</span>PouIndexEntry, id: AstId) {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(parent_pou_name) = method.get_parent_pou_name() <span class="kw">else </span>{ <span class="kw">return </span>};
 
-            <span class="kw">if </span>!overrides.is_empty() {
-                <span class="self">self</span>.annotation_map.annotate_with_id(id, StatementAnnotation::create_override(overrides));
-            }
+        <span class="kw">if </span>method.get_declaration_kind().is_some_and(|it| it.is_concrete()) {
+            <span class="self">self</span>.dependencies.insert(Dependency::Datatype(parent_pou_name.into()));
         }
+
+        <span class="comment">// If the method is overridden, annotate the method with every inherited method it overrides
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(annotation) = method.get_method_overrides_annotation(<span class="self">self</span>.index) {
+            <span class="self">self</span>.annotation_map.annotate_with_id(id, annotation);
+        };
+    }
+
+    <span class="kw">fn </span>annotate_interface(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interface: <span class="kw-2">&amp;</span>Interface) {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(itf) = <span class="self">self</span>.index.find_interface(<span class="kw-2">&amp;</span>interface.identifier.name) <span class="kw">else </span>{ <span class="kw">return </span>};
+
+        <span class="comment">// annotate overrides of each method declared in the interface
+        </span>interface.methods.iter().for_each(|method| {
+            <span class="self">self</span>.annotate_pou(method);
+        });
+
+        <span class="comment">// annotate all methods (declared and derived) in the interface
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(annotation) = itf.get_method_declarations_annotation(<span class="self">self</span>.index) {
+            <span class="self">self</span>.annotation_map.annotate_with_id(interface.id, annotation);
+        };
     }
 
     <span class="doccomment">/// updates the expected types of statement on the right side of an assignment
@@ -4684,7 +4828,7 @@
         PouIndexEntry::FunctionBlock { name, .. } =&gt; {
             <span class="prelude-val">Some</span>(StatementAnnotation::Type { type_name: name.into() })
         }
-        PouIndexEntry::Action { name, parent_pou_name, .. } =&gt; <span class="kw">match </span>index.find_pou(parent_pou_name) {
+        PouIndexEntry::Action { name, parent_name, .. } =&gt; <span class="kw">match </span>index.find_pou(parent_name) {
             <span class="prelude-val">Some</span>(PouIndexEntry::Program { .. }) =&gt; {
                 <span class="prelude-val">Some</span>(StatementAnnotation::Program { qualified_name: name.into() })
             }

@@ -1940,7 +1940,34 @@
 <a href="#1939" id="1939">1939</a>
 <a href="#1940" id="1940">1940</a>
 <a href="#1941" id="1941">1941</a>
-<a href="#1942" id="1942">1942</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1942" id="1942">1942</a>
+<a href="#1943" id="1943">1943</a>
+<a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
+<a href="#1947" id="1947">1947</a>
+<a href="#1948" id="1948">1948</a>
+<a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
+<a href="#1951" id="1951">1951</a>
+<a href="#1952" id="1952">1952</a>
+<a href="#1953" id="1953">1953</a>
+<a href="#1954" id="1954">1954</a>
+<a href="#1955" id="1955">1955</a>
+<a href="#1956" id="1956">1956</a>
+<a href="#1957" id="1957">1957</a>
+<a href="#1958" id="1958">1958</a>
+<a href="#1959" id="1959">1959</a>
+<a href="#1960" id="1960">1960</a>
+<a href="#1961" id="1961">1961</a>
+<a href="#1962" id="1962">1962</a>
+<a href="#1963" id="1963">1963</a>
+<a href="#1964" id="1964">1964</a>
+<a href="#1965" id="1965">1965</a>
+<a href="#1966" id="1966">1966</a>
+<a href="#1967" id="1967">1967</a>
+<a href="#1968" id="1968">1968</a>
+<a href="#1969" id="1969">1969</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
@@ -1992,13 +2019,14 @@
 
 <span class="attr">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Interface {
-    <span class="kw">pub </span>name: String,
+    <span class="kw">pub </span>id: AstId,
+    <span class="kw">pub </span>identifier: Identifier,
     <span class="kw">pub </span>methods: Vec&lt;Pou&gt;,
     <span class="kw">pub </span>location: SourceLocation,
-    <span class="kw">pub </span>location_name: SourceLocation,
+    <span class="kw">pub </span>extensions: Vec&lt;Identifier&gt;,
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Clone)]
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 </span><span class="kw">pub struct </span>Identifier {
     <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>location: SourceLocation,
@@ -2252,6 +2280,22 @@
     </span>Internal,
 }
 
+<span class="attr">#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]
+</span><span class="kw">pub enum </span>DeclarationKind {
+    Abstract,
+    Concrete,
+}
+
+<span class="kw">impl </span>DeclarationKind {
+    <span class="kw">pub fn </span>is_abstract(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DeclarationKind::Abstract)
+    }
+
+    <span class="kw">pub fn </span>is_concrete(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DeclarationKind::Concrete)
+    }
+}
+
 <span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 </span><span class="kw">pub enum </span>PouType {
     Program,
@@ -2265,6 +2309,8 @@
 
         <span class="doccomment">/// The fully qualified name of the property this GET or SET method represents
         </span>property: <span class="prelude-ty">Option</span>&lt;String&gt;,
+
+        declaration_kind: DeclarationKind,
     },
     Init,
     ProjectInit,
@@ -3292,7 +3338,7 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use </span><span class="kw">crate</span>::ast::{ArgumentProperty, PouType, VariableBlockType};
+    <span class="kw">use </span><span class="kw">crate</span>::ast::{ArgumentProperty, DeclarationKind, PouType, VariableBlockType};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>display_pou() {
@@ -3301,7 +3347,15 @@
         <span class="macro">assert_eq!</span>(PouType::FunctionBlock.to_string(), <span class="string">"FunctionBlock"</span>);
         <span class="macro">assert_eq!</span>(PouType::Action.to_string(), <span class="string">"Action"</span>);
         <span class="macro">assert_eq!</span>(PouType::Class.to_string(), <span class="string">"Class"</span>);
-        <span class="macro">assert_eq!</span>(PouType::Method { parent: String::new(), property: <span class="prelude-val">None </span>}.to_string(), <span class="string">"Method"</span>);
+        <span class="macro">assert_eq!</span>(
+            PouType::Method {
+                parent: String::new(),
+                property: <span class="prelude-val">None</span>,
+                declaration_kind: DeclarationKind::Concrete
+            }
+            .to_string(),
+            <span class="string">"Method"
+        </span>);
     }
 
     <span class="attr">#[test]
