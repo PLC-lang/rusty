@@ -51,7 +51,7 @@
 //! END_FUNCTION_BLOCK
 //! ```
 
-use plc::{index::Index, resolver::AnnotationMap};
+use plc::{index::Index, lowering::{create_call_statement, create_member_reference_with_location}, resolver::AnnotationMap};
 use plc_ast::{
     ast::{
         AstFactory, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType,
@@ -254,6 +254,26 @@ impl AstVisitorMut for InheritanceLowerer {
                 std::mem::swap(base, &mut owned_base);
             }
         };
+    }
+
+    fn visit_super(&mut self, node: &mut AstNode) {
+        let Some(base_type_name) = self.ctx.base_type_name.as_ref().map(|it| format!("__{it}")) else {
+            return;
+        };
+
+        let AstStatement::Super(deref_marker) = node.get_stmt() else {
+            unreachable!("Must be a super statement")
+        };
+
+        let new_node = if deref_marker.is_some() {
+            // If the super statement is dereferenced, we can just use the existing base-class instance
+            create_member_reference_with_location(&base_type_name, self.provider().clone(), None /* ctx.pou? */, node.get_location())
+        } else {
+            // if the super statement is not dereferenced, we need to bitcast to a pointer of the base-class
+            create_call_statement("REF", &base_type_name, None, self.provider().clone(), &node.location)
+        };
+
+        let _ = std::mem::replace(node, new_node);
     }
 }
 
