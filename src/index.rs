@@ -661,7 +661,7 @@ pub enum PouIndexEntry {
 }
 
 impl PouIndexEntry {
-    pub fn method_name(&self) -> String {
+    pub fn get_method_name(&self) -> String {
         match self {
             PouIndexEntry::Method { property: Some((name, kind)), .. } => {
                 let kind = kind.to_string().to_uppercase();

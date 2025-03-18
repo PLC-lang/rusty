@@ -2265,107 +2265,50 @@ fn property_partially_implemented() {
 }
 
 #[test]
-fn temp2() {
+fn property_with_conflicting_signatures() {
     let source = r"
     INTERFACE intf1
         PROPERTY prop : DINT
             GET END_GET
-            SET END_SET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE intf2
         PROPERTY prop : STRING
             GET END_GET
-            SET END_SET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE intf3 EXTENDS intf1, intf2
     END_INTERFACE
-
-    FUNCTION_BLOCK fb IMPLEMENTS intf3
-        PROPERTY prop : DINT
-            GET END_GET
-            SET END_SET
-        END_PROPERTY
-    END_FUNCTION_BLOCK
     ";
 
     insta::assert_snapshot!(parse_and_validate_buffered(source), @r###"
-    error[E112]: Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
-      ┌─ <internal>:9:20
+    error[E111]: Property `prop` (GET) in `intf3` is declared with conflicting signatures in `intf1` and `intf2`
+       ┌─ <internal>:14:15
+       │
+     3 │         PROPERTY prop : DINT
+       │                  ---- see also
+       ·
+     9 │         PROPERTY prop : STRING
+       │                  ---- see also
+       ·
+    14 │     INTERFACE intf3 EXTENDS intf1, intf2
+       │               ^^^^^ Property `prop` (GET) in `intf3` is declared with conflicting signatures in `intf1` and `intf2`
+
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+       ┌─ <internal>:14:15
+       │
+    14 │     INTERFACE intf3 EXTENDS intf1, intf2
+       │               ^^^^^ Derived methods with conflicting signatures, return types do not match:
+
+    note[E118]: Type `DINT` declared in `intf1.__get_prop` but `intf2.__get_prop` declared type `STRING`
+      ┌─ <internal>:3:18
       │
     3 │         PROPERTY prop : DINT
       │                  ---- see also
       ·
-    9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
-      │                    ^^ Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
-    "###);
-}
-
-// TODO: lit, codegen
-#[test]
-fn inher() {
-    let source = r"
-    INTERFACE intf
-        PROPERTY prop : DINT
-            GET END_GET
-            SET END_SET
-        END_PROPERTY
-    END_INTERFACE
-
-    FUNCTION_BLOCK fb IMPLEMENTS intf
-        PROPERTY prop : DINT
-            GET
-                printf('hello from fb$N');
-            END_GET
-        END_PROPERTY
-    END_FUNCTION_BLOCK
-
-    FUNCTION_BLOCK fb2 EXTENDS fb IMPLEMENTS intf
-        PROPERTY prop : DINT
-            SET 
-                printf('hello from fb2$N');
-            END_SET
-        END_PROPERTY
-    END_FUNCTION_BLOCK
-    ";
-
-    insta::assert_snapshot!(parse_and_validate_buffered(source), @r###"
-    "###);
-}
-
-#[test]
-fn inher2() {
-    let source = r"
-    INTERFACE intf
-        PROPERTY prop : DINT
-            GET END_GET
-            SET END_SET
-        END_PROPERTY
-    END_INTERFACE
-
-    FUNCTION_BLOCK fb IMPLEMENTS intf
-        VAR
-            x : DINT := 69;
-        END_VAR
-        PROPERTY prop : DINT
-            GET
-                printf('hello from fb1$N');
-            END_GET
-        END_PROPERTY
-    END_FUNCTION_BLOCK
-
-    FUNCTION_BLOCK fb2 EXTENDS fb
-        PROPERTY prop : DINT
-            GET
-                printf('hello from fb2, x: %d$N', x);
-            END_GET
-        END_PROPERTY
-    END_FUNCTION_BLOCK
-    ";
-
-    insta::assert_snapshot!(parse_and_validate_buffered(source), @r###"
+    9 │         PROPERTY prop : STRING
+      │                  ---- see also
     "###);
 }
