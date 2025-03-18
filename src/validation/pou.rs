@@ -39,21 +39,22 @@ fn validate_methods_overrides<T: AnnotationMap>(
     else {
         return;
     };
-    declarations.iter().for_each(|(method_name, decl)| {
+    declarations.iter().for_each(|(_, decl)| {
         // validate that abstract signatures all match
         // Concrete to abstract methods are checked at a different stage
         let methods = decl
             .iter()
             .filter(|it| it.is_abstract())
             .flat_map(|it| context.index.find_pou(it.get_qualified_name()));
-        //XXX(ghha) should this not be combinations instead of tuple_windows?
+        // XXX(ghha) should this not be combinations instead of tuple_windows?
         for (method1, method2) in methods.tuple_windows() {
             let diagnostics = validate_method_signature(context.index, method1, method2, primary_location);
             if !diagnostics.is_empty() {
                 validator.push_diagnostic(
+                    // TODO: Not entirely correct?
                     Diagnostic::new(format!(
-                        "Method `{}` in `{}` is declared with conflicting signatures in `{}` and `{}`",
-                        method_name,
+                        "{} in `{}` is declared with conflicting signatures in `{}` and `{}`",
+                        method1.method_name(),
                         container_name,
                         method1.get_parent_pou_name().unwrap(),
                         method2.get_parent_pou_name().unwrap()
@@ -77,6 +78,7 @@ fn validate_methods_overrides<T: AnnotationMap>(
                 .iter()
                 .filter(|it| it.is_abstract())
                 .map(|it| (it.get_qualifier(), context.index.find_pou(it.get_qualified_name()).unwrap()));
+
             // Expecting only one concrete implementation
             let concrete = decl
                 .iter()
@@ -96,8 +98,10 @@ fn validate_methods_overrides<T: AnnotationMap>(
                 abstracts.for_each(|(name, intf)| {
                     validator.push_diagnostic(
                         Diagnostic::new(format!(
-                            "Method `{}` defined in interface `{}` is missing in POU `{}`",
-                            method_name, name, container_name
+                            "{} defined in interface `{}` is missing in POU `{}`",
+                            intf.method_name(),
+                            name,
+                            container_name
                         ))
                         .with_error_code("E112")
                         .with_location(primary_location)
@@ -115,11 +119,11 @@ fn validate_method<T: AnnotationMap>(
     context: &ValidationContext<'_, T>,
 ) {
     let Some(StatementAnnotation::Override { definitions }) = context.annotations.get_with_id(pou.id) else {
-        //No override
+        // No override
         return;
     };
     let Some(method_impl) = context.index.find_pou(&pou.name) else {
-        //Method does not exist
+        // Method does not exist
         return;
     };
 
@@ -245,7 +249,8 @@ fn validate_pou(validator: &mut Validator, pou: &Pou) {
     if pou.kind == PouType::Class {
         validate_class(validator, pou);
     };
-    //If the POU is not a function or method, it cannot have a return type
+
+    // If the POU is not a function or method, it cannot have a return type
     if !matches!(pou.kind, PouType::Function | PouType::Method { .. }) {
         if let Some(start_return_type) = &pou.return_type {
             validator.push_diagnostic(
@@ -394,6 +399,7 @@ pub(super) mod signature_validation {
             let parameters_ref = context.index.get_declared_parameters(method_ref.get_name());
             let parameters_impl = context.index.get_declared_parameters(method_impl.get_name());
             let mut diagnostics = vec![];
+
             // Conditionally skip the first parameter if the return type is aggregate.
             // Return types have already been validated and we don't want to show errors
             // for internally modified code.
@@ -456,6 +462,7 @@ pub(super) mod signature_validation {
                             );
                         }
                     }
+
                     itertools::EitherOrBoth::Left(parameter_ref) => {
                         diagnostics.push(
                             Diagnostic::new(format!(
@@ -469,6 +476,7 @@ pub(super) mod signature_validation {
                             .with_secondary_location(&parameter_ref.source_location),
                         );
                     }
+
                     // Exceeding parameters in the POU, which we did not catch in the for loop above because we were only
                     // iterating over the interface parameters; anyhow any exceeding parameter is considered an error because
                     // the function signature no longer holds
@@ -486,6 +494,7 @@ pub(super) mod signature_validation {
                     }
                 }
             });
+
             if !diagnostics.is_empty() {
                 self.diagnostics.push(
                     Diagnostic::new("Derived methods with conflicting signatures, parameters do not match:")

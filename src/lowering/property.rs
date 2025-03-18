@@ -106,6 +106,91 @@ impl PropertyLowerer {
     pub fn lower_properties_to_pous(&mut self, unit: &mut CompilationUnit) {
         let mut units = vec![];
         let mut implementations = vec![];
+
+        // TODO: Temporary, introduce helper function
+        unit.interfaces.iter_mut().for_each(|interface| {
+            interface.properties.iter_mut().for_each(|property| {
+                let datatype = &property.return_type;
+                let Identifier { name: prop_name, location } = &property.name;
+                let parent = &interface.identifier.name;
+
+                property.implementations.drain(..).for_each(|property_impl| {
+                    let name = format!("{parent}.__{kind}_{prop_name}", kind = property_impl.kind,);
+
+                    if !property_impl.variable_blocks.is_empty() {
+                        panic!("validation")
+                    }
+
+                    if !property_impl.body.is_empty() {
+                        panic!("validation")
+                    }
+
+                    // TODO: Create a helper function for this
+                    let mut pou = Pou {
+                        name,
+                        kind: PouType::Method {
+                            parent: parent.to_string(),
+                            property: Some((prop_name.to_string(), property_impl.kind)),
+                            declaration_kind: DeclarationKind::Concrete,
+                        },
+                        variable_blocks: property_impl.variable_blocks, // TODO: Validation?
+                        return_type: None,
+                        location: location.clone(),
+                        name_location: location.clone(),
+                        poly_mode: None,
+                        generics: Vec::new(),
+                        linkage: LinkageType::Internal,
+                        super_class: None,
+                        interfaces: Vec::new(),
+                        is_const: false,
+                        id: self.id_provider.next_id(),
+                        properties: Vec::new(),
+                    };
+
+                    match property_impl.kind {
+                        PropertyKind::Get => {
+                            pou.variable_blocks.push(VariableBlock {
+                                access: AccessModifier::Public,
+                                constant: false,
+                                retain: false,
+                                variables: vec![Variable {
+                                    name: prop_name.to_string(),
+                                    data_type_declaration: datatype.clone(),
+                                    initializer: None,
+                                    address: None,
+                                    location: SourceLocation::internal(),
+                                }],
+                                variable_block_type: VariableBlockType::Local,
+                                linkage: LinkageType::Internal,
+                                location: SourceLocation::internal(),
+                            });
+                            pou.return_type = Some(datatype.clone());
+                        }
+
+                        PropertyKind::Set => {
+                            pou.variable_blocks.push(VariableBlock {
+                                access: AccessModifier::Public,
+                                constant: false,
+                                retain: false,
+                                variables: vec![Variable {
+                                    name: prop_name.to_string(),
+                                    data_type_declaration: datatype.clone(),
+                                    initializer: None,
+                                    address: None,
+                                    location: SourceLocation::internal(),
+                                }],
+                                variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
+                                linkage: LinkageType::Internal,
+                                location: SourceLocation::internal(),
+                            });
+                        }
+                    };
+
+                    interface.methods.push(pou);
+                });
+            });
+        });
+
         unit.units.iter_mut().for_each(|pou| {
             pou.properties.iter_mut().for_each(|property| {
                 let datatype = &property.return_type;
@@ -119,6 +204,7 @@ impl PropertyLowerer {
                         name,
                         kind: PouType::Method {
                             parent: parent.to_string(),
+                            property: Some((prop_name.to_string(), property_impl.kind)),
                             declaration_kind: DeclarationKind::Concrete,
                         },
                         variable_blocks: property_impl.variable_blocks,
@@ -178,9 +264,8 @@ impl PropertyLowerer {
                             ));
                         }
 
-                        // We have to do two things when dealing with setters:
-                        // 1. Patch a variable block of type `VAR_INPUT` with a single variable with the
-                        // same name as the declared property and its type
+                        // We have to do patch a variable block of type `VAR_INPUT` with a single variable
+                        // with the same name as the declared property and its type
                         PropertyKind::Set => {
                             pou.variable_blocks.push(VariableBlock {
                                 access: AccessModifier::Public,
@@ -204,6 +289,7 @@ impl PropertyLowerer {
                 });
             });
         });
+
         unit.units.extend(units);
         unit.implementations.extend(implementations);
     }
@@ -418,6 +504,12 @@ mod tests {
                 ],
                 pou_type: Method {
                     parent: "fb",
+                    property: Some(
+                        (
+                            "foo",
+                            Get,
+                        ),
+                    ),
                     declaration_kind: Concrete,
                 },
                 return_type: Some(
@@ -484,6 +576,12 @@ mod tests {
                 ],
                 pou_type: Method {
                     parent: "fb",
+                    property: Some(
+                        (
+                            "foo",
+                            Set,
+                        ),
+                    ),
                     declaration_kind: Concrete,
                 },
                 return_type: None,
@@ -710,6 +808,92 @@ mod tests {
                             parameters: None,
                         },
                     ),
+                },
+            ]
+            "###);
+        }
+
+        #[test]
+        fn properties_in_interfaces_are_lowered() {
+            let source = r"
+            INTERFACE foo
+                PROPERTY bar : DINT
+                    GET END_GET
+                    SET END_SET
+                END_PROPERTY
+            END_INTERFACE
+            ";
+
+            let (unit, _) = super::lower_properties_to_pous(source);
+
+            // We retain the properties
+            assert_eq!(unit.interfaces[0].properties.len(), 1);
+
+            // ...but at the same time lower them into methods hosted by the interface
+            assert_eq!(unit.interfaces[0].methods.len(), 2);
+            insta::assert_debug_snapshot!(unit.interfaces[0].methods, @r###"
+            [
+                POU {
+                    name: "foo.__get_bar",
+                    variable_blocks: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "bar",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "DINT",
+                                    },
+                                },
+                            ],
+                            variable_block_type: Local,
+                        },
+                    ],
+                    pou_type: Method {
+                        parent: "foo",
+                        property: Some(
+                            (
+                                "bar",
+                                Get,
+                            ),
+                        ),
+                        declaration_kind: Concrete,
+                    },
+                    return_type: Some(
+                        DataTypeReference {
+                            referenced_type: "DINT",
+                        },
+                    ),
+                    interfaces: [],
+                },
+                POU {
+                    name: "foo.__set_bar",
+                    variable_blocks: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "bar",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "DINT",
+                                    },
+                                },
+                            ],
+                            variable_block_type: Input(
+                                ByVal,
+                            ),
+                        },
+                    ],
+                    pou_type: Method {
+                        parent: "foo",
+                        property: Some(
+                            (
+                                "bar",
+                                Set,
+                            ),
+                        ),
+                        declaration_kind: Concrete,
+                    },
+                    return_type: None,
+                    interfaces: [],
                 },
             ]
             "###);

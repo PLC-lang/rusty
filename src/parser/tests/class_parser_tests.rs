@@ -78,7 +78,11 @@ fn method_with_defaults_can_be_parsed() {
     let method_pou = &unit.units[1];
     assert_eq!(
         method_pou.kind,
-        PouType::Method { parent: "MyClass".into(), declaration_kind: DeclarationKind::Concrete }
+        PouType::Method {
+            parent: "MyClass".into(),
+            property: None,
+            declaration_kind: DeclarationKind::Concrete
+        }
     );
     let method = &unit.implementations[0];
 
@@ -103,7 +107,11 @@ fn method_can_be_parsed() {
     let method_pou = &unit.units[1];
     assert_eq!(
         method_pou.kind,
-        PouType::Method { parent: "MyClass".into(), declaration_kind: DeclarationKind::Concrete }
+        PouType::Method {
+            parent: "MyClass".into(),
+            property: None,
+            declaration_kind: DeclarationKind::Concrete
+        }
     );
     let method = &unit.implementations[0];
 
@@ -145,7 +153,11 @@ fn method_with_return_type_can_be_parsed() {
     let method_pou = &unit.units[1];
     assert_eq!(
         method_pou.kind,
-        PouType::Method { parent: "MyClass".into(), declaration_kind: DeclarationKind::Concrete }
+        PouType::Method {
+            parent: "MyClass".into(),
+            property: None,
+            declaration_kind: DeclarationKind::Concrete
+        }
     );
     let method = &unit.implementations[0];
 
@@ -294,7 +306,11 @@ fn fb_method_can_be_parsed() {
     let method_pou = &unit.units[1];
     assert_eq!(
         method_pou.kind,
-        PouType::Method { parent: "MyFb".into(), declaration_kind: DeclarationKind::Concrete }
+        PouType::Method {
+            parent: "MyFb".into(),
+            property: None,
+            declaration_kind: DeclarationKind::Concrete
+        }
     );
     let method = &unit.implementations[0];
 
@@ -345,7 +361,11 @@ fn fb_method_with_return_type_can_be_parsed() {
     let method_pou = &unit.units[1];
     assert_eq!(
         method_pou.kind,
-        PouType::Method { parent: "MyShinyFb".into(), declaration_kind: DeclarationKind::Concrete }
+        PouType::Method {
+            parent: "MyShinyFb".into(),
+            property: None,
+            declaration_kind: DeclarationKind::Concrete
+        }
     );
     let method = &unit.implementations[0];
 
@@ -377,7 +397,11 @@ fn program_methods_can_be_parsed() {
     let method_pou = &unit.units[1];
     assert_eq!(
         method_pou.kind,
-        PouType::Method { parent: "prog".into(), declaration_kind: DeclarationKind::Concrete }
+        PouType::Method {
+            parent: "prog".into(),
+            property: None,
+            declaration_kind: DeclarationKind::Concrete
+        }
     );
     let method = &unit.implementations[0];
 
@@ -428,7 +452,11 @@ fn program_method_with_return_type_can_be_parsed() {
     let method_pou = &unit.units[1];
     assert_eq!(
         method_pou.kind,
-        PouType::Method { parent: "prog".into(), declaration_kind: DeclarationKind::Concrete }
+        PouType::Method {
+            parent: "prog".into(),
+            property: None,
+            declaration_kind: DeclarationKind::Concrete
+        }
     );
     let method = &unit.implementations[0];
 
@@ -501,14 +529,14 @@ fn method_variable_blocks_can_be_parsed() {
     assert_eq!(fb_mthd.name, "fb.mthd".to_string());
     assert_eq!(
         fb_mthd.kind,
-        PouType::Method { parent: "fb".into(), declaration_kind: DeclarationKind::Concrete }
+        PouType::Method { parent: "fb".into(), property: None, declaration_kind: DeclarationKind::Concrete }
     );
 
     let prg_mthd = &unit.units[3];
     assert_eq!(prg_mthd.name, "prg.mthd".to_string());
     assert_eq!(
         prg_mthd.kind,
-        PouType::Method { parent: "prg".into(), declaration_kind: DeclarationKind::Concrete }
+        PouType::Method { parent: "prg".into(), property: None, declaration_kind: DeclarationKind::Concrete }
     );
 
     // we expect one of each of these `VariableBlockType` to be parsed

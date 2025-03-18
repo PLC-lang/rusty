@@ -85,7 +85,7 @@ pub struct PropertyImplementation {
     pub body: Vec<AstNode>,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum PropertyKind {
     Get,
     Set,
@@ -340,6 +340,9 @@ pub enum PouType {
     Method {
         /// The parent of this method, i.e. a function block, class or an interface
         parent: String,
+
+        /// The property name (pre-mangled) and its type, if the method was lowered from a property
+        property: Option<(String, PropertyKind)>,
 
         declaration_kind: DeclarationKind,
     },
@@ -1367,8 +1370,12 @@ mod tests {
         assert_eq!(PouType::Action.to_string(), "Action");
         assert_eq!(PouType::Class.to_string(), "Class");
         assert_eq!(
-            PouType::Method { parent: String::new(), declaration_kind: DeclarationKind::Concrete }
-                .to_string(),
+            PouType::Method {
+                parent: String::new(),
+                property: None,
+                declaration_kind: DeclarationKind::Concrete
+            }
+            .to_string(),
             "Method"
         );
     }

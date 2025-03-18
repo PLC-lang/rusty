@@ -1,5 +1,5 @@
 use plc_ast::ast::{
-    ArgumentProperty, DataTypeDeclaration, DeclarationKind, PouType, TypeNature, VariableBlock,
+    ArgumentProperty, DataTypeDeclaration, DeclarationKind, PouType, PropertyKind, TypeNature, VariableBlock,
     VariableBlockType,
 };
 use plc_source::source_location::SourceLocation;
@@ -75,8 +75,15 @@ impl<'i> PouIndexer<'i> {
             PouType::Function | PouType::Init | PouType::ProjectInit => {
                 self.index_function(pou, return_type_name, member_varargs, pou_struct_type);
             }
-            PouType::Method { parent, declaration_kind, .. } => {
-                self.index_method(pou, return_type_name, parent, *declaration_kind, pou_struct_type);
+            PouType::Method { parent, property, declaration_kind, .. } => {
+                self.index_method(
+                    pou,
+                    return_type_name,
+                    property,
+                    parent,
+                    *declaration_kind,
+                    pou_struct_type,
+                );
             }
             _ => {}
         };
@@ -93,6 +100,7 @@ impl<'i> PouIndexer<'i> {
         &mut self,
         pou: &plc_ast::ast::Pou,
         return_type_name: &str,
+        property: &Option<(String, PropertyKind)>,
         owner_class: &str,
         declaration_kind: DeclarationKind,
         pou_struct_type: typesystem::DataType,
@@ -100,6 +108,7 @@ impl<'i> PouIndexer<'i> {
         self.index.register_pou(PouIndexEntry::create_method_entry(
             &pou.name,
             return_type_name,
+            property.clone(),
             owner_class,
             declaration_kind,
             pou.linkage,

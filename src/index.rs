@@ -7,7 +7,7 @@ use rustc_hash::{FxHashSet, FxHasher};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, ConfigVariable, DeclarationKind, DirectAccessType, GenericBinding,
-    HardwareAccessType, Identifier, Interface, LinkageType, PouType, TypeNature,
+    HardwareAccessType, Identifier, Interface, LinkageType, PouType, PropertyKind, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -644,6 +644,7 @@ pub enum PouIndexEntry {
     Method {
         name: String,
         parent_name: String,
+        property: Option<(String, PropertyKind)>,
         declaration_kind: DeclarationKind,
         return_type: String,
         instance_struct_name: String,
@@ -657,6 +658,29 @@ pub enum PouIndexEntry {
         linkage: LinkageType,
         location: SourceLocation,
     },
+}
+
+impl PouIndexEntry {
+    pub fn method_name(&self) -> String {
+        match self {
+            PouIndexEntry::Method { property: Some((name, kind)), .. } => {
+                let kind = kind.to_string().to_uppercase();
+                format!("Property `{name}` ({kind})")
+            }
+
+            PouIndexEntry::Method { name, .. } => {
+                let name = name.rsplit_once('.').map(|(_, rhs)| rhs).unwrap_or_default();
+                format!("Method `{name}`")
+            }
+
+            _ => unreachable!(
+                "
+                *you after reading the name of this method*
+                https://i.pinimg.com/originals/47/8c/fe/478cfec0807b19eb0d96073c0301c82d.gif
+                "
+            ),
+        }
+    }
 }
 
 impl From<&PouIndexEntry> for SourceLocation {
@@ -798,6 +822,7 @@ impl PouIndexEntry {
     pub fn create_method_entry(
         name: &str,
         return_type: &str,
+        property: Option<(String, PropertyKind)>,
         owner_class: &str,
         declaration_kind: DeclarationKind,
         linkage: LinkageType,
@@ -806,6 +831,7 @@ impl PouIndexEntry {
         PouIndexEntry::Method {
             name: name.into(),
             parent_name: owner_class.into(),
+            property,
             declaration_kind,
             instance_struct_name: name.into(),
             return_type: return_type.into(),

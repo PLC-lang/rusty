@@ -608,7 +608,7 @@ fn parse_method(
         lexer.advance(); // eat METHOD keyword
 
         let access = Some(parse_access_modifier(lexer));
-        let pou_kind = PouType::Method { parent: parent.into(), declaration_kind };
+        let pou_kind = PouType::Method { parent: parent.into(), property: None, declaration_kind };
         let poly_mode = parse_polymorphism_mode(lexer, &pou_kind);
         let overriding = lexer.try_consume(KeywordOverride);
         let (name, name_location) = parse_identifier(lexer)?;

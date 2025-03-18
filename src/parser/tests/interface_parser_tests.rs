@@ -126,6 +126,7 @@ fn interface_with_single_method() {
                     ],
                     pou_type: Method {
                         parent: "myInterface",
+                        property: None,
                         declaration_kind: Abstract,
                     },
                     return_type: Some(
@@ -228,6 +229,7 @@ fn interface_with_multiple_methods() {
                     ],
                     pou_type: Method {
                         parent: "myInterface",
+                        property: None,
                         declaration_kind: Abstract,
                     },
                     return_type: Some(
@@ -267,6 +269,7 @@ fn interface_with_multiple_methods() {
                     ],
                     pou_type: Method {
                         parent: "myInterface",
+                        property: None,
                         declaration_kind: Abstract,
                     },
                     return_type: Some(
@@ -445,6 +448,7 @@ fn interface_deriving_from_other_interface() {
                 variable_blocks: [],
                 pou_type: Method {
                     parent: "bar",
+                    property: None,
                     declaration_kind: Abstract,
                 },
                 return_type: None,
