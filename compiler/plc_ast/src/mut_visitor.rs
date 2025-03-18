@@ -208,6 +208,8 @@ pub trait AstVisitorMut: Sized {
     fn visit_allocation(&mut self, _node: &mut AstNode) {}
 
     fn visit_interface(&mut self, _interface: &mut Interface) {}
+
+    fn visit_super(&mut self, _node: &mut AstNode) {}
 }
 
 impl WalkerMut for AstLiteral {
@@ -402,7 +404,7 @@ impl WalkerMut for AstNode {
             AstStatement::JumpStatement(_) => visitor.visit_jump_statement(self),
             AstStatement::LabelStatement(_) => visitor.visit_label_statement(self),
             AstStatement::AllocationStatement(_) => visitor.visit_allocation(self),
-            AstStatement::Super(_) => {}
+            AstStatement::Super(_) => visitor.visit_super(self),
         }
     }
 }
