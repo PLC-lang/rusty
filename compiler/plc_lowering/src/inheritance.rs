@@ -15,7 +15,7 @@
 //! ```iec61131st
 //! FUNCTION_BLOCK bar
 //! VAR
-//!   __SUPER : foo;
+//!   __foo : foo;
 //! END_VAR
 //! END_FUNCTION_BLOCK
 //! ```
@@ -47,7 +47,7 @@
 //! VAR
 //!   myFb : bar;
 //! END_VAR
-//!    myFb.__SUPER.x := 1;
+//!    myFb.__foo.x := 1;
 //! END_FUNCTION_BLOCK
 //! ```
 

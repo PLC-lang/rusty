@@ -831,7 +831,7 @@ pub enum AstStatement {
     // Expressions
     ReferenceExpr(ReferenceExpr),
     Identifier(String),
-    Super,
+    Super(Option<DerefMarker>),
     DirectAccess(DirectAccess),
     HardwareAccess(HardwareAccess),
     BinaryExpression(BinaryExpression),
@@ -900,7 +900,8 @@ impl Debug for AstNode {
             AstStatement::DefaultValue(..) => f.debug_struct("DefaultValue").finish(),
             AstStatement::Literal(literal) => literal.fmt(f),
             AstStatement::Identifier(name) => f.debug_struct("Identifier").field("name", name).finish(),
-            AstStatement::Super => f.debug_struct("Super").finish(),
+            AstStatement::Super(Some(_)) => f.debug_struct("Super(derefed)").finish(),
+            AstStatement::Super(_) => f.debug_struct("Super").finish(),
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) => f
                 .debug_struct("BinaryExpression")
                 .field("operator", operator)
@@ -1526,11 +1527,11 @@ impl AstFactory {
         AstNode::new(AstStatement::Identifier(name.into()), id, location.into())
     }
 
-    pub fn create_super_reference<T>(location: T, id: AstId) -> AstNode
+    pub fn create_super_reference<T>(location: T, deref: Option<DerefMarker>, id: AstId) -> AstNode
     where
         T: Into<SourceLocation>,
     {
-        AstNode::new(AstStatement::Super, id, location.into())
+        AstNode::new(AstStatement::Super(deref), id, location.into())
     }
 
     pub fn create_unary_expression(
@@ -1897,6 +1898,8 @@ pub struct Allocation {
     pub name: String,
     pub reference_type: String,
 }
+
+type DerefMarker = ();
 
 impl HardwareAccess {
     pub fn get_mangled_variable_name(&self) -> String {
