@@ -236,13 +236,13 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
 
             KeywordProperty => {
                 if let Some(property) = parse_property(lexer) {
-                    property.implementations.iter().filter(|it| !it.body.is_empty()).for_each(|it| {
+                    for property in property.implementations.iter().filter(|imp| !imp.body.is_empty()) {
                         lexer.accept_diagnostic(
                             Diagnostic::new("Interfaces can not have a default implementation")
                                 .with_error_code("E113")
-                                .with_location(&it.body.first().unwrap().location),
+                                .with_location(&property.body.first().unwrap().location),
                         );
-                    });
+                    }
 
                     properties.push(property);
                 }

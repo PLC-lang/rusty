@@ -341,7 +341,7 @@ pub enum PouType {
         /// The parent of this method, i.e. a function block, class or an interface
         parent: String,
 
-        /// The property name (pre-mangled) and its type, if the method was lowered from a property
+        /// The property name (pre-mangled) and its type, if the method originated from a property
         property: Option<(String, PropertyKind)>,
 
         declaration_kind: DeclarationKind,
