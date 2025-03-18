@@ -664,18 +664,39 @@ mod error_handling {
                 1 > 2;
                 methodA := 5;
             END_METHOD
+
+            PROPERTY propA : INT
+                GET
+                    1 > 2;
+                END_GET
+
+                SET
+                    1 > 2;
+                END_SET
+            END_PROPERTY
         END_INTERFACE
         ";
 
         let diagnostics = parse_and_validate_buffered(source);
-        insta::assert_snapshot!(diagnostics, @r"
-        error[E113]: Interfaces can not have a default implementations
+        insta::assert_snapshot!(diagnostics, @r###"
+        error[E113]: Interfaces can not have a default implementation
           ┌─ <internal>:4:17
-          │  
-        4 │ ╭                 1 > 2;
-        5 │ │                 methodA := 5;
-          │ ╰─────────────────────────────^ Interfaces can not have a default implementations
-        ");
+          │
+        4 │                 1 > 2;
+          │                 ^^^^^ Interfaces can not have a default implementation
+
+        error[E113]: Interfaces can not have a default implementation
+           ┌─ <internal>:10:21
+           │
+        10 │                     1 > 2;
+           │                     ^^^^^ Interfaces can not have a default implementation
+
+        error[E113]: Interfaces can not have a default implementation
+           ┌─ <internal>:14:21
+           │
+        14 │                     1 > 2;
+           │                     ^^^^^ Interfaces can not have a default implementation
+        "###);
     }
 
     #[test]
