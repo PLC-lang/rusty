@@ -220,6 +220,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
                 if let Some((method, imp)) =
                     parse_method(lexer, &name, DeclarationKind::Abstract, LinkageType::Internal, false)
                 {
+                    // TODO: Move this to the validation-stage, so that the property can also make use of this
                     // This is temporary? At some point we'll support them but for now it's a diagnostic
                     if !imp.statements.is_empty() {
                         lexer.accept_diagnostic(

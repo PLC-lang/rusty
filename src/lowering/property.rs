@@ -70,11 +70,13 @@
 //! 2. A reference, that is not the left hand side of an assignment, in which case the reference itself needs
 //!    to be replaced with a function call as `__get_<property name>()`
 
-use helper::{create_internal_assignment, patch_prefix_to_name};
+use crate::lowering::property::helper::create_internal_assignment;
+use crate::resolver::{AnnotationMap, AstAnnotations};
+use helper::patch_prefix_to_name;
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit,
-        DeclarationKind, Identifier, Implementation, LinkageType, Pou, PouType, PropertyKind,
+        DeclarationKind, Identifier, Implementation, LinkageType, Pou, PouType, PropertyBlock, PropertyKind,
         ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
@@ -82,8 +84,6 @@ use plc_ast::{
     try_from_mut,
 };
 use plc_source::source_location::SourceLocation;
-
-use crate::resolver::{AnnotationMap, AstAnnotations};
 
 pub struct PropertyLowerer {
     pub id_provider: IdProvider,
@@ -97,201 +97,37 @@ impl PropertyLowerer {
 }
 
 impl PropertyLowerer {
-    /// Lowers any property references into method calls
-    pub fn lower_references_to_calls(&mut self, unit: &mut CompilationUnit) {
-        self.visit_compilation_unit(unit);
+    /// Lowers [`CompilationUnit::properties`] into [`CompilationUnit::units`] and [`CompilationUnit::implementations`]
+    pub fn properties_to_pous(&mut self, unit: &mut CompilationUnit) {
+        let mut local_pous = Vec::new();
+        let mut local_impls = Vec::new();
+
+        // Lower properties defined in a POU (e.g. a FUNCTION_BLOCK)
+        for pou in &mut unit.units {
+            for property in &mut pou.properties {
+                let (pous, impls) = lower_to_pou(self.id_provider.clone(), &pou.name, property);
+
+                local_pous.extend(pous);
+                local_impls.extend(impls);
+            }
+        }
+
+        // Lower properties defined in an interface
+        for interface in &mut unit.interfaces {
+            for property in &mut interface.properties {
+                let (pous, _) = lower_to_pou(self.id_provider.clone(), &interface.identifier.name, property);
+
+                interface.methods.extend(pous);
+            }
+        }
+
+        unit.units.extend(local_pous);
+        unit.implementations.extend(local_impls);
     }
 
-    /// Lowers [`CompilationUnit::properties`] into [`CompilationUnit::units`] and [`CompilationUnit::implementations`]
-    pub fn lower_properties_to_pous(&mut self, unit: &mut CompilationUnit) {
-        let mut units = vec![];
-        let mut implementations = vec![];
-
-        // TODO: Temporary, introduce helper function
-        unit.interfaces.iter_mut().for_each(|interface| {
-            interface.properties.iter_mut().for_each(|property| {
-                let datatype = &property.return_type;
-                let Identifier { name: prop_name, location } = &property.name;
-                let parent = &interface.identifier.name;
-
-                property.implementations.drain(..).for_each(|property_impl| {
-                    let name = format!("{parent}.__{kind}_{prop_name}", kind = property_impl.kind,);
-
-                    if !property_impl.variable_blocks.is_empty() {
-                        panic!("validation")
-                    }
-
-                    if !property_impl.body.is_empty() {
-                        panic!("validation")
-                    }
-
-                    // TODO: Create a helper function for this
-                    let mut pou = Pou {
-                        name,
-                        kind: PouType::Method {
-                            parent: parent.to_string(),
-                            property: Some((prop_name.to_string(), property_impl.kind)),
-                            declaration_kind: DeclarationKind::Concrete,
-                        },
-                        variable_blocks: property_impl.variable_blocks, // TODO: Validation?
-                        return_type: None,
-                        location: location.clone(),
-                        name_location: location.clone(),
-                        poly_mode: None,
-                        generics: Vec::new(),
-                        linkage: LinkageType::Internal,
-                        super_class: None,
-                        interfaces: Vec::new(),
-                        is_const: false,
-                        id: self.id_provider.next_id(),
-                        properties: Vec::new(),
-                    };
-
-                    match property_impl.kind {
-                        PropertyKind::Get => {
-                            pou.variable_blocks.push(VariableBlock {
-                                access: AccessModifier::Public,
-                                constant: false,
-                                retain: false,
-                                variables: vec![Variable {
-                                    name: prop_name.to_string(),
-                                    data_type_declaration: datatype.clone(),
-                                    initializer: None,
-                                    address: None,
-                                    location: SourceLocation::internal(),
-                                }],
-                                variable_block_type: VariableBlockType::Local,
-                                linkage: LinkageType::Internal,
-                                location: SourceLocation::internal(),
-                            });
-                            pou.return_type = Some(datatype.clone());
-                        }
-
-                        PropertyKind::Set => {
-                            pou.variable_blocks.push(VariableBlock {
-                                access: AccessModifier::Public,
-                                constant: false,
-                                retain: false,
-                                variables: vec![Variable {
-                                    name: prop_name.to_string(),
-                                    data_type_declaration: datatype.clone(),
-                                    initializer: None,
-                                    address: None,
-                                    location: SourceLocation::internal(),
-                                }],
-                                variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
-                                linkage: LinkageType::Internal,
-                                location: SourceLocation::internal(),
-                            });
-                        }
-                    };
-
-                    interface.methods.push(pou);
-                });
-            });
-        });
-
-        unit.units.iter_mut().for_each(|pou| {
-            pou.properties.iter_mut().for_each(|property| {
-                let datatype = &property.return_type;
-                let Identifier { name: prop_name, location } = &property.name;
-                let parent = &pou.name;
-
-                property.implementations.drain(..).for_each(|property_impl| {
-                    let name = format!("{parent}.__{kind}_{prop_name}", kind = property_impl.kind,);
-
-                    let mut pou = Pou {
-                        name,
-                        kind: PouType::Method {
-                            parent: parent.to_string(),
-                            property: Some((prop_name.to_string(), property_impl.kind)),
-                            declaration_kind: DeclarationKind::Concrete,
-                        },
-                        variable_blocks: property_impl.variable_blocks,
-                        return_type: None,
-                        location: location.clone(),
-                        name_location: location.clone(),
-                        poly_mode: None,
-                        generics: Vec::new(),
-                        linkage: LinkageType::Internal,
-                        super_class: None,
-                        interfaces: Vec::new(),
-                        is_const: false,
-                        id: self.id_provider.next_id(),
-                        properties: Vec::new(),
-                    };
-
-                    let mut implementation = Implementation {
-                        name: pou.name.clone(),
-                        type_name: pou.name.clone(),
-                        linkage: pou.linkage,
-                        pou_type: pou.kind.clone(),
-                        statements: property_impl.body,
-                        location: location.clone(),
-                        name_location: location.clone(),
-                        overriding: false,
-                        generic: false,
-                        access: Some(AccessModifier::Public),
-                    };
-
-                    match property_impl.kind {
-                        // We have to append a `<method_name> := <property_name>` assignment at the end of the
-                        // list of statements when dealing with getters
-                        PropertyKind::Get => {
-                            pou.variable_blocks.push(VariableBlock {
-                                access: AccessModifier::Public,
-                                constant: false,
-                                retain: false,
-                                variables: vec![Variable {
-                                    name: prop_name.to_string(),
-                                    data_type_declaration: datatype.clone(),
-                                    initializer: None,
-                                    address: None,
-                                    location: SourceLocation::internal(),
-                                }],
-                                variable_block_type: VariableBlockType::Local,
-                                linkage: LinkageType::Internal,
-                                location: SourceLocation::internal(),
-                            });
-                            pou.return_type = Some(datatype.clone());
-
-                            let name_lhs = format!("__{}_{}", property_impl.kind, prop_name);
-
-                            implementation.statements.push(create_internal_assignment(
-                                &mut self.id_provider,
-                                name_lhs,
-                                prop_name,
-                            ));
-                        }
-
-                        // We have to do patch a variable block of type `VAR_INPUT` with a single variable
-                        // with the same name as the declared property and its type
-                        PropertyKind::Set => {
-                            pou.variable_blocks.push(VariableBlock {
-                                access: AccessModifier::Public,
-                                constant: false,
-                                retain: false,
-                                variables: vec![Variable {
-                                    name: prop_name.to_string(),
-                                    data_type_declaration: datatype.clone(),
-                                    initializer: None,
-                                    address: None,
-                                    location: SourceLocation::internal(),
-                                }],
-                                variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
-                                linkage: LinkageType::Internal,
-                                location: SourceLocation::internal(),
-                            });
-                        }
-                    };
-                    units.push(pou);
-                    implementations.push(implementation);
-                });
-            });
-        });
-
-        unit.units.extend(units);
-        unit.implementations.extend(implementations);
+    /// Lowers any property references into method calls
+    pub fn properties_to_fncalls(&mut self, unit: &mut CompilationUnit) {
+        self.visit_compilation_unit(unit);
     }
 }
 
@@ -363,6 +199,108 @@ impl AstVisitorMut for PropertyLowerer {
             let _ = std::mem::replace(node, call);
         }
     }
+}
+
+/// The actual logic for lowering properties into methods and their implementations counterpart
+pub fn lower_to_pou(
+    mut provider: IdProvider,
+    parent: &str,
+    property: &mut PropertyBlock,
+) -> (Vec<Pou>, Vec<Implementation>) {
+    let mut pous = Vec::new();
+    let mut impls = Vec::new();
+
+    for property_impl in property.implementations.drain(..) {
+        let Identifier { name, location } = &property.name;
+
+        let mangled_name = format!("{parent}.__{kind}_{name}", kind = property_impl.kind);
+
+        // First transform the property into a method (__get... or __set...)
+        let mut pou = Pou {
+            name: mangled_name,
+            kind: PouType::Method {
+                parent: parent.to_string(),
+                property: Some((name.to_string(), property_impl.kind)),
+                declaration_kind: DeclarationKind::Concrete,
+            },
+            variable_blocks: property_impl.variable_blocks,
+            return_type: None,
+            location: location.clone(),
+            name_location: location.clone(),
+            poly_mode: None,
+            generics: Vec::new(),
+            linkage: LinkageType::Internal,
+            super_class: None,
+            interfaces: Vec::new(),
+            is_const: false,
+            id: provider.next_id(),
+            properties: Vec::new(),
+        };
+
+        // ...then transform any statement inside the property into an implementation
+        let mut implementation = Implementation {
+            name: pou.name.clone(),
+            type_name: pou.name.clone(),
+            linkage: pou.linkage,
+            pou_type: pou.kind.clone(),
+            statements: property_impl.body,
+            location: location.clone(),
+            name_location: location.clone(),
+            overriding: false,
+            generic: false,
+            access: Some(AccessModifier::Public),
+        };
+
+        // ...then patch in local variables (and additionally some extra statements) for the implementation
+        match property_impl.kind {
+            PropertyKind::Get => {
+                pou.variable_blocks.push(VariableBlock {
+                    access: AccessModifier::Public,
+                    constant: false,
+                    retain: false,
+                    variables: vec![Variable {
+                        name: name.to_string(),
+                        data_type_declaration: property.return_type.clone(),
+                        initializer: None,
+                        address: None,
+                        location: SourceLocation::internal(),
+                    }],
+                    variable_block_type: VariableBlockType::Local,
+                    linkage: LinkageType::Internal,
+                    location: SourceLocation::internal(),
+                });
+                pou.return_type = Some(property.return_type.clone());
+
+                let name_lhs = format!("__{}_{}", property_impl.kind, name);
+
+                implementation.statements.push(create_internal_assignment(&mut provider, name_lhs, name));
+            }
+
+            PropertyKind::Set => {
+                pou.variable_blocks.push(VariableBlock {
+                    access: AccessModifier::Public,
+                    constant: false,
+                    retain: false,
+                    variables: vec![Variable {
+                        name: name.to_string(),
+                        data_type_declaration: property.return_type.clone(),
+                        initializer: None,
+                        address: None,
+                        location: SourceLocation::internal(),
+                    }],
+                    variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
+                    linkage: LinkageType::Internal,
+                    location: SourceLocation::internal(),
+                });
+            }
+        };
+
+        // ...aaaaand done
+        pous.push(pou);
+        impls.push(implementation);
+    }
+
+    (pous, impls)
 }
 
 mod helper {
@@ -447,7 +385,7 @@ mod tests {
         assert_eq!(diagnostics, Vec::new());
 
         // Lower
-        lowerer.lower_properties_to_pous(&mut unit);
+        lowerer.properties_to_pous(&mut unit);
 
         // Index
         let mut index = index_unit_with_id(&unit, id_provider.clone());
@@ -466,7 +404,7 @@ mod tests {
         // Lower
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         lowerer.annotations = Some(annotations);
-        lowerer.lower_references_to_calls(&mut unit);
+        lowerer.properties_to_fncalls(&mut unit);
 
         unit
     }
