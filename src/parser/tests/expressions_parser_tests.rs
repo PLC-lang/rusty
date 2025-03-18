@@ -1771,7 +1771,7 @@ fn super_keyword_can_be_parsed_in_expressions() {
         ";
 
     let parse_result = parse(src).0;
-    assert_debug_snapshot!(parse_result.implementations[0].statements, @r#"
+    assert_debug_snapshot!(parse_result.implementations[0].statements, @r###"
     [
         ReferenceExpr {
             kind: Member(
@@ -1790,12 +1790,7 @@ fn super_keyword_can_be_parsed_in_expressions() {
                 },
             ),
             base: Some(
-                ReferenceExpr {
-                    kind: Deref,
-                    base: Some(
-                        Super,
-                    ),
-                },
+                Super(derefed),
             ),
         },
         Super,
@@ -1807,12 +1802,7 @@ fn super_keyword_can_be_parsed_in_expressions() {
                     },
                 ),
                 base: Some(
-                    ReferenceExpr {
-                        kind: Deref,
-                        base: Some(
-                            Super,
-                        ),
-                    },
+                    Super(derefed),
                 ),
             },
             parameters: Some(
@@ -1835,12 +1825,7 @@ fn super_keyword_can_be_parsed_in_expressions() {
                             },
                         ),
                         base: Some(
-                            ReferenceExpr {
-                                kind: Deref,
-                                base: Some(
-                                    Super,
-                                ),
-                            },
+                            Super(derefed),
                         ),
                     },
                 },
@@ -1874,5 +1859,5 @@ fn super_keyword_can_be_parsed_in_expressions() {
             },
         },
     ]
-    "#);
+    "###);
 }
