@@ -246,6 +246,7 @@ pub fn lower_to_pou(
             statements: property_impl.body,
             location: location.clone(),
             name_location: location.clone(),
+            end_location: property_impl.end_location.clone(),
             overriding: false,
             generic: false,
             access: Some(AccessModifier::Public),

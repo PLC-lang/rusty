@@ -588,7 +588,7 @@ fn interface_with_property() {
     assert_eq!(unit.interfaces.len(), 1);
     assert_eq!(unit.interfaces[0].identifier.name, "myInterface");
 
-    insta::assert_debug_snapshot!(unit.interfaces[0].properties, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces[0].properties, @r#"
     [
         PropertyBlock {
             name: Identifier {
@@ -628,6 +628,19 @@ fn interface_with_property() {
                     },
                     variable_blocks: [],
                     body: [],
+                    end_location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 3,
+                                column: 16,
+                                offset: 70,
+                            }..TextLocation {
+                                line: 3,
+                                column: 23,
+                                offset: 77,
+                            },
+                        ),
+                    },
                 },
                 PropertyImplementation {
                     kind: Set,
@@ -646,11 +659,24 @@ fn interface_with_property() {
                     },
                     variable_blocks: [],
                     body: [],
+                    end_location: SourceLocation {
+                        span: Range(
+                            TextLocation {
+                                line: 4,
+                                column: 16,
+                                offset: 94,
+                            }..TextLocation {
+                                line: 4,
+                                column: 23,
+                                offset: 101,
+                            },
+                        ),
+                    },
                 },
             ],
         },
     ]
-    "###);
+    "#);
 }
 
 mod error_handling {
