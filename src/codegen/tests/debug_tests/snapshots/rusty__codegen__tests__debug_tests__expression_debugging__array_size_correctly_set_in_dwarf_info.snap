@@ -7,15 +7,15 @@ source_filename = "<internal>"
 
 define i32 @foo() !dbg !4 {
 entry:
-  %foo = alloca i32, align 4, !dbg !9
-  %a = alloca [64 x i32], align 4, !dbg !9
-  call void @llvm.dbg.declare(metadata [64 x i32]* %a, metadata !10, metadata !DIExpression()), !dbg !15
-  %0 = bitcast [64 x i32]* %a to i8*, !dbg !9
-  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([64 x i32]* getelementptr ([64 x i32], [64 x i32]* null, i32 1) to i64), i1 false), !dbg !9
-  call void @llvm.dbg.declare(metadata i32* %foo, metadata !16, metadata !DIExpression()), !dbg !17
-  store i32 0, i32* %foo, align 4, !dbg !9
-  %foo_ret = load i32, i32* %foo, align 4, !dbg !9
-  ret i32 %foo_ret, !dbg !9
+  %foo = alloca i32, align 4
+  %a = alloca [64 x i32], align 4
+  call void @llvm.dbg.declare(metadata [64 x i32]* %a, metadata !9, metadata !DIExpression()), !dbg !14
+  %0 = bitcast [64 x i32]* %a to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([64 x i32]* getelementptr ([64 x i32], [64 x i32]* null, i32 1) to i64), i1 false)
+  call void @llvm.dbg.declare(metadata i32* %foo, metadata !15, metadata !DIExpression()), !dbg !16
+  store i32 0, i32* %foo, align 4
+  %foo_ret = load i32, i32* %foo, align 4, !dbg !17
+  ret i32 %foo_ret, !dbg !17
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -39,15 +39,15 @@ attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
 !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
 !7 = !{null}
 !8 = !{}
-!9 = !DILocation(line: 6, column: 8, scope: !4)
-!10 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !11, align: 32)
-!11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 2048, align: 32, elements: !13)
-!12 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!13 = !{!14}
-!14 = !DISubrange(count: 64, lowerBound: 1)
-!15 = !DILocation(line: 4, column: 12, scope: !4)
-!16 = !DILocalVariable(name: "foo", scope: !4, file: !5, line: 2, type: !12, align: 32)
-!17 = !DILocation(line: 2, column: 17, scope: !4)
+!9 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !10, align: 32)
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 2048, align: 32, elements: !12)
+!11 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!12 = !{!13}
+!13 = !DISubrange(count: 64, lowerBound: 1)
+!14 = !DILocation(line: 4, column: 12, scope: !4)
+!15 = !DILocalVariable(name: "foo", scope: !4, file: !5, line: 2, type: !11, align: 32)
+!16 = !DILocation(line: 2, column: 17, scope: !4)
+!17 = !DILocation(line: 6, column: 8, scope: !4)
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
