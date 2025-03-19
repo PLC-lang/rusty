@@ -129,6 +129,22 @@ CompilationUnit {
                     "<internal>",
                 ),
             },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 4,
+                        column: 8,
+                        offset: 116,
+                    }..TextLocation {
+                        line: 4,
+                        column: 20,
+                        offset: 128,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -206,6 +222,22 @@ CompilationUnit {
                         line: 6,
                         column: 21,
                         offset: 151,
+                    },
+                ),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 8,
+                        column: 8,
+                        offset: 179,
+                    }..TextLocation {
+                        line: 8,
+                        column: 20,
+                        offset: 191,
                     },
                 ),
                 file: Some(

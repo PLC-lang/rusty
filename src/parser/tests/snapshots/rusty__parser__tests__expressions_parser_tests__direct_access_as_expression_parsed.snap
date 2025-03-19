@@ -160,6 +160,19 @@ CompilationUnit {
                     },
                 ),
             },
+            end_location: SourceLocation {
+                span: Range(
+                    TextLocation {
+                        line: 5,
+                        column: 4,
+                        offset: 90,
+                    }..TextLocation {
+                        line: 5,
+                        column: 15,
+                        offset: 101,
+                    },
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
