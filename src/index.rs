@@ -3,7 +3,7 @@
 use std::hash::BuildHasherDefault;
 
 use itertools::Itertools;
-use rustc_hash::{FxHashSet, FxHasher};
+use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, ConfigVariable, DeclarationKind, DirectAccessType, GenericBinding,
@@ -86,54 +86,13 @@ pub struct VariableIndexEntry {
     varargs: Option<VarArgs>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
-pub struct HardwareBinding {
-    /// Specifies if the binding is an In/Out or Memory binding
-    pub direction: HardwareAccessType,
-    /// The datatype (size) of the binding
-    pub access: DirectAccessType,
-    /// A list of entries that form this binding
-    pub entries: Vec<ConstId>,
-    /// The location in the original source-file
-    pub location: SourceLocation,
-}
-
-impl HardwareBinding {
-    pub fn from_statement(index: &mut Index, it: &AstNode, scope: Option<String>) -> Option<Self> {
-        if let AstStatement::HardwareAccess(data) = it.get_stmt() {
-            Some(HardwareBinding {
-                access: data.access,
-                direction: data.direction,
-                entries: data
-                    .address
-                    .iter()
-                    .map(|expr| {
-                        index.constant_expressions.add_constant_expression(
-                            expr.clone(),
-                            typesystem::DINT_SIZE.to_string(),
-                            scope.clone(),
-                            None,
-                        )
-                    })
-                    .collect(),
-                location: it.get_location(),
-            })
-        } else {
-            None
+impl From<&VariableIndexEntry> for Identifier {
+    fn from(value: &VariableIndexEntry) -> Self {
+        Identifier {
+            name: value.get_qualifier().unwrap_or(&value.name).to_string(),
+            location: value.source_location.clone(),
         }
     }
-}
-
-#[derive(Debug)]
-pub struct MemberInfo<'b> {
-    container_name: &'b str,
-    variable_name: &'b str,
-    variable_linkage: ArgumentType,
-    variable_type_name: &'b str,
-    binding: Option<HardwareBinding>,
-    is_constant: bool,
-    is_var_external: bool,
-    varargs: Option<VarArgs>,
 }
 
 impl VariableIndexEntry {
@@ -332,6 +291,56 @@ impl VariableIndexEntry {
     pub fn get_qualifier(&self) -> Option<&str> {
         self.qualified_name.rsplit_once('.').map(|(x, _)| x)
     }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+pub struct HardwareBinding {
+    /// Specifies if the binding is an In/Out or Memory binding
+    pub direction: HardwareAccessType,
+    /// The datatype (size) of the binding
+    pub access: DirectAccessType,
+    /// A list of entries that form this binding
+    pub entries: Vec<ConstId>,
+    /// The location in the original source-file
+    pub location: SourceLocation,
+}
+
+impl HardwareBinding {
+    pub fn from_statement(index: &mut Index, it: &AstNode, scope: Option<String>) -> Option<Self> {
+        if let AstStatement::HardwareAccess(data) = it.get_stmt() {
+            Some(HardwareBinding {
+                access: data.access,
+                direction: data.direction,
+                entries: data
+                    .address
+                    .iter()
+                    .map(|expr| {
+                        index.constant_expressions.add_constant_expression(
+                            expr.clone(),
+                            typesystem::DINT_SIZE.to_string(),
+                            scope.clone(),
+                            None,
+                        )
+                    })
+                    .collect(),
+                location: it.get_location(),
+            })
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct MemberInfo<'b> {
+    container_name: &'b str,
+    variable_name: &'b str,
+    variable_linkage: ArgumentType,
+    variable_type_name: &'b str,
+    binding: Option<HardwareBinding>,
+    is_constant: bool,
+    is_var_external: bool,
+    varargs: Option<VarArgs>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -606,7 +615,7 @@ impl From<&Interface> for InterfaceIndexEntry {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum PouIndexEntry {
     Program {
         name: String,
@@ -614,6 +623,7 @@ pub enum PouIndexEntry {
         instance_variable: Box<VariableIndexEntry>,
         linkage: LinkageType,
         location: SourceLocation,
+        properties: FxHashMap<String, Identifier>,
     },
     FunctionBlock {
         name: String,
@@ -622,6 +632,7 @@ pub enum PouIndexEntry {
         location: SourceLocation,
         super_class: Option<String>,
         interfaces: Vec<String>,
+        properties: FxHashMap<String, Identifier>,
     },
     Function {
         name: String,
@@ -640,6 +651,7 @@ pub enum PouIndexEntry {
         location: SourceLocation,
         super_class: Option<String>,
         interfaces: Vec<String>,
+        properties: FxHashMap<String, Identifier>,
     },
     Method {
         name: String,
@@ -666,6 +678,13 @@ impl From<&PouIndexEntry> for SourceLocation {
 }
 
 impl PouIndexEntry {
+    pub fn get_property(&self, name: &str) -> Option<&Identifier> {
+        match self {
+            PouIndexEntry::FunctionBlock { properties, .. } => properties.get(name),
+            _ => None,
+        }
+    }
+
     /// creates a new Program-PouIndexEntry
     /// # Arguments
     /// - `name` the name of the function
@@ -675,6 +694,7 @@ impl PouIndexEntry {
         instance_variable: VariableIndexEntry,
         linkage: LinkageType,
         location: SourceLocation,
+        properties: Vec<Identifier>,
     ) -> PouIndexEntry {
         PouIndexEntry::Program {
             name: pou_name.into(),
@@ -682,6 +702,7 @@ impl PouIndexEntry {
             instance_variable: Box::new(instance_variable),
             linkage,
             location,
+            properties: properties.into_iter().map(|ident| (ident.name.clone(), ident)).collect(),
         }
     }
 
@@ -695,14 +716,16 @@ impl PouIndexEntry {
         location: SourceLocation,
         super_class: Option<Identifier>,
         interfaces: Vec<Identifier>,
+        properties: Vec<Identifier>,
     ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class: super_class.map(|it| it.name.clone()),
-            interfaces: interfaces.into_iter().map(|it| it.name.clone()).collect::<Vec<_>>(),
+            super_class: super_class.map(|it| it.name),
+            interfaces: interfaces.into_iter().map(|ident| ident.name).collect(),
+            properties: properties.into_iter().map(|ident| (ident.name.clone(), ident)).collect(),
         }
     }
 
@@ -779,14 +802,16 @@ impl PouIndexEntry {
         location: SourceLocation,
         super_class: Option<Identifier>,
         interfaces: Vec<Identifier>,
+        properties: Vec<Identifier>,
     ) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class: super_class.map(|it| it.name.clone()),
-            interfaces: interfaces.into_iter().map(|it| it.name.clone()).collect::<Vec<_>>(),
+            super_class: super_class.map(|it| it.name),
+            interfaces: interfaces.into_iter().map(|it| it.name).collect(),
+            properties: properties.into_iter().map(|ident| (ident.name.clone(), ident)).collect(),
         }
     }
 
@@ -1747,12 +1772,19 @@ impl Index {
         self.find_implementation_by_name(pou_name).map(|it| it.is_init()).unwrap_or_default()
     }
 
-    pub fn register_program(&mut self, name: &str, location: SourceLocation, linkage: LinkageType) {
+    pub fn register_program(
+        &mut self,
+        name: &str,
+        location: SourceLocation,
+        linkage: LinkageType,
+        properties: Vec<Identifier>,
+    ) {
         let instance_variable =
             VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone()) // TODO: Naming convention (see plc_util/src/convention.rs)
                 .set_linkage(linkage);
         // self.register_global_variable(name, instance_variable.clone());
-        let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage, location);
+        let entry =
+            PouIndexEntry::create_program_entry(name, instance_variable, linkage, location, properties);
         self.pous.insert(entry.get_name().to_lowercase(), entry);
     }
 

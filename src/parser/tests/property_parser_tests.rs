@@ -35,7 +35,7 @@ fn properties_can_be_parsed() {
     assert_eq!(properties[0].name.name, "bar");
     assert_eq!(properties[0].implementations.len(), 2);
 
-    insta::assert_debug_snapshot!(properties, @r###"
+    insta::assert_debug_snapshot!(properties, @r#"
     [
         PropertyBlock {
             name: Identifier {
@@ -180,7 +180,7 @@ fn properties_can_be_parsed() {
             ],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]

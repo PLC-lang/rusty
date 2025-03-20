@@ -90,6 +90,18 @@ pub enum PropertyKind {
     Set,
 }
 
+impl From<&PropertyBlock> for Variable {
+    fn from(value: &PropertyBlock) -> Self {
+        Variable {
+            name: value.name.name.clone(),
+            data_type_declaration: value.return_type.clone(),
+            initializer: None,
+            address: None,
+            location: value.name.location.clone(),
+        }
+    }
+}
+
 impl std::fmt::Display for PropertyKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {

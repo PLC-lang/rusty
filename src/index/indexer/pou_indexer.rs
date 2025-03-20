@@ -1,5 +1,5 @@
 use plc_ast::ast::{
-    ArgumentProperty, DataTypeDeclaration, DeclarationKind, PouType, TypeNature, VariableBlock,
+    self, ArgumentProperty, DataTypeDeclaration, DeclarationKind, Pou, PouType, TypeNature, VariableBlock,
     VariableBlockType,
 };
 use plc_source::source_location::SourceLocation;
@@ -83,15 +83,20 @@ impl<'i> PouIndexer<'i> {
     }
 
     /// Registers a program in the index
-    fn index_program(&mut self, pou: &plc_ast::ast::Pou, pou_struct_type: typesystem::DataType) {
-        self.index.register_program(&pou.name, pou.name_location.clone(), pou.linkage);
+    fn index_program(&mut self, pou: &Pou, pou_struct_type: typesystem::DataType) {
         self.index.register_pou_type(pou_struct_type);
+        self.index.register_program(
+            &pou.name,
+            pou.name_location.clone(),
+            pou.linkage,
+            pou.properties.iter().map(|property| property.name.clone()).collect(),
+        );
     }
 
     /// Registers a method in the index
     fn index_method(
         &mut self,
-        pou: &plc_ast::ast::Pou,
+        pou: &Pou,
         return_type_name: &str,
         owner_class: &str,
         declaration_kind: DeclarationKind,
@@ -111,7 +116,7 @@ impl<'i> PouIndexer<'i> {
     /// Registers a function in the index
     fn index_function(
         &mut self,
-        pou: &plc_ast::ast::Pou,
+        pou: &Pou,
         return_type_name: &str,
         member_varargs: Option<VarArgs>,
         pou_struct_type: typesystem::DataType,
@@ -129,7 +134,7 @@ impl<'i> PouIndexer<'i> {
     }
 
     /// Registers a class in the index
-    fn index_class(&mut self, pou: &plc_ast::ast::Pou, pou_struct_type: typesystem::DataType) {
+    fn index_class(&mut self, pou: &Pou, pou_struct_type: typesystem::DataType) {
         let global_struct_name = crate::index::get_initializer_name(&pou.name);
         let variable = VariableIndexEntry::create_global(
             &global_struct_name,
@@ -146,12 +151,13 @@ impl<'i> PouIndexer<'i> {
             pou.name_location.clone(),
             pou.super_class.clone(),
             pou.interfaces.clone(),
+            pou.properties.iter().map(|property| property.name.clone()).collect(),
         ));
         self.index.register_pou_type(pou_struct_type);
     }
 
     /// Registers a function block in the index
-    fn index_function_block(&mut self, pou: &plc_ast::ast::Pou, pou_struct_type: typesystem::DataType) {
+    fn index_function_block(&mut self, pou: &Pou, pou_struct_type: typesystem::DataType) {
         let global_struct_name = crate::index::get_initializer_name(&pou.name);
         let variable = VariableIndexEntry::create_global(
             &global_struct_name,
@@ -168,15 +174,13 @@ impl<'i> PouIndexer<'i> {
             pou.name_location.clone(),
             pou.super_class.clone(),
             pou.interfaces.clone(),
+            pou.properties.iter().map(|property| property.name.clone()).collect(),
         ));
         self.index.register_pou_type(pou_struct_type);
     }
 
     /// Registers all member variables of a POU in the index
-    fn index_pou_variables(
-        &mut self,
-        pou: &plc_ast::ast::Pou,
-    ) -> (u32, Vec<VariableIndexEntry>, Option<VarArgs>) {
+    fn index_pou_variables(&mut self, pou: &Pou) -> (u32, Vec<VariableIndexEntry>, Option<VarArgs>) {
         let mut count = 0;
         let mut members = Vec::new();
         let mut member_varargs = None;
@@ -184,7 +188,7 @@ impl<'i> PouIndexer<'i> {
         for block in &pou.variable_blocks {
             for var in &block.variables {
                 let varargs = if let DataTypeDeclaration::Definition {
-                    data_type: plc_ast::ast::DataType::VarArgs { referenced_type, sized },
+                    data_type: ast::DataType::VarArgs { referenced_type, sized },
                     ..
                 } = &var.data_type_declaration
                 {
@@ -291,7 +295,7 @@ pub fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str)
             information: DataTypeInformation::Pointer {
                 name: type_name.clone(),
                 inner_type_name: inner_type_name.to_string(),
-                auto_deref: Some(plc_ast::ast::AutoDerefType::Default),
+                auto_deref: Some(ast::AutoDerefType::Default),
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),

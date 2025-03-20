@@ -170,7 +170,16 @@ fn property_name_conflict_with_variable_in_parent() {
         ",
     );
 
-    insta::assert_snapshot!(source, @r"");
+    insta::assert_snapshot!(source, @r"
+    error[E021]: Variable `foo` is already declared in parent POU `fb1`
+      ┌─ <internal>:9:22
+      │
+    4 │                 foo: DINT;
+      │                 --- see also
+      ·
+    9 │             PROPERTY foo : DINT
+      │                      ^^^ Variable `foo` is already declared in parent POU `fb1`
+    ");
 }
 
 #[test]
@@ -192,7 +201,16 @@ fn property_name_conflict_with_variable_in_child() {
         ",
     );
 
-    insta::assert_snapshot!(source, @r"");
+    insta::assert_snapshot!(source, @r"
+    error[E021]: Variable `foo` is already declared in parent POU `foo`
+       ┌─ <internal>:11:17
+       │
+     3 │             PROPERTY foo : DINT
+       │                      --- see also
+       ·
+    11 │                 foo: DINT;
+       │                 ^^^ Variable `foo` is already declared in parent POU `foo`
+    ");
 }
 
 #[test]
@@ -206,7 +224,7 @@ fn property_name_conflict_with_variable_in_parent_chained() {
             END_PROPERTY
         END_FUNCTION_BLOCK
 
-        FUNCTION_BLOCK fb2
+        FUNCTION_BLOCK fb2 EXTENDS fb1
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK fb3 EXTENDS fb2
@@ -217,5 +235,14 @@ fn property_name_conflict_with_variable_in_parent_chained() {
         ",
     );
 
-    insta::assert_snapshot!(source, @r"");
+    insta::assert_snapshot!(source, @r"
+    error[E021]: Variable `foo` is already declared in parent POU `foo`
+       ┌─ <internal>:14:17
+       │
+     3 │             PROPERTY foo : DINT
+       │                      --- see also
+       ·
+    14 │                 foo: DINT;
+       │                 ^^^ Variable `foo` is already declared in parent POU `foo`
+    ");
 }
