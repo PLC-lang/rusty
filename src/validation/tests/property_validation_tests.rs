@@ -150,3 +150,72 @@ fn property_with_same_name_as_member_variable() {
       │                  ^^^ foo: Duplicate symbol.
     ");
 }
+
+#[test]
+fn property_name_conflict_with_variable_in_parent() {
+    let source = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb1
+            VAR
+                foo: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2 EXTENDS fb1
+            PROPERTY foo : DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(source, @r"");
+}
+
+#[test]
+fn property_name_conflict_with_variable_in_child() {
+    let source = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb1
+            PROPERTY foo : DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2 EXTENDS fb1
+            VAR
+                foo: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(source, @r"");
+}
+
+#[test]
+fn property_name_conflict_with_variable_in_parent_chained() {
+    let source = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb1
+            PROPERTY foo : DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb3 EXTENDS fb2
+            VAR
+                foo: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(source, @r"");
+}
