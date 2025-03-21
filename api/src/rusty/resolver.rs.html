@@ -2563,7 +2563,64 @@
 <a href="#2562" id="2562">2562</a>
 <a href="#2563" id="2563">2563</a>
 <a href="#2564" id="2564">2564</a>
-<a href="#2565" id="2565">2565</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2565" id="2565">2565</a>
+<a href="#2566" id="2566">2566</a>
+<a href="#2567" id="2567">2567</a>
+<a href="#2568" id="2568">2568</a>
+<a href="#2569" id="2569">2569</a>
+<a href="#2570" id="2570">2570</a>
+<a href="#2571" id="2571">2571</a>
+<a href="#2572" id="2572">2572</a>
+<a href="#2573" id="2573">2573</a>
+<a href="#2574" id="2574">2574</a>
+<a href="#2575" id="2575">2575</a>
+<a href="#2576" id="2576">2576</a>
+<a href="#2577" id="2577">2577</a>
+<a href="#2578" id="2578">2578</a>
+<a href="#2579" id="2579">2579</a>
+<a href="#2580" id="2580">2580</a>
+<a href="#2581" id="2581">2581</a>
+<a href="#2582" id="2582">2582</a>
+<a href="#2583" id="2583">2583</a>
+<a href="#2584" id="2584">2584</a>
+<a href="#2585" id="2585">2585</a>
+<a href="#2586" id="2586">2586</a>
+<a href="#2587" id="2587">2587</a>
+<a href="#2588" id="2588">2588</a>
+<a href="#2589" id="2589">2589</a>
+<a href="#2590" id="2590">2590</a>
+<a href="#2591" id="2591">2591</a>
+<a href="#2592" id="2592">2592</a>
+<a href="#2593" id="2593">2593</a>
+<a href="#2594" id="2594">2594</a>
+<a href="#2595" id="2595">2595</a>
+<a href="#2596" id="2596">2596</a>
+<a href="#2597" id="2597">2597</a>
+<a href="#2598" id="2598">2598</a>
+<a href="#2599" id="2599">2599</a>
+<a href="#2600" id="2600">2600</a>
+<a href="#2601" id="2601">2601</a>
+<a href="#2602" id="2602">2602</a>
+<a href="#2603" id="2603">2603</a>
+<a href="#2604" id="2604">2604</a>
+<a href="#2605" id="2605">2605</a>
+<a href="#2606" id="2606">2606</a>
+<a href="#2607" id="2607">2607</a>
+<a href="#2608" id="2608">2608</a>
+<a href="#2609" id="2609">2609</a>
+<a href="#2610" id="2610">2610</a>
+<a href="#2611" id="2611">2611</a>
+<a href="#2612" id="2612">2612</a>
+<a href="#2613" id="2613">2613</a>
+<a href="#2614" id="2614">2614</a>
+<a href="#2615" id="2615">2615</a>
+<a href="#2616" id="2616">2616</a>
+<a href="#2617" id="2617">2617</a>
+<a href="#2618" id="2618">2618</a>
+<a href="#2619" id="2619">2619</a>
+<a href="#2620" id="2620">2620</a>
+<a href="#2621" id="2621">2621</a>
+<a href="#2622" id="2622">2622</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -2626,14 +2683,22 @@
 /// change one field.
 </span><span class="attr">#[derive(Clone, Default)]
 </span><span class="kw">pub struct </span>VisitorContext&lt;<span class="lifetime">'s</span>&gt; {
+    <span class="kw">pub </span>id_provider: IdProvider,
+
     <span class="doccomment">/// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
-    </span>qualifier: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    </span>qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt;,
+
     <span class="doccomment">/// optional context for references (e.g. `x` may mean `POU.x` if used inside `POU`'s body)
     </span>pou: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt;,
+
     <span class="doccomment">/// special context of the left-hand-side of an assignment in call statements
     /// Inside the left hand side of an assignment is in the context of the call's POU
     /// `foo(a := a)` actually means: `foo(foo.a := POU.a)`
     </span>lhs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt;,
+
+    <span class="doccomment">/// Set to true when dealing with a member reference at the left-hand side of an assignment. This is
+    /// needed to correctly annotate the type of the property we're dealing with, i.e. a get- or set-accessor.
+    </span>property_set: bool,
 
     <span class="doccomment">/// true if the expression passed a constant-variable on the way
     /// e.g. true for `x` if x is declared in a constant block
@@ -2646,15 +2711,13 @@
     <span class="doccomment">/// true if the visitor entered a control statement
     </span>in_control: bool,
 
-    <span class="kw">pub </span>id_provider: IdProvider,
-
     <span class="comment">// what's the current strategy for resolving
     </span>resolve_strategy: Vec&lt;ResolvingStrategy&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; VisitorContext&lt;<span class="lifetime">'s</span>&gt; {
     <span class="doccomment">/// returns a copy of the current context and changes the `current_qualifier` to the given qualifier
-    </span><span class="kw">fn </span>with_qualifier(<span class="kw-2">&amp;</span><span class="self">self</span>, qualifier: String) -&gt; VisitorContext&lt;<span class="lifetime">'s</span>&gt; {
+    </span><span class="kw">fn </span>with_qualifier(<span class="kw-2">&amp;</span><span class="self">self</span>, qualifier: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>str) -&gt; VisitorContext&lt;<span class="lifetime">'s</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = <span class="self">self</span>.clone();
         ctx.qualifier = <span class="prelude-val">Some</span>(qualifier);
         ctx.constant = <span class="bool-val">false</span>;
@@ -2684,6 +2747,12 @@
         ctx
     }
 
+    <span class="kw">fn </span>with_property_set(<span class="kw-2">&amp;</span><span class="self">self</span>, is_member: bool) -&gt; VisitorContext&lt;<span class="lifetime">'s</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = <span class="self">self</span>.clone();
+        ctx.property_set = is_member;
+        ctx
+    }
+
     <span class="comment">// returns a copy of the current context and sets the in_body field to true
     </span><span class="kw">fn </span>enter_body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = <span class="self">self</span>.clone();
@@ -2702,6 +2771,12 @@
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = <span class="self">self</span>.clone();
         ctx.in_body = <span class="bool-val">true</span>;
         ctx.resolve_strategy = resolve_strategy;
+        ctx
+    }
+
+    <span class="kw">fn </span>with_property_strategy(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = <span class="self">self</span>.clone();
+        ctx.resolve_strategy.push(ResolvingStrategy::Property);
         ctx
     }
 
@@ -3037,6 +3112,10 @@
     MethodDeclarations {
         declarations: FxHashMap&lt;String, Vec&lt;MethodDeclarationType&gt;&gt;,
     },
+    Property {
+        <span class="comment">// TODO: Is this neccesary?
+        </span>name: String,
+    },
     <span class="attr">#[default]
     </span><span class="prelude-val">None</span>,
 }
@@ -3247,10 +3326,7 @@
     }
 
     <span class="kw">pub fn </span>is_property(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(
-            <span class="self">self</span>,
-            StatementAnnotation::Variable { argument_type: ArgumentType::ByVal(VariableType::Property), .. }
-        )
+        <span class="macro">matches!</span>(<span class="self">self</span>, StatementAnnotation::Property { .. })
     }
 
     <span class="kw">pub fn </span>qualified_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
@@ -3364,6 +3440,7 @@
             | StatementAnnotation::Label { .. }
             | StatementAnnotation::Override { .. }
             | StatementAnnotation::MethodDeclarations { .. }
+            | StatementAnnotation::Property { .. }
             | StatementAnnotation::None =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -3893,7 +3970,7 @@
             // e.g. x : BYTE := 7 + 3;  --&gt; 7+3 should be cast into a byte
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(expected_type) = <span class="self">self
                 </span>.index
-                .find_variable(ctx.qualifier.as_deref().or(ctx.pou), <span class="kw-2">&amp;</span>[variable.name.as_str()])
+                .find_variable(ctx.qualifier.or(ctx.pou), <span class="kw-2">&amp;</span>[variable.name.as_str()])
                 .and_then(|ve| <span class="self">self</span>.index.find_effective_type_by_name(ve.get_type_name()))
             {
                 <span class="comment">//Create a new context with the left operator being the target variable type, and the
@@ -3945,9 +4022,7 @@
             DataTypeInformation::Array { inner_type_name, .. } =&gt; {
                 <span class="kw">let </span>inner_data_type = <span class="self">self</span>.index.get_effective_type_or_void_by_name(inner_type_name);
                 <span class="comment">// TODO this seems wrong
-                </span><span class="kw">let </span>ctx = ctx
-                    .with_qualifier(inner_data_type.get_name().to_string())
-                    .with_lhs(inner_data_type.get_name());
+                </span><span class="kw">let </span>ctx = ctx.with_qualifier(inner_data_type.get_name()).with_lhs(inner_data_type.get_name());
 
                 <span class="kw">if </span>!inner_data_type.get_type_information().is_struct() {
                     <span class="kw">return</span>;
@@ -4076,7 +4151,7 @@
         }
         <span class="kw">match </span>data_type {
             DataType::StructType { name: <span class="prelude-val">Some</span>(name), variables, .. } =&gt; {
-                <span class="kw">let </span>ctx = ctx.with_qualifier(name.clone());
+                <span class="kw">let </span>ctx = ctx.with_qualifier(name);
                 variables.iter().for_each(|v| <span class="self">self</span>.visit_variable(<span class="kw-2">&amp;</span>ctx, v))
             }
             DataType::ArrayType { referenced_type, .. } =&gt; {
@@ -4329,15 +4404,20 @@
             }
             AstStatement::Assignment(data, ..) | AstStatement::RefAssignment(data, ..) =&gt; {
                 <span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx.enter_control(), <span class="kw-2">&amp;</span>data.right);
+
+                <span class="comment">// if the LHS of the assignment is a member access, we need to update the context - when trying to resolve
+                // a property, this means it must be a setter, not a getter
+                </span><span class="kw">let </span>ctx = ctx.with_property_set(data.left.is_member_access());
+
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(lhs) = ctx.lhs {
                     <span class="comment">//special context for left hand side
                     </span><span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx.with_pou(lhs).with_lhs(lhs), <span class="kw-2">&amp;</span>data.left);
                 } <span class="kw">else </span>{
-                    <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>data.left);
+                    <span class="self">self</span>.visit_statement(<span class="kw-2">&amp;</span>ctx, <span class="kw-2">&amp;</span>data.left);
                 }
 
                 <span class="comment">// give a type hint that we want the right side to be stored in the left's type
-                </span><span class="self">self</span>.update_right_hand_side_expected_type(ctx, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right);
+                </span><span class="self">self</span>.update_right_hand_side_expected_type(<span class="kw-2">&amp;</span>ctx, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right);
             }
             AstStatement::OutputAssignment(data, ..) =&gt; {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, ctx, <span class="kw-2">&amp;</span>data.left, <span class="kw-2">&amp;</span>data.right);
@@ -4412,7 +4492,7 @@
             (ReferenceAccess::Member(reference), qualifier) =&gt; {
                 <span class="comment">// uppdate the context's const field
                 </span><span class="kw">let </span>new_ctx = base.map(|base| ctx.with_const(<span class="self">self</span>.is_const_reference(base, ctx)));
-                <span class="kw">let </span>new_ctx = new_ctx.as_ref().unwrap_or(ctx);
+                <span class="kw">let </span>new_ctx = <span class="kw-2">&amp;</span>new_ctx.as_ref().unwrap_or(ctx).with_property_strategy();
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(annotation) =
                     <span class="self">self</span>.resolve_reference_expression(reference.as_ref(), qualifier.as_deref(), new_ctx)
@@ -4451,8 +4531,9 @@
                     }
                 }
             }
-            (ReferenceAccess::Index(index), <span class="prelude-val">Some</span>(base)) =&gt; {
+            (ReferenceAccess::Index(index), base) =&gt; {
                 <span class="self">self</span>.visit_statement(ctx, index);
+                <span class="kw">let </span><span class="prelude-val">Some</span>(base) = base <span class="kw">else </span>{ <span class="kw">return </span>};
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(inner_type) = <span class="self">self
                     </span>.index
                     .find_effective_type_info(base.as_str())
@@ -4955,12 +5036,24 @@
 
 <span class="attr">#[derive(Clone, Copy)]
 </span><span class="kw">pub enum </span>ResolvingStrategy {
-    Variable,      <span class="comment">//try to resolve a variable
-    </span>POU,           <span class="comment">//try to resolve a POU
-    </span>DataType,      <span class="comment">//try to resolve a DataType
-    </span>EnumTypeOnly,  <span class="comment">//only consider EnumTypes
-    </span>FunctionsOnly, <span class="comment">//only consider functions
-</span>}
+    <span class="doccomment">/// try to resolve a variable
+    </span>Variable,
+
+    <span class="doccomment">/// try to resolve a POU
+    </span>POU,
+
+    <span class="doccomment">/// try to resolve a DataType
+    </span>DataType,
+
+    <span class="doccomment">/// only consider EnumTypes
+    </span>EnumTypeOnly,
+
+    <span class="doccomment">/// only consider functions
+    </span>FunctionsOnly,
+
+    <span class="doccomment">/// also consider references to properties before they are lowered to actual method calls
+    </span>Property,
+}
 
 <span class="kw">impl </span>ResolvingStrategy {
     <span class="doccomment">/// scopes that can be used for general references. Will resolve to local/global
@@ -4974,6 +5067,22 @@
         <span class="kw">let </span><span class="kw-2">mut </span>strategy = <span class="macro">vec!</span>[ResolvingStrategy::FunctionsOnly];
         strategy.extend(<span class="self">Self</span>::default_scopes());
         strategy
+    }
+
+    <span class="kw">fn </span>resolve_property(
+        index: <span class="kw-2">&amp;</span>Index,
+        name: <span class="kw-2">&amp;</span>str,
+        qualifier: <span class="kw-2">&amp;</span>str,
+        property_set: bool,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;StatementAnnotation&gt; {
+        <span class="kw">let </span>accessor = <span class="kw">if </span>property_set { <span class="string">"set" </span>} <span class="kw">else </span>{ <span class="string">"get" </span>};
+        <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">"__{accessor}_{name}"</span>);
+
+        <span class="comment">// if our current context is a method or action, we need to look for the property in the parent
+        </span><span class="kw">let </span>qualifier =
+            index.find_pou(qualifier).and_then(|pou| pou.get_parent_pou_name()).unwrap_or(qualifier);
+
+        index.find_method(qualifier, <span class="kw-2">&amp;</span>name).map(|<span class="kw">_</span>| StatementAnnotation::Property { name })
     }
 
     <span class="doccomment">/// tries to resolve the given name using the reprsented scope
@@ -4995,7 +5104,8 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(qualifier) = qualifier {
                     <span class="comment">// look for variable, enum with name "qualifier.name"
                     </span>scopes
-                        .find_member(index, qualifier, name)
+                        <span class="comment">// instance.foo; // Resolver -&gt; referencexpr -&gt;
+                        </span>.find_member(index, qualifier, name)
                         .or_else(|| index.find_enum_variant(qualifier, name))
                         .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
                 } <span class="kw">else </span>{
@@ -5062,6 +5172,10 @@
                     </span><span class="prelude-val">None
                 </span>}
             }
+            <span class="comment">// try to resolve this name as a property
+            </span>ResolvingStrategy::Property =&gt; qualifier
+                .or(ctx.pou)
+                .and_then(|qualifier| <span class="self">Self</span>::resolve_property(index, name, qualifier, ctx.property_set)),
         }
     }
 }

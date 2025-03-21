@@ -553,7 +553,13 @@
 <a href="#552" id="552">552</a>
 <a href="#553" id="553">553</a>
 <a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitorMut` trait and its associated macros.
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitorMut` trait and its associated macros.
 //! The `AstVisitorMut` trait provides a set of methods for mutably traversing and visiting ASTs
 
 </span><span class="kw">use </span>std::borrow::BorrowMut;
@@ -561,8 +567,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::ast::{
     flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
     CompilationUnit, DataType, DataTypeDeclaration, DirectAccess, HardwareAccess, Implementation, Interface,
-    JumpStatement, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
-    UserTypeDeclaration, Variable, VariableBlock,
+    JumpStatement, MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr,
+    UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
 };
 <span class="kw">use </span><span class="kw">crate</span>::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 <span class="kw">use </span><span class="kw">crate</span>::literals::AstLiteral;
@@ -763,6 +769,8 @@
     </span><span class="kw">fn </span>visit_allocation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
 
     <span class="kw">fn </span>visit_interface(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _interface: <span class="kw-2">&amp;mut </span>Interface) {}
+
+    <span class="kw">fn </span>visit_property(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _property: <span class="kw-2">&amp;mut </span>PropertyBlock) {}
 }
 
 <span class="kw">impl </span>WalkerMut <span class="kw">for </span>AstLiteral {
@@ -1090,6 +1098,10 @@
     {
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.variable_blocks {
             visitor.visit_variable_block(block);
+        }
+
+        <span class="kw">for </span>property <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.properties {
+            visitor.visit_property(property);
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(rt) = <span class="self">self</span>.return_type.as_mut() {

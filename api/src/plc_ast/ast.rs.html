@@ -1898,12 +1898,7 @@
 <a href="#1897" id="1897">1897</a>
 <a href="#1898" id="1898">1898</a>
 <a href="#1899" id="1899">1899</a>
-<a href="#1900" id="1900">1900</a>
-<a href="#1901" id="1901">1901</a>
-<a href="#1902" id="1902">1902</a>
-<a href="#1903" id="1903">1903</a>
-<a href="#1904" id="1904">1904</a>
-<a href="#1905" id="1905">1905</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1900" id="1900">1900</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
@@ -1947,9 +1942,13 @@
     <span class="kw">pub </span>generics: Vec&lt;GenericBinding&gt;,
     <span class="kw">pub </span>linkage: LinkageType,
     <span class="kw">pub </span>super_class: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
+    <span class="kw">pub </span>is_const: bool,
+
     <span class="doccomment">/// A list of interfaces this POU implements
     </span><span class="kw">pub </span>interfaces: Vec&lt;Identifier&gt;,
-    <span class="kw">pub </span>is_const: bool,
+
+    <span class="doccomment">/// A list of properties this POU contains
+    </span><span class="kw">pub </span>properties: Vec&lt;PropertyBlock&gt;,
 }
 
 <span class="attr">#[derive(Debug, PartialEq)]
@@ -1967,18 +1966,16 @@
     <span class="kw">pub </span>location: SourceLocation,
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Clone)]
-</span><span class="kw">pub struct </span>Property {
-    <span class="kw">pub </span>name: String,
-    <span class="kw">pub </span>name_location: SourceLocation,
-    <span class="kw">pub </span>parent_kind: PouType,
-    <span class="kw">pub </span>parent_name: String,
-    <span class="kw">pub </span>parent_name_location: SourceLocation,
-    <span class="kw">pub </span>datatype: DataTypeDeclaration,
+<span class="doccomment">/// The property container as a whole, which contains [`PropertyImplementation`]s
+</span><span class="attr">#[derive(Debug, PartialEq, Clone)]
+</span><span class="kw">pub struct </span>PropertyBlock {
+    <span class="kw">pub </span>name: Identifier,
+    <span class="kw">pub </span>return_type: DataTypeDeclaration,
     <span class="kw">pub </span>implementations: Vec&lt;PropertyImplementation&gt;,
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Clone)]
+<span class="doccomment">/// The declaration and implementation of a properties accessor (GET or SET)
+</span><span class="attr">#[derive(Debug, PartialEq, Clone)]
 </span><span class="kw">pub struct </span>PropertyImplementation {
     <span class="kw">pub </span>kind: PropertyKind,
     <span class="kw">pub </span>location: SourceLocation,
@@ -1991,6 +1988,18 @@
 </span><span class="kw">pub enum </span>PropertyKind {
     Get,
     Set,
+}
+
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>PropertyBlock&gt; <span class="kw">for </span>Variable {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>PropertyBlock) -&gt; <span class="self">Self </span>{
+        Variable {
+            name: value.name.name.clone(),
+            data_type_declaration: value.return_type.clone(),
+            initializer: <span class="prelude-val">None</span>,
+            address: <span class="prelude-val">None</span>,
+            location: value.name.location.clone(),
+        }
+    }
 }
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>PropertyKind {
@@ -2244,9 +2253,6 @@
         <span class="doccomment">/// The parent of this method, i.e. a function block, class or an interface
         </span>parent: String,
 
-        <span class="doccomment">/// The fully qualified name of the property this GET or SET method represents
-        </span>property: <span class="prelude-ty">Option</span>&lt;String&gt;,
-
         declaration_kind: DeclarationKind,
     },
     Init,
@@ -2317,7 +2323,6 @@
     <span class="kw">pub </span>interfaces: Vec&lt;Interface&gt;,
     <span class="kw">pub </span>user_types: Vec&lt;UserTypeDeclaration&gt;,
     <span class="kw">pub </span>file: FileMarker,
-    <span class="kw">pub </span>properties: Vec&lt;Property&gt;,
 }
 
 <span class="kw">impl </span>CompilationUnit {
@@ -2330,7 +2335,6 @@
             interfaces: Vec::new(),
             user_types: Vec::new(),
             file: FileMarker::File(file_name),
-            properties: Vec::new(),
         }
     }
 
@@ -2362,9 +2366,6 @@
     Global,
     InOut,
     External,
-
-    <span class="doccomment">/// A compiler internal variable block representing all properties defined within a stateful POU
-    </span>Property,
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>VariableBlockType {
@@ -2377,7 +2378,6 @@
             VariableBlockType::Global =&gt; <span class="macro">write!</span>(f, <span class="string">"Global"</span>),
             VariableBlockType::InOut =&gt; <span class="macro">write!</span>(f, <span class="string">"InOut"</span>),
             VariableBlockType::External =&gt; <span class="macro">write!</span>(f, <span class="string">"External"</span>),
-            VariableBlockType::Property =&gt; <span class="macro">write!</span>(f, <span class="string">"Property"</span>),
         }
     }
 }
@@ -2409,19 +2409,6 @@
         <span class="self">self</span>.variables = variables;
         <span class="self">self
     </span>}
-
-    <span class="doccomment">/// Creates a new (internal) variable block with a block type of [`Property`]
-    </span><span class="kw">pub fn </span>property(variables: Vec&lt;Variable&gt;) -&gt; VariableBlock {
-        VariableBlock {
-            access: AccessModifier::Internal,
-            constant: <span class="bool-val">false</span>,
-            retain: <span class="bool-val">false</span>,
-            variables,
-            variable_block_type: VariableBlockType::Property,
-            linkage: LinkageType::Internal,
-            location: SourceLocation::internal(),
-        }
-    }
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>VariableBlock {
@@ -3052,6 +3039,13 @@
         <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::ReferenceExpr(..))
     }
 
+    <span class="kw">pub fn </span>is_member_access(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.stmt,
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(..), .. }, ..)
+        )
+    }
+
     <span class="kw">pub fn </span>is_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::CallStatement(..))
     }
@@ -3285,12 +3279,8 @@
         <span class="macro">assert_eq!</span>(PouType::Action.to_string(), <span class="string">"Action"</span>);
         <span class="macro">assert_eq!</span>(PouType::Class.to_string(), <span class="string">"Class"</span>);
         <span class="macro">assert_eq!</span>(
-            PouType::Method {
-                parent: String::new(),
-                property: <span class="prelude-val">None</span>,
-                declaration_kind: DeclarationKind::Concrete
-            }
-            .to_string(),
+            PouType::Method { parent: String::new(), declaration_kind: DeclarationKind::Concrete }
+                .to_string(),
             <span class="string">"Method"
         </span>);
     }

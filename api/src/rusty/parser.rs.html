@@ -1535,15 +1535,7 @@
 <a href="#1534" id="1534">1534</a>
 <a href="#1535" id="1535">1535</a>
 <a href="#1536" id="1536">1536</a>
-<a href="#1537" id="1537">1537</a>
-<a href="#1538" id="1538">1538</a>
-<a href="#1539" id="1539">1539</a>
-<a href="#1540" id="1540">1540</a>
-<a href="#1541" id="1541">1541</a>
-<a href="#1542" id="1542">1542</a>
-<a href="#1543" id="1543">1543</a>
-<a href="#1544" id="1544">1544</a>
-<a href="#1545" id="1545">1545</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1537" id="1537">1537</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
 
@@ -1552,8 +1544,8 @@
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DeclarationKind, DirectAccessType, GenericBinding,
         HardwareAccessType, Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou,
-        PouType, Property, PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr, TypeNature,
-        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        PouType, PropertyBlock, PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr,
+        TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -1887,7 +1879,7 @@
                 }
 
                 <span class="kw">if </span>lexer.token == KeywordProperty {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(property) = parse_property(lexer, <span class="kw-2">&amp;</span>name, <span class="kw-2">&amp;</span>name_location, <span class="kw-2">&amp;</span>kind) {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(property) = parse_property(lexer) {
                         properties.push(property);
                     }
                 } <span class="kw">else </span>{
@@ -1927,10 +1919,11 @@
                 super_class,
                 interfaces,
                 is_const: constant,
+                properties,
             }];
             pous.append(<span class="kw-2">&amp;mut </span>impl_pous);
 
-            (pous, implementations, properties)
+            (pous, implementations)
         })
     });
 
@@ -1943,10 +1936,9 @@
         ));
     }
 
-    <span class="kw">let </span>(<span class="kw-2">mut </span>pous, <span class="kw-2">mut </span>implementations, <span class="kw-2">mut </span>properties) = result;
+    <span class="kw">let </span>(<span class="kw-2">mut </span>pous, <span class="kw-2">mut </span>implementations) = result;
     unit.units.append(<span class="kw-2">&amp;mut </span>pous);
     unit.implementations.append(<span class="kw-2">&amp;mut </span>implementations);
-    unit.properties.append(<span class="kw-2">&amp;mut </span>properties);
 }
 
 <span class="kw">fn </span>parse_generics(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;GenericBinding&gt; {
@@ -2147,7 +2139,7 @@
         lexer.advance(); <span class="comment">// eat METHOD keyword
 
         </span><span class="kw">let </span>access = <span class="prelude-val">Some</span>(parse_access_modifier(lexer));
-        <span class="kw">let </span>pou_kind = PouType::Method { parent: parent.into(), property: <span class="prelude-val">None</span>, declaration_kind };
+        <span class="kw">let </span>pou_kind = PouType::Method { parent: parent.into(), declaration_kind };
         <span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>pou_kind);
         <span class="kw">let </span>overriding = lexer.try_consume(KeywordOverride);
         <span class="kw">let </span>(name, name_location) = parse_identifier(lexer)<span class="question-mark">?</span>;
@@ -2194,6 +2186,7 @@
                 linkage,
                 super_class: <span class="prelude-val">None</span>,
                 interfaces: Vec::new(),
+                properties: Vec::new(),
                 is_const: constant,
             },
             implementation,
@@ -2201,12 +2194,7 @@
     })
 }
 
-<span class="kw">fn </span>parse_property(
-    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-    parent_name: <span class="kw-2">&amp;</span>str,
-    parent_location: <span class="kw-2">&amp;</span>SourceLocation,
-    kind: <span class="kw-2">&amp;</span>PouType,
-) -&gt; <span class="prelude-ty">Option</span>&lt;Property&gt; {
+<span class="kw">fn </span>parse_property(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;PropertyBlock&gt; {
     lexer.advance(); <span class="comment">// Move past `PROPERTY` keyword
 
     </span><span class="kw">let </span><span class="kw-2">mut </span>has_error = <span class="bool-val">false</span>;
@@ -2245,7 +2233,7 @@
         <span class="kw">let </span>kind = <span class="kw">if </span>lexer.token == KeywordGet { PropertyKind::Get } <span class="kw">else </span>{ PropertyKind::Set };
         lexer.advance(); <span class="comment">// Move past `GET` or `SET` keyword
 
-        </span><span class="kw">let </span><span class="kw-2">mut </span>variable_blocks = <span class="macro">vec!</span>[];
+        </span><span class="kw">let </span><span class="kw-2">mut </span>variable_blocks = Vec::new();
         <span class="kw">while </span>lexer.token.is_var() {
             variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
@@ -2274,13 +2262,9 @@
 
     <span class="kw">let </span>(name, name_location) = identifier.expect(<span class="string">"covered above"</span>);
     <span class="kw">let </span>datatype = datatype.expect(<span class="string">"covered above"</span>);
-    <span class="prelude-val">Some</span>(Property {
-        name,
-        name_location,
-        parent_name: parent_name.to_string(),
-        parent_kind: kind.clone(),
-        parent_name_location: parent_location.clone(),
-        datatype,
+    <span class="prelude-val">Some</span>(PropertyBlock {
+        name: Identifier { name, location: name_location },
+        return_type: datatype,
         implementations,
     })
 }

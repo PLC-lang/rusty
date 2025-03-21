@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This module is responsible for lowering any"><title>rusty::lowering::property - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../rusty/index.html">rusty</a><span class="version">0.2.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module property</a></h2><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In rusty::<wbr>lowering</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="../../index.html">rusty</a>::<wbr><a href="../index.html">lowering</a></span><h1>Module <span>property</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/rusty/lowering/property.rs.html#1-1700">source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This module is responsible for lowering any</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This module is responsible for lowering any"><title>rusty::lowering::property - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../rusty/index.html">rusty</a><span class="version">0.2.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module property</a></h2><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In rusty::<wbr>lowering</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="../../index.html">rusty</a>::<wbr><a href="../index.html">lowering</a></span><h1>Module <span>property</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/rusty/lowering/property.rs.html#1-1176">source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This module is responsible for lowering any</p>
 <ol>
-<li><a href="../../../plc_ast/ast/struct.CompilationUnit.html#structfield.properties" title="field plc_ast::ast::CompilationUnit::properties"><code>CompilationUnit::properties</code></a> into <a href="../../../plc_ast/ast/struct.CompilationUnit.html#structfield.units" title="field plc_ast::ast::CompilationUnit::units"><code>CompilationUnit::units</code></a> and <a href="../../../plc_ast/ast/struct.CompilationUnit.html#structfield.implementations" title="field plc_ast::ast::CompilationUnit::implementations"><code>CompilationUnit::implementations</code></a></li>
-<li><a href="../../../plc_ast/ast/enum.AstStatement.html#variant.ReferenceExpr" title="variant plc_ast::ast::AstStatement::ReferenceExpr"><code>AstStatement::ReferenceExpr</code></a> into <a href="../../../plc_ast/ast/enum.AstStatement.html#variant.CallStatement" title="variant plc_ast::ast::AstStatement::CallStatement"><code>AstStatement::CallStatement</code></a> to trigger the GET or SET methods</li>
+<li>[<code>CompilationUnit::properties</code>] into <a href="../../../plc_ast/ast/struct.CompilationUnit.html#structfield.units" title="field plc_ast::ast::CompilationUnit::units"><code>CompilationUnit::units</code></a> and <a href="../../../plc_ast/ast/struct.CompilationUnit.html#structfield.implementations" title="field plc_ast::ast::CompilationUnit::implementations"><code>CompilationUnit::implementations</code></a></li>
+<li><a href="../../../plc_ast/ast/enum.AstStatement.html#variant.ReferenceExpr" title="variant plc_ast::ast::AstStatement::ReferenceExpr"><code>AstStatement::ReferenceExpr</code></a> into <a href="../../../plc_ast/ast/enum.AstStatement.html#variant.CallStatement" title="variant plc_ast::ast::AstStatement::CallStatement"><code>AstStatement::CallStatement</code></a> to call the GET or SET methods</li>
 </ol>
 <p>The first step is triggered right after parsing the source code. For example assume some user wrote the
 following code</p>
@@ -24,25 +24,21 @@ END_FUNCTION_BLOCK</code></pre></div>
 equivalent to <code>&lt;var&gt; := fb.get_foo()</code> and <code>fb.foo := &lt;expr&gt;</code> is equivalent to <code>fb.set_foo(&lt;expr&gt;)</code>. Hence
 the properties internal representation is as follows</p>
 <div class="example-wrap"><pre class="language-iec61131st"><code>FUNCTION_BLOCK fb
-    // Compiler internal
-    VAR_PROPERTY
-        foo : DINT; // The name and datatype are derived from the property declaration
-    END_VAR
-
     METHOD __get_foo
+        VAR
+            foo : DINT; // Patched in by the lowerer
+        END_VAR
+
         // ...
         foo := &lt;expr&gt;;
         // ...
-        __get_foo := foo; // Compiler internal, will always be patched at the end of a GET block
+        __get_foo := foo; // Patched in by the lowerer
     END_METHOD
 
     METHOD __set_foo
-        // Compiler internal
         VAR_INPUT
-            __in : DINT;
+            foo : DINT; // Patched in by the lowerer
         END_VAR
-
-        foo := __in; // Compiler internal, will always be patched at the beginning of a SET block
 
         // ...
         &lt;expr&gt; := foo;
@@ -61,9 +57,12 @@ Again, for example assume we have the following code</p>
     fbInstance.foo := 5;                // We want this to be `fbInstance.__set_foo(5);`
     localVariable := fbInstance.foo;    // ... and this to be `localVariable := fbInstance.__get_foo();`
 END_FUNCTION</code></pre></div>
-<p>Lowering these references is done by simply using the <a href="../../../plc_ast/mut_visitor/trait.AstVisitorMut.html" title="trait plc_ast::mut_visitor::AstVisitorMut"><code>AstVisitorMut</code></a> and iterating over all statements.
-Any <a href="../../../plc_ast/ast/enum.AstStatement.html#variant.ReferenceExpr" title="variant plc_ast::ast::AstStatement::ReferenceExpr"><code>AstStatement::ReferenceExpr</code></a> that is not the left hand side of an assignment will then be lowered
-into a <code>__get_&lt;property name&gt;</code> call if we’re dealing with a property reference. If the reference is the
-left hand side of an assignment however, the node as a whole will instead be lowered into a
-<code>__set_&lt;property name&gt;(&lt;complete right hand side&gt;)</code> call instead.</p>
+<p>Lowering these references is done by simply using the <a href="../../../plc_ast/mut_visitor/trait.AstVisitorMut.html" title="trait plc_ast::mut_visitor::AstVisitorMut"><code>AstVisitorMut</code></a>, iterating over all statements and
+identifying if any reference has a property annotation. If so, we distinguish between two cases:</p>
+<ol>
+<li>An assignment where the left hand side is a property reference, in which case the whole right hand side
+needs to be wrapped in a function call as <code>__set_&lt;property name&gt;(&lt;right hand side&gt;)</code></li>
+<li>A reference, that is not the left hand side of an assignment, in which case the reference itself needs
+to be replaced with a function call as <code>__get_&lt;property name&gt;()</code></li>
+</ol>
 </div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.PropertyLowerer.html" title="struct rusty::lowering::property::PropertyLowerer">Property<wbr>Lowerer</a></div></li></ul></section></div></main></body></html>

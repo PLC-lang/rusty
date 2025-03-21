@@ -301,8 +301,11 @@
 <a href="#300" id="300">300</a>
 <a href="#301" id="301">301</a>
 <a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
-    ArgumentProperty, DataTypeDeclaration, DeclarationKind, PouType, TypeNature, VariableBlock,
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
+    <span class="self">self</span>, ArgumentProperty, DataTypeDeclaration, DeclarationKind, Pou, PouType, TypeNature, VariableBlock,
     VariableBlockType,
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
@@ -386,15 +389,20 @@
     }
 
     <span class="doccomment">/// Registers a program in the index
-    </span><span class="kw">fn </span>index_program(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>plc_ast::ast::Pou, pou_struct_type: typesystem::DataType) {
-        <span class="self">self</span>.index.register_program(<span class="kw-2">&amp;</span>pou.name, pou.name_location.clone(), pou.linkage);
+    </span><span class="kw">fn </span>index_program(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>Pou, pou_struct_type: typesystem::DataType) {
         <span class="self">self</span>.index.register_pou_type(pou_struct_type);
+        <span class="self">self</span>.index.register_program(
+            <span class="kw-2">&amp;</span>pou.name,
+            pou.name_location.clone(),
+            pou.linkage,
+            pou.properties.iter().map(|property| property.name.clone()).collect(),
+        );
     }
 
     <span class="doccomment">/// Registers a method in the index
     </span><span class="kw">fn </span>index_method(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        pou: <span class="kw-2">&amp;</span>plc_ast::ast::Pou,
+        pou: <span class="kw-2">&amp;</span>Pou,
         return_type_name: <span class="kw-2">&amp;</span>str,
         owner_class: <span class="kw-2">&amp;</span>str,
         declaration_kind: DeclarationKind,
@@ -414,7 +422,7 @@
     <span class="doccomment">/// Registers a function in the index
     </span><span class="kw">fn </span>index_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        pou: <span class="kw-2">&amp;</span>plc_ast::ast::Pou,
+        pou: <span class="kw-2">&amp;</span>Pou,
         return_type_name: <span class="kw-2">&amp;</span>str,
         member_varargs: <span class="prelude-ty">Option</span>&lt;VarArgs&gt;,
         pou_struct_type: typesystem::DataType,
@@ -432,7 +440,7 @@
     }
 
     <span class="doccomment">/// Registers a class in the index
-    </span><span class="kw">fn </span>index_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>plc_ast::ast::Pou, pou_struct_type: typesystem::DataType) {
+    </span><span class="kw">fn </span>index_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>Pou, pou_struct_type: typesystem::DataType) {
         <span class="kw">let </span>global_struct_name = <span class="kw">crate</span>::index::get_initializer_name(<span class="kw-2">&amp;</span>pou.name);
         <span class="kw">let </span>variable = VariableIndexEntry::create_global(
             <span class="kw-2">&amp;</span>global_struct_name,
@@ -449,12 +457,13 @@
             pou.name_location.clone(),
             pou.super_class.clone(),
             pou.interfaces.clone(),
+            pou.properties.iter().map(|property| property.name.clone()).collect(),
         ));
         <span class="self">self</span>.index.register_pou_type(pou_struct_type);
     }
 
     <span class="doccomment">/// Registers a function block in the index
-    </span><span class="kw">fn </span>index_function_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>plc_ast::ast::Pou, pou_struct_type: typesystem::DataType) {
+    </span><span class="kw">fn </span>index_function_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>Pou, pou_struct_type: typesystem::DataType) {
         <span class="kw">let </span>global_struct_name = <span class="kw">crate</span>::index::get_initializer_name(<span class="kw-2">&amp;</span>pou.name);
         <span class="kw">let </span>variable = VariableIndexEntry::create_global(
             <span class="kw-2">&amp;</span>global_struct_name,
@@ -471,15 +480,13 @@
             pou.name_location.clone(),
             pou.super_class.clone(),
             pou.interfaces.clone(),
+            pou.properties.iter().map(|property| property.name.clone()).collect(),
         ));
         <span class="self">self</span>.index.register_pou_type(pou_struct_type);
     }
 
     <span class="doccomment">/// Registers all member variables of a POU in the index
-    </span><span class="kw">fn </span>index_pou_variables(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        pou: <span class="kw-2">&amp;</span>plc_ast::ast::Pou,
-    ) -&gt; (u32, Vec&lt;VariableIndexEntry&gt;, <span class="prelude-ty">Option</span>&lt;VarArgs&gt;) {
+    </span><span class="kw">fn </span>index_pou_variables(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>Pou) -&gt; (u32, Vec&lt;VariableIndexEntry&gt;, <span class="prelude-ty">Option</span>&lt;VarArgs&gt;) {
         <span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>members = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>member_varargs = <span class="prelude-val">None</span>;
@@ -487,7 +494,7 @@
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;</span>pou.variable_blocks {
             <span class="kw">for </span>var <span class="kw">in </span><span class="kw-2">&amp;</span>block.variables {
                 <span class="kw">let </span>varargs = <span class="kw">if let </span>DataTypeDeclaration::Definition {
-                    data_type: plc_ast::ast::DataType::VarArgs { referenced_type, sized },
+                    data_type: ast::DataType::VarArgs { referenced_type, sized },
                     ..
                 } = <span class="kw-2">&amp;</span>var.data_type_declaration
                 {
@@ -577,7 +584,6 @@
         VariableBlockType::Global =&gt; VariableType::Global,
         VariableBlockType::InOut =&gt; VariableType::InOut,
         VariableBlockType::External =&gt; VariableType::External,
-        VariableBlockType::Property =&gt; VariableType::Property,
     }
 }
 
@@ -595,7 +601,7 @@
             information: DataTypeInformation::Pointer {
                 name: type_name.clone(),
                 inner_type_name: inner_type_name.to_string(),
-                auto_deref: <span class="prelude-val">Some</span>(plc_ast::ast::AutoDerefType::Default),
+                auto_deref: <span class="prelude-val">Some</span>(ast::AutoDerefType::Default),
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),

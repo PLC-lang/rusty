@@ -272,13 +272,18 @@
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType, Variable};
 <span class="kw">use </span>plc_derive::Validators;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_index::GlobalContext;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>rustc_hash::FxHashMap;
-<span class="kw">use </span>variable::visit_config_variable;
+<span class="kw">use </span>variable::{visit_config_variable, visit_variable};
 
 <span class="kw">use crate</span>::{
     expression_path::ExpressionPath,
@@ -449,7 +454,12 @@
         <span class="kw">let </span>context = ValidationContext { annotations, index, qualifier: <span class="prelude-val">None</span>, is_call: <span class="bool-val">false </span>};
         <span class="comment">// Validate POU and declared Variables
         </span><span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>unit.units {
-            visit_pou(<span class="self">self</span>, pou, <span class="kw-2">&amp;</span>context.with_qualifier(pou.name.as_str()));
+            <span class="kw">let </span>context = context.with_qualifier(pou.name.as_str());
+
+            visit_pou(<span class="self">self</span>, pou, <span class="kw-2">&amp;</span>context);
+            <span class="kw">for </span>property <span class="kw">in </span><span class="kw-2">&amp;</span>pou.properties {
+                visit_variable(<span class="self">self</span>, <span class="kw-2">&amp;</span>Variable::from(property), <span class="kw-2">&amp;</span>context);
+            }
         }
 
         <span class="comment">// Validate user declared types

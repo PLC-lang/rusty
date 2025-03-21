@@ -781,14 +781,21 @@
 <a href="#780" id="780">780</a>
 <a href="#781" id="781">781</a>
 <a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitor` trait and its associated macros.
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitor` trait and its associated macros.
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
 </span><span class="kw">use </span><span class="kw">crate</span>::ast::{
     flatten_expression_list, Allocation, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
     CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess,
     EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement,
-    MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
+    MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
     UserTypeDeclaration, Variable, VariableBlock,
 };
 <span class="kw">use </span><span class="kw">crate</span>::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
@@ -948,6 +955,9 @@
     </span><span class="kw">fn </span>visit_interface(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interface: <span class="kw-2">&amp;</span>Interface) {
         interface.walk(<span class="self">self</span>);
     }
+
+    <span class="doccomment">/// Visits a `Property`.
+    </span><span class="kw">fn </span>visit_property(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _property: <span class="kw-2">&amp;</span>PropertyBlock) {}
 
     <span class="doccomment">/// Visits an enum element `AstNode` node.
     /// Make sure to call `walk` on the `AstNode` node to visit its children.
@@ -1548,6 +1558,10 @@
     {
         <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.variable_blocks {
             visitor.visit_variable_block(block);
+        }
+
+        <span class="kw">for </span>property <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.properties {
+            visitor.visit_property(property);
         }
 
         <span class="self">self</span>.return_type.as_ref().inspect(|rt| visitor.visit_data_type_declaration(rt));

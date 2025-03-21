@@ -2049,12 +2049,69 @@
 <a href="#2048" id="2048">2048</a>
 <a href="#2049" id="2049">2049</a>
 <a href="#2050" id="2050">2050</a>
-<a href="#2051" id="2051">2051</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2051" id="2051">2051</a>
+<a href="#2052" id="2052">2052</a>
+<a href="#2053" id="2053">2053</a>
+<a href="#2054" id="2054">2054</a>
+<a href="#2055" id="2055">2055</a>
+<a href="#2056" id="2056">2056</a>
+<a href="#2057" id="2057">2057</a>
+<a href="#2058" id="2058">2058</a>
+<a href="#2059" id="2059">2059</a>
+<a href="#2060" id="2060">2060</a>
+<a href="#2061" id="2061">2061</a>
+<a href="#2062" id="2062">2062</a>
+<a href="#2063" id="2063">2063</a>
+<a href="#2064" id="2064">2064</a>
+<a href="#2065" id="2065">2065</a>
+<a href="#2066" id="2066">2066</a>
+<a href="#2067" id="2067">2067</a>
+<a href="#2068" id="2068">2068</a>
+<a href="#2069" id="2069">2069</a>
+<a href="#2070" id="2070">2070</a>
+<a href="#2071" id="2071">2071</a>
+<a href="#2072" id="2072">2072</a>
+<a href="#2073" id="2073">2073</a>
+<a href="#2074" id="2074">2074</a>
+<a href="#2075" id="2075">2075</a>
+<a href="#2076" id="2076">2076</a>
+<a href="#2077" id="2077">2077</a>
+<a href="#2078" id="2078">2078</a>
+<a href="#2079" id="2079">2079</a>
+<a href="#2080" id="2080">2080</a>
+<a href="#2081" id="2081">2081</a>
+<a href="#2082" id="2082">2082</a>
+<a href="#2083" id="2083">2083</a>
+<a href="#2084" id="2084">2084</a>
+<a href="#2085" id="2085">2085</a>
+<a href="#2086" id="2086">2086</a>
+<a href="#2087" id="2087">2087</a>
+<a href="#2088" id="2088">2088</a>
+<a href="#2089" id="2089">2089</a>
+<a href="#2090" id="2090">2090</a>
+<a href="#2091" id="2091">2091</a>
+<a href="#2092" id="2092">2092</a>
+<a href="#2093" id="2093">2093</a>
+<a href="#2094" id="2094">2094</a>
+<a href="#2095" id="2095">2095</a>
+<a href="#2096" id="2096">2096</a>
+<a href="#2097" id="2097">2097</a>
+<a href="#2098" id="2098">2098</a>
+<a href="#2099" id="2099">2099</a>
+<a href="#2100" id="2100">2100</a>
+<a href="#2101" id="2101">2101</a>
+<a href="#2102" id="2102">2102</a>
+<a href="#2103" id="2103">2103</a>
+<a href="#2104" id="2104">2104</a>
+<a href="#2105" id="2105">2105</a>
+<a href="#2106" id="2106">2106</a>
+<a href="#2107" id="2107">2107</a>
+<a href="#2108" id="2108">2108</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::hash::BuildHasherDefault;
 
 <span class="kw">use </span>itertools::Itertools;
-<span class="kw">use </span>rustc_hash::{FxHashSet, FxHasher};
+<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 <span class="kw">use </span>plc_ast::ast::{
     AstId, AstNode, AstStatement, ConfigVariable, DeclarationKind, DirectAccessType, GenericBinding,
@@ -2137,54 +2194,13 @@
     </span>varargs: <span class="prelude-ty">Option</span>&lt;VarArgs&gt;,
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Hash)]
-</span><span class="kw">pub struct </span>HardwareBinding {
-    <span class="doccomment">/// Specifies if the binding is an In/Out or Memory binding
-    </span><span class="kw">pub </span>direction: HardwareAccessType,
-    <span class="doccomment">/// The datatype (size) of the binding
-    </span><span class="kw">pub </span>access: DirectAccessType,
-    <span class="doccomment">/// A list of entries that form this binding
-    </span><span class="kw">pub </span>entries: Vec&lt;ConstId&gt;,
-    <span class="doccomment">/// The location in the original source-file
-    </span><span class="kw">pub </span>location: SourceLocation,
-}
-
-<span class="kw">impl </span>HardwareBinding {
-    <span class="kw">pub fn </span>from_statement(index: <span class="kw-2">&amp;mut </span>Index, it: <span class="kw-2">&amp;</span>AstNode, scope: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if let </span>AstStatement::HardwareAccess(data) = it.get_stmt() {
-            <span class="prelude-val">Some</span>(HardwareBinding {
-                access: data.access,
-                direction: data.direction,
-                entries: data
-                    .address
-                    .iter()
-                    .map(|expr| {
-                        index.constant_expressions.add_constant_expression(
-                            expr.clone(),
-                            typesystem::DINT_SIZE.to_string(),
-                            scope.clone(),
-                            <span class="prelude-val">None</span>,
-                        )
-                    })
-                    .collect(),
-                location: it.get_location(),
-            })
-        } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>}
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; <span class="kw">for </span>Identifier {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>VariableIndexEntry) -&gt; <span class="self">Self </span>{
+        Identifier {
+            name: value.get_qualifier().unwrap_or(<span class="kw-2">&amp;</span>value.name).to_string(),
+            location: value.source_location.clone(),
+        }
     }
-}
-
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>MemberInfo&lt;<span class="lifetime">'b</span>&gt; {
-    container_name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
-    variable_name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
-    variable_linkage: ArgumentType,
-    variable_type_name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
-    binding: <span class="prelude-ty">Option</span>&lt;HardwareBinding&gt;,
-    is_constant: bool,
-    is_var_external: bool,
-    varargs: <span class="prelude-ty">Option</span>&lt;VarArgs&gt;,
 }
 
 <span class="kw">impl </span>VariableIndexEntry {
@@ -2383,6 +2399,56 @@
     <span class="kw">pub fn </span>get_qualifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="self">self</span>.qualified_name.rsplit_once(<span class="string">'.'</span>).map(|(x, <span class="kw">_</span>)| x)
     }
+}
+
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+</span><span class="kw">pub struct </span>HardwareBinding {
+    <span class="doccomment">/// Specifies if the binding is an In/Out or Memory binding
+    </span><span class="kw">pub </span>direction: HardwareAccessType,
+    <span class="doccomment">/// The datatype (size) of the binding
+    </span><span class="kw">pub </span>access: DirectAccessType,
+    <span class="doccomment">/// A list of entries that form this binding
+    </span><span class="kw">pub </span>entries: Vec&lt;ConstId&gt;,
+    <span class="doccomment">/// The location in the original source-file
+    </span><span class="kw">pub </span>location: SourceLocation,
+}
+
+<span class="kw">impl </span>HardwareBinding {
+    <span class="kw">pub fn </span>from_statement(index: <span class="kw-2">&amp;mut </span>Index, it: <span class="kw-2">&amp;</span>AstNode, scope: <span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if let </span>AstStatement::HardwareAccess(data) = it.get_stmt() {
+            <span class="prelude-val">Some</span>(HardwareBinding {
+                access: data.access,
+                direction: data.direction,
+                entries: data
+                    .address
+                    .iter()
+                    .map(|expr| {
+                        index.constant_expressions.add_constant_expression(
+                            expr.clone(),
+                            typesystem::DINT_SIZE.to_string(),
+                            scope.clone(),
+                            <span class="prelude-val">None</span>,
+                        )
+                    })
+                    .collect(),
+                location: it.get_location(),
+            })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>MemberInfo&lt;<span class="lifetime">'b</span>&gt; {
+    container_name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
+    variable_name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
+    variable_linkage: ArgumentType,
+    variable_type_name: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>str,
+    binding: <span class="prelude-ty">Option</span>&lt;HardwareBinding&gt;,
+    is_constant: bool,
+    is_var_external: bool,
+    varargs: <span class="prelude-ty">Option</span>&lt;VarArgs&gt;,
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -2657,7 +2723,7 @@
     }
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
 </span><span class="kw">pub enum </span>PouIndexEntry {
     Program {
         name: String,
@@ -2665,6 +2731,7 @@
         instance_variable: Box&lt;VariableIndexEntry&gt;,
         linkage: LinkageType,
         location: SourceLocation,
+        properties: FxHashMap&lt;String, Identifier&gt;,
     },
     FunctionBlock {
         name: String,
@@ -2673,6 +2740,7 @@
         location: SourceLocation,
         super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
         interfaces: Vec&lt;String&gt;,
+        properties: FxHashMap&lt;String, Identifier&gt;,
     },
     Function {
         name: String,
@@ -2691,6 +2759,7 @@
         location: SourceLocation,
         super_class: <span class="prelude-ty">Option</span>&lt;String&gt;,
         interfaces: Vec&lt;String&gt;,
+        properties: FxHashMap&lt;String, Identifier&gt;,
     },
     Method {
         name: String,
@@ -2717,6 +2786,16 @@
 }
 
 <span class="kw">impl </span>PouIndexEntry {
+    <span class="kw">pub fn </span>get_property(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Identifier&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            PouIndexEntry::Program { properties, .. }
+            | PouIndexEntry::FunctionBlock { properties, .. }
+            | PouIndexEntry::Class { properties, .. } =&gt; properties.get(name),
+
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="doccomment">/// creates a new Program-PouIndexEntry
     /// # Arguments
     /// - `name` the name of the function
@@ -2726,6 +2805,7 @@
         instance_variable: VariableIndexEntry,
         linkage: LinkageType,
         location: SourceLocation,
+        properties: Vec&lt;Identifier&gt;,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Program {
             name: pou_name.into(),
@@ -2733,6 +2813,7 @@
             instance_variable: Box::new(instance_variable),
             linkage,
             location,
+            properties: properties.into_iter().map(|ident| (ident.name.clone(), ident)).collect(),
         }
     }
 
@@ -2746,14 +2827,16 @@
         location: SourceLocation,
         super_class: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
         interfaces: Vec&lt;Identifier&gt;,
+        properties: Vec&lt;Identifier&gt;,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class: super_class.map(|it| it.name.clone()),
-            interfaces: interfaces.into_iter().map(|it| it.name.clone()).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+            super_class: super_class.map(|it| it.name),
+            interfaces: interfaces.into_iter().map(|ident| ident.name).collect(),
+            properties: properties.into_iter().map(|ident| (ident.name.clone(), ident)).collect(),
         }
     }
 
@@ -2830,14 +2913,16 @@
         location: SourceLocation,
         super_class: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
         interfaces: Vec&lt;Identifier&gt;,
+        properties: Vec&lt;Identifier&gt;,
     ) -&gt; PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
             location,
-            super_class: super_class.map(|it| it.name.clone()),
-            interfaces: interfaces.into_iter().map(|it| it.name.clone()).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
+            super_class: super_class.map(|it| it.name),
+            interfaces: interfaces.into_iter().map(|it| it.name).collect(),
+            properties: properties.into_iter().map(|ident| (ident.name.clone(), ident)).collect(),
         }
     }
 
@@ -3153,6 +3238,9 @@
     <span class="doccomment">/// All interface definitions
     </span>interfaces: SymbolMap&lt;String, InterfaceIndexEntry&gt;,
 
+    <span class="doccomment">/// All property definitions `&lt;container name, property identifier&gt;`
+    </span>properties: SymbolMap&lt;String, Identifier&gt;,
+
     <span class="doccomment">/// All implementations
     /// We keep an IndexMap for implementations since duplication issues regarding implementations
     /// is handled by the `pous` SymbolMap
@@ -3270,6 +3358,9 @@
 
         <span class="comment">// interfaces
         </span><span class="self">self</span>.interfaces.extend(other.interfaces);
+
+        <span class="comment">// properties
+        </span><span class="self">self</span>.properties.extend(other.properties);
 
         <span class="comment">//pous
         </span><span class="kw">for </span>(name, elements) <span class="kw">in </span>other.pous.drain(..) {
@@ -3446,10 +3537,22 @@
 
     <span class="doccomment">/// Searches for method names in the given container, if not found, attempts to search for it in super class
     </span><span class="kw">pub fn </span>find_method(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str, method_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
+        <span class="self">self</span>.find_method_recursive(container_name, method_name, <span class="kw-2">&amp;mut </span>FxHashSet::default())
+    }
+
+    <span class="kw">fn </span>find_method_recursive&lt;<span class="lifetime">'b</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="self">self</span>,
+        container_name: <span class="kw-2">&amp;</span>str,
+        method_name: <span class="kw-2">&amp;</span>str,
+        seen: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>str&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>PouIndexEntry&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(local_method) = <span class="self">self</span>.find_pou(<span class="kw-2">&amp;</span>qualified_name(container_name, method_name)) {
             <span class="prelude-val">Some</span>(local_method)
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(super_method) = <span class="self">self</span>.find_pou(container_name).and_then(|it| it.get_super_class()) {
-            <span class="self">self</span>.find_method(super_method, method_name)
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(class) = <span class="self">self</span>.find_pou(container_name).and_then(|it| it.get_super_class()) {
+            <span class="kw">if </span>!seen.insert(class) {
+                <span class="kw">return </span><span class="prelude-val">None</span>;
+            }
+            <span class="self">self</span>.find_method_recursive(class, method_name, seen)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -3458,6 +3561,10 @@
     <span class="doccomment">/// Returns an interface with the given name or None if it does not exist
     </span><span class="kw">pub fn </span>find_interface(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>InterfaceIndexEntry&gt; {
         <span class="self">self</span>.interfaces.get(name)
+    }
+
+    <span class="kw">pub fn </span>get_properties_in_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;Identifier&gt; {
+        <span class="self">self</span>.properties.get_all(pou_name).unwrap_or(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[]).to_vec()
     }
 
     <span class="doccomment">/// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
@@ -3776,12 +3883,19 @@
         <span class="self">self</span>.find_implementation_by_name(pou_name).map(|it| it.is_init()).unwrap_or_default()
     }
 
-    <span class="kw">pub fn </span>register_program(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, location: SourceLocation, linkage: LinkageType) {
+    <span class="kw">pub fn </span>register_program(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        name: <span class="kw-2">&amp;</span>str,
+        location: SourceLocation,
+        linkage: LinkageType,
+        properties: Vec&lt;Identifier&gt;,
+    ) {
         <span class="kw">let </span>instance_variable =
             VariableIndexEntry::create_global(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{}_instance"</span>, <span class="kw-2">&amp;</span>name), name, name, location.clone()) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
                 </span>.set_linkage(linkage);
         <span class="comment">// self.register_global_variable(name, instance_variable.clone());
-        </span><span class="kw">let </span>entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage, location);
+        </span><span class="kw">let </span>entry =
+            PouIndexEntry::create_program_entry(name, instance_variable, linkage, location, properties);
         <span class="self">self</span>.pous.insert(entry.get_name().to_lowercase(), entry);
     }
 

@@ -91,7 +91,7 @@
 <a href="#90" id="90">90</a>
 <a href="#91" id="91">91</a>
 <a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{Property, PropertyKind, VariableBlockType};
+<a href="#93" id="93">93</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{Pou, PropertyKind, VariableBlockType};
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_index::GlobalContext;
 
@@ -109,18 +109,18 @@
         ParticipantValidator { diagnostics: Vec::new(), context: context.clone(), error_fmt }
     }
 
-    <span class="kw">pub fn </span>validate_properties(<span class="kw-2">&amp;mut </span><span class="self">self</span>, properties: <span class="kw-2">&amp;</span>Vec&lt;Property&gt;) {
-        <span class="kw">for </span>property <span class="kw">in </span>properties {
+    <span class="kw">pub fn </span>validate_properties(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span>Pou) {
+        <span class="kw">for </span>property <span class="kw">in </span><span class="kw-2">&amp;</span>pou.properties {
             <span class="kw">let </span><span class="kw-2">mut </span>get_blocks = <span class="macro">vec!</span>[];
             <span class="kw">let </span><span class="kw-2">mut </span>set_blocks = <span class="macro">vec!</span>[];
-
-            <span class="kw">if </span>!property.parent_kind.is_stateful() {
+            <span class="kw">let </span>name = <span class="kw-2">&amp;</span>property.name.name;
+            <span class="kw">let </span>name_location = <span class="kw-2">&amp;</span>property.name.location;
+            <span class="kw">if </span>!pou.kind.is_stateful() {
                 <span class="self">self</span>.diagnostics.push(
                     Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">"Property `{name}` must be defined in a stateful POU type (PROGRAM, CLASS or FUNCTION_BLOCK)"</span>,
-                        name = property.name
                     ))
-                    .with_location(property.parent_name_location.clone())
+                    .with_location(pou.name_location.clone())
                     .with_error_code(<span class="string">"E115"</span>),
                 );
             }
@@ -133,7 +133,7 @@
                             <span class="self">self</span>.diagnostics.push(
                                 Diagnostic::new(<span class="string">"Properties only allow variable blocks of type VAR"</span>)
                                     .with_secondary_location(variable.location.clone())
-                                    .with_location(property.name_location.clone())
+                                    .with_location(name_location.clone())
                                     .with_error_code(<span class="string">"E116"</span>),
                             );
                         }
@@ -150,7 +150,7 @@
                 <span class="comment">// one block is required
                 </span><span class="self">self</span>.diagnostics.push(
                     Diagnostic::new(<span class="string">"Property has no GET or SET block"</span>)
-                        .with_location(property.name_location.clone())
+                        .with_location(property.name.location.clone())
                         .with_error_code(<span class="string">"E117"</span>),
                 );
                 <span class="kw">continue</span>;
@@ -159,7 +159,7 @@
             <span class="kw">if </span>get_blocks.len() &gt; <span class="number">1 </span>{
                 <span class="self">self</span>.diagnostics.push(
                     Diagnostic::new(<span class="string">"Property has more than one GET block"</span>)
-                        .with_location(property.name_location.clone())
+                        .with_location(name_location.clone())
                         .with_secondary_locations(get_blocks)
                         .with_error_code(<span class="string">"E117"</span>),
                 );
@@ -168,7 +168,7 @@
             <span class="kw">if </span>set_blocks.len() &gt; <span class="number">1 </span>{
                 <span class="self">self</span>.diagnostics.push(
                     Diagnostic::new(<span class="string">"Property has more than one SET block"</span>)
-                        .with_location(property.name_location.clone())
+                        .with_location(name_location.clone())
                         .with_secondary_locations(set_blocks)
                         .with_error_code(<span class="string">"E117"</span>),
                 );
