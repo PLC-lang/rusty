@@ -627,7 +627,7 @@ impl Walker for CompilationUnit {
             visitor.visit_user_type_declaration(user_type);
         }
 
-        for pou in &self.units {
+        for pou in &self.pous {
             visitor.visit_pou(pou);
         }
 

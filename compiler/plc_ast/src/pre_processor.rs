@@ -18,7 +18,7 @@ use plc_source::source_location::SourceLocation;
 
 pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     //process all local variables from POUs
-    for pou in unit.units.iter_mut() {
+    for pou in unit.pous.iter_mut() {
         //Find all generic types in that pou
         let generic_types = preprocess_generic_structs(pou);
         unit.user_types.extend(generic_types);

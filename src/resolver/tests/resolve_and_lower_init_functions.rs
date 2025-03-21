@@ -31,7 +31,7 @@ fn function_block_init_fn_created() {
     assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
-    assert_debug_snapshot!(init_foo.units[0].variable_blocks[0].variables[0], @r###"
+    assert_debug_snapshot!(init_foo.pous[0].variable_blocks[0].variables[0], @r###"
     Variable {
         name: "self",
         data_type: DataTypeReference {
@@ -122,7 +122,7 @@ fn program_init_fn_created() {
     assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
-    assert_debug_snapshot!(init_foo.units[0].variable_blocks[0].variables[0], @r###"
+    assert_debug_snapshot!(init_foo.pous[0].variable_blocks[0].variables[0], @r###"
     Variable {
         name: "self",
         data_type: DataTypeReference {
@@ -227,7 +227,7 @@ fn init_wrapper_function_created() {
     assert_eq!(implementation.pou_type, PouType::ProjectInit);
 
     // we expect this function to have no parameters
-    assert!(init.units[0].variable_blocks.is_empty());
+    assert!(init.pous[0].variable_blocks.is_empty());
 
     // we expect to the body to have 2 statements
     let statements = &implementation.statements;

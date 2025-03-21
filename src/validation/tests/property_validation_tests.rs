@@ -11,7 +11,7 @@ fn lower_and_validate(src: &str) -> String {
     let (unit, mut diagnostics) = parse(src);
 
     let mut validator = ParticipantValidator::new(&context, ErrorFormat::None);
-    for pou in &unit.units {
+    for pou in &unit.pous {
         validator.validate_properties(pou);
     }
 
