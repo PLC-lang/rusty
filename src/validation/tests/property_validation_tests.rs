@@ -153,7 +153,7 @@ fn property_with_same_name_as_member_variable() {
 
 #[test]
 fn property_name_conflict_with_variable_in_parent() {
-    let source = test_utils::parse_and_validate_buffered(
+    let diagnostics = test_utils::parse_and_validate_buffered(
         r"
         FUNCTION_BLOCK fb1
             VAR
@@ -170,7 +170,7 @@ fn property_name_conflict_with_variable_in_parent() {
         ",
     );
 
-    insta::assert_snapshot!(source, @r"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E021]: Variable `foo` is already declared in parent POU `fb1`
       ┌─ <internal>:9:22
       │
@@ -184,7 +184,7 @@ fn property_name_conflict_with_variable_in_parent() {
 
 #[test]
 fn property_name_conflict_with_variable_in_child() {
-    let source = test_utils::parse_and_validate_buffered(
+    let diagnostics = test_utils::parse_and_validate_buffered(
         r"
         FUNCTION_BLOCK fb1
             PROPERTY foo : DINT
@@ -201,7 +201,7 @@ fn property_name_conflict_with_variable_in_child() {
         ",
     );
 
-    insta::assert_snapshot!(source, @r"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E021]: Variable `foo` is already declared in parent POU `foo`
        ┌─ <internal>:11:17
        │
@@ -215,7 +215,7 @@ fn property_name_conflict_with_variable_in_child() {
 
 #[test]
 fn property_name_conflict_with_variable_in_parent_chained() {
-    let source = test_utils::parse_and_validate_buffered(
+    let diagnostics = test_utils::parse_and_validate_buffered(
         r"
         FUNCTION_BLOCK fb1
             PROPERTY foo : DINT
@@ -235,7 +235,7 @@ fn property_name_conflict_with_variable_in_parent_chained() {
         ",
     );
 
-    insta::assert_snapshot!(source, @r"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E021]: Variable `foo` is already declared in parent POU `foo`
        ┌─ <internal>:14:17
        │
@@ -245,4 +245,78 @@ fn property_name_conflict_with_variable_in_parent_chained() {
     14 │                 foo: DINT;
        │                 ^^^ Variable `foo` is already declared in parent POU `foo`
     ");
+}
+
+#[test]
+fn property_clashing_with_parent_property_name_is_ok() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb1
+            PROPERTY foo : DINT
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2 EXTENDS fb1
+            PROPERTY foo : DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    // Essentially we're overriding the property in the child, which is OK
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn undefined_property_accessor_in_parent_yields_error() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK parent
+            PROPERTY myProp : DINT
+                GET END_GET
+            END_PROPERTY
+
+            myProp;         // Ok, this represents GET
+            myProp := 5;    // Error, this represents a SET which is not defined in here
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK child EXTENDS parent
+            PROPERTY myProp : DINT
+                SET END_SET
+            END_PROPERTY
+
+            myProp := 5;            // Ok, this represents a GET which is inherited from the parent
+            myProp := myProp  + 1;  // Ok, this represents a SET that is overriden here
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+            VAR
+                parent_fb: parent;
+                child_fb: child;
+            END_VAR
+
+            parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a SET
+            child_fb.myProp := 5;                   // Ok, the `child` FB does define a SET
+            child_fb.myProp := parent_fb.myProp;    // Ok, the `child` FB does define a SET, the `parent` a GET
+            child_fb.myProp := child_fb.myProp + 1; // Ok, the `child` FB does define a SET, inherits the GET from the parent
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E048]: Could not resolve reference to myProp
+      ┌─ <internal>:8:13
+      │
+    8 │             myProp := 5;    // Error, this represents a SET which is not defined in here
+      │             ^^^^^^ Could not resolve reference to myProp
+
+    error[E048]: Could not resolve reference to myProp
+       ┌─ <internal>:26:23
+       │
+    26 │             parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a SET
+       │                       ^^^^^^ Could not resolve reference to myProp
+    "###);
 }

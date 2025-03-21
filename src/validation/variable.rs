@@ -254,41 +254,7 @@ fn validate_variable<T: AnnotationMap>(
     variable: &Variable,
     context: &ValidationContext<T>,
 ) {
-    //Validate redeclaration of variable
-    //See if we are in a POU that is extended
-    if let Some(mut super_class) =
-        context.qualifier.and_then(|it| context.index.find_pou(it)).map(PouIndexEntry::get_super_class)
-    {
-        while let Some(parent_pou) = super_class {
-            let Some(parent_pou) = context.index.find_pou(parent_pou) else {
-                break;
-            };
-
-            if let Some(shadowed_variable) = context
-                .index
-                .find_member(parent_pou.get_name(), variable.name.as_str())
-                .filter(|v| !v.is_temp())
-                .map(Identifier::from)
-                .or(parent_pou.get_property(&variable.name).cloned())
-            {
-                (!variable.location.is_internal()).then(|| {
-                    validator.push_diagnostic(
-                        Diagnostic::new(format!(
-                            "Variable `{}` is already declared in parent POU `{}`",
-                            variable.get_name(),
-                            shadowed_variable.name
-                        ))
-                        .with_error_code("E021")
-                        .with_location(&variable.location)
-                        .with_secondary_location(&shadowed_variable.location),
-                    )
-                });
-                break;
-            }
-
-            super_class = parent_pou.get_super_class();
-        }
-    }
+    validate_variable_redeclaration(validator, variable, context);
 
     validate_array_ranges(validator, variable, context);
 
@@ -390,6 +356,55 @@ fn validate_variable<T: AnnotationMap>(
     }
 }
 
+/// Validates if a variable present in a parent POU has been redeclared in a child POU
+fn validate_variable_redeclaration<T: AnnotationMap>(
+    validator: &mut Validator,
+    variable: &Variable,
+    context: &ValidationContext<T>,
+) {
+    let Some(child_pou) = context.index.find_pou(context.qualifier.unwrap_or_default()) else {
+        return;
+    };
+
+    let mut super_class = child_pou.get_super_class();
+    while let Some(parent_str) = super_class {
+        let Some(parent_pou) = context.index.find_pou(parent_str) else {
+            return;
+        };
+
+        // While properties are used like variables, they are in fact declared as methods behind the scenes.
+        // Hence, a redeclaration is equivalent to a method override, which is allowed.
+        if helper::are_properties_equal(&variable.name, child_pou, parent_pou) {
+            super_class = parent_pou.get_super_class();
+            continue;
+        }
+
+        if let Some(shadowed_variable) = context
+            .index
+            .find_member(parent_pou.get_name(), variable.name.as_str())
+            .filter(|v| !v.is_temp())
+            .map(Identifier::from)
+            .or(parent_pou.get_property(&variable.name).cloned())
+        {
+            (!variable.location.is_internal()).then(|| {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Variable `{}` is already declared in parent POU `{}`",
+                        variable.get_name(),
+                        shadowed_variable.name
+                    ))
+                    .with_error_code("E021")
+                    .with_location(&variable.location)
+                    .with_secondary_location(&shadowed_variable.location),
+                )
+            });
+            break;
+        }
+
+        super_class = parent_pou.get_super_class();
+    }
+}
+
 fn report_temporary_address_in_pointer_initializer<T: AnnotationMap>(
     validator: &mut Validator<'_>,
     context: &ValidationContext<'_, T>,
@@ -481,6 +496,18 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
         let Some(type_rhs) = context.annotations.get_type(initializer, context.index) else { return };
 
         validate_pointer_assignment(context, validator, type_lhs, type_rhs, &initializer.location);
+    }
+}
+
+mod helper {
+    use crate::index::PouIndexEntry;
+
+    /// Returns true if the properties of the two POUs exist and are equal, false otherwise
+    pub fn are_properties_equal(name: &str, left: &PouIndexEntry, right: &PouIndexEntry) -> bool {
+        match (left.get_property(name), right.get_property(name)) {
+            (Some(left), Some(right)) => left.name == right.name,
+            _ => false,
+        }
     }
 }
 
