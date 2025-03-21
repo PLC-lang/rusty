@@ -5,7 +5,7 @@ use crate::ast::{
     flatten_expression_list, Allocation, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
     CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess,
     EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement,
-    MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
+    MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
     UserTypeDeclaration, Variable, VariableBlock,
 };
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
@@ -165,6 +165,9 @@ pub trait AstVisitor: Sized {
     fn visit_interface(&mut self, interface: &Interface) {
         interface.walk(self);
     }
+
+    /// Visits a `Property`.
+    fn visit_property(&mut self, _property: &PropertyBlock) {}
 
     /// Visits an enum element `AstNode` node.
     /// Make sure to call `walk` on the `AstNode` node to visit its children.
@@ -765,6 +768,10 @@ impl Walker for Pou {
     {
         for block in &self.variable_blocks {
             visitor.visit_variable_block(block);
+        }
+
+        for property in &self.properties {
+            visitor.visit_property(property);
         }
 
         self.return_type.as_ref().inspect(|rt| visitor.visit_data_type_declaration(rt));

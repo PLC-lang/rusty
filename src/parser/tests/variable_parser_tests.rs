@@ -197,8 +197,7 @@ fn pou_var_with_address() {
     let (result, diag) = parse(src);
 
     assert_eq!(diag, vec![]);
-
-    insta::assert_snapshot!(format!("{result:?}"));
+    insta::assert_debug_snapshot!(result);
 }
 
 #[test]
@@ -409,7 +408,6 @@ fn var_config_test() {
         file: File(
             "test.st",
         ),
-        properties: [],
     }
     "#);
 }
@@ -564,7 +562,6 @@ fn var_external() {
         file: File(
             "test.st",
         ),
-        properties: [],
     }
     "###);
 }
@@ -706,7 +703,6 @@ fn var_external_constant() {
         file: File(
             "test.st",
         ),
-        properties: [],
     }
     "###);
 }

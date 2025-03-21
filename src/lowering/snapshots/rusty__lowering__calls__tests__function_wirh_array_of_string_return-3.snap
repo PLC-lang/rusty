@@ -1,6 +1,7 @@
 ---
 source: src/lowering/calls.rs
 expression: unit
+snapshot_kind: text
 ---
 CompilationUnit {
     global_vars: [
@@ -277,5 +278,4 @@ CompilationUnit {
     file: File(
         "<internal>",
     ),
-    properties: [],
 }

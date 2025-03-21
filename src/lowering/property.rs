@@ -1,6 +1,6 @@
 //! This module is responsible for lowering any
 //! 1. [`CompilationUnit::properties`] into [`CompilationUnit::units`] and [`CompilationUnit::implementations`]
-//! 2. [`AstStatement::ReferenceExpr`] into [`AstStatement::CallStatement`] to trigger the GET or SET methods
+//! 2. [`AstStatement::ReferenceExpr`] into [`AstStatement::CallStatement`] to call the GET or SET methods
 //!
 //! The first step is triggered right after parsing the source code. For example assume some user wrote the
 //! following code
@@ -26,25 +26,21 @@
 //! the properties internal representation is as follows
 //! ```iec61131st
 //! FUNCTION_BLOCK fb
-//!     // Compiler internal
-//!     VAR_PROPERTY
-//!         foo : DINT; // The name and datatype are derived from the property declaration
-//!     END_VAR
-//!
 //!     METHOD __get_foo
+//!         VAR
+//!             foo : DINT; // Patched in by the lowerer
+//!         END_VAR
+//!
 //!         // ...
 //!         foo := <expr>;
 //!         // ...
-//!         __get_foo := foo; // Compiler internal, will always be patched at the end of a GET block
+//!         __get_foo := foo; // Patched in by the lowerer
 //!     END_METHOD
 //!
 //!     METHOD __set_foo
-//!         // Compiler internal
 //!         VAR_INPUT
-//!             __in : DINT;
+//!             foo : DINT; // Patched in by the lowerer
 //!         END_VAR
-//!
-//!         foo := __in; // Compiler internal, will always be patched at the beginning of a SET block
 //!
 //!         // ...
 //!         <expr> := foo;
@@ -67,199 +63,154 @@
 //!     localVariable := fbInstance.foo;    // ... and this to be `localVariable := fbInstance.__get_foo();`
 //! END_FUNCTION
 //! ```
-//! Lowering these references is done by simply using the [`AstVisitorMut`] and iterating over all statements.
-//! Any [`AstStatement::ReferenceExpr`] that is not the left hand side of an assignment will then be lowered
-//! into a `__get_<property name>` call if we're dealing with a property reference. If the reference is the
-//! left hand side of an assignment however, the node as a whole will instead be lowered into a
-//! `__set_<property name>(<complete right hand side>)` call instead.
-
-use std::collections::HashMap;
+//! Lowering these references is done by simply using the [`AstVisitorMut`], iterating over all statements and
+//! identifying if any reference has a property annotation. If so, we distinguish between two cases:
+//! 1. An assignment where the left hand side is a property reference, in which case the whole right hand side
+//!    needs to be wrapped in a function call as `__set_<property name>(<right hand side>)`
+//! 2. A reference, that is not the left hand side of an assignment, in which case the reference itself needs
+//!    to be replaced with a function call as `__get_<property name>()`
 
 use helper::{create_internal_assignment, patch_prefix_to_name};
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit,
-        DeclarationKind, Implementation, LinkageType, Pou, PouType, Property, PropertyKind, ReferenceAccess,
-        ReferenceExpr, Variable, VariableBlock, VariableBlockType,
+        DeclarationKind, Identifier, Implementation, LinkageType, Pou, PouType, PropertyKind,
+        ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     try_from_mut,
 };
 use plc_source::source_location::SourceLocation;
-use plc_util::convention::qualified_name;
 
 use crate::resolver::{AnnotationMap, AstAnnotations};
 
 pub struct PropertyLowerer {
     pub id_provider: IdProvider,
     pub annotations: Option<AstAnnotations>,
-    context: Option<String>,
 }
 
 impl PropertyLowerer {
     pub fn new(id_provider: IdProvider) -> PropertyLowerer {
-        PropertyLowerer { id_provider, annotations: None, context: None }
+        PropertyLowerer { id_provider, annotations: None }
     }
 }
 
 impl PropertyLowerer {
+    /// Lowers any property references into method calls
     pub fn lower_references_to_calls(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
     }
 
-    /// Lowers [`CompilationUnit::properties`] into [`CompilationUnit::units`] and
-    /// [`CompilationUnit::implementations`]
+    /// Lowers [`CompilationUnit::properties`] into [`CompilationUnit::units`] and [`CompilationUnit::implementations`]
     pub fn lower_properties_to_pous(&mut self, unit: &mut CompilationUnit) {
-        // Properties are internally represented as a variable, hence we keep track of all encountered
-        // properties and their respective parent POUs to later patch these variables into a `VAR_PROPERTY`
-        // block
-        let mut parents: HashMap<String, Vec<Property>> = HashMap::new();
+        let mut units = vec![];
+        let mut implementations = vec![];
+        unit.units.iter_mut().for_each(|pou| {
+            pou.properties.iter_mut().for_each(|property| {
+                let datatype = &property.return_type;
+                let Identifier { name: prop_name, location } = &property.name;
+                let parent = &pou.name;
 
-        for property in &mut unit.properties.drain(..) {
-            match parents.get_mut(&property.parent_name) {
-                Some(values) => values.push(property.clone()),
-                None => {
-                    parents.insert(property.parent_name.clone(), vec![property.clone()]);
-                }
-            }
+                property.implementations.drain(..).for_each(|property_impl| {
+                    let name = format!("{parent}.__{kind}_{prop_name}", kind = property_impl.kind,);
 
-            for property_impl in property.implementations {
-                let name = format!(
-                    "{parent}.__{kind}_{name}",
-                    parent = property.parent_name,
-                    kind = property_impl.kind,
-                    name = property.name
-                );
+                    let mut pou = Pou {
+                        name,
+                        kind: PouType::Method {
+                            parent: parent.to_string(),
+                            declaration_kind: DeclarationKind::Concrete,
+                        },
+                        variable_blocks: property_impl.variable_blocks,
+                        return_type: None,
+                        location: location.clone(),
+                        name_location: location.clone(),
+                        poly_mode: None,
+                        generics: Vec::new(),
+                        linkage: LinkageType::Internal,
+                        super_class: None,
+                        interfaces: Vec::new(),
+                        is_const: false,
+                        id: self.id_provider.next_id(),
+                        properties: Vec::new(),
+                    };
 
-                let mut pou = Pou {
-                    name,
-                    kind: PouType::Method {
-                        parent: property.parent_name.clone(),
-                        property: Some(qualified_name(&property.parent_name, &property.name)),
-                        declaration_kind: DeclarationKind::Concrete,
-                    },
-                    variable_blocks: Vec::new(),
-                    return_type: Some(property.datatype.clone()),
-                    location: property.name_location.clone(),
-                    name_location: property.name_location.clone(),
-                    poly_mode: None,
-                    generics: Vec::new(),
-                    linkage: LinkageType::Internal,
-                    super_class: None,
-                    interfaces: Vec::new(),
-                    is_const: false,
-                    id: self.id_provider.next_id(),
-                };
+                    let mut implementation = Implementation {
+                        name: pou.name.clone(),
+                        type_name: pou.name.clone(),
+                        linkage: pou.linkage,
+                        pou_type: pou.kind.clone(),
+                        statements: property_impl.body,
+                        location: location.clone(),
+                        name_location: location.clone(),
+                        end_location: property_impl.end_location.clone(),
+                        overriding: false,
+                        generic: false,
+                        access: Some(AccessModifier::Public),
+                    };
 
-                let mut implementation = Implementation {
-                    name: pou.name.clone(),
-                    type_name: pou.name.clone(),
-                    linkage: pou.linkage,
-                    pou_type: pou.kind.clone(),
-                    statements: property_impl.body,
-                    location: pou.location.clone(),
-                    name_location: pou.name_location.clone(),
-                    end_location: property_impl.end_location.clone(),
-                    overriding: false,
-                    generic: false,
-                    access: Some(AccessModifier::Public),
-                };
-
-                match property_impl.kind {
-                    // We have to append a `<method_name> := <property_name>` assignment at the end of the
-                    // list of statements when dealing with getters
-                    PropertyKind::Get => {
-                        let name_lhs = format!("__{}_{}", property_impl.kind, property.name);
-                        let name_rhs = &property.name;
-
-                        implementation.statements.push(create_internal_assignment(
-                            &mut self.id_provider,
-                            name_lhs,
-                            name_rhs,
-                        ));
-                    }
-
-                    // We have to do two things when dealing with setters:
-                    // 1. Patch a variable block of type `VAR_INPUT` with a single variable named
-                    //    `__in : <property_type>`
-                    // 2. Prepend a `<property_name> := __in` assignment to the implementation
-                    PropertyKind::Set => {
-                        let parameter_name = "__in";
-
-                        pou.variable_blocks.push(VariableBlock {
-                            access: AccessModifier::Public,
-                            constant: false,
-                            retain: false,
-                            variables: vec![Variable {
-                                name: parameter_name.to_string(),
-                                data_type_declaration: property.datatype.clone(),
-                                initializer: None,
-                                address: None,
+                    match property_impl.kind {
+                        // We have to append a `<method_name> := <property_name>` assignment at the end of the
+                        // list of statements when dealing with getters
+                        PropertyKind::Get => {
+                            pou.variable_blocks.push(VariableBlock {
+                                access: AccessModifier::Public,
+                                constant: false,
+                                retain: false,
+                                variables: vec![Variable {
+                                    name: prop_name.to_string(),
+                                    data_type_declaration: datatype.clone(),
+                                    initializer: None,
+                                    address: None,
+                                    location: SourceLocation::internal(),
+                                }],
+                                variable_block_type: VariableBlockType::Local,
+                                linkage: LinkageType::Internal,
                                 location: SourceLocation::internal(),
-                            }],
-                            variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
-                            linkage: LinkageType::Internal,
-                            location: SourceLocation::internal(),
-                        });
-                        pou.return_type = None;
+                            });
+                            pou.return_type = Some(datatype.clone());
 
-                        let name_lhs = &property.name;
-                        let name_rhs = parameter_name;
+                            let name_lhs = format!("__{}_{}", property_impl.kind, prop_name);
 
-                        implementation
-                            .statements
-                            .insert(0, create_internal_assignment(&mut self.id_provider, name_lhs, name_rhs));
-                    }
-                };
+                            implementation.statements.push(create_internal_assignment(
+                                &mut self.id_provider,
+                                name_lhs,
+                                prop_name,
+                            ));
+                        }
 
-                unit.units.push(pou);
-                unit.implementations.push(implementation);
-            }
-        }
-
-        // Iterate over all POUs, check if they have one or more properties defined and if so, add a
-        // variable block of type `Property` consisting of all the properties.
-        for pou in &mut unit.units {
-            if let Some(properties) = parents.get(&pou.name) {
-                let mut variables = Vec::new();
-                for property in properties {
-                    variables.push(Variable {
-                        name: property.name.clone(),
-                        data_type_declaration: property.datatype.clone(),
-                        initializer: None,
-                        address: None,
-                        location: property.name_location.clone(),
-                    });
-                }
-
-                pou.variable_blocks.push(VariableBlock::property(variables));
-            }
-        }
+                        // We have to do two things when dealing with setters:
+                        // 1. Patch a variable block of type `VAR_INPUT` with a single variable with the
+                        // same name as the declared property and its type
+                        PropertyKind::Set => {
+                            pou.variable_blocks.push(VariableBlock {
+                                access: AccessModifier::Public,
+                                constant: false,
+                                retain: false,
+                                variables: vec![Variable {
+                                    name: prop_name.to_string(),
+                                    data_type_declaration: datatype.clone(),
+                                    initializer: None,
+                                    address: None,
+                                    location: SourceLocation::internal(),
+                                }],
+                                variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
+                                linkage: LinkageType::Internal,
+                                location: SourceLocation::internal(),
+                            });
+                        }
+                    };
+                    units.push(pou);
+                    implementations.push(implementation);
+                });
+            });
+        });
+        unit.units.extend(units);
+        unit.implementations.extend(implementations);
     }
 }
 
 impl AstVisitorMut for PropertyLowerer {
-    fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
-        for implementation in &mut unit.implementations {
-            self.visit_implementation(implementation);
-        }
-    }
-
-    fn visit_implementation(&mut self, implementation: &mut Implementation) {
-        // We want to avoid calling `__get__foo` when inside a `GET` block of the `foo` property and similarly
-        // avoid calling `__set__foo` when inside a `SET` block of the `foo` property. To do so we keep track
-        // of the current context by storing the qualified name of the property we're currently inside of.
-        if let PouType::Method { property: Some(qualified_name), .. } = &implementation.pou_type {
-            self.context = Some(qualified_name.clone())
-        }
-
-        implementation.walk(self);
-
-        // ...and reset the context once done (duh)
-        self.context = None;
-    }
-
     fn visit_assignment(&mut self, node: &mut AstNode) {
         let AstStatement::Assignment(data) = &mut node.stmt else {
             unreachable!();
@@ -271,10 +222,6 @@ impl AstVisitorMut for PropertyLowerer {
             // When dealing with an assignment where the left-hand side is a property reference, we have to
             // replace the reference with a method call to `__set_<property>(<right-hand-side>)`
             Some(annotation) if annotation.is_property() => {
-                if self.context.as_deref() == annotation.qualified_name() {
-                    return;
-                }
-
                 patch_prefix_to_name("__set_", &mut data.left);
                 let call = AstFactory::create_call_statement(
                     data.left.as_ref().clone(),
@@ -314,10 +261,6 @@ impl AstVisitorMut for PropertyLowerer {
         // ...and otherwise check the node as a whole
         if let Some(annotation) = self.annotations.as_ref().unwrap().get(node) {
             if !annotation.is_property() {
-                return;
-            }
-
-            if self.context.as_deref() == annotation.qualified_name() {
                 return;
             }
 
@@ -397,15 +340,19 @@ mod tests {
         lexer::lex_with_ids,
         lowering::property::PropertyLowerer,
         parser::parse,
-        resolver::AstAnnotations,
+        resolver::{AnnotationMapImpl, AstAnnotations},
         test_utils::tests::{annotate_with_ids, index_unit_with_id},
     };
 
-    // Parse -> Lower -> Index -> Annotate -> Lower -> Snapshot
-    fn lower(source: &str) -> CompilationUnit {
-        let mut id_provider = IdProvider::default();
-        let mut lowerer = PropertyLowerer::new(id_provider.clone());
+    fn lower_properties_to_pous(source: &str) -> (CompilationUnit, AnnotationMapImpl) {
+        lower_properties_to_pous_with_provider(source, IdProvider::default())
+    }
 
+    fn lower_properties_to_pous_with_provider(
+        source: &str,
+        id_provider: IdProvider,
+    ) -> (CompilationUnit, AnnotationMapImpl) {
+        let mut lowerer = PropertyLowerer::new(id_provider.clone());
         // Parse
         let (mut unit, diagnostics) = parse(
             lex_with_ids(source, id_provider.clone(), SourceLocationFactory::internal(source)),
@@ -421,836 +368,253 @@ mod tests {
         let mut index = index_unit_with_id(&unit, id_provider.clone());
 
         // Annotate
-        let annotations = AstAnnotations::new(
-            annotate_with_ids(&unit, &mut index, id_provider.clone()),
-            id_provider.next_id(),
-        );
+        let annotations = annotate_with_ids(&unit, &mut index, id_provider.clone());
 
+        (unit, annotations)
+    }
+
+    // Parse -> Lower -> Index -> Annotate -> Lower -> Snapshot
+    fn lower(source: &str) -> CompilationUnit {
+        let mut id_provider = IdProvider::default();
+        let mut lowerer = PropertyLowerer::new(id_provider.clone());
+        let (mut unit, annotations) = lower_properties_to_pous_with_provider(source, id_provider.clone());
         // Lower
+        let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         lowerer.annotations = Some(annotations);
         lowerer.lower_references_to_calls(&mut unit);
 
         unit
     }
 
-    #[test]
-    fn properties_are_used_within_each_other() {
-        let source = r"
-        FUNCTION_BLOCK fb
-          VAR
-            foo : DINT;
-          END_VAR
-          PROPERTY myProp: DINT
-            GET
-              myProp := foo;
-            END_GET
-            SET
-              foo := myProp;
-              myProp := another_prop;
-            END_SET
-          END_PROPERTY
-          PROPERTY another_prop : DINT
-            GET
-              another_prop := myProp;
-            END_GET
-            SET
-            END_SET
-          END_PROPERTY
-        END_FUNCTION_BLOCK
-        ";
+    mod ast {
+        use crate::lowering::property::tests::{lower, lower_properties_to_pous};
 
-        let unit = lower(source);
-        insta::assert_debug_snapshot!(unit.implementations, @r###"
-        [
-            Implementation {
-                name: "fb",
-                type_name: "fb",
-                linkage: Internal,
-                pou_type: FunctionBlock,
-                statements: [],
-                location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 21,
-                            column: 8,
-                            offset: 486,
-                        }..TextLocation {
-                            line: 20,
-                            column: 22,
-                            offset: 477,
-                        },
-                    ),
-                },
-                name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 1,
-                            column: 23,
-                            offset: 24,
-                        }..TextLocation {
-                            line: 1,
-                            column: 25,
-                            offset: 26,
-                        },
-                    ),
-                },
-                end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 21,
-                            column: 8,
-                            offset: 486,
-                        }..TextLocation {
-                            line: 21,
-                            column: 26,
-                            offset: 504,
-                        },
-                    ),
-                },
-                overriding: false,
-                generic: false,
-                access: None,
-            },
-            Implementation {
-                name: "fb.__get_myProp",
-                type_name: "fb.__get_myProp",
-                linkage: Internal,
-                pou_type: Method {
-                    parent: "fb",
-                    property: Some(
-                        "fb.myProp",
-                    ),
-                    declaration_kind: Concrete,
-                },
-                statements: [
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "myProp",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo",
-                                },
-                            ),
-                            base: None,
-                        },
-                    },
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__get_myProp",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "myProp",
-                                },
-                            ),
-                            base: None,
-                        },
-                    },
-                ],
-                location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 19,
-                            offset: 102,
-                        }..TextLocation {
-                            line: 5,
-                            column: 25,
-                            offset: 108,
-                        },
-                    ),
-                },
-                name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 19,
-                            offset: 102,
-                        }..TextLocation {
-                            line: 5,
-                            column: 25,
-                            offset: 108,
-                        },
-                    ),
-                },
-                end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 8,
-                            column: 12,
-                            offset: 172,
-                        }..TextLocation {
-                            line: 8,
-                            column: 19,
-                            offset: 179,
-                        },
-                    ),
-                },
-                overriding: false,
-                generic: false,
-                access: Some(
-                    Public,
-                ),
-            },
-            Implementation {
-                name: "fb.__set_myProp",
-                type_name: "fb.__set_myProp",
-                linkage: Internal,
-                pou_type: Method {
-                    parent: "fb",
-                    property: Some(
-                        "fb.myProp",
-                    ),
-                    declaration_kind: Concrete,
-                },
-                statements: [
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "myProp",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__in",
-                                },
-                            ),
-                            base: None,
-                        },
-                    },
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "myProp",
-                                },
-                            ),
-                            base: None,
-                        },
-                    },
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "myProp",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: CallStatement {
-                            operator: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__get_another_prop",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            parameters: None,
-                        },
-                    },
-                ],
-                location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 19,
-                            offset: 102,
-                        }..TextLocation {
-                            line: 5,
-                            column: 25,
-                            offset: 108,
-                        },
-                    ),
-                },
-                name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 19,
-                            offset: 102,
-                        }..TextLocation {
-                            line: 5,
-                            column: 25,
-                            offset: 108,
-                        },
-                    ),
-                },
-                end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 12,
-                            column: 12,
-                            offset: 275,
-                        }..TextLocation {
-                            line: 12,
-                            column: 19,
-                            offset: 282,
-                        },
-                    ),
-                },
-                overriding: false,
-                generic: false,
-                access: Some(
-                    Public,
-                ),
-            },
-            Implementation {
-                name: "fb.__get_another_prop",
-                type_name: "fb.__get_another_prop",
-                linkage: Internal,
-                pou_type: Method {
-                    parent: "fb",
-                    property: Some(
-                        "fb.another_prop",
-                    ),
-                    declaration_kind: Concrete,
-                },
-                statements: [
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "another_prop",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: CallStatement {
-                            operator: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__get_myProp",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            parameters: None,
-                        },
-                    },
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__get_another_prop",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "another_prop",
-                                },
-                            ),
-                            base: None,
-                        },
-                    },
-                ],
-                location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 14,
-                            column: 19,
-                            offset: 325,
-                        }..TextLocation {
-                            line: 14,
-                            column: 31,
-                            offset: 337,
-                        },
-                    ),
-                },
-                name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 14,
-                            column: 19,
-                            offset: 325,
-                        }..TextLocation {
-                            line: 14,
-                            column: 31,
-                            offset: 337,
-                        },
-                    ),
-                },
-                end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 17,
-                            column: 12,
-                            offset: 411,
-                        }..TextLocation {
-                            line: 17,
-                            column: 19,
-                            offset: 418,
-                        },
-                    ),
-                },
-                overriding: false,
-                generic: false,
-                access: Some(
-                    Public,
-                ),
-            },
-            Implementation {
-                name: "fb.__set_another_prop",
-                type_name: "fb.__set_another_prop",
-                linkage: Internal,
-                pou_type: Method {
-                    parent: "fb",
-                    property: Some(
-                        "fb.another_prop",
-                    ),
-                    declaration_kind: Concrete,
-                },
-                statements: [
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "another_prop",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__in",
-                                },
-                            ),
-                            base: None,
-                        },
-                    },
-                ],
-                location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 14,
-                            column: 19,
-                            offset: 325,
-                        }..TextLocation {
-                            line: 14,
-                            column: 31,
-                            offset: 337,
-                        },
-                    ),
-                },
-                name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 14,
-                            column: 19,
-                            offset: 325,
-                        }..TextLocation {
-                            line: 14,
-                            column: 31,
-                            offset: 337,
-                        },
-                    ),
-                },
-                end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 19,
-                            column: 12,
-                            offset: 447,
-                        }..TextLocation {
-                            line: 19,
-                            column: 19,
-                            offset: 454,
-                        },
-                    ),
-                },
-                overriding: false,
-                generic: false,
-                access: Some(
-                    Public,
-                ),
-            },
-        ]
-        "###);
-    }
+        #[test]
+        fn get_is_lowered_to_method_with_local_variable_and_tail_return_statement() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET
+                    END_GET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+            ";
 
-    #[test]
-    fn properties_are_patched_with_function_calls() {
-        let source = r"
-        FUNCTION_BLOCK fb
-          VAR
-            foo : DINT;
-          END_VAR
-          PROPERTY myProp: DINT
-            GET
-              myProp := foo;
-            END_GET
-            SET
-              foo := myProp;
-            END_SET
-          END_PROPERTY
-        printf('%d', myProp);
-        END_FUNCTION_BLOCK
-        ";
-
-        let unit = lower(source);
-        insta::assert_debug_snapshot!(unit.implementations, @r###"
-        [
-            Implementation {
-                name: "fb",
-                type_name: "fb",
-                linkage: Internal,
-                pou_type: FunctionBlock,
-                statements: [
-                    CallStatement {
-                        operator: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "printf",
+            let (unit, _) = lower_properties_to_pous(source);
+            insta::assert_debug_snapshot!(unit.units[1], @r###"
+            POU {
+                name: "fb.__get_foo",
+                variable_blocks: [
+                    VariableBlock {
+                        variables: [
+                            Variable {
+                                name: "foo",
+                                data_type: DataTypeReference {
+                                    referenced_type: "DINT",
                                 },
-                            ),
-                            base: None,
-                        },
-                        parameters: Some(
-                            ExpressionList {
-                                expressions: [
-                                    LiteralString {
-                                        value: "%d",
-                                        is_wide: false,
-                                    },
-                                    CallStatement {
-                                        operator: ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "__get_myProp",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                        parameters: None,
-                                    },
-                                ],
                             },
+                        ],
+                        variable_block_type: Local,
+                    },
+                ],
+                pou_type: Method {
+                    parent: "fb",
+                    declaration_kind: Concrete,
+                },
+                return_type: Some(
+                    DataTypeReference {
+                        referenced_type: "DINT",
+                    },
+                ),
+                interfaces: [],
+            }
+            "###);
+
+            let return_statement = &unit.implementations[1].statements[0];
+            insta::assert_debug_snapshot!(return_statement, @r#"
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__get_foo",
+                        },
+                    ),
+                    base: None,
+                },
+                right: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+            }
+            "#);
+        }
+
+        #[test]
+        fn set_is_lowered_to_method_with_local_variable_of_type_input() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    SET
+                    END_SET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+            ";
+
+            let (unit, _) = lower_properties_to_pous(source);
+            insta::assert_debug_snapshot!(unit.units[1], @r###"
+            POU {
+                name: "fb.__set_foo",
+                variable_blocks: [
+                    VariableBlock {
+                        variables: [
+                            Variable {
+                                name: "foo",
+                                data_type: DataTypeReference {
+                                    referenced_type: "DINT",
+                                },
+                            },
+                        ],
+                        variable_block_type: Input(
+                            ByVal,
                         ),
                     },
                 ],
-                location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 13,
-                            column: 8,
-                            offset: 276,
-                        }..TextLocation {
-                            line: 13,
-                            column: 29,
-                            offset: 297,
-                        },
-                    ),
-                },
-                name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 1,
-                            column: 23,
-                            offset: 24,
-                        }..TextLocation {
-                            line: 1,
-                            column: 25,
-                            offset: 26,
-                        },
-                    ),
-                },
-                end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 14,
-                            column: 8,
-                            offset: 306,
-                        }..TextLocation {
-                            line: 14,
-                            column: 26,
-                            offset: 324,
-                        },
-                    ),
-                },
-                overriding: false,
-                generic: false,
-                access: None,
-            },
-            Implementation {
-                name: "fb.__get_myProp",
-                type_name: "fb.__get_myProp",
-                linkage: Internal,
                 pou_type: Method {
                     parent: "fb",
-                    property: Some(
-                        "fb.myProp",
-                    ),
                     declaration_kind: Concrete,
                 },
-                statements: [
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "myProp",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo",
-                                },
-                            ),
-                            base: None,
-                        },
-                    },
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__get_myProp",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "myProp",
-                                },
-                            ),
-                            base: None,
-                        },
-                    },
-                ],
-                location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 19,
-                            offset: 102,
-                        }..TextLocation {
-                            line: 5,
-                            column: 25,
-                            offset: 108,
-                        },
-                    ),
-                },
-                name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 19,
-                            offset: 102,
-                        }..TextLocation {
-                            line: 5,
-                            column: 25,
-                            offset: 108,
-                        },
-                    ),
-                },
-                end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 8,
-                            column: 12,
-                            offset: 172,
-                        }..TextLocation {
-                            line: 8,
-                            column: 19,
-                            offset: 179,
-                        },
-                    ),
-                },
-                overriding: false,
-                generic: false,
-                access: Some(
-                    Public,
-                ),
-            },
-            Implementation {
-                name: "fb.__set_myProp",
-                type_name: "fb.__set_myProp",
-                linkage: Internal,
-                pou_type: Method {
-                    parent: "fb",
-                    property: Some(
-                        "fb.myProp",
-                    ),
-                    declaration_kind: Concrete,
-                },
-                statements: [
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "myProp",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__in",
-                                },
-                            ),
-                            base: None,
-                        },
-                    },
-                    Assignment {
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "myProp",
-                                },
-                            ),
-                            base: None,
-                        },
-                    },
-                ],
-                location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 19,
-                            offset: 102,
-                        }..TextLocation {
-                            line: 5,
-                            column: 25,
-                            offset: 108,
-                        },
-                    ),
-                },
-                name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 19,
-                            offset: 102,
-                        }..TextLocation {
-                            line: 5,
-                            column: 25,
-                            offset: 108,
-                        },
-                    ),
-                },
-                end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 11,
-                            column: 12,
-                            offset: 237,
-                        }..TextLocation {
-                            line: 11,
-                            column: 19,
-                            offset: 244,
-                        },
-                    ),
-                },
-                overriding: false,
-                generic: false,
-                access: Some(
-                    Public,
-                ),
-            },
-        ]
-        "###);
-    }
-
-    #[test]
-    fn properties_are_lowered_into_methods() {
-        let source = r"
-        FUNCTION_BLOCK fb
-            VAR
-                localPrivateVariable : DINT;
-            END_VAR
-
-            PROPERTY foo : DINT
-                GET
-                    foo := 5;
-                END_GET
-
-                SET
-                    localPrivateVariable := foo;
-                END_SET
-            END_PROPERTY
-
-            PROPERTY bar : DINT
-                GET
-                    bar := 5;
-                END_GET
-
-                SET
-                    localPrivateVariable := bar;
-                END_SET
-            END_PROPERTY
-        END_FUNCTION_BLOCK
-    ";
-
-        let unit = lower(source);
-        insta::assert_debug_snapshot!(unit.units[1], @r#"
-        POU {
-            name: "fb.__get_foo",
-            variable_blocks: [],
-            pou_type: Method {
-                parent: "fb",
-                property: Some(
-                    "fb.foo",
-                ),
-                declaration_kind: Concrete,
-            },
-            return_type: Some(
-                DataTypeReference {
-                    referenced_type: "DINT",
-                },
-            ),
-            interfaces: [],
+                return_type: None,
+                interfaces: [],
+            }
+            "###);
         }
-        "#);
 
-        insta::assert_debug_snapshot!(unit.units[2], @r#"
-        POU {
-            name: "fb.__set_foo",
-            variable_blocks: [
+        #[test]
+        fn get_and_set_retains_original_statements_in_body() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET
+                        foo := 1;
+                        foo := 2;
+                        foo := 3;
+                        foo := 4;
+                        foo := 5;
+                    END_GET
+
+                    SET
+                        foo := 1;
+                        foo := 2;
+                        foo := 3;
+                        foo := 4;
+                        foo := 5;
+                    END_SET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+            ";
+
+            let unit = lower(source);
+            assert_eq!(unit.implementations.len(), 3);
+
+            assert_eq!(unit.implementations[1].statements.len(), 6); // 5 assignments + 1 internal assignment (return statement)
+            assert_eq!(unit.implementations[2].statements.len(), 5); // 5 assignments
+        }
+
+        #[test]
+        fn get_and_set_retains_original_variable_blocks() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET
+                        VAR
+                            a, b, c : DINT;
+                        END_VAR
+                    END_GET
+
+                    SET
+                        VAR
+                            d, e, f : DINT;
+                        END_VAR
+                    END_SET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+            ";
+
+            let unit = lower(source);
+            assert_eq!(unit.units[1].name, "fb.__get_foo");
+            insta::assert_debug_snapshot!(unit.units[1].variable_blocks, @r###"
+            [
                 VariableBlock {
                     variables: [
                         Variable {
-                            name: "__in",
+                            name: "a",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                        Variable {
+                            name: "b",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                        Variable {
+                            name: "c",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "foo",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+            ]
+            "###);
+
+            assert_eq!(unit.units[2].name, "fb.__set_foo");
+            insta::assert_debug_snapshot!(unit.units[2].variable_blocks, @r###"
+            [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "d",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                        Variable {
+                            name: "e",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                        Variable {
+                            name: "f",
+                            data_type: DataTypeReference {
+                                referenced_type: "DINT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "foo",
                             data_type: DataTypeReference {
                                 referenced_type: "DINT",
                             },
@@ -1260,33 +624,457 @@ mod tests {
                         ByVal,
                     ),
                 },
-            ],
-            pou_type: Method {
-                parent: "fb",
-                property: Some(
-                    "fb.foo",
-                ),
-                declaration_kind: Concrete,
-            },
-            return_type: None,
-            interfaces: [],
+            ]
+            "###);
         }
-        "#);
 
-        assert_eq!(unit.implementations.len(), 5);
-        insta::assert_debug_snapshot!(unit.implementations[1], @r###"
-        Implementation {
-            name: "fb.__get_foo",
-            type_name: "fb.__get_foo",
-            linkage: Internal,
-            pou_type: Method {
-                parent: "fb",
-                property: Some(
-                    "fb.foo",
-                ),
-                declaration_kind: Concrete,
-            },
-            statements: [
+        #[test]
+        fn multiple_properties_defined_in_pou_are_lowered_to_methods() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                VAR
+                    localPrivateVariable : DINT;
+                END_VAR
+
+                PROPERTY foo : DINT
+                    GET END_GET
+                    SET END_SET
+                END_PROPERTY
+
+                PROPERTY bar : DINT
+                    GET END_GET
+                    SET END_SET
+                END_PROPERTY
+
+                PROPERTY baz : DINT
+                    GET END_GET
+                    SET END_SET
+                END_PROPERTY
+
+                PROPERTY qux : DINT
+                    GET END_GET
+                    SET END_SET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+            ";
+
+            let unit = lower(source);
+
+            // No need to snapshot test here, we did plenty before this one
+            assert_eq!(unit.units.len(), 9);
+            assert_eq!(unit.units[0].name, "fb");
+            assert_eq!(unit.units[1].name, "fb.__get_foo");
+            assert_eq!(unit.units[2].name, "fb.__set_foo");
+            assert_eq!(unit.units[3].name, "fb.__get_bar");
+            assert_eq!(unit.units[4].name, "fb.__set_bar");
+            assert_eq!(unit.units[5].name, "fb.__get_baz");
+            assert_eq!(unit.units[6].name, "fb.__set_baz");
+            assert_eq!(unit.units[7].name, "fb.__get_qux");
+            assert_eq!(unit.units[8].name, "fb.__set_qux");
+        }
+
+        #[test]
+        fn property_self_assignment() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET END_GET
+                    SET END_SET
+                END_PROPERTY
+
+                foo := foo;
+            END_FUNCTION_BLOCK
+            ";
+
+            let unit = super::lower(source);
+            insta::assert_debug_snapshot!(unit.implementations[0].statements, @r###"
+            [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__set_foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__get_foo",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: None,
+                        },
+                    ),
+                },
+            ]
+            "###);
+        }
+    }
+
+    mod resolver {
+        use plc_ast::{
+            ast::{Assignment, AstNode, BinaryExpression, CallStatement, ReferenceAccess, ReferenceExpr},
+            try_from,
+        };
+
+        use crate::resolver::{AnnotationMap, StatementAnnotation};
+
+        #[test]
+        fn properties_in_assignments_are_annotated() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                VAR
+                    foo : DINT;
+                END_VAR
+
+                PROPERTY myProp: DINT
+                    GET END_GET
+                    SET END_SET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : fb;
+                    tmp : DINT;
+                END_VAR
+
+                instance.myProp := 5;
+                tmp := instance.myProp;
+            END_FUNCTION
+            ";
+
+            let (unit, annotations) = super::lower_properties_to_pous(source);
+
+            let implementation = &unit.implementations[1];
+            let setter = &implementation.statements[0];
+            let getter = &implementation.statements[1];
+
+            let Assignment { left, .. } = try_from!(setter, Assignment).unwrap();
+            assert_eq!(
+                annotations.get(left).unwrap(),
+                &StatementAnnotation::Property { name: "__set_myProp".to_string() }
+            );
+
+            let Assignment { right, .. } = try_from!(getter, Assignment).unwrap();
+            assert_eq!(
+                annotations.get(right).unwrap(),
+                &StatementAnnotation::Property { name: "__get_myProp".to_string() }
+            );
+        }
+
+        #[test]
+        fn lone_reference_is_annotated() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET END_GET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : fb;
+                END_VAR
+
+                instance.foo;
+            END_FUNCTION
+            ";
+
+            let (unit, annotations) = super::lower_properties_to_pous(source);
+            assert_eq!(
+                annotations.get(&unit.implementations[1].statements[0]),
+                Some(&StatementAnnotation::Property { name: "__get_foo".to_string() })
+            );
+        }
+
+        #[test]
+        fn lone_reference_inside_declaring_container_is_annotated() {
+            let source = r"
+            FUNCTION_BLOCK A
+                PROPERTY sayCheese : DINT
+                    GET
+                        printf('Cheese');
+                    END_GET
+                END_PROPERTY
+
+                sayCheese;
+            END_FUNCTION_BLOCK
+            ";
+
+            let (unit, annotations) = super::lower_properties_to_pous(source);
+            assert_eq!(
+                annotations.get(&unit.implementations[0].statements[0]).unwrap(),
+                &StatementAnnotation::Property { name: "__get_sayCheese".to_string() }
+            );
+        }
+
+        #[test]
+        fn reference_as_argument_is_annoated() {
+            let source = r"
+            FUNCTION func : DINT
+                VAR_INPUT
+                    a : STRING;
+                END_VAR
+
+                VAR_OUTPUT
+                    b : STRING;
+                END_VAR
+
+                VAR_IN_OUT
+                    c : STRING;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION_BLOCK fb
+                PROPERTY foo : STRING
+                    GET END_GET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : fb;
+                END_VAR
+                
+                func(instance.foo, instance.foo, instance.foo);
+                func(a := instance.foo, b => instance.foo, c := instance.foo);
+            END_FUNCTION
+            ";
+
+            let (unit, annotations) = super::lower_properties_to_pous(source);
+            let implementation = &unit.implementations[2];
+
+            let reference = &implementation.statements[0];
+            let CallStatement { parameters, .. } = try_from!(reference, CallStatement).unwrap();
+            let parameters = try_from!(parameters.as_ref().unwrap(), Vec<AstNode>).unwrap();
+
+            for idx in 0..=2 {
+                assert_eq!(
+                    annotations.get(&parameters[idx]).unwrap(),
+                    &StatementAnnotation::Property { name: "__get_foo".to_string() }
+                );
+            }
+
+            let reference = &implementation.statements[1];
+            let CallStatement { parameters, .. } = try_from!(reference, CallStatement).unwrap();
+            let parameters = try_from!(parameters.as_ref().unwrap(), Vec<AstNode>).unwrap();
+
+            for idx in 0..=2 {
+                let Assignment { right, .. } = try_from!(parameters[idx], Assignment).unwrap();
+                assert_eq!(
+                    annotations.get(right).unwrap(),
+                    &StatementAnnotation::Property { name: "__get_foo".to_string() }
+                );
+            }
+        }
+
+        #[test]
+        fn reference_as_vararg_argument_is_annotated() {
+            let source = r"
+            FUNCTION printf : DINT
+                VAR_INPUT {ref}
+                    format : STRING;
+                END_VAR
+
+                VAR_INPUT
+                    args : ...;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET END_GET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : fb;
+                END_VAR
+                
+                printf('%d$N', instance.foo);
+            END_FUNCTION
+            ";
+
+            let (unit, annotations) = super::lower_properties_to_pous(source);
+            let implementation = &unit.implementations[2];
+            let reference = &implementation.statements[0];
+
+            let CallStatement { parameters, .. } = try_from!(reference, CallStatement).unwrap();
+            let parameters = try_from!(parameters.as_ref().unwrap(), Vec<AstNode>).unwrap();
+
+            assert_eq!(
+                annotations.get(&parameters[1]).unwrap(),
+                &StatementAnnotation::Property { name: "__get_foo".to_string() }
+            );
+        }
+
+        #[test]
+        fn reference_as_array_index_is_annotated() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET END_GET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : fb;
+                    arr : ARRAY[1..5] OF DINT;
+                END_VAR
+                
+                arr[instance.foo];
+                arr[instance.foo + 1] := arr[instance.foo];
+            END_FUNCTION
+            ";
+
+            let (unit, annotations) = super::lower_properties_to_pous(source);
+            let implementation = &unit.implementations[1];
+            let reference = &implementation.statements[0];
+
+            // arr[instance.foo]
+            //     ^^^^^^^^^^^^
+            let ReferenceExpr { access, .. } = try_from!(reference, ReferenceExpr).unwrap();
+            let ReferenceAccess::Index(index) = access else { unreachable!() };
+            let ReferenceExpr { access, .. } = try_from!(index, ReferenceExpr).unwrap();
+            let ReferenceAccess::Member(ident) = access else { unreachable!() };
+
+            assert_eq!(
+                annotations.get(ident).unwrap(),
+                &StatementAnnotation::Property { name: "__get_foo".to_string() }
+            );
+
+            // arr[instance.foo + 1] := arr[instance.foo]
+            //     ^^^^^^^^^^^^
+            let Assignment { left, right } = try_from!(implementation.statements[1], Assignment).unwrap();
+            let ReferenceExpr { access, .. } = try_from!(left, ReferenceExpr).unwrap();
+            let ReferenceAccess::Index(index) = access else { unreachable!() };
+            let BinaryExpression { left, .. } = try_from!(index, BinaryExpression).unwrap();
+            let ReferenceExpr { access, .. } = try_from!(left, ReferenceExpr).unwrap();
+            let ReferenceAccess::Member(ident) = access else { unreachable!() };
+
+            assert_eq!(
+                annotations.get(ident).unwrap(),
+                &StatementAnnotation::Property { name: "__get_foo".to_string() }
+            );
+
+            // arr[instance.foo + 1] := arr[instance.foo]
+            //                              ^^^^^^^^^^^^
+            let ReferenceExpr { access, .. } = try_from!(right, ReferenceExpr).unwrap();
+            let ReferenceAccess::Index(index) = access else { unreachable!() };
+            let ReferenceExpr { access, .. } = try_from!(index, ReferenceExpr).unwrap();
+            let ReferenceAccess::Member(ident) = access else { unreachable!() };
+
+            assert_eq!(
+                annotations.get(ident).unwrap(),
+                &StatementAnnotation::Property { name: "__get_foo".to_string() }
+            );
+        }
+
+        #[test]
+        fn reference_as_argument_as_array_index_is_annotated() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : ARRAY[1..5] OF STRING
+                    GET
+                        foo := ['a', 'b', 'c', 'd', 'e'];
+                    END_GET
+                END_PROPERTY
+
+                PROPERTY bar : DINT
+                    GET
+                        bar := 5;
+                    END_GET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : fb;
+                END_VAR
+
+                // We expect `instance.__get_foo()[instance.__get_bar()]`
+                printf('%s$N', REF(instance.foo[instance.bar]));
+            END_FUNCTION
+            ";
+
+            let (unit, annotations) = super::lower_properties_to_pous(source);
+            let printf = &unit.implementations[1].statements[0];
+
+            // printf(...)
+            let CallStatement { parameters, .. } = try_from!(printf, CallStatement).unwrap();
+            let arguments = try_from!(parameters.as_ref().unwrap(), Vec<AstNode>).unwrap();
+
+            // REF(instance.foo[instance.bar])
+            //     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+            let CallStatement { parameters, .. } = try_from!(arguments[1], CallStatement).unwrap();
+            let ReferenceExpr { access, base } =
+                try_from!(parameters.as_ref().unwrap(), ReferenceExpr).unwrap();
+
+            // instance.foo[instance.bar]
+            // ^^^^^^^^^^^^
+            let ReferenceExpr { access: access_lhs, .. } =
+                try_from!(base.as_ref().unwrap(), ReferenceExpr).unwrap();
+            let ReferenceAccess::Member(ident) = access_lhs else { unreachable!() };
+            assert_eq!(
+                annotations.get(ident).unwrap(),
+                &StatementAnnotation::Property { name: "__get_foo".to_string() }
+            );
+
+            // instance.foo[instance.bar]
+            //              ^^^^^^^^^^^^
+            let ReferenceAccess::Index(index) = access else { unreachable!() };
+            let ReferenceExpr { access, .. } = try_from!(index, ReferenceExpr).unwrap();
+            let ReferenceAccess::Member(ident) = access else { unreachable!() };
+            assert_eq!(
+                annotations.get(ident).unwrap(),
+                &StatementAnnotation::Property { name: "__get_bar".to_string() }
+            );
+        }
+
+        #[test]
+        fn property_variable_is_not_lowered_inside_own_block() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET
+                        // This should not be expanded into `__get_foo()`
+                        foo;
+
+                        // Similarly this should not be expanded into `__set_foo(5)`
+                        foo := 5;
+                    END_GET
+
+                    SET
+                        // Same as above
+                        foo;
+                        foo := 5;
+                    END_SET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+            ";
+
+            let (unit, _) = super::lower_properties_to_pous(source);
+
+            let get = &unit.implementations[1];
+            insta::assert_debug_snapshot!(get.statements[0..2], @r###"
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
@@ -1300,85 +1088,20 @@ mod tests {
                         value: 5,
                     },
                 },
-                Assignment {
-                    left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__get_foo",
-                            },
-                        ),
-                        base: None,
-                    },
-                    right: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "foo",
-                            },
-                        ),
-                        base: None,
-                    },
-                },
-            ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 6,
-                        column: 21,
-                        offset: 130,
-                    }..TextLocation {
-                        line: 6,
-                        column: 24,
-                        offset: 133,
-                    },
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 6,
-                        column: 21,
-                        offset: 130,
-                    }..TextLocation {
-                        line: 6,
-                        column: 24,
-                        offset: 133,
-                    },
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 9,
-                        column: 16,
-                        offset: 207,
-                    }..TextLocation {
-                        line: 9,
-                        column: 23,
-                        offset: 214,
-                    },
-                ),
-            },
-            overriding: false,
-            generic: false,
-            access: Some(
-                Public,
-            ),
-        }
-        "###);
+            ]
+            "###);
 
-        insta::assert_debug_snapshot!(unit.implementations[2], @r###"
-        Implementation {
-            name: "fb.__set_foo",
-            type_name: "fb.__set_foo",
-            linkage: Internal,
-            pou_type: Method {
-                parent: "fb",
-                property: Some(
-                    "fb.foo",
-                ),
-                declaration_kind: Concrete,
-            },
-            statements: [
+            let set = &unit.implementations[2];
+            insta::assert_debug_snapshot!(set.statements, @r###"
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
@@ -1388,313 +1111,66 @@ mod tests {
                         ),
                         base: None,
                     },
-                    right: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__in",
-                            },
-                        ),
-                        base: None,
+                    right: LiteralInteger {
+                        value: 5,
                     },
                 },
-                Assignment {
-                    left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "localPrivateVariable",
-                            },
-                        ),
-                        base: None,
-                    },
-                    right: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "foo",
-                            },
-                        ),
-                        base: None,
-                    },
-                },
-            ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 6,
-                        column: 21,
-                        offset: 130,
-                    }..TextLocation {
-                        line: 6,
-                        column: 24,
-                        offset: 133,
-                    },
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 6,
-                        column: 21,
-                        offset: 130,
-                    }..TextLocation {
-                        line: 6,
-                        column: 24,
-                        offset: 133,
-                    },
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 13,
-                        column: 16,
-                        offset: 301,
-                    }..TextLocation {
-                        line: 13,
-                        column: 23,
-                        offset: 308,
-                    },
-                ),
-            },
-            overriding: false,
-            generic: false,
-            access: Some(
-                Public,
-            ),
+            ]
+            "###);
         }
-        "###);
-    }
 
-    #[test]
-    fn getter_with_array_of_strings() {
-        let source = r"
-        FUNCTION_BLOCK fb
-            PROPERTY foo : ARRAY[1..5] OF STRING
-                GET
-                    foo := 5;
-                END_GET
+        #[test]
+        fn property_cross_referencing() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET END_GET
+                END_PROPERTY
 
-                SET
-                    localPrivateVariable := foo;
-                END_SET
-            END_PROPERTY
-        END_FUNCTION_BLOCK
+                PROPERTY bar : DINT
+                    GET
+                        foo;
+                    END_GET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+            ";
 
-        FUNCTION_BLOCK fb2 EXTENDS fb
-        END_FUNCTION_BLOCK
-
-        FUNCTION main
-            VAR
-                fbInstance : fb2;
-            END_VAR
-
-            fbInstance.foo[1];
-            printf('%s$N', REF(fbInstance.foo[1]));
-        END_FUNCTION
-        ";
-
-        // fbInstance.__get_foo()[1]
-        let unit = lower(source);
-        insta::assert_debug_snapshot!(unit.implementations[2].statements[0], @r###"
-        ReferenceExpr {
-            kind: Index(
-                LiteralInteger {
-                    value: 1,
-                },
-            ),
-            base: Some(
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__get_foo",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "fbInstance",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                    parameters: None,
-                },
-            ),
+            let (unit, annotations) = super::lower_properties_to_pous(source);
+            let reference = &unit.implementations[2].statements[0];
+            assert_eq!(
+                annotations.get(reference).unwrap(),
+                &StatementAnnotation::Property { name: "__get_foo".to_string() }
+            );
         }
-        "###);
-        insta::assert_debug_snapshot!(unit.implementations[2].statements[1], @r###"
-        CallStatement {
-            operator: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "printf",
-                    },
-                ),
-                base: None,
-            },
-            parameters: Some(
-                ExpressionList {
-                    expressions: [
-                        LiteralString {
-                            value: "%s\n",
-                            is_wide: false,
-                        },
-                        CallStatement {
-                            operator: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "REF",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            parameters: Some(
-                                ReferenceExpr {
-                                    kind: Index(
-                                        LiteralInteger {
-                                            value: 1,
-                                        },
-                                    ),
-                                    base: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "__get_foo",
-                                                    },
-                                                ),
-                                                base: Some(
-                                                    ReferenceExpr {
-                                                        kind: Member(
-                                                            Identifier {
-                                                                name: "fbInstance",
-                                                            },
-                                                        ),
-                                                        base: None,
-                                                    },
-                                                ),
-                                            },
-                                            parameters: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-            ),
+
+        #[test]
+        fn property_in_action() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY foo : DINT
+                    GET END_GET
+                    SET END_SET
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            ACTION fb.act
+                foo := foo;
+            END_ACTION
+
+            ";
+
+            let (unit, annotations) = super::lower_properties_to_pous(source);
+            let statement = &unit.implementations[1].statements[0];
+            let Assignment { left, right } = try_from!(statement, Assignment).unwrap();
+            assert_eq!(
+                annotations.get(left).unwrap(),
+                &StatementAnnotation::Property { name: "__set_foo".to_string() }
+            );
+
+            assert_eq!(
+                annotations.get(right).unwrap(),
+                &StatementAnnotation::Property { name: "__get_foo".to_string() }
+            )
         }
-        "###);
-    }
-
-    #[test]
-    fn getter_used_in_array_index() {
-        let source = r"
-        FUNCTION_BLOCK fb
-            PROPERTY foo : ARRAY[1..5] OF STRING
-                GET
-                    foo := ['a', 'b', 'c', 'd', 'e'];
-                END_GET
-            END_PROPERTY
-
-            PROPERTY bar : DINT
-                GET
-                    bar := 5;
-                END_GET
-            END_PROPERTY
-        END_FUNCTION_BLOCK
-
-        FUNCTION main
-            VAR
-                instance : fb;
-            END_VAR
-
-            // We expect `instance.__get_foo()[instance.__get_bar()]`
-            printf('%s$N', REF(instance.foo[instance.bar]));
-        END_FUNCTION
-        ";
-
-        // fbInstance.__get_foo()[1]
-        let unit = lower(source);
-        insta::assert_debug_snapshot!(unit.implementations[1].statements[0], @r###"
-        CallStatement {
-            operator: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "printf",
-                    },
-                ),
-                base: None,
-            },
-            parameters: Some(
-                ExpressionList {
-                    expressions: [
-                        LiteralString {
-                            value: "%s\n",
-                            is_wide: false,
-                        },
-                        CallStatement {
-                            operator: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "REF",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            parameters: Some(
-                                ReferenceExpr {
-                                    kind: Index(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "bar",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "instance",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                    base: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "__get_foo",
-                                                    },
-                                                ),
-                                                base: Some(
-                                                    ReferenceExpr {
-                                                        kind: Member(
-                                                            Identifier {
-                                                                name: "instance",
-                                                            },
-                                                        ),
-                                                        base: None,
-                                                    },
-                                                ),
-                                            },
-                                            parameters: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-            ),
-        }
-        "###);
     }
 }

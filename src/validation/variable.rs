@@ -1,6 +1,6 @@
 use plc_ast::ast::{
-    ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Pou, PouType, Variable,
-    VariableBlock, VariableBlockType,
+    ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Identifier, Pou, PouType,
+    Variable, VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 
@@ -263,21 +263,24 @@ fn validate_variable<T: AnnotationMap>(
             let Some(parent_pou) = context.index.find_pou(parent_pou) else {
                 break;
             };
+
             if let Some(shadowed_variable) = context
                 .index
                 .find_member(parent_pou.get_name(), variable.name.as_str())
                 .filter(|v| !v.is_temp())
+                .map(Identifier::from)
+                .or(parent_pou.get_property(&variable.name).cloned())
             {
                 (!variable.location.is_internal()).then(|| {
                     validator.push_diagnostic(
                         Diagnostic::new(format!(
                             "Variable `{}` is already declared in parent POU `{}`",
                             variable.get_name(),
-                            shadowed_variable.get_qualifier().unwrap_or_default()
+                            shadowed_variable.name
                         ))
                         .with_error_code("E021")
                         .with_location(&variable.location)
-                        .with_secondary_location(&shadowed_variable.source_location),
+                        .with_secondary_location(&shadowed_variable.location),
                     )
                 });
                 break;
