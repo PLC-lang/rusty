@@ -680,7 +680,10 @@ impl From<&PouIndexEntry> for SourceLocation {
 impl PouIndexEntry {
     pub fn get_property(&self, name: &str) -> Option<&Identifier> {
         match self {
-            PouIndexEntry::FunctionBlock { properties, .. } => properties.get(name),
+            PouIndexEntry::Program { properties, .. }
+            | PouIndexEntry::FunctionBlock { properties, .. }
+            | PouIndexEntry::Class { properties, .. } => properties.get(name),
+
             _ => None,
         }
     }
