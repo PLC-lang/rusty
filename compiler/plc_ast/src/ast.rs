@@ -55,9 +55,10 @@ pub struct Pou {
 pub struct Interface {
     pub id: AstId,
     pub identifier: Identifier,
-    pub methods: Vec<Pou>,
     pub location: SourceLocation,
+    pub methods: Vec<Pou>,
     pub extensions: Vec<Identifier>,
+    pub properties: Vec<PropertyBlock>,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
@@ -74,7 +75,6 @@ pub struct PropertyBlock {
     pub implementations: Vec<PropertyImplementation>,
 }
 
-/// The declaration and implementation of a properties accessor (GET or SET)
 #[derive(Debug, PartialEq, Clone)]
 pub struct PropertyImplementation {
     pub kind: PropertyKind,
@@ -84,7 +84,7 @@ pub struct PropertyImplementation {
     pub end_location: SourceLocation,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum PropertyKind {
     Get,
     Set,
@@ -352,6 +352,9 @@ pub enum PouType {
     Method {
         /// The parent of this method, i.e. a function block, class or an interface
         parent: String,
+
+        /// The property name (pre-mangled) and its type, if the method originated from a property
+        property: Option<(String, PropertyKind)>,
 
         declaration_kind: DeclarationKind,
     },
@@ -1379,8 +1382,12 @@ mod tests {
         assert_eq!(PouType::Action.to_string(), "Action");
         assert_eq!(PouType::Class.to_string(), "Class");
         assert_eq!(
-            PouType::Method { parent: String::new(), declaration_kind: DeclarationKind::Concrete }
-                .to_string(),
+            PouType::Method {
+                parent: String::new(),
+                property: None,
+                declaration_kind: DeclarationKind::Concrete
+            }
+            .to_string(),
             "Method"
         );
     }

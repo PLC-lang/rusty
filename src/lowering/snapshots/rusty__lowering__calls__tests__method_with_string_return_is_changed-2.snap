@@ -1,7 +1,6 @@
 ---
 source: src/lowering/calls.rs
 expression: "lowerer.index.unwrap().find_pou_type(\"fb.complexMethod\").unwrap()"
-snapshot_kind: text
 ---
 DataType {
     name: "fb.complexMethod",
@@ -44,6 +43,7 @@ DataType {
         source: Pou(
             Method {
                 parent: "fb",
+                property: None,
                 declaration_kind: Concrete,
             },
         ),
