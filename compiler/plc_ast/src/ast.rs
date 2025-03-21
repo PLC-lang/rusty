@@ -75,7 +75,6 @@ pub struct PropertyBlock {
     pub implementations: Vec<PropertyImplementation>,
 }
 
-/// The declaration and implementation of a properties accessor (GET or SET)
 #[derive(Debug, PartialEq, Clone)]
 pub struct PropertyImplementation {
     pub kind: PropertyKind,
@@ -89,6 +88,18 @@ pub struct PropertyImplementation {
 pub enum PropertyKind {
     Get,
     Set,
+}
+
+impl From<&PropertyBlock> for Variable {
+    fn from(value: &PropertyBlock) -> Self {
+        Variable {
+            name: value.name.name.clone(),
+            data_type_declaration: value.return_type.clone(),
+            initializer: None,
+            address: None,
+            location: value.name.location.clone(),
+        }
+    }
 }
 
 impl std::fmt::Display for PropertyKind {

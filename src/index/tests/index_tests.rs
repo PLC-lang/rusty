@@ -7,6 +7,7 @@ use plc_ast::ast::{
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 use pretty_assertions::assert_eq;
+use rustc_hash::FxHashMap;
 
 use crate::index::{ArgumentType, PouIndexEntry, VariableIndexEntry};
 use crate::parser::tests::literal_int;
@@ -1352,6 +1353,7 @@ fn a_program_pou_is_indexed() {
             instance_struct_name: "myProgram".into(),
             linkage: LinkageType::Internal,
             location: source_location_factory.create_range(17..26),
+            properties: FxHashMap::default(),
 
             instance_variable: Box::new(VariableIndexEntry {
                 name: "myProgram_instance".into(),
@@ -1393,6 +1395,7 @@ fn a_program_pou_is_indexed() {
             location: source_location_factory.create_range(139..154),
             super_class: None,
             interfaces: vec![],
+            properties: FxHashMap::default(),
         }),
         index.find_pou("myFunctionBlock"),
     );
@@ -1405,6 +1408,7 @@ fn a_program_pou_is_indexed() {
             location: source_location_factory.create_range(197..204),
             super_class: None,
             interfaces: vec![],
+            properties: FxHashMap::default(),
         }),
         index.find_pou("myClass"),
     );
