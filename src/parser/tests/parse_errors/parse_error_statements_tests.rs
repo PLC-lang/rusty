@@ -193,7 +193,7 @@ fn invalid_variable_name_error_recovery() {
         ";
 
     let (cu, diagnostics) = parse_buffered(src);
-    let pou = &cu.units[0];
+    let pou = &cu.pous[0];
     assert_eq!(
         format!("{:#?}", pou.variable_blocks[0]),
         format!(
@@ -235,7 +235,7 @@ fn invalid_variable_data_type_error_recovery() {
         ";
 
     let (cu, diagnostics) = parse_buffered(src);
-    let pou = &cu.units[0];
+    let pou = &cu.pous[0];
     assert_eq!(
         format!("{:#?}", pou.variable_blocks[0]),
         r#"VariableBlock {

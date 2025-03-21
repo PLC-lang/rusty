@@ -421,7 +421,7 @@ impl WalkerMut for CompilationUnit {
             visitor.visit_user_type_declaration(user_type);
         }
 
-        for pou in &mut self.units {
+        for pou in &mut self.pous {
             visitor.visit_pou(pou);
         }
 

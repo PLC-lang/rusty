@@ -53,7 +53,7 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
     assert!(index.find_pou("__init_foo").is_some());
 
     let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
-    let init_foo_unit = &units[1].units[0];
+    let init_foo_unit = &units[1].pous[0];
 
     assert_debug_snapshot!(init_foo_unit, @r###"
     POU {
@@ -336,7 +336,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
 
     let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
 
-    let init = &units[2].units[0];
+    let init = &units[2].pous[0];
     assert_debug_snapshot!(init, @r###"
     POU {
         name: "__init___testproject",

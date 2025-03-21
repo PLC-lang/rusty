@@ -16,7 +16,7 @@ use rustc_hash::FxHashSet;
 #[test]
 fn empty_returns_empty_compilation_unit() {
     let (result, ..) = parse("");
-    assert_eq!(result.units.len(), 0);
+    assert_eq!(result.pous.len(), 0);
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn exponent_literals_parsed_as_variables() {
 
     let (parse_result, diagnostics) = parse(src);
 
-    let pou = &parse_result.units[0];
+    let pou = &parse_result.pous[0];
     assert_debug_snapshot!(pou);
     let implementation = &parse_result.implementations[0];
     assert_debug_snapshot!(implementation);

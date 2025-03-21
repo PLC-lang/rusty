@@ -138,7 +138,7 @@ fn typed_inline_enum_with_initial_values_can_be_parsed() {
         END_PROGRAM
         "#,
     );
-    insta::assert_debug_snapshot!(result.units[0]);
+    insta::assert_debug_snapshot!(result.pous[0]);
 }
 
 #[test]

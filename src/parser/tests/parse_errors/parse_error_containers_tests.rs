@@ -138,7 +138,7 @@ fn unclosed_var_container() {
     assert_snapshot!(diagnostics);
 
     //check if b was parsed successfully
-    let var_block = &compilation_unit.units[0].variable_blocks[0];
+    let var_block = &compilation_unit.pous[0].variable_blocks[0];
     assert_debug_snapshot!(var_block)
 }
 

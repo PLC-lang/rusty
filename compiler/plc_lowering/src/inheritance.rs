@@ -275,7 +275,7 @@ mod units_tests {
         .into();
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
-        let unit = &project.units[0].get_unit().units[1];
+        let unit = &project.units[0].get_unit().pous[1];
         assert_debug_snapshot!(unit, @r###"
         POU {
             name: "bar",
@@ -2006,7 +2006,7 @@ mod units_tests {
         .into();
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
-        let unit = &project.units[0].get_unit().units[2];
+        let unit = &project.units[0].get_unit().pous[2];
         assert_debug_snapshot!(unit, @r###"
         POU {
             name: "child",
@@ -2094,7 +2094,7 @@ mod units_tests {
         .into();
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
-        let unit = &project.units[0].get_unit().units[3];
+        let unit = &project.units[0].get_unit().pous[3];
         assert_debug_snapshot!(unit, @r#"
         POU {
             name: "child.foo",

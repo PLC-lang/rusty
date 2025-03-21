@@ -305,7 +305,7 @@ fn reference_to_dint_declaration() {
     );
 
     assert!(diagnostics.is_empty());
-    insta::assert_debug_snapshot!(result.units[0].variable_blocks[0], @r###"
+    insta::assert_debug_snapshot!(result.pous[0].variable_blocks[0], @r###"
     VariableBlock {
         variables: [
             Variable {
@@ -353,7 +353,7 @@ fn reference_to_string_declaration() {
     );
 
     assert!(diagnostics.is_empty());
-    insta::assert_debug_snapshot!(result.units[0].variable_blocks[0], @r###"
+    insta::assert_debug_snapshot!(result.pous[0].variable_blocks[0], @r###"
     VariableBlock {
         variables: [
             Variable {
@@ -389,7 +389,7 @@ fn aliasing_dint_variable() {
     );
 
     assert_eq!(diagnostics, vec![]);
-    insta::assert_debug_snapshot!(result.units[0].variable_blocks[0], @r###"
+    insta::assert_debug_snapshot!(result.pous[0].variable_blocks[0], @r###"
     VariableBlock {
         variables: [
             Variable {

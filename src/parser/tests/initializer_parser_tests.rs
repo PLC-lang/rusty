@@ -107,7 +107,7 @@ fn initial_scalar_values_can_be_parsed() {
 }"#;
     assert_eq!(expected, format!("{my_int_type:#?}").as_str());
 
-    let y = &parse_result.units[0].variable_blocks[0].variables[0];
+    let y = &parse_result.pous[0].variable_blocks[0].variables[0];
     let expected = r#"Variable {
     name: "y",
     data_type: DataTypeReference {
@@ -312,7 +312,7 @@ fn parenthesized_expression_within_array() {
         ",
     );
 
-    let member = &result.units[0].variable_blocks[0].variables[0];
+    let member = &result.pous[0].variable_blocks[0].variables[0];
     assert_debug_snapshot!(&member.initializer);
 }
 
@@ -328,7 +328,7 @@ fn array_initializer_in_pou_can_be_parsed() {
             "#,
     );
 
-    let member = &result.units[0].variable_blocks[0].variables[0];
+    let member = &result.pous[0].variable_blocks[0].variables[0];
     if let Some(initializer) = &member.initializer {
         let ast_string = format!("{initializer:#?}");
         let expected_ast = r#"LiteralArray {

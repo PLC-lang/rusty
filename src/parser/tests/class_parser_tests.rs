@@ -10,7 +10,7 @@ fn simple_class_with_defaults_can_be_parsed() {
     let src = "CLASS MyClass END_CLASS";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
     assert_eq!(class.name, "MyClass");
@@ -31,7 +31,7 @@ fn extends_can_be_parsed() {
     ";
     let unit = parse(src).0;
 
-    assert_eq!(&unit.units[1].super_class.as_ref().unwrap().name, "MyClass");
+    assert_eq!(&unit.pous[1].super_class.as_ref().unwrap().name, "MyClass");
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn simple_class_can_be_parsed() {
     let src = "CLASS ABSTRACT MyClass END_CLASS";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
     assert_eq!(class.name, "MyClass");
@@ -54,7 +54,7 @@ fn simple_class2_can_be_parsed() {
     let src = "CLASS FINAL MyClass2 END_CLASS";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
     assert_eq!(class.name, "MyClass2");
@@ -69,13 +69,13 @@ fn method_with_defaults_can_be_parsed() {
     let src = "CLASS MyClass METHOD testMethod END_METHOD END_CLASS";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 2);
 
-    let method_pou = &unit.units[1];
+    let method_pou = &unit.pous[1];
     assert_eq!(
         method_pou.kind,
         PouType::Method { parent: "MyClass".into(), declaration_kind: DeclarationKind::Concrete }
@@ -94,13 +94,13 @@ fn method_can_be_parsed() {
     let src = "CLASS MyClass METHOD INTERNAL FINAL OVERRIDE testMethod2 END_METHOD END_CLASS";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 2);
 
-    let method_pou = &unit.units[1];
+    let method_pou = &unit.pous[1];
     assert_eq!(
         method_pou.kind,
         PouType::Method { parent: "MyClass".into(), declaration_kind: DeclarationKind::Concrete }
@@ -119,7 +119,7 @@ fn two_methods_can_be_parsed() {
     let src ="CLASS MyClass METHOD INTERNAL testMethod2 END_METHOD METHOD PROTECTED otherMethod VAR_TEMP END_VAR END_METHOD END_CLASS";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
     // classes have implementation because they are treated as other POUs
@@ -139,10 +139,10 @@ fn method_with_return_type_can_be_parsed() {
     let src = "CLASS MyClass METHOD PRIVATE ABSTRACT OVERRIDE testMethod3 : SINT END_METHOD END_CLASS";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
-    let method_pou = &unit.units[1];
+    let method_pou = &unit.pous[1];
     assert_eq!(
         method_pou.kind,
         PouType::Method { parent: "MyClass".into(), declaration_kind: DeclarationKind::Concrete }
@@ -164,7 +164,7 @@ fn class_with_var_default_block() {
     let src = "CLASS MyClass VAR END_VAR END_CLASS";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
     // classes have implementation because they are treated as other POUs
@@ -184,7 +184,7 @@ fn class_with_var_non_retain_block() {
     let src = "CLASS MyClass VAR CONSTANT NON_RETAIN PUBLIC END_VAR END_CLASS";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
     // classes have implementation because they are treated as other POUs
@@ -204,7 +204,7 @@ fn class_with_var_retain_block() {
     let src = "CLASS MyClass VAR RETAIN INTERNAL END_VAR END_CLASS";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
     // classes have implementation because they are treated as other POUs
@@ -224,13 +224,13 @@ fn method_with_var_block() {
     let src = "CLASS MyClass METHOD testMethod3 VAR_TEMP END_VAR END_METHOD END_CLASS";
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 2);
 
-    let method_pou = &unit.units[1];
+    let method_pou = &unit.pous[1];
     let vblock = &method_pou.variable_blocks[0];
 
     assert_eq!(vblock.retain, false);
@@ -253,10 +253,10 @@ fn method_with_var_inout_blocks() {
             END_CLASS"#;
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Class);
 
-    let method_pou = &unit.units[1];
+    let method_pou = &unit.pous[1];
 
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 2);
@@ -285,13 +285,13 @@ fn fb_method_can_be_parsed() {
         "#;
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::FunctionBlock);
 
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 2);
 
-    let method_pou = &unit.units[1];
+    let method_pou = &unit.pous[1];
     assert_eq!(
         method_pou.kind,
         PouType::Method { parent: "MyFb".into(), declaration_kind: DeclarationKind::Concrete }
@@ -315,7 +315,7 @@ fn fb_two_methods_can_be_parsed() {
         "#;
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::FunctionBlock);
 
     // classes have implementation because they are treated as other POUs
@@ -339,10 +339,10 @@ fn fb_method_with_return_type_can_be_parsed() {
     "#;
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::FunctionBlock);
 
-    let method_pou = &unit.units[1];
+    let method_pou = &unit.pous[1];
     assert_eq!(
         method_pou.kind,
         PouType::Method { parent: "MyShinyFb".into(), declaration_kind: DeclarationKind::Concrete }
@@ -368,13 +368,13 @@ fn program_methods_can_be_parsed() {
     "#;
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Program);
 
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 2);
 
-    let method_pou = &unit.units[1];
+    let method_pou = &unit.pous[1];
     assert_eq!(
         method_pou.kind,
         PouType::Method { parent: "prog".into(), declaration_kind: DeclarationKind::Concrete }
@@ -398,7 +398,7 @@ fn program_two_methods_can_be_parsed() {
         "#;
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Program);
 
     // classes have implementation because they are treated as other POUs
@@ -422,10 +422,10 @@ fn program_method_with_return_type_can_be_parsed() {
     "#;
     let unit = parse(src).0;
 
-    let class = &unit.units[0];
+    let class = &unit.pous[0];
     assert_eq!(class.kind, PouType::Program);
 
-    let method_pou = &unit.units[1];
+    let method_pou = &unit.pous[1];
     assert_eq!(
         method_pou.kind,
         PouType::Method { parent: "prog".into(), declaration_kind: DeclarationKind::Concrete }
@@ -497,14 +497,14 @@ fn method_variable_blocks_can_be_parsed() {
     ";
 
     let (unit, _) = parse(src);
-    let fb_mthd = &unit.units[1];
+    let fb_mthd = &unit.pous[1];
     assert_eq!(fb_mthd.name, "fb.mthd".to_string());
     assert_eq!(
         fb_mthd.kind,
         PouType::Method { parent: "fb".into(), declaration_kind: DeclarationKind::Concrete }
     );
 
-    let prg_mthd = &unit.units[3];
+    let prg_mthd = &unit.pous[3];
     assert_eq!(prg_mthd.name, "prg.mthd".to_string());
     assert_eq!(
         prg_mthd.kind,
@@ -555,7 +555,7 @@ fn fb_extends_can_be_parsed() {
     "#;
     let unit = parse(src).0;
 
-    assert_eq!(&unit.units[1].super_class.as_ref().unwrap().name, "MyFb");
+    assert_eq!(&unit.pous[1].super_class.as_ref().unwrap().name, "MyFb");
 }
 #[test]
 fn class_with_extends_and_implements_can_be_parsed() {
@@ -570,11 +570,11 @@ fn class_with_extends_and_implements_can_be_parsed() {
     END_CLASS
     "#;
     let unit = parse(src).0;
-    let class1 = &unit.units[0];
+    let class1 = &unit.pous[0];
     assert_eq!(class1.kind, PouType::Class);
     assert_eq!(class1.name, "MyClass");
     assert_eq!(class1.interfaces[0].name, "MyInterface");
-    let class2 = &unit.units[1];
+    let class2 = &unit.pous[1];
     assert_eq!(class2.kind, PouType::Class);
     assert_eq!(class2.name, "MyClass2");
     assert_eq!(class2.super_class.as_ref().unwrap().name, "MyClass");
@@ -595,12 +595,12 @@ fn function_block_with_extends_and_implements_can_be_parsed() {
     "#;
     let unit = parse(src).0;
 
-    let fb1 = &unit.units[0];
+    let fb1 = &unit.pous[0];
     assert_eq!(fb1.kind, PouType::FunctionBlock);
     assert_eq!(fb1.name, "MyFb");
     assert_eq!(fb1.interfaces[0].name, "MyInterface");
 
-    let fb2 = &unit.units[1];
+    let fb2 = &unit.pous[1];
     assert_eq!(fb2.kind, PouType::FunctionBlock);
     assert_eq!(fb2.name, "MyFb2");
     assert_eq!(fb2.super_class.as_ref().unwrap().name, "MyFb");

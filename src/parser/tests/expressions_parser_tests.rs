@@ -1220,7 +1220,7 @@ fn string_can_be_parsed() {
     let src = "PROGRAM buz VAR x : STRING; END_VAR x := 'Hello, World!'; x := ''; END_PROGRAM";
     let result = parse(src).0;
 
-    let unit = &result.units[0];
+    let unit = &result.pous[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
@@ -1247,7 +1247,7 @@ fn wide_string_can_be_parsed() {
     let src = "PROGRAM buz VAR x : WSTRING; END_VAR x := \"Hello, World!\"; x := \"\"; END_PROGRAM";
     let result = parse(src).0;
 
-    let unit = &result.units[0];
+    let unit = &result.pous[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
@@ -1275,7 +1275,7 @@ fn arrays_can_be_parsed() {
         "PROGRAM buz VAR x : ARRAY[0..9] OF STRING; END_VAR x[0] := 'Hello, World!'; x[y] := ''; END_PROGRAM";
     let result = parse(src).0;
 
-    let unit = &result.units[0];
+    let unit = &result.pous[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
@@ -1317,7 +1317,7 @@ fn nested_arrays_can_be_parsed() {
     let src = "PROGRAM buz VAR x : ARRAY[0..9] OF ARRAY[0..9] OF STRING; END_VAR x[0][1] := 'Hello, World!'; x[y][1] := ''; END_PROGRAM";
     let result = parse(src).0;
 
-    let unit = &result.units[0];
+    let unit = &result.pous[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
@@ -1372,7 +1372,7 @@ fn multidim_arrays_can_be_parsed() {
     let src = "PROGRAM buz VAR x : ARRAY[0..9,1..2] OF STRING; END_VAR x[0,1] := 'Hello, World!'; x[y,1] := ''; END_PROGRAM";
     let result = parse(src).0;
 
-    let unit = &result.units[0];
+    let unit = &result.pous[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
@@ -1571,7 +1571,7 @@ fn sized_string_as_function_return() {
     END_FUNCTION
     ",
     );
-    assert_debug_snapshot!(ast.units[0], @r#"
+    assert_debug_snapshot!(ast.pous[0], @r#"
     POU {
         name: "foo",
         variable_blocks: [],
@@ -1604,7 +1604,7 @@ fn array_type_as_function_return() {
     ",
     );
 
-    assert_debug_snapshot!(ast.units[0], @r#"
+    assert_debug_snapshot!(ast.pous[0], @r#"
     POU {
         name: "foo",
         variable_blocks: [],

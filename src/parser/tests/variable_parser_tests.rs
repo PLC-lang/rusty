@@ -258,7 +258,7 @@ fn var_config_test() {
     let (result, diag) = parse(src);
 
     assert!(diag.is_empty());
-    insta::assert_debug_snapshot!(result, @r#"
+    insta::assert_debug_snapshot!(result, @r###"
     CompilationUnit {
         global_vars: [],
         var_config: [
@@ -401,7 +401,7 @@ fn var_config_test() {
                 },
             },
         ],
-        units: [],
+        pous: [],
         implementations: [],
         interfaces: [],
         user_types: [],
@@ -409,7 +409,7 @@ fn var_config_test() {
             "test.st",
         ),
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -471,7 +471,7 @@ fn var_external() {
             },
         ],
         var_config: [],
-        units: [
+        pous: [
             POU {
                 name: "foo",
                 variable_blocks: [
@@ -612,7 +612,7 @@ fn var_external_constant() {
             },
         ],
         var_config: [],
-        units: [
+        pous: [
             POU {
                 name: "foo",
                 variable_blocks: [

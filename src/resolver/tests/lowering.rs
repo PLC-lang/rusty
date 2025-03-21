@@ -24,7 +24,7 @@ fn initializer_with_ref_call_annotated_as_pointer() {
     );
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let initializer_bar = unit.units[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
+    let initializer_bar = unit.pous[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
     let initializer_bar_annotation = annotations.get(initializer_bar).unwrap();
 
     assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r###"
@@ -72,7 +72,7 @@ fn initializer_with_refassignment_annotated_with_replacementast() {
     );
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let initializer_bar = unit.units[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
+    let initializer_bar = unit.pous[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
     let initializer_bar_annotation = annotations.get(initializer_bar).unwrap();
 
     assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r###"
@@ -114,7 +114,7 @@ fn initializer_of_alias_annotated_with_replacementast() {
     );
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let initializer_bar = unit.units[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
+    let initializer_bar = unit.pous[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
     let initializer_bar_annotation = annotations.get(initializer_bar).unwrap();
 
     assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r###"
@@ -156,7 +156,7 @@ fn initializer_of_alias_annotated_with_replacementast_array() {
     );
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let initializer_bar = unit.units[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
+    let initializer_bar = unit.pous[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
     let initializer_bar_annotation = annotations.get(initializer_bar).unwrap();
 
     assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r###"

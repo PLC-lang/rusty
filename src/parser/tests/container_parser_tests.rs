@@ -109,9 +109,9 @@ fn two_programs_can_be_parsed() {
     let src = "PROGRAM foo END_PROGRAM  PROGRAM bar END_PROGRAM";
     let result = parse(src).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
     assert_eq!(prg.name, "foo");
-    let prg2 = &result.units[1];
+    let prg2 = &result.pous[1];
     assert_eq!(prg2.name, "bar");
 }
 
@@ -120,7 +120,7 @@ fn simple_program_with_varblock_can_be_parsed() {
     let src = "PROGRAM buz VAR END_VAR END_PROGRAM";
     let result = parse(src).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
 
     assert_eq!(prg.variable_blocks.len(), 1);
 }
@@ -130,7 +130,7 @@ fn simple_program_with_two_varblocks_can_be_parsed() {
     let src = "PROGRAM buz VAR END_VAR VAR END_VAR END_PROGRAM";
     let result = parse(src).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
 
     assert_eq!(prg.variable_blocks.len(), 2);
 }
