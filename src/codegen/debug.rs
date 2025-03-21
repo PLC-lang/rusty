@@ -298,9 +298,8 @@ impl<'ink> DebugBuilder<'ink> {
 
             //Adjust the offset based on the field alignment
             let type_info = dt.get_type_information();
-            let alignment = type_info.get_alignment(index);
+            // let alignment = type_info.get_alignment(index);
             let size = type_info.get_size(index).unwrap();
-            running_offset = running_offset.align_to(alignment);
 
             types.push(
                 self.debug_info
@@ -310,7 +309,7 @@ impl<'ink> DebugBuilder<'ink> {
                         file,
                         location.get_line_plus_one() as u32,
                         size.bits().into(),
-                        alignment.bits(),
+                        0, // no alignment for now
                         running_offset.bits().into(),
                         DIFlags::PUBLIC,
                         di_type.into(),
@@ -320,8 +319,6 @@ impl<'ink> DebugBuilder<'ink> {
             running_offset += size;
         }
 
-        let struct_dt = index.get_type_information_or_void(name);
-
         //Create a struct type
         let struct_type = self.debug_info.create_struct_type(
             file.as_debug_info_scope(),
@@ -329,7 +326,7 @@ impl<'ink> DebugBuilder<'ink> {
             file,
             location.get_line_plus_one() as u32,
             running_offset.bits().into(),
-            struct_dt.get_alignment(index).bits(),
+            0, // no alignment for now
             DIFlags::PUBLIC,
             None,
             types.as_slice(),
@@ -458,7 +455,7 @@ impl<'ink> DebugBuilder<'ink> {
             file,
             location.get_line_plus_one() as u32,
             file.as_debug_info_scope(),
-            inner_dt.get_type_information().get_alignment(index).bits(),
+            0, // no alignment for now
         );
         self.register_concrete_type(name, DebugType::Derived(typedef));
 
@@ -542,11 +539,7 @@ impl<'ink> DebugBuilder<'ink> {
             .iter()
             .filter(|it| it.is_local() || it.is_temp() || it.is_return())
         {
-            let var_type = index
-                .find_effective_type_by_name(variable.get_type_name())
-                .expect("Type should exist at this stage");
-            let alignment = var_type.get_type_information().get_alignment(index).bits();
-            self.register_local_variable(variable, alignment, func);
+            self.register_local_variable(variable, 0, func);
         }
 
         let implementation = pou.find_implementation(index).expect("A POU will have an impl at this stage");
@@ -639,17 +632,16 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         if !self.types.contains_key(&name.to_lowercase()) {
             let type_info = datatype.get_type_information();
             let size = type_info.get_size(index).unwrap();
-            let alignment = type_info.get_alignment(index);
             let location = &datatype.location;
             match type_info {
                 DataTypeInformation::Struct { members, .. } => {
                     self.create_struct_type(name, members.as_slice(), index, location)
                 }
                 DataTypeInformation::Array { name, inner_type_name, dimensions, .. } => {
-                    self.create_array_type(name, inner_type_name, dimensions, size, alignment, index)
+                    self.create_array_type(name, inner_type_name, dimensions, size, Bytes::new(0), index)
                 }
                 DataTypeInformation::Pointer { name, inner_type_name, .. } => {
-                    self.create_pointer_type(name, inner_type_name, size, alignment, index)
+                    self.create_pointer_type(name, inner_type_name, size, Bytes::new(0), index)
                 }
                 DataTypeInformation::Integer { signed, size, .. } => {
                     let encoding = if type_info.is_bool() {
@@ -671,7 +663,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                     let length = string_size
                         .as_int_value(index)
                         .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
-                    self.create_string_type(name, length, *encoding, size, alignment, index)
+                    self.create_string_type(name, length, *encoding, size, Bytes::new(0), index)
                 }
                 DataTypeInformation::Alias { name, referenced_type }
                 | DataTypeInformation::Enum { name, referenced_type, .. } => {
