@@ -11,7 +11,9 @@ fn lower_and_validate(src: &str) -> String {
     let (unit, mut diagnostics) = parse(src);
 
     let mut validator = ParticipantValidator::new(&context, ErrorFormat::None);
-    validator.validate_properties(&unit.properties);
+    for pou in &unit.units {
+        validator.validate_properties(pou);
+    }
 
     diagnostics.extend(validator.diagnostics);
 
@@ -105,5 +107,142 @@ fn property_with_var_output_in_get_block() {
     6 |                   VAR_OUTPUT
       |                   ^^^^^^^^^^ see also
       |
+    ");
+}
+
+#[test]
+fn property_with_same_name_as_member_variable() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb
+        VAR
+            foo: DINT;
+        END_VAR
+        PROPERTY foo : DINT
+            GET
+                foo := 42;
+            END_GET
+            SET
+                foo := 3;
+            END_SET
+        END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E004]: foo: Duplicate symbol.
+      ┌─ <internal>:4:13
+      │
+    4 │             foo: DINT;
+      │             ^^^ foo: Duplicate symbol.
+    5 │         END_VAR
+    6 │         PROPERTY foo : DINT
+      │                  --- see also
+
+    error[E004]: foo: Duplicate symbol.
+      ┌─ <internal>:6:18
+      │
+    4 │             foo: DINT;
+      │             --- see also
+    5 │         END_VAR
+    6 │         PROPERTY foo : DINT
+      │                  ^^^ foo: Duplicate symbol.
+    ");
+}
+
+#[test]
+fn property_name_conflict_with_variable_in_parent() {
+    let source = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb1
+            VAR
+                foo: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2 EXTENDS fb1
+            PROPERTY foo : DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(source, @r"
+    error[E021]: Variable `foo` is already declared in parent POU `fb1`
+      ┌─ <internal>:9:22
+      │
+    4 │                 foo: DINT;
+      │                 --- see also
+      ·
+    9 │             PROPERTY foo : DINT
+      │                      ^^^ Variable `foo` is already declared in parent POU `fb1`
+    ");
+}
+
+#[test]
+fn property_name_conflict_with_variable_in_child() {
+    let source = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb1
+            PROPERTY foo : DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2 EXTENDS fb1
+            VAR
+                foo: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(source, @r"
+    error[E021]: Variable `foo` is already declared in parent POU `foo`
+       ┌─ <internal>:11:17
+       │
+     3 │             PROPERTY foo : DINT
+       │                      --- see also
+       ·
+    11 │                 foo: DINT;
+       │                 ^^^ Variable `foo` is already declared in parent POU `foo`
+    ");
+}
+
+#[test]
+fn property_name_conflict_with_variable_in_parent_chained() {
+    let source = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb1
+            PROPERTY foo : DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2 EXTENDS fb1
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb3 EXTENDS fb2
+            VAR
+                foo: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(source, @r"
+    error[E021]: Variable `foo` is already declared in parent POU `foo`
+       ┌─ <internal>:14:17
+       │
+     3 │             PROPERTY foo : DINT
+       │                      --- see also
+       ·
+    14 │                 foo: DINT;
+       │                 ^^^ Variable `foo` is already declared in parent POU `foo`
     ");
 }

@@ -6,8 +6,8 @@ use std::borrow::BorrowMut;
 use crate::ast::{
     flatten_expression_list, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement,
     CompilationUnit, DataType, DataTypeDeclaration, DirectAccess, HardwareAccess, Implementation, Interface,
-    JumpStatement, MultipliedStatement, Pou, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
-    UserTypeDeclaration, Variable, VariableBlock,
+    JumpStatement, MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr,
+    UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
 };
 use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
 use crate::literals::AstLiteral;
@@ -208,6 +208,8 @@ pub trait AstVisitorMut: Sized {
     fn visit_allocation(&mut self, _node: &mut AstNode) {}
 
     fn visit_interface(&mut self, _interface: &mut Interface) {}
+
+    fn visit_property(&mut self, _property: &mut PropertyBlock) {}
 }
 
 impl WalkerMut for AstLiteral {
@@ -535,6 +537,10 @@ impl WalkerMut for Pou {
     {
         for block in &mut self.variable_blocks {
             visitor.visit_variable_block(block);
+        }
+
+        for property in &mut self.properties {
+            visitor.visit_property(property);
         }
 
         if let Some(rt) = self.return_type.as_mut() {

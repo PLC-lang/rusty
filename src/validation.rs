@@ -1,10 +1,10 @@
-use plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
+use plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType, Variable};
 use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
-use variable::visit_config_variable;
+use variable::{visit_config_variable, visit_variable};
 
 use crate::{
     expression_path::ExpressionPath,
@@ -175,7 +175,12 @@ impl<'a> Validator<'a> {
         let context = ValidationContext { annotations, index, qualifier: None, is_call: false };
         // Validate POU and declared Variables
         for pou in &unit.units {
-            visit_pou(self, pou, &context.with_qualifier(pou.name.as_str()));
+            let context = context.with_qualifier(pou.name.as_str());
+
+            visit_pou(self, pou, &context);
+            for property in &pou.properties {
+                visit_variable(self, &Variable::from(property), &context);
+            }
         }
 
         // Validate user declared types

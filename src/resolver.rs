@@ -61,14 +61,22 @@ macro_rules! visit_all_statements {
 /// change one field.
 #[derive(Clone, Default)]
 pub struct VisitorContext<'s> {
+    pub id_provider: IdProvider,
+
     /// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
-    qualifier: Option<String>,
+    qualifier: Option<&'s str>,
+
     /// optional context for references (e.g. `x` may mean `POU.x` if used inside `POU`'s body)
     pou: Option<&'s str>,
+
     /// special context of the left-hand-side of an assignment in call statements
     /// Inside the left hand side of an assignment is in the context of the call's POU
     /// `foo(a := a)` actually means: `foo(foo.a := POU.a)`
     lhs: Option<&'s str>,
+
+    /// Set to true when dealing with a member reference at the left-hand side of an assignment. This is
+    /// needed to correctly annotate the type of the property we're dealing with, i.e. a get- or set-accessor.
+    property_set: bool,
 
     /// true if the expression passed a constant-variable on the way
     /// e.g. true for `x` if x is declared in a constant block
@@ -81,15 +89,13 @@ pub struct VisitorContext<'s> {
     /// true if the visitor entered a control statement
     in_control: bool,
 
-    pub id_provider: IdProvider,
-
     // what's the current strategy for resolving
     resolve_strategy: Vec<ResolvingStrategy>,
 }
 
 impl<'s> VisitorContext<'s> {
     /// returns a copy of the current context and changes the `current_qualifier` to the given qualifier
-    fn with_qualifier(&self, qualifier: String) -> VisitorContext<'s> {
+    fn with_qualifier(&self, qualifier: &'s str) -> VisitorContext<'s> {
         let mut ctx = self.clone();
         ctx.qualifier = Some(qualifier);
         ctx.constant = false;
@@ -119,6 +125,12 @@ impl<'s> VisitorContext<'s> {
         ctx
     }
 
+    fn with_property_set(&self, is_member: bool) -> VisitorContext<'s> {
+        let mut ctx = self.clone();
+        ctx.property_set = is_member;
+        ctx
+    }
+
     // returns a copy of the current context and sets the in_body field to true
     fn enter_body(&self) -> Self {
         let mut ctx = self.clone();
@@ -137,6 +149,12 @@ impl<'s> VisitorContext<'s> {
         let mut ctx = self.clone();
         ctx.in_body = true;
         ctx.resolve_strategy = resolve_strategy;
+        ctx
+    }
+
+    fn with_property_strategy(&self) -> Self {
+        let mut ctx = self.clone();
+        ctx.resolve_strategy.push(ResolvingStrategy::Property);
         ctx
     }
 
@@ -472,6 +490,10 @@ pub enum StatementAnnotation {
     MethodDeclarations {
         declarations: FxHashMap<String, Vec<MethodDeclarationType>>,
     },
+    Property {
+        // TODO: Is this neccesary?
+        name: String,
+    },
     #[default]
     None,
 }
@@ -682,10 +704,7 @@ impl StatementAnnotation {
     }
 
     pub fn is_property(&self) -> bool {
-        matches!(
-            self,
-            StatementAnnotation::Variable { argument_type: ArgumentType::ByVal(VariableType::Property), .. }
-        )
+        matches!(self, StatementAnnotation::Property { .. })
     }
 
     pub fn qualified_name(&self) -> Option<&str> {
@@ -799,6 +818,7 @@ pub trait AnnotationMap {
             | StatementAnnotation::Label { .. }
             | StatementAnnotation::Override { .. }
             | StatementAnnotation::MethodDeclarations { .. }
+            | StatementAnnotation::Property { .. }
             | StatementAnnotation::None => None,
         }
     }
@@ -1328,7 +1348,7 @@ impl<'i> TypeAnnotator<'i> {
             // e.g. x : BYTE := 7 + 3;  --> 7+3 should be cast into a byte
             if let Some(expected_type) = self
                 .index
-                .find_variable(ctx.qualifier.as_deref().or(ctx.pou), &[variable.name.as_str()])
+                .find_variable(ctx.qualifier.or(ctx.pou), &[variable.name.as_str()])
                 .and_then(|ve| self.index.find_effective_type_by_name(ve.get_type_name()))
             {
                 //Create a new context with the left operator being the target variable type, and the
@@ -1380,9 +1400,7 @@ impl<'i> TypeAnnotator<'i> {
             DataTypeInformation::Array { inner_type_name, .. } => {
                 let inner_data_type = self.index.get_effective_type_or_void_by_name(inner_type_name);
                 // TODO this seems wrong
-                let ctx = ctx
-                    .with_qualifier(inner_data_type.get_name().to_string())
-                    .with_lhs(inner_data_type.get_name());
+                let ctx = ctx.with_qualifier(inner_data_type.get_name()).with_lhs(inner_data_type.get_name());
 
                 if !inner_data_type.get_type_information().is_struct() {
                     return;
@@ -1511,7 +1529,7 @@ impl<'i> TypeAnnotator<'i> {
         }
         match data_type {
             DataType::StructType { name: Some(name), variables, .. } => {
-                let ctx = ctx.with_qualifier(name.clone());
+                let ctx = ctx.with_qualifier(name);
                 variables.iter().for_each(|v| self.visit_variable(&ctx, v))
             }
             DataType::ArrayType { referenced_type, .. } => {
@@ -1764,15 +1782,20 @@ impl<'i> TypeAnnotator<'i> {
             }
             AstStatement::Assignment(data, ..) | AstStatement::RefAssignment(data, ..) => {
                 self.visit_statement(&ctx.enter_control(), &data.right);
+
+                // if the LHS of the assignment is a member access, we need to update the context - when trying to resolve
+                // a property, this means it must be a setter, not a getter
+                let ctx = ctx.with_property_set(data.left.is_member_access());
+
                 if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
                     self.visit_statement(&ctx.with_pou(lhs).with_lhs(lhs), &data.left);
                 } else {
-                    self.visit_statement(ctx, &data.left);
+                    self.visit_statement(&ctx, &data.left);
                 }
 
                 // give a type hint that we want the right side to be stored in the left's type
-                self.update_right_hand_side_expected_type(ctx, &data.left, &data.right);
+                self.update_right_hand_side_expected_type(&ctx, &data.left, &data.right);
             }
             AstStatement::OutputAssignment(data, ..) => {
                 visit_all_statements!(self, ctx, &data.left, &data.right);
@@ -1847,7 +1870,7 @@ impl<'i> TypeAnnotator<'i> {
             (ReferenceAccess::Member(reference), qualifier) => {
                 // uppdate the context's const field
                 let new_ctx = base.map(|base| ctx.with_const(self.is_const_reference(base, ctx)));
-                let new_ctx = new_ctx.as_ref().unwrap_or(ctx);
+                let new_ctx = &new_ctx.as_ref().unwrap_or(ctx).with_property_strategy();
 
                 if let Some(annotation) =
                     self.resolve_reference_expression(reference.as_ref(), qualifier.as_deref(), new_ctx)
@@ -1886,8 +1909,9 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
-            (ReferenceAccess::Index(index), Some(base)) => {
+            (ReferenceAccess::Index(index), base) => {
                 self.visit_statement(ctx, index);
+                let Some(base) = base else { return };
                 if let Some(inner_type) = self
                     .index
                     .find_effective_type_info(base.as_str())
@@ -2390,11 +2414,23 @@ impl Scope {
 
 #[derive(Clone, Copy)]
 pub enum ResolvingStrategy {
-    Variable,      //try to resolve a variable
-    POU,           //try to resolve a POU
-    DataType,      //try to resolve a DataType
-    EnumTypeOnly,  //only consider EnumTypes
-    FunctionsOnly, //only consider functions
+    /// try to resolve a variable
+    Variable,
+
+    /// try to resolve a POU
+    POU,
+
+    /// try to resolve a DataType
+    DataType,
+
+    /// only consider EnumTypes
+    EnumTypeOnly,
+
+    /// only consider functions
+    FunctionsOnly,
+
+    /// also consider references to properties before they are lowered to actual method calls
+    Property,
 }
 
 impl ResolvingStrategy {
@@ -2409,6 +2445,22 @@ impl ResolvingStrategy {
         let mut strategy = vec![ResolvingStrategy::FunctionsOnly];
         strategy.extend(Self::default_scopes());
         strategy
+    }
+
+    fn resolve_property(
+        index: &Index,
+        name: &str,
+        qualifier: &str,
+        property_set: bool,
+    ) -> Option<StatementAnnotation> {
+        let accessor = if property_set { "set" } else { "get" };
+        let name = format!("__{accessor}_{name}");
+
+        // if our current context is a method or action, we need to look for the property in the parent
+        let qualifier =
+            index.find_pou(qualifier).and_then(|pou| pou.get_parent_pou_name()).unwrap_or(qualifier);
+
+        index.find_method(qualifier, &name).map(|_| StatementAnnotation::Property { name })
     }
 
     /// tries to resolve the given name using the reprsented scope
@@ -2430,6 +2482,7 @@ impl ResolvingStrategy {
                 if let Some(qualifier) = qualifier {
                     // look for variable, enum with name "qualifier.name"
                     scopes
+                        // instance.foo; // Resolver -> referencexpr ->
                         .find_member(index, qualifier, name)
                         .or_else(|| index.find_enum_variant(qualifier, name))
                         .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
@@ -2497,6 +2550,10 @@ impl ResolvingStrategy {
                     None
                 }
             }
+            // try to resolve this name as a property
+            ResolvingStrategy::Property => qualifier
+                .or(ctx.pou)
+                .and_then(|qualifier| Self::resolve_property(index, name, qualifier, ctx.property_set)),
         }
     }
 }

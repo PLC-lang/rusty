@@ -20,7 +20,6 @@ POU {
     ],
     pou_type: Method {
         parent: "fb",
-        property: None,
         declaration_kind: Concrete,
     },
     return_type: Some(
