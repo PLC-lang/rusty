@@ -307,6 +307,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 }),
                 id: self.id_provider.next_id(),
                 location: original_location.clone(),
+                metadata: None
             };
             self.push_statement(alloca);
             let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
