@@ -451,6 +451,34 @@ fn redeclaration_of_variables_from_super_super_is_an_error() {
 }
 
 #[test]
+fn underscore_separated_name_repetition_does_not_overflow_the_stack() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK great_grandparent
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK grandparent EXTENDS great_grandparent
+        VAR
+            x : INT := 10;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK parent EXTENDS grandparent
+            x := 100;
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    warning[E049]: Illegal access to private member grandparent.x
+       ┌─ <internal>:12:13
+       │
+    12 │             x := 100;
+       │             ^ Illegal access to private member grandparent.x
+    ");
+}
+
+#[test]
 fn signature_mismatch_between_base_and_interface() {
     let diagnostics = parse_and_validate_buffered(
         "
