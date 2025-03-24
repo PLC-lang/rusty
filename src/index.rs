@@ -1382,20 +1382,29 @@ impl Index {
         container_name: &str,
         variable_name: &str,
     ) -> Option<&VariableIndexEntry> {
+        self.find_local_member_recursive(container_name, variable_name, &mut FxHashSet::default())
+    }
+
+    fn find_local_member_recursive(
+        &self,
+        container_name: &str,
+        variable_name: &str,
+        seen: &mut FxHashSet<String>
+    ) -> Option<&VariableIndexEntry> {
         self.type_index
             .find_type(container_name)
             .and_then(|it| it.find_member(variable_name))
             .or(self.find_enum_variant_in_pou(container_name, variable_name))
-            // underlying type of an `ACTION`
+            // underlying type of an `ACTION` or `METHOD`
             .or(container_name
                 .rfind('.')
                 .map(|p| &container_name[..p])
-                .and_then(|qualifier| self.find_member(qualifier, variable_name)))
+                .and_then(|qualifier| self.find_member_recursive(qualifier, variable_name, seen)))
             // 'self' instance of a POUs init function
             .or(container_name
                 .rfind('_')
                 .map(|p| &container_name[p + 1..])
-                .and_then(|qualifier| self.find_member(qualifier, variable_name)))
+                .and_then(|qualifier| self.find_member_recursive(qualifier, variable_name, seen)))
     }
 
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
@@ -1407,13 +1416,13 @@ impl Index {
         &'b self,
         container_name: &str,
         variable_name: &str,
-        seen: &mut FxHashSet<&'b str>,
+        seen: &mut FxHashSet<String>,
     ) -> Option<&'b VariableIndexEntry> {
         // Find pou in index
-        self.find_local_member(container_name, variable_name)
+        self.find_local_member_recursive(container_name, variable_name, seen)
             .or_else(|| {
                 if let Some(class) = self.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                    if !seen.insert(class) {
+                    if !seen.insert(class.into()) {
                         return None;
                     }
                     self.find_member_recursive(class, variable_name, seen).filter(|it| !(it.is_temp()))
