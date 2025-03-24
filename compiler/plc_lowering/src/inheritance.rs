@@ -51,7 +51,11 @@
 //! END_FUNCTION_BLOCK
 //! ```
 
-use plc::{index::Index, lowering::{create_call_statement, create_member_reference_with_location}, resolver::AnnotationMap};
+use plc::{
+    index::Index,
+    lowering::{create_call_statement, create_member_reference_with_location},
+    resolver::AnnotationMap,
+};
 use plc_ast::{
     ast::{
         AstFactory, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType,
@@ -83,6 +87,13 @@ impl Context {
         }
     }
 
+    fn try_with_base(&self, implementation_name: &str, index: &Index) -> Option<Self> {
+        index
+            .find_pou(implementation_name)
+            .and_then(|it| it.get_super_class())
+            .map(|base| self.with_base(base))
+    }
+
     fn with_pou(&self, pou: impl Into<String>) -> Self {
         Self {
             base_type_name: self.base_type_name.clone(),
@@ -112,6 +123,10 @@ impl InheritanceLowerer {
     }
 
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
+        // before we start walking the unit, we need to lower the `super` keyword to the corresponding `ReferenceExpr`
+        let mut super_lowerer =
+            SuperKeywordLowerer::new(self.provider(), self.index.as_ref(), self.annotations.as_mut());
+        super_lowerer.visit_compilation_unit(unit);
         self.visit_compilation_unit(unit);
     }
 
@@ -215,17 +230,13 @@ impl AstVisitorMut for InheritanceLowerer {
         } else {
             &implementation.type_name
         };
-
         let ctx = self.ctx.with_pou(type_name);
-        let ctx = if let Some(base) = self
+        let ctx = self
             .index
             .as_ref()
-            .and_then(|it| it.find_pou(&implementation.type_name).and_then(|it| it.get_super_class()))
-        {
-            ctx.with_base(base)
-        } else {
-            ctx
-        };
+            .and_then(|it| ctx.try_with_base(&implementation.type_name, it))
+            .unwrap_or(ctx);
+
         self.walk_with_context(implementation, ctx);
     }
 
@@ -255,9 +266,77 @@ impl AstVisitorMut for InheritanceLowerer {
             }
         };
     }
+}
+
+struct SuperKeywordLowerer<'sup> {
+    index: Option<&'sup Index>,
+    annotations: Option<&'sup mut Box<dyn AnnotationMap>>,
+    ctx: Context,
+}
+
+impl<'sup> SuperKeywordLowerer<'sup> {
+    pub fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
+        if self.index.is_none() || self.annotations.is_none() {
+            return;
+        }
+        unit.walk(self);
+    }
+
+    fn new(
+        id_provider: IdProvider,
+        index: Option<&'sup Index>,
+        annotations: Option<&'sup mut Box<dyn AnnotationMap>>,
+    ) -> Self {
+        Self { index, ctx: Context::new(id_provider), annotations }
+    }
+
+    fn provider(&self) -> IdProvider {
+        self.ctx.provider()
+    }
+
+    fn walk_with_context<T: WalkerMut>(&mut self, t: &mut T, ctx: Context) {
+        let old_ctx = std::mem::replace(&mut self.ctx, ctx);
+        t.walk(self);
+        self.ctx = old_ctx;
+    }
+}
+
+impl AstVisitorMut for SuperKeywordLowerer<'_> {
+    fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
+        //Only go through the implementation if we have the index and annotations
+        if self.index.is_none() || self.annotations.is_none() {
+            return;
+        }
+
+        let type_name = if let PouType::Method { parent, .. } = &implementation.pou_type {
+            parent
+        } else {
+            &implementation.type_name
+        };
+        let ctx = self.ctx.with_pou(type_name);
+        let ctx = self
+            .index
+            .as_ref()
+            .and_then(|it| ctx.try_with_base(&implementation.type_name, it))
+            .unwrap_or(ctx);
+
+        self.walk_with_context(implementation, ctx);
+    }
 
     fn visit_super(&mut self, node: &mut AstNode) {
-        let Some(base_type_name) = self.ctx.base_type_name.as_ref().map(|it| format!("__{it}")) else {
+        let Some(base_type_name) = self
+            .ctx
+            .base_type_name
+            .as_deref()
+            .or_else(|| {
+                self.ctx
+                    .pou
+                    .as_ref()
+                    .and_then(|it| self.index.unwrap().find_pou(it))
+                    .and_then(|it| it.get_super_class())
+            })
+            .map(|it| format!("__{it}"))
+        else {
             return;
         };
 
@@ -267,13 +346,22 @@ impl AstVisitorMut for InheritanceLowerer {
 
         let new_node = if deref_marker.is_some() {
             // If the super statement is dereferenced, we can just use the existing base-class instance
-            create_member_reference_with_location(&base_type_name, self.provider().clone(), None /* ctx.pou? */, node.get_location())
+            create_member_reference_with_location(
+                &base_type_name,
+                self.provider().clone(),
+                None,
+                node.get_location(),
+            )
         } else {
             // if the super statement is not dereferenced, we need to bitcast to a pointer of the base-class
             create_call_statement("REF", &base_type_name, None, self.provider().clone(), &node.location)
         };
 
-        let _ = std::mem::replace(node, new_node);
+        let old_node = std::mem::take(node);
+        std::mem::swap(node, &mut new_node.with_metadata(old_node.into()));
+        let resolver = super::LoweringResolver::new(self.index.unwrap(), self.provider())
+            .with_pou(self.ctx.pou.as_deref().unwrap_or_default());
+        self.annotations.as_mut().unwrap().import(resolver.resolve_statement(node));
     }
 }
 
@@ -2567,5 +2655,250 @@ mod inherited_properties {
             ),
         }
         "###);
+    }
+}
+
+#[cfg(test)]
+mod super_tests {
+    use insta::assert_debug_snapshot;
+    use plc_driver::parse_and_annotate;
+    use plc_source::SourceCode;
+
+    #[test]
+    fn super_qualified_reference_resolves_to_same_parent_var() {
+        let src: SourceCode = "
+        FUNCTION_BLOCK foo
+            VAR
+                x: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK bar EXTENDS foo
+            x := 3;
+            super^.x := 3;
+        END_FUNCTION_BLOCK
+        "
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let statements = &project.units[0].get_unit().implementations[1].statements;
+        assert_debug_snapshot!(statements, @r#"
+        [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__foo",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 3,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__foo",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 3,
+                },
+            },
+        ]
+        "#);
+    }
+
+    #[test]
+    fn super_without_deref_lowered_to_ref_call_to_parent_instance() {
+        let src: SourceCode = "
+        FUNCTION_BLOCK foo
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK bar EXTENDS foo
+            super;
+        END_FUNCTION_BLOCK
+        "
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let statements = &project.units[0].get_unit().implementations[1].statements;
+        assert_debug_snapshot!(statements, @r#"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "REF",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ]
+        "#);
+    }
+
+    #[test]
+    fn super_expression_as_function_argument() {
+        let src: SourceCode = r#"
+        FUNCTION_BLOCK parent
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK child EXTENDS parent
+            // Use SUPER expression for function calls
+            foo(SUPER, SUPER^);
+        END_FUNCTION_BLOCK
+
+        FUNCTION foo : INT
+        VAR_INPUT
+            input_ref : REF_TO parent;
+            input : parent;
+        END_VAR
+        END_FUNCTION
+    "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let statements = &project.units[0].get_unit().implementations[1].statements;
+        assert_debug_snapshot!(statements, @r#"
+    [
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "foo",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ExpressionList {
+                    expressions: [
+                        CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "REF",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__parent",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__parent",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ],
+                },
+            ),
+        },
+    ]
+    "#);
+    }
+
+    #[test]
+    fn access_grandparent_through_super() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK grandparent
+            VAR
+                x : INT := 10;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK parent EXTENDS grandparent
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK child EXTENDS parent
+                // Access grandparent member through SUPER^
+                SUPER^.x := 200;
+            END_FUNCTION_BLOCK
+        "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let statements = &project.units[0].get_unit().implementations[2].statements;
+        assert_debug_snapshot!(statements, @r#"
+        [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__grandparent",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__parent",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 200,
+                },
+            },
+        ]
+        "#);
     }
 }
