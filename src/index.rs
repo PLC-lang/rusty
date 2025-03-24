@@ -571,7 +571,8 @@ impl InterfaceIndexEntry {
         let mut seen: FxHashSet<&Identifier> = FxHashSet::default();
         let mut queue: VecDeque<&InterfaceIndexEntry> = VecDeque::new();
 
-        queue.extend(self.get_derived_interfaces(index).into_iter().flatten());
+        // queue.extend(self.get_derived_interfaces(index).into_iter().flatten());
+        queue.push_back(self);
         while let Some(interface) = queue.pop_front() {
             if seen.insert(&interface.ident) {
                 queue.extend(interface.get_derived_interfaces(index).into_iter().flatten());
@@ -625,7 +626,7 @@ impl std::fmt::Debug for InterfaceIndexEntry {
 impl From<&Interface> for InterfaceIndexEntry {
     fn from(interface: &Interface) -> Self {
         InterfaceIndexEntry {
-            ident: interface.identifier.clone(),
+            ident: interface.ident.clone(),
             location: interface.location.clone(),
             methods: interface.methods.iter().map(|method| method.name.clone()).collect(),
             extensions: interface.extensions.clone(),

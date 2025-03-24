@@ -453,8 +453,8 @@ fn extends_with_conflicting_signature_in_interface() {
         END_PROPERTY
     END_INTERFACE
 
+    // We extend the property by a SET accessor in this interface, but with the wrong datatype
     INTERFACE intf2 EXTENDS intf1
-        // We extend the property by a SET accessor in this interface
         PROPERTY prop : STRING 
             SET END_SET
         END_PROPERTY
@@ -462,12 +462,14 @@ fn extends_with_conflicting_signature_in_interface() {
     ";
 
     insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"
-    error[E048]: Property `prop` defined in `intf2` has a different return type than in derived `intf1` interface
-       ┌─ <internal>:3:25
+    error[E112]: Property `prop` defined in interface `intf1` and `intf2` have different datatypes
+       ┌─ <internal>:9:15
        │
      3 │         PROPERTY prop : DINT
-       │                         ^^^^ Property `prop` defined in `intf2` has a different return type than in derived `intf1` interface
+       │                         ---- see also
        ·
+     9 │     INTERFACE intf2 EXTENDS intf1
+       │               ^^^^^ Property `prop` defined in interface `intf1` and `intf2` have different datatypes
     10 │         PROPERTY prop : STRING 
        │                         ------ see also
     ");
@@ -489,56 +491,146 @@ fn extends_with_conflicting_signature_between_interfaces() {
     END_INTERFACE
 
     INTERFACE C EXTENDS A, B
-        PROPERTY prop : INT
+    END_INTERFACE
+    ";
+
+    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"
+    error[E112]: Property `prop` defined in interface `B` and `A` have different datatypes
+       ┌─ <internal>:14:15
+       │
+     3 │         PROPERTY prop : DINT
+       │                         ---- see also
+       ·
+     9 │         PROPERTY prop : STRING
+       │                         ------ see also
+       ·
+    14 │     INTERFACE C EXTENDS A, B
+       │               ^ Property `prop` defined in interface `B` and `A` have different datatypes
+    ");
+}
+
+#[test]
+fn multiple_levels() {
+    let source = r"
+    INTERFACE A
+        PROPERTY propA : DINT
+            GET END_GET
+        END_PROPERTY
+    END_INTERFACE
+
+    INTERFACE B
+        PROPERTY propB : DINT
+            GET END_GET
+        END_PROPERTY
+    END_INTERFACE
+
+    INTERFACE C EXTENDS A
+        PROPERTY propC : DINT
+            GET END_GET
+        END_PROPERTY
+    END_INTERFACE
+
+    INTERFACE D EXTENDS C
+        PROPERTY propD : DINT
+            GET END_GET
+        END_PROPERTY
+    END_INTERFACE
+    
+    // All of these are overrides with different signatures
+    INTERFACE E EXTENDS B, C, A
+        PROPERTY propA : REAL
+            GET END_GET
+            SET END_SET
+        END_PROPERTY
+
+        PROPERTY propB : STRING
+            GET END_GET 
+            SET END_SET
+        END_PROPERTY
+
+        PROPERTY propC : INT
+            GET END_GET
+            SET END_SET
+        END_PROPERTY
+    END_INTERFACE
+
+    // These on the other hand are overrides, but with the same signature and hence OK
+    INTERFACE F EXTENDS B, C, A
+        PROPERTY propA : DINT
+            GET END_GET
+            SET END_SET
+        END_PROPERTY
+
+        PROPERTY propB : DINT
+            GET END_GET
+            SET END_SET
+        END_PROPERTY
+
+        PROPERTY propC : DINT
+            GET END_GET
             SET END_SET
         END_PROPERTY
     END_INTERFACE
     ";
 
     insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"
-    error[E111]: Property `prop` (GET) in `C` is declared with conflicting signatures in `A` and `B`
-       ┌─ <internal>:14:15
+    error[E112]: Property `propA` defined in interface `E` and `A` have different datatypes
+       ┌─ <internal>:27:15
        │
-     3 │         PROPERTY prop : DINT
-       │                  ---- see also
+     3 │         PROPERTY propA : DINT
+       │                          ---- see also
        ·
-     9 │         PROPERTY prop : STRING
-       │                  ---- see also
-       ·
-    14 │     INTERFACE C EXTENDS A, B
-       │               ^ Property `prop` (GET) in `C` is declared with conflicting signatures in `A` and `B`
+    27 │     INTERFACE E EXTENDS B, C, A
+       │               ^ Property `propA` defined in interface `E` and `A` have different datatypes
+    28 │         PROPERTY propA : REAL
+       │                          ---- see also
 
-    error[E112]: Derived methods with conflicting signatures, return types do not match:
-       ┌─ <internal>:14:15
+    error[E112]: Property `propA` defined in interface `A` and `E` have different datatypes
+       ┌─ <internal>:27:15
        │
-    14 │     INTERFACE C EXTENDS A, B
-       │               ^ Derived methods with conflicting signatures, return types do not match:
-
-    note[E118]: Type `DINT` declared in `A.__get_prop` but `B.__get_prop` declared type `STRING`
-      ┌─ <internal>:3:18
-      │
-    3 │         PROPERTY prop : DINT
-      │                  ---- see also
-      ·
-    9 │         PROPERTY prop : STRING
-      │                  ---- see also
-
-    error[E048]: Property `prop` defined in `C` has a different return type than in derived `A` interface
-       ┌─ <internal>:3:25
-       │
-     3 │         PROPERTY prop : DINT
-       │                         ^^^^ Property `prop` defined in `C` has a different return type than in derived `A` interface
+     3 │         PROPERTY propA : DINT
+       │                          ---- see also
        ·
-    15 │         PROPERTY prop : INT
-       │                         --- see also
-
-    error[E048]: Property `prop` defined in `C` has a different return type than in derived `B` interface
-       ┌─ <internal>:9:25
-       │
-     9 │         PROPERTY prop : STRING
-       │                         ^^^^^^ Property `prop` defined in `C` has a different return type than in derived `B` interface
+    27 │     INTERFACE E EXTENDS B, C, A
+       │               ^ Property `propA` defined in interface `A` and `E` have different datatypes
        ·
-    15 │         PROPERTY prop : INT
-       │                         --- see also
+    38 │         PROPERTY propC : INT
+       │                          --- see also
+
+    error[E112]: Property `propC` defined in interface `E` and `C` have different datatypes
+       ┌─ <internal>:27:15
+       │
+    15 │         PROPERTY propC : DINT
+       │                          ---- see also
+       ·
+    27 │     INTERFACE E EXTENDS B, C, A
+       │               ^ Property `propC` defined in interface `E` and `C` have different datatypes
+       ·
+    38 │         PROPERTY propC : INT
+       │                          --- see also
+
+    error[E112]: Property `propC` defined in interface `C` and `E` have different datatypes
+       ┌─ <internal>:27:15
+       │
+    15 │         PROPERTY propC : DINT
+       │                          ---- see also
+       ·
+    27 │     INTERFACE E EXTENDS B, C, A
+       │               ^ Property `propC` defined in interface `C` and `E` have different datatypes
+       ·
+    33 │         PROPERTY propB : STRING
+       │                          ------ see also
+
+    error[E112]: Property `propB` defined in interface `E` and `B` have different datatypes
+       ┌─ <internal>:27:15
+       │
+     9 │         PROPERTY propB : DINT
+       │                          ---- see also
+       ·
+    27 │     INTERFACE E EXTENDS B, C, A
+       │               ^ Property `propB` defined in interface `E` and `B` have different datatypes
+       ·
+    33 │         PROPERTY propB : STRING
+       │                          ------ see also
     ");
 }

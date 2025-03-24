@@ -46,13 +46,14 @@ fn validate_methods_overrides<T: AnnotationMap>(
         let methods = decl
             .iter()
             .filter(|it| it.is_abstract())
-            .flat_map(|it| context.index.find_pou(it.get_qualified_name()));
+            .flat_map(|it| context.index.find_pou(it.get_qualified_name()))
+            // We already have a specialized validation for properties and would like to avoid duplicates here
+            .filter(|it| !it.is_property());
         // XXX(ghha) should this not be combinations instead of tuple_windows?
         for (method1, method2) in methods.tuple_windows() {
             let diagnostics = validate_method_signature(context.index, method1, method2, primary_location);
             if !diagnostics.is_empty() {
                 validator.push_diagnostic(
-                    // TODO: Not entirely correct?
                     Diagnostic::new(format!(
                         "{} in `{}` is declared with conflicting signatures in `{}` and `{}`",
                         method1.get_method_name(),
@@ -292,7 +293,7 @@ pub fn visit_interface<T: AnnotationMap>(
     interface: &Interface,
     context: &ValidationContext<'_, T>,
 ) {
-    let Identifier { name, location } = &interface.identifier;
+    let Identifier { name, location } = &interface.ident;
     let entry = context.index.find_interface(name).expect("must exist");
     entry.get_extensions().iter().for_each(|declaration| {
         if context.index.find_interface(&declaration.name).is_none() {

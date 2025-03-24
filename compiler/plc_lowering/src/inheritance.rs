@@ -2389,7 +2389,7 @@ mod inherited_properties {
 
         let (_, AnnotatedProject { units, .. }) = parse_and_annotate("test", vec![src]).unwrap();
         let implementation = &units[0].get_unit().implementations[1];
-        let stmt = &dbg!(implementation).statements[0];
+        let stmt = &implementation.statements[0];
         assert_debug_snapshot!(stmt, @r###"
         CallStatement {
             operator: ReferenceExpr {
@@ -2435,7 +2435,7 @@ mod inherited_properties {
 
         let (_, AnnotatedProject { units, .. }) = parse_and_annotate("test", vec![src]).unwrap();
         let implementation = &units[0].get_unit().implementations[2];
-        let stmt = &dbg!(implementation).statements[0];
+        let stmt = &implementation.statements[0];
         assert_debug_snapshot!(stmt, @r###"
         CallStatement {
             operator: ReferenceExpr {
@@ -2493,7 +2493,7 @@ mod inherited_properties {
         .into();
 
         let (_, AnnotatedProject { units, .. }) = parse_and_annotate("test", vec![src]).unwrap();
-        let implementation = dbg!(&units[0].get_unit().implementations[2]);
+        let implementation = &units[0].get_unit().implementations[2];
         let stmt = &implementation.statements[0];
         assert_debug_snapshot!(stmt, @r###"
         CallStatement {

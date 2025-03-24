@@ -2283,38 +2283,23 @@ fn property_with_conflicting_signatures() {
     END_INTERFACE
     ";
 
-    insta::assert_snapshot!(parse_and_validate_buffered(source), @r###"
-    error[E111]: Property `prop` (GET) in `intf3` is declared with conflicting signatures in `intf1` and `intf2`
+    insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
+    error[E112]: Property `prop` defined in interface `intf1` and `intf2` have different datatypes
        ┌─ <internal>:14:15
        │
      3 │         PROPERTY prop : DINT
-       │                  ---- see also
+       │                         ---- see also
        ·
      9 │         PROPERTY prop : STRING
-       │                  ---- see also
+       │                         ------ see also
        ·
     14 │     INTERFACE intf3 EXTENDS intf1, intf2
-       │               ^^^^^ Property `prop` (GET) in `intf3` is declared with conflicting signatures in `intf1` and `intf2`
-
-    error[E112]: Derived methods with conflicting signatures, return types do not match:
-       ┌─ <internal>:14:15
-       │
-    14 │     INTERFACE intf3 EXTENDS intf1, intf2
-       │               ^^^^^ Derived methods with conflicting signatures, return types do not match:
-
-    note[E118]: Type `DINT` declared in `intf1.__get_prop` but `intf2.__get_prop` declared type `STRING`
-      ┌─ <internal>:3:18
-      │
-    3 │         PROPERTY prop : DINT
-      │                  ---- see also
-      ·
-    9 │         PROPERTY prop : STRING
-      │                  ---- see also
-    "###);
+       │               ^^^^^ Property `prop` defined in interface `intf1` and `intf2` have different datatypes
+    ");
 }
 
 #[test]
-fn interface_with_property_set_extenending_other_interface_with_property_get() {
+fn interface_with_property_set_extending_other_interface_with_property_get() {
     let source = r"
     INTERFACE intfA
         PROPERTY prop: DINT

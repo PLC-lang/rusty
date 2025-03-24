@@ -54,7 +54,7 @@ fn properties_can_be_parsed() {
                     ),
                 },
             },
-            return_type: DataTypeReference {
+            datatype: DataTypeReference {
                 referenced_type: "INT",
             },
             implementations: [

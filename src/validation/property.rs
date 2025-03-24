@@ -1,7 +1,9 @@
 use std::collections::HashSet;
 
-use plc_ast::ast::{Interface, PropertyKind, VariableBlockType};
+use itertools::Itertools;
+use plc_ast::ast::{Identifier, Interface, PropertyBlock, PropertyKind, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
+use rustc_hash::FxHashMap;
 
 use crate::{index::PouIndexEntry, resolver::AnnotationMap};
 
@@ -174,12 +176,12 @@ fn validate_overridden_signatures<T>(
         for (name, property_child) in properties_child {
             if let Some(property_parent) = properties_parent.get(name) {
                 let dt = {
-                    let name = property_child.return_type.get_name().unwrap_or_default();
+                    let name = property_child.datatype.get_name().unwrap_or_default();
                     context.index.get_effective_type_or_void_by_name(name)
                 };
 
                 let dt_parent = {
-                    let name = property_parent.return_type.get_name().unwrap_or_default();
+                    let name = property_parent.datatype.get_name().unwrap_or_default();
                     context.index.get_effective_type_or_void_by_name(name)
                 };
 
@@ -210,43 +212,50 @@ pub(crate) fn validate_properties_in_interfaces<T>(
 ) where
     T: AnnotationMap,
 {
-    let interface = context.index.find_interface(&interface.identifier.name).expect("must exist");
+    let interface = context.index.find_interface(&interface.ident.name).expect("must exist");
+
+    // Retrieve all properties a interface inherits directly or indirectly and map them into tuples of
+    // (<interface name>, <property defined in that interface>)
     let derived_properties = interface
         .get_derived_interfaces_recursive(context.index)
         .iter()
-        .map(|it| (it.ident.clone(), &it.properties))
-        .flat_map(|(name, properties)| properties.iter().map(move |it| (name.clone(), it)))
-        .collect::<Vec<_>>();
+        .map(|it| (&it.ident, &it.properties))
+        .flat_map(|(name, properties)| properties.iter().map(move |property| (name.clone(), property)))
+        .collect_vec();
 
-    for property in &interface.properties {
-        for (ident_derived_intf, property_derived) in &derived_properties {
-            if property.ident.name != property_derived.ident.name {
-                continue;
-            }
+    // Group all these properties by their name
+    let mut clusters: FxHashMap<String, Vec<(Identifier, &PropertyBlock)>> = FxHashMap::default();
+    for (intf_ident, property) in derived_properties {
+        clusters.entry(property.ident.name.clone()).or_insert_with(Vec::new).push((intf_ident, property));
+    }
 
-            let dt = {
-                let name = property.return_type.get_name().unwrap_or_default();
-                context.index.get_effective_type_or_void_by_name(name)
-            };
+    // Check if properties in these clusters have the same type, otherwise we can't implement them in e.g. a FB
+    for ((left_intf_ident, left_property), (right_intf_ident, right_property)) in
+        clusters.values().filter(|properties| properties.len() > 1).flatten().tuple_windows()
+    {
+        let dt_left = {
+            let name = left_property.datatype.get_name().unwrap_or_default();
+            context.index.get_effective_type_or_void_by_name(name)
+        };
 
-            let dt_derived = {
-                let name = property_derived.return_type.get_name().unwrap_or_default();
-                context.index.get_effective_type_or_void_by_name(name)
-            };
+        let dt_right = {
+            let name = right_property.datatype.get_name().unwrap_or_default();
+            context.index.get_effective_type_or_void_by_name(name)
+        };
 
-            if dt != dt_derived {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Property `{}` defined in `{}` has a different return type than in derived `{}` interface",
-                        property.ident.name,
-                        interface.ident.name,
-                        ident_derived_intf.name
-                    ))
-                    .with_error_code("E048")
-                    .with_location(property_derived.return_type.get_location())
-                    .with_secondary_location(property.return_type.get_location())
-                );
-            }
+        if dt_left != dt_right {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "Property `{}` defined in interface `{}` and `{}` have different datatypes",
+                    left_property.ident.name, left_intf_ident.name, right_intf_ident.name
+                ))
+                .with_error_code("E112")
+                .with_location(&interface.ident.location)
+                .with_secondary_locations(vec![
+                    left_property.datatype.get_location(),
+                    right_property.datatype.get_location(),
+                ]),
+            );
         }
     }
 }

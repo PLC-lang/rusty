@@ -258,7 +258,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
     (
         Interface {
             id: lexer.next_id(),
-            identifier: Identifier { name, location: location_name },
+            ident: Identifier { name, location: location_name },
             methods,
             extensions,
             location: lexer.source_range_factory.create_range(location_start..location_end),
@@ -740,11 +740,7 @@ fn parse_property(lexer: &mut ParseSession) -> Option<PropertyBlock> {
 
     let (name, name_location) = identifier.expect("covered above");
     let datatype = datatype.expect("covered above");
-    Some(PropertyBlock {
-        ident: Identifier { name, location: name_location },
-        return_type: datatype,
-        implementations,
-    })
+    Some(PropertyBlock { ident: Identifier { name, location: name_location }, datatype, implementations })
 }
 
 fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {

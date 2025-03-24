@@ -10,11 +10,11 @@ fn empty_interface() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
             id: 1,
-            identifier: Identifier {
+            ident: Identifier {
                 name: "myInterface",
                 location: SourceLocation {
                     span: Range(
@@ -48,7 +48,7 @@ fn empty_interface() {
             properties: [],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -67,11 +67,11 @@ fn interface_with_single_method() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
             id: 2,
-            identifier: Identifier {
+            ident: Identifier {
                 name: "myInterface",
                 location: SourceLocation {
                     span: Range(
@@ -141,7 +141,7 @@ fn interface_with_single_method() {
             properties: [],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -170,11 +170,11 @@ fn interface_with_multiple_methods() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
             id: 3,
-            identifier: Identifier {
+            ident: Identifier {
                 name: "myInterface",
                 location: SourceLocation {
                     span: Range(
@@ -284,7 +284,7 @@ fn interface_with_multiple_methods() {
             properties: [],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -410,10 +410,10 @@ fn interface_deriving_from_other_interface() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces[1], @r###"
+    insta::assert_debug_snapshot!(unit.interfaces[1], @r#"
     Interface {
         id: 4,
-        identifier: Identifier {
+        ident: Identifier {
             name: "bar",
             location: SourceLocation {
                 span: Range(
@@ -475,7 +475,7 @@ fn interface_deriving_from_other_interface() {
         ],
         properties: [],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -498,10 +498,10 @@ fn interface_deriving_from_multiple_interfaces() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces[2], @r###"
+    insta::assert_debug_snapshot!(unit.interfaces[2], @r#"
     Interface {
         id: 5,
-        identifier: Identifier {
+        ident: Identifier {
             name: "quux",
             location: SourceLocation {
                 span: Range(
@@ -567,7 +567,7 @@ fn interface_deriving_from_multiple_interfaces() {
         ],
         properties: [],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -586,7 +586,7 @@ fn interface_with_property() {
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
 
     assert_eq!(unit.interfaces.len(), 1);
-    assert_eq!(unit.interfaces[0].identifier.name, "myInterface");
+    assert_eq!(unit.interfaces[0].ident.name, "myInterface");
 
     insta::assert_debug_snapshot!(unit.interfaces[0].properties, @r#"
     [
@@ -607,7 +607,7 @@ fn interface_with_property() {
                     ),
                 },
             },
-            return_type: DataTypeReference {
+            datatype: DataTypeReference {
                 referenced_type: "INT",
             },
             implementations: [

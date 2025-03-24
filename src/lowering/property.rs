@@ -115,7 +115,7 @@ impl PropertyLowerer {
         // Lower properties defined in an interface
         for interface in &mut unit.interfaces {
             for property in &mut interface.properties {
-                let (pous, _) = lower_to_pou(self.id_provider.clone(), &interface.identifier.name, property);
+                let (pous, _) = lower_to_pou(self.id_provider.clone(), &interface.ident.name, property);
 
                 interface.methods.extend(pous);
             }
@@ -261,7 +261,7 @@ pub fn lower_to_pou(
                     retain: false,
                     variables: vec![Variable {
                         name: name.to_string(),
-                        data_type_declaration: property.return_type.clone(),
+                        data_type_declaration: property.datatype.clone(),
                         initializer: None,
                         address: None,
                         location: SourceLocation::internal(),
@@ -270,7 +270,7 @@ pub fn lower_to_pou(
                     linkage: LinkageType::Internal,
                     location: SourceLocation::internal(),
                 });
-                pou.return_type = Some(property.return_type.clone());
+                pou.return_type = Some(property.datatype.clone());
 
                 let name_lhs = format!("__{}_{}", property_impl.kind, name);
 
@@ -284,7 +284,7 @@ pub fn lower_to_pou(
                     retain: false,
                     variables: vec![Variable {
                         name: name.to_string(),
-                        data_type_declaration: property.return_type.clone(),
+                        data_type_declaration: property.datatype.clone(),
                         initializer: None,
                         address: None,
                         location: SourceLocation::internal(),

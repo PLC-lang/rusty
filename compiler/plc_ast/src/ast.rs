@@ -55,7 +55,7 @@ pub struct Pou {
 #[derive(Debug, PartialEq)]
 pub struct Interface {
     pub id: AstId,
-    pub identifier: Identifier,
+    pub ident: Identifier,
     pub location: SourceLocation,
     pub methods: Vec<Pou>,
     pub extensions: Vec<Identifier>,
@@ -72,7 +72,7 @@ pub struct Identifier {
 #[derive(Debug, PartialEq, Clone)]
 pub struct PropertyBlock {
     pub ident: Identifier,
-    pub return_type: DataTypeDeclaration,
+    pub datatype: DataTypeDeclaration,
     pub implementations: Vec<PropertyImplementation>,
 }
 
@@ -81,8 +81,8 @@ impl Eq for PropertyBlock {}
 impl Hash for PropertyBlock {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.ident.hash(state);
-        self.return_type.get_name().hash(state);
-        self.return_type.get_location().hash(state);
+        self.datatype.get_name().hash(state);
+        self.datatype.get_location().hash(state);
     }
 }
 
@@ -90,7 +90,7 @@ impl From<&PropertyBlock> for Variable {
     fn from(value: &PropertyBlock) -> Self {
         Variable {
             name: value.ident.name.clone(),
-            data_type_declaration: value.return_type.clone(),
+            data_type_declaration: value.datatype.clone(),
             initializer: None,
             address: None,
             location: value.ident.location.clone(),
