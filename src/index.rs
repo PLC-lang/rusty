@@ -578,7 +578,7 @@ impl InterfaceIndexEntry {
             }
         }
 
-        seen.into_iter().map(|ident| index.find_interface(&ident.name)).flatten().collect()
+        seen.into_iter().filter_map(|ident| index.find_interface(&ident.name)).collect()
     }
 
     fn get_methods_recursive<'idx>(

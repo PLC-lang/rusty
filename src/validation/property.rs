@@ -15,9 +15,9 @@ where
         return;
     };
 
-    validate_definition(validator, &pou);
-    validate_name_clashes(validator, context, &pou);
-    validate_overridden_signatures(validator, context, &pou);
+    validate_definition(validator, pou);
+    validate_name_clashes(validator, context, pou);
+    validate_overridden_signatures(validator, context, pou);
 }
 
 fn validate_definition(validator: &mut Validator, pou: &PouIndexEntry) {
@@ -119,7 +119,7 @@ where
 
         // Check if any variable in the current POU clashes with a property in the parent POU
         for member in context.index.get_pou_members(context.qualifier.unwrap_or_default()) {
-            if let Some(property) = pou_parent.get_property(&member.get_name()) {
+            if let Some(property) = pou_parent.get_property(member.get_name()) {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "Name conflict between property `{}` defined in `{}` and variable `{}` defined in POU `{}`",
@@ -215,7 +215,7 @@ pub(crate) fn validate_properties_in_interfaces<T>(
         .get_derived_interfaces_recursive(context.index)
         .iter()
         .map(|it| (it.ident.clone(), &it.properties))
-        .flat_map(|(name, properties)| properties.into_iter().map(move |it| (name.clone(), it)))
+        .flat_map(|(name, properties)| properties.iter().map(move |it| (name.clone(), it)))
         .collect::<Vec<_>>();
 
     for property in &interface.properties {

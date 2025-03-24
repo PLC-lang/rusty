@@ -1,11 +1,11 @@
-use plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType, Variable};
+use plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
 use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
 use plc_source::source_location::SourceLocation;
 use property::visit_property;
 use rustc_hash::FxHashMap;
-use variable::{visit_config_variable, visit_variable};
+use variable::visit_config_variable;
 
 use crate::{
     expression_path::ExpressionPath,
