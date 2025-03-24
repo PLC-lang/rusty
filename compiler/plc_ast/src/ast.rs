@@ -803,7 +803,7 @@ pub enum ReferenceAccess {
     Address,
 }
 
-// XXX: this should probably be an enum at some point, but for now we only have a singular use-case (preserving lowered AST for validation)
+// XXX: this should probably be an enum or dyn trait at some point, but for now we only have a singular use-case (preserving lowered AST for validation)
 // Another use-case might be markers to exclude internals from validation - this currently happens based on `SourceLocation` with `FileMarker`s,
 // this might be a better alternative
 #[derive(Debug, Clone, PartialEq)]
@@ -812,6 +812,12 @@ pub struct MetaData(Box<AstNode>);
 impl From<AstNode> for MetaData {
     fn from(value: AstNode) -> Self {
         Self(Box::new(value))
+    }
+}
+
+impl MetaData {
+    pub fn get_inner(&self) -> &AstNode {
+        self.0.as_ref()
     }
 }
 
@@ -1076,6 +1082,10 @@ impl AstNode {
         }
     }
 
+    pub fn get_metadata(&self) -> Option<&MetaData> {
+        self.metadata.as_ref()
+    }
+
     /// Returns true if the current statement has a direct access.
     pub fn has_direct_access(&self) -> bool {
         match &self.stmt {
@@ -1189,6 +1199,10 @@ impl AstNode {
 
     pub fn is_expression_list(&self) -> bool {
         matches!(self.stmt, AstStatement::ExpressionList { .. })
+    }
+
+    pub fn is_super(&self) -> bool {
+        matches!(self.stmt, AstStatement::Super(..))
     }
 
     pub fn can_be_assigned_to(&self) -> bool {
@@ -1524,7 +1538,14 @@ impl AstFactory {
 
     /// creates a not-expression
     pub fn create_not_expression(operator: AstNode, location: SourceLocation, id: usize) -> AstNode {
-        AstNode::new(AstStatement::UnaryExpression(UnaryExpression { value: Box::new(operator), operator: Operator::Not }), id, location)
+        AstNode::new(
+            AstStatement::UnaryExpression(UnaryExpression {
+                value: Box::new(operator),
+                operator: Operator::Not,
+            }),
+            id,
+            location,
+        )
     }
 
     /// creates a new Identifier
@@ -1686,8 +1707,8 @@ impl AstFactory {
         id: AstId,
     ) -> AstNode {
         let new_location = location.span(&stmt.get_location());
-        AstNode::new(       
-      AstStatement::ReferenceExpr(ReferenceExpr {
+        AstNode::new(
+            AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Cast(Box::new(stmt)),
                 base: Some(Box::new(type_name)),
             }),
@@ -1748,10 +1769,7 @@ impl AstFactory {
         id: AstId,
     ) -> AstNode {
         AstNode::new(
-            AstStatement::MultipliedStatement(MultipliedStatement {
-                multiplier,
-                element: Box::new(element),
-            }),
+            AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element: Box::new(element) }),
             id,
             location,
         )
@@ -1760,7 +1778,7 @@ impl AstFactory {
     pub fn create_range_statement(start: AstNode, end: AstNode, id: AstId) -> AstNode {
         let location = start.location.span(&end.location);
         let data = RangeStatement { start: Box::new(start), end: Box::new(end) };
-        AstNode::new(AstStatement::RangeStatement(data), id, location )
+        AstNode::new(AstStatement::RangeStatement(data), id, location)
     }
 
     pub fn create_call_to_with_ids(
@@ -1808,11 +1826,11 @@ impl AstFactory {
         location: SourceLocation,
         id: AstId,
     ) -> AstNode {
-        AstNode::new(AstStatement::JumpStatement(JumpStatement { condition, target }), id, location )
+        AstNode::new(AstStatement::JumpStatement(JumpStatement { condition, target }), id, location)
     }
 
     pub fn create_label_statement(name: String, location: SourceLocation, id: AstId) -> AstNode {
-        AstNode::new(AstStatement::LabelStatement(LabelStatement { name }), id, location )
+        AstNode::new(AstStatement::LabelStatement(LabelStatement { name }), id, location)
     }
 
     pub fn create_plus_one_expression(value: AstNode, location: SourceLocation, id: AstId) -> AstNode {
