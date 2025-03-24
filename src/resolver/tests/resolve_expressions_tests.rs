@@ -5648,6 +5648,7 @@ fn reference_to_alloca_resolved() {
             }),
             id: id_provider.next_id(),
             location: SourceLocation::internal(),
+            metadata: None,
         },
     );
 
@@ -5704,6 +5705,7 @@ fn reference_to_alloca_nested_resolved() {
             }),
             id: id_provider.next_id(),
             location: SourceLocation::internal(),
+            metadata: None
         },
     );
 
@@ -5721,6 +5723,7 @@ fn reference_to_alloca_nested_resolved() {
                 }),
                 id: id_provider.next_id(),
                 location: SourceLocation::internal(),
+                metadata: None
             },
         );
     };
