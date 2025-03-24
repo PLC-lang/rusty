@@ -349,6 +349,7 @@ fn parse_pou(
                 if !matches!(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
                     let location = lexer.source_range_factory.create_range(lexer.last_range.clone());
 
+                    // TODO: Isn't this a semantic validation rather than a parser / syntax error?
                     lexer.accept_diagnostic(
                         Diagnostic::new(format!("Methods cannot be declared in a POU of type '{kind}'."))
                             .with_location(location),
@@ -740,7 +741,7 @@ fn parse_property(lexer: &mut ParseSession) -> Option<PropertyBlock> {
     let (name, name_location) = identifier.expect("covered above");
     let datatype = datatype.expect("covered above");
     Some(PropertyBlock {
-        name: Identifier { name, location: name_location },
+        ident: Identifier { name, location: name_location },
         return_type: datatype,
         implementations,
     })
@@ -1345,7 +1346,7 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
         });
     }
 
-    VariableBlock { access, constant, retain, variables, variable_block_type, linkage, location }
+    VariableBlock { access, constant, retain, variables, kind: variable_block_type, linkage, location }
 }
 
 fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {

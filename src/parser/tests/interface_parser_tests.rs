@@ -591,7 +591,7 @@ fn interface_with_property() {
     insta::assert_debug_snapshot!(unit.interfaces[0].properties, @r#"
     [
         PropertyBlock {
-            name: Identifier {
+            ident: Identifier {
                 name: "foo",
                 location: SourceLocation {
                     span: Range(

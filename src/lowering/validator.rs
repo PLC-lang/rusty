@@ -1,4 +1,3 @@
-use plc_ast::ast::{Pou, PropertyKind, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
 
@@ -11,76 +10,10 @@ pub struct ParticipantValidator {
     error_fmt: ErrorFormat,
 }
 
+// TODO: Remove this module; generally revert the POC?
 impl ParticipantValidator {
     pub fn new(context: &GlobalContext, error_fmt: ErrorFormat) -> ParticipantValidator {
         ParticipantValidator { diagnostics: Vec::new(), context: context.clone(), error_fmt }
-    }
-
-    pub fn validate_properties(&mut self, pou: &Pou) {
-        for property in &pou.properties {
-            let mut get_blocks = vec![];
-            let mut set_blocks = vec![];
-            let name = &property.name.name;
-            let name_location = &property.name.location;
-            if !pou.kind.is_stateful() {
-                self.diagnostics.push(
-                    Diagnostic::new(format!(
-                        "Property `{name}` must be defined in a stateful POU type (PROGRAM, CLASS or FUNCTION_BLOCK)",
-                    ))
-                    .with_location(pou.name_location.clone())
-                    .with_error_code("E115"),
-                );
-            }
-
-            for implementation in &property.implementations {
-                for variable in &implementation.variable_blocks {
-                    match variable.variable_block_type {
-                        VariableBlockType::Local => {}
-                        _ => {
-                            self.diagnostics.push(
-                                Diagnostic::new("Properties only allow variable blocks of type VAR")
-                                    .with_secondary_location(variable.location.clone())
-                                    .with_location(name_location.clone())
-                                    .with_error_code("E116"),
-                            );
-                        }
-                    }
-                }
-
-                match implementation.kind {
-                    PropertyKind::Get => get_blocks.push(implementation.location.clone()),
-                    PropertyKind::Set => set_blocks.push(implementation.location.clone()),
-                }
-            }
-
-            if set_blocks.len() + get_blocks.len() == 0 {
-                // one block is required
-                self.diagnostics.push(
-                    Diagnostic::new("Property has no GET or SET block")
-                        .with_location(property.name.location.clone())
-                        .with_error_code("E117"),
-                );
-                continue;
-            }
-
-            if get_blocks.len() > 1 {
-                self.diagnostics.push(
-                    Diagnostic::new("Property has more than one GET block")
-                        .with_location(name_location.clone())
-                        .with_secondary_locations(get_blocks)
-                        .with_error_code("E117"),
-                );
-            }
-
-            if set_blocks.len() > 1 {
-                self.diagnostics.push(
-                    Diagnostic::new("Property has more than one SET block")
-                        .with_location(name_location.clone())
-                        .with_secondary_locations(set_blocks)
-                        .with_error_code("E117"),
-                );
-            }
-        }
     }
 
     pub fn report_diagnostics(&mut self) {

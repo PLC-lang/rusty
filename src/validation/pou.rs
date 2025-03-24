@@ -7,7 +7,8 @@ use plc_source::source_location::SourceLocation;
 use signature_validation::validate_method_signature;
 
 use super::{
-    statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
+    property, statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator,
+    Validators,
 };
 use crate::resolver::{AnnotationMap, StatementAnnotation};
 
@@ -266,10 +267,7 @@ fn validate_class(validator: &mut Validator, pou: &Pou) {
     // var in/out/inout blocks are not allowed inside of class declaration
     // TODO: This should be on each block
     if pou.variable_blocks.iter().any(|it| {
-        matches!(
-            it.variable_block_type,
-            VariableBlockType::InOut | VariableBlockType::Input(_) | VariableBlockType::Output
-        )
+        matches!(it.kind, VariableBlockType::InOut | VariableBlockType::Input(_) | VariableBlockType::Output)
     }) {
         validator.push_diagnostic(
             Diagnostic::new("A class cannot contain `VAR_INPUT`, `VAR_IN_OUT`, or `VAR_OUTPUT` blocks")
@@ -295,7 +293,7 @@ pub fn visit_interface<T: AnnotationMap>(
     context: &ValidationContext<'_, T>,
 ) {
     let Identifier { name, location } = &interface.identifier;
-    let Some(entry) = context.index.find_interface(name) else { unreachable!("Must exist") };
+    let entry = context.index.find_interface(name).expect("must exist");
     entry.get_extensions().iter().for_each(|declaration| {
         if context.index.find_interface(&declaration.name).is_none() {
             validator.push_diagnostic(
@@ -306,6 +304,7 @@ pub fn visit_interface<T: AnnotationMap>(
         }
     });
     validate_methods_overrides(validator, context, interface.id, name, location);
+    property::validate_properties_in_interfaces(validator, context, interface);
 }
 
 pub(super) mod signature_validation {

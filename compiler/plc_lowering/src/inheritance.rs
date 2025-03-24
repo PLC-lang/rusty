@@ -192,7 +192,7 @@ impl AstVisitorMut for InheritanceLowerer {
 
         let block = VariableBlock {
             variables: vec![base_var],
-            variable_block_type: VariableBlockType::Local,
+            kind: VariableBlockType::Local,
             linkage: LinkageType::Internal,
             location: SourceLocation::internal(),
             ..Default::default()

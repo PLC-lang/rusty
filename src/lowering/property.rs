@@ -210,8 +210,8 @@ pub fn lower_to_pou(
     let mut pous = Vec::new();
     let mut impls = Vec::new();
 
-    for property_impl in property.implementations.drain(..) {
-        let Identifier { name, location } = &property.name;
+    for property_impl in property.implementations.clone() {
+        let Identifier { name, location } = &property.ident;
 
         let mangled_name = format!("{parent}.__{kind}_{name}", kind = property_impl.kind);
 
@@ -266,7 +266,7 @@ pub fn lower_to_pou(
                         address: None,
                         location: SourceLocation::internal(),
                     }],
-                    variable_block_type: VariableBlockType::Local,
+                    kind: VariableBlockType::Local,
                     linkage: LinkageType::Internal,
                     location: SourceLocation::internal(),
                 });
@@ -289,7 +289,7 @@ pub fn lower_to_pou(
                         address: None,
                         location: SourceLocation::internal(),
                     }],
-                    variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
+                    kind: VariableBlockType::Input(ArgumentProperty::ByVal),
                     linkage: LinkageType::Internal,
                     location: SourceLocation::internal(),
                 });

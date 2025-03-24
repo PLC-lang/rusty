@@ -188,7 +188,7 @@ fn class_with_var_default_block() {
     assert_eq!(vblock.retain, false);
     assert_eq!(vblock.constant, false);
     assert_eq!(vblock.access, AccessModifier::Protected);
-    assert_eq!(vblock.variable_block_type, VariableBlockType::Local);
+    assert_eq!(vblock.kind, VariableBlockType::Local);
 }
 
 #[test]
@@ -208,7 +208,7 @@ fn class_with_var_non_retain_block() {
     assert_eq!(vblock.retain, false);
     assert_eq!(vblock.constant, true);
     assert_eq!(vblock.access, AccessModifier::Public);
-    assert_eq!(vblock.variable_block_type, VariableBlockType::Local);
+    assert_eq!(vblock.kind, VariableBlockType::Local);
 }
 
 #[test]
@@ -228,7 +228,7 @@ fn class_with_var_retain_block() {
     assert_eq!(vblock.retain, true);
     assert_eq!(vblock.constant, false);
     assert_eq!(vblock.access, AccessModifier::Internal);
-    assert_eq!(vblock.variable_block_type, VariableBlockType::Local);
+    assert_eq!(vblock.kind, VariableBlockType::Local);
 }
 
 #[test]
@@ -248,7 +248,7 @@ fn method_with_var_block() {
     assert_eq!(vblock.retain, false);
     assert_eq!(vblock.constant, false);
     assert_eq!(vblock.access, AccessModifier::Protected);
-    assert_eq!(vblock.variable_block_type, VariableBlockType::Temp);
+    assert_eq!(vblock.kind, VariableBlockType::Temp);
 }
 
 #[test]
@@ -279,13 +279,13 @@ fn method_with_var_inout_blocks() {
     let vblock3 = &method_pou.variable_blocks[2];
 
     assert_eq!(vblock1.constant, true);
-    assert_eq!(vblock1.variable_block_type, VariableBlockType::Input(ArgumentProperty::ByVal));
+    assert_eq!(vblock1.kind, VariableBlockType::Input(ArgumentProperty::ByVal));
 
     assert_eq!(vblock2.constant, false);
-    assert_eq!(vblock2.variable_block_type, VariableBlockType::InOut);
+    assert_eq!(vblock2.kind, VariableBlockType::InOut);
 
     assert_eq!(vblock3.constant, false);
-    assert_eq!(vblock3.variable_block_type, VariableBlockType::Output);
+    assert_eq!(vblock3.kind, VariableBlockType::Output);
 }
 
 #[test]
@@ -547,11 +547,9 @@ fn method_variable_blocks_can_be_parsed() {
         VariableBlockType::Output,
         VariableBlockType::InOut,
     ];
-    let actual =
-        &fb_mthd.variable_blocks.iter().map(|it| it.variable_block_type).collect::<Vec<VariableBlockType>>();
+    let actual = &fb_mthd.variable_blocks.iter().map(|it| it.kind).collect::<Vec<VariableBlockType>>();
     assert_eq!(&expected_var_blocks, actual);
-    let actual =
-        &prg_mthd.variable_blocks.iter().map(|it| it.variable_block_type).collect::<Vec<VariableBlockType>>();
+    let actual = &prg_mthd.variable_blocks.iter().map(|it| it.kind).collect::<Vec<VariableBlockType>>();
     assert_eq!(&expected_var_blocks, actual);
 
     // we expect to have parsed 10 variables and 4 of them (all `y`s apart from the in-out) to have initializer

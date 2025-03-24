@@ -3,6 +3,7 @@ use plc_derive::Validators;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_index::GlobalContext;
 use plc_source::source_location::SourceLocation;
+use property::visit_property;
 use rustc_hash::FxHashMap;
 use variable::{visit_config_variable, visit_variable};
 
@@ -27,6 +28,7 @@ use self::{
 mod array;
 mod global;
 mod pou;
+mod property;
 mod recursive;
 pub(crate) mod statement;
 mod types;
@@ -174,13 +176,11 @@ impl<'a> Validator<'a> {
     pub fn visit_unit<T: AnnotationMap>(&mut self, annotations: &T, index: &Index, unit: &CompilationUnit) {
         let context = ValidationContext { annotations, index, qualifier: None, is_call: false };
         // Validate POU and declared Variables
-        for pou in &unit.units {
+        for pou in dbg!(&unit.units) {
             let context = context.with_qualifier(pou.name.as_str());
 
             visit_pou(self, pou, &context);
-            for property in &pou.properties {
-                visit_variable(self, &Variable::from(property), &context);
-            }
+            visit_property(self, &context);
         }
 
         // Validate user declared types

@@ -227,7 +227,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     address: None,
                     location: pou.name_location.clone(),
                 }],
-                variable_block_type: VariableBlockType::InOut,
+                kind: VariableBlockType::InOut,
                 linkage: LinkageType::Internal,
                 location: SourceLocation::internal(),
             };

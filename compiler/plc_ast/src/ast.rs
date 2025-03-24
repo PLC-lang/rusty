@@ -2,6 +2,7 @@
 
 use std::{
     fmt::{Debug, Display, Formatter},
+    hash::Hash,
     ops::Range,
 };
 
@@ -70,9 +71,31 @@ pub struct Identifier {
 /// The property container as a whole, which contains [`PropertyImplementation`]s
 #[derive(Debug, PartialEq, Clone)]
 pub struct PropertyBlock {
-    pub name: Identifier,
+    pub ident: Identifier,
     pub return_type: DataTypeDeclaration,
     pub implementations: Vec<PropertyImplementation>,
+}
+
+impl Eq for PropertyBlock {}
+
+impl Hash for PropertyBlock {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.ident.hash(state);
+        self.return_type.get_name().hash(state);
+        self.return_type.get_location().hash(state);
+    }
+}
+
+impl From<&PropertyBlock> for Variable {
+    fn from(value: &PropertyBlock) -> Self {
+        Variable {
+            name: value.ident.name.clone(),
+            data_type_declaration: value.return_type.clone(),
+            initializer: None,
+            address: None,
+            location: value.ident.location.clone(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -88,18 +111,6 @@ pub struct PropertyImplementation {
 pub enum PropertyKind {
     Get,
     Set,
-}
-
-impl From<&PropertyBlock> for Variable {
-    fn from(value: &PropertyBlock) -> Self {
-        Variable {
-            name: value.name.name.clone(),
-            data_type_declaration: value.return_type.clone(),
-            initializer: None,
-            address: None,
-            location: value.name.location.clone(),
-        }
-    }
 }
 
 impl std::fmt::Display for PropertyKind {
@@ -497,14 +508,14 @@ pub struct VariableBlock {
     pub constant: bool,
     pub retain: bool,
     pub variables: Vec<Variable>,
-    pub variable_block_type: VariableBlockType,
+    pub kind: VariableBlockType,
     pub linkage: LinkageType,
     pub location: SourceLocation,
 }
 
 impl VariableBlock {
     pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
-        self.variable_block_type = block_type;
+        self.kind = block_type;
         self
     }
 
@@ -521,7 +532,7 @@ impl Default for VariableBlock {
             constant: false,
             retain: false,
             variables: vec![],
-            variable_block_type: VariableBlockType::Local,
+            kind: VariableBlockType::Local,
             linkage: LinkageType::Internal,
             location: SourceLocation::internal(),
         }
@@ -532,7 +543,7 @@ impl Debug for VariableBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("VariableBlock")
             .field("variables", &self.variables)
-            .field("variable_block_type", &self.variable_block_type)
+            .field("variable_block_type", &self.kind)
             .finish()
     }
 }
