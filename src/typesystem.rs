@@ -6,6 +6,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Result};
+use inkwell::types::StructType;
 use plc_ast::{
     ast::{AstNode, AutoDerefType, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
@@ -270,6 +271,20 @@ impl DataType {
 
     pub fn get_enum_variants(&self) -> Option<&Vec<VariableIndexEntry>> {
         self.information.get_enum_variants()
+    }
+
+    pub(crate) fn is_generic(&self, index: &Index) -> bool {
+        self.information.is_generic(index)
+    }
+
+    pub(crate) fn is_backed_by_struct(&self) -> bool {
+        if let DataTypeInformation::Struct { source: StructSource::Pou(pou_type), .. } =
+            self.get_type_information()
+        {
+            pou_type.is_stateful()
+        } else {
+            true
+        }
     }
 }
 

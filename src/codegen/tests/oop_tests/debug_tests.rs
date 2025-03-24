@@ -82,7 +82,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     !6 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 5, baseType: !8, size: 648, offset: 16, flags: DIFlagPublic)
     !8 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 648, elements: !10)
-    !9 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+    !9 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !10 = !{!11}
     !11 = !DISubrange(count: 81, lowerBound: 0)
     !12 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 6, baseType: !13, size: 7128, offset: 664, flags: DIFlagPublic)
@@ -389,7 +389,7 @@ fn write_to_parent_variable_in_instance() {
     !7 = !{!8}
     !8 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 4, baseType: !9, size: 648, flags: DIFlagPublic)
     !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, elements: !11)
-    !10 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+    !10 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !11 = !{!12}
     !12 = !DISubrange(count: 81, lowerBound: 0)
     !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
