@@ -1685,3 +1685,41 @@ fn assigning_arrays_with_same_size_and_type_class_but_different_inner_type_is_an
        │                 ^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LWORD' to 'ARRAY[0..1] OF LINT'
     "###);
 }
+
+#[test]
+fn assigning_struct_with_size_64_to_a_ptr_and_vice_versa_should_err() {
+    // When assigning a struct with size 64 to a pointer,
+    // we expect an error.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        // This struct has size 64, therefore our validator currently
+        // thinks assigning it to a pointer and vice-versa is fine.
+        TYPE my_struct : STRUCT
+            a : DINT;
+            b : DINT;
+            END_STRUCT
+        END_TYPE
+
+        FUNCTION main : DINT
+        VAR
+            ptr: REF_TO my_struct;
+        END_VAR
+        // the following variables are all exactly 8 bytes, same size as a pointer :)
+        VAR
+            v_my_struct: my_struct;
+        END_VAR
+            ptr := ADR(v_my_struct); // OK
+            v_my_struct := ptr; // Err
+            ptr := v_my_struct; // Err
+
+            // Assigning structs, function blocks, programs etc
+            // is perfectly fine as long as they match the size of the pointer
+            // Only arrays and strings currently report errors, even if they match
+            // the size.
+        END_FUNCTION
+        "#,
+    );
+
+    assert!(!diagnostics.is_empty());
+    assert_snapshot!(diagnostics, @r###""###);
+}
