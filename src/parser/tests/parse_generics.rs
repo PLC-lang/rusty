@@ -23,7 +23,7 @@ fn generic_markers_on_pou_added() {
         O : ANY_DATE,
         P : __ANY_VLA> : INT END_FUNCTION";
     let (parse_result, _) = parse(src);
-    let function = &parse_result.units[0];
+    let function = &parse_result.pous[0];
     //Make sure the function has the generic parametes T: ANY, R : ANY_NUMBER
     let generics = &function.generics;
     assert!(!generics.is_empty());
@@ -65,7 +65,7 @@ fn generic_markers_on_pou_added() {
 fn generic_markers_on_method_added() {
     let src = "CLASS xx METHOD test<T: ANY, R : ANY_NUM> : INT END_METHOD END_CLASS";
     let (parse_result, _) = parse(src);
-    let function = &parse_result.units[1];
+    let function = &parse_result.pous[1];
     //Make sure the function has the generic parametes T: ANY, R : ANY_NUMBER
     let generics = &function.generics;
     assert!(!generics.is_empty());
@@ -79,7 +79,7 @@ fn generic_markers_on_method_added() {
 fn generic_parameters_are_datatypes() {
     let src = "FUNCTION test<T: ANY, R : ANY_NUM> : R VAR_INPUT x : T; y : R; END_VAR END_FUNCTION";
     let (parse_result, _) = parse(src);
-    let function = &parse_result.units[0];
+    let function = &parse_result.pous[0];
     let variables = &function.variable_blocks[0].variables;
     assert_debug_snapshot!(variables);
 }
@@ -89,7 +89,7 @@ fn generic_method_parameters_are_datatypes() {
     let src =
         "CLASS cls METHOD test<T: ANY, R : ANY_NUM> : R VAR_INPUT x : T; y : R; END_VAR END_METHOD END_CLASS";
     let (parse_result, _) = parse(src);
-    let function = &parse_result.units[1];
+    let function = &parse_result.pous[1];
     let variables = &function.variable_blocks[0].variables;
     assert_debug_snapshot!(variables);
 }

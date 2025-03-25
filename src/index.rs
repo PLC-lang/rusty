@@ -1402,7 +1402,7 @@ impl Index {
                 .and_then(|qualifier| self.find_member_recursive(qualifier, variable_name, seen)))
             // 'self' instance of a POUs init function
             .or(container_name
-                .rfind('_')
+                .rfind("__init_")
                 .map(|p| &container_name[p + 1..])
                 .and_then(|qualifier| self.find_member_recursive(qualifier, variable_name, seen)))
     }

@@ -26,7 +26,7 @@ fn overriden_method_is_annotated() {
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-    let unit = &units[0].0.units[3];
+    let unit = &units[0].0.pous[3];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -69,7 +69,7 @@ fn overriden_method_from_multiple_interfaces_is_annotated() {
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-    let unit = &units[0].0.units[1];
+    let unit = &units[0].0.pous[1];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -84,7 +84,7 @@ fn overriden_method_from_multiple_interfaces_is_annotated() {
         },
     )
     "#);
-    let unit = &units[0].0.units[2];
+    let unit = &units[0].0.pous[2];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -118,7 +118,7 @@ fn overriden_method_from_interface_is_annotated() {
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-    let unit = &units[0].0.units[1];
+    let unit = &units[0].0.pous[1];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -161,7 +161,7 @@ fn overriden_method_from_interface_and_base_is_annotated() {
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-    let unit = &units[0].0.units[3];
+    let unit = &units[0].0.pous[3];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -176,7 +176,7 @@ fn overriden_method_from_interface_and_base_is_annotated() {
         },
     )
     "#);
-    let unit = &units[0].0.units[4];
+    let unit = &units[0].0.pous[4];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -219,7 +219,7 @@ fn all_available_methods_of_container_are_annotated() {
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-    let unit = &units[0].0.units[2];
+    let unit = &units[0].0.pous[2];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         MethodDeclarations {
@@ -496,7 +496,7 @@ fn function_block_has_both_abstract_and_concrete_annotation_from_extended_intf()
     );
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let units = &units[0].0.units;
+    let units = &units[0].0.pous;
     let fb = &units[0];
     assert_debug_snapshot!(annotations.get_with_id(fb.id), @r#"
     Some(
@@ -623,7 +623,7 @@ fn function_block_methods_have_overrides_from_extended_interface_annotated() {
     );
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let units = &units[0].0.units;
+    let units = &units[0].0.pous;
     let method = &units[1];
     assert_debug_snapshot!(annotations.get_with_id(method.id), @r#"
     Some(

@@ -2329,7 +2329,7 @@ fn enum_initialization_is_annotated_correctly() {
     );
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
-    let variables = &unit.units[0].variable_blocks[0].variables;
+    let variables = &unit.pous[0].variable_blocks[0].variables;
 
     assert_type_and_hint!(
         &annotations,
@@ -2495,7 +2495,7 @@ fn program_members_initializers_type_hint_test() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN the members's initializers have correct type-hints
-    let Pou { variable_blocks: blocks, .. } = &unit.units[0];
+    let Pou { variable_blocks: blocks, .. } = &unit.pous[0];
     let hints: Vec<&str> = blocks[0]
         .variables
         .iter()
@@ -3172,7 +3172,7 @@ fn null_statement_should_get_a_valid_type_hint() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    let var_x_type = &unit.units[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
+    let var_x_type = &unit.pous[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
 
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = stmt {
         assert_type_and_hint!(&annotations, &index, right, "VOID", Some(var_x_type));
@@ -3283,7 +3283,7 @@ fn assigning_lword_to_ptr_will_annotate_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[0].statements[0];
 
-    let ptr_type = unit.units[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
+    let ptr_type = unit.pous[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
 
     if let AstNode { stmt: AstStatement::Assignment(Assignment { left, right, .. }), .. } = a_eq_b {
         assert_type_and_hint!(&annotations, &index, left, DWORD_TYPE, None);
@@ -3312,7 +3312,7 @@ fn assigning_ptr_to_lword_will_annotate_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[0].statements[0];
 
-    let ptr_type = unit.units[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
+    let ptr_type = unit.pous[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
 
     if let AstNode { stmt: AstStatement::Assignment(Assignment { left, right, .. }), .. } = a_eq_b {
         assert_type_and_hint!(&annotations, &index, left, ptr_type, None);
@@ -3341,7 +3341,7 @@ fn assigning_ptr_to_lword_will_annotate_correctly2() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[0].statements[0];
 
-    let ptr_type = unit.units[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
+    let ptr_type = unit.pous[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
 
     if let AstNode { stmt: AstStatement::Assignment(Assignment { left, right, .. }), .. } = a_eq_b {
         assert_type_and_hint!(&annotations, &index, left, DWORD_TYPE, None);
@@ -3694,7 +3694,7 @@ fn function_block_initialization_test() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     //PT will be a TIME variable, qualified name will be TON.PT
-    let statement = unit.units[1].variable_blocks[0].variables[0].initializer.as_ref().unwrap();
+    let statement = unit.pous[1].variable_blocks[0].variables[0].initializer.as_ref().unwrap();
     let AstStatement::ParenExpression(expr) = statement.get_stmt() else { panic!() };
     if let AstNode { stmt: AstStatement::Assignment(Assignment { left, .. }), .. } = expr.as_ref() {
         let left = left.as_ref();
