@@ -1,6 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::test_utils::tests::{parse_and_validate_buffered, parse_buffered};
+use crate::test_utils::tests::{
+    parse_and_report_parse_errors_buffered, parse_and_validate_buffered, parse_buffered,
+};
 use insta::{assert_debug_snapshot, assert_snapshot};
 
 /*
@@ -180,8 +182,12 @@ fn super_is_a_reserved_keyword() {
     ";
 
     // TODO(mhasel):    the parser produces a lot of noise for keyword errors,
-    //                  we need to find a way to handle keywords as identifiers
-    let diagnostics = parse_and_validate_buffered(src);
+    //                  we need to find a way to handle keywords as identifiers.
+    //                  Also, half the diagnostics in this file are moot since
+    //                  the pipeline will abort compilation on parse errors,
+    //                  i.e. the validation stage is never reached.
+
+    let diagnostics = parse_and_report_parse_errors_buffered(src);
     assert_snapshot!(diagnostics, @r"
     error[E006]: Expected a name for the interface definition but got nothing
       ┌─ <internal>:2:5
@@ -248,11 +254,5 @@ fn super_is_a_reserved_keyword() {
       │
     8 │     END_PROGRAM
       │     ^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
-
-    error[E079]: Case condition used outside of case statement! Did you mean to use ';'?
-      ┌─ <internal>:3:13
-      │
-    3 │     PROGRAM super
-      │             ^^^^^ Case condition used outside of case statement! Did you mean to use ';'?
     ");
 }
