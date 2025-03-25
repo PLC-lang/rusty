@@ -323,6 +323,31 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
         self.walk_with_context(implementation, ctx);
     }
 
+    fn visit_reference_expr(&mut self, node: &mut AstNode) {
+        if self.index.is_none() || self.annotations.is_none() {
+            return;
+        }
+
+        let ReferenceExpr { base, access } = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
+        if let Some(base) = base {
+            self.visit(base);
+        }
+
+        match access {
+            ReferenceAccess::Member(t) | ReferenceAccess::Index(t) | ReferenceAccess::Cast(t) => {
+                let is_super = t.is_super();
+                self.visit(t);
+                if is_super {
+                    // `super` has been lowered to a new `ReferenceExpr` without base, so we need to add the original base
+                    let ReferenceExpr { base: super_base, .. } =
+                        try_from_mut!(t, ReferenceExpr).expect("ReferenceExpr");
+                    std::mem::swap(super_base, base);
+                }
+            }
+            _ => {}
+        };
+    }
+
     fn visit_super(&mut self, node: &mut AstNode) {
         let Some(base_type_name) = self
             .ctx
@@ -346,6 +371,7 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
 
         let new_node = if deref_marker.is_some() {
             // If the super statement is dereferenced, we can just use the existing base-class instance
+            // AstFactory::create_identifier(&base_type_name, node.get_location(), self.provider().next_id())
             create_member_reference_with_location(
                 &base_type_name,
                 self.provider().clone(),
@@ -2985,21 +3011,16 @@ mod super_tests {
             FUNCTION_BLOCK grandparent
             VAR
                 x : INT := 10;
-            END_VAR
-            END_FUNCTION_BLOCK
-
-            FUNCTION_BLOCK parent EXTENDS grandparent
-            VAR
                 y : INT := 20;
             END_VAR
             END_FUNCTION_BLOCK
 
+            FUNCTION_BLOCK parent EXTENDS grandparent
+            END_FUNCTION_BLOCK
+
             FUNCTION_BLOCK child EXTENDS parent
-            VAR
-                z : INT := 30;
-            END_VAR
                 // Chained SUPER access (technically invalid but we should handle it gracefully)
-                SUPER^.SUPER^.x := 100;
+                SUPER^.SUPER^.x := SUPER^.SUPER^.y;
             END_FUNCTION_BLOCK
         "#
         .into();
@@ -3024,24 +3045,52 @@ mod super_tests {
                                             name: "__parent",
                                         },
                                     ),
-                                    base: None,
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__parent",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
                                 },
                             ),
-                            base: Some(
+                            base: None,
+                        },
+                    ),
+                },
+                right: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "y",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
                                 ReferenceExpr {
                                     kind: Member(
                                         Identifier {
                                             name: "__parent",
                                         },
                                     ),
-                                    base: None,
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__parent",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
                                 },
                             ),
+                            base: None,
                         },
                     ),
-                },
-                right: LiteralInteger {
-                    value: 100,
                 },
             },
         ]
@@ -3851,19 +3900,19 @@ mod super_tests {
                                                 name: "__parent",
                                             },
                                         ),
-                                        base: None,
-                                    },
-                                ),
-                                base: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__parent",
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__parent",
+                                                    },
+                                                ),
+                                                base: None,
                                             },
                                         ),
-                                        base: None,
                                     },
                                 ),
+                                base: None,
                             },
                         ),
                     },
