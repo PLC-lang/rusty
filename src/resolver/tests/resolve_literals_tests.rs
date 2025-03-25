@@ -546,7 +546,7 @@ fn struct_field_members_assignments_are_annotated_correctly_in_array_of_structs(
     );
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let var = unit.units[0].variable_blocks[0].variables[0].initializer.clone().unwrap();
+    let var = unit.pous[0].variable_blocks[0].variables[0].initializer.clone().unwrap();
 
     // (x := 0, arr := [(y := 0), (z := 0)])
     let AstStatement::Literal(AstLiteral::Array(arr)) = &var.stmt else { panic!() };
