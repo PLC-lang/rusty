@@ -1,3 +1,9 @@
+//! Module validating properties
+//!
+//! Properties are lowered into methods, so most validation logic is already handled by existing code.
+//! However, some of these validations produce generic error messages. This module provides more specific
+//! validations to improve the error reporting experience for users with regards to properties.
+
 use std::collections::HashSet;
 
 use itertools::Itertools;
@@ -91,7 +97,6 @@ fn validate_name_clashes<T>(validator: &mut Validator, context: &ValidationConte
 where
     T: AnnotationMap,
 {
-    // TODO: See if we can improve this
     let mut seen = HashSet::new();
     let mut super_class = pou.get_super_class();
     while let Some(parent_str) = super_class {
@@ -105,11 +110,12 @@ where
 
         // Check if any property in the current POU clashes with a variable in the parent POU
         for property in pou.get_properties_vec() {
-            if let Some(variable) = context.index.find_member(parent_str, &property.ident.name) {
+            if let Some(variable) = context.index.find_local_member(parent_str, &property.ident.name) {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
-                        "Name conflict between property and variable `{}` defined in POU `{}`",
+                        "Name conflict between property and variable `{}` defined in POU `{}` and `{}`",
                         property.ident.name,
+                        pou_parent.get_name(),
                         pou.get_name()
                     ))
                     .with_error_code("E021")
@@ -124,11 +130,10 @@ where
             if let Some(property) = pou_parent.get_property(member.get_name()) {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
-                        "Name conflict between property `{}` defined in `{}` and variable `{}` defined in POU `{}`",
+                        "Name conflict between property and variable `{}` defined in POU `{}` and `{}`",
                         property.name,
                         pou_parent.get_name(),
-                        member.get_name(),
-                        pou.get_name()
+                        pou.get_name(),
                     ))
                     .with_error_code("E021")
                     .with_location(&property.location)
@@ -226,7 +231,7 @@ pub(crate) fn validate_properties_in_interfaces<T>(
     // Group all these properties by their name
     let mut clusters: FxHashMap<String, Vec<(Identifier, &PropertyBlock)>> = FxHashMap::default();
     for (intf_ident, property) in derived_properties {
-        clusters.entry(property.ident.name.clone()).or_insert_with(Vec::new).push((intf_ident, property));
+        clusters.entry(property.ident.name.clone()).or_default().push((intf_ident, property));
     }
 
     // Check if properties in these clusters have the same type, otherwise we can't implement them in e.g. a FB

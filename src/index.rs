@@ -566,12 +566,11 @@ impl InterfaceIndexEntry {
             .collect()
     }
 
-    /// Returns a list of ALL interfaces this interface inherited directly or indirectly
+    /// Returns a list of ALL existing interfaces this interface inherited directly or indirectly
     pub fn get_derived_interfaces_recursive<'i>(&self, index: &'i Index) -> Vec<&'i InterfaceIndexEntry> {
         let mut seen: FxHashSet<&Identifier> = FxHashSet::default();
         let mut queue: VecDeque<&InterfaceIndexEntry> = VecDeque::new();
 
-        // queue.extend(self.get_derived_interfaces(index).into_iter().flatten());
         queue.push_back(self);
         while let Some(interface) = queue.pop_front() {
             if seen.insert(&interface.ident) {

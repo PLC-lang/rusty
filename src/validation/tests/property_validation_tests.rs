@@ -13,11 +13,11 @@ fn invalid_pou_type() {
     );
 
     insta::assert_snapshot!(diagnostics, @r"
-    error[E001]: Methods cannot be declared in a POU of type 'Function'.
+    error[E001]: Properties cannot be declared in a Function
       ┌─ <internal>:2:24
       │
     2 │         FUNCTION foo : DINT
-      │                        ^^^^ Methods cannot be declared in a POU of type 'Function'.
+      │                        ^^^^ Properties cannot be declared in a Function
     ");
 }
 
@@ -251,14 +251,14 @@ fn name_clash_with_parent_variable() {
     );
 
     insta::assert_snapshot!(diagnostics, @r"
-    error[E021]: Name conflict between property and variable `foo` defined in POU `fb2`
+    error[E021]: Name conflict between property and variable `foo` defined in POU `fb1` and `fb2`
       ┌─ <internal>:9:22
       │
     4 │                 foo: DINT;
       │                 --- see also
       ·
     9 │             PROPERTY foo : DINT
-      │                      ^^^ Name conflict between property and variable `foo` defined in POU `fb2`
+      │                      ^^^ Name conflict between property and variable `foo` defined in POU `fb1` and `fb2`
     ");
 }
 
@@ -282,11 +282,11 @@ fn name_clash_with_child_variable() {
     );
 
     insta::assert_snapshot!(diagnostics, @r"
-    error[E021]: Name conflict between property `foo` defined in `fb1` and variable `foo` defined in POU `fb2`
+    error[E021]: Name conflict between property and variable `foo` defined in POU `fb1` and `fb2`
        ┌─ <internal>:3:22
        │
      3 │             PROPERTY foo : DINT
-       │                      ^^^ Name conflict between property `foo` defined in `fb1` and variable `foo` defined in POU `fb2`
+       │                      ^^^ Name conflict between property and variable `foo` defined in POU `fb1` and `fb2`
        ·
     11 │                 foo: DINT;
        │                 --- see also
@@ -294,7 +294,7 @@ fn name_clash_with_child_variable() {
 }
 
 #[test]
-fn name_clash_with_variable_in_parent_chained() {
+fn name_clash_with_property_in_parent_chained() {
     let diagnostics = test_utils::parse_and_validate_buffered(
         r"
         FUNCTION_BLOCK fb1
@@ -305,9 +305,18 @@ fn name_clash_with_variable_in_parent_chained() {
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK fb2 EXTENDS fb1
+            VAR
+                bar : REAL;
+            END_VAR
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK fb3 EXTENDS fb2
+            VAR
+                baz : STRING;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb4 EXTENDS fb3
             VAR
                 foo: DINT;
             END_VAR
@@ -316,19 +325,62 @@ fn name_clash_with_variable_in_parent_chained() {
     );
 
     insta::assert_snapshot!(diagnostics, @r"
-    error[E021]: Name conflict between property `foo` defined in `fb1` and variable `foo` defined in POU `fb3`
+    error[E021]: Name conflict between property and variable `foo` defined in POU `fb1` and `fb4`
        ┌─ <internal>:3:22
        │
      3 │             PROPERTY foo : DINT
-       │                      ^^^ Name conflict between property `foo` defined in `fb1` and variable `foo` defined in POU `fb3`
+       │                      ^^^ Name conflict between property and variable `foo` defined in POU `fb1` and `fb4`
        ·
-    14 │                 foo: DINT;
+    23 │                 foo: DINT;
        │                 --- see also
     ");
 }
 
 #[test]
-fn name_clash_between_properties() {
+fn name_clash_with_variable_in_parent_chained() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb1
+            VAR
+                foo: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2 EXTENDS fb1
+            VAR
+                bar : REAL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb3 EXTENDS fb2
+            VAR
+                baz : STRING;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb4 EXTENDS fb3
+            PROPERTY foo : DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E021]: Name conflict between property and variable `foo` defined in POU `fb1` and `fb4`
+       ┌─ <internal>:21:22
+       │
+     4 │                 foo: DINT;
+       │                 --- see also
+       ·
+    21 │             PROPERTY foo : DINT
+       │                      ^^^ Name conflict between property and variable `foo` defined in POU `fb1` and `fb4`
+    ");
+}
+
+#[test]
+fn overriding_property_in_function_block_with_same_datatype_is_ok() {
     let diagnostics = test_utils::parse_and_validate_buffered(
         r"
         FUNCTION_BLOCK fb1
@@ -351,58 +403,7 @@ fn name_clash_between_properties() {
 }
 
 #[test]
-fn undefined_references_inheritance() {
-    let diagnostics = test_utils::parse_and_validate_buffered(
-        r"
-        FUNCTION_BLOCK parent
-            PROPERTY myProp : DINT
-                GET END_GET
-            END_PROPERTY
-
-            myProp;         // Ok, this represents GET
-            myProp := 5;    // Error, this represents a SET which is not defined in here
-        END_FUNCTION_BLOCK
-
-        FUNCTION_BLOCK child EXTENDS parent
-            PROPERTY myProp : DINT
-                SET END_SET
-            END_PROPERTY
-
-            myProp := 5;            // Ok, this represents a GET which is inherited from the parent
-            myProp := myProp  + 1;  // Ok, this represents a SET that is overriden here
-        END_FUNCTION_BLOCK
-
-        FUNCTION main : DINT
-            VAR
-                parent_fb: parent;
-                child_fb: child;
-            END_VAR
-
-            parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a SET
-            child_fb.myProp := 5;                   // Ok, the `child` FB does define a SET
-            child_fb.myProp := parent_fb.myProp;    // Ok, the `child` FB does define a SET, the `parent` a GET
-            child_fb.myProp := child_fb.myProp + 1; // Ok, the `child` FB does define a SET, inherits the GET from the parent
-        END_FUNCTION
-        ",
-    );
-
-    insta::assert_snapshot!(diagnostics, @r###"
-    error[E048]: Could not resolve reference to myProp
-      ┌─ <internal>:8:13
-      │
-    8 │             myProp := 5;    // Error, this represents a SET which is not defined in here
-      │             ^^^^^^ Could not resolve reference to myProp
-
-    error[E048]: Could not resolve reference to myProp
-       ┌─ <internal>:26:23
-       │
-    26 │             parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a SET
-       │                       ^^^^^^ Could not resolve reference to myProp
-    "###);
-}
-
-#[test]
-fn extends_with_conflicting_signature_in_pou() {
+fn overriding_property_in_function_block_with_different_datatype_is_not_ok() {
     let source = r"
     FUNCTION_BLOCK fb1
         PROPERTY prop : DINT
@@ -445,7 +446,30 @@ fn extends_with_conflicting_signature_in_pou() {
 }
 
 #[test]
-fn extends_with_conflicting_signature_in_interface() {
+fn overriding_property_in_interface_with_same_datatype_is_ok() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        INTERFACE intf1
+            PROPERTY prop : DINT
+                GET END_GET
+            END_PROPERTY
+        END_INTERFACE
+
+        INTERFACE intf2 EXTENDS intf1
+            PROPERTY prop : DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_INTERFACE
+        ",
+    );
+
+    // Essentially we're overriding the property in the child, which is OK because properties are methods
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn overriding_property_in_interface_with_different_datatype_is_not_ok() {
     let source = r"
     INTERFACE intf1
         PROPERTY prop : DINT
@@ -476,7 +500,7 @@ fn extends_with_conflicting_signature_in_interface() {
 }
 
 #[test]
-fn extends_with_conflicting_signature_between_interfaces() {
+fn extending_interface_with_interfaces_with_conflicting_signatures_is_not_ok() {
     let source = r"
     INTERFACE A
         PROPERTY prop : DINT
@@ -633,4 +657,55 @@ fn multiple_levels() {
     33 │         PROPERTY propB : STRING
        │                          ------ see also
     ");
+}
+
+#[test]
+fn undefined_references_inheritance() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK parent
+            PROPERTY myProp : DINT
+                GET END_GET
+            END_PROPERTY
+
+            myProp;         // Ok, this represents GET
+            myProp := 5;    // Error, this represents a SET which is not defined in here
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK child EXTENDS parent
+            PROPERTY myProp : DINT
+                SET END_SET
+            END_PROPERTY
+
+            myProp := 5;            // Ok, this represents a GET which is inherited from the parent
+            myProp := myProp  + 1;  // Ok, this represents a SET that is overriden here
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+            VAR
+                parent_fb: parent;
+                child_fb: child;
+            END_VAR
+
+            parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a SET
+            child_fb.myProp := 5;                   // Ok, the `child` FB does define a SET
+            child_fb.myProp := parent_fb.myProp;    // Ok, the `child` FB does define a SET, the `parent` a GET
+            child_fb.myProp := child_fb.myProp + 1; // Ok, the `child` FB does define a SET, inherits the GET from the parent
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E048]: Could not resolve reference to myProp
+      ┌─ <internal>:8:13
+      │
+    8 │             myProp := 5;    // Error, this represents a SET which is not defined in here
+      │             ^^^^^^ Could not resolve reference to myProp
+
+    error[E048]: Could not resolve reference to myProp
+       ┌─ <internal>:26:23
+       │
+    26 │             parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a SET
+       │                       ^^^^^^ Could not resolve reference to myProp
+    "###);
 }

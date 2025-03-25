@@ -348,10 +348,10 @@ fn parse_pou(
             while matches!(lexer.token, KeywordMethod | KeywordProperty | PropertyConstant) {
                 if !matches!(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
                     let location = lexer.source_range_factory.create_range(lexer.last_range.clone());
+                    let pre = if matches!(lexer.token, KeywordProperty) { "Properties" } else { "Methods" };
 
-                    // TODO: Isn't this a semantic validation rather than a parser / syntax error?
                     lexer.accept_diagnostic(
-                        Diagnostic::new(format!("Methods cannot be declared in a POU of type '{kind}'."))
+                        Diagnostic::new(format!("{pre} cannot be declared in a {kind}"))
                             .with_location(location),
                     );
                 }

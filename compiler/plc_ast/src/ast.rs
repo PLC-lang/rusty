@@ -86,18 +86,6 @@ impl Hash for PropertyBlock {
     }
 }
 
-impl From<&PropertyBlock> for Variable {
-    fn from(value: &PropertyBlock) -> Self {
-        Variable {
-            name: value.ident.name.clone(),
-            data_type_declaration: value.datatype.clone(),
-            initializer: None,
-            address: None,
-            location: value.ident.location.clone(),
-        }
-    }
-}
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct PropertyImplementation {
     pub kind: PropertyKind,

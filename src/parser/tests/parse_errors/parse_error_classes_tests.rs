@@ -28,10 +28,10 @@ fn declaring_methods_in_functions_is_an_error() {
     "#;
     let (_, diagnostics) = parse_buffered(src);
     assert_snapshot!(diagnostics, @r"
-    error[E001]: Methods cannot be declared in a POU of type 'Function'.
+    error[E001]: Methods cannot be declared in a Function
       ┌─ <internal>:2:14
       │
     2 │     FUNCTION bar
-      │              ^^^ Methods cannot be declared in a POU of type 'Function'.
+      │              ^^^ Methods cannot be declared in a Function
     ");
 }
