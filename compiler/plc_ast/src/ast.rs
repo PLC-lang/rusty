@@ -819,6 +819,10 @@ impl MetaData {
     pub fn get_inner(&self) -> &AstNode {
         self.0.as_ref()
     }
+
+    pub fn is_super(&self) -> bool {
+        self.get_inner().is_super()
+    }
 }
 
 #[derive(Clone, PartialEq)]
@@ -1169,6 +1173,18 @@ impl AstNode {
             self.stmt,
             AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(..), .. }, ..)
         )
+    }
+
+    pub fn get_member_access(&self) -> Option<&AstNode> {
+        if let AstStatement::ReferenceExpr(
+            ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
+            ..,
+        ) = &self.stmt
+        {
+            Some(reference)
+        } else {
+            None
+        }
     }
 
     pub fn is_call(&self) -> bool {
