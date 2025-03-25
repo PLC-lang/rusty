@@ -125,7 +125,7 @@ fn chained_super_references_still_report_unresolved_references() {
 }
 
 #[test]
-fn super_accessor_used_in_non_extended_function_block() {
+fn super_accessor_used_in_non_extended_function_block_is_an_error() {
     let diagnostics = parse_and_validate_buffered(
         r"
         FUNCTION_BLOCK fb
@@ -137,11 +137,11 @@ fn super_accessor_used_in_non_extended_function_block() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` can only be used in function blocks that extend another function block
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
       ┌─ <internal>:3:13
       │
     3 │             SUPER^.x := 2;
-      │             ^^^^^ `SUPER` can only be used in function blocks that extend another function block
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
 
     error[E048]: Could not resolve reference to x
       ┌─ <internal>:3:20
@@ -149,16 +149,115 @@ fn super_accessor_used_in_non_extended_function_block() {
     3 │             SUPER^.x := 2;
       │                    ^ Could not resolve reference to x
 
-    error[E119]: `SUPER` can only be used in function blocks that extend another function block
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
       ┌─ <internal>:4:13
       │
     4 │             SUPER;
-      │             ^^^^^ `SUPER` can only be used in function blocks that extend another function block
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
 
-    error[E119]: `SUPER` can only be used in function blocks that extend another function block
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
       ┌─ <internal>:5:13
       │
     5 │             SUPER^;
-      │             ^^^^^ `SUPER` can only be used in function blocks that extend another function block
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
+    ");
+}
+
+#[test]
+fn super_keyword_used_in_non_extendable_pous_is_an_error() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION foo
+            SUPER^.x := 2;
+            SUPER;
+            SUPER^;
+        END_FUNCTION
+
+        PROGRAM prog
+            SUPER^.x := 2;
+            SUPER;
+            SUPER^;
+        END_PROGRAM
+
+        ACTION prog.act
+            SUPER^.x := 2;
+            SUPER;
+            SUPER^;
+        END_ACTION
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
+      ┌─ <internal>:3:13
+      │
+    3 │             SUPER^.x := 2;
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
+
+    error[E048]: Could not resolve reference to x
+      ┌─ <internal>:3:20
+      │
+    3 │             SUPER^.x := 2;
+      │                    ^ Could not resolve reference to x
+
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
+      ┌─ <internal>:4:13
+      │
+    4 │             SUPER;
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
+
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
+      ┌─ <internal>:5:13
+      │
+    5 │             SUPER^;
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
+
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
+      ┌─ <internal>:9:13
+      │
+    9 │             SUPER^.x := 2;
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
+
+    error[E048]: Could not resolve reference to x
+      ┌─ <internal>:9:20
+      │
+    9 │             SUPER^.x := 2;
+      │                    ^ Could not resolve reference to x
+
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
+       ┌─ <internal>:10:13
+       │
+    10 │             SUPER;
+       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
+
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
+       ┌─ <internal>:11:13
+       │
+    11 │             SUPER^;
+       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
+
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
+       ┌─ <internal>:15:13
+       │
+    15 │             SUPER^.x := 2;
+       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
+
+    error[E048]: Could not resolve reference to x
+       ┌─ <internal>:15:20
+       │
+    15 │             SUPER^.x := 2;
+       │                    ^ Could not resolve reference to x
+
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
+       ┌─ <internal>:16:13
+       │
+    16 │             SUPER;
+       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
+
+    error[E119]: `SUPER` can only be used in POUs that extend another POU
+       ┌─ <internal>:17:13
+       │
+    17 │             SUPER^;
+       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
     ");
 }
