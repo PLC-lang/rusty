@@ -125,20 +125,40 @@ fn chained_super_references_still_report_unresolved_references() {
 }
 
 #[test]
-fn calling_super_in_non_extended_function_block() {
+fn super_accessor_used_in_non_extended_function_block() {
     let diagnostics = parse_and_validate_buffered(
         r"
         FUNCTION_BLOCK fb
             SUPER^.x := 2;
+            SUPER;
+            SUPER^;
         END_FUNCTION_BLOCK
     ",
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E001]: `SUPER` can only be used in function blocks that extend another function block
-       ┌─ <internal>:12:13
-       │
-    12 │             SUPER^.x := 2;
-       │             ^^^^^^^^^^ `SUPER` can only be used in function blocks that extend another function block
+    error[E119]: `SUPER` can only be used in function blocks that extend another function block
+      ┌─ <internal>:3:13
+      │
+    3 │             SUPER^.x := 2;
+      │             ^^^^^ `SUPER` can only be used in function blocks that extend another function block
+
+    error[E048]: Could not resolve reference to x
+      ┌─ <internal>:3:20
+      │
+    3 │             SUPER^.x := 2;
+      │                    ^ Could not resolve reference to x
+
+    error[E119]: `SUPER` can only be used in function blocks that extend another function block
+      ┌─ <internal>:4:13
+      │
+    4 │             SUPER;
+      │             ^^^^^ `SUPER` can only be used in function blocks that extend another function block
+
+    error[E119]: `SUPER` can only be used in function blocks that extend another function block
+      ┌─ <internal>:5:13
+      │
+    5 │             SUPER^;
+      │             ^^^^^ `SUPER` can only be used in function blocks that extend another function block
     ");
 }
