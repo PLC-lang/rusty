@@ -136,7 +136,7 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::Super(_) => {
             // this is an unlowered reference to super => the keyword has been used in a non-extended function block
             validator.push_diagnostic(
-                Diagnostic::new("`SUPER` can only be used in POUs that extend another POU")
+                Diagnostic::new("`SUPER` can only be used within a POU that extends another POU")
                     .with_location(statement.get_location())
                     .with_error_code("E119"),
             );
