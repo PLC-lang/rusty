@@ -1175,15 +1175,16 @@ impl AstNode {
         )
     }
 
-    pub fn get_member_access(&self) -> Option<&AstNode> {
-        if let AstStatement::ReferenceExpr(
-            ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
-            ..,
-        ) = &self.stmt
-        {
-            Some(reference)
-        } else {
-            None
+    pub fn get_identifier(&self) -> Option<&AstNode> {
+        if self.is_identifier() {
+            return Some(self);
+        }
+        match &self.stmt {
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
+                ..,
+            ) => reference.get_identifier(),
+            _ => None,
         }
     }
 

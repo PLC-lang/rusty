@@ -51,11 +51,7 @@
 //! END_FUNCTION_BLOCK
 //! ```
 
-use plc::{
-    index::Index,
-    lowering::{create_call_statement, create_member_reference_with_location},
-    resolver::AnnotationMap,
-};
+use plc::{index::Index, lowering::create_call_statement, resolver::AnnotationMap};
 use plc_ast::{
     ast::{
         AstFactory, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType,
@@ -365,26 +361,27 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
             return;
         };
 
-        let AstStatement::Super(deref_marker) = node.get_stmt() else {
+        let old_node = std::mem::take(node);
+        let location = old_node.get_location();
+        let AstStatement::Super(deref_marker) = old_node.get_stmt() else {
             unreachable!("Must be a super statement")
         };
 
-        let new_node = if deref_marker.is_some() {
+        let mut new_node = if deref_marker.is_some() {
             // If the super statement is dereferenced, we can just use the existing base-class instance
-            // AstFactory::create_identifier(&base_type_name, node.get_location(), self.provider().next_id())
-            create_member_reference_with_location(
-                &base_type_name,
-                self.provider().clone(),
+            AstFactory::create_member_reference(
+                AstFactory::create_identifier(&base_type_name, location, self.provider().next_id())
+                    .with_metadata(old_node.into()),
                 None,
-                node.get_location(),
+                self.provider().next_id(),
             )
         } else {
-            // if the super statement is not dereferenced, we need to bitcast to a pointer of the base-class
+            // If the super statement is not dereferenced, we need to bitcast the base-class instance
             create_call_statement("REF", &base_type_name, None, self.provider().clone(), &node.location)
+                .with_metadata(old_node.into())
         };
 
-        let old_node = std::mem::take(node);
-        std::mem::swap(node, &mut new_node.with_metadata(old_node.into()));
+        std::mem::swap(node, &mut new_node);
         let resolver = super::LoweringResolver::new(self.index.unwrap(), self.provider())
             .with_pou(self.ctx.pou.as_deref().unwrap_or_default());
         self.annotations.as_mut().unwrap().import(resolver.resolve_statement(node));
