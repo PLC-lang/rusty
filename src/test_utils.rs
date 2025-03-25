@@ -200,7 +200,15 @@ pub mod tests {
     }
 
     pub fn parse_and_validate_buffered(src: &str) -> String {
-        let diagnostics = parse_and_validate(src);
+        parse_and_validate_with_optional_parser_recovery_buffered(src, true)
+    }
+
+    pub fn parse_and_report_parse_errors_buffered(src: &str) -> String {
+        parse_and_validate_with_optional_parser_recovery_buffered(src, false)
+    }
+
+    fn parse_and_validate_with_optional_parser_recovery_buffered(src: &str, recovery: bool) -> String {
+        let diagnostics = parse_and_validate_with_optional_parser_recovery(src, recovery);
         let mut reporter = Diagnostician::buffered();
 
         reporter.register_file("<internal>".to_string(), src.to_string());
@@ -211,13 +219,17 @@ pub mod tests {
         )
     }
 
-    pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
+    fn parse_and_validate_with_optional_parser_recovery(src: &str, recovery: bool) -> Vec<Diagnostic> {
         let src = SourceCode::from(src);
 
         let mut ctxt = GlobalContext::new();
         ctxt.insert(&src, None).unwrap();
 
         let (unit, index, mut diagnostics) = do_index(src, ctxt.provider());
+        if !(recovery || diagnostics.is_empty()) {
+            // we don't want to continue if we have critical parse errors
+            return diagnostics;
+        }
 
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, ctxt.provider());
