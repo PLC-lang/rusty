@@ -1223,6 +1223,9 @@ impl AstNode {
     }
 
     pub fn can_be_assigned_to(&self) -> bool {
+        if self.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super()) {
+            return false;
+        }
         self.has_direct_access()
             || self.is_flat_reference()
             || self.is_reference()
